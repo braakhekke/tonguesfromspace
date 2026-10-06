@@ -33,6 +33,7 @@ const MIN_STATS_RES = 40;                                           // metres (C
 const DAY = 86400;
 
 let token = null, tokenUntil = 0;                                    // reused while the isolate lives
+const inflight = new Map();                                          // identical requests at the same moment share one fetch and one KV write
 
 export default {
   async fetch(request, env, ctx) {
@@ -60,18 +61,21 @@ export default {
     const hit = await cacheGet(env, key);
     if (hit) return new Response(hit.body, { headers: { ...cors, 'Content-Type': hit.type, 'X-Cache': 'HIT' } });
 
-    // forward to Copernicus
-    const up = upstream(env);
-    let r;
-    try {
-      r = await callCdse(env, up[route], text, route === 'process' ? 'image/jpeg' : 'application/json');
-    } catch (e) {
-      return json({ relayError: e.message }, 502, cors);
+    // forward to Copernicus (shared with identical requests already on their way)
+    let job = inflight.get(key);
+    if (!job) {
+      job = (async () => {
+        const r = await callCdse(env, upstream(env)[route], text, route === 'process' ? 'image/jpeg' : 'application/json');
+        const out = { status: r.status, type: r.headers.get('Content-Type') || 'application/octet-stream', data: await r.arrayBuffer() };
+        if (r.ok) await cachePut(env, key, out.data, out.type, ttlFor(route, body));
+        return out;
+      })();
+      inflight.set(key, job);
+      job.finally(() => inflight.delete(key)).catch(() => {});
     }
-    const type = r.headers.get('Content-Type') || 'application/octet-stream';
-    const data = await r.arrayBuffer();
-    if (r.ok) ctx.waitUntil(cachePut(env, key, data, type, ttlFor(route, body)));
-    return new Response(data, { status: r.status, headers: { ...cors, 'Content-Type': type, 'X-Cache': 'MISS' } });
+    let out;
+    try { out = await job; } catch (e) { return json({ relayError: e.message }, 502, cors); }
+    return new Response(out.data.slice(0), { status: out.status, headers: { ...cors, 'Content-Type': out.type, 'X-Cache': 'MISS' } });
   }
 };
 
@@ -153,11 +157,12 @@ function checkStatistics(b) {
   return null;
 }
 /* Images of a fixed day never change: keep them long. Scene scores of a past summer are final;
-   for the current summer new acquisitions arrive, so they are refreshed every 6 hours. */
+   for the current summer new acquisitions arrive, so they are refreshed once a day
+   (fewer KV writes; the free plan allows 1,000 a day). */
 function ttlFor(route, body) {
   if (route === 'process') return 180 * DAY;
   const year = +body.aggregation.timeRange.from.slice(0, 4);
-  return year < new Date().getUTCFullYear() ? 180 * DAY : 6 * 3600;
+  return year < new Date().getUTCFullYear() ? 180 * DAY : DAY;
 }
 
 /* ---------- cache: KV if bound, otherwise the edge cache ---------- */
