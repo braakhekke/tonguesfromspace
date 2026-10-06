@@ -521,16 +521,37 @@ const LOCAL = location.protocol === 'file:' || ['localhost', '127.0.0.1', ''].in
 const NO_RELAY = LOCAL
   ? 'To load the satellite images, start the dashboard with "python3 scripts/serve.py" and use the page it opens at http://localhost:8000.'
   : 'This site has no connection to Copernicus configured yet, so no satellite images can be shown. The maps, outlines and figures still work.';
-async function cdse(route, body, accept){
-  if (!(await relayInfo()).relay) throw new Error(NO_RELAY);
-  let r;
+/* Copernicus reports errors as {"error": {"status", "reason", "message", "code"}}; the relays as
+   {"relayError": "..."} or {"error": "..."}. Turn any of these into readable text. */
+async function errorText(r){
   try {
-    r = await fetch(relayRoot() + '/' + route, {method:'POST', body:JSON.stringify(body), headers:{'Content-Type':'application/json', 'Accept':accept}});
-  } catch { throw new Error('The connection to Copernicus is not responding. Try again later.'); }
-  if (r.ok) return r;
-  let msg = ''; try { const j = await r.json(); msg = j.relayError || j.error || j.description || ''; } catch {}
-  if (r.status === 429) throw new Error('Copernicus is busy or the monthly quota is used up. Try again later.');
-  throw new Error(`Copernicus ${route === 'statistics' ? 'scene search' : 'image request'} failed (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
+    const j = await r.clone().json();
+    const e = j.relayError || j.error || j;
+    if (typeof e === 'string') return e;
+    return [e.message, e.reason, e.code].filter(Boolean).join(' / ') || JSON.stringify(e).slice(0, 300);
+  } catch {
+    try { return (await r.text()).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 300); } catch { return ''; }
+  }
+}
+async function cdse(route, body, accept, label = ''){
+  if (!(await relayInfo()).relay) throw new Error(NO_RELAY);
+  const what = route === 'statistics' ? 'scene search' : 'image request';
+  // Copernicus server errors (5xx) and rate limits (429) are usually temporary: retry twice
+  for (let attempt = 0; ; attempt++) {
+    let r;
+    try {
+      r = await fetch(relayRoot() + '/' + route, {method:'POST', body:JSON.stringify(body), headers:{'Content-Type':'application/json', 'Accept':accept}});
+    } catch {
+      if (attempt < 2) { await new Promise(res => setTimeout(res, 1500 * (attempt + 1))); continue; }
+      throw new Error('The connection to Copernicus is not responding. Try again later.');
+    }
+    if (r.ok) return r;
+    const msg = await errorText(r);
+    console.error(`Copernicus ${what} ${label} failed: HTTP ${r.status}`, msg, body);
+    if ((r.status >= 500 || r.status === 429) && attempt < 2) { await new Promise(res => setTimeout(res, 2000 * (attempt + 1))); continue; }
+    if (r.status === 429) throw new Error('Copernicus is busy or the monthly quota is used up. Try again later.');
+    throw new Error(`Copernicus ${what}${label ? ' for ' + label : ''} failed (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
+  }
 }
 
 /* ---------- caches: memory first, then IndexedDB so repeat visits cost nothing ---------- */
@@ -585,7 +606,7 @@ async function findScene(g, yr){
                data: [{ type: CDSE.collection, dataFilter: { mosaickingOrder: 'leastCC' } }] },
       aggregation: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-10-01T00:00:00Z` },
                      aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: fp.statsRes, resy: fp.statsRes }
-    }, 'application/json')).json();
+    }, 'application/json', `${g.name}, summer ${yr}`)).json();
     const days = (j.data || []).map(d => {
       try {
         const c = d.outputs.cloud.bands.B0.stats, s = d.outputs.snow.bands.B0.stats;
@@ -620,7 +641,7 @@ function loadImage(g, yr){
                  data: [{ type: CDSE.collection, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' } }] },
         output: { width: fp.w, height: fp.h, responses: [{ identifier:'default', format:{ type:'image/jpeg' } }] },
         evalscript: evalscriptFor(style)
-      }, 'image/jpeg').then(r => r.blob()));
+      }, 'image/jpeg', `${g.name}, ${fmtDate(sc.date)}`).then(r => r.blob()));
       idb.set(key, blob);
       return URL.createObjectURL(blob);
     } finally { pending--; setLoading(); }
