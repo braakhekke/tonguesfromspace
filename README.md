@@ -9,13 +9,15 @@ Created by Jochem Braakhekke for public glacier awareness. See also [For Your Ic
 ## What it does
 
 - **Satellite images:** for every glacier and year, the clearest late-summer Sentinel-2 scene: the best one in September, otherwise August, otherwise July, scored for cloud and snow cover.
+- **Start view:** all of Switzerland with the ten glaciers as red, clickable boxes.
 - **Compare:** swipe between two years.
 - **Timelapse:** play a range of years as an animation.
-- **Map layers:** glacier outline of 1850 and today, a Sentinel-2 summer mosaic around the scene, OpenStreetMap base map, place names. The layer panel can be minimized.
+- **Colours:** true color, false color (near infrared) and Parece (B8A, B1, B12; experimental).
+- **Map layers:** glacier boxes, ice thickness (Grab et al. 2021), glacier outline of 1850 and today, a Sentinel-2 summer mosaic around the scene, OpenStreetMap base map, place names. The layer panel can be minimized.
 - **Measure:** draw lines and areas; lengths and areas are geodesic.
 - **Key figures:** area (about 1850, 1973, 2023) and tongue length change, all from GLAMOS.
-- **Swiss context:** share of the national ice volume lost each year since 2016.
-- **Video for Instagram and TikTok:** a timelapse or a before/after swipe of two years. Frame the tongue on the map and get an MP4 (9:16 for Reels and TikTok, or 4:5 for the Instagram feed) with title, years, scene dates, scale bar, optional 1850 outline, the national volume loss and all credits. Made in the browser; on phones it opens the share sheet.
+- **Swiss context:** share of the national ice volume lost each year since 2016, and **How much water is that?**: the melted ice in litres, compared with swimming pools, Lake Zurich, Switzerland's tap water and each resident's share, plus a live counter.
+- **Create animation:** a timelapse, or a slider between two years, as video for Instagram, TikTok and others. Frame the tongue on the map and get an MP4 (9:16 for Reels and TikTok, or 4:5 for the Instagram feed) with title, years, scene dates, scale bar, optional 1850 outline, the national volume loss and all credits. Made in the browser; on phones it opens the share sheet.
 - **Share:** a link to the current glacier, mode and years.
 - **Phones:** map first, compact controls under the map, two fingers to move the map, landscape layout.
 
@@ -96,7 +98,9 @@ No extra packages are needed. On macOS with the python.org installer, run *Insta
 
 - **Glacier areas and outlines:** GLAMOS Swiss Glacier Inventories 1850, 1973 and 2023, CC BY 4.0.
 - **Length change:** GLAMOS (2025), Swiss Glacier Length Change, release 2025, doi:10.18750/lengthchange.2025.r2025. Free for scientific and non-commercial use, with the source indicated.
-- **Annual volume loss:** GLAMOS and Swiss Academy of Sciences (SCNAT) annual glacier reports.
+- **Annual volume loss:** GLAMOS and Swiss Academy of Sciences (SCNAT) annual glacier reports. National ice volume: 46.4 km³ at the end of 2024 (GLAMOS annual report 2024).
+- **Ice thickness:** Grab, M. et al. (2021), Ice thickness distribution of all Swiss glaciers, Journal of Glaciology 67(266), via the swisstopo map service (layer ch.swisstopo.geologie-gletschermaechtigkeit).
+- **Water use:** SVGW water statistics (about 900–950 million m³ a year; 142 litres per person per day in households).
 - **Imagery:** Copernicus Sentinel-2 Level-1C and Level-2A via the Copernicus Data Space Ecosystem; contains modified Copernicus Sentinel data. Free for any use with attribution.
 - **Background:** Sentinel-2 cloudless 2024 by EOX IT Services GmbH (s2maps.eu), CC BY-NC-SA 4.0.
 - **Base map:** © OpenStreetMap contributors (ODbL), tiles from tile.openstreetmap.org, used under the OpenStreetMap tile usage policy.
