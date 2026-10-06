@@ -6,7 +6,7 @@
 <title>Swiss Glacier Tongues from Space</title>
 <meta name="description" content="Compare and animate Sentinel-2 satellite images of the ten largest Swiss glacier tongues, 2016 to today, with GLAMOS glacier figures.">
 <meta property="og:title" content="Swiss Glacier Tongues from Space">
-<meta property="og:description" content="Watch the tongues of the ten largest Swiss glaciers retreat in Sentinel-2 imagery, from 2016 to the latest available year.">
+<meta property="og:description" content="Watch the tongues of the ten largest Swiss glaciers retreat in satellite imagery, from 2016 to present day.">
 <meta property="og:type" content="website">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -218,7 +218,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     <div class="brand">
       <h1>Swiss Glacier Tongues from Space</h1>
       <p>Watch the tongues of the ten largest Swiss glaciers retreat in Sentinel-2 imagery, from 2016 to the latest available year.</p>
-      <p class="byline">Created by <strong>J. Braakhekke</strong> for public glacier awareness. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+      <p class="byline">Created by <strong>J. Braakhekke</strong> - for public glacier awareness. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
     </div>
 
     <div class="group">
@@ -1044,7 +1044,7 @@ function renderGlacierList(){
     li.appendChild(b); ul.appendChild(li);
   });
   document.getElementById('rankNote').textContent = DATA
-    ? `Ranked by area according to the latest SGI inventory (${DATA.latest_label}, GLAMOS)`
+    ? `Ranked by area according to the latest Swiss Glacier Inventory (${DATA.latest_label}, GLAMOS)`
     : 'Ranked by area according to the SGI inventory (SGI2016, GLAMOS). Run scripts/build_outlines.py to switch to the latest inventory, SGI2023.';
 }
 
