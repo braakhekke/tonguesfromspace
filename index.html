@@ -156,7 +156,13 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .gbox-num{background:var(--accent);color:#fff;font:800 13px/24px var(--sans);width:24px;height:24px;border-radius:50%;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.45);border:2px solid #fff;cursor:pointer}
 .gbox-num.sel{background:#fff;color:var(--accent);border-color:var(--accent)}
 .gbox-tip{font-family:var(--sans);font-weight:600;font-size:12.5px}
-.thick-legend{display:block;max-width:180px;margin:0 0 8px 26px;background:#fff;border-radius:4px}
+.thick-card{position:absolute;left:12px;bottom:34px;z-index:664;background:rgba(255,255,255,.96);border-radius:8px;padding:8px 10px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:210px;max-height:45%;overflow:auto}
+.thick-card strong{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.thick-card span{display:block;font-size:11px;color:var(--moraine);margin:1px 0 6px}
+.thick-card img{display:block;max-width:100%}
+.thick-card a{font-size:12px;color:var(--crevasse)}
+.thick-img{border-radius:14px}
+@media (max-width:720px){.thick-card{bottom:84px;left:8px;max-width:160px;padding:6px 8px}}
 .layerbox .toggle{font-size:12.5px;margin-bottom:4px}
 .layerbox .hint{font-size:11.5px;margin:2px 0 2px}
 .layerbox .hint:empty{display:none}
@@ -220,6 +226,13 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .water .w-icons{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
 .water .w-icons svg{width:22px;height:22px}
 .water .w-key{font-size:11.5px;color:var(--moraine)}
+.gwater{margin-top:10px}
+.gwater .w-hero{font-size:28px}
+.g-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 8px}
+.g-row div{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:8px 6px;text-align:center}
+.g-row b{display:block;font-size:15px;white-space:nowrap;color:var(--rock);font-variant-numeric:tabular-nums}
+.g-row span{display:block;font-size:11px;color:var(--moraine);margin-top:2px;line-height:1.25}
+@media (max-width:720px){.g-row{grid-template-columns:repeat(2,1fr)}}
 .water .w-live{margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);font-size:12.5px;color:var(--rock)}
 .water .w-live b{color:var(--accent);font-variant-numeric:tabular-nums}
 .span-note{font-size:13px;background:var(--firn);border-radius:6px;padding:10px 12px;margin:0 0 6px}
@@ -486,7 +499,6 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline today</span></span></label>
       <label class="toggle"><input type="checkbox" id="boxToggle" checked> <span><i class="swatch" style="border-color:var(--accent)"></i> Glacier boxes</span></label>
       <label class="toggle"><input type="checkbox" id="thickToggle"> <span>Ice thickness <small style="color:var(--moraine)">(Grab et al. 2021)</small></span></label>
-      <img id="thickLegend" class="thick-legend" alt="Ice thickness legend" hidden>
       <label class="toggle"><input type="checkbox" id="mosaicToggle" checked> <span>Sentinel-2 background</span></label>
       <label class="toggle"><input type="checkbox" id="osmToggle" checked> <span>OpenStreetMap</span></label>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
@@ -509,6 +521,11 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     </div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
+    <div class="thick-card" id="thickCard" hidden>
+      <strong>Ice thickness</strong><span>state around 2016, Grab et al. 2021</span>
+      <img id="thickLegend" alt="Legend: ice thickness in metres">
+      <a id="thickLegendLink" href="https://map.geo.admin.ch/?layers=ch.swisstopo.geologie-gletschermaechtigkeit" target="_blank" rel="noopener" hidden>Legend on map.geo.admin.ch</a>
+    </div>
     <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span></div>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
   </main>
@@ -799,10 +816,10 @@ function evaluatePixel(s){
    unnatural in the mountains. Colours: the Copernicus Browser "true color" process with these settings
    (Rayleigh correction, soft contrast curve around midR, gamma with offset, saturation boost, sRGB):
    maxR 3, midR 0.13, sat 1.3, gamma 2.3, gOff 0.01, ray 0.013 / 0.024 / 0.041 for red / green / blue. */
-const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray: { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0, B8A: 0, B01: 0.05, B12: 0 } };
+const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray: { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0, B8A: 0, B11: 0, B12: 0 } };
 /* band combinations as red, green, blue */
-const STYLE_BANDS = { true: ['B04','B03','B02'], false: ['B08','B04','B03'], parece: ['B8A','B01','B12'] };
-const STYLE_LABEL = { true: '', false: ', false color', parece: ', Parece (B8A, B1, B12)' };
+const STYLE_BANDS = { true: ['B04','B03','B02'], false: ['B08','B04','B03'], parece: ['B8A','B11','B12'] };
+const STYLE_LABEL = { true: '', false: ', false color', parece: ', Parece (B8A, B11, B12)' };
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style){
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.true;
@@ -945,7 +962,7 @@ const runQueue = () => { while (active < 3 && queue.length) { active++; const jo
 const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
 function loadImage(g, yr){
   const sc = state.available[yr], style = state.style, fp = imageFootprint(g);
-  const key = `${CDSE.version}|img|${style}|${g.id}|${sc.date}|${fp.bbox.join(',')}`;
+  const key = `${CDSE.version}|img|${style}-${(STYLE_BANDS[style] || []).join('')}|${g.id}|${sc.date}|${fp.bbox.join(',')}`;
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
@@ -1358,7 +1375,7 @@ function renderMode(){
   document.getElementById('styleNote').textContent = {
     true: 'Natural colors, as the eye would see them.',
     false: 'Near infrared shown as red: vegetation red, snow white, glacier ice cyan to blue, water and wet debris dark.',
-    parece: 'Experimental: B8A (narrow near infrared) as red, B1 (coastal aerosol) as green, B12 (shortwave infrared) as blue.'
+    parece: 'Experimental: B8A (narrow near infrared) as red, B11 and B12 (shortwave infrared) as green and blue. Snow and ice look dark here, rock and vegetation bright.'
   }[state.style];
 }
 function setStyle(st){
@@ -1432,6 +1449,7 @@ function renderStory(){
       onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></h3>
     <div id="kfNote" hidden>${keyFiguresNote()}</div>
     ${statsHtml}
+    <div id="gWater"></div>
     <p class="body">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself. Measurements are geodesic, so they stay correct at any zoom.</p>
 
     <h3>All Swiss glaciers: share of ice volume lost each year</h3>
@@ -1465,6 +1483,7 @@ function renderStory(){
       Annual volume loss: GLAMOS and Swiss Academy of Sciences annual glacier reports. National ice volume: GLAMOS annual report 2024 (46.4 km³ at the end of 2024). Ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo. Water use: SVGW water statistics.
     </p>`;
   wireWater();
+  renderGlacierWater();
 }
 
 /* ---------- Copernicus Browser deep link ---------- */
@@ -1550,6 +1569,68 @@ function renderStats(g){
     <p class="src">Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label}, ${DATA.mid_label || 'SGI1973'} and ${DATA.latest_label}` : '1850, 1973 and 2016'}.
       Length change: GLAMOS length-change series, measured at the glacier tongue; negative values mean retreat. Surveys can span several years.</p>`;
 }
+/* ---------- ice volume of the selected glacier: Grab et al. (2021), from the swisstopo map service ----------
+   map.geo.admin.ch shows area, volume and maximum / mean ice thickness per glacier for the thickness layer.
+   The page asks that service for the glacier at its tongue and keeps a value only if
+   - the returned glacier name matches the selected glacier,
+   - the volume, read as km³ / million m³ / m³ by its size, gives a mean thickness of 10-500 m for the area. */
+const glacierVolume = (() => {
+  const cache = new Map();
+  const pickNum = (attrs, re) => { for (const [k, v] of Object.entries(attrs)) if (re.test(k) && Number.isFinite(+v) && +v > 0) return +v; return null; };
+  const toKm3 = v => v < 100 ? v : v < 1e6 ? v / 1000 : v / 1e9;
+  const toM = v => v;                                     // thickness is reported in metres
+  return g => {
+    if (cache.has(g.id)) return cache.get(g.id);
+    const p = (async () => {
+      const hit = await idb.get(`vol|${g.id}`);
+      if (hit && hit.km3) return hit;
+      const pts = [g.tongue, g.center].filter(Boolean);
+      for (const [lat, lng] of pts) {
+        const d = 0.002, url = 'https://api3.geo.admin.ch/rest/services/all/MapServer/identify?' + new URLSearchParams({
+          geometry: `${lng},${lat}`, geometryType: 'esriGeometryPoint', sr: '4326', tolerance: '10', returnGeometry: 'false', lang: 'en',
+          layers: `all:${THICK_LAYER}`, imageDisplay: '400,400,96', mapExtent: `${lng - d},${lat - d},${lng + d},${lat + d}` });
+        let j; try { j = await (await fetch(url)).json(); } catch { continue; }
+        for (const r of (j.results || [])) {
+          const a = r.attributes || r.properties || {};
+          const name = Object.entries(a).find(([k]) => /name/i.test(k)), sgi = Object.entries(a).find(([k]) => /sgi/i.test(k));
+          // strict match: same inventory id, or the same full name without words for "glacier" (Oberaletsch is not Aletsch)
+          const core = t => norm(t).replace(/\(.*?\)/g, '').replace(/gletscher|glacier|ghiacciaio|vadret|glatscher|\b(da|de|du|des|del|la|le|vs|be|gr)\b|[^a-z]/g, '');
+          const sameId = sgi && g.inv && g.inv.id && String(sgi[1]).replace(/[^A-Za-z0-9]/g, '') === String(g.inv.id).replace(/[^A-Za-z0-9]/g, '');
+          const ok = sameId || (name && core(String(name[1])) && core(String(name[1])) === core(g.local || g.name));
+          const vol = pickNum(a, /vol/i), area = pickNum(a, /area|flaech|surf/i);
+          if (!ok || !vol) { console.info('Ice volume: no usable match in', a); continue; }
+          const km3 = toKm3(vol), areaKm2 = area || rankArea(g), mean = km3 * 1e9 / (areaKm2 * 1e6);
+          if (mean < 10 || mean > 500) { console.info('Ice volume rejected (implausible mean thickness)', a); continue; }
+          const res = { km3, max: toM(pickNum(a, /max/i)), mean: Math.round(mean), name: name ? name[1] : g.name };
+          idb.set(`vol|${g.id}`, res);
+          return res;
+        }
+      }
+      return null;
+    })();
+    cache.set(g.id, p);
+    return p;
+  };
+})();
+function renderGlacierWater(){
+  const g = currentGlacier(), slot = document.getElementById('gWater');
+  if (!slot) return;
+  glacierVolume(g).then(v => {
+    if (!v || currentGlacier() !== g) return;
+    const litres = v.km3 * 0.9 * 1e12;
+    slot.innerHTML = `<section class="water gwater">
+      <div class="w-hero">${fmtN(litres, 1)} litres<small>of fresh water are stored in ${g.name} as about ${v.km3.toFixed(2)} km³ of ice (state around 2016)</small></div>
+      <div class="g-row">
+        <div><b>${(n => n >= 1e6 ? (n / 1e6).toFixed(1) + ' M' : n >= 1e3 ? Math.round(n / 1e3) + ' k' : Math.round(n))(litres / POOL_L)}</b><span>Olympic pools</span></div>
+        <div><b>${(v.km3 * 0.9 / LAKE_ZURICH_KM3 * 100).toFixed(0)} %</b><span>of Lake Zurich</span></div>
+        <div><b>${(v.km3 * 0.9 / SWISS_SUPPLY_KM3).toFixed(1)}</b><span>years of Swiss tap water</span></div>
+        ${v.max ? `<div><b>${Math.round(v.max)} m</b><span>thickest ice</span></div>` : `<div><b>${v.mean} m</b><span>mean thickness</span></div>`}
+      </div>
+      <p class="w-key">Ice volume: Grab et al. (2021) via swisstopo. 1 km³ of ice gives about 0.9 trillion litres of water.</p>
+    </section>`;
+  });
+}
+
 /* ---------- "How much water is that?" ---------- */
 const W_ICONS = {
   pool: '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="2" fill="#5FB8D9"/><path d="M4 12c2-1.5 4 1.5 6 0s4 1.5 6 0 4 1.5 4 0" stroke="#fff" stroke-width="1.4" fill="none"/></svg>',
@@ -1681,15 +1762,32 @@ drawBoxes();
 
 /* ---------- ice thickness: Grab et al. (2021), SwissGlacierThickness-R2020, served by swisstopo ---------- */
 const THICK_LAYER = 'ch.swisstopo.geologie-gletschermaechtigkeit';
-const thickness = L.tileLayer.wms('https://wms.geo.admin.ch/', {layers: THICK_LAYER, format: 'image/png', transparent: true,
-  pane: 'thickPane', opacity: 0.8, maxZoom: 17, attribution: 'Ice thickness: Grab et al. 2021 (GLAMOS, swisstopo)'});
+let thickImg = null;
+/* One WMS image with exactly the extent of the satellite scene: lines up with it and shows nothing outside. */
+function thicknessUrl(fp){
+  const k = Math.min(1, 2000 / Math.max(fp.w, fp.h));
+  return 'https://wms.geo.admin.ch/?' + new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.3.0', REQUEST: 'GetMap', LAYERS: THICK_LAYER, STYLES: '',
+    CRS: 'EPSG:3857', BBOX: fp.bbox.join(','), WIDTH: Math.round(fp.w * k), HEIGHT: Math.round(fp.h * k), FORMAT: 'image/png', TRANSPARENT: 'TRUE' });
+}
+const LEGEND_URLS = [`https://api3.geo.admin.ch/static/images/legends/${THICK_LAYER}_en.png`, `https://api3.geo.admin.ch/static/images/legends/${THICK_LAYER}_de.png`,
+  `https://wms.geo.admin.ch/?SERVICE=WMS&REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=${THICK_LAYER}&lang=en`];
+function loadLegend(){
+  const img = document.getElementById('thickLegend'), link = document.getElementById('thickLegendLink');
+  if (img.dataset.tried) return;
+  img.dataset.tried = '1';
+  let i = 0;
+  img.onerror = () => { if (++i < LEGEND_URLS.length) img.src = LEGEND_URLS[i]; else { img.hidden = true; link.hidden = false; } };
+  img.src = LEGEND_URLS[0];
+}
 function setThickness(){
-  const on = document.getElementById('thickToggle').checked, leg = document.getElementById('thickLegend');
-  if (on && !map.hasLayer(thickness)) thickness.addTo(map);
-  if (!on && map.hasLayer(thickness)) map.removeLayer(thickness);
-  if (on && !leg.src) { leg.onerror = () => { leg.hidden = true; };
-    leg.src = `https://wms.geo.admin.ch/?SERVICE=WMS&REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=${THICK_LAYER}&lang=en`; }
-  leg.hidden = !on;
+  const on = document.getElementById('thickToggle').checked;
+  if (thickImg) { map.removeLayer(thickImg); thickImg = null; }
+  if (on) {
+    const fp = imageFootprint(currentGlacier());
+    thickImg = L.imageOverlay(thicknessUrl(fp), fp.bounds, {pane: 'thickPane', opacity: 0.8, interactive: false, className: 'thick-img'}).addTo(map);
+    loadLegend();
+  }
+  document.getElementById('thickCard').hidden = !on;
   updateCredits();
 }
 document.getElementById('thickToggle').checked = prefs.thick === true;
@@ -1721,7 +1819,7 @@ const $ = id => document.getElementById(id);
 function chooseGlacier(id){
   if (state.glacier === id) { stopPlay(); return focusTongue(); }
   stopPlay();
-  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); focusTongue(); writeHash();
+  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); setThickness(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
 function yearOptions(sel, key, range){
