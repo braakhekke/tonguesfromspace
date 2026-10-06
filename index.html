@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Swiss Glacier Tongues from Space</title>
+<meta name="description" content="Compare and animate Sentinel-2 satellite images of the ten largest Swiss glacier tongues, 2016 to today, with GLAMOS glacier figures.">
+<meta property="og:title" content="Swiss Glacier Tongues from Space">
+<meta property="og:description" content="Watch the tongues of the ten largest Swiss glaciers retreat in Sentinel-2 imagery, from 2016 to the latest available year.">
+<meta property="og:type" content="website">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;800&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<!--
+  Swiss glacier comparison dashboard
+  ----------------------------------
+  Files that belong together:
+    swiss-glacier-compare.html  this page
+    glaciers.js                 optional, made by build_outlines.py: top-10 ranking from the newest
+                                Swiss Glacier Inventory plus oldest/newest outlines (GLAMOS, CC BY 4.0)
+  Imagery sources (pick in the left panel):
+    EOX   EOxCloudless annual Sentinel-2 mosaics. 2016 CC BY 4.0, 2018+ CC BY-NC-SA 4.0 (non-commercial).
+          No 2017 mosaic exists. New years appear automatically when EOX publishes them.
+    Copernicus Browser deep links (right panel) for single-date scenes. No account or instance ID needed in this page.
+-->
+<style>
+:root{
+  --firn:#F1F5F6; --sheet:#FFFFFF; --rock:#22313A; --moraine:#6B7378;
+  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#D9E1E4;
+  --old:#F2A93B; --new:#5FE0F0; --measure:#FFD84D;
+  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --serif:"Newsreader",Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{height:100%;margin:0}
+:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+body{background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:15px;line-height:1.45}
+button,select,input{font:inherit;color:inherit}
+:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.app{display:grid;grid-template-columns:290px minmax(0,1fr) 380px;height:100%}
+
+/* ---------- left ---------- */
+.controls{background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
+.brand h1{font-size:21px;line-height:1.15;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+.brand p{margin:0;color:var(--moraine);font-size:13.5px}
+.group h2{font-size:13.5px;font-weight:600;margin:0 0 10px}
+.hint{font-size:12.5px;color:var(--moraine);margin:8px 0 0}
+.glaciers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+.glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;gap:6px;text-align:left;padding:7px 10px;border:0;background:none;border-radius:6px;cursor:pointer}
+.glaciers button:hover{background:var(--firn)}
+.glaciers button[aria-pressed="true"]{background:var(--ice)}
+.glaciers .rank{color:var(--moraine);font-variant-numeric:tabular-nums;font-size:13px}
+.glaciers .name{font-weight:600}
+.glaciers .area{color:var(--moraine);font-size:12.5px;font-variant-numeric:tabular-nums}
+
+.segment{display:grid;grid-template-columns:1fr 1fr;background:var(--firn);border-radius:8px;padding:3px}
+.segment button:disabled{color:#A9B1B5;cursor:not-allowed}
+.segment button{border:0;background:none;padding:8px 0;border-radius:6px;cursor:pointer;font-weight:500}
+.segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:0 1px 3px rgba(34,49,58,.18);font-weight:600}
+
+.side-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.side-label span{font-size:12.5px;color:var(--moraine)}
+.years{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.years button{padding:7px 0;border:1px solid var(--rule);background:var(--sheet);border-radius:5px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:13.5px}
+.years button:hover:not(:disabled){border-color:var(--crevasse)}
+.years button[aria-pressed="true"]{background:var(--rock);color:#fff;border-color:var(--rock)}
+.years button.in-range{background:var(--ice);border-color:var(--ice)}
+.years button:disabled{color:#B6BEC2;background:var(--firn);border-color:var(--firn);cursor:not-allowed;pointer-events:none}
+.years button:disabled.missing{text-decoration:line-through}
+.stack{display:flex;flex-direction:column;gap:18px}
+.row{display:flex;gap:8px;align-items:center}
+.play{flex:1;border:0;background:var(--rock);color:#fff;border-radius:6px;padding:9px 12px;cursor:pointer;font-weight:600}
+.play:disabled{opacity:.4;cursor:not-allowed}
+select.small{border:1px solid var(--rule);border-radius:6px;padding:8px;background:var(--sheet)}
+.frame{width:100%;accent-color:var(--rock)}
+.slider-row{display:flex;justify-content:space-between;font-size:13.5px;margin:4px 0 2px}
+.slider-row output{color:var(--moraine);font-variant-numeric:tabular-nums}
+.toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer;margin-bottom:6px}
+.toggle input:disabled + span{color:#A9B1B5}
+.hint .warn{color:var(--loss);font-weight:600}
+.hint code{font-size:11.5px;background:var(--firn);padding:1px 4px;border-radius:3px}
+.swatch{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle}
+.status{font-size:12.5px;color:var(--moraine)}
+.colophon{margin-top:auto;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--moraine)}
+.colophon p{margin:0 0 10px}
+.colophon strong{color:var(--rock);font-weight:600}
+.brand .byline{margin-top:10px;font-size:12.5px;color:var(--rock)}
+.brand .byline a{color:var(--crevasse);font-weight:600}
+.fyi{display:block;text-decoration:none;color:var(--rock);background:#FFF6DA;border:1px solid #F3DE94;border-radius:8px;padding:10px 12px}
+.fyi:hover{border-color:#E2B93B}
+.fyi-ask{display:block;font-size:12.5px;color:var(--rock);margin-bottom:4px}
+.fyi-name{display:block;font-weight:800;font-size:14px;letter-spacing:-.01em}
+.fyi-text{display:block;font-size:12px;color:var(--moraine);margin-top:2px;line-height:1.4}
+details.source{border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
+details.source summary{cursor:pointer;font-size:13.5px;font-weight:600}
+details.source summary span{font-weight:400;color:var(--moraine)}
+details.source label.toggle{display:flex;color:var(--rock)}
+details.source input:not([type=checkbox]),details.source select{width:100%;border:1px solid var(--rule);border-radius:6px;padding:7px 8px;background:var(--sheet)}
+details.source .apply{margin-top:12px;width:100%;border:1px solid var(--rock);background:var(--rock);color:#fff;border-radius:6px;padding:8px;cursor:pointer;font-weight:600}
+details.token-alt{margin-top:8px}
+details.token-alt summary{font-size:12.5px;font-weight:500;color:var(--crevasse);cursor:pointer}
+details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:10px 0 4px}
+
+/* ---------- centre ---------- */
+.stage{position:relative;min-height:0;background:#1d2a31}
+#map{position:absolute;inset:0;background:#1d2a31}
+.leaflet-container{font-family:var(--sans)}
+.year-tag{position:absolute;top:14px;z-index:650;color:#fff;font-weight:800;font-size:clamp(34px,5vw,64px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-shadow:0 1px 14px rgba(0,0,0,.55);pointer-events:none}
+.year-tag small{display:block;font-size:12px;font-weight:500;letter-spacing:0;margin-top:6px;opacity:.85}
+#tagA,#tagT{left:18px}
+#tagB{right:18px;text-align:right}
+.divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:640;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.4)}
+.handle{position:absolute;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;z-index:660;display:grid;place-items:center;cursor:ew-resize;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.35);border:0}
+.handle svg{width:20px;height:20px;stroke:var(--rock)}
+.is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
+#tagT{display:none}
+.is-timelapse #tagT{display:block}
+.tl-dots{display:flex;gap:4px;margin-top:10px}
+.tl-dots i{display:block;width:16px;height:4px;border-radius:2px;background:rgba(255,255,255,.35)}
+.tl-dots i.on{background:#fff}
+
+.mapbar{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);z-index:670;display:flex;align-items:center;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:calc(100% - 24px);overflow-x:auto}
+.mapbar button{border:0;background:none;padding:6px 10px;border-radius:5px;cursor:pointer;font-size:14px;white-space:nowrap}
+.mapbar button:hover{background:var(--firn)}
+.mapbar button[aria-pressed="true"]{background:var(--rock);color:#fff}
+.mapbar .zoom{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--moraine)}
+.mapbar .sep{width:1px;height:20px;background:var(--rule);margin:0 4px;flex:none}
+.measure-hint{position:absolute;top:96px;left:50%;transform:translateX(-50%);z-index:670;background:var(--rock);color:#fff;border-radius:8px;padding:8px 8px 8px 14px;font-size:13.5px;display:none;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.3);max-width:calc(100% - 24px)}
+.measure-hint.show{display:flex}
+.measure-hint button{border:0;border-radius:5px;padding:5px 10px;cursor:pointer;background:#fff;color:var(--rock);font-weight:600}
+.measure-hint button.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
+.measuring #map{cursor:crosshair}
+.measuring .leaflet-outlines-pane *{pointer-events:none!important}
+.legend{position:absolute;right:10px;bottom:116px;z-index:660;background:rgba(255,255,255,.94);border-radius:6px;padding:8px 10px;font-size:12.5px;display:none;line-height:1.7}
+.legend.show{display:block}
+.notice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:680;background:var(--sheet);border-radius:8px;padding:16px 18px;max-width:360px;font-size:14px;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.notice.show{display:block}
+.credits{position:absolute;left:0;right:0;bottom:0;z-index:665;background:rgba(255,255,255,.88);color:var(--rock);font-size:11px;line-height:20px;height:20px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border:0;text-align:left;width:100%}
+.credits.open{height:auto;white-space:normal;padding:4px 10px}
+.credits a{color:var(--crevasse)}
+.leaflet-control-scale{margin-bottom:84px!important;margin-right:12px!important}
+.leaflet-control-scale-line{background:rgba(255,255,255,.9);border-color:var(--rock);color:var(--rock);font-family:var(--sans);font-weight:500}
+.m-label{background:var(--rock);color:#fff;border:0;border-radius:5px;font-family:var(--sans);font-size:12.5px;font-weight:600;padding:3px 7px;box-shadow:none}
+.m-label::before{display:none}
+.leaflet-popup-content{font-family:var(--sans);font-size:13.5px;margin:10px 14px}
+
+/* ---------- right ---------- */
+.story{background:var(--sheet);border-left:1px solid var(--rule);overflow-y:auto;padding:24px 26px 40px}
+.story h2{font-size:30px;line-height:1.05;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
+.story .sub{color:var(--moraine);font-size:13.5px;margin:0 0 18px}
+.story .lede{font-family:var(--serif);font-size:17.5px;line-height:1.55;margin:0 0 22px}
+.story h3{font-size:14px;font-weight:600;margin:28px 0 10px;padding-top:16px;border-top:1px solid var(--rule)}
+.story p.body{font-family:var(--serif);font-size:16px;line-height:1.6;margin:0 0 12px}
+.stats{display:flex;flex-direction:column;gap:16px}
+.stat-group h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;font-weight:600;color:var(--moraine)}
+.stat-group .ico{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--ice);color:var(--crevasse)}
+.stat-group .ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.kf-note{font-size:12.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
+.stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
+.stat .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.stat .v small{font-size:12px;font-weight:500}
+.stat .k{font-size:11.5px;color:var(--moraine);line-height:1.3;display:flex;align-items:center;gap:4px}
+.stat .k.note{font-style:italic;display:block}
+.stat .mini{display:inline-flex;width:12px;height:12px;flex:none}
+.stat .mini svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.stat.loss .mini{color:var(--loss)}
+.stat.loss .v{color:var(--loss)}
+.stat-group:last-child .ico{background:#F6DCDA;color:var(--loss)}
+.stat-group .ico{flex:none}
+.facts{width:100%;border-collapse:collapse;font-size:14px}
+.facts th{text-align:left;font-weight:400;color:var(--moraine);padding:7px 0;border-bottom:1px solid var(--rule);width:58%}
+.facts td{text-align:right;padding:7px 0;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;font-weight:500}
+.facts td.loss{color:var(--loss)}
+.span-note{font-size:13.5px;background:var(--firn);border-radius:6px;padding:10px 12px;margin:0 0 6px}
+.span-note strong{color:var(--loss)}
+.bars{display:flex;flex-direction:column;gap:5px;margin:6px 0 8px}
+.bar{display:grid;grid-template-columns:42px 1fr 50px;align-items:center;gap:8px;font-size:13px;font-variant-numeric:tabular-nums}
+.bar .track{height:12px;background:var(--firn);border-radius:2px;overflow:hidden}
+.bar .fill{display:block;height:100%;background:#9DB3BE;border-radius:2px}
+.bar.in-range .fill{background:var(--loss)}
+.bar.in-range span:first-child{font-weight:600}
+.bar .v{text-align:right}
+.cb-links{display:flex;flex-direction:column;gap:6px}
+.cb{border:1px solid var(--rock);background:var(--sheet);border-radius:6px;padding:8px 12px;cursor:pointer;text-align:left;font-size:13.5px}
+.cb:hover{background:var(--firn)}
+.src{font-size:12.5px;color:var(--moraine);line-height:1.5}
+.src a{color:var(--crevasse)}
+
+@media (max-width:1100px){
+  .app{grid-template-columns:270px minmax(0,1fr);height:auto}
+  .story{grid-column:1 / -1;border-left:0;border-top:1px solid var(--rule)}
+  .stage,.controls{height:82vh}
+}
+@media (max-width:720px){
+  .app{grid-template-columns:1fr}
+  .controls{height:auto;border-right:0;border-bottom:1px solid var(--rule)}
+  .stage{height:72vh}
+  .years{grid-template-columns:repeat(6,1fr)}
+  .measure-hint{top:80px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="gammaFx" color-interpolation-filters="sRGB"><feComponentTransfer>
+    <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncG type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncB type="gamma" amplitude="1" exponent="1" offset="0"/>
+  </feComponentTransfer></filter>
+</svg>
+<div class="app" id="app">
+
+  <!-- ================= LEFT ================= -->
+  <aside class="controls" aria-label="Settings">
+    <div class="brand">
+      <h1>Swiss Glacier Tongues from Space</h1>
+      <p>Watch the tongues of the ten largest Swiss glaciers retreat in Sentinel-2 imagery, from 2016 to the latest available year.</p>
+      <p class="byline">Created by <strong>J. Braakhekke</strong> for public glacier awareness. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+    </div>
+
+    <div class="group">
+      <h2>Glacier</h2>
+      <ul class="glaciers" id="glacierList"></ul>
+      <p class="hint" id="rankNote"></p>
+    </div>
+
+    <div class="group">
+      <h2>Imagery source</h2>
+      <p class="hint" style="margin:0 0 10px">Select where the satellite images come from. EOX works right away. Copernicus needs a free account, but has every year from 2016 and allows commercial use.</p>
+    <details class="source" id="sourceBox">
+      <summary>Selected: <span id="sourceName">EOX annual mosaics</span></summary>
+      <label for="sourceSel">Source</label>
+      <select id="sourceSel">
+        <option value="eox">EOX annual mosaics (no account, non-commercial)</option>
+        <option value="cdse">Copernicus quarterly mosaics, Jul–Sep (CDSE account)</option>
+      </select>
+      <div id="eoxInfo">
+        <p class="hint">EOxCloudless yearly cloud-free Sentinel-2 mosaics. 2016 is CC BY 4.0; later years are CC BY-NC-SA 4.0, so non-commercial use only. Only years EOX has actually published can be selected.</p>
+      </div>
+      <div id="cdseFields" hidden>
+        <p class="hint">Sentinel-2 quarterly cloudless mosaics from the Copernicus Data Space Ecosystem, using the July–September quarter of each year. Free for any use, including commercial. Every year from 2016 appears, and new ones are picked up automatically.</p>
+        <label for="cdseId">OAuth client ID</label>
+        <input id="cdseId" autocomplete="off" spellcheck="false" placeholder="sh-…">
+        <label for="cdseSecret">OAuth client secret</label>
+        <input id="cdseSecret" type="password" autocomplete="off" spellcheck="false">
+        <label class="toggle" style="margin-top:10px"><input type="checkbox" id="cdseRemember"> <span>Remember on this device</span></label>
+        <details class="token-alt"><summary>Or paste an access token</summary>
+          <label for="cdseToken">Access token (expires after about 10 minutes)</label>
+          <input id="cdseToken" autocomplete="off" spellcheck="false">
+        </details>
+        <p class="hint">Create the client once in the Sentinel Hub section of your CDSE dashboard (shapps.dataspace.copernicus.eu → User settings → OAuth clients). Locally, start the dashboard with <strong>python3 scripts/serve.py</strong>; browsers block the Copernicus login otherwise. Credentials stay in this browser and go only to Copernicus, via serve.py on your own computer.</p>
+      </div>
+      <button type="button" class="apply" id="applySource">Use this source</button>
+    </details>
+    </div>
+
+    <div class="group">
+      <div class="segment" role="group" aria-label="View mode">
+        <button type="button" id="modeCompare" aria-pressed="true">Compare</button>
+        <button type="button" id="modeTimelapse" aria-pressed="false">Timelapse</button>
+      </div>
+    </div>
+
+    <div class="stack" id="compareControls">
+      <div class="group">
+        <div class="side-label"><h2>Left image</h2><span>before</span></div>
+        <div class="years" id="yearsA" role="group" aria-label="Year for left image"></div>
+      </div>
+      <div class="group">
+        <div class="side-label"><h2>Right image</h2><span>after</span></div>
+        <div class="years" id="yearsB" role="group" aria-label="Year for right image"></div>
+      </div>
+    </div>
+
+    <div class="stack" id="timelapseControls" hidden>
+      <div class="group">
+        <div class="side-label"><h2>From</h2><span>first frame</span></div>
+        <div class="years" id="yearsFrom" role="group" aria-label="First year of timelapse"></div>
+      </div>
+      <div class="group">
+        <div class="side-label"><h2>To</h2><span>last frame</span></div>
+        <div class="years" id="yearsTo" role="group" aria-label="Last year of timelapse"></div>
+      </div>
+      <div class="group">
+        <div class="row">
+          <button type="button" class="play" id="playBtn">Play</button>
+          <select class="small" id="speedSel" aria-label="Seconds per frame">
+            <option value="600">Fast</option>
+            <option value="1200" selected>Normal</option>
+            <option value="2200">Slow</option>
+          </select>
+        </div>
+        <input type="range" class="frame" id="frameSlider" min="0" max="0" value="0" aria-label="Timelapse frame" style="margin-top:12px">
+        <label class="toggle" style="margin-top:6px"><input type="checkbox" id="loopToggle" checked> <span>Loop</span></label>
+      </div>
+    </div>
+
+    <div class="group">
+      <h2>On the map</h2>
+      <div class="segment" role="group" aria-label="Colour" style="margin-bottom:6px">
+        <button type="button" id="styleTrue" aria-pressed="true">True color</button>
+        <button type="button" id="styleFalse" aria-pressed="false">False color</button>
+      </div>
+      <p class="hint" id="styleNote" style="margin:0 0 12px"></p>
+      <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
+      <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
+      <p class="hint" style="margin:2px 0 12px">Lifts shadows and mid-tones; bright ice keeps its detail. No new downloads needed.</p>
+      <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Oldest outline (1850)</span></span></label>
+      <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Newest outline</span></span></label>
+      <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
+      <p class="hint" id="outlineNote"></p>
+    </div>
+
+
+    <p class="status" id="status">Checking which years are available…</p>
+
+    <footer class="colophon">
+      <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
+        <span class="fyi-ask">Want a glacier on your wall?</span>
+        <span class="fyi-name">For Your Ice</span>
+        <span class="fyi-text">Proceeds support creation of new visual tools to increase public glacier awareness.</span>
+      </a>
+    </footer>
+  </aside>
+
+  <!-- ================= CENTRE ================= -->
+  <main class="stage" id="stage">
+    <div id="map" role="application" aria-label="Satellite image map"></div>
+    <div class="year-tag" id="tagA">–<small>Sentinel-2</small></div>
+    <div class="year-tag" id="tagB">–<small>Sentinel-2</small></div>
+    <div class="year-tag" id="tagT">–<small id="tagTsub">Timelapse</small><div class="tl-dots" id="tlDots"></div></div>
+    <div class="divider" id="divider"></div>
+    <button class="handle" id="handle" type="button" role="slider" aria-label="Comparison slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg>
+    </button>
+    <div class="measure-hint" id="measureHint" role="status">
+      <span id="measureText">Click to add points.</span>
+      <button type="button" id="measureFinish">Finish</button>
+      <button type="button" class="ghost" id="measureCancel">Cancel</button>
+    </div>
+    <div class="legend" id="legend"></div>
+    <div class="mapbar" role="toolbar" aria-label="Map tools">
+      <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
+      <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
+      <span class="sep"></span>
+      <button type="button" id="tongueBtn">Tongue</button>
+      <button type="button" id="fitBtn">Whole glacier</button>
+      <span class="sep"></span>
+      <button type="button" id="measureDist" aria-pressed="false">Measure length</button>
+      <button type="button" id="measureArea" aria-pressed="false">Measure area</button>
+      <button type="button" id="measureClear">Clear</button>
+    </div>
+    <div class="notice" id="notice" role="alert"></div>
+    <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
+  </main>
+
+  <!-- ================= RIGHT ================= -->
+  <article class="story" id="story" aria-live="polite"></article>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<!-- optional: generated by build_outlines.py. Missing file = built-in list, no outlines. -->
+<script src="glaciers.js"></script>
+<!-- optional: written by the deploy workflow; sets the address of the Copernicus relay (Cloudflare Worker) -->
+<script src="config.js"></script>
+<script>
+/* =====================================================================
+   1. Static data
+   ===================================================================== */
+const FIRST_YEAR = 2016;
+const CURRENT_YEAR = new Date().getFullYear();
+const YEARS = Array.from({length: CURRENT_YEAR - FIRST_YEAR + 1}, (_, i) => FIRST_YEAR + i);
+
+/* Swiss-wide annual loss of glacier volume, hydrological years (Oct–Sep), GLAMOS / SCNAT annual reports.
+   approx: the press release gave a rounded or "almost/over" figure. Add a row each autumn. */
+const VOLUME_LOSS = [
+  {y:2016, v:1.5, approx:true}, {y:2017, v:3.0}, {y:2018, v:2.5}, {y:2019, v:2.0, approx:true},
+  {y:2020, v:2.0, approx:true}, {y:2021, v:1.0, approx:true}, {y:2022, v:5.9}, {y:2023, v:4.4},
+  {y:2024, v:2.4}, {y:2025, v:3.0}, {y:2026, v:5.5}
+];
+
+/* Built-in list: the ten largest glaciers by area in SGI2016 (largest entities >14.5 km²).
+   Areas: SGI1850, SGI2016 and, where published, SGI2023/24 (GLAMOS via de.wikipedia "Liste Schweizer Gletscher").
+   build_outlines.py replaces the ranking with the newest inventory and adds outlines. */
+const DEFAULTS = [
+  { id:'aletsch', tongue:[46.424,8.032], keys:['grosser aletsch'], name:'Great Aletsch', local:'Grosser Aletschgletscher', canton:'Valais', range:'Bernese Alps',
+    center:[46.47,8.04], bounds:[[46.40,7.95],[46.56,8.12]], a1850:105.6, a1973:86.6, a2016:78.49, aNew:[75.79,2023], len:[26.5,24.0,22.6],
+    lede:'The largest glacier in the Alps. Four tributary ice streams meet at Konkordiaplatz before the tongue curves south-west towards the Massa gorge above Brig.',
+    look:'Follow the tongue south of the bend at Märjelen and compare where clean ice gives way to grey rock. The dark medial moraines running down the middle widen as the ice thins.',
+    note:'2026 brought the largest melt ever measured on Aletsch. At the lowest measuring point the ice lost about 13 metres of thickness in one year.' },
+  { id:'gorner', tongue:[45.978,7.778], keys:['gorner'], name:'Gorner', local:'Gornergletscher', canton:'Valais', range:'Pennine Alps',
+    center:[45.95,7.81], bounds:[[45.90,7.72],[46.00,7.90]], a1850:66.0, a1973:59.7, a2016:41.24, aNew:[35.37,2023], len:[15.9,13.5,12.4],
+    lede:'The second-largest glacier in Switzerland, flowing west from Monte Rosa towards Zermatt. Several tributaries, including the Grenzgletscher, join it from the south.',
+    look:'Look at the confluence with the Grenzgletscher, where the ice-marginal Gornersee forms in some summers, and at the Monte Rosa glacier in the middle, which no longer reaches the main stream.',
+    note:'Part of the drop in area since 1850 comes from tributaries that have separated and are now counted as glaciers of their own.' },
+  { id:'fiescher', tongue:[46.468,8.145], keys:['fiescher'], name:'Fiescher', local:'Fieschergletscher', canton:'Valais', range:'Bernese Alps',
+    center:[46.49,8.15], bounds:[[46.42,8.08],[46.57,8.22]], a1850:37.4, a1973:34.2, a2016:29.75, aNew:[28.51,2023], len:[17.1,15.4,14.7], lenYear:2012,
+    lede:'The second-longest glacier in the Alps, draining south from the Finsteraarhorn and Gross Fiescherhorn towards the village of Fiesch in the Goms valley.',
+    look:'The narrow lower tongue in the gorge above Fiesch reacts fastest. Compare its tip and the width of bare rock along its flanks.',
+    note:'Fiescher sits right next to Aletsch, so zooming out shows both ice streams retreating side by side.' },
+  { id:'unteraar', tongue:[46.563,8.252], keys:['unteraar'], name:'Unteraar', local:'Unteraargletscher', canton:'Bern', range:'Bernese Alps',
+    center:[46.56,8.24], bounds:[[46.51,8.12],[46.61,8.33]], a1850:33.4, a1973:29.5, a2016:22.70, aNew:[20.36,2024], len:[14.5,12.9,11.8],
+    lede:'Formed where the Finsteraar and Lauteraar glaciers merge, the Unteraar flows east into the Grimselsee, the reservoir behind the Grimsel hydropower dams.',
+    look:'The tongue is buried under rock debris, so it looks grey rather than white. Watch the debris-covered front near the lake and the dark central moraine where the two source glaciers join.',
+    note:'Debris slows surface melt, but the tongue is still thinning and pulling back up the valley.' },
+  { id:'oberaletsch', tongue:[46.414,7.992], keys:['oberaletsch'], name:'Oberaletsch', local:'Oberaletschgletscher', canton:'Valais', range:'Bernese Alps',
+    center:[46.43,7.98], bounds:[[46.39,7.90],[46.48,8.05]], a1850:26.6, a1973:22.8, a2016:17.05, aNew:null, len:[10.4,9.1,8.8], lenYear:2011,
+    lede:'Once a tributary of the Great Aletsch, the Oberaletsch now ends on its own, about 1.3 km short of its former junction. Both glaciers feed the river Massa.',
+    look:'Compare the gap between the Oberaletsch tongue and the Great Aletsch to the east, and the Beich glacier joining from the north.',
+    note:'Its tongue is almost completely covered in debris, which is why it looks dark on the satellite images.' },
+  { id:'corbassiere', tongue:[45.987,7.296], keys:['corbassiere'], name:'Corbassière', local:'Glacier de Corbassière', canton:'Valais', range:'Pennine Alps',
+    center:[45.97,7.30], bounds:[[45.92,7.24],[46.03,7.36]], a1850:20.7, a1973:18.3, a2016:14.95, aNew:[14.08,2023], len:[12.9,10.1,9.6],
+    lede:'The largest glacier in Lower Valais, flowing north from the Grand Combin through a long, gently sloping valley.',
+    look:'The wide, flat upper plateau at about 3,300 m holds snow longest. Compare the narrow lower tongue and the moraine walls left along its sides.',
+    note:'Flat glaciers like this one react slowly at first, then lose large areas once the snow line rises above their plateau.' },
+  { id:'morteratsch', tongue:[46.421,9.931], keys:['morteratsch'], name:'Morteratsch', local:'Vadret da Morteratsch', canton:'Graubünden', range:'Bernina Range',
+    center:[46.41,9.93], bounds:[[46.37,9.86],[46.46,9.99]], a1850:19.3, a1973:16.4, a2016:14.93, aNew:null, len:[8.9,7.0,6.2],
+    lede:'The largest glacier in eastern Switzerland, flowing north from Piz Bernina. Together with the Pers glacier from Piz Palü it drains via the Inn into the Danube and the Black Sea.',
+    look:'The tongue ends in a valley reachable on foot from the railway; signposts there mark where the ice stood in past years. Compare the tongue tip and the junction with the Pers glacier.',
+    note:'It is the only glacier in this top ten that drains to the Black Sea rather than the North Sea or the Mediterranean.' },
+  { id:'zmutt', tongue:[45.99,7.672], keys:['zmutt'], name:'Zmutt', local:'Zmuttgletscher', canton:'Valais', range:'Pennine Alps',
+    center:[45.99,7.62], bounds:[[45.95,7.54],[46.03,7.70]], a1850:19.8, a1973:16.9, a2016:14.82, aNew:null, len:[8.6,6.7,null], lenYear:null,
+    lede:'Flowing east below the north face of the Matterhorn towards Zermatt, fed by the Tiefmatten and Stockji glaciers.',
+    look:'Most of the lower tongue is covered in debris and looks like a rocky valley floor. Use the bright ice upstream and the reservoir at Zmutt as reference points.',
+    note:'Debris-covered tongues are hard to map from space; the inventory outlines show where the ice under the rock still is.' },
+  { id:'rhone', tongue:[46.588,8.385], keys:['rhone'], name:'Rhône', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
+    center:[46.61,8.39], bounds:[[46.56,8.33],[46.66,8.44]], a1850:20.2, a1973:17.6, a2016:14.64, aNew:null, len:[9.2,8.0,7.7],
+    lede:'The source of the river Rhône, flowing south from the Dammastock towards Gletsch at the Furka and Grimsel passes.',
+    look:'A lake has formed where the tongue used to lie on the rock step above Gletsch. Compare its size and the bare rock around it from year to year.',
+    note:'The Rhône glacier had its largest melt on record in 2026, and collapse pits are opening on its tongue where meltwater has hollowed out the ice.' },
+  { id:'trift', tongue:[46.678,8.364], keys:['trift'], name:'Trift', local:'Triftgletscher (Gadmen)', canton:'Bern', range:'Urner Alps',
+    center:[46.67,8.36], bounds:[[46.63,8.30],[46.72,8.43]], a1850:19.3, a1973:16.5, a2016:14.56, aNew:null, len:[7.6,5.8,3.7],
+    lede:'A glacier above the Gadmen valley whose tongue collapsed in the early 2000s, leaving a new lake, the Triftsee, spanned by a suspension bridge.',
+    look:'The lake below the steep ice fall is the best marker. The ice fall itself retreats a little more almost every summer.',
+    note:'Between 1973 and 2013 its length shrank from 5.8 to 3.7 km, the largest relative loss in this list.' }
+];
+
+/* =====================================================================
+   2. Glacier list: built-in, or ranked from glaciers.js when present
+   ===================================================================== */
+const DATA = window.GLACIER_DATA || null;
+const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+let GLACIERS;
+if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
+  GLACIERS = DATA.glaciers.map(g => {
+    const d = DEFAULTS.find(d => d.keys.some(k => norm(g.name).includes(k)) && L.latLng(d.center).distanceTo(g.center) < 12000);
+    const base = d ? {...d} : {
+      id: 'sgi-' + g.id, name: g.name, local: g.name, canton: '', range: '',
+      lede: `${g.name} is one of the ten largest glaciers in the newest Swiss Glacier Inventory.`,
+      look: 'Compare the position of the tongue and the extent of bare rock along the margins between years.', note: ''
+    };
+    return {...base, inv: g, center: g.center, bounds: padBounds(g.bbox, 0.08)};
+  });
+} else {
+  GLACIERS = DEFAULTS.map(d => ({...d}));
+}
+function padBounds(b, f){ const dy=(b[1][0]-b[0][0])*f, dx=(b[1][1]-b[0][1])*f; return [[b[0][0]-dy,b[0][1]-dx],[b[1][0]+dy,b[1][1]+dx]]; }
+/* One inventory for every glacier, so ranking and displayed areas are comparable:
+   SGI2016 built in (newest inventory with published areas for all ten), or the inventory in glaciers.js. */
+const rankArea = g => g.inv ? g.inv.area_km2 : g.a2016;
+const rankLabel = () => DATA ? DATA.latest_label : 'SGI2016';
+GLACIERS.sort((x, y) => rankArea(y) - rankArea(x));
+
+/* =====================================================================
+   3. Imagery sources
+   ===================================================================== */
+const prefs = (() => { try { return JSON.parse(localStorage.getItem('glacierPrefs') || '{}'); } catch { return {}; } })();
+const savePrefs = () => { try { localStorage.setItem('glacierPrefs', JSON.stringify(prefs)); } catch {} };
+
+const SOURCES = {
+  eox: {
+    label: 'EOX annual mosaic',
+    ids: yr => yr === 2016 ? ['s2cloudless_3857', 's2cloudless-2016_3857'] : [`s2cloudless-${yr}_3857`],   // the original 2016 layer has no year in its name
+    url: id => `https://tiles.maps.eox.at/wmts/1.0.0/${id}/default/g/{z}/{y}/{x}.jpg`,
+    maxNativeZoom: 14,
+    attribution: yr => `EOxCloudless ${yr} by <a href="https://cloudless.eox.at" target="_blank" rel="noopener">EOX IT Services GmbH</a> (contains modified Copernicus Sentinel data ${yr===2016?'2016 & 2017':yr===2018?'2017 & 2018':yr})`
+  },
+  cdse: {
+    label: 'Copernicus Q3 mosaic, Jul–Sep',
+    attribution: yr => `Contains modified Copernicus Sentinel data ${yr}, Sentinel-2 quarterly mosaic via <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`
+  }
+};
+
+/* ---------- Copernicus Data Space Ecosystem client (Catalog + Process API) ----------
+   Docs: documentation.dataspace.copernicus.eu → APIs → Sentinel Hub (Catalog, Process) and
+   Data → Sentinel-2 → Level 3 Quarterly Mosaics (BYOC collection id below). */
+const CDSE = {
+  tokenUrl:   'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token',
+  catalogUrl: 'https://sh.dataspace.copernicus.eu/catalog/v1/search',
+  processUrl: 'https://sh.dataspace.copernicus.eu/process/v1',
+  collection: 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca',
+  swissBbox:  [5.9, 45.8, 10.6, 47.9],
+  quarter:    '07-01',          // Q3 = July to September, least snow on the tongues
+  groundRes:  10,               // metres per pixel, native resolution of the mosaics
+  maxPx:      2500,             // Process API output limit per side
+  version:    'q3-v2'           // bump when the evalscript changes, to invalidate cached images
+};
+/* Same stretch for every year and glacier, so brightness differences are real.
+   Gain 2.5 on reflectance, as in the Copernicus Browser, with a soft roll-off above 0.8
+   so bright ice and snow keep their detail instead of clipping to plain white.
+   true colour:  red, green, blue = B04, B03, B02
+   false colour: red, green, blue = B08 (near infrared), B04, B03 */
+function evalscriptFor(style){
+  const [r, g, b] = style === 'false' ? ['B08','B04','B03'] : ['B04','B03','B02'];
+  return `//VERSION=3
+function setup(){ return { input:["B02","B03","B04","B08","dataMask"], output:{ bands:3 } }; }
+function f(v){ var x = 2.5 * Math.max(0, v) / 10000; return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
+function evaluatePixel(p){
+  if (!p.dataMask) return [0.11, 0.16, 0.19];
+  return [f(p.${r}), f(p.${g}), f(p.${b})];
+}`;
+}
+
+const cred = (() => {
+  const read = st => { try { return JSON.parse(st.getItem('cdseCred') || 'null'); } catch { return null; } };
+  return read(localStorage) || read(sessionStorage) || {};
+})();
+function saveCred(c, remember){
+  try { localStorage.removeItem('cdseCred'); sessionStorage.removeItem('cdseCred'); } catch {}
+  try { (remember ? localStorage : sessionStorage).setItem('cdseCred', JSON.stringify(c)); } catch {}
+  Object.keys(cred).forEach(k => delete cred[k]); Object.assign(cred, c);
+}
+let tokenCache = {value:null, until:0};
+/* A relay passes Copernicus requests on, because browsers block the login when a page calls it directly.
+   - scripts/serve.py on this computer (same address, /cdse/...): you enter your own credentials.
+   - the Cloudflare Worker set in config.js ("managed"): the site's credentials, visitors need no account. */
+const RELAY_BASE = ((window.TFS_CONFIG && window.TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
+const relayRoot = () => RELAY_BASE ? RELAY_BASE + '/cdse' : '/cdse';
+let relayCheck = null, relayManaged = false;
+const relayInfo = () => relayCheck || (relayCheck = (RELAY_BASE || location.protocol.startsWith('http'))
+  ? fetch(relayRoot() + '/ping', {cache:'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined}).then(r => r.ok ? r.json() : null)
+      .then(j => ({relay: !!(j && j.relay === true), managed: !!(j && j.relay === true && j.managed === true)}))
+      .catch(() => ({relay:false, managed:false}))
+  : Promise.resolve({relay:false, managed:false}));
+const hasRelay = () => relayInfo().then(i => i.relay);
+relayInfo().then(i => { relayManaged = i.managed; });
+async function endpoint(name){
+  if (await hasRelay()) return relayRoot() + '/' + name;
+  return {token:CDSE.tokenUrl, catalog:CDSE.catalogUrl, process:CDSE.processUrl}[name];
+}
+const RELAY_HELP = 'Start the dashboard with "python3 scripts/serve.py" in the repository folder and use the page it opens at http://localhost:8000. ' +
+  'serve.py passes the Copernicus login through, which browsers block when a page calls it directly.';
+async function relayError(r){
+  if (r.status !== 502) return null;
+  try { const j = await r.clone().json(); return j.relayError || null; } catch { return null; }
+}
+async function cdseToken(){
+  if (cred.token) return cred.token;
+  if (tokenCache.value && Date.now() < tokenCache.until) return tokenCache.value;
+  if (!cred.id || !cred.secret) throw new Error('Enter your CDSE OAuth client ID and secret under "Imagery source".');
+  let r;
+  try {
+    r = await fetch(await endpoint('token'), {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
+      body: new URLSearchParams({grant_type:'client_credentials', client_id:cred.id, client_secret:cred.secret})});
+  } catch {
+    throw new Error(await hasRelay()
+      ? 'serve.py is not responding. Check that it is still running in your terminal.'
+      : 'The browser blocked the Copernicus login. ' + RELAY_HELP);
+  }
+  const relayMsg = await relayError(r);
+  if (relayMsg) throw new Error(relayMsg);
+  if (!r.ok) throw new Error(`Copernicus login failed (${r.status}). Check the OAuth client ID and secret.`);
+  const j = await r.json();
+  tokenCache = {value:j.access_token, until: Date.now() + Math.max(30, (j.expires_in || 300) - 60) * 1000};
+  return tokenCache.value;
+}
+async function cdseFetch(url, body, accept){
+  const managed = (await relayInfo()).managed;
+  const go = async () => {
+    const headers = {'Content-Type':'application/json', 'Accept':accept};
+    if (!managed) headers.Authorization = 'Bearer ' + await cdseToken();   // login errors pass through with their own message
+    try {
+      return await fetch(await endpoint(url), {method:'POST', body:JSON.stringify(body), headers});
+    } catch {
+      throw new Error(managed ? 'The Copernicus service of this site is not responding. Try again later.'
+        : await hasRelay() ? 'serve.py is not responding. Check that it is still running.'
+        : 'The browser blocked the Copernicus API request. ' + RELAY_HELP);
+    }
+  };
+  let r = await go();
+  const relayMsg = await relayError(r);
+  if (relayMsg) throw new Error(relayMsg);
+  if (managed && !r.ok && r.status !== 429) {
+    let msg = ''; try { msg = (await r.clone().json()).error || ''; } catch {}
+    throw new Error(`The Copernicus service of this site returned an error (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
+  }
+  if (r.status === 401 && !cred.token) { tokenCache = {value:null, until:0}; r = await go(); }
+  if (r.status === 401) throw new Error('Copernicus rejected the login. Check the credentials or paste a fresh access token.');
+  if (r.status === 429) throw new Error('Copernicus rate limit or monthly quota reached. Try again later.');
+  if (!r.ok) throw new Error(`Copernicus ${url === 'catalog' ? 'catalog search' : 'image request'} failed (HTTP ${r.status}): ${(await r.text()).slice(0, 160)}`);
+  return r;
+}
+/* Which Q3 mosaics exist over Switzerland? Catalog API with "distinct": "date".
+   STAC search answers in GeoJSON, so the Accept header must allow application/geo+json (else HTTP 406). */
+const CATALOG_ACCEPT = 'application/geo+json, application/json;q=0.9, */*;q=0.1';
+async function cdseYears(){
+  const base = {collections:[CDSE.collection], bbox:CDSE.swissBbox,
+    datetime:`${FIRST_YEAR}-01-01T00:00:00Z/${new Date().toISOString().slice(0,19)}Z`, limit:100};
+  let dates = [];
+  try {
+    const j = await (await cdseFetch('catalog', {...base, distinct:'date'}, CATALOG_ACCEPT)).json();
+    dates = (j.features || []).map(f => typeof f === 'string' ? f : (f.properties && f.properties.datetime) || '');
+  } catch (e) {
+    if (/login|credentials|token|serve\.py|blocked|certificate/i.test(e.message)) throw e;
+    // fallback: plain search, paginated
+    let next = 0;
+    do {
+      const j = await (await cdseFetch('catalog', {...base, fields:{include:['properties.datetime']}, ...(next ? {next} : {})}, CATALOG_ACCEPT)).json();
+      dates.push(...(j.features || []).map(f => (f.properties && f.properties.datetime) || ''));
+      next = j.context && j.context.next;
+    } while (next);
+  }
+  return [...new Set(dates.filter(d => d.slice(5, 10) === CDSE.quarter).map(d => +d.slice(0, 4)))].sort();
+}
+/* Image cache: memory first, then IndexedDB so repeat visits cost no quota. */
+const memCache = new Map();
+const idb = (() => {
+  let dbp = null;
+  const open = () => dbp || (dbp = new Promise((res, rej) => {
+    try { const r = indexedDB.open('glacier-mosaics', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('img');
+      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+    } catch (e) { rej(e); }
+  }));
+  const tx = (mode, fn) => open().then(db => new Promise((res, rej) => {
+    const t = db.transaction('img', mode), req = fn(t.objectStore('img'));
+    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
+  })).catch(() => null);
+  return { get: k => tx('readonly', st => st.get(k)), set: (k, v) => tx('readwrite', st => st.put(v, k)),
+           clear: () => tx('readwrite', st => st.clear()) };
+})();
+/* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
+function mosaicFootprint(g){
+  const b = padBounds(g.bounds, 0.15);
+  const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
+  const lat = (b[0][0] + b[1][0]) / 2, mPerPx = CDSE.groundRes / Math.cos(lat * Math.PI / 180);
+  let w = Math.round((ne.x - sw.x) / mPerPx), h = Math.round((ne.y - sw.y) / mPerPx);
+  const k = Math.min(1, CDSE.maxPx / Math.max(w, h)); w = Math.round(w * k); h = Math.round(h * k);
+  return {bounds:b, bbox:[sw.x, sw.y, ne.x, ne.y].map(v => Math.round(v)), w, h};
+}
+let pending = 0, active = 0; const queue = [];
+const runQueue = () => { while (active < 2 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
+function loadMosaic(g, yr){
+  const style = state.style, fp = mosaicFootprint(g), key = `${CDSE.version}|${style}|${g.id}|${yr}|${fp.bbox.join(',')}`;
+  if (memCache.has(key)) return memCache.get(key);
+  const p = (async () => {
+    const hit = await idb.get(key);
+    if (hit) return URL.createObjectURL(hit);
+    pending++; setLoading();
+    try {
+      const blob = await new Promise((res, rej) => { queue.push(() => cdseFetch('process', {
+        input: { bounds: { bbox: fp.bbox, properties: { crs: 'http://www.opengis.net/def/crs/EPSG/0/3857' } },
+          data: [{ type: CDSE.collection, dataFilter: { timeRange: { from:`${yr}-${CDSE.quarter}T00:00:00Z`, to:`${yr}-${CDSE.quarter}T23:59:59Z` } } }] },
+        output: { width: fp.w, height: fp.h, responses: [{ identifier:'default', format:{ type:'image/jpeg' } }] },
+        evalscript: evalscriptFor(style)
+      }, 'image/jpeg').then(r => r.blob()).then(res, rej)); runQueue(); });
+      idb.set(key, blob);
+      return URL.createObjectURL(blob);
+    } finally { pending--; setLoading(); }
+  })();
+  memCache.set(key, p);
+  p.catch(() => memCache.delete(key));
+  return p;
+}
+function setLoading(){
+  if (state.source !== 'cdse' || !state.checked) return;
+  setStatus(pending ? `Loading ${pending} mosaic image${pending > 1 ? 's' : ''} from Copernicus…` : statusLine());
+}
+
+/* =====================================================================
+   4. State
+   ===================================================================== */
+const state = {
+  source: prefs.source === 'cdse' && (cred.token || (cred.id && cred.secret)) ? 'cdse' : 'eox',
+  glacier: GLACIERS[0].id, mode: 'compare',
+  a: null, b: null, from: null, to: null,
+  split: 0.5, available: {}, checked: false,
+  frame: 0, playing: false, timer: null,
+  style: prefs.style === 'false' ? 'false' : 'true'
+};
+(function readHash(){
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (GLACIERS.some(g => g.id === p.get('g'))) state.glacier = p.get('g');
+  if (p.get('m') === 'timelapse') state.mode = 'timelapse';
+  ['a','b','from','to'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
+})();
+const writeHash = () => history.replaceState(null, '',
+  `#g=${state.glacier}&m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}`);
+const okYears = () => YEARS.filter(y => state.available[y]);
+const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
+
+/* =====================================================================
+   5. Map
+   ===================================================================== */
+const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.5});
+[['paneA',210],['paneB',220],['paneT',230],['outlines',430],['labels',450],['measure',620]].forEach(([n,z]) => {
+  map.createPane(n); map.getPane(n).style.zIndex = z;
+});
+map.getPane('labels').style.pointerEvents = 'none';
+L.control.scale({position:'bottomright', imperial:false, maxWidth:150}).addTo(map);
+
+function updateCredits(){
+  const S = SOURCES[state.source], yrs = state.mode === 'timelapse'
+    ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
+    : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
+  const parts = yrs.map(y => S.attribution(y));
+  if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
+  if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
+  document.getElementById('credits').innerHTML = parts.join(' · ');
+}
+(function(){ const c = document.getElementById('credits');
+  const t = () => c.classList.toggle('open'); c.onclick = e => { if (e.target.tagName !== 'A') t(); };
+  c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } }; })();
+const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
+  {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
+
+const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+function imageryLayer(yr, pane, opacity=1){
+  const S = SOURCES[state.source];
+  if (state.source === 'cdse') {
+    const g = currentGlacier(), ov = L.imageOverlay(BLANK, mosaicFootprint(g).bounds, {pane, opacity, interactive:false});
+    loadMosaic(g, yr).then(url => ov.setUrl(url)).catch(e => { setStatus(e.message); showNotice(e.message); });
+    return ov;
+  }
+  const l = L.tileLayer(S.url(state.available[yr]), {pane, opacity, maxNativeZoom:S.maxNativeZoom, maxZoom:17, attribution:S.attribution(yr)});
+  l.on('tileerror', tileTrouble);
+  return l;
+}
+let errCount = 0;
+function tileTrouble(){ if (++errCount === 10) showNotice('Some image tiles did not load. Check your connection, or zoom out: the images are sharpest down to about zoom 14.'); }
+
+/* ---------- compare (swipe) ---------- */
+let layerA = null, layerB = null;
+function setCompareLayers(){
+  [layerA, layerB].forEach(l => l && map.removeLayer(l));
+  layerA = layerB = null;
+  if (state.mode !== 'compare' || !state.available[state.a] || !state.available[state.b]) return;
+  layerA = imageryLayer(state.a, 'paneA').addTo(map);
+  layerB = imageryLayer(state.b, 'paneB').addTo(map);
+  clip(); updateCredits();
+}
+function clip(){
+  const size = map.getSize();
+  const nw = map.containerPointToLayerPoint([0,0]), se = map.containerPointToLayerPoint(size);
+  const cx = nw.x + size.x * state.split;
+  map.getPane('paneA').style.clip = `rect(${nw.y}px, ${cx}px, ${se.y}px, ${nw.x}px)`;
+  map.getPane('paneB').style.clip = `rect(${nw.y}px, ${se.x}px, ${se.y}px, ${cx}px)`;
+  const px = size.x * state.split;
+  document.getElementById('divider').style.left = px + 'px';
+  const h = document.getElementById('handle');
+  h.style.left = px + 'px'; h.setAttribute('aria-valuenow', Math.round(state.split * 100));
+}
+map.on('move zoom resize', clip);
+
+(function swipe(){
+  const handle = document.getElementById('handle'), stage = document.getElementById('stage');
+  let dragging = false;
+  const setX = cx => { const r = stage.getBoundingClientRect(); state.split = Math.min(.98, Math.max(.02, (cx - r.left) / r.width)); clip(); };
+  handle.addEventListener('pointerdown', e => { dragging = true; handle.setPointerCapture(e.pointerId); map.dragging.disable(); e.preventDefault(); });
+  handle.addEventListener('pointermove', e => dragging && setX(e.clientX));
+  const end = () => { dragging = false; map.dragging.enable(); };
+  handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
+  handle.addEventListener('keydown', e => {
+    const step = e.shiftKey ? .1 : .02;
+    if (e.key === 'ArrowLeft') state.split = Math.max(.02, state.split - step);
+    else if (e.key === 'ArrowRight') state.split = Math.min(.98, state.split + step);
+    else if (e.key === 'Home') state.split = .02;
+    else if (e.key === 'End') state.split = .98;
+    else return;
+    e.preventDefault(); clip();
+  });
+})();
+
+/* ---------- timelapse ---------- */
+let tlLayers = [];   // [{yr, layer}]
+const tlFrames = () => okYears().filter(y => y >= state.from && y <= state.to);
+function buildTimelapse(){
+  stopPlay();
+  tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
+  if (state.mode !== 'timelapse') return;
+  // every frame stays loaded at opacity 0 so switching is instant
+  tlLayers = tlFrames().map(yr => ({yr, layer: imageryLayer(yr, 'paneT', 0).addTo(map)}));
+  state.frame = Math.min(state.frame, Math.max(0, tlLayers.length - 1));
+  const s = document.getElementById('frameSlider');
+  s.max = Math.max(0, tlLayers.length - 1); s.value = state.frame;
+  document.getElementById('playBtn').disabled = tlLayers.length < 2;
+  showFrame(state.frame);
+}
+function showFrame(i){
+  if (!tlLayers.length) { setTag('tagT', '–'); return; }
+  state.frame = i;
+  tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0));
+  setTag('tagT', tlLayers[i].yr);
+  document.getElementById('tagTsub').textContent = `${SOURCES[state.source].label}, frame ${i+1} of ${tlLayers.length}`;
+  document.getElementById('tlDots').innerHTML = tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
+  document.getElementById('frameSlider').value = i;
+  updateCredits();
+  const cb = document.querySelector('.cb-links');
+  if (cb) cb.innerHTML = cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${y} mosaic in Copernicus Browser</button>`).join('');
+}
+function play(){
+  if (tlLayers.length < 2) return;
+  state.playing = true; document.getElementById('playBtn').textContent = 'Pause';
+  if (state.frame >= tlLayers.length - 1) showFrame(0);
+  const tick = () => {
+    let next = state.frame + 1;
+    if (next >= tlLayers.length) {
+      if (!document.getElementById('loopToggle').checked) return stopPlay();
+      next = 0;
+    }
+    showFrame(next);
+    state.timer = setTimeout(tick, +document.getElementById('speedSel').value);
+  };
+  state.timer = setTimeout(tick, +document.getElementById('speedSel').value);
+}
+function stopPlay(){
+  clearTimeout(state.timer); state.playing = false;
+  document.getElementById('playBtn').textContent = 'Play';
+}
+document.getElementById('playBtn').onclick = () => state.playing ? stopPlay() : play();
+document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
+
+/* ---------- outlines ---------- */
+const outlineLayers = {old: null, new: null};
+function geodesicArea(ring){ // ring: [[lng,lat],...] -> m²
+  const R = 6378137, rad = d => d * Math.PI / 180; let a = 0;
+  for (let i = 0; i < ring.length; i++) {
+    const p1 = ring[i], p2 = ring[(i + 1) % ring.length];
+    a += rad(p2[0] - p1[0]) * (2 + Math.sin(rad(p1[1])) + Math.sin(rad(p2[1])));
+  }
+  return Math.abs(a * R * R / 2);
+}
+const multiArea = geom => geom.coordinates.reduce((s, poly) => s + geodesicArea(poly[0]) - poly.slice(1).reduce((h, r) => h + geodesicArea(r), 0), 0);
+function drawOutlines(){
+  Object.values(outlineLayers).forEach(l => l && map.removeLayer(l));
+  outlineLayers.old = outlineLayers.new = null;
+  const g = currentGlacier();
+  if (!g.inv) {
+    if (document.getElementById('oldToggle').checked || document.getElementById('newToggle').checked)
+      showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need glaciers.js next to this page. See the note under "On the map".');
+    return updateLegend();
+  }
+  if (document.getElementById('oldToggle').checked && !g.inv.oldest)
+    showNotice(`No ${DATA.oldest_label} outline was matched for ${g.name}.`);
+  const mk = (geom, color, dash, title, invArea) => L.geoJSON(geom, {
+    pane:'outlines', style:{color, weight:2.5, dashArray:dash, fill:true, fillOpacity:.06, fillColor:color}
+  }).bindPopup(`<strong>${title}</strong><br>Inventory area: ${invArea.toFixed(2)} km²<br>Area on this map: ${(multiArea(geom)/1e6).toFixed(2)} km²`);
+  if (document.getElementById('oldToggle').checked && g.inv.oldest)
+    outlineLayers.old = mk(g.inv.oldest.outline, getVar('--old'), '7 6', `${g.name}, ${DATA.oldest_label}`, g.inv.oldest.area_km2).addTo(map);
+  if (document.getElementById('newToggle').checked)
+    outlineLayers.new = mk(g.inv.outline, getVar('--new'), null, `${g.name}, ${DATA.latest_label}${g.inv.year ? ' ('+g.inv.year+')' : ''}`, g.inv.area_km2).addTo(map);
+  updateLegend(); updateCredits();
+}
+function updateLegend(){
+  const el = document.getElementById('legend'), rows = [];
+  if (outlineLayers.old) rows.push(`<div><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> ${DATA.oldest_label} outline</div>`);
+  if (outlineLayers.new) rows.push(`<div><i class="swatch" style="border-color:var(--new)"></i> ${DATA.latest_label} outline</div>`);
+  el.innerHTML = rows.join(''); el.classList.toggle('show', rows.length > 0);
+}
+const getVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- measuring ---------- */
+const M = {mode:null, pts:[], temp:null, group:L.layerGroup().addTo(map)};
+const fmtLen = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(m < 10000 ? 2 : 1)} km`;
+const fmtArea = m2 => m2 < 1e5 ? `${Math.round(m2).toLocaleString('en')} m²` : `${(m2/1e6).toFixed(2)} km²`;
+const pathLen = pts => pts.reduce((s, p, i) => i ? s + map.distance(pts[i-1], p) : 0, 0);
+const ringOf = pts => pts.map(p => [p.lng, p.lat]);
+function startMeasure(mode){
+  cancelMeasure();
+  M.mode = mode; map.doubleClickZoom.disable();
+  document.getElementById('app').classList.add('measuring');
+  document.getElementById(mode === 'dist' ? 'measureDist' : 'measureArea').setAttribute('aria-pressed', 'true');
+  document.getElementById('measureHint').classList.add('show');
+  updateMeasureText();
+}
+function updateMeasureText(cursor){
+  const pts = cursor ? [...M.pts, cursor] : M.pts, el = document.getElementById('measureText');
+  if (!pts.length) el.textContent = M.mode === 'dist' ? 'Click on the map to start a line.' : 'Click on the map to start an area.';
+  else if (M.mode === 'dist') el.textContent = `Length ${fmtLen(pathLen(pts))}. Double-click or press Finish.`;
+  else el.textContent = pts.length < 3 ? 'Add at least three points.' : `Area ${fmtArea(geodesicArea(ringOf(pts)))}. Double-click or press Finish.`;
+}
+function drawTemp(cursor){
+  if (M.temp) M.group.removeLayer(M.temp);
+  const pts = cursor ? [...M.pts, cursor] : M.pts;
+  const style = {pane:'measure', color:getVar('--measure'), weight:3, dashArray:'6 5', fillOpacity:.15, interactive:false};
+  M.temp = (M.mode === 'area' && pts.length > 2 ? L.polygon(pts, style) : L.polyline(pts, style)).addTo(M.group);
+  updateMeasureText(cursor);
+}
+map.on('click', e => { if (!M.mode) return; M.pts.push(e.latlng); drawTemp(); });
+map.on('mousemove', e => { if (M.mode && M.pts.length) drawTemp(e.latlng); });
+map.on('dblclick', () => M.mode && finishMeasure());
+function finishMeasure(){
+  // a double-click adds the same point twice; drop near-duplicates
+  M.pts = M.pts.filter((p, i) => i === 0 || map.distance(p, M.pts[i-1]) > 0.5);
+  const need = M.mode === 'dist' ? 2 : 3;
+  if (M.pts.length < need) return cancelMeasure();
+  if (M.temp) M.group.removeLayer(M.temp);
+  const style = {pane:'measure', color:getVar('--measure'), weight:3, fillOpacity:.18};
+  let shape, label;
+  if (M.mode === 'dist') { shape = L.polyline(M.pts, style); label = fmtLen(pathLen(M.pts)); }
+  else { shape = L.polygon(M.pts, style); label = `${fmtArea(geodesicArea(ringOf(M.pts)))}, perimeter ${fmtLen(pathLen([...M.pts, M.pts[0]]))}`; }
+  shape.addTo(M.group).bindTooltip(label, {permanent:true, direction:'center', className:'m-label'});
+  const mode = M.mode; M.temp = null; endMeasure(); startMeasure(mode);   // stay in the tool for the next shape
+}
+function cancelMeasure(){ if (M.temp) M.group.removeLayer(M.temp); M.temp = null; endMeasure(); }
+function endMeasure(){
+  M.mode = null; M.pts = []; map.doubleClickZoom.enable();
+  document.getElementById('app').classList.remove('measuring');
+  ['measureDist','measureArea'].forEach(id => document.getElementById(id).setAttribute('aria-pressed','false'));
+  document.getElementById('measureHint').classList.remove('show');
+}
+document.getElementById('measureDist').onclick = () => M.mode === 'dist' ? cancelMeasure() : startMeasure('dist');
+document.getElementById('measureArea').onclick = () => M.mode === 'area' ? cancelMeasure() : startMeasure('area');
+document.getElementById('measureFinish').onclick = finishMeasure;
+document.getElementById('measureCancel').onclick = cancelMeasure;
+document.getElementById('measureClear').onclick = () => { cancelMeasure(); M.group.clearLayers(); };
+document.addEventListener('keydown', e => {
+  if (!M.mode) return;
+  if (e.key === 'Escape') cancelMeasure();
+  if (e.key === 'Enter') finishMeasure();
+  if (e.key === 'Backspace' && M.pts.length && document.activeElement === document.body) { M.pts.pop(); drawTemp(); }
+});
+
+/* ---------- toolbar ---------- */
+document.getElementById('zoomIn').onclick = () => map.zoomIn();
+document.getElementById('zoomOut').onclick = () => map.zoomOut();
+document.getElementById('fitBtn').onclick = () => fitGlacier();
+document.getElementById('labelsToggle').onchange = e => { e.target.checked ? labels.addTo(map) : map.removeLayer(labels); updateCredits(); };
+document.getElementById('oldToggle').onchange = drawOutlines;
+document.getElementById('newToggle').onchange = drawOutlines;
+function fitGlacier(animate = true){ map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
+const TONGUE_ZOOM = 13.5;   // about 7 km across on a laptop screen
+function focusTongue(animate = true){
+  const g = currentGlacier();
+  if (g.tongue) map.setView(g.tongue, TONGUE_ZOOM, {animate}); else fitGlacier(animate);
+}
+document.getElementById('tongueBtn').onclick = () => focusTongue();
+
+/* =====================================================================
+   6. Availability probe: one tile per year; missing years cannot be picked
+   ===================================================================== */
+function tileFor(lat, lng, z){
+  const n = 2 ** z, x = Math.floor((lng + 180) / 360 * n);
+  const r = lat * Math.PI / 180, y = Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n);
+  return {z, x, y};
+}
+/* A tile that loads is not proof of imagery: EOX answers requests for layers that do not exist
+   (e.g. a year not published yet) with a placeholder image. So every year is compared with a
+   deliberately non-existent layer ("control"), and years that look identical to it, or to each
+   other, are rejected. */
+async function tileFingerprint(url){
+  try {
+    const r = await fetch(url, {mode:'cors', cache:'no-store'});
+    if (!r.ok || !(r.headers.get('content-type') || '').startsWith('image/')) return {ok:false};
+    const u8 = new Uint8Array(await r.arrayBuffer());
+    let h = 2166136261;
+    for (let i = 0; i < u8.length; i++) h = Math.imul(h ^ u8[i], 16777619) >>> 0;
+    return {ok:true, size:u8.length, sig:`${u8.length}:${h}`};
+  } catch { return null; }                     // CORS or network: cannot inspect, fall back to image loading
+}
+const imageLoads = url => new Promise(res => {
+  const img = new Image(), t = setTimeout(() => { img.src = ''; res(false); }, 10000);
+  img.onload = () => { clearTimeout(t); res(img.naturalWidth > 1); };
+  img.onerror = () => { clearTimeout(t); res(false); };
+  img.src = url;
+});
+const tileUrl = id => { const t = tileFor(46.47, 8.04, 12); return SOURCES.eox.url(id).replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y); };
+let controlSig;
+async function probe(yr){
+  if (controlSig === undefined) {
+    const c = await tileFingerprint(tileUrl('s2cloudless-1900_3857'));
+    controlSig = c && c.ok ? c.sig : null;
+  }
+  for (const id of SOURCES.eox.ids(yr)) {
+    const f = await tileFingerprint(tileUrl(id));
+    if (f === null) { if (await imageLoads(tileUrl(id))) return {id, sig:null}; continue; }
+    if (f.ok && f.size > 2500 && f.sig !== controlSig) return {id, sig:f.sig};
+  }
+  return null;
+}
+let checkGen = 0;              // a newer check (e.g. after switching source) makes older results stale
+async function checkYears(){
+  const gen = ++checkGen;
+  state.checked = false; state.available = {};
+  const avail = {};
+  setStatus(`Checking which years are available from ${SOURCES[state.source].label}…`);
+  renderYears();
+  try {
+    if (state.source === 'cdse') {
+      const ys = await cdseYears();
+      YEARS.forEach(y => avail[y] = ys.includes(y) ? String(y) : null);
+    } else {
+      const res = await Promise.all(YEARS.map(async y => [y, await probe(y)]));
+      const seen = new Map();                    // identical imagery under two years = not a real year
+      res.forEach(([y, hit]) => { if (hit && hit.sig) seen.set(hit.sig, (seen.get(hit.sig) || 0) + 1); });
+      res.forEach(([y, hit]) => avail[y] = hit && !(hit.sig && seen.get(hit.sig) > 1) ? hit.id : null);
+    }
+  } catch (e) {
+    if (gen !== checkGen) return;
+    if (state.source === 'cdse' && relayManaged) {           // public site: never leave visitors without imagery
+      showNotice('Copernicus mosaics are not available right now, so EOX imagery is shown instead. ' + e.message);
+      state.source = 'eox'; if (window.syncSourceUI) window.syncSourceUI(); renderMode(); renderStory(); return checkYears();
+    }
+    state.checked = true; setStatus(e.message); showNotice(e.message); renderYears(); updateCredits(); return;
+  }
+  if (gen !== checkGen) return;
+  state.available = avail;
+  state.checked = true;
+  const ok = okYears();
+  if (!ok.length) {
+    setStatus('No imagery could be loaded for this source.');
+    showNotice(state.source === 'cdse'
+      ? 'Copernicus returned no July–September mosaics over Switzerland. Try again later or switch to EOX.'
+      : 'The EOX tile server did not respond. Open this page with internet access and reload.');
+    renderYears(); return;
+  }
+  const fix = (k, fallback) => { if (!state.available[state[k]]) state[k] = fallback; };
+  fix('a', ok[0]); fix('b', ok[ok.length - 1]); fix('from', ok[0]); fix('to', ok[ok.length - 1]);
+  if (state.a === state.b && ok.length > 1) { state.a = ok[0]; state.b = ok[ok.length - 1]; }
+  setStatus(statusLine());
+  refreshAll();
+}
+function statusLine(){
+  const ok = okYears(), missing = YEARS.filter(y => !state.available[y]);
+  if (!ok.length) return 'No imagery available.';
+  return `Years with imagery: ${ok[0]}–${ok[ok.length-1]}` + (missing.length ? `. Not available yet: ${missing.join(', ')}.` : '.');
+}
+
+/* =====================================================================
+   7. Rendering
+   ===================================================================== */
+function renderGlacierList(){
+  const ul = document.getElementById('glacierList'); ul.innerHTML = '';
+  GLACIERS.forEach((g, i) => {
+    const area = rankArea(g);
+    const li = document.createElement('li'), b = document.createElement('button');
+    b.type = 'button'; b.setAttribute('aria-pressed', g.id === state.glacier);
+    b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${area.toFixed(2)} km²</span>`;
+    b.onclick = () => { state.glacier = g.id; renderGlacierList(); renderStory(); drawOutlines(); focusTongue();
+      if (state.source === 'cdse' && state.checked) { setCompareLayers(); buildTimelapse(); } writeHash(); };
+    li.appendChild(b); ul.appendChild(li);
+  });
+  document.getElementById('rankNote').textContent = DATA
+    ? `Ranked by area according to the latest SGI inventory (${DATA.latest_label}, GLAMOS)`
+    : 'Ranked by area according to the SGI inventory (SGI2016, GLAMOS). Run scripts/build_outlines.py to switch to the latest inventory, SGI2023.';
+}
+
+function yearChips(boxId, key, opts = {}){
+  const box = document.getElementById(boxId); box.innerHTML = '';
+  YEARS.forEach(y => {
+    const b = document.createElement('button');
+    b.type = 'button'; b.textContent = y;
+    const ok = !!state.available[y];
+    b.disabled = !ok;                                       // not clickable until confirmed available
+    if (state.checked && !ok) { b.classList.add('missing'); b.title = `No ${y} imagery from this source`; }
+    if (!state.checked) b.title = 'Checking…';
+    b.setAttribute('aria-pressed', state[key] === y);
+    if (opts.range && ok && y > Math.min(state.from, state.to) && y < Math.max(state.from, state.to)) b.classList.add('in-range');
+    b.onclick = () => {
+      state[key] = y;
+      if (opts.range && state.from > state.to) [state.from, state.to] = [state.to, state.from];
+      refreshAll();
+    };
+    box.appendChild(b);
+  });
+}
+function renderYears(){
+  yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
+  yearChips('yearsFrom', 'from', {range:true}); yearChips('yearsTo', 'to', {range:true});
+}
+function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
+
+function renderMode(){
+  const tl = state.mode === 'timelapse';
+  document.getElementById('app').classList.toggle('is-timelapse', tl);
+  document.getElementById('modeCompare').setAttribute('aria-pressed', !tl);
+  document.getElementById('modeTimelapse').setAttribute('aria-pressed', tl);
+  document.getElementById('compareControls').hidden = tl;
+  document.getElementById('timelapseControls').hidden = !tl;
+  ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl ? 'none' : '');
+  map.getPane('paneT').style.display = tl ? '' : 'none';
+  const falseOn = state.source === 'cdse' && state.style === 'false';
+  const sub = SOURCES[state.source].label + (falseOn ? ', false color' : '');
+  document.querySelector('#tagA small').textContent = sub;
+  document.querySelector('#tagB small').textContent = sub;
+  const eox = state.source !== 'cdse';
+  document.getElementById('styleFalse').disabled = eox;
+  document.getElementById('styleTrue').setAttribute('aria-pressed', eox || state.style === 'true');
+  document.getElementById('styleFalse').setAttribute('aria-pressed', !eox && state.style === 'false');
+  applyBrightness();
+  document.getElementById('styleNote').textContent = eox
+    ? 'False color needs the Copernicus source; EOX only provides true color.'
+    : state.style === 'false'
+      ? 'Near infrared shown as red: vegetation red, snow white, glacier ice cyan to blue, water and wet debris dark.'
+      : 'Natural colors, as the eye would see them.';
+}
+function setStyle(st){
+  if (state.source !== 'cdse' && st === 'false') return;
+  state.style = prefs.style = st; savePrefs();
+  renderMode();
+  if (state.source === 'cdse' && state.checked) { setCompareLayers(); buildTimelapse(); }
+  renderStory();
+}
+/* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Per source, remembered. */
+const BRIGHT_DEFAULT = {eox: 1, cdse: 1.35};
+const brightnessFor = src => (prefs.bright && prefs.bright[src]) || BRIGHT_DEFAULT[src];
+function applyBrightness(){
+  const b = brightnessFor(state.source), exp = (1 / b).toFixed(3);
+  document.querySelectorAll('#gammaFx feComponentTransfer > *').forEach(fn => fn.setAttribute('exponent', exp));
+  ['paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 ? '' : 'url(#gammaFx)');
+  document.getElementById('brightness').value = b;
+  document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
+}
+document.getElementById('brightness').oninput = e => {
+  prefs.bright = {...(prefs.bright || {}), [state.source]: +e.target.value}; savePrefs(); applyBrightness();
+};
+document.getElementById('styleTrue').onclick = () => setStyle('true');
+document.getElementById('styleFalse').onclick = () => setStyle('false');
+
+function renderStory(){
+  const g = currentGlacier();
+  const [lo, hi] = state.mode === 'timelapse'
+    ? [Math.min(state.from, state.to), Math.max(state.from, state.to)]
+    : [Math.min(state.a, state.b), Math.max(state.a, state.b)];
+  const known = lo && hi;
+  const inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
+  const lost = 1 - inRange.reduce((r, n) => r * (1 - n.v / 100), 1);
+  const max = Math.max(...VOLUME_LOSS.map(n => n.v));
+
+  let spanText = 'Pick two years to see what changed in between.';
+  if (known && lo === hi) spanText = `Both sides show ${lo}. Pick two different years to see change.`;
+  else if (known) spanText = `You are looking at ${lo} to ${hi}, ${hi - lo} melt season${hi - lo > 1 ? 's' : ''}.` +
+    (inRange.length ? ` Over those seasons Switzerland's glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of the ice they held in autumn ${lo}.` : '');
+
+  const statsHtml = renderStats(g);
+
+  document.getElementById('story').innerHTML = `
+    <h2>${g.name}</h2>
+    <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
+    <p class="lede">${g.lede}</p>
+    <p class="span-note">${spanText}</p>
+
+    <h3>What to look for</h3>
+    <p class="body">${g.look}</p>
+    ${g.note ? `<p class="body">${g.note}</p>` : ''}
+
+    <h3>Key figures</h3>
+    ${keyFiguresNote()}
+    ${statsHtml}
+
+    <h3>All Swiss glaciers: share of ice volume lost each year</h3>
+    <div class="bars">
+      ${VOLUME_LOSS.map(n => `
+        <div class="bar ${n.y > lo && n.y <= hi ? 'in-range' : ''}">
+          <span>${n.y}</span>
+          <span class="track"><span class="fill" style="width:${n.v / max * 100}%"></span></span>
+          <span class="v">${n.approx ? '≈' : ''}${n.v.toFixed(1)} %</span>
+        </div>`).join('')}
+    </div>
+    <p class="src">Red bars are the melt seasons inside your selection. Each value is the loss relative to the ice left the year before, for October to September. 2022 is the record and 2026 the second-worst year. Values marked ≈ were reported as rounded figures.</p>
+
+    <h3>Reading the images</h3>
+    <p class="body">${state.source === 'eox'
+      ? 'Each EOX image is an annual cloud-free mosaic: the clearest Sentinel-2 pixels of that year stitched together. Pixels come from different dates, so fresh snow can hide the ice edge in some years. Years EOX has not published are greyed out.'
+      : 'Each image is the Copernicus quarterly mosaic for July to September: clouds are masked, and for every pixel the darker quarter of all clear views of those three months is kept. That removes passing summer snow, so the bare ice of the tongue shows well. The same brightness setting is used for every year, so differences are real. A new year appears about a month after the end of September.'}
+      The bare-ice tongue and freshly exposed rock are more reliable than the upper basins.</p>
+    ${state.source === 'cdse' && state.style === 'false' ? '<p class="body">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
+    <p class="body">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
+    <p class="body">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself. Measurements are geodesic, so they stay correct at any zoom.</p>
+
+    <h3>Explore in the Copernicus Browser</h3>
+    <p class="body">Open this view in the Copernicus Browser, showing the Sentinel-2 quarterly mosaic for July to September of that year. Every year from 2016 has one, so the link always shows imagery. From there you can also switch to single dates and other band combinations.</p>
+    <div class="cb-links">${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${y} mosaic in Copernicus Browser</button>`).join('')}</div>
+
+    <h3>Sources</h3>
+    <p class="src">
+      Imagery: ${state.source === 'eox'
+        ? '<a href="https://cloudless.eox.at" target="_blank" rel="noopener">EOxCloudless</a>, modified Copernicus Sentinel-2 data. 2016 CC BY 4.0; later years CC BY-NC-SA 4.0, non-commercial use only.'
+        : 'Sentinel-2 Level 3 quarterly mosaics, contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.'}<br>
+      Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0).${DATA ? ` Outlines built on ${DATA.generated}.` : ''}<br>
+      Length change: GLAMOS, Swiss Glacier Length Change, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (scientific and non-commercial use).<br>
+      Annual volume loss: GLAMOS and Swiss Academy of Sciences annual glacier reports.
+    </p>`;
+}
+
+/* ---------- Copernicus Browser deep link ---------- */
+function cbYears(){
+  const ys = state.mode === 'timelapse'
+    ? [tlLayers[state.frame] ? tlLayers[state.frame].yr : state.to]
+    : [state.a, state.b];
+  // Sentinel-2 L2A over the Alps is reliable from 2017; the Browser has every year up to today
+  return [...new Set(ys.filter(Boolean))].sort();
+}
+function copernicusBrowserUrl(year){
+  const c = map.getCenter(), z = Math.round(map.getZoom());
+  // Sentinel-2 Level 3 quarterly mosaic, Q3 (dated YYYY-07-01): parameters as in the CDSE documentation's Browser link
+  const q = new URLSearchParams({
+    zoom: z, lat: c.lat.toFixed(5), lng: c.lng.toFixed(5), themeId: 'DEFAULT-THEME',
+    visualizationUrl: 'https://sh.dataspace.copernicus.eu/ogc/wms/86789569-bd7b-498e-a521-0db055391cdf',
+    datasetId: '5460de54-082e-473a-b6ea-d5cbe3c17cca', layerId: 'TRUE-COLOR-CLOUDLESS',
+    fromTime: `${year}-07-01T00:00:00.000Z`, toTime: `${year}-07-01T23:59:59.999Z`
+  });
+  return 'https://dataspace.copernicus.eu/browser/?' + q.toString();
+}
+document.getElementById('story').addEventListener('click', e => {
+  const b = e.target.closest('.cb');
+  if (b) window.open(copernicusBrowserUrl(+b.dataset.year), '_blank', 'noopener');
+});
+
+/* ---------- 8 key figures, the same for every glacier ---------- */
+const ICONS = {
+  area:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l6-3 9 3 1 9-7 4-9-4z"/></svg>',
+  length: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 8v8M21 8v8M8 12v-2.5M12 12v-3.5M16 12v-2.5"/></svg>',
+  change: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l7 7 4-4 7 8M21 11v6h-6"/></svg>',
+  past:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>',
+  now:    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19a9 9 0 0 1 0-14M19 5a9 9 0 0 1 0 14M8.5 15.5a4 4 0 0 1 0-7M15.5 8.5a4 4 0 0 1 0 7"/><circle cx="12" cy="12" r="1.5"/></svg>',
+  down:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M5 13l7 7 7-7"/></svg>'
+};
+/* Eight figures for every glacier, all from one source: GLAMOS.
+   Area           about 1850 | 1973 | latest inventory | change since 1850   (Swiss Glacier Inventories)
+   Length change  measured since | total since then | since 2016 | latest measurement   (GLAMOS length-change series)
+   Nothing is filled in from other sources: a value GLAMOS does not have is shown as a dash. */
+ICONS.flag = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>';
+ICONS.sum  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5H6l6 7-6 7h12"/></svg>';
+ICONS.cal  = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>';
+const ok = v => v != null && !isNaN(v);
+const fmtM = m => ok(m) ? `${m < 0 ? '−' : m > 0 ? '+' : ''}${Math.abs(m).toLocaleString('en').replace(/,/g, '\u202f')} m` : null;
+function stats(g){
+  const inv = g.inv;
+  const a1850 = inv ? (inv.oldest && inv.oldest.area_km2) : g.a1850;
+  const a1973 = inv ? (inv.mid && inv.mid.area_km2) : g.a1973;
+  const aRef = rankArea(g), refY = inv ? (inv.year || rankLabel()) : 2016;
+  const L = inv && inv.length;
+  const km2 = v => ok(v) ? `${v.toFixed(1)} km²` : null;
+  const lcHint = inv ? 'not measured by GLAMOS' : 'glacier data not loaded yet';
+  return {
+    area: [
+      {ico:'past', k:'About 1850', v:km2(a1850)},
+      {ico:'past', k:'1973',       v:km2(a1973)},
+      {ico:'now',  k:`${refY}`,    v:km2(aRef)},
+      {ico:'down', k:`Change, 1850 to ${refY}`, loss:true,
+       v: ok(a1850) && ok(aRef) ? `${(aRef - a1850).toFixed(1).replace('-', '−')} km²` : null,
+       sub: ok(a1850) && ok(aRef) ? `${((aRef - a1850) / a1850 * 100).toFixed(0).replace('-', '−')} %` : ''}
+    ],
+    length: [
+      {ico:'flag', k:'Measured since', v: L ? `${L.first_year}` : null, sub: L ? `${L.observations} surveys` : '', hint:lcHint},
+      {ico:'sum',  k: L ? `Change since ${L.first_year}` : 'Change since start', loss:true, v: L ? fmtM(L.total_m) : null, hint:lcHint},
+      {ico:'now',  k: L && L.recent_from && L.recent_from > 2016 ? `Change since ${L.recent_from}` : 'Change since 2016', loss:true,
+       v: L ? fmtM(L.recent_m) : null, hint: L ? 'no survey since 2016' : lcHint},
+      {ico:'cal',  k: L ? `Latest survey, ${L.latest_period[0] === L.latest_period[1] ? L.latest_period[1] : L.latest_period.join('–')}` : 'Latest survey',
+       loss:true, v: L ? fmtM(L.latest_m) : null, hint:lcHint}
+    ]
+  };
+}
+function renderStats(g){
+  const S = stats(g);
+  const group = (key, title) => `
+    <section class="stat-group" aria-label="${title}">
+      <h4><span class="ico">${ICONS[key]}</span>${title}</h4>
+      <div class="stat-row ${key}">${S[key].map(t => `
+        <div class="stat${t.loss && t.v ? ' loss' : ''}">
+          <span class="v">${t.v ?? '—'}${t.v && t.sub ? ` <small>${t.sub}</small>` : ''}</span>
+          <span class="k"><i class="mini">${ICONS[t.ico]}</i>${t.k}</span>
+          ${!t.v && t.hint ? `<span class="k note">${t.hint}</span>` : ''}
+        </div>`).join('')}
+      </div>
+    </section>`;
+  return `<div class="stats">${group('area','Area')}${group('length','Length change of the tongue')}</div>
+    <p class="src">Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label}, ${DATA.mid_label || 'SGI1973'} and ${DATA.latest_label}` : '1850, 1973 and 2016'}.
+      Length change: GLAMOS length-change series, measured at the glacier tongue; negative values mean retreat. Surveys can span several years.</p>`;
+}
+function keyFiguresNote(){
+  return `<p class="kf-note">For consistency, all key figures come from a single source, Glacier Monitoring Switzerland (GLAMOS):
+    areas from its Swiss Glacier Inventories, length changes from its tongue measurements. Nothing is filled in from other sources,
+    so a figure GLAMOS has not measured for a glacier is shown as a dash.${DATA ? '' :
+    ' <strong>The GLAMOS data file (glaciers.js) is not loaded yet</strong>; until then the areas are built-in copies of the inventory values and length changes are missing.'}</p>`;
+}
+
+function renderOutlineControls(){
+  const has = !!DATA;
+  ['oldToggle','newToggle'].forEach(id => document.getElementById(id).disabled = !has);
+  document.getElementById('oldLabel').textContent = `Oldest outline (${has ? DATA.oldest_label : 'SGI1850'})`;
+  document.getElementById('newLabel').textContent = `Newest outline (${has ? DATA.latest_label : 'SGI2023'})`;
+  const note = document.getElementById('outlineNote');
+  if (has) {
+    const matched = GLACIERS.filter(g => g.inv && g.inv.oldest).length;
+    note.innerHTML = `Loaded from glaciers.js (${DATA.latest_label} vs ${DATA.oldest_label}, built ${DATA.generated}). ` +
+      `${matched} of ${GLACIERS.length} glaciers have an ${DATA.oldest_label} outline. Click an outline to see its area.`;
+  } else {
+    note.innerHTML = `<strong class="warn">Outlines are off: glaciers.js was not found next to this page.</strong> ` +
+      `Run the "Build data and deploy" GitHub Action, or <code>python3 scripts/build_outlines.py</code> locally, then reload.`;
+  }
+}
+
+function refreshAll(){
+  renderMode(); renderYears();
+  setTag('tagA', state.a); setTag('tagB', state.b);
+  if (state.checked) { setCompareLayers(); buildTimelapse(); }
+  renderStory(); writeHash();
+}
+
+/* =====================================================================
+   8. Mode + source controls
+   ===================================================================== */
+document.getElementById('modeCompare').onclick = () => { state.mode = 'compare'; refreshAll(); };
+document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); };
+
+
+
+function setStatus(t){ document.getElementById('status').textContent = t; }
+function showNotice(msg){
+  const n = document.getElementById('notice');
+  n.textContent = msg; n.classList.add('show');
+  clearTimeout(showNotice.t); showNotice.t = setTimeout(() => n.classList.remove('show'), 7000);
+}
+
+(function sourceUI(){
+  const sel = document.getElementById('sourceSel');
+  const sync = () => {
+    document.getElementById('cdseFields').hidden = sel.value !== 'cdse';
+    document.getElementById('eoxInfo').hidden = sel.value !== 'eox';
+  };
+  sel.value = state.source; sync();
+  if (!prefs.source) document.getElementById('sourceBox').open = true;
+  document.getElementById('cdseId').value = cred.id || '';
+  document.getElementById('cdseSecret').value = cred.secret || '';
+  document.getElementById('cdseToken').value = cred.token || '';
+  document.getElementById('cdseRemember').checked = !!localStorage.getItem('cdseCred');
+  const name = () => document.getElementById('sourceName').textContent = state.source === 'cdse' ? 'Copernicus quarterly mosaics' : 'EOX annual mosaics';
+  name();
+  sel.onchange = sync;
+  // On a static host (e.g. GitHub Pages) there is no relay, so the Copernicus login cannot work.
+  const local = ['localhost', '127.0.0.1', ''].includes(location.hostname);
+  window.syncSourceUI = () => { sel.value = state.source; sync(); name(); };
+  window.sourceReady = relayInfo().then(({relay, managed}) => {
+    if (managed) {
+      // hide only the login fields: ID, secret, "remember" checkbox and the access-token box
+      ['cdseId','cdseSecret'].forEach(id => {
+        document.getElementById(id).hidden = true;
+        const lab = document.querySelector(`label[for="${id}"]`); if (lab) lab.hidden = true;
+      });
+      document.getElementById('cdseRemember').closest('label').hidden = true;
+      document.querySelector('#cdseFields details.token-alt').hidden = true;
+      document.querySelectorAll('#cdseFields .hint').forEach((h, i) => { if (i > 0) h.hidden = true; });
+      const n = document.createElement('p'); n.className = 'hint';
+      n.textContent = 'Provided by this site: no account needed.';
+      document.getElementById('cdseFields').appendChild(n);
+      sel.querySelector('option[value="cdse"]').textContent = 'Copernicus quarterly mosaics, Jul–Sep (free for any use)';
+      if (!prefs.source) { state.source = 'cdse'; window.syncSourceUI(); }   // default for first-time visitors
+      return;
+    }
+    if (relay || local) return;
+    const opt = sel.querySelector('option[value="cdse"]');
+    opt.disabled = true; opt.textContent += ' — not available on this site';
+    if (state.source === 'cdse') { state.source = prefs.source = 'eox'; savePrefs(); sel.value = 'eox'; sync(); name(); checkYears(); }
+    const n = document.createElement('p'); n.className = 'hint';
+    n.textContent = 'Copernicus quarterly mosaics need a small login relay, which this public site does not run. Run the dashboard locally with scripts/serve.py to use them.';
+    document.getElementById('eoxInfo').appendChild(n);
+  });
+  document.getElementById('applySource').onclick = async () => {
+    if (sel.value === 'cdse') {
+      const c = { id: document.getElementById('cdseId').value.trim(), secret: document.getElementById('cdseSecret').value.trim(),
+                  token: document.getElementById('cdseToken').value.trim() };
+      if (!relayManaged) {
+        if (!c.token && !(c.id && c.secret)) return showNotice('Enter your OAuth client ID and secret, or paste an access token.');
+        saveCred(c, document.getElementById('cdseRemember').checked);
+        tokenCache = {value:null, until:0};
+      }
+    }
+    prefs.source = state.source = sel.value; savePrefs(); name();
+    [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
+    tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
+    errCount = 0; memCache.clear(); renderMode(); renderStory();
+    await checkYears();
+  };
+})();
+
+/* =====================================================================
+   9. Boot
+   ===================================================================== */
+renderGlacierList();
+renderOutlineControls();
+renderMode(); renderYears();
+focusTongue(false);
+renderStory();
+window.sourceReady.then(() => { renderMode(); renderStory(); checkYears(); });
+</script>
+</body>
+</html>
