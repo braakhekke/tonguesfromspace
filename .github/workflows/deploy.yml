@@ -50,6 +50,7 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/
+          [ -f preview.jpg ] && cp preview.jpg _site/ || true
           [ -f glaciers.js ] && cp glaciers.js _site/ || echo "glaciers.js not available yet"
           touch _site/.nojekyll
 
