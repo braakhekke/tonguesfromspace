@@ -15,7 +15,7 @@ Created by Jochem Braakhekke for public glacier awareness. See also [For Your Ic
 - **Measure:** draw lines and areas; lengths and areas are geodesic.
 - **Key figures:** area (about 1850, 1973, 2023) and tongue length change, all from GLAMOS.
 - **Swiss context:** share of the national ice volume lost each year since 2016.
-- **Video for Instagram and TikTok:** frame the tongue on the map and get an MP4 (9:16 for Reels and TikTok, or 4:5 for the Instagram feed) with title, years, scene dates, scale bar, optional 1850 outline, the national volume loss and all credits. Made in the browser; on phones it opens the share sheet.
+- **Video for Instagram and TikTok:** a timelapse or a before/after swipe of two years. Frame the tongue on the map and get an MP4 (9:16 for Reels and TikTok, or 4:5 for the Instagram feed) with title, years, scene dates, scale bar, optional 1850 outline, the national volume loss and all credits. Made in the browser; on phones it opens the share sheet.
 - **Share:** a link to the current glacier, mode and years.
 - **Phones:** map first, compact controls under the map, two fingers to move the map, landscape layout.
 
@@ -44,11 +44,11 @@ The workflow downloads the GLAMOS data, commits `glaciers.js`, and publishes the
 
 ## Satellite images
 
-All images are Copernicus Sentinel-2 Level-2A scenes from the Copernicus Data Space Ecosystem (CDSE), free for any use with attribution.
+All images are Copernicus Sentinel-2 scenes from the Copernicus Data Space Ecosystem (CDSE), free for any use with attribution. The scene of each year is chosen with Level-2A (it has the scene classification for clouds and snow); the image itself is rendered from Level-1C of the same day with a simple haze correction, because Level-2A brightens shaded slopes in a way that looks unnatural in the mountains.
 
 **How the scene of each year is chosen.** For the selected glacier, one request to the CDSE Statistical API scores every Sentinel-2 acquisition from July 1 to September 20 of that year, using the scene classification (SCL): the share of cloud and cloud shadow, and the share of snow and ice. Scenes that cover less than 95 % of the image area are skipped. The dashboard then takes:
 
-1. the September scene with at most 5 % cloud and the least snow;
+1. the September scene (until 20 September; in 2024 until 14 September, because of heavy snowfall on the 15th) with at most 5 % cloud and the least snow;
 2. if September has none, the best one from August;
 3. if August has none, the best one from July;
 4. if no month has a clear scene, the least cloudy scene of the summer (up to 30 % cloud), marked "some clouds".
@@ -97,7 +97,8 @@ No extra packages are needed. On macOS with the python.org installer, run *Insta
 - **Glacier areas and outlines:** GLAMOS Swiss Glacier Inventories 1850, 1973 and 2023, CC BY 4.0.
 - **Length change:** GLAMOS (2025), Swiss Glacier Length Change, release 2025, doi:10.18750/lengthchange.2025.r2025. Free for scientific and non-commercial use, with the source indicated.
 - **Annual volume loss:** GLAMOS and Swiss Academy of Sciences (SCNAT) annual glacier reports.
-- **Imagery:** Copernicus Sentinel-2 Level-2A via the Copernicus Data Space Ecosystem; contains modified Copernicus Sentinel data. Free for any use with attribution.
+- **Imagery:** Copernicus Sentinel-2 Level-1C and Level-2A via the Copernicus Data Space Ecosystem; contains modified Copernicus Sentinel data. Free for any use with attribution.
+- **Background:** Sentinel-2 cloudless 2024 by EOX IT Services GmbH (s2maps.eu), CC BY-NC-SA 4.0.
 - **Base map:** © OpenStreetMap contributors (ODbL), tiles from tile.openstreetmap.org, used under the OpenStreetMap tile usage policy.
 - **Map labels:** © OpenStreetMap contributors, rendering EOX.
 

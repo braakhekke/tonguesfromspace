@@ -122,10 +122,12 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:640;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.4)}
 .handle{position:absolute;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;z-index:660;display:grid;place-items:center;cursor:ew-resize;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.35);border:0}
 .handle svg{width:20px;height:20px;stroke:var(--rock)}
-.is-timelapse /* satellite scene: thin frame and rounded corners; mosaic background behind it */
+/* satellite scene: thin frame and rounded corners (not while framing a video) */
 .scene-img{border-radius:14px;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 8px 28px rgba(0,0,0,.45)}
-.bg-img{border-radius:18px;opacity:.92}
-.layerbox{top:16px}
+.is-framing .scene-img{border-radius:0;box-shadow:none}
+/* static Sentinel-2 background for all of Switzerland, a little darker than the scene */
+.leaflet-bgPane-pane,.bg-dim{filter:brightness(.78) saturate(.9)}
+.is-timelapse .layerbox{top:14px}
 .is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
 #tagT{display:none}
 .is-timelapse #tagT{display:block}
@@ -266,7 +268,8 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   .mimage .segment{flex:1.3}
   .mimage .segment button{min-height:38px;font-size:14px}
   .mbright{flex:1;display:flex;flex-direction:column;font-size:12.5px;color:var(--moraine);gap:2px}
-  .mbright input{width:100%;accent-color:var(--accent);min-height:28px}
+  .mbright input{width:100%;accent-color:var(--accent);min-height:26px}
+  .mbright label{display:flex;flex-direction:column}
 
   .mbar select{width:100%;min-height:44px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
   .mbar .segment button{min-height:40px;font-size:15px}
@@ -339,6 +342,8 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
   <filter id="gammaFx" color-interpolation-filters="sRGB"><feComponentTransfer>
     <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncG type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncB type="gamma" amplitude="1" exponent="1" offset="0"/>
+  </feComponentTransfer><feComponentTransfer id="snowFx">
+    <feFuncR type="identity"/><feFuncG type="identity"/><feFuncB type="identity"/>
   </feComponentTransfer></filter>
 </svg>
 <div class="app" id="app">
@@ -418,6 +423,8 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <p class="hint" id="styleNote" style="margin:0 0 12px"></p>
       <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
       <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
+      <label class="slider-row" for="snowContrast"><span>Snow contrast</span><output id="snowOut">0 %</output></label>
+      <input type="range" class="frame" id="snowContrast" min="0" max="1" step="0.05" value="0" aria-label="Contrast in snow and bright ice">
       <p class="hint" style="margin:2px 0 12px">Lifts shadows and mid-tones; bright ice keeps its detail. No new downloads needed.</p>
     </div>
 
@@ -428,7 +435,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
         <span class="fyi-ask">Want a glacier on your wall?</span>
         <span class="fyi-name">For Your Ice</span>
-        <span class="fyi-text">Proceeds support creation of new visual tools to increase public glacier awareness.</span>
+        <span class="fyi-text">Proceeds support the creation of new visual tools to increase public glacier awareness.</span>
       </a>
     </footer>
   </aside>
@@ -453,7 +460,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <div class="lb-body">
       <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Outline 1850</span></span></label>
       <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline today</span></span></label>
-      <label class="toggle"><input type="checkbox" id="mosaicToggle" checked> <span>Sentinel-2 mosaic around it</span></label>
+      <label class="toggle"><input type="checkbox" id="mosaicToggle" checked> <span>Sentinel-2 background</span></label>
       <label class="toggle"><input type="checkbox" id="osmToggle" checked> <span>OpenStreetMap</span></label>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
       <p class="hint" id="outlineNote"></p>
@@ -487,7 +494,8 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     </div>
     <div class="mrow mimage">
       <div class="segment" role="group" aria-label="Colour"><button type="button" id="mStyleTrue">True color</button><button type="button" id="mStyleFalse">False color</button></div>
-      <label class="mbright">Brightness <input type="range" id="mBright" min="0.6" max="1.8" step="0.05" aria-label="Image brightness"></label>
+      <div class="mbright"><label>Brightness <input type="range" id="mBright" min="0.6" max="1.8" step="0.05" aria-label="Image brightness"></label>
+      <label>Snow contrast <input type="range" id="mSnow" min="0" max="1" step="0.05" aria-label="Contrast in snow and bright ice"></label></div>
     </div>
     <div class="mrow" id="mCompareRow">
       <label>Left<select id="mA"></select></label>
@@ -515,6 +523,10 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   <div class="segment" role="group" aria-label="Format">
     <button type="button" id="vfReel" aria-pressed="true">9:16 Reels, TikTok</button>
     <button type="button" id="vfFeed" aria-pressed="false">4:5 Instagram feed</button>
+  </div>
+  <div class="segment" role="group" aria-label="Video type" style="margin-top:8px">
+    <button type="button" id="vtTimelapse" aria-pressed="true">Timelapse</button>
+    <button type="button" id="vtSwipe" aria-pressed="false">Before / after</button>
   </div>
   <div class="vs-opts">
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
@@ -660,9 +672,12 @@ const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l2a-v2'         // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v3'         // bump when scoring or rendering changes, to invalidate cached results
 };
 const MONTH_NAME = {7:'July', 8:'August', 9:'September'};
+/* latest allowed day per year (MM-DD); default 20 September. 2024: heavy snowfall on 15 September. */
+const LAST_DAY = { default: '09-20', 2024: '09-14' };
+const lastDay = yr => LAST_DAY[yr] || LAST_DAY.default;
 
 /* Scene scoring: SCL 3 = cloud shadow, 8/9 = cloud, 10 = thin cirrus, 11 = snow or ice. */
 const SCENE_EVALSCRIPT = `//VERSION=3
@@ -678,14 +693,20 @@ function evaluatePixel(s){
    L2A reflectance 0..1, gain 2.5 as in the Copernicus Browser, soft roll-off above 0.8
    so bright ice and snow keep their detail.
    true colour:  B04, B03, B02      false colour: B08 (near infrared), B04, B03 */
+/* Images come from Sentinel-2 Level-1C (top of atmosphere): L2A fills in shaded slopes, which looks
+   unnatural in the mountains. A simple haze correction removes the atmospheric glow per band so the
+   colours come close to L2A: v' = (v - haze) / (1 - haze), white stays white. */
+const HAZE = { B02: 0.055, B03: 0.035, B04: 0.02, B08: 0.01 };
+const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style){
   const [r, g, b] = style === 'false' ? ['B08','B04','B03'] : ['B04','B03','B02'];
   return `//VERSION=3
 function setup(){ return { input:["B02","B03","B04","B08","dataMask"], output:{ bands:3 } }; }
-function f(v){ var x = 2.5 * Math.max(0, v); return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
+function c(v, h){ return Math.max(0, (v - h) / (1 - h)); }
+function f(v){ var x = 2.5 * v; return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
 function evaluatePixel(p){
   if (!p.dataMask) return [0.11, 0.16, 0.19];
-  return [f(p.${r}), f(p.${g}), f(p.${b})];
+  return [f(c(p.${r}, ${HAZE[r]})), f(c(p.${g}, ${HAZE[g]})), f(c(p.${b}, ${HAZE[b]}))];
 }`;
 }
 
@@ -754,7 +775,7 @@ const idb = (() => {
 
 /* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
 function imageFootprint(g){
-  const b = padBounds(g.bounds, 0.15);
+  const b = padBounds(g.bounds, 0.35);   // generous margin around the glacier, for panning and video crops
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
   const lat = (b[0][0] + b[1][0]) / 2, scale = 1 / Math.cos(lat * Math.PI / 180);   // Mercator metres per ground metre
   let w = Math.round((ne.x - sw.x) / (CDSE.groundRes * scale)), h = Math.round((ne.y - sw.y) / (CDSE.groundRes * scale));
@@ -794,7 +815,7 @@ async function findScene(g, yr){
         return { date: d.interval.from.slice(0, 10), cloud: c.mean, snow: s.mean,
                  cover: c.sampleCount ? 1 - c.noDataCount / c.sampleCount : 0 };
       } catch { return null; }
-    }).filter(d => d && d.date.slice(5) <= '09-20' && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
+    }).filter(d => d && d.date.slice(5) <= lastDay(yr) && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
     const scene = pickScene(days);
     idb.set(key, {scene, savedAt: Date.now()});
     return scene;
@@ -819,7 +840,7 @@ function loadImage(g, yr){
     try {
       const blob = await queued(() => cdse('process', {
         input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
-                 data: [{ type: CDSE.collection, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' } }] },
+                 data: [{ type: IMAGE_COLLECTION, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' } }] },
         output: { width: fp.w, height: fp.h, responses: [{ identifier:'default', format:{ type:'image/jpeg' } }] },
         evalscript: evalscriptFor(style)
       }, 'image/jpeg', `${g.name}, ${fmtDate(sc.date)}`).then(r => r.blob()));
@@ -866,6 +887,7 @@ const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8
 [['bgPane',205],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['labels',450],['measure',620]].forEach(([n,z]) => {
   map.createPane(n); map.getPane(n).style.zIndex = z;
 });
+map.getPane('bgPane').style.filter = 'brightness(.78) saturate(.9)';   // background a little darker than the scene
 map.getPane('labels').style.pointerEvents = 'none';
 L.control.scale({position:'bottomright', imperial:false, maxWidth:150}).addTo(map);
 
@@ -874,7 +896,7 @@ function updateCredits(){
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
   const parts = yrs.length ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
-  if (document.getElementById('mosaicToggle').checked) parts.push(`Background: Sentinel-2 quarterly mosaic, July to September ${mosaicYear()}`);
+  if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
@@ -891,46 +913,14 @@ const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_
 
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
-/* ---------- background: Sentinel-2 quarterly cloudless mosaic (July to September) around the scene ---------- */
-const MOSAIC = { collection: 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca', pad: 0.8, maxPx: 2000 };
-const MOSAIC_EVALSCRIPT = `//VERSION=3
-function setup(){ return { input:["B02","B03","B04","dataMask"], output:{ bands:3 } }; }
-function f(v){ var x = 2.5 * Math.max(0, v) / 10000; return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
-function evaluatePixel(p){ if (!p.dataMask) return [0.11, 0.16, 0.19]; return [f(p.B04), f(p.B03), f(p.B02)]; }`;
-const mosaicYear = () => { const n = new Date(); return n.getUTCMonth() >= 10 ? n.getUTCFullYear() : n.getUTCFullYear() - 1; };  // Q3 mosaic is out by November
-function mosaicFootprint(g){
-  const b = padBounds(g.bounds, MOSAIC.pad);
-  const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
-  const k = MOSAIC.maxPx / Math.max(ne.x - sw.x, ne.y - sw.y);
-  return { bounds: b, bbox: [sw.x, sw.y, ne.x, ne.y].map(v => Math.round(v)), w: Math.round((ne.x - sw.x) * k), h: Math.round((ne.y - sw.y) * k) };
-}
-function loadBackground(g, yr){
-  const fp = mosaicFootprint(g), key = `${CDSE.version}|bg|${g.id}|${yr}|${fp.bbox.join(',')}`;
-  if (memCache.has(key)) return memCache.get(key);
-  const p = (async () => {
-    const hit = await idb.get(key);
-    if (hit instanceof Blob) return URL.createObjectURL(hit);
-    const blob = await (await cdse('process', {
-      input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
-               data: [{ type: MOSAIC.collection, dataFilter: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-07-01T23:59:59Z` } } }] },
-      output: { width: fp.w, height: fp.h, responses: [{ identifier: 'default', format: { type: 'image/jpeg' } }] },
-      evalscript: MOSAIC_EVALSCRIPT
-    }, 'image/jpeg', `${g.name}, background mosaic`)).blob();
-    idb.set(key, blob);
-    return URL.createObjectURL(blob);
-  })();
-  memCache.set(key, p); p.catch(() => memCache.delete(key));
-  return p;
-}
-let bgLayer = null;
+/* ---------- background: one static Sentinel-2 mosaic for all of Switzerland (EOX Sentinel-2 cloudless 2024) ---------- */
+const BG_YEAR = 2024;
+const bgTiles = L.tileLayer(`https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-${BG_YEAR}_3857/default/g/{z}/{y}/{x}.jpg`,
+  {pane:'bgPane', maxNativeZoom:14, maxZoom:17, attribution:`Sentinel-2 cloudless ${BG_YEAR} by EOX`});
 function setBackground(){
-  if (bgLayer) { map.removeLayer(bgLayer); bgLayer = null; }
-  if (!document.getElementById('mosaicToggle').checked) return updateCredits();
-  const g = currentGlacier(), yr = mosaicYear(), layer = L.imageOverlay(BLANK, mosaicFootprint(g).bounds, {pane:'bgPane', className:'bg-img', interactive:false});
-  bgLayer = layer.addTo(map);
-  // an older mosaic if the newest is not out yet; failures only cost the background
-  loadBackground(g, yr).catch(() => loadBackground(g, yr - 1)).then(url => { if (bgLayer === layer) layer.setUrl(url); })
-    .catch(e => console.warn('Background mosaic not available:', e.message));
+  const on = document.getElementById('mosaicToggle').checked;
+  if (on && !map.hasLayer(bgTiles)) bgTiles.addTo(map);
+  if (!on && map.hasLayer(bgTiles)) map.removeLayer(bgTiles);
   updateCredits();
 }
 function imageryLayer(yr, pane, opacity=1){
@@ -1152,7 +1142,6 @@ document.getElementById('tongueBtn').onclick = () => focusTongue();
 let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
 async function checkYears(){
   const gen = ++checkGen, g = currentGlacier();
-  setBackground();
   state.checked = false; state.available = {};
   [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
   renderYears(); updateTags();
@@ -1261,14 +1250,24 @@ function setStyle(st){
 }
 /* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Remembered. */
 const BRIGHT_DEFAULT = 1.1;
+/* Snow contrast: tones above 0.5 are spread out with a power curve (0 = off), so detail in bright snow and ice shows.
+   y = x below 0.5;  y = 0.5 + 0.5 * ((x - 0.5) / 0.5) ** (1 + 2.5 * amount) above. White stays white. */
+const snowAmount = () => typeof prefs.snow === 'number' ? prefs.snow : 0;
+const snowCurve = (x, a) => x <= 0.5 ? x : 0.5 + 0.5 * Math.pow((x - 0.5) / 0.5, 1 + 2.5 * a);
 const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGHT_DEFAULT;
 function applyBrightness(){
-  const b = brightness(), exp = (1 / b).toFixed(3);
-  document.querySelectorAll('#gammaFx feComponentTransfer > *').forEach(fn => fn.setAttribute('exponent', exp));
-  ['bgPane','paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 ? '' : 'url(#gammaFx)');
+  const b = brightness(), exp = (1 / b).toFixed(3), a = snowAmount();
+  document.querySelectorAll('#gammaFx feComponentTransfer:first-child > *').forEach(fn => fn.setAttribute('exponent', exp));
+  const table = Array.from({length: 33}, (_, i) => snowCurve(i / 32, a).toFixed(4)).join(' ');
+  document.querySelectorAll('#snowFx > *').forEach(fn => { if (a > 0.001) { fn.setAttribute('type', 'table'); fn.setAttribute('tableValues', table); } else { fn.setAttribute('type', 'identity'); fn.removeAttribute('tableValues'); } });
+  ['paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 && a < 0.001 ? '' : 'url(#gammaFx)');
+  document.getElementById('snowContrast').value = a;
+  document.getElementById('snowOut').textContent = `${Math.round(a * 100)} %`;
+  if (document.getElementById('mSnow')) document.getElementById('mSnow').value = a;
   document.getElementById('brightness').value = b;
   document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
 }
+document.getElementById('snowContrast').oninput = e => { prefs.snow = +e.target.value; savePrefs(); applyBrightness(); };
 document.getElementById('brightness').oninput = e => {
   prefs.bright = +e.target.value; savePrefs(); applyBrightness();
 };
@@ -1300,12 +1299,12 @@ function renderStory(){
     <h3>What to look for</h3>
     <p class="body">${g.look}</p>
     ${g.note ? `<p class="body">${g.note}</p>` : ''}
-    <p class="span-note">${spanText}</p>
 
     <h3 class="with-info">Key figures <button type="button" class="info-btn" aria-expanded="false" aria-controls="kfNote" aria-label="About these figures"
       onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></h3>
     <div id="kfNote" hidden>${keyFiguresNote()}</div>
     ${statsHtml}
+    <p class="body">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself. Measurements are geodesic, so they stay correct at any zoom.</p>
 
     <h3>All Swiss glaciers: share of ice volume lost each year</h3>
     <div class="bars">
@@ -1317,12 +1316,12 @@ function renderStory(){
         </div>`).join('')}
     </div>
     <p class="src">Red bars are the melt seasons inside your selection. Each value is the loss relative to the ice left the year before, for October to September. 2022 is the record and 2026 the second-worst year. Values marked ≈ were reported as rounded figures.</p>
+    <p class="span-note">${spanText}</p>
 
     <h3>Reading the images</h3>
-    <p class="body">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene is used; if September has no clear scene, the best one from August, then from July. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
+    <p class="body">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene up to the 20th is used (in 2024 up to the 14th, because of heavy snowfall on the 15th); if September has no clear scene, the best one from August, then from July. The image is then rendered from Level-1C with a light haze correction, which keeps shaded slopes natural. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
     ${state.style === 'false' ? '<p class="body">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
     <p class="body">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
-    <p class="body">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself. Measurements are geodesic, so they stay correct at any zoom.</p>
 
     <h3>Explore in the Copernicus Browser</h3>
     <p class="body">Open the scene of each year in the Copernicus Browser, on the same date and view, to look at other band combinations or neighbouring dates.</p>
@@ -1330,7 +1329,7 @@ function renderStory(){
 
     <h3>Sources</h3>
     <p class="src">
-      Imagery: Copernicus Sentinel-2 Level-2A, contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.<br>
+      Imagery: Copernicus Sentinel-2 Level-1C (images) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.<br>
       Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.<br>
       Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0).${DATA ? ` Outlines built on ${DATA.generated}.` : ''}<br>
       Length change: GLAMOS, Swiss Glacier Length Change, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (scientific and non-commercial use).<br>
@@ -1467,6 +1466,7 @@ document.getElementById('lbToggle').onclick = () => {
 };
 document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;
 document.getElementById('mosaicToggle').onchange = e => { prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
+setBackground();
 document.getElementById('osmToggle').checked = prefs.osm !== false;
 document.getElementById('osmToggle').onchange = e => {
   prefs.osm = e.target.checked; savePrefs();
@@ -1481,6 +1481,7 @@ const $ = id => document.getElementById(id);
 
 function chooseGlacier(id){
   if (state.glacier === id) return focusTongue();
+  stopPlay();
   state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
@@ -1516,6 +1517,7 @@ $('mTimelapse').onclick = () => $('modeTimelapse').click();
 $('mStyleTrue').onclick = () => { setStyle('true'); renderMobileBar(); };
 $('mStyleFalse').onclick = () => { setStyle('false'); renderMobileBar(); };
 $('mBright').oninput = e => { prefs.bright = +e.target.value; savePrefs(); applyBrightness(); };
+$('mSnow').oninput = e => { prefs.snow = +e.target.value; savePrefs(); applyBrightness(); };
 $('mPlay').onclick = () => { state.playing ? stopPlay() : play(); renderMobileBar(); };
 
 /* Map tools on phones: layers and measuring live behind two small buttons */
@@ -1579,7 +1581,11 @@ const VIDEO = {
   intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0,
   codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
 };
-const vstate = { fmt: 'reel', busy: false };
+const vstate = { fmt: 'reel', type: 'timelapse', busy: false };
+const SWIPE = { holdA: 1.2, wipe: 2.4, holdB: 1.3, back: 1.8, holdMid: 1.4 };   // seconds
+const videoYears = () => vstate.type === 'swipe'
+  ? [state.a, state.b].filter(y => state.available[y]).filter((y, i, a) => a.indexOf(y) === i)
+  : tlFrames();
 const FONT = '"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif';
 
 /* ---- framing on the map ---- */
@@ -1600,23 +1606,26 @@ function updateFrame(){
   Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
   const res = frameGroundRes();
   $('videoFrameNote').textContent = res < 4 ? 'Zoom out a little for a sharper video' : '';
-  const ys = tlFrames();
+  const ys = videoYears();
   $('vsInfo').textContent = ys.length < 2
-    ? 'Pick a timelapse range of at least two years first.'
-    : `${ys.length} years, ${ys[0]} to ${ys[ys.length - 1]}, about ${Math.round(videoDuration(ys.length))} seconds.` +
+    ? (vstate.type === 'swipe' ? 'Pick two different years in Compare first.' : 'Pick a timelapse range of at least two years first.')
+    : (vstate.type === 'swipe' ? `Before/after: ${ys[0]} and ${ys[1]}, about ${Math.round(videoDuration(2))} seconds.`
+                               : `${ys.length} years, ${ys[0]} to ${ys[ys.length - 1]}, about ${Math.round(videoDuration(ys.length))} seconds.`) +
       (res < 4 ? ' The images have 10 m pixels, so this close in the video will look soft.' : '');
 }
-const videoDuration = n => VIDEO.intro + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro;
+const videoDuration = n => vstate.type === 'swipe'
+  ? VIDEO.intro + Object.values(SWIPE).reduce((a, b) => a + b, 0) * +$('vSpeed').value / 1.1 + VIDEO.outro
+  : VIDEO.intro + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro;
 map.on('move zoom resize', updateFrame);
 
 function openVideo(){
   if (typeof VideoEncoder === 'undefined') {
     return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
   }
-  if (state.mode !== 'timelapse') { state.mode = 'timelapse'; state.frame = 0; refreshAll(); }
+  setType(state.mode === 'compare' ? 'swipe' : 'timelapse');
   stopPlay();
   const g = currentGlacier(), hasOld = !!(g.inv && g.inv.oldest);
-  $('vOutline').disabled = !hasOld; $('vOutline').checked = hasOld;
+  $('vOutline').disabled = !hasOld; $('vOutline').checked = false;
   $('videoSheet').hidden = false; $('videoFrame').hidden = false;
   $('app').classList.add('is-framing');
   $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = 'Create video';
@@ -1631,6 +1640,8 @@ $('videoBtn').onclick = openVideo; $('mVideo').onclick = openVideo; $('vsClose')
 const setFmt = f => { vstate.fmt = f; $('vfReel').setAttribute('aria-pressed', f === 'reel'); $('vfFeed').setAttribute('aria-pressed', f === 'feed'); updateFrame(); };
 $('vfReel').onclick = () => setFmt('reel'); $('vfFeed').onclick = () => setFmt('feed');
 $('vSpeed').onchange = updateFrame;
+function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); updateFrame(); }
+$('vtTimelapse').onclick = () => setType('timelapse'); $('vtSwipe').onclick = () => setType('swipe');
 
 function progress(frac, label){
   $('vsProgress').hidden = false; $('vsBar').style.width = Math.round(frac * 100) + '%';
@@ -1661,9 +1672,9 @@ async function buildBase(img, crop, W, H, outline){
   const fp = crop.fp, s = W / (crop.x1 - crop.x0);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, (fp.bbox[0] - crop.x0) * s, (crop.y1 - fp.bbox[3]) * s, (fp.bbox[2] - fp.bbox[0]) * s, (fp.bbox[3] - fp.bbox[1]) * s);
-  const b = brightness();
-  if (Math.abs(b - 1) > 0.01) {                       // same curve as the brightness slider: whites stay white
-    const lut = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+  const b = brightness(), sa = snowAmount();
+  if (Math.abs(b - 1) > 0.01 || sa > 0.001) {          // same curves as the brightness and snow contrast sliders
+    const lut = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) lut[i] = 255 * snowCurve(Math.pow(i / 255, 1 / b), sa);
     const d = ctx.getImageData(0, 0, W, H), px = d.data;
     for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
     ctx.putImageData(d, 0, 0);
@@ -1688,60 +1699,93 @@ function shade(ctx, W, H, S){
   g.addColorStop(0, 'rgba(8,14,18,0)'); g.addColorStop(1, 'rgba(8,14,18,.8)');
   ctx.fillStyle = g; ctx.fillRect(0, H - S.bottom - 380, W, S.bottom + 380);
 }
+function drawHeader(ctx, S, maxW, g){
+  const x = S.left;
+  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, S.top + 28, {blur:8, color:'#FF5A4E'});
+  const gs = fitText(ctx, g.name, 800, 60, maxW); shadowText(ctx, g.name, x, S.top + 28 + gs + 8);
+  ctx.font = `500 23px ${FONT}`; shadowText(ctx, [g.canton, g.range].filter(Boolean).join(', ') || 'Switzerland', x, S.top + 28 + gs + 42, {blur:8});
+}
+function drawScaleBar(ctx, info, x, y, maxW){
+  const m = niceScale(maxW * 0.28 * info.res), px = m / info.res;
+  ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
+  ctx.fillRect(x, y, px, 5); ctx.fillRect(x, y - 12, 4, 17); ctx.fillRect(x + px - 4, y - 12, 4, 17); ctx.restore();
+  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, x + px / 2, y - 18, {align:'center', blur:8});
+  return px;
+}
+function drawSwipeLabels(ctx, W, H, S, info, split){
+  shade(ctx, W, H, S);
+  const maxW = W - S.left - S.right, base = H - S.bottom;
+  drawHeader(ctx, S, maxW, info.glacier);
+  // divider with a round handle
+  if (split > 2 && split < W - 2) {
+    ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 10;
+    ctx.fillRect(split - 2, 0, 4, H);
+    ctx.beginPath(); ctx.arc(split, H * 0.5, 30, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = '#22313A'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+    ctx.beginPath(); ctx.moveTo(split - 6, H * 0.5 - 10); ctx.lineTo(split - 16, H * 0.5); ctx.lineTo(split - 6, H * 0.5 + 10);
+    ctx.moveTo(split + 6, H * 0.5 - 10); ctx.lineTo(split + 16, H * 0.5); ctx.lineTo(split + 6, H * 0.5 + 10); ctx.stroke(); ctx.restore();
+  }
+  // the two years: first on the left, later on the right; each fades when its image is fully hidden
+  ctx.font = `800 104px ${FONT}`;
+  ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 40, {blur:20}); ctx.restore();
+  ctx.save(); ctx.globalAlpha = Math.min(1, (W - split) / (W * 0.25)); shadowText(ctx, String(info.years[1]), W - S.right, base - 40, {blur:20, align:'right'}); ctx.restore();
+  ctx.font = `500 19px ${FONT}`;
+  shadowText(ctx, `Contains modified Copernicus Sentinel data ${Math.min(...info.years)} and ${Math.max(...info.years)}`, S.left, base, {blur:6, color:'rgba(255,255,255,.88)'});
+  drawScaleBar(ctx, info, W - S.right - niceScale(maxW * 0.28 * info.res) / info.res, S.top + 40, maxW);
+}
 function drawLabels(ctx, W, H, S, info, k){
   const g = info.glacier, sc = info.scenes[k], x = S.left, maxW = W - S.left - S.right;
   shade(ctx, W, H, S);
   ctx.textBaseline = 'alphabetic';
   // top: site title, glacier, canton
-  ctx.font = `700 30px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, S.top + 34, {blur:8, color:'#FF5A4E'});
-  const gs = fitText(ctx, g.name, 800, 78, maxW); shadowText(ctx, g.name, x, S.top + 34 + gs + 12);
-  ctx.font = `500 30px ${FONT}`; shadowText(ctx, [g.canton, g.range].filter(Boolean).join(', ') || 'Switzerland', x, S.top + 34 + gs + 56, {blur:8});
+  drawHeader(ctx, S, maxW, g);
+  const gs = 0;
   if (info.outline) {
-    const y = S.top + 34 + gs + 104;
+    const y = S.top + 150;
     ctx.save(); ctx.strokeStyle = '#F2A93B'; ctx.lineWidth = 5; ctx.setLineDash([14, 9]);
     ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 56, y - 10); ctx.stroke(); ctx.restore();
-    ctx.font = `500 28px ${FONT}`; shadowText(ctx, 'Glacier outline about 1850', x + 72, y, {blur:8});
+    ctx.font = `500 22px ${FONT}`; shadowText(ctx, 'Glacier outline about 1850', x + 72, y, {blur:8});
   }
   // bottom: year, date, progress, scale bar, credit
   const base = H - S.bottom;
-  ctx.font = `500 24px ${FONT}`;
+  ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0]}–${info.years[info.years.length - 1]}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, {blur:6, color:'rgba(255,255,255,.88)'});
-  const dotsY = base - 54, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
+  const dotsY = base - 44, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
   info.years.forEach((y, i) => {
     ctx.fillStyle = i <= k ? '#fff' : 'rgba(255,255,255,.32)';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x + i * (dw + 8), dotsY, dw, 8, 4) : ctx.rect(x + i * (dw + 8), dotsY, dw, 8); ctx.fill();
   });
-  ctx.font = `800 170px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 6, dotsY - 36, {blur:22});
+  ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, dotsY - 30, {blur:20});
   // scale bar, right
   const m = niceScale(maxW * 0.3 * info.res), px = m / info.res, sx = W - S.right - px, sy = dotsY - 46;
   ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
   ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
-  ctx.font = `600 28px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 22, {align:'center', blur:8});
+  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 18, {align:'center', blur:8});
 }
 function drawIntro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.62)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = W - S.left - S.right, mid = S.top + (H - S.top - S.bottom) * 0.42;
-  ctx.font = `700 34px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
-  const gs = fitText(ctx, info.glacier.name, 800, 120, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 24);
-  ctx.font = `500 44px ${FONT}`; shadowText(ctx, `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 96);
+  ctx.font = `700 27px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
+  const gs = fitText(ctx, info.glacier.name, 800, 92, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 20);
+  ctx.font = `500 34px ${FONT}`; shadowText(ctx, `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 76);
 }
 function drawOutro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.74)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = W - S.left - S.right;
   let y = S.top + 120;
   if (info.lost) {
-    ctx.font = `800 190px ${FONT}`; shadowText(ctx, `−${info.lost} %`, x - 6, y + 150, {color:'#ff8f85'});
-    y += 230;
-    ctx.font = `600 46px ${FONT}`;
-    wrap(ctx, `of the ice of all Swiss glaciers melted between autumn ${info.years[0]} and ${info.years[info.years.length - 1]}`, x, y, maxW, 58).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
-    y += 90;
+    ctx.font = `800 140px ${FONT}`; shadowText(ctx, `−${info.lost} %`, x - 4, y + 110, {color:'#FF5A4E'});
+    y += 172;
+    ctx.font = `600 36px ${FONT}`;
+    wrap(ctx, `of the ice of all Swiss glaciers melted between autumn ${Math.min(...info.years)} and ${Math.max(...info.years)}`, x, y, maxW, 46).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
+    y += 70;
   }
-  ctx.font = `500 30px ${FONT}`;
+  ctx.font = `500 23px ${FONT}`;
   const lines = [`Satellite images: contains modified Copernicus Sentinel data ${info.years[0]}–${info.years[info.years.length - 1]}, Copernicus Data Space Ecosystem`,
                  info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : '',
                  info.lost ? 'Volume loss: GLAMOS, Swiss Academy of Sciences' : ''].filter(Boolean);
-  lines.forEach(t => wrap(ctx, t, x, y, maxW, 40).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 56; }));
-  ctx.font = `700 40px ${FONT}`; shadowText(ctx, info.site, x, H - S.bottom - 10);
+  lines.forEach(t => wrap(ctx, t, x, y, maxW, 31).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 44; }));
+  ctx.font = `700 31px ${FONT}`; shadowText(ctx, info.site, x, H - S.bottom - 10);
 }
 function wrap(ctx, text, x, y, maxW, lh){
   const words = text.split(' '), out = []; let line = '';
@@ -1759,8 +1803,8 @@ async function pickCodec(W, H){
   return null;
 }
 async function makeVideo(){
-  const ys = tlFrames();
-  if (ys.length < 2) return showNotice('Pick a timelapse range of at least two years first.');
+  const ys = videoYears();
+  if (ys.length < 2) return showNotice(vstate.type === 'swipe' ? 'Pick two different years in Compare first.' : 'Pick a timelapse range of at least two years first.');
   const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = F.safe, fps = VIDEO.fps;
   const cfg = await pickCodec(W, H);
   if (!cfg) return showNotice('This browser cannot create MP4 (H.264) videos. Try Chrome, Edge, or Safari on iPhone, iPad or Mac.');
@@ -1784,17 +1828,35 @@ async function makeVideo(){
       progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
     }
 
-    const inRange = VOLUME_LOSS.filter(n => n.y > ys[0] && n.y <= ys[ys.length - 1]);
+    const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
     const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(),
       lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
       site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
 
     // 2. timeline
-    const per = +$('vSpeed').value, fade = VIDEO.fade;
-    const total = VIDEO.intro + ys.length * per + VIDEO.hold + VIDEO.outro, n = Math.round(total * fps);
+    const per = +$('vSpeed').value, fade = VIDEO.fade, k = per / 1.1;     // k: speed factor for the swipe
+    const sw = Object.fromEntries(Object.entries(SWIPE).map(([key, v]) => [key, v * k]));
+    const total = vstate.type === 'swipe'
+      ? VIDEO.intro + Object.values(sw).reduce((a, b) => a + b, 0) + VIDEO.outro
+      : VIDEO.intro + ys.length * per + VIDEO.hold + VIDEO.outro;
+    const n = Math.round(total * fps);
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
-    const render = t => {
+    const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+    const renderSwipe = t => {
+      if (t < VIDEO.intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
+      let u = t - VIDEO.intro, split;                           // split: x where the later year starts (W = only the first)
+      if (u < sw.holdA) split = W;
+      else if ((u -= sw.holdA) < sw.wipe) split = W * (1 - ease(u / sw.wipe));
+      else if ((u -= sw.wipe) < sw.holdB) split = 0;
+      else if ((u -= sw.holdB) < sw.back) split = W * 0.5 * ease(u / sw.back);
+      else if ((u -= sw.back) < sw.holdMid) split = W * 0.5;
+      else { ctx.drawImage(bases[1], 0, 0); drawOutro(ctx, W, H, S, info); return; }
+      ctx.drawImage(bases[0], 0, 0);
+      ctx.save(); ctx.beginPath(); ctx.rect(split, 0, W - split, H); ctx.clip(); ctx.drawImage(bases[1], 0, 0); ctx.restore();
+      drawSwipeLabels(ctx, W, H, S, info, split);
+    };
+    const render = vstate.type === 'swipe' ? renderSwipe : t => {
       ctx.globalAlpha = 1;
       if (t < VIDEO.intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
       const tt = t - VIDEO.intro, last = ys.length - 1;
@@ -1832,7 +1894,7 @@ async function makeVideo(){
 
     // 4. MP4 file, then share (phones) or download
     const mp4 = muxMp4({ width: W, height: H, fps, avcC: desc, samples: chunks });
-    const name = `tonguesfromspace-${shortSlug(g.name)}-${ys[0]}-${ys[ys.length - 1]}-${vstate.fmt === 'reel' ? '9x16' : '4x5'}.mp4`;
+    const name = `tonguesfromspace-${shortSlug(g.name)}-${vstate.type === 'swipe' ? 'beforeafter' : 'timelapse'}-${ys[0]}-${ys[ys.length - 1]}-${vstate.fmt === 'reel' ? '9x16' : '4x5'}.mp4`;
     const file = new File([mp4], name, { type: 'video/mp4' });
     progress(1, 'Video ready');
     if (COARSE && navigator.canShare && navigator.canShare({ files: [file] })) {

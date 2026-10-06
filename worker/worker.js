@@ -24,7 +24,8 @@
  *   POST /cdse/process     -> Process API image
  */
 
-const COLLECTION = 'sentinel-2-l2a';
+const COLLECTION = 'sentinel-2-l2a';                              // scene scoring (scene classification)
+const IMAGES = 'sentinel-2-l1c';                                  // the images themselves (no shadow infill)
 const MOSAIC = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';     // Sentinel-2 quarterly cloudless mosaics (background)
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin
 const MAX_PX = 2500;
@@ -129,7 +130,7 @@ function checkBounds(inp, collections = [COLLECTION]) {
 const summerDay = d => /^\d{4}-0[789]-\d{2}$/.test(d);
 function checkProcess(b) {
   const inp = b && b.input, out = b && b.output;
-  const bad = checkBounds(inp, [COLLECTION, MOSAIC]); if (bad) return bad;
+  const bad = checkBounds(inp, [COLLECTION, IMAGES, MOSAIC]); if (bad) return bad;
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
   if (!tr || typeof tr.from !== 'string' || !summerDay(tr.from.slice(0, 10)) || tr.from.slice(10) !== 'T00:00:00Z' ||
       tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and September)';
