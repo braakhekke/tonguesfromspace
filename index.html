@@ -109,7 +109,7 @@ details.token-alt summary{font-size:12.5px;font-weight:500;color:var(--crevasse)
 details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:10px 0 4px}
 
 /* ---------- centre ---------- */
-.stage{position:relative;min-height:0;background:#1d2a31}
+.stage{position:relative;min-height:0;background:#1d2a31;overflow:hidden}   /* nothing on the map may widen the page */
 #map{position:absolute;inset:0;background:#1d2a31}
 .leaflet-container{font-family:var(--sans)}
 .year-tag{position:absolute;top:14px;z-index:650;color:#fff;font-weight:800;font-size:clamp(34px,5vw,64px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-shadow:0 1px 14px rgba(0,0,0,.55);pointer-events:none}
@@ -146,7 +146,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 @media (max-width:720px){.layerbox{top:88px;right:8px;padding:6px 10px 4px}}
 .legend{position:absolute;right:10px;bottom:116px;z-index:660;background:rgba(255,255,255,.94);border-radius:6px;padding:8px 10px;font-size:12.5px;display:none;line-height:1.7}
 .legend.show{display:block}
-.notice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:680;background:var(--sheet);border-radius:8px;padding:16px 18px;max-width:360px;font-size:14px;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
+.notice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:680;background:var(--sheet);border-radius:8px;padding:16px 18px;width:min(360px,calc(100% - 32px));max-width:none;font-size:14px;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .notice.show{display:block}
 .credits{position:absolute;left:0;right:0;bottom:0;z-index:665;background:rgba(255,255,255,.88);color:var(--rock);font-size:11px;line-height:20px;height:20px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border:0;text-align:left;width:100%}
 .credits.open{height:auto;white-space:normal;padding:4px 10px}
@@ -205,12 +205,109 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   .story{grid-column:1 / -1;border-left:0;border-top:1px solid var(--rule)}
   .stage,.controls{height:82vh}
 }
+/* ---------- shared: action buttons, video export, gesture hint ---------- */
+.act{flex:1;border:1px solid var(--rock);background:var(--sheet);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px;font-weight:500}
+.act:hover{background:var(--firn)}
+.actions{flex-direction:column;align-items:stretch;gap:6px}
+.mhead,.mbar,.mobile-only{display:none}
+.mapbar button svg{display:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mapbar button[aria-pressed="true"] svg{stroke:#fff}
+.gesture-hint{position:absolute;inset:0;z-index:690;display:flex;align-items:center;justify-content:center;background:rgba(20,30,36,.55);color:#fff;font-weight:600;font-size:16px;text-align:center;padding:20px;opacity:0;pointer-events:none;transition:opacity .25s}
+.gesture-hint.show{opacity:1}
+.video-frame{position:absolute;z-index:655;border:2px solid #fff;border-radius:4px;box-shadow:0 0 0 9999px rgba(10,18,22,.55);pointer-events:none}
+.video-frame span{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;background:var(--rock);color:#fff;font-size:12px;padding:3px 8px;border-radius:4px}
+.video-frame span:empty{display:none}
+.is-framing .divider,.is-framing .handle,.is-framing .layerbox,.is-framing .year-tag,.is-framing .mapbar .mtool{visibility:hidden}
+.video-sheet{position:fixed;left:16px;bottom:16px;z-index:2000;width:min(400px,calc(100% - 32px));background:var(--sheet);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:14px 16px 16px}
+.vs-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+.vs-close{border:0;background:none;font-size:24px;line-height:1;cursor:pointer;padding:0 4px;color:var(--moraine)}
+.vs-opts{display:flex;justify-content:space-between;align-items:center;gap:10px;margin:10px 0 2px;flex-wrap:wrap}
+.vs-opts .toggle{margin:0}
+.vs-progress{height:6px;background:var(--firn);border-radius:3px;overflow:hidden;margin:8px 0 10px}
+.vs-progress div{height:100%;width:0;background:var(--crevasse);transition:width .2s}
+
+/* ---------- touch devices ---------- */
+@media (pointer:coarse){
+  .handle{width:48px;height:48px;margin:-24px 0 0 -24px}
+  .handle svg{width:24px;height:24px}
+}
+
+/* ---------- phones: map first, compact controls directly under it ---------- */
 @media (max-width:720px){
-  .app{grid-template-columns:1fr}
-  .controls{height:auto;border-right:0;border-bottom:1px solid var(--rule)}
-  .stage{height:72vh}
-  .years{grid-template-columns:repeat(6,1fr)}
-  .measure-hint{top:80px}
+  .app{display:flex;flex-direction:column;height:auto}
+  .mhead{display:block;order:0;background:var(--sheet);padding:10px 14px 8px;border-bottom:1px solid var(--rule)}
+  .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
+  .stage{order:1;height:60vh;height:60dvh;min-height:330px}
+  .mbar{display:flex;flex-direction:column;gap:10px;order:2;background:var(--sheet);padding:12px 14px 14px;border-bottom:1px solid var(--rule)}
+  .story{order:3;padding:20px 18px 32px}
+  .controls{order:4;height:auto;border-right:0;border-top:1px solid var(--rule);padding:18px}
+  .controls .brand,#glacierGroup,#modeGroup,#compareControls{display:none}
+  #timelapseControls > .group:nth-child(-n+2){display:none}
+
+  .mbar select{width:100%;min-height:44px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
+  .mbar .segment button{min-height:40px;font-size:15px}
+  .mrow{display:flex;gap:8px;align-items:flex-end}
+  .mrow label{flex:1;display:flex;flex-direction:column;font-size:12.5px;color:var(--moraine);gap:3px}
+  .mrow .play{flex:0 0 auto;min-height:44px;padding:0 18px}
+  .mrow .act{min-height:44px;font-size:15px}
+
+  .year-tag{font-size:34px;top:10px}
+  .year-tag small{font-size:11.5px}
+  #tagA{left:12px} #tagB{right:12px}
+  .mapbar{bottom:30px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px);overflow:visible}
+  .mapbar .sep,.mapbar .lbl{display:none}
+  .mapbar button{min-width:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
+  .mapbar button svg{display:block}
+  .mapbar .mtool{display:none}
+  .mapbar.more-open .mtool{display:inline-flex}
+  .mobile-only{display:inline-flex}
+  .layerbox{display:none;top:58px;right:8px;padding:10px 12px 6px;max-width:240px}
+  .layerbox.open{display:block}
+  .layerbox .toggle{font-size:15px;min-height:36px;margin:0}
+  .layerbox .toggle input{width:20px;height:20px}
+  .leaflet-control-scale{margin-bottom:84px!important}
+  .credits{font-size:12px;line-height:22px;height:22px}
+  .hint{font-size:13px}
+  .years button{padding:8px 0;font-size:14px}
+  .toggle{min-height:36px}
+  .fyi{padding:14px 16px}
+  .measure-hint{top:60px;font-size:14px}
+  .measure-hint button{min-height:38px;padding:6px 14px}
+  .video-sheet{left:0;right:0;bottom:0;width:100%;border-radius:14px 14px 0 0;padding:14px 16px calc(16px + env(safe-area-inset-bottom,0px))}
+  .video-sheet .segment button{min-height:40px;font-size:14px}
+  #vsGo{min-height:46px;font-size:16px}
+}
+
+/* ---------- phones held sideways: map left, controls right ---------- */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .app{display:flex;flex-direction:column;height:auto}
+  .stage{position:fixed;left:0;top:0;bottom:0;width:58vw;height:auto;min-height:0;z-index:1}
+  .mhead{order:0} .mbar{order:2} .story{order:3} .controls{order:4}
+  .mhead,.mbar,.story,.controls{margin-left:58vw}
+  .mhead{display:block;padding:8px 14px}
+  .mhead strong{display:block;font-size:15px;font-weight:800}
+  .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
+  .mbar{display:flex;flex-direction:column;gap:8px;padding:10px 14px}
+  .controls .brand,#glacierGroup,#modeGroup,#compareControls{display:none}
+  #timelapseControls > .group:nth-child(-n+2){display:none}
+  .mbar select{width:100%;min-height:40px;font-size:15px;border:1px solid var(--rule);border-radius:8px;padding:6px 8px;background:var(--sheet)}
+  .mrow{display:flex;gap:8px;align-items:flex-end}
+  .mrow label{flex:1;display:flex;flex-direction:column;font-size:12px;color:var(--moraine);gap:2px}
+  .mrow .act,.mrow .play{min-height:40px}
+  .story,.controls{height:auto;border:0;border-top:1px solid var(--rule)}
+  .year-tag{font-size:30px}
+  .mapbar{bottom:28px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px)}
+  .mapbar .sep,.mapbar .lbl{display:none}
+  .mapbar button{min-width:40px;min-height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
+  .mapbar button svg{display:block}
+  .mapbar .mtool{display:none}
+  .mapbar.more-open .mtool{display:inline-flex}
+  .mobile-only{display:inline-flex}
+  .layerbox{display:none;top:54px;right:8px}
+  .layerbox.open{display:block}
+  .leaflet-control-scale{margin-bottom:80px!important}
+  .video-sheet{left:auto;right:0;bottom:0;width:42vw;border-radius:14px 0 0 0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -223,6 +320,12 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 </svg>
 <div class="app" id="app">
 
+  <!-- ================= MOBILE HEADER (phones only) ================= -->
+  <header class="mhead" id="mhead">
+    <strong>Swiss Glacier Tongues from Space</strong>
+    <span>Created by J. Braakhekke for public glacier awareness</span>
+  </header>
+
   <!-- ================= LEFT ================= -->
   <aside class="controls" aria-label="Settings">
     <div class="brand">
@@ -231,17 +334,21 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <p class="byline">Created by <strong>J. Braakhekke</strong> - for public glacier awareness. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
     </div>
 
-    <div class="group">
+    <div class="group" id="glacierGroup">
       <h2>Glacier</h2>
       <ul class="glaciers" id="glacierList"></ul>
       <p class="hint" id="rankNote"></p>
     </div>
 
 
-    <div class="group">
+    <div class="group" id="modeGroup">
       <div class="segment" role="group" aria-label="View mode">
         <button type="button" id="modeCompare" aria-pressed="true">Compare</button>
         <button type="button" id="modeTimelapse" aria-pressed="false">Timelapse</button>
+      </div>
+      <div class="row actions" style="margin-top:10px">
+        <button type="button" class="act" id="shareBtn">Share this view</button>
+        <button type="button" class="act" id="videoBtn">Video for Instagram / TikTok</button>
       </div>
     </div>
 
@@ -329,20 +436,63 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
       <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
       <span class="sep"></span>
-      <button type="button" id="tongueBtn">Tongue</button>
-      <button type="button" id="fitBtn">Whole glacier</button>
+      <button type="button" id="tongueBtn" aria-label="Tongue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span class="lbl">Tongue</span></button>
+      <button type="button" id="fitBtn" aria-label="Whole glacier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Whole glacier</span></button>
       <span class="sep"></span>
-      <button type="button" id="measureDist" aria-pressed="false">Measure length</button>
-      <button type="button" id="measureArea" aria-pressed="false">Measure area</button>
-      <button type="button" id="measureClear">Clear</button>
+      <button type="button" id="measureDist" class="mtool" aria-pressed="false" aria-label="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span class="lbl">Measure length</span></button>
+      <button type="button" id="measureArea" class="mtool" aria-pressed="false" aria-label="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span class="lbl">Measure area</span></button>
+      <button type="button" id="measureClear" class="mtool" aria-label="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="lbl">Clear</span></button>
+      <button type="button" id="layersBtn" class="mobile-only" aria-label="Map layers" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
+      <button type="button" id="moreBtn" class="mobile-only" aria-label="Measuring tools" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
     </div>
     <div class="notice" id="notice" role="alert"></div>
+    <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
+    <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span></div>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
   </main>
+
+  <!-- ================= MOBILE CONTROL BAR (phones only, directly under the map) ================= -->
+  <section class="mbar" id="mbar" aria-label="Glacier and years">
+    <select id="mGlacier" aria-label="Glacier"></select>
+    <div class="segment" role="group" aria-label="View mode">
+      <button type="button" id="mCompare" aria-pressed="true">Compare</button>
+      <button type="button" id="mTimelapse" aria-pressed="false">Timelapse</button>
+    </div>
+    <div class="mrow" id="mCompareRow">
+      <label>Left<select id="mA"></select></label>
+      <label>Right<select id="mB"></select></label>
+    </div>
+    <div class="mrow" id="mTimelapseRow" hidden>
+      <label>From<select id="mFrom"></select></label>
+      <label>To<select id="mTo"></select></label>
+      <button type="button" class="play" id="mPlay">Play</button>
+    </div>
+    <div class="mrow">
+      <button type="button" class="act" id="mShare">Share</button>
+      <button type="button" class="act" id="mVideo">Video</button>
+    </div>
+  </section>
 
   <!-- ================= RIGHT ================= -->
   <article class="story" id="story" aria-live="polite"></article>
 </div>
+
+<!-- ================= VIDEO EXPORT PANEL ================= -->
+<section class="video-sheet" id="videoSheet" role="dialog" aria-label="Video for Instagram and TikTok" hidden>
+  <div class="vs-head"><strong>Video for Instagram / TikTok</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
+  <p class="hint" style="margin:0 0 10px">Move and zoom the map until the tongue sits nicely inside the frame. The years come from the timelapse range.</p>
+  <div class="segment" role="group" aria-label="Format">
+    <button type="button" id="vfReel" aria-pressed="true">9:16 Reels, TikTok</button>
+    <button type="button" id="vfFeed" aria-pressed="false">4:5 Instagram feed</button>
+  </div>
+  <div class="vs-opts">
+    <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
+    <label class="toggle">Speed <select class="small" id="vSpeed"><option value="0.7">Fast</option><option value="1.1" selected>Normal</option><option value="1.8">Slow</option></select></label>
+  </div>
+  <p class="hint" id="vsInfo"></p>
+  <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
+  <button type="button" class="play" id="vsGo" style="width:100%">Create video</button>
+</section>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- optional: generated by build_outlines.py. Missing file = built-in list, no outlines. -->
@@ -768,6 +918,7 @@ function buildTimelapse(){
   const s = document.getElementById('frameSlider');
   s.max = Math.max(0, tlLayers.length - 1); s.value = state.frame;
   document.getElementById('playBtn').disabled = tlLayers.length < 2;
+  if (document.getElementById('mPlay')) document.getElementById('mPlay').disabled = tlLayers.length < 2;
   showFrame(state.frame);
 }
 function showFrame(i){
@@ -785,7 +936,7 @@ function showFrame(i){
 }
 function play(){
   if (tlLayers.length < 2) return;
-  state.playing = true; document.getElementById('playBtn').textContent = 'Pause';
+  state.playing = true; document.getElementById('playBtn').textContent = 'Pause'; document.getElementById('mPlay').textContent = 'Pause';
   if (state.frame >= tlLayers.length - 1) showFrame(0);
   const tick = () => {
     let next = state.frame + 1;
@@ -800,7 +951,7 @@ function play(){
 }
 function stopPlay(){
   clearTimeout(state.timer); state.playing = false;
-  document.getElementById('playBtn').textContent = 'Play';
+  document.getElementById('playBtn').textContent = 'Play'; document.getElementById('mPlay').textContent = 'Play';
 }
 document.getElementById('playBtn').onclick = () => state.playing ? stopPlay() : play();
 document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
@@ -974,9 +1125,7 @@ function renderGlacierList(){
     const li = document.createElement('li'), b = document.createElement('button');
     b.type = 'button'; b.setAttribute('aria-pressed', g.id === state.glacier);
     b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${area.toFixed(2)} km²</span>`;
-    b.onclick = () => { if (state.glacier === g.id) return focusTongue();
-      state.glacier = g.id; renderGlacierList(); renderStory(); drawOutlines(); focusTongue(); writeHash();
-      checkYears(); };          // each glacier has its own clearest scenes
+    b.onclick = () => chooseGlacier(g.id);
     li.appendChild(b); ul.appendChild(li);
   });
   document.getElementById('rankNote').textContent = DATA
@@ -1006,6 +1155,7 @@ function yearChips(boxId, key, opts = {}){
 function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
   yearChips('yearsFrom', 'from', {range:true}); yearChips('yearsTo', 'to', {range:true});
+  if (typeof renderMobileBar === 'function') renderMobileBar();
 }
 function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
 
@@ -1219,7 +1369,7 @@ function refreshAll(){
    8. Controls
    ===================================================================== */
 document.getElementById('modeCompare').onclick = () => { state.mode = 'compare'; refreshAll(); };
-document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); };
+document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); mobileDataNote(); };
 
 
 
@@ -1236,6 +1386,423 @@ document.getElementById('osmToggle').onchange = e => {
   prefs.osm = e.target.checked; savePrefs();
   e.target.checked ? osm.addTo(map) : map.removeLayer(osm); updateCredits();
 };
+
+/* =====================================================================
+   10. Phones: control bar under the map, map tools, two-finger map, sharing
+   ===================================================================== */
+const COARSE = matchMedia('(pointer:coarse)').matches;
+const $ = id => document.getElementById(id);
+
+function chooseGlacier(id){
+  if (state.glacier === id) return focusTongue();
+  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); focusTongue(); writeHash();
+  checkYears();                 // each glacier has its own clearest scenes
+}
+function yearOptions(sel, key, range){
+  sel.innerHTML = YEARS.map(y => {
+    const sc = state.available[y];
+    const label = !state.checked ? `${y}` : sc ? `${y}, ${+sc.date.slice(8, 10)} ${['Jul', 'Aug', 'Sep'][+sc.date.slice(5, 7) - 7]}` : `${y}: no clear scene`;
+    return `<option value="${y}" ${sc ? '' : 'disabled'} ${state[key] === y ? 'selected' : ''}>${label}</option>`;
+  }).join('');
+  sel.disabled = !state.checked;
+  sel.onchange = () => {
+    state[key] = +sel.value;
+    if (range && state.from > state.to) [state.from, state.to] = [state.to, state.from];
+    refreshAll();
+  };
+}
+function renderMobileBar(){
+  const gs = $('mGlacier');
+  gs.innerHTML = GLACIERS.map((g, i) => `<option value="${g.id}" ${g.id === state.glacier ? 'selected' : ''}>${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²</option>`).join('');
+  gs.onchange = () => chooseGlacier(gs.value);
+  yearOptions($('mA'), 'a'); yearOptions($('mB'), 'b');
+  yearOptions($('mFrom'), 'from', true); yearOptions($('mTo'), 'to', true);
+  const tl = state.mode === 'timelapse';
+  $('mCompare').setAttribute('aria-pressed', !tl); $('mTimelapse').setAttribute('aria-pressed', tl);
+  $('mCompareRow').hidden = tl; $('mTimelapseRow').hidden = !tl;
+  $('mPlay').textContent = state.playing ? 'Pause' : 'Play';
+  $('mPlay').disabled = $('playBtn').disabled;
+}
+$('mCompare').onclick = () => $('modeCompare').click();
+$('mTimelapse').onclick = () => $('modeTimelapse').click();
+$('mPlay').onclick = () => { state.playing ? stopPlay() : play(); renderMobileBar(); };
+
+/* Map tools on phones: layers and measuring live behind two small buttons */
+$('layersBtn').onclick = () => {
+  const open = $('layerbox').classList.toggle('open');
+  $('layersBtn').setAttribute('aria-expanded', open); $('layersBtn').setAttribute('aria-pressed', open);
+};
+$('moreBtn').onclick = () => {
+  const open = document.querySelector('.mapbar').classList.toggle('more-open');
+  $('moreBtn').setAttribute('aria-expanded', open); $('moreBtn').setAttribute('aria-pressed', open);
+};
+
+/* Two fingers move the map on touch screens; one finger scrolls the page.
+   Leaflet's pinch handler zooms and pans with two fingers; single-finger dragging is switched off. */
+if (COARSE) {
+  map.dragging.disable();
+  const el = $('map'), hint = $('gestureHint'); let timer = null;
+  el.addEventListener('touchmove', e => {
+    if (e.touches.length !== 1 || M.mode) return;
+    hint.classList.add('show'); clearTimeout(timer);
+    timer = setTimeout(() => hint.classList.remove('show'), 1300);
+  }, {passive:true});
+  el.addEventListener('touchstart', e => { if (e.touches.length > 1) hint.classList.remove('show'); }, {passive:true});
+}
+
+/* Sharing: the address already contains glacier, mode and years */
+async function shareView(){
+  const g = currentGlacier(), url = location.href;
+  const text = state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
+  if (navigator.share) {
+    try { await navigator.share({title:'Swiss Glacier Tongues from Space', text, url}); return; }
+    catch (e) { if (e.name === 'AbortError') return; }
+  }
+  try { await navigator.clipboard.writeText(url); showNotice('Link copied. Paste it anywhere to share this view.'); }
+  catch { prompt('Copy this link:', url); }
+}
+$('mShare').onclick = shareView;
+$('shareBtn').onclick = shareView;
+
+/* Mobile data: a timelapse loads one image per year the first time */
+let dataNoteShown = false;
+function mobileDataNote(){
+  if (!COARSE || dataNoteShown) return;
+  dataNoteShown = true;
+  const n = tlFrames().length;
+  if (n > 2) showNotice(`The first time, a timelapse of ${n} years loads about ${Math.round(n * 1.2)} MB of images. On mobile data you may prefer Wi-Fi. After that they are stored on your phone.`);
+}
+
+/* =====================================================================
+   11. Video for Instagram / TikTok
+       Frames are drawn on a canvas from the images already loaded, encoded to H.264 with the
+       browser's WebCodecs encoder and packed into an MP4 (small packer below, no library).
+   ===================================================================== */
+const VIDEO = {
+  fps: 30,
+  formats: {   // safe zones keep text clear of the apps' own buttons and captions
+    reel: { w:1080, h:1920, safe:{ top:250, bottom:430, left:72, right:150 } },
+    feed: { w:1080, h:1350, safe:{ top:84,  bottom:96,  left:72, right:72 } }
+  },
+  intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0,
+  codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
+};
+const vstate = { fmt: 'reel', busy: false };
+const FONT = '"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif';
+
+/* ---- framing on the map ---- */
+function frameRect(){
+  const F = VIDEO.formats[vstate.fmt], size = map.getSize(), m = 20, top = 44;
+  let h = size.y - top - m - 70, w = h * F.w / F.h;
+  if (w > size.x - 2 * m) { w = size.x - 2 * m; h = w * F.h / F.w; }
+  return { x: (size.x - w) / 2, y: top + (size.y - top - 70 - h) / 2, w, h };
+}
+function frameGroundRes(){            // metres of terrain per video pixel
+  const r = frameRect(), F = VIDEO.formats[vstate.fmt];
+  const a = map.containerPointToLatLng([r.x, r.y + r.h / 2]), b = map.containerPointToLatLng([r.x + r.w, r.y + r.h / 2]);
+  return map.distance(a, b) / F.w;
+}
+function updateFrame(){
+  if ($('videoSheet').hidden) return;
+  const r = frameRect(), el = $('videoFrame');
+  Object.assign(el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  const res = frameGroundRes();
+  $('videoFrameNote').textContent = res < 4 ? 'Zoom out a little for a sharper video' : '';
+  const ys = tlFrames();
+  $('vsInfo').textContent = ys.length < 2
+    ? 'Pick a timelapse range of at least two years first.'
+    : `${ys.length} years, ${ys[0]} to ${ys[ys.length - 1]}, about ${Math.round(videoDuration(ys.length))} seconds.` +
+      (res < 4 ? ' The images have 10 m pixels, so this close in the video will look soft.' : '');
+}
+const videoDuration = n => VIDEO.intro + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro;
+map.on('move zoom resize', updateFrame);
+
+function openVideo(){
+  if (typeof VideoEncoder === 'undefined') {
+    return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
+  }
+  if (state.mode !== 'timelapse') { state.mode = 'timelapse'; state.frame = 0; refreshAll(); }
+  stopPlay();
+  const g = currentGlacier(), hasOld = !!(g.inv && g.inv.oldest);
+  $('vOutline').disabled = !hasOld; $('vOutline').checked = hasOld;
+  $('videoSheet').hidden = false; $('videoFrame').hidden = false;
+  $('app').classList.add('is-framing');
+  $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = 'Create video';
+  updateFrame();
+  if (matchMedia('(max-width:720px)').matches) $('stage').scrollIntoView({behavior:'smooth', block:'start'});
+}
+function closeVideo(){
+  if (vstate.busy) return;
+  $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing');
+}
+$('videoBtn').onclick = openVideo; $('mVideo').onclick = openVideo; $('vsClose').onclick = closeVideo;
+const setFmt = f => { vstate.fmt = f; $('vfReel').setAttribute('aria-pressed', f === 'reel'); $('vfFeed').setAttribute('aria-pressed', f === 'feed'); updateFrame(); };
+$('vfReel').onclick = () => setFmt('reel'); $('vfFeed').onclick = () => setFmt('feed');
+$('vSpeed').onchange = updateFrame;
+
+function progress(frac, label){
+  $('vsProgress').hidden = false; $('vsBar').style.width = Math.round(frac * 100) + '%';
+  $('vsGo').textContent = label;
+}
+
+/* ---- drawing ---- */
+function niceScale(maxMetres){
+  const steps = [100, 200, 250, 500, 1000, 2000, 2500, 5000, 10000, 20000];
+  return steps.filter(s => s <= maxMetres).pop() || 100;
+}
+function fitText(ctx, text, weight, size, maxW){
+  let s = size;
+  do { ctx.font = `${weight} ${s}px ${FONT}`; if (ctx.measureText(text).width <= maxW) break; s -= 2; } while (s > 18);
+  return s;
+}
+function shadowText(ctx, text, x, y, opts = {}){
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = opts.blur ?? 14; ctx.shadowOffsetY = 2;
+  ctx.fillStyle = opts.color || '#fff'; ctx.textAlign = opts.align || 'left'; ctx.fillText(text, x, y);
+  ctx.restore();
+}
+/* One base picture per year: crop from the Copernicus image, brightness curve, optional 1850 outline */
+async function buildBase(img, crop, W, H, outline){
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d', {willReadFrequently:true});
+  ctx.fillStyle = '#1d2a31'; ctx.fillRect(0, 0, W, H);
+  const fp = crop.fp, s = W / (crop.x1 - crop.x0);
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(img, (fp.bbox[0] - crop.x0) * s, (crop.y1 - fp.bbox[3]) * s, (fp.bbox[2] - fp.bbox[0]) * s, (fp.bbox[3] - fp.bbox[1]) * s);
+  const b = brightness();
+  if (Math.abs(b - 1) > 0.01) {                       // same curve as the brightness slider: whites stay white
+    const lut = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+    const d = ctx.getImageData(0, 0, W, H), px = d.data;
+    for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
+    ctx.putImageData(d, 0, 0);
+  }
+  if (outline) {
+    const P = ll => { const p = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return [(p.x - crop.x0) * s, (crop.y1 - p.y) * s]; };
+    ctx.save();
+    ctx.lineWidth = 5; ctx.strokeStyle = '#F2A93B'; ctx.setLineDash([22, 14]); ctx.lineJoin = 'round';
+    ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
+    outline.coordinates.forEach(poly => poly.forEach(ring => {
+      ctx.beginPath(); ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.stroke();
+    }));
+    ctx.restore();
+  }
+  return c;
+}
+function shade(ctx, W, H, S){
+  let g = ctx.createLinearGradient(0, 0, 0, S.top + 260);
+  g.addColorStop(0, 'rgba(8,14,18,.72)'); g.addColorStop(1, 'rgba(8,14,18,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, S.top + 260);
+  g = ctx.createLinearGradient(0, H - S.bottom - 380, 0, H);
+  g.addColorStop(0, 'rgba(8,14,18,0)'); g.addColorStop(1, 'rgba(8,14,18,.8)');
+  ctx.fillStyle = g; ctx.fillRect(0, H - S.bottom - 380, W, S.bottom + 380);
+}
+function drawLabels(ctx, W, H, S, info, k){
+  const g = info.glacier, sc = info.scenes[k], x = S.left, maxW = W - S.left - S.right;
+  shade(ctx, W, H, S);
+  ctx.textBaseline = 'alphabetic';
+  // top: site title, glacier, canton
+  ctx.font = `600 30px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, S.top + 34, {blur:8});
+  const gs = fitText(ctx, g.name, 800, 78, maxW); shadowText(ctx, g.name, x, S.top + 34 + gs + 12);
+  ctx.font = `500 30px ${FONT}`; shadowText(ctx, [g.canton, g.range].filter(Boolean).join(', ') || 'Switzerland', x, S.top + 34 + gs + 56, {blur:8});
+  if (info.outline) {
+    const y = S.top + 34 + gs + 104;
+    ctx.save(); ctx.strokeStyle = '#F2A93B'; ctx.lineWidth = 5; ctx.setLineDash([14, 9]);
+    ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 56, y - 10); ctx.stroke(); ctx.restore();
+    ctx.font = `500 28px ${FONT}`; shadowText(ctx, 'Glacier outline about 1850', x + 72, y, {blur:8});
+  }
+  // bottom: year, date, progress, scale bar, credit
+  const base = H - S.bottom;
+  ctx.font = `500 24px ${FONT}`;
+  shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0]}–${info.years[info.years.length - 1]}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, {blur:6, color:'rgba(255,255,255,.88)'});
+  const dotsY = base - 54, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
+  info.years.forEach((y, i) => {
+    ctx.fillStyle = i <= k ? '#fff' : 'rgba(255,255,255,.32)';
+    ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x + i * (dw + 8), dotsY, dw, 8, 4) : ctx.rect(x + i * (dw + 8), dotsY, dw, 8); ctx.fill();
+  });
+  ctx.font = `500 34px ${FONT}`; shadowText(ctx, sc.clear ? fmtDate(sc.date) : `${fmtDate(sc.date)}, some clouds`, x, dotsY - 30, {blur:8});
+  ctx.font = `800 170px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 6, dotsY - 84, {blur:22});
+  // scale bar, right
+  const m = niceScale(maxW * 0.3 * info.res), px = m / info.res, sx = W - S.right - px, sy = dotsY - 46;
+  ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
+  ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
+  ctx.font = `600 28px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 22, {align:'center', blur:8});
+}
+function drawIntro(ctx, W, H, S, info){
+  ctx.fillStyle = 'rgba(8,14,18,.62)'; ctx.fillRect(0, 0, W, H);
+  const x = S.left, maxW = W - S.left - S.right, mid = S.top + (H - S.top - S.bottom) * 0.42;
+  ctx.font = `600 34px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, mid - 120, {blur:8});
+  const gs = fitText(ctx, info.glacier.name, 800, 120, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 24);
+  ctx.font = `500 44px ${FONT}`; shadowText(ctx, `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 96);
+}
+function drawOutro(ctx, W, H, S, info){
+  ctx.fillStyle = 'rgba(8,14,18,.74)'; ctx.fillRect(0, 0, W, H);
+  const x = S.left, maxW = W - S.left - S.right;
+  let y = S.top + 120;
+  if (info.lost) {
+    ctx.font = `800 190px ${FONT}`; shadowText(ctx, `−${info.lost} %`, x - 6, y + 150, {color:'#ff8f85'});
+    y += 230;
+    ctx.font = `600 46px ${FONT}`;
+    wrap(ctx, `of the ice of all Swiss glaciers melted between autumn ${info.years[0]} and ${info.years[info.years.length - 1]}`, x, y, maxW, 58).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
+    y += 90;
+  }
+  ctx.font = `500 30px ${FONT}`;
+  const lines = [`Satellite images: contains modified Copernicus Sentinel data ${info.years[0]}–${info.years[info.years.length - 1]}, Copernicus Data Space Ecosystem`,
+                 info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : '',
+                 info.lost ? 'Volume loss: GLAMOS, Swiss Academy of Sciences' : ''].filter(Boolean);
+  lines.forEach(t => wrap(ctx, t, x, y, maxW, 40).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 56; }));
+  ctx.font = `700 40px ${FONT}`; shadowText(ctx, info.site, x, H - S.bottom - 10);
+}
+function wrap(ctx, text, x, y, maxW, lh){
+  const words = text.split(' '), out = []; let line = '';
+  words.forEach(w => { const t = line ? line + ' ' + w : w; if (ctx.measureText(t).width > maxW && line) { out.push(line); line = w; } else line = t; });
+  if (line) out.push(line);
+  return out.map((t, i) => ({t, y: y + i * lh}));
+}
+
+/* ---- encoding ---- */
+async function pickCodec(W, H){
+  for (const codec of VIDEO.codecs) {
+    const cfg = { codec, width:W, height:H, bitrate:8e6, framerate:VIDEO.fps, avc:{format:'avc'} };
+    try { if ((await VideoEncoder.isConfigSupported(cfg)).supported) return cfg; } catch {}
+  }
+  return null;
+}
+async function makeVideo(){
+  const ys = tlFrames();
+  if (ys.length < 2) return showNotice('Pick a timelapse range of at least two years first.');
+  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = F.safe, fps = VIDEO.fps;
+  const cfg = await pickCodec(W, H);
+  if (!cfg) return showNotice('This browser cannot create MP4 (H.264) videos. Try Chrome, Edge, or Safari on iPhone, iPad or Mac.');
+  vstate.busy = true; $('vsGo').disabled = true;
+  try {
+    const g = currentGlacier(), fp = imageFootprint(g), r = frameRect();
+    const nw = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x, r.y]));
+    const se = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x + r.w, r.y + r.h]));
+    const crop = { x0: nw.x, x1: se.x, y1: nw.y, fp };
+    const outline = $('vOutline').checked && g.inv && g.inv.oldest ? g.inv.oldest.outline : null;
+    await Promise.all(['600 30px', '800 120px', '500 30px', '700 40px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {})));
+
+    // 1. images of all years (most are cached already)
+    let done = 0;
+    // decoded one after the other with createImageBitmap: robust for ten large images, also on phones
+    const urls = await Promise.all(ys.map(y => loadImage(g, y).then(url => { progress(0.2 * (++done) / ys.length, `Loading images ${done} of ${ys.length}…`); return url; })));
+    const bases = [];
+    for (const [i, url] of urls.entries()) {
+      const bmp = await createImageBitmap(await (await fetch(url)).blob());
+      bases.push(await buildBase(bmp, crop, W, H, outline)); bmp.close();
+      progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
+    }
+
+    const inRange = VOLUME_LOSS.filter(n => n.y > ys[0] && n.y <= ys[ys.length - 1]);
+    const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(),
+      lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
+      site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
+
+    // 2. timeline
+    const per = +$('vSpeed').value, fade = VIDEO.fade;
+    const total = VIDEO.intro + ys.length * per + VIDEO.hold + VIDEO.outro, n = Math.round(total * fps);
+    const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+    const render = t => {
+      ctx.globalAlpha = 1;
+      if (t < VIDEO.intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
+      const tt = t - VIDEO.intro, last = ys.length - 1;
+      if (tt >= ys.length * per + VIDEO.hold) {                 // closing card over the last year
+        ctx.drawImage(bases[last], 0, 0); drawOutro(ctx, W, H, S, info); return;
+      }
+      const k = Math.min(last, Math.floor(tt / per)), into = tt - k * per;
+      ctx.drawImage(bases[k], 0, 0);
+      if (k > 0 && into < fade) { ctx.globalAlpha = 1 - into / fade; ctx.drawImage(bases[k - 1], 0, 0); ctx.globalAlpha = 1; }
+      drawLabels(ctx, W, H, S, info, k);
+    };
+
+    // 3. encode
+    const chunks = []; let desc = null, encErr = null;
+    const enc = new VideoEncoder({
+      output: (chunk, meta) => {
+        if (!desc && meta && meta.decoderConfig && meta.decoderConfig.description) desc = new Uint8Array(meta.decoderConfig.description);
+        const data = new Uint8Array(chunk.byteLength); chunk.copyTo(data);
+        chunks.push({ data, key: chunk.type === 'key', pts: chunk.timestamp });
+      },
+      error: e => { encErr = e; }
+    });
+    enc.configure(cfg);
+    for (let i = 0; i < n; i++) {
+      if (encErr) throw encErr;
+      render(i / fps);
+      const vf = new VideoFrame(canvas, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+      enc.encode(vf, { keyFrame: i % (fps * 2) === 0 }); vf.close();
+      while (enc.encodeQueueSize > 6) await new Promise(res => setTimeout(res, 4));
+      if (i % 15 === 0) { progress(0.3 + 0.68 * i / n, `Creating video ${Math.round(100 * i / n)} %…`); await new Promise(res => setTimeout(res, 0)); }
+    }
+    await enc.flush(); enc.close();
+    if (encErr) throw encErr;
+    if (!desc) throw new Error('the encoder did not report its H.264 settings');
+
+    // 4. MP4 file, then share (phones) or download
+    const mp4 = muxMp4({ width: W, height: H, fps, avcC: desc, samples: chunks });
+    const name = `tonguesfromspace-${shortSlug(g.name)}-${ys[0]}-${ys[ys.length - 1]}-${vstate.fmt === 'reel' ? '9x16' : '4x5'}.mp4`;
+    const file = new File([mp4], name, { type: 'video/mp4' });
+    progress(1, 'Video ready');
+    if (COARSE && navigator.canShare && navigator.canShare({ files: [file] })) {
+      try { await navigator.share({ files: [file], title: `${g.name}, ${ys[0]} to ${ys[ys.length - 1]}` }); }
+      catch (e) { if (e.name !== 'AbortError') downloadFile(file); }
+    } else downloadFile(file);
+    window.__lastVideo = file;           // for testing
+    $('vsGo').textContent = 'Create again';
+  } catch (e) {
+    console.error(e); showNotice('The video could not be created: ' + (e.message || e)); $('vsGo').textContent = 'Create video';
+  } finally { vstate.busy = false; $('vsGo').disabled = false; }
+}
+const shortSlug = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+function downloadFile(file){
+  const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
+  document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
+}
+$('vsGo').onclick = makeVideo;
+
+/* ---- minimal MP4 packer: one H.264 video track, all metadata before the video data ---- */
+function muxMp4({ width, height, fps, avcC, samples }){
+  const TS = fps * 1000, DUR = 1000;                       // timescale and ticks per frame
+  const u8 = (...a) => Uint8Array.from(a), u16 = v => u8(v >> 8 & 255, v & 255);
+  const u32 = v => u8(v >>> 24 & 255, v >>> 16 & 255, v >>> 8 & 255, v & 255);
+  const str = s => Uint8Array.from([...s].map(c => c.charCodeAt(0)));
+  const cat = parts => { const n = parts.reduce((a, p) => a + p.length, 0), o = new Uint8Array(n); let i = 0; parts.forEach(p => { o.set(p, i); i += p.length; }); return o; };
+  const box = (type, ...parts) => { const body = cat(parts); return cat([u32(body.length + 8), str(type), body]); };
+  const full = (type, ver, flags, ...parts) => box(type, u8(ver, flags >> 16 & 255, flags >> 8 & 255, flags & 255), ...parts);
+  const zeros = n => new Uint8Array(n);
+  const matrix = cat([u32(0x00010000), u32(0), u32(0), u32(0), u32(0x00010000), u32(0), u32(0), u32(0), u32(0x40000000)]);
+  const n = samples.length, durTS = n * DUR, durMs = Math.round(n * 1000 / fps);
+  // decode order = output order; composition offsets cover encoders that reorder frames
+  const offsets = samples.map((s, i) => Math.round(s.pts * TS / 1e6) - i * DUR);
+  const needCtts = offsets.some(o => o !== 0);
+  const shift = needCtts ? -Math.min(0, ...offsets) : 0;
+  const stbl = (chunkOffset) => box('stbl',
+    full('stsd', 0, 0, u32(1), box('avc1', zeros(6), u16(1), zeros(16), u16(width), u16(height), u32(0x00480000), u32(0x00480000), u32(0), u16(1), zeros(32), u16(0x18), u16(0xffff), box('avcC', avcC))),
+    full('stts', 0, 0, u32(1), u32(n), u32(DUR)),
+    ...(needCtts ? [full('ctts', 0, 0, u32(n), ...offsets.flatMap(o => [u32(1), u32(o + shift)]))] : []),
+    full('stss', 0, 0, u32(samples.filter(s => s.key).length), ...samples.map((s, i) => s.key ? u32(i + 1) : null).filter(Boolean)),
+    full('stsc', 0, 0, u32(1), u32(1), u32(n), u32(1)),
+    full('stsz', 0, 0, u32(0), u32(n), ...samples.map(s => u32(s.data.length))),
+    full('stco', 0, 0, u32(1), u32(chunkOffset)));
+  const moov = off => box('moov',
+    full('mvhd', 0, 0, u32(0), u32(0), u32(1000), u32(durMs), u32(0x00010000), u16(0x0100), zeros(10), matrix, zeros(24), u32(2)),
+    box('trak',
+      full('tkhd', 0, 3, u32(0), u32(0), u32(1), u32(0), u32(durMs), zeros(8), u16(0), u16(0), u16(0), u16(0), matrix, u32(width << 16), u32(height << 16)),
+      ...(shift ? [box('edts', full('elst', 0, 0, u32(1), u32(durMs), u32(shift), u32(0x00010000)))] : []),
+      box('mdia',
+        full('mdhd', 0, 0, u32(0), u32(0), u32(TS), u32(durTS), u16(0x55c4), u16(0)),
+        full('hdlr', 0, 0, u32(0), str('vide'), zeros(12), str('VideoHandler'), u8(0)),
+        box('minf',
+          full('vmhd', 0, 1, zeros(8)),
+          box('dinf', full('dref', 0, 0, u32(1), full('url ', 0, 1))),
+          stbl(off)))));
+  const ftyp = box('ftyp', str('isom'), u32(512), str('isom'), str('iso2'), str('avc1'), str('mp41'));
+  const moovLen = moov(0).length;                          // offsets do not change the size
+  const dataStart = ftyp.length + moovLen + 8;
+  const mdatBody = cat(samples.map(s => s.data));
+  return cat([ftyp, moov(dataStart), u32(mdatBody.length + 8), str('mdat'), mdatBody]);
+}
 
 /* =====================================================================
    9. Boot

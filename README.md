@@ -15,6 +15,9 @@ Created by J. Braakhekke for public glacier awareness. See also [For Your Ice](h
 - **Measure:** draw lines and areas; lengths and areas are geodesic.
 - **Key figures:** area (about 1850, 1973, 2023) and tongue length change, all from GLAMOS.
 - **Swiss context:** share of the national ice volume lost each year since 2016.
+- **Video for Instagram and TikTok:** frame the tongue on the map and get an MP4 (9:16 for Reels and TikTok, or 4:5 for the Instagram feed) with title, years, scene dates, scale bar, optional 1850 outline, the national volume loss and all credits. Made in the browser; on phones it opens the share sheet.
+- **Share:** a link to the current glacier, mode and years.
+- **Phones:** map first, compact controls under the map, two fingers to move the map, landscape layout.
 
 ## Repository layout
 
