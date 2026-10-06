@@ -9,7 +9,8 @@
  * your quota on anything else:
  *   statistics  scoring of all Sentinel-2 L2A scenes of one summer (July 1 - October 1) over a
  *               Swiss glacier, daily, at coarse resolution
- *   process     the image of one chosen day between July and September, over a Swiss glacier
+ *   process     the image of one chosen day between July and September, over a Swiss glacier,
+ *               or the July-September quarterly mosaic around it (background)
  *
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
@@ -24,6 +25,7 @@
  */
 
 const COLLECTION = 'sentinel-2-l2a';
+const MOSAIC = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';     // Sentinel-2 quarterly cloudless mosaics (background)
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin
 const MAX_PX = 2500;
 const MIN_STATS_RES = 40;                                           // metres (CRS units); keeps scene scoring cheap
@@ -114,23 +116,24 @@ function mercToLonLat(x, y) {
   const R = 6378137;
   return [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
 }
-function checkBounds(inp) {
+function checkBounds(inp, collections = [COLLECTION]) {
   if (!inp || !inp.bounds || !Array.isArray(inp.bounds.bbox) || inp.bounds.bbox.length !== 4) return 'bounds';
   const crs = (inp.bounds.properties && inp.bounds.properties.crs) || '';
   let bb = inp.bounds.bbox.map(Number);
   if (/3857/.test(crs)) { const [w, s] = mercToLonLat(bb[0], bb[1]), [e, n] = mercToLonLat(bb[2], bb[3]); bb = [w, s, e, n]; }
   else if (crs && !/4326|CRS84/.test(crs)) return 'coordinate system';
   if (!insideSwitzerland(bb)) return 'area outside Switzerland';
-  if (!Array.isArray(inp.data) || inp.data.length !== 1 || inp.data[0].type !== COLLECTION) return 'data collection';
+  if (!Array.isArray(inp.data) || inp.data.length !== 1 || !collections.includes(inp.data[0].type)) return 'data collection';
   return null;
 }
 const summerDay = d => /^\d{4}-0[789]-\d{2}$/.test(d);
 function checkProcess(b) {
   const inp = b && b.input, out = b && b.output;
-  const bad = checkBounds(inp); if (bad) return bad;
+  const bad = checkBounds(inp, [COLLECTION, MOSAIC]); if (bad) return bad;
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
   if (!tr || typeof tr.from !== 'string' || !summerDay(tr.from.slice(0, 10)) || tr.from.slice(10) !== 'T00:00:00Z' ||
       tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and September)';
+  if (inp.data[0].type === MOSAIC && tr.from.slice(4, 10) !== '-07-01') return 'mosaic date (the July to September quarter)';
   if (!out || !(out.width > 0 && out.width <= MAX_PX) || !(out.height > 0 && out.height <= MAX_PX)) return 'image size';
   if (!Array.isArray(out.responses) || out.responses.length !== 1 ||
       !['image/jpeg', 'image/png'].includes(out.responses[0].format && out.responses[0].format.type)) return 'output format';
@@ -141,7 +144,7 @@ function checkStatistics(b) {
   const bad = checkBounds(b && b.input); if (bad) return bad;
   const ag = b.aggregation;
   if (!ag || !ag.timeRange || !/^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) ||
-      ag.timeRange.to !== ag.timeRange.from.slice(0, 4) + '-10-01T00:00:00Z') return 'period (July 1 to October 1 of one year)';
+      ![ '-09-21T00:00:00Z', '-10-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to)) return 'period (July 1 to September 20 of one year)';
   if (!ag.aggregationInterval || ag.aggregationInterval.of !== 'P1D') return 'interval';
   if (!(ag.resx >= MIN_STATS_RES && ag.resy >= MIN_STATS_RES)) return 'resolution';
   if (typeof ag.evalscript !== 'string' || ag.evalscript.length > 2000) return 'evalscript';

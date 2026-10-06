@@ -33,6 +33,7 @@
 :root{
   --firn:#F1F5F6; --sheet:#FFFFFF; --rock:#22313A; --moraine:#6B7378;
   --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#D9E1E4;
+  --accent:#C8322A;
   --old:#F2A93B; --new:#5FE0F0; --measure:#FFD84D;
   --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
   --serif:var(--sans);
@@ -48,13 +49,15 @@ button,select,input{font:inherit;color:inherit}
 
 /* ---------- left ---------- */
 .controls{background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
-.brand h1{font-size:21px;line-height:1.15;margin:0 0 6px;font-weight:800;letter-spacing:-.01em}
+.brand h1{font-size:22px;line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.01em;color:var(--accent)}
+.brand h1::after{content:'';display:block;width:42px;height:4px;background:var(--accent);border-radius:2px;margin-top:10px}
 .brand p{margin:0;color:var(--moraine);font-size:13.5px}
 .group h2{font-size:13.5px;font-weight:600;margin:0 0 10px}
 .hint{font-size:12.5px;color:var(--moraine);margin:8px 0 0}
 .glaciers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
 .glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;gap:6px;text-align:left;padding:7px 10px;border:0;background:none;border-radius:6px;cursor:pointer}
 .glaciers button:hover{background:var(--firn)}
+.glaciers button[aria-pressed="true"] .rank{color:var(--accent);font-weight:700}
 .glaciers button[aria-pressed="true"]{background:var(--ice)}
 .glaciers .rank{color:var(--moraine);font-variant-numeric:tabular-nums;font-size:13px}
 .glaciers .name{font-weight:600}
@@ -76,7 +79,7 @@ button,select,input{font:inherit;color:inherit}
 .years button:disabled.missing{text-decoration:line-through}
 .stack{display:flex;flex-direction:column;gap:18px}
 .row{display:flex;gap:8px;align-items:center}
-.play{flex:1;border:0;background:var(--rock);color:#fff;border-radius:6px;padding:9px 12px;cursor:pointer;font-weight:600}
+.play{background:var(--accent)!important;flex:1;border:0;background:var(--rock);color:#fff;border-radius:6px;padding:9px 12px;cursor:pointer;font-weight:600}
 .play:disabled{opacity:.4;cursor:not-allowed}
 select.small{border:1px solid var(--rule);border-radius:6px;padding:8px;background:var(--sheet)}
 .frame{width:100%;accent-color:var(--rock)}
@@ -119,7 +122,10 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:640;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.4)}
 .handle{position:absolute;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;z-index:660;display:grid;place-items:center;cursor:ew-resize;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.35);border:0}
 .handle svg{width:20px;height:20px;stroke:var(--rock)}
-.is-timelapse .layerbox{top:16px}
+.is-timelapse /* satellite scene: thin frame and rounded corners; mosaic background behind it */
+.scene-img{border-radius:14px;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 8px 28px rgba(0,0,0,.45)}
+.bg-img{border-radius:18px;opacity:.92}
+.layerbox{top:16px}
 .is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
 #tagT{display:none}
 .is-timelapse #tagT{display:block}
@@ -140,6 +146,11 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .measuring #map{cursor:crosshair}
 .measuring .leaflet-outlines-pane *{pointer-events:none!important}
 .layerbox{position:absolute;right:12px;top:104px;z-index:665;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 12px 6px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:220px}
+.lb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:0;background:none;padding:0 0 6px;margin:0;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);cursor:pointer}
+.lb-head svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;transition:transform .2s}
+.layerbox.min .lb-body{display:none}
+.layerbox.min .lb-head{padding:0}
+.layerbox.min .lb-head svg{transform:rotate(180deg)}
 .layerbox .toggle{font-size:12.5px;margin-bottom:4px}
 .layerbox .hint{font-size:11.5px;margin:2px 0 2px}
 .layerbox .hint:empty{display:none}
@@ -162,13 +173,17 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .story h2{font-size:30px;line-height:1.05;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
 .story .sub{color:var(--moraine);font-size:13.5px;margin:0 0 18px}
 .story .lede{font-family:var(--serif);font-size:17.5px;line-height:1.55;margin:0 0 22px}
-.story h3{font-size:14px;font-weight:600;margin:28px 0 10px;padding-top:16px;border-top:1px solid var(--rule)}
+.story h2::before{content:'';display:block;width:36px;height:4px;background:var(--accent);border-radius:2px;margin-bottom:12px}
+.story h3{color:var(--accent);font-size:14px;font-weight:600;margin:28px 0 10px;padding-top:16px;border-top:1px solid var(--rule)}
 .story p.body{font-family:var(--serif);font-size:16px;line-height:1.6;margin:0 0 12px}
 .stats{display:flex;flex-direction:column;gap:16px}
 .stat-group h4{display:flex;align-items:center;gap:8px;margin:0 0 8px;font-size:13px;font-weight:600;color:var(--moraine)}
 .stat-group .ico{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--ice);color:var(--crevasse)}
 .stat-group .ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
+.with-info{display:flex;align-items:center;gap:8px}
+.info-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
+.info-btn[aria-expanded="true"]{background:var(--accent);color:#fff}
 .kf-note{font-size:12.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .stat .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -227,6 +242,8 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .vs-progress div{height:100%;width:0;background:var(--crevasse);transition:width .2s}
 
 /* ---------- touch devices ---------- */
+/* one finger scrolls the page (browser), two fingers pan and zoom the map (Leaflet) */
+.two-finger #map.leaflet-container{touch-action:pan-x pan-y!important}
 @media (pointer:coarse){
   .handle{width:48px;height:48px;margin:-24px 0 0 -24px}
   .handle svg{width:24px;height:24px}
@@ -236,14 +253,20 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 @media (max-width:720px){
   .app{display:flex;flex-direction:column;height:auto}
   .mhead{display:block;order:0;background:var(--sheet);padding:10px 14px 8px;border-bottom:1px solid var(--rule)}
-  .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:var(--accent)}
+  .mhead{border-top:4px solid var(--accent)}
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
   .stage{order:1;height:60vh;height:60dvh;min-height:330px}
   .mbar{display:flex;flex-direction:column;gap:10px;order:2;background:var(--sheet);padding:12px 14px 14px;border-bottom:1px solid var(--rule)}
   .story{order:3;padding:20px 18px 32px}
   .controls{order:4;height:auto;border-right:0;border-top:1px solid var(--rule);padding:18px}
-  .controls .brand,#glacierGroup,#modeGroup,#compareControls{display:none}
+  .controls .brand,#glacierGroup,#modeGroup,#compareControls,#imageGroup{display:none}
   #timelapseControls > .group:nth-child(-n+2){display:none}
+  .mimage{align-items:center}
+  .mimage .segment{flex:1.3}
+  .mimage .segment button{min-height:38px;font-size:14px}
+  .mbright{flex:1;display:flex;flex-direction:column;font-size:12.5px;color:var(--moraine);gap:2px}
+  .mbright input{width:100%;accent-color:var(--accent);min-height:28px}
 
   .mbar select{width:100%;min-height:44px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
   .mbar .segment button{min-height:40px;font-size:15px}
@@ -323,7 +346,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   <!-- ================= MOBILE HEADER (phones only) ================= -->
   <header class="mhead" id="mhead">
     <strong>Swiss Glacier Tongues from Space</strong>
-    <span>Created by J. Braakhekke for public glacier awareness</span>
+    <span>Created by Jochem Braakhekke for public glacier awareness</span>
   </header>
 
   <!-- ================= LEFT ================= -->
@@ -331,7 +354,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     <div class="brand">
       <h1>Swiss Glacier Tongues from Space</h1>
       <p>Watch the tongues of the ten largest Swiss glaciers retreat in Sentinel-2 imagery, from 2016 to present day.</p>
-      <p class="byline">Created by <strong>J. Braakhekke</strong> - for public glacier awareness. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+      <p class="byline">Created by <strong>Jochem Braakhekke</strong> - for public glacier awareness. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
     </div>
 
     <div class="group" id="glacierGroup">
@@ -386,7 +409,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       </div>
     </div>
 
-    <div class="group">
+    <div class="group" id="imageGroup">
       <h2>Image</h2>
       <div class="segment" role="group" aria-label="Colour" style="margin-bottom:6px">
         <button type="button" id="styleTrue" aria-pressed="true">True color</button>
@@ -426,11 +449,15 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <button type="button" class="ghost" id="measureCancel">Cancel</button>
     </div>
     <div class="layerbox" id="layerbox" role="group" aria-label="Map layers">
+      <button type="button" class="lb-head" id="lbToggle" aria-expanded="true"><span>Layers</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+      <div class="lb-body">
       <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Outline 1850</span></span></label>
       <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline today</span></span></label>
+      <label class="toggle"><input type="checkbox" id="mosaicToggle" checked> <span>Sentinel-2 mosaic around it</span></label>
       <label class="toggle"><input type="checkbox" id="osmToggle" checked> <span>OpenStreetMap</span></label>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
       <p class="hint" id="outlineNote"></p>
+      </div>
     </div>
     <div class="mapbar" role="toolbar" aria-label="Map tools">
       <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
@@ -457,6 +484,10 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     <div class="segment" role="group" aria-label="View mode">
       <button type="button" id="mCompare" aria-pressed="true">Compare</button>
       <button type="button" id="mTimelapse" aria-pressed="false">Timelapse</button>
+    </div>
+    <div class="mrow mimage">
+      <div class="segment" role="group" aria-label="Colour"><button type="button" id="mStyleTrue">True color</button><button type="button" id="mStyleFalse">False color</button></div>
+      <label class="mbright">Brightness <input type="range" id="mBright" min="0.6" max="1.8" step="0.05" aria-label="Image brightness"></label>
     </div>
     <div class="mrow" id="mCompareRow">
       <label>Left<select id="mA"></select></label>
@@ -529,7 +560,7 @@ const DEFAULTS = [
     lede:'The second-largest glacier in Switzerland, flowing west from Monte Rosa towards Zermatt. Several tributaries, including the Grenzgletscher, join it from the south.',
     look:'Look at the confluence with the Grenzgletscher, where the ice-marginal Gornersee forms in some summers, and at the Monte Rosa glacier in the middle, which no longer reaches the main stream.',
     note:'Part of the drop in area since 1850 comes from tributaries that have separated and are now counted as glaciers of their own.' },
-  { id:'fiescher', tongue:[46.468,8.145], keys:['fiescher'], name:'Fiescher', local:'Fieschergletscher', canton:'Valais', range:'Bernese Alps',
+  { id:'fiescher', tz:14, tongue:[46.468,8.145], keys:['fiescher'], name:'Fiescher', local:'Fieschergletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.49,8.15], bounds:[[46.42,8.08],[46.57,8.22]], a1850:37.4, a1973:34.2, a2016:29.75, aNew:[28.51,2023], len:[17.1,15.4,14.7], lenYear:2012,
     lede:'The second-longest glacier in the Alps, draining south from the Finsteraarhorn and Gross Fiescherhorn towards the village of Fiesch in the Goms valley.',
     look:'The narrow lower tongue in the gorge above Fiesch reacts fastest. Compare its tip and the width of bare rock along its flanks.',
@@ -539,32 +570,32 @@ const DEFAULTS = [
     lede:'Formed where the Finsteraar and Lauteraar glaciers merge, the Unteraar flows east into the Grimselsee, the reservoir behind the Grimsel hydropower dams.',
     look:'The tongue is buried under rock debris, so it looks grey rather than white. Watch the debris-covered front near the lake and the dark central moraine where the two source glaciers join.',
     note:'Debris slows surface melt, but the tongue is still thinning and pulling back up the valley.' },
-  { id:'oberaletsch', tongue:[46.414,7.992], keys:['oberaletsch'], name:'Oberaletsch', local:'Oberaletschgletscher', canton:'Valais', range:'Bernese Alps',
+  { id:'oberaletsch', tz:14.25, tongue:[46.414,7.992], keys:['oberaletsch'], name:'Oberaletsch', local:'Oberaletschgletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.43,7.98], bounds:[[46.39,7.90],[46.48,8.05]], a1850:26.6, a1973:22.8, a2016:17.05, aNew:null, len:[10.4,9.1,8.8], lenYear:2011,
     lede:'Once a tributary of the Great Aletsch, the Oberaletsch now ends on its own, about 1.3 km short of its former junction. Both glaciers feed the river Massa.',
     look:'Compare the gap between the Oberaletsch tongue and the Great Aletsch to the east, and the Beich glacier joining from the north.',
     note:'Its tongue is almost completely covered in debris, which is why it looks dark on the satellite images.' },
-  { id:'corbassiere', tongue:[45.987,7.296], keys:['corbassiere'], name:'Corbassière', local:'Glacier de Corbassière', canton:'Valais', range:'Pennine Alps',
+  { id:'corbassiere', tz:14.25, tongue:[45.987,7.296], keys:['corbassiere'], name:'Corbassière', local:'Glacier de Corbassière', canton:'Valais', range:'Pennine Alps',
     center:[45.97,7.30], bounds:[[45.92,7.24],[46.03,7.36]], a1850:20.7, a1973:18.3, a2016:14.95, aNew:[14.08,2023], len:[12.9,10.1,9.6],
     lede:'The largest glacier in Lower Valais, flowing north from the Grand Combin through a long, gently sloping valley.',
     look:'The wide, flat upper plateau at about 3,300 m holds snow longest. Compare the narrow lower tongue and the moraine walls left along its sides.',
     note:'Flat glaciers like this one react slowly at first, then lose large areas once the snow line rises above their plateau.' },
-  { id:'morteratsch', tongue:[46.421,9.931], keys:['morteratsch'], name:'Morteratsch', local:'Vadret da Morteratsch', canton:'Graubünden', range:'Bernina Range',
+  { id:'morteratsch', tz:14.5, tongue:[46.421,9.931], keys:['morteratsch'], name:'Morteratsch', local:'Vadret da Morteratsch', canton:'Graubünden', range:'Bernina Range',
     center:[46.41,9.93], bounds:[[46.37,9.86],[46.46,9.99]], a1850:19.3, a1973:16.4, a2016:14.93, aNew:null, len:[8.9,7.0,6.2],
     lede:'The largest glacier in eastern Switzerland, flowing north from Piz Bernina. Together with the Pers glacier from Piz Palü it drains via the Inn into the Danube and the Black Sea.',
     look:'The tongue ends in a valley reachable on foot from the railway; signposts there mark where the ice stood in past years. Compare the tongue tip and the junction with the Pers glacier.',
     note:'It is the only glacier in this top ten that drains to the Black Sea rather than the North Sea or the Mediterranean.' },
-  { id:'zmutt', tongue:[45.99,7.672], keys:['zmutt'], name:'Zmutt', local:'Zmuttgletscher', canton:'Valais', range:'Pennine Alps',
+  { id:'zmutt', tz:14.25, tongue:[45.99,7.672], keys:['zmutt'], name:'Zmutt', local:'Zmuttgletscher', canton:'Valais', range:'Pennine Alps',
     center:[45.99,7.62], bounds:[[45.95,7.54],[46.03,7.70]], a1850:19.8, a1973:16.9, a2016:14.82, aNew:null, len:[8.6,6.7,null], lenYear:null,
     lede:'Flowing east below the north face of the Matterhorn towards Zermatt, fed by the Tiefmatten and Stockji glaciers.',
     look:'Most of the lower tongue is covered in debris and looks like a rocky valley floor. Use the bright ice upstream and the reservoir at Zmutt as reference points.',
     note:'Debris-covered tongues are hard to map from space; the inventory outlines show where the ice under the rock still is.' },
-  { id:'rhone', tongue:[46.588,8.385], keys:['rhone'], name:'Rhone', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
+  { id:'rhone', tz:14.5, tongue:[46.588,8.385], keys:['rhone'], name:'Rhone', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
     center:[46.61,8.39], bounds:[[46.56,8.33],[46.66,8.44]], a1850:20.2, a1973:17.6, a2016:14.64, aNew:null, len:[9.2,8.0,7.7],
     lede:'The source of the river Rhône, flowing south from the Dammastock towards Gletsch at the Furka and Grimsel passes.',
     look:'A lake has formed where the tongue used to lie on the rock step above Gletsch. Compare its size and the bare rock around it from year to year.',
     note:'The Rhône glacier had its largest melt on record in 2026, and collapse pits are opening on its tongue where meltwater has hollowed out the ice.' },
-  { id:'trift', tongue:[46.678,8.364], keys:['trift'], name:'Trift', local:'Triftgletscher (Gadmen)', canton:'Bern', range:'Urner Alps',
+  { id:'trift', tz:14.5, tongue:[46.678,8.364], keys:['trift'], name:'Trift', local:'Triftgletscher (Gadmen)', canton:'Bern', range:'Urner Alps',
     center:[46.67,8.36], bounds:[[46.63,8.30],[46.72,8.43]], a1850:19.3, a1973:16.5, a2016:14.56, aNew:null, len:[7.6,5.8,3.7],
     lede:'A glacier above the Gadmen valley whose tongue collapsed in the early 2000s, leaving a new lake, the Triftsee, spanned by a suspension bridge.',
     look:'The lake below the steep ice fall is the best marker. The ice fall itself retreats a little more almost every summer.',
@@ -622,14 +653,14 @@ const savePrefs = () => { try { localStorage.setItem('glacierPrefs', JSON.string
 
 const CDSE = {
   collection: 'sentinel-2-l2a',
-  months:     [9, 8, 7],       // September first, then August, then July
+  months:     [9, 8, 7],       // September (until the 20th) first, then August, then July
   maxCloud:   0.05,            // a scene counts as clear when at most 5 % of the area is cloud or cloud shadow
   minCover:   0.95,            // the scene must cover at least 95 % of the image area
   fallbackCloud: 0.30,         // if no month has a clear scene: least cloudy one up to 30 %
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l2a-v1'         // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l2a-v2'         // bump when scoring or rendering changes, to invalidate cached results
 };
 const MONTH_NAME = {7:'July', 8:'August', 9:'September'};
 
@@ -754,7 +785,7 @@ async function findScene(g, yr){
     const j = await (await cdse('statistics', {
       input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
                data: [{ type: CDSE.collection, dataFilter: { mosaickingOrder: 'leastCC' } }] },
-      aggregation: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-10-01T00:00:00Z` },
+      aggregation: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-09-21T00:00:00Z` },   // up to and including 20 September
                      aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: fp.statsRes, resy: fp.statsRes }
     }, 'application/json', `${g.name}, summer ${yr}`)).json();
     const days = (j.data || []).map(d => {
@@ -763,7 +794,7 @@ async function findScene(g, yr){
         return { date: d.interval.from.slice(0, 10), cloud: c.mean, snow: s.mean,
                  cover: c.sampleCount ? 1 - c.noDataCount / c.sampleCount : 0 };
       } catch { return null; }
-    }).filter(d => d && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
+    }).filter(d => d && d.date.slice(5) <= '09-20' && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
     const scene = pickScene(days);
     idb.set(key, {scene, savedAt: Date.now()});
     return scene;
@@ -830,8 +861,9 @@ const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 /* =====================================================================
    5. Map
    ===================================================================== */
-const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.5});
-[['paneA',210],['paneB',220],['paneT',230],['outlines',430],['labels',450],['measure',620]].forEach(([n,z]) => {
+const TWO_FINGER = matchMedia('(pointer:coarse)').matches;   // touch screens: one finger scrolls the page, two move the map
+const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.5, dragging: !TWO_FINGER});
+[['bgPane',205],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['labels',450],['measure',620]].forEach(([n,z]) => {
   map.createPane(n); map.getPane(n).style.zIndex = z;
 });
 map.getPane('labels').style.pointerEvents = 'none';
@@ -842,6 +874,7 @@ function updateCredits(){
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
   const parts = yrs.length ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
+  if (document.getElementById('mosaicToggle').checked) parts.push(`Background: Sentinel-2 quarterly mosaic, July to September ${mosaicYear()}`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
@@ -857,8 +890,51 @@ const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_
   {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
 
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+
+/* ---------- background: Sentinel-2 quarterly cloudless mosaic (July to September) around the scene ---------- */
+const MOSAIC = { collection: 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca', pad: 0.8, maxPx: 2000 };
+const MOSAIC_EVALSCRIPT = `//VERSION=3
+function setup(){ return { input:["B02","B03","B04","dataMask"], output:{ bands:3 } }; }
+function f(v){ var x = 2.5 * Math.max(0, v) / 10000; return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
+function evaluatePixel(p){ if (!p.dataMask) return [0.11, 0.16, 0.19]; return [f(p.B04), f(p.B03), f(p.B02)]; }`;
+const mosaicYear = () => { const n = new Date(); return n.getUTCMonth() >= 10 ? n.getUTCFullYear() : n.getUTCFullYear() - 1; };  // Q3 mosaic is out by November
+function mosaicFootprint(g){
+  const b = padBounds(g.bounds, MOSAIC.pad);
+  const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
+  const k = MOSAIC.maxPx / Math.max(ne.x - sw.x, ne.y - sw.y);
+  return { bounds: b, bbox: [sw.x, sw.y, ne.x, ne.y].map(v => Math.round(v)), w: Math.round((ne.x - sw.x) * k), h: Math.round((ne.y - sw.y) * k) };
+}
+function loadBackground(g, yr){
+  const fp = mosaicFootprint(g), key = `${CDSE.version}|bg|${g.id}|${yr}|${fp.bbox.join(',')}`;
+  if (memCache.has(key)) return memCache.get(key);
+  const p = (async () => {
+    const hit = await idb.get(key);
+    if (hit instanceof Blob) return URL.createObjectURL(hit);
+    const blob = await (await cdse('process', {
+      input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
+               data: [{ type: MOSAIC.collection, dataFilter: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-07-01T23:59:59Z` } } }] },
+      output: { width: fp.w, height: fp.h, responses: [{ identifier: 'default', format: { type: 'image/jpeg' } }] },
+      evalscript: MOSAIC_EVALSCRIPT
+    }, 'image/jpeg', `${g.name}, background mosaic`)).blob();
+    idb.set(key, blob);
+    return URL.createObjectURL(blob);
+  })();
+  memCache.set(key, p); p.catch(() => memCache.delete(key));
+  return p;
+}
+let bgLayer = null;
+function setBackground(){
+  if (bgLayer) { map.removeLayer(bgLayer); bgLayer = null; }
+  if (!document.getElementById('mosaicToggle').checked) return updateCredits();
+  const g = currentGlacier(), yr = mosaicYear(), layer = L.imageOverlay(BLANK, mosaicFootprint(g).bounds, {pane:'bgPane', className:'bg-img', interactive:false});
+  bgLayer = layer.addTo(map);
+  // an older mosaic if the newest is not out yet; failures only cost the background
+  loadBackground(g, yr).catch(() => loadBackground(g, yr - 1)).then(url => { if (bgLayer === layer) layer.setUrl(url); })
+    .catch(e => console.warn('Background mosaic not available:', e.message));
+  updateCredits();
+}
 function imageryLayer(yr, pane, opacity=1){
-  const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false});
+  const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className:'scene-img'});
   loadImage(g, yr).then(url => ov.setUrl(url)).catch(e => { setStatus(e.message); showNotice(e.message); });
   return ov;
 }
@@ -892,7 +968,7 @@ map.on('move zoom resize', clip);
   const setX = cx => { const r = stage.getBoundingClientRect(); state.split = Math.min(.98, Math.max(.02, (cx - r.left) / r.width)); clip(); };
   handle.addEventListener('pointerdown', e => { dragging = true; handle.setPointerCapture(e.pointerId); map.dragging.disable(); e.preventDefault(); });
   handle.addEventListener('pointermove', e => dragging && setX(e.clientX));
-  const end = () => { dragging = false; map.dragging.enable(); };
+  const end = () => { dragging = false; if (!TWO_FINGER) map.dragging.enable(); };
   handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
   handle.addEventListener('keydown', e => {
     const step = e.shiftKey ? .1 : .02;
@@ -1062,10 +1138,10 @@ document.getElementById('labelsToggle').onchange = e => { e.target.checked ? lab
 document.getElementById('oldToggle').onchange = drawOutlines;
 document.getElementById('newToggle').onchange = drawOutlines;
 function fitGlacier(animate = true){ map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
-const TONGUE_ZOOM = 13.5;   // about 7 km across on a laptop screen
+const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
 function focusTongue(animate = true){
   const g = currentGlacier();
-  if (g.tongue) map.setView(g.tongue, TONGUE_ZOOM, {animate}); else fitGlacier(animate);
+  if (g.tongue) map.setView(g.tongue, g.tz || TONGUE_ZOOM, {animate}); else fitGlacier(animate);
 }
 document.getElementById('tongueBtn').onclick = () => focusTongue();
 
@@ -1076,6 +1152,7 @@ document.getElementById('tongueBtn').onclick = () => focusTongue();
 let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
 async function checkYears(){
   const gen = ++checkGen, g = currentGlacier();
+  setBackground();
   state.checked = false; state.available = {};
   [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
   renderYears(); updateTags();
@@ -1188,7 +1265,7 @@ const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGH
 function applyBrightness(){
   const b = brightness(), exp = (1 / b).toFixed(3);
   document.querySelectorAll('#gammaFx feComponentTransfer > *').forEach(fn => fn.setAttribute('exponent', exp));
-  ['paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 ? '' : 'url(#gammaFx)');
+  ['bgPane','paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 ? '' : 'url(#gammaFx)');
   document.getElementById('brightness').value = b;
   document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
 }
@@ -1225,8 +1302,9 @@ function renderStory(){
     ${g.note ? `<p class="body">${g.note}</p>` : ''}
     <p class="span-note">${spanText}</p>
 
-    <h3>Key figures</h3>
-    ${keyFiguresNote()}
+    <h3 class="with-info">Key figures <button type="button" class="info-btn" aria-expanded="false" aria-controls="kfNote" aria-label="About these figures"
+      onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></h3>
+    <div id="kfNote" hidden>${keyFiguresNote()}</div>
     ${statsHtml}
 
     <h3>All Swiss glaciers: share of ice volume lost each year</h3>
@@ -1380,7 +1458,15 @@ function showNotice(msg){
   clearTimeout(showNotice.t); showNotice.t = setTimeout(() => n.classList.remove('show'), 7000);
 }
 
-/* Map layer box: OpenStreetMap base map on/off */
+/* Map layer box: minimize, mosaic background, OpenStreetMap */
+const lb = document.getElementById('layerbox');
+if (prefs.lbMin) { lb.classList.add('min'); document.getElementById('lbToggle').setAttribute('aria-expanded', 'false'); }
+document.getElementById('lbToggle').onclick = () => {
+  const min = lb.classList.toggle('min'); prefs.lbMin = min; savePrefs();
+  document.getElementById('lbToggle').setAttribute('aria-expanded', !min);
+};
+document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;
+document.getElementById('mosaicToggle').onchange = e => { prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
 document.getElementById('osmToggle').checked = prefs.osm !== false;
 document.getElementById('osmToggle').onchange = e => {
   prefs.osm = e.target.checked; savePrefs();
@@ -1421,10 +1507,15 @@ function renderMobileBar(){
   $('mCompare').setAttribute('aria-pressed', !tl); $('mTimelapse').setAttribute('aria-pressed', tl);
   $('mCompareRow').hidden = tl; $('mTimelapseRow').hidden = !tl;
   $('mPlay').textContent = state.playing ? 'Pause' : 'Play';
+  $('mStyleTrue').setAttribute('aria-pressed', state.style === 'true'); $('mStyleFalse').setAttribute('aria-pressed', state.style === 'false');
+  $('mBright').value = brightness();
   $('mPlay').disabled = $('playBtn').disabled;
 }
 $('mCompare').onclick = () => $('modeCompare').click();
 $('mTimelapse').onclick = () => $('modeTimelapse').click();
+$('mStyleTrue').onclick = () => { setStyle('true'); renderMobileBar(); };
+$('mStyleFalse').onclick = () => { setStyle('false'); renderMobileBar(); };
+$('mBright').oninput = e => { prefs.bright = +e.target.value; savePrefs(); applyBrightness(); };
 $('mPlay').onclick = () => { state.playing ? stopPlay() : play(); renderMobileBar(); };
 
 /* Map tools on phones: layers and measuring live behind two small buttons */
@@ -1441,6 +1532,7 @@ $('moreBtn').onclick = () => {
    Leaflet's pinch handler zooms and pans with two fingers; single-finger dragging is switched off. */
 if (COARSE) {
   map.dragging.disable();
+  document.getElementById('app').classList.add('two-finger');
   const el = $('map'), hint = $('gestureHint'); let timer = null;
   el.addEventListener('touchmove', e => {
     if (e.touches.length !== 1 || M.mode) return;
@@ -1601,7 +1693,7 @@ function drawLabels(ctx, W, H, S, info, k){
   shade(ctx, W, H, S);
   ctx.textBaseline = 'alphabetic';
   // top: site title, glacier, canton
-  ctx.font = `600 30px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, S.top + 34, {blur:8});
+  ctx.font = `700 30px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, S.top + 34, {blur:8, color:'#FF5A4E'});
   const gs = fitText(ctx, g.name, 800, 78, maxW); shadowText(ctx, g.name, x, S.top + 34 + gs + 12);
   ctx.font = `500 30px ${FONT}`; shadowText(ctx, [g.canton, g.range].filter(Boolean).join(', ') || 'Switzerland', x, S.top + 34 + gs + 56, {blur:8});
   if (info.outline) {
@@ -1619,8 +1711,7 @@ function drawLabels(ctx, W, H, S, info, k){
     ctx.fillStyle = i <= k ? '#fff' : 'rgba(255,255,255,.32)';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x + i * (dw + 8), dotsY, dw, 8, 4) : ctx.rect(x + i * (dw + 8), dotsY, dw, 8); ctx.fill();
   });
-  ctx.font = `500 34px ${FONT}`; shadowText(ctx, sc.clear ? fmtDate(sc.date) : `${fmtDate(sc.date)}, some clouds`, x, dotsY - 30, {blur:8});
-  ctx.font = `800 170px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 6, dotsY - 84, {blur:22});
+  ctx.font = `800 170px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 6, dotsY - 36, {blur:22});
   // scale bar, right
   const m = niceScale(maxW * 0.3 * info.res), px = m / info.res, sx = W - S.right - px, sy = dotsY - 46;
   ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
@@ -1630,7 +1721,7 @@ function drawLabels(ctx, W, H, S, info, k){
 function drawIntro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.62)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = W - S.left - S.right, mid = S.top + (H - S.top - S.bottom) * 0.42;
-  ctx.font = `600 34px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, mid - 120, {blur:8});
+  ctx.font = `700 34px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
   const gs = fitText(ctx, info.glacier.name, 800, 120, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 24);
   ctx.font = `500 44px ${FONT}`; shadowText(ctx, `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 96);
 }
