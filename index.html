@@ -11,7 +11,7 @@
 <meta property="og:image" content="https://braakhekke.github.io/tonguesfromspace/preview.jpg">
 <meta property="og:url" content="https://braakhekke.github.io/tonguesfromspace/">
 <meta name="twitter:card" content="summary_large_image">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🏔️</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2322313A'/><text x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='white' letter-spacing='-1'>TFS</text></svg>">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;800&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
@@ -23,10 +23,11 @@
     swiss-glacier-compare.html  this page
     glaciers.js                 optional, made by build_outlines.py: top-10 ranking from the newest
                                 Swiss Glacier Inventory plus oldest/newest outlines (GLAMOS, CC BY 4.0)
-  Imagery sources (pick in the left panel):
-    EOX   EOxCloudless annual Sentinel-2 mosaics. 2016 CC BY 4.0, 2018+ CC BY-NC-SA 4.0 (non-commercial).
-          No 2017 mosaic exists. New years appear automatically when EOX publishes them.
-    Copernicus Browser deep links (right panel) for single-date scenes. No account or instance ID needed in this page.
+  Imagery: Copernicus Sentinel-2 L2A, the clearest late-summer scene of each year (September, else
+    August, else July), found with the Statistical API and rendered with the Process API.
+    All Copernicus requests go through a relay that holds the credentials:
+    worker/worker.js (Cloudflare) on the public site, scripts/serve.py locally.
+  Base map: OpenStreetMap (can be switched off on the map).
 -->
 <style>
 :root{
@@ -66,8 +67,8 @@ button,select,input{font:inherit;color:inherit}
 
 .side-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
 .side-label span{font-size:12.5px;color:var(--moraine)}
-.years{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
-.years button{padding:7px 0;border:1px solid var(--rule);background:var(--sheet);border-radius:5px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:13.5px}
+.years{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
+.years button{padding:4px 0;border:1px solid var(--rule);background:var(--sheet);border-radius:4px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.3}
 .years button:hover:not(:disabled){border-color:var(--crevasse)}
 .years button[aria-pressed="true"]{background:var(--rock);color:#fff;border-color:var(--rock)}
 .years button.in-range{background:var(--ice);border-color:var(--ice)}
@@ -118,6 +119,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:640;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.4)}
 .handle{position:absolute;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;z-index:660;display:grid;place-items:center;cursor:ew-resize;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.35);border:0}
 .handle svg{width:20px;height:20px;stroke:var(--rock)}
+.is-timelapse .layerbox{top:16px}
 .is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
 #tagT{display:none}
 .is-timelapse #tagT{display:block}
@@ -137,6 +139,11 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .measure-hint button.ghost{background:transparent;color:#fff;border:1px solid rgba(255,255,255,.5)}
 .measuring #map{cursor:crosshair}
 .measuring .leaflet-outlines-pane *{pointer-events:none!important}
+.layerbox{position:absolute;right:12px;top:104px;z-index:665;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 12px 6px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:220px}
+.layerbox .toggle{font-size:12.5px;margin-bottom:4px}
+.layerbox .hint{font-size:11.5px;margin:2px 0 2px}
+.layerbox .hint:empty{display:none}
+@media (max-width:720px){.layerbox{top:88px;right:8px;padding:6px 10px 4px}}
 .legend{position:absolute;right:10px;bottom:116px;z-index:660;background:rgba(255,255,255,.94);border-radius:6px;padding:8px 10px;font-size:12.5px;display:none;line-height:1.7}
 .legend.show{display:block}
 .notice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:680;background:var(--sheet);border-radius:8px;padding:16px 18px;max-width:360px;font-size:14px;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
@@ -230,35 +237,6 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <p class="hint" id="rankNote"></p>
     </div>
 
-    <div class="group">
-      <h2>Imagery source</h2>
-      <p class="hint" style="margin:0 0 10px">Select where the satellite images come from. EOX works right away. Copernicus needs a free account, but has every year from 2016 and allows commercial use.</p>
-    <details class="source" id="sourceBox">
-      <summary>Selected: <span id="sourceName">EOX annual mosaics</span></summary>
-      <label for="sourceSel">Source</label>
-      <select id="sourceSel">
-        <option value="eox">EOX annual mosaics (no account, non-commercial)</option>
-        <option value="cdse">Copernicus quarterly mosaics, Jul–Sep (CDSE account)</option>
-      </select>
-      <div id="eoxInfo">
-        <p class="hint">EOxCloudless yearly cloud-free Sentinel-2 mosaics. 2016 is CC BY 4.0; later years are CC BY-NC-SA 4.0, so non-commercial use only. Only years EOX has actually published can be selected.</p>
-      </div>
-      <div id="cdseFields" hidden>
-        <p class="hint">Sentinel-2 quarterly cloudless mosaics from the Copernicus Data Space Ecosystem, using the July–September quarter of each year. Free for any use, including commercial. Every year from 2016 appears, and new ones are picked up automatically.</p>
-        <label for="cdseId">OAuth client ID</label>
-        <input id="cdseId" autocomplete="off" spellcheck="false" placeholder="sh-…">
-        <label for="cdseSecret">OAuth client secret</label>
-        <input id="cdseSecret" type="password" autocomplete="off" spellcheck="false">
-        <label class="toggle" style="margin-top:10px"><input type="checkbox" id="cdseRemember"> <span>Remember on this device</span></label>
-        <details class="token-alt"><summary>Or paste an access token</summary>
-          <label for="cdseToken">Access token (expires after about 10 minutes)</label>
-          <input id="cdseToken" autocomplete="off" spellcheck="false">
-        </details>
-        <p class="hint">Create the client once in the Sentinel Hub section of your CDSE dashboard (shapps.dataspace.copernicus.eu → User settings → OAuth clients). Locally, start the dashboard with <strong>python3 scripts/serve.py</strong>; browsers block the Copernicus login otherwise. Credentials stay in this browser and go only to Copernicus, via serve.py on your own computer.</p>
-      </div>
-      <button type="button" class="apply" id="applySource">Use this source</button>
-    </details>
-    </div>
 
     <div class="group">
       <div class="segment" role="group" aria-label="View mode">
@@ -302,7 +280,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     </div>
 
     <div class="group">
-      <h2>On the map</h2>
+      <h2>Image</h2>
       <div class="segment" role="group" aria-label="Colour" style="margin-bottom:6px">
         <button type="button" id="styleTrue" aria-pressed="true">True color</button>
         <button type="button" id="styleFalse" aria-pressed="false">False color</button>
@@ -311,14 +289,10 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
       <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
       <p class="hint" style="margin:2px 0 12px">Lifts shadows and mid-tones; bright ice keeps its detail. No new downloads needed.</p>
-      <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Oldest outline (1850)</span></span></label>
-      <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Newest outline</span></span></label>
-      <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
-      <p class="hint" id="outlineNote"></p>
     </div>
 
 
-    <p class="status" id="status">Checking which years are available…</p>
+    <p class="status" id="status">Looking for the clearest scene of each year…</p>
 
     <footer class="colophon">
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
@@ -344,7 +318,13 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <button type="button" id="measureFinish">Finish</button>
       <button type="button" class="ghost" id="measureCancel">Cancel</button>
     </div>
-    <div class="legend" id="legend"></div>
+    <div class="layerbox" id="layerbox" role="group" aria-label="Map layers">
+      <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Outline 1850</span></span></label>
+      <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline today</span></span></label>
+      <label class="toggle"><input type="checkbox" id="osmToggle" checked> <span>OpenStreetMap</span></label>
+      <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
+      <p class="hint" id="outlineNote"></p>
+    </div>
     <div class="mapbar" role="toolbar" aria-label="Map tools">
       <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
       <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
@@ -389,7 +369,7 @@ const VOLUME_LOSS = [
    Areas: SGI1850, SGI2016 and, where published, SGI2023/24 (GLAMOS via de.wikipedia "Liste Schweizer Gletscher").
    build_outlines.py replaces the ranking with the newest inventory and adds outlines. */
 const DEFAULTS = [
-  { id:'aletsch', tongue:[46.424,8.032], keys:['grosser aletsch'], name:'Great Aletsch', local:'Grosser Aletschgletscher', canton:'Valais', range:'Bernese Alps',
+  { id:'aletsch', tongue:[46.424,8.032], keys:['grosser aletsch'], name:'Grosser Aletsch', local:'Grosser Aletschgletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.47,8.04], bounds:[[46.40,7.95],[46.56,8.12]], a1850:105.6, a1973:86.6, a2016:78.49, aNew:[75.79,2023], len:[26.5,24.0,22.6],
     lede:'The largest glacier in the Alps. Four tributary ice streams meet at Konkordiaplatz before the tongue curves south-west towards the Massa gorge above Brig.',
     look:'Follow the tongue south of the bend at Märjelen and compare where clean ice gives way to grey rock. The dark medial moraines running down the middle widen as the ice thins.',
@@ -429,7 +409,7 @@ const DEFAULTS = [
     lede:'Flowing east below the north face of the Matterhorn towards Zermatt, fed by the Tiefmatten and Stockji glaciers.',
     look:'Most of the lower tongue is covered in debris and looks like a rocky valley floor. Use the bright ice upstream and the reservoir at Zmutt as reference points.',
     note:'Debris-covered tongues are hard to map from space; the inventory outlines show where the ice under the rock still is.' },
-  { id:'rhone', tongue:[46.588,8.385], keys:['rhone'], name:'Rhône', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
+  { id:'rhone', tongue:[46.588,8.385], keys:['rhone'], name:'Rhone', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
     center:[46.61,8.39], bounds:[[46.56,8.33],[46.66,8.44]], a1850:20.2, a1973:17.6, a2016:14.64, aNew:null, len:[9.2,8.0,7.7],
     lede:'The source of the river Rhône, flowing south from the Dammastock towards Gletsch at the Furka and Grimsel passes.',
     look:'A lake has formed where the tongue used to lie on the rock step above Gletsch. Compare its size and the bare rock around it from year to year.',
@@ -451,7 +431,7 @@ if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
   GLACIERS = DATA.glaciers.map(g => {
     const d = DEFAULTS.find(d => d.keys.some(k => norm(g.name).includes(k)) && L.latLng(d.center).distanceTo(g.center) < 12000);
     const base = d ? {...d} : {
-      id: 'sgi-' + g.id, name: g.name, local: g.name, canton: '', range: '',
+      id: 'sgi-' + g.id, name: shortName(g.name), local: g.name, canton: '', range: '',
       lede: `${g.name} is one of the ten largest glaciers in the newest Swiss Glacier Inventory.`,
       look: 'Compare the position of the tongue and the extent of bare rock along the margins between years.', note: ''
     };
@@ -459,6 +439,17 @@ if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
   });
 } else {
   GLACIERS = DEFAULTS.map(d => ({...d}));
+}
+/* One naming rule for every glacier: the local name without the word for glacier.
+   "Grosser Aletschgletscher" -> "Grosser Aletsch", "Glacier de Corbassière" -> "Corbassière",
+   "Vadret da Morteratsch" -> "Morteratsch", "Fieschergletscher VS" -> "Fiescher". */
+function shortName(n){
+  let t = (n || '').trim()
+    .replace(/^(Glacier|Ghiacciaio|Vadret|Vadrec|Glatscher)\s+(de la |de l'|des |du |de |d'|da |dal |del |dla )?/i, '')
+    .replace(/\s+\((.*)\)$/, '')
+    .replace(/\s+(VS|BE|GR|UR|TI|GL|OW|NW|SZ)$/, '')
+    .replace(/-?gletscher$/i, '');
+  return t ? t.charAt(0).toUpperCase() + t.slice(1) : n;
 }
 function padBounds(b, f){ const dy=(b[1][0]-b[0][0])*f, dx=(b[1][1]-b[0][1])*f; return [[b[0][0]-dy,b[0][1]-dx],[b[1][0]+dy,b[1][1]+dx]]; }
 /* One inventory for every glacier, so ranking and displayed areas are comparable:
@@ -468,198 +459,168 @@ const rankLabel = () => DATA ? DATA.latest_label : 'SGI2016';
 GLACIERS.sort((x, y) => rankArea(y) - rankArea(x));
 
 /* =====================================================================
-   3. Imagery sources
+   3. Imagery: the clearest summer scene of each year
+      Copernicus Sentinel-2 L2A via the Copernicus Data Space Ecosystem.
+      For every glacier and year one Statistical API request scores all
+      acquisitions from July to September by cloud and snow cover (scene
+      classification, SCL). The page then takes the best September scene;
+      if September has no clear scene, August; then July. The chosen day
+      is rendered with the Process API.
    ===================================================================== */
 const prefs = (() => { try { return JSON.parse(localStorage.getItem('glacierPrefs') || '{}'); } catch { return {}; } })();
 const savePrefs = () => { try { localStorage.setItem('glacierPrefs', JSON.stringify(prefs)); } catch {} };
 
-const SOURCES = {
-  eox: {
-    label: 'EOX annual mosaic',
-    ids: yr => yr === 2016 ? ['s2cloudless_3857', 's2cloudless-2016_3857'] : [`s2cloudless-${yr}_3857`],   // the original 2016 layer has no year in its name
-    url: id => `https://tiles.maps.eox.at/wmts/1.0.0/${id}/default/g/{z}/{y}/{x}.jpg`,
-    maxNativeZoom: 14,
-    attribution: yr => `EOxCloudless ${yr} by <a href="https://cloudless.eox.at" target="_blank" rel="noopener">EOX IT Services GmbH</a> (contains modified Copernicus Sentinel data ${yr===2016?'2016 & 2017':yr===2018?'2017 & 2018':yr})`
-  },
-  cdse: {
-    label: 'Copernicus Q3 mosaic, Jul–Sep',
-    attribution: yr => `Contains modified Copernicus Sentinel data ${yr}, Sentinel-2 quarterly mosaic via <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`
-  }
-};
-
-/* ---------- Copernicus Data Space Ecosystem client (Catalog + Process API) ----------
-   Docs: documentation.dataspace.copernicus.eu → APIs → Sentinel Hub (Catalog, Process) and
-   Data → Sentinel-2 → Level 3 Quarterly Mosaics (BYOC collection id below). */
 const CDSE = {
-  tokenUrl:   'https://identity.dataspace.copernicus.eu/auth/realms/CDSE/protocol/openid-connect/token',
-  catalogUrl: 'https://sh.dataspace.copernicus.eu/catalog/v1/search',
-  processUrl: 'https://sh.dataspace.copernicus.eu/process/v1',
-  collection: 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca',
-  swissBbox:  [5.9, 45.8, 10.6, 47.9],
-  quarter:    '07-01',          // Q3 = July to September, least snow on the tongues
-  groundRes:  10,               // metres per pixel, native resolution of the mosaics
-  maxPx:      2500,             // Process API output limit per side
-  version:    'q3-v2'           // bump when the evalscript changes, to invalidate cached images
+  collection: 'sentinel-2-l2a',
+  months:     [9, 8, 7],       // September first, then August, then July
+  maxCloud:   0.05,            // a scene counts as clear when at most 5 % of the area is cloud or cloud shadow
+  minCover:   0.95,            // the scene must cover at least 95 % of the image area
+  fallbackCloud: 0.30,         // if no month has a clear scene: least cloudy one up to 30 %
+  statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
+  groundRes:  10,              // metres per pixel of the images
+  maxPx:      2500,            // Process API output limit per side
+  version:    'l2a-v1'         // bump when scoring or rendering changes, to invalidate cached results
 };
+const MONTH_NAME = {7:'July', 8:'August', 9:'September'};
+
+/* Scene scoring: SCL 3 = cloud shadow, 8/9 = cloud, 10 = thin cirrus, 11 = snow or ice. */
+const SCENE_EVALSCRIPT = `//VERSION=3
+function setup(){ return { input:[{ bands:["SCL","dataMask"] }],
+  output:[{ id:"cloud", bands:1, sampleType:"FLOAT32" }, { id:"snow", bands:1, sampleType:"FLOAT32" }, { id:"dataMask", bands:1 }] }; }
+function evaluatePixel(s){
+  var cloud = (s.SCL == 3 || s.SCL == 8 || s.SCL == 9 || s.SCL == 10) ? 1 : 0;
+  var snow = (s.SCL == 11) ? 1 : 0;
+  return { cloud:[cloud], snow:[snow], dataMask:[(s.dataMask == 1 && s.SCL != 0) ? 1 : 0] };
+}`;
+
 /* Same stretch for every year and glacier, so brightness differences are real.
-   Gain 2.5 on reflectance, as in the Copernicus Browser, with a soft roll-off above 0.8
-   so bright ice and snow keep their detail instead of clipping to plain white.
-   true colour:  red, green, blue = B04, B03, B02
-   false colour: red, green, blue = B08 (near infrared), B04, B03 */
+   L2A reflectance 0..1, gain 2.5 as in the Copernicus Browser, soft roll-off above 0.8
+   so bright ice and snow keep their detail.
+   true colour:  B04, B03, B02      false colour: B08 (near infrared), B04, B03 */
 function evalscriptFor(style){
   const [r, g, b] = style === 'false' ? ['B08','B04','B03'] : ['B04','B03','B02'];
   return `//VERSION=3
 function setup(){ return { input:["B02","B03","B04","B08","dataMask"], output:{ bands:3 } }; }
-function f(v){ var x = 2.5 * Math.max(0, v) / 10000; return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
+function f(v){ var x = 2.5 * Math.max(0, v); return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
 function evaluatePixel(p){
   if (!p.dataMask) return [0.11, 0.16, 0.19];
   return [f(p.${r}), f(p.${g}), f(p.${b})];
 }`;
 }
 
-const cred = (() => {
-  const read = st => { try { return JSON.parse(st.getItem('cdseCred') || 'null'); } catch { return null; } };
-  return read(localStorage) || read(sessionStorage) || {};
-})();
-function saveCred(c, remember){
-  try { localStorage.removeItem('cdseCred'); sessionStorage.removeItem('cdseCred'); } catch {}
-  try { (remember ? localStorage : sessionStorage).setItem('cdseCred', JSON.stringify(c)); } catch {}
-  Object.keys(cred).forEach(k => delete cred[k]); Object.assign(cred, c);
-}
-let tokenCache = {value:null, until:0};
-/* A relay passes Copernicus requests on, because browsers block the login when a page calls it directly.
-   - scripts/serve.py on this computer (same address, /cdse/...): you enter your own credentials.
-   - the Cloudflare Worker set in config.js ("managed"): the site's credentials, visitors need no account. */
+/* ---------- connection: a relay holds the Copernicus credentials ----------
+   On the public site: the Cloudflare Worker set in config.js. Locally: scripts/serve.py. */
 const RELAY_BASE = ((window.TFS_CONFIG && window.TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
 const relayRoot = () => RELAY_BASE ? RELAY_BASE + '/cdse' : '/cdse';
-let relayCheck = null, relayManaged = false;
+let relayCheck = null;
 const relayInfo = () => relayCheck || (relayCheck = (RELAY_BASE || location.protocol.startsWith('http'))
-  ? fetch(relayRoot() + '/ping', {cache:'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined}).then(r => r.ok ? r.json() : null)
-      .then(j => ({relay: !!(j && j.relay === true), managed: !!(j && j.relay === true && j.managed === true)}))
-      .catch(() => ({relay:false, managed:false}))
-  : Promise.resolve({relay:false, managed:false}));
-const hasRelay = () => relayInfo().then(i => i.relay);
-relayInfo().then(i => { relayManaged = i.managed; });
-async function endpoint(name){
-  if (await hasRelay()) return relayRoot() + '/' + name;
-  return {token:CDSE.tokenUrl, catalog:CDSE.catalogUrl, process:CDSE.processUrl}[name];
-}
-const RELAY_HELP = 'Start the dashboard with "python3 scripts/serve.py" in the repository folder and use the page it opens at http://localhost:8000. ' +
-  'serve.py passes the Copernicus login through, which browsers block when a page calls it directly.';
-async function relayError(r){
-  if (r.status !== 502) return null;
-  try { const j = await r.clone().json(); return j.relayError || null; } catch { return null; }
-}
-async function cdseToken(){
-  if (cred.token) return cred.token;
-  if (tokenCache.value && Date.now() < tokenCache.until) return tokenCache.value;
-  if (!cred.id || !cred.secret) throw new Error('Enter your CDSE OAuth client ID and secret under "Imagery source".');
+  ? fetch(relayRoot() + '/ping', {cache:'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined})
+      .then(r => r.ok ? r.json() : null).then(j => ({relay: !!(j && j.relay === true)})).catch(() => ({relay:false}))
+  : Promise.resolve({relay:false}));
+const LOCAL = location.protocol === 'file:' || ['localhost', '127.0.0.1', ''].includes(location.hostname);
+const NO_RELAY = LOCAL
+  ? 'To load the satellite images, start the dashboard with "python3 scripts/serve.py" and use the page it opens at http://localhost:8000.'
+  : 'This site has no connection to Copernicus configured yet, so no satellite images can be shown. The maps, outlines and figures still work.';
+async function cdse(route, body, accept){
+  if (!(await relayInfo()).relay) throw new Error(NO_RELAY);
   let r;
   try {
-    r = await fetch(await endpoint('token'), {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'},
-      body: new URLSearchParams({grant_type:'client_credentials', client_id:cred.id, client_secret:cred.secret})});
-  } catch {
-    throw new Error(await hasRelay()
-      ? 'serve.py is not responding. Check that it is still running in your terminal.'
-      : 'The browser blocked the Copernicus login. ' + RELAY_HELP);
-  }
-  const relayMsg = await relayError(r);
-  if (relayMsg) throw new Error(relayMsg);
-  if (!r.ok) throw new Error(`Copernicus login failed (${r.status}). Check the OAuth client ID and secret.`);
-  const j = await r.json();
-  tokenCache = {value:j.access_token, until: Date.now() + Math.max(30, (j.expires_in || 300) - 60) * 1000};
-  return tokenCache.value;
+    r = await fetch(relayRoot() + '/' + route, {method:'POST', body:JSON.stringify(body), headers:{'Content-Type':'application/json', 'Accept':accept}});
+  } catch { throw new Error('The connection to Copernicus is not responding. Try again later.'); }
+  if (r.ok) return r;
+  let msg = ''; try { const j = await r.json(); msg = j.relayError || j.error || j.description || ''; } catch {}
+  if (r.status === 429) throw new Error('Copernicus is busy or the monthly quota is used up. Try again later.');
+  throw new Error(`Copernicus ${route === 'statistics' ? 'scene search' : 'image request'} failed (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
 }
-async function cdseFetch(url, body, accept){
-  const managed = (await relayInfo()).managed;
-  const go = async () => {
-    const headers = {'Content-Type':'application/json', 'Accept':accept};
-    if (!managed) headers.Authorization = 'Bearer ' + await cdseToken();   // login errors pass through with their own message
-    try {
-      return await fetch(await endpoint(url), {method:'POST', body:JSON.stringify(body), headers});
-    } catch {
-      throw new Error(managed ? 'The Copernicus service of this site is not responding. Try again later.'
-        : await hasRelay() ? 'serve.py is not responding. Check that it is still running.'
-        : 'The browser blocked the Copernicus API request. ' + RELAY_HELP);
-    }
-  };
-  let r = await go();
-  const relayMsg = await relayError(r);
-  if (relayMsg) throw new Error(relayMsg);
-  if (managed && !r.ok && r.status !== 429) {
-    let msg = ''; try { msg = (await r.clone().json()).error || ''; } catch {}
-    throw new Error(`The Copernicus service of this site returned an error (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
-  }
-  if (r.status === 401 && !cred.token) { tokenCache = {value:null, until:0}; r = await go(); }
-  if (r.status === 401) throw new Error('Copernicus rejected the login. Check the credentials or paste a fresh access token.');
-  if (r.status === 429) throw new Error('Copernicus rate limit or monthly quota reached. Try again later.');
-  if (!r.ok) throw new Error(`Copernicus ${url === 'catalog' ? 'catalog search' : 'image request'} failed (HTTP ${r.status}): ${(await r.text()).slice(0, 160)}`);
-  return r;
-}
-/* Which Q3 mosaics exist over Switzerland? Catalog API with "distinct": "date".
-   STAC search answers in GeoJSON, so the Accept header must allow application/geo+json (else HTTP 406). */
-const CATALOG_ACCEPT = 'application/geo+json, application/json;q=0.9, */*;q=0.1';
-async function cdseYears(){
-  const base = {collections:[CDSE.collection], bbox:CDSE.swissBbox,
-    datetime:`${FIRST_YEAR}-01-01T00:00:00Z/${new Date().toISOString().slice(0,19)}Z`, limit:100};
-  let dates = [];
-  try {
-    const j = await (await cdseFetch('catalog', {...base, distinct:'date'}, CATALOG_ACCEPT)).json();
-    dates = (j.features || []).map(f => typeof f === 'string' ? f : (f.properties && f.properties.datetime) || '');
-  } catch (e) {
-    if (/login|credentials|token|serve\.py|blocked|certificate/i.test(e.message)) throw e;
-    // fallback: plain search, paginated
-    let next = 0;
-    do {
-      const j = await (await cdseFetch('catalog', {...base, fields:{include:['properties.datetime']}, ...(next ? {next} : {})}, CATALOG_ACCEPT)).json();
-      dates.push(...(j.features || []).map(f => (f.properties && f.properties.datetime) || ''));
-      next = j.context && j.context.next;
-    } while (next);
-  }
-  return [...new Set(dates.filter(d => d.slice(5, 10) === CDSE.quarter).map(d => +d.slice(0, 4)))].sort();
-}
-/* Image cache: memory first, then IndexedDB so repeat visits cost no quota. */
+
+/* ---------- caches: memory first, then IndexedDB so repeat visits cost nothing ---------- */
 const memCache = new Map();
 const idb = (() => {
   let dbp = null;
   const open = () => dbp || (dbp = new Promise((res, rej) => {
-    try { const r = indexedDB.open('glacier-mosaics', 1);
-      r.onupgradeneeded = () => r.result.createObjectStore('img');
+    try { const r = indexedDB.open('tfs-cache', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
       r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
     } catch (e) { rej(e); }
   }));
   const tx = (mode, fn) => open().then(db => new Promise((res, rej) => {
-    const t = db.transaction('img', mode), req = fn(t.objectStore('img'));
+    const t = db.transaction('kv', mode), req = fn(t.objectStore('kv'));
     req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
   })).catch(() => null);
-  return { get: k => tx('readonly', st => st.get(k)), set: (k, v) => tx('readwrite', st => st.put(v, k)),
-           clear: () => tx('readwrite', st => st.clear()) };
+  return { get: k => tx('readonly', st => st.get(k)), set: (k, v) => tx('readwrite', st => st.put(v, k)) };
 })();
+
 /* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
-function mosaicFootprint(g){
+function imageFootprint(g){
   const b = padBounds(g.bounds, 0.15);
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
-  const lat = (b[0][0] + b[1][0]) / 2, mPerPx = CDSE.groundRes / Math.cos(lat * Math.PI / 180);
-  let w = Math.round((ne.x - sw.x) / mPerPx), h = Math.round((ne.y - sw.y) / mPerPx);
+  const lat = (b[0][0] + b[1][0]) / 2, scale = 1 / Math.cos(lat * Math.PI / 180);   // Mercator metres per ground metre
+  let w = Math.round((ne.x - sw.x) / (CDSE.groundRes * scale)), h = Math.round((ne.y - sw.y) / (CDSE.groundRes * scale));
   const k = Math.min(1, CDSE.maxPx / Math.max(w, h)); w = Math.round(w * k); h = Math.round(h * k);
-  return {bounds:b, bbox:[sw.x, sw.y, ne.x, ne.y].map(v => Math.round(v)), w, h};
+  return {bounds:b, bbox:[sw.x, sw.y, ne.x, ne.y].map(v => Math.round(v)), w, h, statsRes: Math.round(CDSE.statsRes * scale)};
 }
-let pending = 0, active = 0; const queue = [];
-const runQueue = () => { while (active < 2 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
-function loadMosaic(g, yr){
-  const style = state.style, fp = mosaicFootprint(g), key = `${CDSE.version}|${style}|${g.id}|${yr}|${fp.bbox.join(',')}`;
+const CRS3857 = 'http://www.opengis.net/def/crs/EPSG/0/3857';
+
+/* ---------- scene choice ---------- */
+function pickScene(days){
+  const best = list => list.slice().sort((a, b) => (a.snow - b.snow) || (a.cloud - b.cloud) || b.date.localeCompare(a.date))[0];
+  for (const m of CDSE.months) {
+    const clear = days.filter(d => +d.date.slice(5, 7) === m && d.cloud <= CDSE.maxCloud);
+    if (clear.length) return {...best(clear), clear:true};
+  }
+  const rest = days.filter(d => d.cloud <= CDSE.fallbackCloud)
+    .sort((a, b) => (a.cloud - b.cloud) || b.date.localeCompare(a.date));
+  return rest.length ? {...rest[0], clear:false} : null;
+}
+async function findScene(g, yr){
+  if (yr === CURRENT_YEAR && new Date() < new Date(`${yr}-07-02T00:00:00Z`)) return null;   // no summer yet
+  const fp = imageFootprint(g), key = `${CDSE.version}|scene|${g.id}|${yr}|${fp.bbox.join(',')}`;
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
-    if (hit) return URL.createObjectURL(hit);
+    // past summers never change; the current summer is re-checked twice a day
+    if (hit && (yr < CURRENT_YEAR || Date.now() - hit.savedAt < 12 * 3600e3)) return hit.scene;
+    const j = await (await cdse('statistics', {
+      input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
+               data: [{ type: CDSE.collection, dataFilter: { mosaickingOrder: 'leastCC' } }] },
+      aggregation: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-10-01T00:00:00Z` },
+                     aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: fp.statsRes, resy: fp.statsRes }
+    }, 'application/json')).json();
+    const days = (j.data || []).map(d => {
+      try {
+        const c = d.outputs.cloud.bands.B0.stats, s = d.outputs.snow.bands.B0.stats;
+        return { date: d.interval.from.slice(0, 10), cloud: c.mean, snow: s.mean,
+                 cover: c.sampleCount ? 1 - c.noDataCount / c.sampleCount : 0 };
+      } catch { return null; }
+    }).filter(d => d && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
+    const scene = pickScene(days);
+    idb.set(key, {scene, savedAt: Date.now()});
+    return scene;
+  })();
+  memCache.set(key, p);
+  p.catch(() => memCache.delete(key));
+  return p;
+}
+
+/* ---------- images ---------- */
+let pending = 0, active = 0; const queue = [];
+const runQueue = () => { while (active < 3 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
+const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
+function loadImage(g, yr){
+  const sc = state.available[yr], style = state.style, fp = imageFootprint(g);
+  const key = `${CDSE.version}|img|${style}|${g.id}|${sc.date}|${fp.bbox.join(',')}`;
+  if (memCache.has(key)) return memCache.get(key);
+  const p = (async () => {
+    const hit = await idb.get(key);
+    if (hit instanceof Blob) return URL.createObjectURL(hit);
     pending++; setLoading();
     try {
-      const blob = await new Promise((res, rej) => { queue.push(() => cdseFetch('process', {
-        input: { bounds: { bbox: fp.bbox, properties: { crs: 'http://www.opengis.net/def/crs/EPSG/0/3857' } },
-          data: [{ type: CDSE.collection, dataFilter: { timeRange: { from:`${yr}-${CDSE.quarter}T00:00:00Z`, to:`${yr}-${CDSE.quarter}T23:59:59Z` } } }] },
+      const blob = await queued(() => cdse('process', {
+        input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
+                 data: [{ type: CDSE.collection, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' } }] },
         output: { width: fp.w, height: fp.h, responses: [{ identifier:'default', format:{ type:'image/jpeg' } }] },
         evalscript: evalscriptFor(style)
-      }, 'image/jpeg').then(r => r.blob()).then(res, rej)); runQueue(); });
+      }, 'image/jpeg').then(r => r.blob()));
       idb.set(key, blob);
       return URL.createObjectURL(blob);
     } finally { pending--; setLoading(); }
@@ -669,18 +630,18 @@ function loadMosaic(g, yr){
   return p;
 }
 function setLoading(){
-  if (state.source !== 'cdse' || !state.checked) return;
-  setStatus(pending ? `Loading ${pending} mosaic image${pending > 1 ? 's' : ''} from Copernicus…` : statusLine());
+  if (!state.checked) return;
+  setStatus(pending ? `Loading ${pending} satellite image${pending > 1 ? 's' : ''} from Copernicus…` : statusLine());
 }
+const fmtDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric', timeZone:'UTC'});
 
 /* =====================================================================
    4. State
    ===================================================================== */
 const state = {
-  source: prefs.source === 'cdse' && (cred.token || (cred.id && cred.secret)) ? 'cdse' : 'eox',
   glacier: GLACIERS[0].id, mode: 'compare',
   a: null, b: null, from: null, to: null,
-  split: 0.5, available: {}, checked: false,
+  split: 0.5, available: {}, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,
   style: prefs.style === 'false' ? 'false' : 'true'
 };
@@ -706,10 +667,11 @@ map.getPane('labels').style.pointerEvents = 'none';
 L.control.scale({position:'bottomright', imperial:false, maxWidth:150}).addTo(map);
 
 function updateCredits(){
-  const S = SOURCES[state.source], yrs = state.mode === 'timelapse'
+  const yrs = state.mode === 'timelapse'
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
-  const parts = yrs.map(y => S.attribution(y));
+  const parts = yrs.length ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
+  if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
   document.getElementById('credits').innerHTML = parts.join(' · ');
@@ -717,23 +679,18 @@ function updateCredits(){
 (function(){ const c = document.getElementById('credits');
   const t = () => c.classList.toggle('open'); c.onclick = e => { if (e.target.tagName !== 'A') t(); };
   c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } }; })();
+const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+  {maxZoom:17, maxNativeZoom:19, attribution:'© OpenStreetMap contributors'});
+if (prefs.osm !== false) osm.addTo(map);
 const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
   {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
 
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 function imageryLayer(yr, pane, opacity=1){
-  const S = SOURCES[state.source];
-  if (state.source === 'cdse') {
-    const g = currentGlacier(), ov = L.imageOverlay(BLANK, mosaicFootprint(g).bounds, {pane, opacity, interactive:false});
-    loadMosaic(g, yr).then(url => ov.setUrl(url)).catch(e => { setStatus(e.message); showNotice(e.message); });
-    return ov;
-  }
-  const l = L.tileLayer(S.url(state.available[yr]), {pane, opacity, maxNativeZoom:S.maxNativeZoom, maxZoom:17, attribution:S.attribution(yr)});
-  l.on('tileerror', tileTrouble);
-  return l;
+  const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false});
+  loadImage(g, yr).then(url => ov.setUrl(url)).catch(e => { setStatus(e.message); showNotice(e.message); });
+  return ov;
 }
-let errCount = 0;
-function tileTrouble(){ if (++errCount === 10) showNotice('Some image tiles did not load. Check your connection, or zoom out: the images are sharpest down to about zoom 14.'); }
 
 /* ---------- compare (swipe) ---------- */
 let layerA = null, layerB = null;
@@ -797,12 +754,13 @@ function showFrame(i){
   state.frame = i;
   tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0));
   setTag('tagT', tlLayers[i].yr);
-  document.getElementById('tagTsub').textContent = `${SOURCES[state.source].label}, frame ${i+1} of ${tlLayers.length}`;
+  const sc = state.available[tlLayers[i].yr];
+  document.getElementById('tagTsub').textContent = `${sc ? fmtDate(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`;
   document.getElementById('tlDots').innerHTML = tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
   document.getElementById('frameSlider').value = i;
   updateCredits();
   const cb = document.querySelector('.cb-links');
-  if (cb) cb.innerHTML = cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${y} mosaic in Copernicus Browser</button>`).join('');
+  if (cb) cb.innerHTML = cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join('');
 }
 function play(){
   if (tlLayers.length < 2) return;
@@ -858,10 +816,7 @@ function drawOutlines(){
   updateLegend(); updateCredits();
 }
 function updateLegend(){
-  const el = document.getElementById('legend'), rows = [];
-  if (outlineLayers.old) rows.push(`<div><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> ${DATA.oldest_label} outline</div>`);
-  if (outlineLayers.new) rows.push(`<div><i class="swatch" style="border-color:var(--new)"></i> ${DATA.latest_label} outline</div>`);
-  el.innerHTML = rows.join(''); el.classList.toggle('show', rows.length > 0);
+  /* the swatches next to the check boxes in the map layer box act as the legend */
 }
 const getVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
@@ -943,83 +898,30 @@ function focusTongue(animate = true){
 document.getElementById('tongueBtn').onclick = () => focusTongue();
 
 /* =====================================================================
-   6. Availability probe: one tile per year; missing years cannot be picked
+   6. Scene search: for the selected glacier, the clearest summer scene of every year.
+      Years without a usable scene cannot be picked.
    ===================================================================== */
-function tileFor(lat, lng, z){
-  const n = 2 ** z, x = Math.floor((lng + 180) / 360 * n);
-  const r = lat * Math.PI / 180, y = Math.floor((1 - Math.log(Math.tan(r) + 1 / Math.cos(r)) / Math.PI) / 2 * n);
-  return {z, x, y};
-}
-/* A tile that loads is not proof of imagery: EOX answers requests for layers that do not exist
-   (e.g. a year not published yet) with a placeholder image. So every year is compared with a
-   deliberately non-existent layer ("control"), and years that look identical to it, or to each
-   other, are rejected. */
-async function tileFingerprint(url){
-  try {
-    const r = await fetch(url, {mode:'cors', cache:'no-store'});
-    if (!r.ok || !(r.headers.get('content-type') || '').startsWith('image/')) return {ok:false};
-    const u8 = new Uint8Array(await r.arrayBuffer());
-    let h = 2166136261;
-    for (let i = 0; i < u8.length; i++) h = Math.imul(h ^ u8[i], 16777619) >>> 0;
-    return {ok:true, size:u8.length, sig:`${u8.length}:${h}`};
-  } catch { return null; }                     // CORS or network: cannot inspect, fall back to image loading
-}
-const imageLoads = url => new Promise(res => {
-  const img = new Image(), t = setTimeout(() => { img.src = ''; res(false); }, 10000);
-  img.onload = () => { clearTimeout(t); res(img.naturalWidth > 1); };
-  img.onerror = () => { clearTimeout(t); res(false); };
-  img.src = url;
-});
-const tileUrl = id => { const t = tileFor(46.47, 8.04, 12); return SOURCES.eox.url(id).replace('{z}', t.z).replace('{x}', t.x).replace('{y}', t.y); };
-let controlSig;
-async function probe(yr){
-  if (controlSig === undefined) {
-    const c = await tileFingerprint(tileUrl('s2cloudless-1900_3857'));
-    controlSig = c && c.ok ? c.sig : null;
-  }
-  for (const id of SOURCES.eox.ids(yr)) {
-    const f = await tileFingerprint(tileUrl(id));
-    if (f === null) { if (await imageLoads(tileUrl(id))) return {id, sig:null}; continue; }
-    if (f.ok && f.size > 2500 && f.sig !== controlSig) return {id, sig:f.sig};
-  }
-  return null;
-}
-let checkGen = 0;              // a newer check (e.g. after switching source) makes older results stale
+let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
 async function checkYears(){
-  const gen = ++checkGen;
+  const gen = ++checkGen, g = currentGlacier();
   state.checked = false; state.available = {};
+  [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
+  renderYears(); updateTags();
+  let done = 0, firstError = null;
+  setStatus(`Finding the clearest summer scene of each year (0 of ${YEARS.length})…`);
   const avail = {};
-  setStatus(`Checking which years are available from ${SOURCES[state.source].label}…`);
-  renderYears();
-  try {
-    if (state.source === 'cdse') {
-      const ys = await cdseYears();
-      YEARS.forEach(y => avail[y] = ys.includes(y) ? String(y) : null);
-    } else {
-      const res = await Promise.all(YEARS.map(async y => [y, await probe(y)]));
-      const seen = new Map();                    // identical imagery under two years = not a real year
-      res.forEach(([y, hit]) => { if (hit && hit.sig) seen.set(hit.sig, (seen.get(hit.sig) || 0) + 1); });
-      res.forEach(([y, hit]) => avail[y] = hit && !(hit.sig && seen.get(hit.sig) > 1) ? hit.id : null);
-    }
-  } catch (e) {
-    if (gen !== checkGen) return;
-    if (state.source === 'cdse' && relayManaged) {           // public site: never leave visitors without imagery
-      showNotice('Copernicus mosaics are not available right now, so EOX imagery is shown instead. ' + e.message);
-      state.source = 'eox'; if (window.syncSourceUI) window.syncSourceUI(); renderMode(); renderStory(); return checkYears();
-    }
-    state.checked = true; setStatus(e.message); showNotice(e.message); renderYears(); updateCredits(); return;
-  }
+  await Promise.all(YEARS.map(y => queued(() => findScene(g, y))
+    .then(sc => { avail[y] = sc; }, e => { avail[y] = null; firstError = firstError || e; })
+    .finally(() => { if (gen === checkGen) setStatus(`Finding the clearest summer scene of each year (${++done} of ${YEARS.length})…`); })));
   if (gen !== checkGen) return;
   state.available = avail;
   state.checked = true;
   const ok = okYears();
   if (!ok.length) {
-    setStatus('No imagery could be loaded for this source.');
-    showNotice(state.source === 'cdse'
-      ? 'Copernicus returned no July–September mosaics over Switzerland. Try again later or switch to EOX.'
-      : 'The EOX tile server did not respond. Open this page with internet access and reload.');
-    renderYears(); return;
+    const msg = firstError ? firstError.message : 'Copernicus found no usable summer scene for this glacier.';
+    setStatus(msg); showNotice(msg); renderYears(); updateTags(); updateCredits(); renderStory(); return;
   }
+  if (firstError) showNotice('Some years could not be checked: ' + firstError.message);
   const fix = (k, fallback) => { if (!state.available[state[k]]) state[k] = fallback; };
   fix('a', ok[0]); fix('b', ok[ok.length - 1]); fix('from', ok[0]); fix('to', ok[ok.length - 1]);
   if (state.a === state.b && ok.length > 1) { state.a = ok[0]; state.b = ok[ok.length - 1]; }
@@ -1028,8 +930,17 @@ async function checkYears(){
 }
 function statusLine(){
   const ok = okYears(), missing = YEARS.filter(y => !state.available[y]);
-  if (!ok.length) return 'No imagery available.';
-  return `Years with imagery: ${ok[0]}–${ok[ok.length-1]}` + (missing.length ? `. Not available yet: ${missing.join(', ')}.` : '.');
+  if (!ok.length) return 'No satellite images available.';
+  const cloudy = ok.filter(y => !state.available[y].clear);
+  return `Scenes found for ${ok[0]}–${ok[ok.length-1]}` + (missing.length ? `; none usable for ${missing.join(', ')}` : '') +
+    (cloudy.length ? `. No fully clear scene in ${cloudy.join(', ')}, so the least cloudy one is shown.` : '.');
+}
+/* Year labels on the map: year plus the date of the scene */
+function updateTags(){
+  const sub = y => { const sc = state.available[y]; return sc ? `${fmtDate(sc.date)}${sc.clear ? '' : ', some clouds'}` : 'Sentinel-2'; };
+  setTag('tagA', state.a); setTag('tagB', state.b);
+  document.querySelector('#tagA small').textContent = sub(state.a) + (state.style === 'false' ? ', false color' : '');
+  document.querySelector('#tagB small').textContent = sub(state.b) + (state.style === 'false' ? ', false color' : '');
 }
 
 /* =====================================================================
@@ -1042,8 +953,9 @@ function renderGlacierList(){
     const li = document.createElement('li'), b = document.createElement('button');
     b.type = 'button'; b.setAttribute('aria-pressed', g.id === state.glacier);
     b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${area.toFixed(2)} km²</span>`;
-    b.onclick = () => { state.glacier = g.id; renderGlacierList(); renderStory(); drawOutlines(); focusTongue();
-      if (state.source === 'cdse' && state.checked) { setCompareLayers(); buildTimelapse(); } writeHash(); };
+    b.onclick = () => { if (state.glacier === g.id) return focusTongue();
+      state.glacier = g.id; renderGlacierList(); renderStory(); drawOutlines(); focusTongue(); writeHash();
+      checkYears(); };          // each glacier has its own clearest scenes
     li.appendChild(b); ul.appendChild(li);
   });
   document.getElementById('rankNote').textContent = DATA
@@ -1085,40 +997,32 @@ function renderMode(){
   document.getElementById('timelapseControls').hidden = !tl;
   ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl ? 'none' : '');
   map.getPane('paneT').style.display = tl ? '' : 'none';
-  const falseOn = state.source === 'cdse' && state.style === 'false';
-  const sub = SOURCES[state.source].label + (falseOn ? ', false color' : '');
-  document.querySelector('#tagA small').textContent = sub;
-  document.querySelector('#tagB small').textContent = sub;
-  const eox = state.source !== 'cdse';
-  document.getElementById('styleFalse').disabled = eox;
-  document.getElementById('styleTrue').setAttribute('aria-pressed', eox || state.style === 'true');
-  document.getElementById('styleFalse').setAttribute('aria-pressed', !eox && state.style === 'false');
+  updateTags();
+  document.getElementById('styleTrue').setAttribute('aria-pressed', state.style === 'true');
+  document.getElementById('styleFalse').setAttribute('aria-pressed', state.style === 'false');
   applyBrightness();
-  document.getElementById('styleNote').textContent = eox
-    ? 'False color needs the Copernicus source; EOX only provides true color.'
-    : state.style === 'false'
+  document.getElementById('styleNote').textContent = state.style === 'false'
       ? 'Near infrared shown as red: vegetation red, snow white, glacier ice cyan to blue, water and wet debris dark.'
       : 'Natural colors, as the eye would see them.';
 }
 function setStyle(st){
-  if (state.source !== 'cdse' && st === 'false') return;
   state.style = prefs.style = st; savePrefs();
   renderMode();
-  if (state.source === 'cdse' && state.checked) { setCompareLayers(); buildTimelapse(); }
+  if (state.checked) { setCompareLayers(); buildTimelapse(); }
   renderStory();
 }
-/* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Per source, remembered. */
-const BRIGHT_DEFAULT = {eox: 1, cdse: 1.35};
-const brightnessFor = src => (prefs.bright && prefs.bright[src]) || BRIGHT_DEFAULT[src];
+/* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Remembered. */
+const BRIGHT_DEFAULT = 1.1;
+const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGHT_DEFAULT;
 function applyBrightness(){
-  const b = brightnessFor(state.source), exp = (1 / b).toFixed(3);
+  const b = brightness(), exp = (1 / b).toFixed(3);
   document.querySelectorAll('#gammaFx feComponentTransfer > *').forEach(fn => fn.setAttribute('exponent', exp));
   ['paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 ? '' : 'url(#gammaFx)');
   document.getElementById('brightness').value = b;
   document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
 }
 document.getElementById('brightness').oninput = e => {
-  prefs.bright = {...(prefs.bright || {}), [state.source]: +e.target.value}; savePrefs(); applyBrightness();
+  prefs.bright = +e.target.value; savePrefs(); applyBrightness();
 };
 document.getElementById('styleTrue').onclick = () => setStyle('true');
 document.getElementById('styleFalse').onclick = () => setStyle('false');
@@ -1144,11 +1048,11 @@ function renderStory(){
     <h2>${g.name}</h2>
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede}</p>
-    <p class="span-note">${spanText}</p>
 
     <h3>What to look for</h3>
     <p class="body">${g.look}</p>
     ${g.note ? `<p class="body">${g.note}</p>` : ''}
+    <p class="span-note">${spanText}</p>
 
     <h3>Key figures</h3>
     ${keyFiguresNote()}
@@ -1166,23 +1070,19 @@ function renderStory(){
     <p class="src">Red bars are the melt seasons inside your selection. Each value is the loss relative to the ice left the year before, for October to September. 2022 is the record and 2026 the second-worst year. Values marked ≈ were reported as rounded figures.</p>
 
     <h3>Reading the images</h3>
-    <p class="body">${state.source === 'eox'
-      ? 'Each EOX image is an annual cloud-free mosaic: the clearest Sentinel-2 pixels of that year stitched together. Pixels come from different dates, so fresh snow can hide the ice edge in some years. Years EOX has not published are greyed out.'
-      : 'Each image is the Copernicus quarterly mosaic for July to September: clouds are masked, and for every pixel the darker quarter of all clear views of those three months is kept. That removes passing summer snow, so the bare ice of the tongue shows well. The same brightness setting is used for every year, so differences are real. A new year appears about a month after the end of September.'}
-      The bare-ice tongue and freshly exposed rock are more reliable than the upper basins.</p>
-    ${state.source === 'cdse' && state.style === 'false' ? '<p class="body">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
+    <p class="body">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene is used; if September has no clear scene, the best one from August, then from July. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
+    ${state.style === 'false' ? '<p class="body">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
     <p class="body">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
     <p class="body">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself. Measurements are geodesic, so they stay correct at any zoom.</p>
 
     <h3>Explore in the Copernicus Browser</h3>
-    <p class="body">Open this view in the Copernicus Browser, showing the Sentinel-2 quarterly mosaic for July to September of that year. Every year from 2016 has one, so the link always shows imagery. From there you can also switch to single dates and other band combinations.</p>
-    <div class="cb-links">${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${y} mosaic in Copernicus Browser</button>`).join('')}</div>
+    <p class="body">Open the scene of each year in the Copernicus Browser, on the same date and view, to look at other band combinations or neighbouring dates.</p>
+    <div class="cb-links">${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join('')}</div>
 
     <h3>Sources</h3>
     <p class="src">
-      Imagery: ${state.source === 'eox'
-        ? '<a href="https://cloudless.eox.at" target="_blank" rel="noopener">EOxCloudless</a>, modified Copernicus Sentinel-2 data. 2016 CC BY 4.0; later years CC BY-NC-SA 4.0, non-commercial use only.'
-        : 'Sentinel-2 Level 3 quarterly mosaics, contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.'}<br>
+      Imagery: Copernicus Sentinel-2 Level-2A, contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.<br>
+      Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.<br>
       Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0).${DATA ? ` Outlines built on ${DATA.generated}.` : ''}<br>
       Length change: GLAMOS, Swiss Glacier Length Change, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (scientific and non-commercial use).<br>
       Annual volume loss: GLAMOS and Swiss Academy of Sciences annual glacier reports.
@@ -1194,19 +1094,16 @@ function cbYears(){
   const ys = state.mode === 'timelapse'
     ? [tlLayers[state.frame] ? tlLayers[state.frame].yr : state.to]
     : [state.a, state.b];
-  // Sentinel-2 L2A over the Alps is reliable from 2017; the Browser has every year up to today
-  return [...new Set(ys.filter(Boolean))].sort();
+  return [...new Set(ys.filter(y => y && state.available[y]))].sort();
 }
 function copernicusBrowserUrl(year){
-  const c = map.getCenter(), z = Math.round(map.getZoom());
-  // Sentinel-2 Level 3 quarterly mosaic, Q3 (dated YYYY-07-01): parameters as in the CDSE documentation's Browser link
+  const c = map.getCenter(), z = Math.round(map.getZoom()), d = state.available[year].date;
   const q = new URLSearchParams({
     zoom: z, lat: c.lat.toFixed(5), lng: c.lng.toFixed(5), themeId: 'DEFAULT-THEME',
-    visualizationUrl: 'https://sh.dataspace.copernicus.eu/ogc/wms/86789569-bd7b-498e-a521-0db055391cdf',
-    datasetId: '5460de54-082e-473a-b6ea-d5cbe3c17cca', layerId: 'TRUE-COLOR-CLOUDLESS',
-    fromTime: `${year}-07-01T00:00:00.000Z`, toTime: `${year}-07-01T23:59:59.999Z`
+    datasetId: 'S2_L2A_CDAS', layerId: '1_TRUE_COLOR',
+    fromTime: `${d}T00:00:00.000Z`, toTime: `${d}T23:59:59.999Z`
   });
-  return 'https://dataspace.copernicus.eu/browser/?' + q.toString();
+  return 'https://browser.dataspace.copernicus.eu/?' + q.toString();
 }
 document.getElementById('story').addEventListener('click', e => {
   const b = e.target.closest('.cb');
@@ -1283,19 +1180,11 @@ function keyFiguresNote(){
 }
 
 function renderOutlineControls(){
-  const has = !!DATA;
+  const has = !!DATA, yr = l => (l || '').replace(/\D/g, '') || l;
   ['oldToggle','newToggle'].forEach(id => document.getElementById(id).disabled = !has);
-  document.getElementById('oldLabel').textContent = `Oldest outline (${has ? DATA.oldest_label : 'SGI1850'})`;
-  document.getElementById('newLabel').textContent = `Newest outline (${has ? DATA.latest_label : 'SGI2023'})`;
-  const note = document.getElementById('outlineNote');
-  if (has) {
-    const matched = GLACIERS.filter(g => g.inv && g.inv.oldest).length;
-    note.innerHTML = `Loaded from glaciers.js (${DATA.latest_label} vs ${DATA.oldest_label}, built ${DATA.generated}). ` +
-      `${matched} of ${GLACIERS.length} glaciers have an ${DATA.oldest_label} outline. Click an outline to see its area.`;
-  } else {
-    note.innerHTML = `<strong class="warn">Outlines are off: glaciers.js was not found next to this page.</strong> ` +
-      `Run the "Build data and deploy" GitHub Action, or <code>python3 scripts/build_outlines.py</code> locally, then reload.`;
-  }
+  document.getElementById('oldLabel').textContent = `Outline ${has ? yr(DATA.oldest_label) : '1850'}`;
+  document.getElementById('newLabel').textContent = `Outline ${has ? yr(DATA.latest_label) : '2023'}`;
+  document.getElementById('outlineNote').textContent = has ? '' : 'Outlines appear once the glacier data (glaciers.js) has been built.';
 }
 
 function refreshAll(){
@@ -1306,7 +1195,7 @@ function refreshAll(){
 }
 
 /* =====================================================================
-   8. Mode + source controls
+   8. Controls
    ===================================================================== */
 document.getElementById('modeCompare').onclick = () => { state.mode = 'compare'; refreshAll(); };
 document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); };
@@ -1320,66 +1209,12 @@ function showNotice(msg){
   clearTimeout(showNotice.t); showNotice.t = setTimeout(() => n.classList.remove('show'), 7000);
 }
 
-(function sourceUI(){
-  const sel = document.getElementById('sourceSel');
-  const sync = () => {
-    document.getElementById('cdseFields').hidden = sel.value !== 'cdse';
-    document.getElementById('eoxInfo').hidden = sel.value !== 'eox';
-  };
-  sel.value = state.source; sync();
-  if (!prefs.source) document.getElementById('sourceBox').open = true;
-  document.getElementById('cdseId').value = cred.id || '';
-  document.getElementById('cdseSecret').value = cred.secret || '';
-  document.getElementById('cdseToken').value = cred.token || '';
-  document.getElementById('cdseRemember').checked = !!localStorage.getItem('cdseCred');
-  const name = () => document.getElementById('sourceName').textContent = state.source === 'cdse' ? 'Copernicus quarterly mosaics' : 'EOX annual mosaics';
-  name();
-  sel.onchange = sync;
-  // On a static host (e.g. GitHub Pages) there is no relay, so the Copernicus login cannot work.
-  const local = ['localhost', '127.0.0.1', ''].includes(location.hostname);
-  window.syncSourceUI = () => { sel.value = state.source; sync(); name(); };
-  window.sourceReady = relayInfo().then(({relay, managed}) => {
-    if (managed) {
-      // hide only the login fields: ID, secret, "remember" checkbox and the access-token box
-      ['cdseId','cdseSecret'].forEach(id => {
-        document.getElementById(id).hidden = true;
-        const lab = document.querySelector(`label[for="${id}"]`); if (lab) lab.hidden = true;
-      });
-      document.getElementById('cdseRemember').closest('label').hidden = true;
-      document.querySelector('#cdseFields details.token-alt').hidden = true;
-      document.querySelectorAll('#cdseFields .hint').forEach((h, i) => { if (i > 0) h.hidden = true; });
-      const n = document.createElement('p'); n.className = 'hint';
-      n.textContent = 'Provided by this site: no account needed.';
-      document.getElementById('cdseFields').appendChild(n);
-      sel.querySelector('option[value="cdse"]').textContent = 'Copernicus quarterly mosaics, Jul–Sep (free for any use)';
-      if (!prefs.source) { state.source = 'cdse'; window.syncSourceUI(); }   // default for first-time visitors
-      return;
-    }
-    if (relay || local) return;
-    const opt = sel.querySelector('option[value="cdse"]');
-    opt.disabled = true; opt.textContent += ' — not available on this site';
-    if (state.source === 'cdse') { state.source = prefs.source = 'eox'; savePrefs(); sel.value = 'eox'; sync(); name(); checkYears(); }
-    const n = document.createElement('p'); n.className = 'hint';
-    n.textContent = 'Copernicus quarterly mosaics need a small login relay, which this public site does not run. Run the dashboard locally with scripts/serve.py to use them.';
-    document.getElementById('eoxInfo').appendChild(n);
-  });
-  document.getElementById('applySource').onclick = async () => {
-    if (sel.value === 'cdse') {
-      const c = { id: document.getElementById('cdseId').value.trim(), secret: document.getElementById('cdseSecret').value.trim(),
-                  token: document.getElementById('cdseToken').value.trim() };
-      if (!relayManaged) {
-        if (!c.token && !(c.id && c.secret)) return showNotice('Enter your OAuth client ID and secret, or paste an access token.');
-        saveCred(c, document.getElementById('cdseRemember').checked);
-        tokenCache = {value:null, until:0};
-      }
-    }
-    prefs.source = state.source = sel.value; savePrefs(); name();
-    [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
-    tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
-    errCount = 0; memCache.clear(); renderMode(); renderStory();
-    await checkYears();
-  };
-})();
+/* Map layer box: OpenStreetMap base map on/off */
+document.getElementById('osmToggle').checked = prefs.osm !== false;
+document.getElementById('osmToggle').onchange = e => {
+  prefs.osm = e.target.checked; savePrefs();
+  e.target.checked ? osm.addTo(map) : map.removeLayer(osm); updateCredits();
+};
 
 /* =====================================================================
    9. Boot
@@ -1389,7 +1224,8 @@ renderOutlineControls();
 renderMode(); renderYears();
 focusTongue(false);
 renderStory();
-window.sourceReady.then(() => { renderMode(); renderStory(); checkYears(); });
+updateCredits();
+checkYears();
 </script>
 </body>
 </html>

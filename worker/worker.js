@@ -1,13 +1,15 @@
 /**
  * Swiss Glacier Tongues from Space - Copernicus relay (Cloudflare Worker)
  *
- * Lets visitors of the public site see the Copernicus Sentinel-2 quarterly mosaics without an
- * account: the Worker logs in to the Copernicus Data Space Ecosystem with YOUR credentials
- * (stored as encrypted Worker secrets), forwards the dashboard's requests and caches the images.
+ * Lets visitors of the public site see Copernicus Sentinel-2 images without an account: the
+ * Worker logs in to the Copernicus Data Space Ecosystem with YOUR credentials (stored as
+ * encrypted Worker secrets), forwards the dashboard's requests and caches the answers.
  *
- * Only requests this dashboard makes are accepted (quarterly mosaic collection, Swiss area,
- * July 1 mosaics, bounded image size), so the relay cannot be used to spend your quota on
- * anything else.
+ * Only the two requests this dashboard makes are accepted, so the relay cannot be used to spend
+ * your quota on anything else:
+ *   statistics  scoring of all Sentinel-2 L2A scenes of one summer (July 1 - October 1) over a
+ *               Swiss glacier, daily, at coarse resolution
+ *   process     the image of one chosen day between July and September, over a Swiss glacier
  *
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
@@ -16,15 +18,16 @@
  *   CACHE               KV namespace binding (optional but recommended): image cache
  *
  * Endpoints (same paths as scripts/serve.py):
- *   GET  /cdse/ping     -> {"relay":true,"managed":true}
- *   POST /cdse/catalog  -> Catalog API search (which mosaics exist)
- *   POST /cdse/process  -> Process API image
+ *   GET  /cdse/ping        -> {"relay":true,"managed":true}
+ *   POST /cdse/statistics  -> Statistical API (which summer scene is clearest)
+ *   POST /cdse/process     -> Process API image
  */
 
-const COLLECTION = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';  // Sentinel-2 L3 quarterly mosaics
+const COLLECTION = 'sentinel-2-l2a';
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin
 const MAX_PX = 2500;
-const TTL = { process: 90 * 86400, catalog: 6 * 3600 };              // cache lifetimes in seconds
+const MIN_STATS_RES = 40;                                           // metres (CRS units); keeps scene scoring cheap
+const DAY = 86400;
 
 let token = null, tokenUntil = 0;                                    // reused while the isolate lives
 
@@ -36,7 +39,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (url.pathname === '/cdse/ping') return json({ relay: true, managed: true }, 200, cors);
 
-    const route = { '/cdse/catalog': 'catalog', '/cdse/process': 'process' }[url.pathname];
+    const route = { '/cdse/statistics': 'statistics', '/cdse/process': 'process' }[url.pathname];
     if (!route) return json({ error: 'Not found' }, 404, cors);
     if (request.method !== 'POST') return json({ error: 'Use POST' }, 405, cors);
     if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
@@ -46,7 +49,7 @@ export default {
     const text = await request.text();
     let body;
     try { body = JSON.parse(text); } catch { return json({ error: 'Invalid JSON' }, 400, cors); }
-    const problem = route === 'process' ? checkProcess(body) : checkCatalog(body);
+    const problem = route === 'process' ? checkProcess(body) : checkStatistics(body);
     if (problem) return json({ error: `Request not allowed: ${problem}` }, 400, cors);
 
     // cache lookup
@@ -58,13 +61,13 @@ export default {
     const up = upstream(env);
     let r;
     try {
-      r = await callCdse(env, up[route], text, route === 'process' ? 'image/jpeg' : 'application/geo+json, application/json;q=0.9');
+      r = await callCdse(env, up[route], text, route === 'process' ? 'image/jpeg' : 'application/json');
     } catch (e) {
       return json({ relayError: e.message }, 502, cors);
     }
     const type = r.headers.get('Content-Type') || 'application/octet-stream';
     const data = await r.arrayBuffer();
-    if (r.ok) ctx.waitUntil(cachePut(env, key, data, type, TTL[route]));
+    if (r.ok) ctx.waitUntil(cachePut(env, key, data, type, ttlFor(route, body)));
     return new Response(data, { status: r.status, headers: { ...cors, 'Content-Type': type, 'X-Cache': 'MISS' } });
   }
 };
@@ -75,7 +78,7 @@ function upstream(env) {
   const sh = env.CDSE_SH || 'https://sh.dataspace.copernicus.eu';
   return {
     token: `${id}/auth/realms/CDSE/protocol/openid-connect/token`,
-    catalog: `${sh}/catalog/v1/search`,
+    statistics: `${sh}/statistics/v1`,
     process: `${sh}/process/v1`
   };
 }
@@ -111,8 +114,7 @@ function mercToLonLat(x, y) {
   const R = 6378137;
   return [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
 }
-function checkProcess(b) {
-  const inp = b && b.input, out = b && b.output;
+function checkBounds(inp) {
   if (!inp || !inp.bounds || !Array.isArray(inp.bounds.bbox) || inp.bounds.bbox.length !== 4) return 'bounds';
   const crs = (inp.bounds.properties && inp.bounds.properties.crs) || '';
   let bb = inp.bounds.bbox.map(Number);
@@ -120,19 +122,38 @@ function checkProcess(b) {
   else if (crs && !/4326|CRS84/.test(crs)) return 'coordinate system';
   if (!insideSwitzerland(bb)) return 'area outside Switzerland';
   if (!Array.isArray(inp.data) || inp.data.length !== 1 || inp.data[0].type !== COLLECTION) return 'data collection';
+  return null;
+}
+const summerDay = d => /^\d{4}-0[789]-\d{2}$/.test(d);
+function checkProcess(b) {
+  const inp = b && b.input, out = b && b.output;
+  const bad = checkBounds(inp); if (bad) return bad;
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
-  if (!tr || !/^\d{4}-07-01T00:00:00Z$/.test(tr.from) || tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (July 1 mosaics only)';
+  if (!tr || typeof tr.from !== 'string' || !summerDay(tr.from.slice(0, 10)) || tr.from.slice(10) !== 'T00:00:00Z' ||
+      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and September)';
   if (!out || !(out.width > 0 && out.width <= MAX_PX) || !(out.height > 0 && out.height <= MAX_PX)) return 'image size';
   if (!Array.isArray(out.responses) || out.responses.length !== 1 ||
       !['image/jpeg', 'image/png'].includes(out.responses[0].format && out.responses[0].format.type)) return 'output format';
   if (typeof b.evalscript !== 'string' || b.evalscript.length > 2000) return 'evalscript';
   return null;
 }
-function checkCatalog(b) {
-  if (!b || !Array.isArray(b.collections) || b.collections.length !== 1 || b.collections[0] !== COLLECTION) return 'collection';
-  if (!Array.isArray(b.bbox) || !insideSwitzerland(b.bbox.map(Number))) return 'area outside Switzerland';
-  if (b.limit && b.limit > 100) return 'limit';
+function checkStatistics(b) {
+  const bad = checkBounds(b && b.input); if (bad) return bad;
+  const ag = b.aggregation;
+  if (!ag || !ag.timeRange || !/^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) ||
+      ag.timeRange.to !== ag.timeRange.from.slice(0, 4) + '-10-01T00:00:00Z') return 'period (July 1 to October 1 of one year)';
+  if (!ag.aggregationInterval || ag.aggregationInterval.of !== 'P1D') return 'interval';
+  if (!(ag.resx >= MIN_STATS_RES && ag.resy >= MIN_STATS_RES)) return 'resolution';
+  if (typeof ag.evalscript !== 'string' || ag.evalscript.length > 2000) return 'evalscript';
+  if (b.calculations && JSON.stringify(b.calculations).length > 500) return 'calculations';
   return null;
+}
+/* Images of a fixed day never change: keep them long. Scene scores of a past summer are final;
+   for the current summer new acquisitions arrive, so they are refreshed every 6 hours. */
+function ttlFor(route, body) {
+  if (route === 'process') return 180 * DAY;
+  const year = +body.aggregation.timeRange.from.slice(0, 4);
+  return year < new Date().getUTCFullYear() ? 180 * DAY : 6 * 3600;
 }
 
 /* ---------- cache: KV if bound, otherwise the edge cache ---------- */
