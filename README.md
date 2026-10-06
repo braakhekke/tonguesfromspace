@@ -2,7 +2,7 @@
 
 Compare and animate Sentinel-2 satellite images of the tongues of the ten largest Swiss glaciers, from 2016 to the latest available year, next to glacier figures from Glacier Monitoring Switzerland (GLAMOS).
 
-Created by J. Braakhekke for public glacier awareness. See also [For Your Ice](https://foryourice.org/).
+Created by Jochem Braakhekke for public glacier awareness. See also [For Your Ice](https://foryourice.org/).
 
 **Live site:** https://braakhekke.github.io/tonguesfromspace/
 
@@ -11,7 +11,7 @@ Created by J. Braakhekke for public glacier awareness. See also [For Your Ice](h
 - **Satellite images:** for every glacier and year, the clearest late-summer Sentinel-2 scene: the best one in September, otherwise August, otherwise July, scored for cloud and snow cover.
 - **Compare:** swipe between two years.
 - **Timelapse:** play a range of years as an animation.
-- **Map layers:** glacier outline of 1850 and today, OpenStreetMap base map, place names.
+- **Map layers:** glacier outline of 1850 and today, a Sentinel-2 summer mosaic around the scene, OpenStreetMap base map, place names. The layer panel can be minimized.
 - **Measure:** draw lines and areas; lengths and areas are geodesic.
 - **Key figures:** area (about 1850, 1973, 2023) and tongue length change, all from GLAMOS.
 - **Swiss context:** share of the national ice volume lost each year since 2016.
@@ -46,7 +46,7 @@ The workflow downloads the GLAMOS data, commits `glaciers.js`, and publishes the
 
 All images are Copernicus Sentinel-2 Level-2A scenes from the Copernicus Data Space Ecosystem (CDSE), free for any use with attribution.
 
-**How the scene of each year is chosen.** For the selected glacier, one request to the CDSE Statistical API scores every Sentinel-2 acquisition from July 1 to September 30 of that year, using the scene classification (SCL): the share of cloud and cloud shadow, and the share of snow and ice. Scenes that cover less than 95 % of the image area are skipped. The dashboard then takes:
+**How the scene of each year is chosen.** For the selected glacier, one request to the CDSE Statistical API scores every Sentinel-2 acquisition from July 1 to September 20 of that year, using the scene classification (SCL): the share of cloud and cloud shadow, and the share of snow and ice. Scenes that cover less than 95 % of the image area are skipped. The dashboard then takes:
 
 1. the September scene with at most 5 % cloud and the least snow;
 2. if September has none, the best one from August;
