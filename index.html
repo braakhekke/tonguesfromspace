@@ -271,6 +271,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   .mbright input{width:100%;accent-color:var(--accent);min-height:26px}
   .mbright label{display:flex;flex-direction:column}
 
+  .mlabel{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-bottom:-4px}
   .mbar select{width:100%;min-height:44px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
   .mbar .segment button{min-height:40px;font-size:15px}
   .mrow{display:flex;gap:8px;align-items:flex-end}
@@ -363,7 +364,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     </div>
 
     <div class="group" id="glacierGroup">
-      <h2>Glacier</h2>
+      <h2>Choose a glacier</h2>
       <ul class="glaciers" id="glacierList"></ul>
       <p class="hint" id="rankNote"></p>
     </div>
@@ -487,7 +488,8 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 
   <!-- ================= MOBILE CONTROL BAR (phones only, directly under the map) ================= -->
   <section class="mbar" id="mbar" aria-label="Glacier and years">
-    <select id="mGlacier" aria-label="Glacier"></select>
+    <label class="mlabel" for="mGlacier">Choose a glacier</label>
+    <select id="mGlacier"></select>
     <div class="segment" role="group" aria-label="View mode">
       <button type="button" id="mCompare" aria-pressed="true">Compare</button>
       <button type="button" id="mTimelapse" aria-pressed="false">Timelapse</button>
@@ -530,7 +532,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   </div>
   <div class="vs-opts">
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
-    <label class="toggle">Speed <select class="small" id="vSpeed"><option value="0.7">Fast</option><option value="1.1" selected>Normal</option><option value="1.8">Slow</option></select></label>
+    <label class="toggle">Speed <select class="small" id="vSpeed"><option value="0.35">Very fast</option><option value="0.7">Fast</option><option value="1.1" selected>Normal</option><option value="1.8">Slow</option></select></label>
   </div>
   <p class="hint" id="vsInfo"></p>
   <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
@@ -672,7 +674,7 @@ const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v3'         // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v4'         // bump when scoring or rendering changes, to invalidate cached results
 };
 const MONTH_NAME = {7:'July', 8:'August', 9:'September'};
 /* latest allowed day per year (MM-DD); default 20 September. 2024: heavy snowfall on 15 September. */
@@ -694,19 +696,28 @@ function evaluatePixel(s){
    so bright ice and snow keep their detail.
    true colour:  B04, B03, B02      false colour: B08 (near infrared), B04, B03 */
 /* Images come from Sentinel-2 Level-1C (top of atmosphere): L2A fills in shaded slopes, which looks
-   unnatural in the mountains. A simple haze correction removes the atmospheric glow per band so the
-   colours come close to L2A: v' = (v - haze) / (1 - haze), white stays white. */
-const HAZE = { B02: 0.055, B03: 0.035, B04: 0.02, B08: 0.01 };
+   unnatural in the mountains. Colours: the Copernicus Browser "true color" process with these settings
+   (Rayleigh correction, soft contrast curve around midR, gamma with offset, saturation boost, sRGB):
+   maxR 3, midR 0.13, sat 1.3, gamma 2.3, gOff 0.01, ray 0.013 / 0.024 / 0.041 for red / green / blue. */
+const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray: { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0 } };
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style){
   const [r, g, b] = style === 'false' ? ['B08','B04','B03'] : ['B04','B03','B02'];
+  const T = TRUE_COLOR;
   return `//VERSION=3
+var maxR = ${T.maxR}, midR = ${T.midR}, sat = ${T.sat}, gamma = ${T.gamma}, gOff = ${T.gOff};
+var gOffPow = Math.pow(gOff, gamma), gOffRange = Math.pow(1 + gOff, gamma) - gOffPow;
 function setup(){ return { input:["B02","B03","B04","B08","dataMask"], output:{ bands:3 } }; }
-function c(v, h){ return Math.max(0, (v - h) / (1 - h)); }
-function f(v){ var x = 2.5 * v; return x < 0.8 ? x : 0.8 + 0.2 * (1 - Math.exp(-(x - 0.8) / 0.2)); }
+function clip(s){ return s < 0 ? 0 : s > 1 ? 1 : s; }
+function adj(a, tx, ty, maxC){ var ar = clip(a / maxC); return ar * (ar * (tx / maxC + ty - 1) - ty) / (ar * (2 * tx / maxC - 1) - tx / maxC); }
+function adjGamma(b){ return (Math.pow(b + gOff, gamma) - gOffPow) / gOffRange; }
+function sAdj(a){ return adjGamma(adj(a, midR, 1, maxR)); }
+function sRGB(c){ return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 0.41666666666) - 0.055; }
 function evaluatePixel(p){
   if (!p.dataMask) return [0.11, 0.16, 0.19];
-  return [f(c(p.${r}, ${HAZE[r]})), f(c(p.${g}, ${HAZE[g]})), f(c(p.${b}, ${HAZE[b]}))];
+  var lr = sAdj(p.${r} - ${T.ray[r]}), lg = sAdj(p.${g} - ${T.ray[g]}), lb = sAdj(p.${b} - ${T.ray[b]});
+  var avg = (lr + lg + lb) / 3 * (1 - sat);
+  return [sRGB(clip(avg + lr * sat)), sRGB(clip(avg + lg * sat)), sRGB(clip(avg + lb * sat))];
 }`;
 }
 
@@ -1249,7 +1260,7 @@ function setStyle(st){
   renderStory();
 }
 /* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Remembered. */
-const BRIGHT_DEFAULT = 1.1;
+const BRIGHT_DEFAULT = 1.0;      // the colour process above is already balanced
 /* Snow contrast: tones above 0.5 are spread out with a power curve (0 = off), so detail in bright snow and ice shows.
    y = x below 0.5;  y = 0.5 + 0.5 * ((x - 0.5) / 0.5) ** (1 + 2.5 * amount) above. White stays white. */
 const snowAmount = () => typeof prefs.snow === 'number' ? prefs.snow : 0;
@@ -1582,7 +1593,10 @@ const VIDEO = {
   codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
 };
 const vstate = { fmt: 'reel', type: 'timelapse', busy: false };
-const SWIPE = { holdA: 1.2, wipe: 2.4, holdB: 1.3, back: 1.8, holdMid: 1.4 };   // seconds
+/* swipe: [position, seconds]. Position = where the later year starts: 1 = only the first year, 0 = only the later one.
+   Back and forth twice, then settle in the middle. A move eases from the previous position. */
+const SWIPE_KEYS = [[1, 1.0], [0, 1.7], [0, 0.7], [1, 1.5], [1, 0.5], [0, 1.5], [0, 0.7], [1, 1.5], [1, 0.4], [0.5, 1.2], [0.5, 1.4]];
+const swipeLength = k => SWIPE_KEYS.reduce((a, [, d]) => a + d * k, 0);
 const videoYears = () => vstate.type === 'swipe'
   ? [state.a, state.b].filter(y => state.available[y]).filter((y, i, a) => a.indexOf(y) === i)
   : tlFrames();
@@ -1614,7 +1628,7 @@ function updateFrame(){
       (res < 4 ? ' The images have 10 m pixels, so this close in the video will look soft.' : '');
 }
 const videoDuration = n => vstate.type === 'swipe'
-  ? VIDEO.intro + Object.values(SWIPE).reduce((a, b) => a + b, 0) * +$('vSpeed').value / 1.1 + VIDEO.outro
+  ? VIDEO.intro + swipeLength(+$('vSpeed').value / 1.1) + VIDEO.outro
   : VIDEO.intro + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro;
 map.on('move zoom resize', updateFrame);
 
@@ -1834,10 +1848,9 @@ async function makeVideo(){
       site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
 
     // 2. timeline
-    const per = +$('vSpeed').value, fade = VIDEO.fade, k = per / 1.1;     // k: speed factor for the swipe
-    const sw = Object.fromEntries(Object.entries(SWIPE).map(([key, v]) => [key, v * k]));
+    const per = +$('vSpeed').value, fade = Math.min(VIDEO.fade, per * 0.45), k = per / 1.1;   // k: speed factor for the swipe
     const total = vstate.type === 'swipe'
-      ? VIDEO.intro + Object.values(sw).reduce((a, b) => a + b, 0) + VIDEO.outro
+      ? VIDEO.intro + swipeLength(k) + VIDEO.outro
       : VIDEO.intro + ys.length * per + VIDEO.hold + VIDEO.outro;
     const n = Math.round(total * fps);
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
@@ -1845,13 +1858,13 @@ async function makeVideo(){
     const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
     const renderSwipe = t => {
       if (t < VIDEO.intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
-      let u = t - VIDEO.intro, split;                           // split: x where the later year starts (W = only the first)
-      if (u < sw.holdA) split = W;
-      else if ((u -= sw.holdA) < sw.wipe) split = W * (1 - ease(u / sw.wipe));
-      else if ((u -= sw.wipe) < sw.holdB) split = 0;
-      else if ((u -= sw.holdB) < sw.back) split = W * 0.5 * ease(u / sw.back);
-      else if ((u -= sw.back) < sw.holdMid) split = W * 0.5;
-      else { ctx.drawImage(bases[1], 0, 0); drawOutro(ctx, W, H, S, info); return; }
+      let u = t - VIDEO.intro, from = 1, split = null;          // split: x where the later year starts (W = only the first)
+      for (const [to, d] of SWIPE_KEYS) {
+        const dur = d * k;
+        if (u < dur) { split = W * (from + (to - from) * ease(u / dur)); break; }
+        u -= dur; from = to;
+      }
+      if (split === null) { ctx.drawImage(bases[1], 0, 0); drawOutro(ctx, W, H, S, info); return; }
       ctx.drawImage(bases[0], 0, 0);
       ctx.save(); ctx.beginPath(); ctx.rect(split, 0, W - split, H); ctx.clip(); ctx.drawImage(bases[1], 0, 0); ctx.restore();
       drawSwipeLabels(ctx, W, H, S, info, split);
