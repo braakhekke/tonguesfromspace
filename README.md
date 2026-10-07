@@ -2,7 +2,7 @@
 
 **The ten largest Swiss glaciers, seen from space every summer since 2016. Compare satellite images from different years, create timelapses, explore the glacier figures and download animations to share.**
 
-Live site: https://braakhekke.github.io/tonguesfromspace/
+Live site: https://tonguesfromspace.org/
 
 A glacier ends in its tongue, the lowest stretch of ice, where it melts the most. That is where change is easiest to see: every summer the tip pulls back and leaves bare rock, a lake or a new valley floor. This project puts those pictures first, next to the glacier figures and what the melted ice means in water, because a before-and-after image is understood at once and remembered.
 

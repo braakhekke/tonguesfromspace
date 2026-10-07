@@ -15,7 +15,7 @@
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
  *   CDSE_CLIENT_SECRET  secret   OAuth client secret
- *   ALLOWED_ORIGINS     text     e.g. "https://braakhekke.github.io,http://localhost:8000"
+ *   ALLOWED_ORIGINS     text     e.g. "https://tonguesfromspace.org,http://localhost:8000"
  *   CACHE               KV namespace binding (optional but recommended): image cache
  *
  * Endpoints (same paths as scripts/serve.py):
@@ -210,7 +210,7 @@ const cacheUrl = key => `https://tonguesfromspace-cache.internal/${encodeURIComp
 /* ---------- helpers ---------- */
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
-  const allowed = (env.ALLOWED_ORIGINS || 'https://braakhekke.github.io,http://localhost:8000')
+  const allowed = (env.ALLOWED_ORIGINS || 'https://tonguesfromspace.org,http://localhost:8000')
     .split(',').map(s => s.trim().replace(/\/+$/, '')).filter(Boolean);
   const h = { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept',
               'Access-Control-Max-Age': '86400', 'Vary': 'Origin' };
