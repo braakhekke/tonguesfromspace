@@ -1,6 +1,6 @@
-# Tongues from Space
+# Tongues from Space - Switzerland
 
-**See how the tongues of the ten largest Swiss glaciers have retreated, in Sentinel-2 satellite images, one clear late-summer scene per year since 2016.**
+**The ten largest Swiss glaciers, seen from space every summer since 2016. Compare satellite images from different years, create timelapses, explore the glacier figures and download animations to share.**
 
 Live site: https://braakhekke.github.io/tonguesfromspace/
 
