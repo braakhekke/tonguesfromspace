@@ -64,7 +64,7 @@ button,select,input{font:inherit;color:inherit}
 .sw i{display:block;height:28px;border-radius:6px}
 .sw-true i{background:linear-gradient(120deg,#3f5a34 0%,#7d8a5a 25%,#9a8f80 48%,#c8d3da 72%,#f4f7f9 100%)}
 .sw-false i{background:linear-gradient(120deg,#a3203a 0%,#c7535e 28%,#6e6a72 50%,#7fcfe0 74%,#f4f7f9 100%)}
-.sw-parece i{background:linear-gradient(120deg,#f1dfb6 0%,#d9a46f 28%,#8c5a8c 52%,#2f4f86 76%,#12203d 100%)}
+.sw-parece i{background:linear-gradient(120deg,#5a1016 0%,#c3333b 26%,#b9a89c 52%,#f3f3f3 74%,#0e1218 100%)}
 .sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .sw:hover{border-color:var(--crevasse)}
 .loop{margin:0 0 0 auto;font-size:12.5px}
@@ -230,6 +230,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .with-info{display:flex;align-items:center;gap:8px}
 .info-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .info-btn[aria-expanded="true"]{background:var(--accent);color:#fff}
+.kf-box .src{margin:6px 0 0;padding:0 10px}
 .kf-note{font-size:11.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .stat .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -426,7 +427,7 @@ details.about .note,details.about .src{margin:0 0 8px}
     <div class="brand">
       <h1>Swiss Glacier Tongues from Space</h1>
       <p>The ten largest Swiss glaciers, seen from space every summer since 2016.</p>
-      <p class="byline">Created to increase glacial awareness - by <strong>Jochem Braakhekke</strong>. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+      <p class="byline">Created to increase glacial awareness - by Jochem Braakhekke. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
     </div>
 
     <section class="step" id="glacierGroup">
@@ -564,6 +565,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   </div>
   <div class="vs-opts">
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
+    <label class="toggle"><input type="checkbox" id="vWater"> <span>Add water facts</span></label>
     <label class="toggle">Speed <select class="small" id="vSpeed"><option value="0.35">Very fast</option><option value="0.7">Fast</option><option value="1.1" selected>Normal</option><option value="1.8">Slow</option></select></label>
   </div>
   <p class="hint" id="vsInfo"></p>
@@ -1360,9 +1362,9 @@ function renderMode(){
   document.getElementById('styleParece').setAttribute('aria-pressed', state.style === 'parece');
   applyBrightness();
   document.getElementById('styleNote').textContent = {
-    true: '',
-    false: 'Near infrared as red: vegetation red, bare ice blue.',
-    parece: 'Experimental: bands B8A, B11, B12. Snow and ice dark.'
+    true: 'As the eye would see it.',
+    false: 'Vegetation red, snow white, bare ice light blue, water dark.',
+    parece: 'B8A, B11, B12: snow and ice red, clouds white, rock pale, water black.'
   }[state.style];
 }
 function setStyle(st){
@@ -1452,7 +1454,7 @@ function renderStory(){
 
     <div class="tabs" role="tablist" aria-label="About this glacier">
       <button type="button" ${tab('look')}>What to see</button>
-      <button type="button" ${tab('figures')}>Figures</button>
+      <button type="button" ${tab('figures')}>Stats</button>
       <button type="button" ${tab('swiss')}>Switzerland</button>
     </div>
 
@@ -1465,10 +1467,10 @@ function renderStory(){
     </div>
 
     <div class="tab-panel" data-panel="figures" ${storyTab === 'figures' ? '' : 'hidden'}>
+      ${statsHtml}
       <p class="note with-info">Key figures from GLAMOS <button type="button" class="info-btn" aria-expanded="false" aria-controls="kfNote" aria-label="About these figures"
         onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></p>
-      <div id="kfNote" hidden>${keyFiguresNote()}</div>
-      ${statsHtml}
+      <div id="kfNote" class="kf-box" hidden>${keyFiguresNote()}${statsSource()}</div>
       <div id="gWater"></div>
     </div>
 
@@ -1490,6 +1492,7 @@ function renderStory(){
     <details class="about">
       <summary><span class="info-btn" aria-hidden="true">i</span> About the images, data and sources</summary>
     <p class="note">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene up to the 20th is used (in 2024 up to the 14th, because of heavy snowfall on the 15th); if September has no clear scene, the best one from August, then from July. The image is then rendered from Level-1C with the Copernicus Browser true colour process (atmospheric correction, contrast curve and a saturation boost), which keeps shaded slopes natural. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
+    <p class="note">Why late summer: Swiss glacier monitoring works with the glaciological year, 1 October to 30 September. September marks the end of the melt season, when the glacier is at its smallest and the year's melt is complete, and it is when GLAMOS takes its end-of-summer measurements. An image from September therefore shows nearly the same moment as the annual figures in the Switzerland tab. The search stops at 20 September rather than the very end of the month: from then on, the first autumn snowfalls become likely, and fresh snow hides the tongue and the true extent of the ice. In 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
     ${state.style === 'false' ? '<p class="note">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
     <p class="note">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
 
@@ -1591,8 +1594,10 @@ function renderStats(g){
         </div>`).join('')}
       </div>
     </section>`;
-  return `<div class="stats">${group('area','Area')}${group('length','Length change of the tongue')}</div>
-    <p class="src">Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label}, ${DATA.mid_label || 'SGI1973'} and ${DATA.latest_label}` : '1850, 1973 and 2016'}.
+  return `<div class="stats">${group('area','Area')}${group('length','Length change of the tongue')}</div>`;
+}
+function statsSource(){
+  return `<p class="src">Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label}, ${DATA.mid_label || 'SGI1973'} and ${DATA.latest_label}` : '1850, 1973 and 2016'}.
       Length change: GLAMOS length-change series, measured at the glacier tongue; negative values mean retreat. Surveys can span several years.</p>`;
 }
 /* ---------- ice volume of the selected glacier: Grab et al. (2021), from the swisstopo map service ----------
@@ -1915,7 +1920,7 @@ const VIDEO = {
     reel: { w:1080, h:1920, safe:{ top:250, bottom:430, left:72, right:150 } },
     feed: { w:1080, h:1350, safe:{ top:84,  bottom:96,  left:72, right:72 } }
   },
-  intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0,
+  intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0, water: 3.6,
   codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
 };
 const vstate = { fmt: 'reel', type: 'timelapse', busy: false };
@@ -1954,9 +1959,9 @@ function updateFrame(){
                                : `${ys.length} years, ${ys[0]} to ${ys[ys.length - 1]}, about ${Math.round(videoDuration(ys.length))} seconds.`) +
       (res < 4 ? ' The images have 10 m pixels, so this close in the video will look soft.' : '');
 }
-const videoDuration = n => vstate.type === 'swipe'
+const videoDuration = n => (vstate.type === 'swipe'
   ? VIDEO.intro + swipeLength(+$('vSpeed').value / 1.1) + VIDEO.outro
-  : VIDEO.intro + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro;
+  : VIDEO.intro + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro) + ($('vWater').checked ? VIDEO.water : 0);
 map.on('move zoom resize', updateFrame);
 
 function openVideo(){
@@ -1981,6 +1986,7 @@ $('videoBtn').onclick = openVideo; $('vsClose').onclick = closeVideo;
 const setFmt = f => { vstate.fmt = f; $('vfReel').setAttribute('aria-pressed', f === 'reel'); $('vfFeed').setAttribute('aria-pressed', f === 'feed'); updateFrame(); };
 $('vfReel').onclick = () => setFmt('reel'); $('vfFeed').onclick = () => setFmt('feed');
 $('vSpeed').onchange = updateFrame;
+$('vWater').onchange = updateFrame;
 function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); updateFrame(); }
 $('vtTimelapse').onclick = () => setType('timelapse'); $('vtSwipe').onclick = () => setType('swipe');
 
@@ -2110,6 +2116,40 @@ function drawIntro(ctx, W, H, S, info){
   const gs = fitText(ctx, info.glacier.name, 800, 92, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 20);
   ctx.font = `500 34px ${FONT}`; shadowText(ctx, `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 76);
 }
+function waterIcon(ctx, kind, x, y, s){
+  ctx.save();
+  if (kind === 'pool') { ctx.fillStyle = '#5FB8D9'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y + s * 0.2, s, s * 0.6, s * 0.12) : ctx.rect(x, y + s * 0.2, s, s * 0.6); ctx.fill();
+    ctx.strokeStyle = '#fff'; ctx.lineWidth = s * 0.07; ctx.beginPath(); for (let i = 0; i <= 4; i++) { const px = x + s * (0.1 + i * 0.2), py = y + s * (i % 2 ? 0.55 : 0.45); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); }
+  if (kind === 'lake') { ctx.fillStyle = '#2D6E8E'; ctx.beginPath(); ctx.ellipse(x + s / 2, y + s / 2, s / 2, s * 0.32, -0.2, 0, Math.PI * 2); ctx.fill(); }
+  if (kind === 'tap') { ctx.fillStyle = '#9CD3E6'; ctx.beginPath(); ctx.moveTo(x + s / 2, y + s * 0.1); ctx.bezierCurveTo(x + s * 0.95, y + s * 0.6, x + s * 0.8, y + s * 0.95, x + s / 2, y + s * 0.95);
+    ctx.bezierCurveTo(x + s * 0.2, y + s * 0.95, x + s * 0.05, y + s * 0.6, x + s / 2, y + s * 0.1); ctx.fill(); }
+  ctx.restore();
+}
+function drawWaterStill(ctx, W, H, S, info){
+  const w = info.water, x = S.left, maxW = W - S.left - S.right;
+  ctx.fillStyle = 'rgba(8,14,18,.78)'; ctx.fillRect(0, 0, W, H);
+  let y = S.top + 60;
+  ctx.font = `700 26px ${FONT}`; shadowText(ctx, 'HOW MUCH WATER IS THAT?', x, y, {blur:6, color:'#FF5A4E'});
+  if (w.litres > 0) {
+    y += 96; ctx.font = `800 ${fitText(ctx, fmtN(w.litres, 1) + ' litres', 800, 84, maxW)}px ${FONT}`; shadowText(ctx, fmtN(w.litres, 1) + ' litres', x, y, {color:'#7FD3EE'});
+    y += 52; ctx.font = `600 30px ${FONT}`;
+    wrap(ctx, `of fresh water melted from all Swiss glaciers, autumn ${w.from} to autumn ${w.to}`, x, y, maxW, 40).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
+    y += 40;
+    const rows = [['pool', `${fmtN(w.litres / POOL_L, 1)} Olympic swimming pools`],
+                  ['lake', `${(w.litres / 1e12 / LAKE_ZURICH_KM3).toFixed(1)} × the volume of Lake Zurich`],
+                  ['tap', `${(w.litres / 1e12 / SWISS_SUPPLY_KM3).toFixed(1)} years of all Swiss tap water`]];
+    ctx.font = `600 32px ${FONT}`;
+    rows.forEach(([k, t]) => { y += 66; waterIcon(ctx, k, x, y - 40, 46); shadowText(ctx, t, x + 66, y); });
+  }
+  if (w.glacier) {
+    const gl = w.glacier.km3 * 0.9e12;
+    y += 96; ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(x, y - 40, maxW, 2);
+    ctx.font = `600 30px ${FONT}`;
+    wrap(ctx, `${info.glacier.name} still holds about ${fmtN(gl, 1)} litres: ${fmtN(gl / POOL_L, 1)} Olympic pools.`, x, y + 6, maxW, 40).forEach(l => shadowText(ctx, l.t, x, l.y));
+  }
+  ctx.font = `500 19px ${FONT}`;
+  shadowText(ctx, `Sources: GLAMOS, SVGW${w.glacier ? ', Grab et al. 2021' : ''}`, x, H - S.bottom, {blur:6, color:'rgba(255,255,255,.8)'});
+}
 function drawOutro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.74)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = W - S.left - S.right;
@@ -2179,7 +2219,16 @@ async function makeVideo(){
     const total = vstate.type === 'swipe'
       ? VIDEO.intro + swipeLength(k) + VIDEO.outro
       : VIDEO.intro + ys.length * per + VIDEO.hold + VIDEO.outro;
-    const n = Math.round(total * fps);
+    const water = $('vWater').checked;
+    const n = Math.round((total + (water ? VIDEO.water : 0)) * fps);
+    if (water) {                                   // national litres for the period, and the glacier's own store if known
+      const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi, last);
+      info.water = { litres: to > lo ? (iceVolume(lo) - iceVolume(to)) * 0.9e12 : 0, from: lo, to, glacier: await glacierVolume(g).catch(() => null) };
+    }
+    const tail = u => {                            // u: seconds after the main part
+      if (water && u < VIDEO.water) { drawWaterStill(ctx, W, H, S, info); return; }
+      drawOutro(ctx, W, H, S, info);
+    };
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
@@ -2191,7 +2240,7 @@ async function makeVideo(){
         if (u < dur) { split = W * (from + (to - from) * ease(u / dur)); break; }
         u -= dur; from = to;
       }
-      if (split === null) { ctx.drawImage(bases[1], 0, 0); drawOutro(ctx, W, H, S, info); return; }
+      if (split === null) { ctx.drawImage(bases[1], 0, 0); tail(u); return; }
       ctx.drawImage(bases[0], 0, 0);
       ctx.save(); ctx.beginPath(); ctx.rect(split, 0, W - split, H); ctx.clip(); ctx.drawImage(bases[1], 0, 0); ctx.restore();
       drawSwipeLabels(ctx, W, H, S, info, split);
@@ -2200,8 +2249,8 @@ async function makeVideo(){
       ctx.globalAlpha = 1;
       if (t < VIDEO.intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
       const tt = t - VIDEO.intro, last = ys.length - 1;
-      if (tt >= ys.length * per + VIDEO.hold) {                 // closing card over the last year
-        ctx.drawImage(bases[last], 0, 0); drawOutro(ctx, W, H, S, info); return;
+      if (tt >= ys.length * per + VIDEO.hold) {                 // water still and closing card over the last year
+        ctx.drawImage(bases[last], 0, 0); tail(tt - ys.length * per - VIDEO.hold); return;
       }
       const k = Math.min(last, Math.floor(tt / per)), into = tt - k * per;
       ctx.drawImage(bases[k], 0, 0);
