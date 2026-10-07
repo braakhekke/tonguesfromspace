@@ -39,7 +39,7 @@ browser ── /cdse/statistics, /cdse/process ──> relay ──> Copernicus 
 ```
 
 - **Scene choice:** Statistical API, Sentinel-2 L2A, SCL classes (cloud 3, 8, 9, 10; snow 11), 1 July to 20 September (`LAST_DAY`; 2024 until 14 September). Order: September ≤ 5 % cloud with the least snow, then August, then July, then least cloudy ≤ 30 % ("some clouds").
-- **Images:** Process API, Sentinel-2 **L1C** of the chosen day, Copernicus Browser true-colour process (maxR 3, midR 0.13, sat 1.3, gamma 2.3, gOff 0.01, Rayleigh 0.013 / 0.024 / 0.041). Band combinations: Natural B04-B03-B02, Infrared B08-B04-B03, Parece B8A-B11-B12.
+- **Images:** Process API, Sentinel-2 **L1C** of the chosen day, Copernicus Browser true-colour process (maxR 3, midR 0.13, sat 1.3, gamma 2.3, gOff 0.01, Rayleigh 0.013 / 0.024 / 0.041). Band combinations: Natural B04-B03-B02, False 1 (infrared) B08-B04-B03, False 2 B8A-B11-B12 (internal keys `natural`, `false1`, `false2`; saved settings from the old names `false` and `parece` are converted).
 - **Parked experiment:** ice edge lines (ablation zone, from a spectral index) were taken out because debris-covered tongues are not detected. Code, method and results are kept in `experiments/ice-edge/` (see its README). The Worker still passes the requested image format (JPEG or PNG) to Copernicus.
 - **Caches:** browser IndexedDB `tfs-cache`; Worker KV `CACHE` (180 days; the current summer's scene scores 1 day; identical simultaneous requests share one fetch). The free plan allows 1,000 KV writes a day; a full warm-up is about 300.
 - **Other sources, without the relay:**
@@ -65,7 +65,7 @@ browser ── /cdse/statistics, /cdse/process ──> relay ──> Copernicus 
 
 ## Style
 
-- **Calm and compact.** Little text; explanations go into the collapsed "About the images, data and sources" or behind small "i" buttons. Small notes 11–11.5 px.
+- **Calm and compact.** Little text; explanations go into the collapsed "About Tongues from Space" or behind small "i" buttons. Small notes 11–11.5 px.
 - **Red accent `--accent: #C8322A`** for headers and loss; **blue `--crevasse`** for ice and water. Stats in white cards: red uppercase card header with an icon, grey tiles.
 - **Left panel:** numbered steps 1 Glacier, 2 Visualisation, 3 Download and share. On phones: map first, then that panel, then the story; two fingers move the map.
 - **UI text in English.**

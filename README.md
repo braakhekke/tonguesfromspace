@@ -14,7 +14,7 @@ It is built by [Jochem Braakhekke](https://github.com/braakhekke) to increase gl
 
 - **Satellite images:** for every glacier and year, the clearest late-summer Sentinel-2 scene (best September scene, otherwise August, otherwise July), scored for cloud and snow cover.
 - **One year, Compare, Timelapse:** look at a single year, swipe between two years, or play a range of years.
-- **Colours:** natural, infrared and Parece (experimental), each with a plain-language note.
+- **Colours:** Natural, False 1 (infrared) and False 2 (snow and ice in red; experimental), each with a plain-language note.
 - **Glacier figures:** area since 1850, length and length change from the first survey, and the ice and water stored in each glacier (litres, Olympic pools, Lake Zurich).
 - **Switzerland as a whole:** ice left since 2016, ice lost per year, and how much water that is.
 - **Map tools:** outlines of 1850 and 2023, a tongue indication, measuring of lengths and areas, background layers.
