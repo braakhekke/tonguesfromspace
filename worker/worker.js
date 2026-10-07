@@ -29,11 +29,27 @@ const IMAGES = 'sentinel-2-l1c';                                  // the images 
 const MOSAIC = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';     // Sentinel-2 quarterly cloudless mosaics (background)
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin
 const MAX_PX = 2500;
+const MAX_BODY = 20000;                                             // characters; the dashboard's own requests are under 5,000
+const FIRST_YEAR = 2016, lastYear = () => new Date().getUTCFullYear();   // Sentinel-2 images in the dashboard start in 2016
+const yearOk = y => Number.isInteger(+y) && +y >= FIRST_YEAR && +y <= lastYear();
 const MIN_STATS_RES = 40;                                           // metres (CRS units); keeps scene scoring cheap
 const DAY = 86400;
 
 let token = null, tokenUntil = 0;                                    // reused while the isolate lives
-const inflight = new Map();                                          // identical requests at the same moment share one fetch and one KV write
+const inflight = new Map();
+/* Fair-use limit per visitor (IP address) for requests that go on to Copernicus (cache hits are free and not counted).
+   Kept in the memory of the running Worker instance: no KV writes. It is a brake, not a wall: Cloudflare may run several
+   instances. The strict limit is the Cloudflare rate-limiting rule described in the README. */
+const UPSTREAM_PER_MIN = 90, UPSTREAM_PER_HOUR = 600;
+const usage = new Map();                                             // ip -> [timestamps in ms]
+function overLimit(ip) {
+  const now = Date.now(), list = (usage.get(ip) || []).filter(t => now - t < 3600e3);
+  const minute = list.filter(t => now - t < 60e3).length;
+  if (minute >= UPSTREAM_PER_MIN || list.length >= UPSTREAM_PER_HOUR) { usage.set(ip, list); return true; }
+  list.push(now); usage.set(ip, list);
+  if (usage.size > 5000) for (const [k, v] of usage) if (!v.length || now - v[v.length - 1] > 3600e3) usage.delete(k);
+  return false;
+}                                          // identical requests at the same moment share one fetch and one KV write
 
 export default {
   async fetch(request, env, ctx) {
@@ -51,6 +67,7 @@ export default {
       return json({ relayError: 'The relay has no Copernicus credentials yet (set CDSE_CLIENT_ID and CDSE_CLIENT_SECRET).' }, 502, cors);
 
     const text = await request.text();
+    if (text.length > MAX_BODY) return json({ error: 'Request too large' }, 413, cors);
     let body;
     try { body = JSON.parse(text); } catch { return json({ error: 'Invalid JSON' }, 400, cors); }
     const problem = route === 'process' ? checkProcess(body) : checkStatistics(body);
@@ -63,9 +80,12 @@ export default {
 
     // forward to Copernicus (shared with identical requests already on their way)
     let job = inflight.get(key);
+    if (!job && overLimit(request.headers.get('CF-Connecting-IP') || 'unknown'))
+      return json({ error: 'Too many requests. Please wait a minute and try again.' }, 429, { ...cors, 'Retry-After': '60' });
     if (!job) {
       job = (async () => {
-        const r = await callCdse(env, upstream(env)[route], text, route === 'process' ? 'image/jpeg' : 'application/json');
+        const accept = route === 'process' ? body.output.responses[0].format.type : 'application/json';   // checkProcess allows image/jpeg and image/png
+        const r = await callCdse(env, upstream(env)[route], text, accept);
         const out = { status: r.status, type: r.headers.get('Content-Type') || 'application/octet-stream', data: await r.arrayBuffer() };
         if (r.ok) await cachePut(env, key, out.data, out.type, ttlFor(route, body));
         return out;
@@ -131,7 +151,7 @@ function checkBounds(inp, collections = [COLLECTION]) {
   if (!Array.isArray(inp.data) || inp.data.length !== 1 || !collections.includes(inp.data[0].type)) return 'data collection';
   return null;
 }
-const summerDay = d => /^\d{4}-0[789]-\d{2}$/.test(d);
+const summerDay = d => /^\d{4}-0[789]-\d{2}$/.test(d) && yearOk(d.slice(0, 4));
 function checkProcess(b) {
   const inp = b && b.input, out = b && b.output;
   const bad = checkBounds(inp, [COLLECTION, IMAGES, MOSAIC]); if (bad) return bad;
@@ -148,7 +168,7 @@ function checkProcess(b) {
 function checkStatistics(b) {
   const bad = checkBounds(b && b.input); if (bad) return bad;
   const ag = b.aggregation;
-  if (!ag || !ag.timeRange || !/^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) ||
+  if (!ag || !ag.timeRange || !/^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) || !yearOk(ag.timeRange.from.slice(0, 4)) ||
       ![ '-09-21T00:00:00Z', '-10-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to)) return 'period (July 1 to September 20 of one year)';
   if (!ag.aggregationInterval || ag.aggregationInterval.of !== 'P1D') return 'interval';
   if (!(ag.resx >= MIN_STATS_RES && ag.resy >= MIN_STATS_RES)) return 'resolution';

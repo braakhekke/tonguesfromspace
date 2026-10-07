@@ -1,111 +1,118 @@
-# Swiss Glacier Tongues from Space
+# Tongues from Space
 
-Compare and animate Sentinel-2 satellite images of the tongues of the ten largest Swiss glaciers, from 2016 to the latest available year, next to glacier figures from Glacier Monitoring Switzerland (GLAMOS).
+**See how the tongues of the ten largest Swiss glaciers have retreated, in Sentinel-2 satellite images, one clear late-summer scene per year since 2016.**
 
-Created by Jochem Braakhekke for public glacier awareness. See also [For Your Ice](https://foryourice.org/).
+Live site: https://braakhekke.github.io/tonguesfromspace/
 
-**Live site:** https://braakhekke.github.io/tonguesfromspace/
+A glacier ends in its tongue, the lowest stretch of ice, where it melts the most. That is where change is easiest to see: every summer the tip pulls back and leaves bare rock, a lake or a new valley floor. This project puts those pictures first, next to the glacier figures and what the melted ice means in water, because a before-and-after image is understood at once and remembered.
+
+It is built by [Jochem Braakhekke](https://github.com/braakhekke) to increase glacial awareness, and it is open source: **you are welcome to help build it, or to make a dashboard like it for glaciers in your own country or region.** See [Contributing](#contributing) and [Make your own version](#make-your-own-version-for-another-region).
+
+![Screenshot of the dashboard](images/preview-social.jpg)
 
 ## What it does
 
-- **Satellite images:** for every glacier and year, the clearest late-summer Sentinel-2 scene: the best one in September, otherwise August, otherwise July, scored for cloud and snow cover.
-- **Start view:** all of Switzerland with the ten glaciers as red, clickable boxes.
-- **Compare:** swipe between two years.
-- **Timelapse:** play a range of years as an animation.
-- **Colours:** true color, false color (near infrared) and Parece (B8A, B11, B12; experimental).
-- **Map layers:** glacier boxes, ice thickness (Grab et al. 2021), glacier outline of 1850 and today, a Sentinel-2 summer mosaic around the scene, OpenStreetMap base map, place names. The layer panel can be minimized.
-- **Measure:** draw lines and areas; lengths and areas are geodesic.
-- **Key figures:** area (about 1850, 1973, 2023) and tongue length change, all from GLAMOS, plus the ice and water stored in the glacier (Grab et al. 2021, via swisstopo) in litres, pools and Lake Zurich.
-- **Swiss context:** share of the national ice volume lost each year since 2016, and **How much water is that?**: the melted ice in litres, compared with swimming pools, Lake Zurich, Switzerland's tap water and each resident's share, plus a live counter.
-- **Create animation:** a timelapse, or a slider between two years, as video for Instagram, TikTok and others. Frame the tongue on the map and get an MP4 (9:16 for Reels and TikTok, or 4:5 for the Instagram feed) with title, years, scene dates, scale bar, optional 1850 outline, the national volume loss and all credits. Made in the browser; on phones it opens the share sheet.
+- **Satellite images:** for every glacier and year, the clearest late-summer Sentinel-2 scene (best September scene, otherwise August, otherwise July), scored for cloud and snow cover.
+- **One year, Compare, Timelapse:** look at a single year, swipe between two years, or play a range of years.
+- **Colours:** natural, infrared and Parece (experimental), each with a plain-language note.
+- **Glacier figures:** area since 1850, length and length change from the first survey, and the ice and water stored in each glacier (litres, Olympic pools, Lake Zurich).
+- **Switzerland as a whole:** ice left since 2016, ice lost per year, and how much water that is.
+- **Map tools:** outlines of 1850 and 2023, a tongue indication, measuring of lengths and areas, background layers.
+- **Download image and animation:** one picture, a timelapse or a slider as JPEG or MP4 for Instagram, TikTok and others (9:16 following Instagram's safe zones, or 4:5). Made in the browser.
 - **Share:** a link to the current glacier, mode and years.
-- **Phones:** map first, compact controls under the map, two fingers to move the map, landscape layout.
 
-## Repository layout
+Everything the page does runs in the visitor's browser. There is no database and no build step: the site is one `index.html`.
+
+## How it works
 
 ```
-index.html                     the dashboard (a single page, no build step)
-glaciers.js                    GLAMOS data, created and updated automatically by the workflow
-config.js                      written by the workflow on publish: address of the Copernicus relay
-scripts/build_outlines.py      downloads GLAMOS inventories + length changes, writes glaciers.js
-scripts/serve.py               local server + Copernicus relay (holds your credentials when running locally)
-worker/worker.js               Cloudflare Worker: Copernicus relay for the public site (holds the site's credentials)
-worker/wrangler.toml           optional, for deploying the Worker from the command line
-.github/workflows/deploy.yml   builds glaciers.js and publishes the site on GitHub Pages
+ visitor's browser ──► index.html + glaciers.js              (GitHub Pages)
+        │
+        └─ satellite requests ──► relay ──► Copernicus Data Space (Sentinel Hub APIs)
+                                   │
+              Cloudflare Worker (public site)  or  scripts/serve.py (your computer)
 ```
 
-## Publishing on GitHub Pages (one time)
+- **Scene choice:** one Statistical API request per glacier and summer scores every Sentinel-2 L2A acquisition for cloud and snow (scene classification). The best day is then rendered from Sentinel-2 L1C with the Copernicus Browser true colour process.
+- **Why a relay:** Copernicus needs a login, and browsers cannot log in to it directly. The relay holds one OAuth client, forwards only the two request types the dashboard makes, and caches the answers. Visitors need no account.
+- **Glacier data:** `scripts/build_outlines.py` downloads the Swiss Glacier Inventories and length-change series from GLAMOS, ranks the glaciers, finds each tongue tip, and writes `glaciers.js`. A GitHub Action runs it monthly.
+- **Caching:** the browser keeps the scenes and images it has fetched in IndexedDB (images capped at 150 MB); the Worker keeps answers in Cloudflare KV.
 
-1. Upload all files to the repository, including the hidden `.github` folder (see below).
-2. In the repository, open **Settings → Pages** and set **Source** to **GitHub Actions**.
-3. Open the **Actions** tab, choose **Build data and deploy** and click **Run workflow**.
+| Path | What |
+|---|---|
+| `index.html` | The whole dashboard (HTML, CSS and JavaScript, Leaflet from a CDN) |
+| `glaciers.js` | Generated by the build script; do not edit by hand |
+| `scripts/build_outlines.py` | Downloads GLAMOS data, writes `glaciers.js` (Python standard library only) |
+| `scripts/serve.py` | Local web server plus Copernicus relay for development |
+| `worker/worker.js` | Cloudflare Worker: the public relay, with request checks, caching and a fair-use limit |
+| `.github/workflows/deploy.yml` | Builds the data and publishes the site on GitHub Pages |
+| `fonts/`, `images/` | Self-hosted font (SIL OFL) and the pictures used by the page |
+| `experiments/` | Parked work (not part of the site) |
+| `CLAUDE.md` | Notes on the code for developers and AI assistants |
 
-The workflow downloads the GLAMOS data, commits `glaciers.js`, and publishes the site. After that it runs by itself on every push to `main` and on the 1st of every month, so new GLAMOS releases are picked up automatically. New satellite scenes appear in the dashboard by themselves.
+## Run it on your computer
 
-**Uploading through the GitHub website:** on a Mac, folders starting with a dot are hidden in Finder. Press **Cmd + Shift + .** in Finder to show them before dragging the folder contents into **Add file → Upload files**. If `.github` does not come along, create the file `.github/workflows/deploy.yml` in GitHub with **Add file → Create new file** and paste its content.
+You need Python 3 and a free Copernicus Data Space account.
 
-## Satellite images
+1. In the [CDSE dashboard](https://shapps.dataspace.copernicus.eu/dashboard/) open *User settings → OAuth clients* and create a client. Note its ID and secret.
+2. In the repository folder run:
 
-All images are Copernicus Sentinel-2 scenes from the Copernicus Data Space Ecosystem (CDSE), free for any use with attribution. The scene of each year is chosen with Level-2A (it has the scene classification for clouds and snow); the image itself is rendered from Level-1C of the same day with a simple haze correction, because Level-2A brightens shaded slopes in a way that looks unnatural in the mountains.
+   ```bash
+   python3 scripts/serve.py        # then open http://localhost:8000
+   ```
 
-**How the scene of each year is chosen.** For the selected glacier, one request to the CDSE Statistical API scores every Sentinel-2 acquisition from July 1 to September 20 of that year, using the scene classification (SCL): the share of cloud and cloud shadow, and the share of snow and ice. Scenes that cover less than 95 % of the image area are skipped. The dashboard then takes:
+   It asks for the client ID and secret (or reads `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, or `scripts/.cdse-credentials`, which is git-ignored).
+3. To refresh the glacier data: `python3 scripts/build_outlines.py`.
 
-1. the September scene (until 20 September; in 2024 until 14 September, because of heavy snowfall on the 15th) with at most 5 % cloud and the least snow;
-2. if September has none, the best one from August;
-3. if August has none, the best one from July;
-4. if no month has a clear scene, the least cloudy scene of the summer (up to 30 % cloud), marked "some clouds".
+Use `http://localhost:8000` and not another address if you want to use a deployed Worker instead: the Worker only accepts the origins it is configured with.
 
-Years without any usable scene cannot be selected. The chosen day is then rendered with the Process API. The date of each scene is shown under the year on the map. These thresholds are at the top of section 3 in `index.html` (`CDSE.maxCloud`, `CDSE.minCover`, `CDSE.fallbackCloud`).
+## Publish your own copy
 
-**Why a relay is needed.** Copernicus requires a login, and browsers block that login when a web page calls it directly. So all Copernicus requests go through a relay that holds the credentials: the Cloudflare Worker on the public site, `scripts/serve.py` on your own computer. Visitors never need an account. Without a relay, the site still shows the map, outlines and figures, and says that satellite images are not connected.
+1. **GitHub Pages:** fork the repository, then *Settings → Pages → Source: GitHub Actions*, and run the workflow *Build data and deploy* from the Actions tab.
+2. **Relay (free):** create a Cloudflare Worker from `worker/worker.js`; add your OAuth client as the secrets `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, a text variable `ALLOWED_ORIGINS` (your site address, plus `http://localhost:8000` for development), and optionally a KV namespace bound as `CACHE`. Check `…/cdse/ping`.
+3. **Connect:** in the GitHub repository add the variable `CDSE_RELAY_URL` (the Worker address) and run the workflow again.
 
-## Satellite images on the public site (Cloudflare Worker, free)
+For a strict limit against misuse, add a Cloudflare rate-limiting rule for the path `/cdse/`. Please check that the [Copernicus terms](https://dataspace.copernicus.eu) allow serving a public website from one account before you launch.
 
-The Worker logs in to Copernicus with **your** CDSE credentials, which are stored as encrypted Cloudflare secrets, and caches every answer, so each scene search and each image is requested from Copernicus only once. Visitors need no account. It accepts only the two requests this dashboard makes (scoring one summer of Sentinel-2 L2A scenes, and the image of one summer day, both over Switzerland and at limited size) and only from the origins you allow, so it cannot be used to spend your quota on anything else.
+## Make your own version for another region
 
-1. **CDSE credentials.** At [shapps.dataspace.copernicus.eu](https://shapps.dataspace.copernicus.eu/dashboard/) → *User settings* → *OAuth clients*, create a client and copy its ID and secret.
-2. **Create the Worker.** Sign up at [dash.cloudflare.com](https://dash.cloudflare.com) (free plan). Go to *Workers & Pages* → *Create* → *Create Worker*, name it `tonguesfromspace-relay`, click *Deploy*, then *Edit code*. Replace the code with the content of `worker/worker.js` and click *Deploy*.
-3. **Settings.** In the Worker, open *Settings* → *Variables and Secrets* and add:
-   - `CDSE_CLIENT_ID`, type *Secret*: your client ID
-   - `CDSE_CLIENT_SECRET`, type *Secret*: your client secret
-   - `ALLOWED_ORIGINS`, type *Text*: `https://braakhekke.github.io,http://localhost:8000`
-4. **Image cache (recommended).** Go to *Storage & Databases* → *KV* → *Create* and name it `tfs-cache`. In the Worker, open *Settings* → *Bindings* → *Add* → *KV namespace*, set the variable name to `CACHE` and pick `tfs-cache`.
-5. **Check the Worker.** Open `https://tonguesfromspace-relay.<your-subdomain>.workers.dev/cdse/ping`. It should show `{"relay":true,"managed":true}`.
-6. **Connect the site.** In the GitHub repository, open *Settings* → *Secrets and variables* → *Actions* → *Variables* → *New repository variable*. Name it `CDSE_RELAY_URL` and paste the Worker address (without `/cdse/ping`), for example `https://tonguesfromspace-relay.<your-subdomain>.workers.dev`.
-7. **Publish.** In *Actions*, run **Build data and deploy** again.
+The imagery part works anywhere Sentinel-2 does. The Swiss parts are the data sources and a few limits. To adapt it:
 
-From then on the public site shows the satellite images. The Cloudflare free plan allows 100,000 Worker requests a day; with caching, Copernicus sees about 11 scene searches and up to 22 images per glacier and colour mode, once. Before launch, check that the CDSE terms and conditions (linked from dataspace.copernicus.eu) allow serving a public website from one account; the Copernicus data licence itself allows redistribution with attribution.
+1. **Pick your glaciers and a national or regional inventory.** Replace the GLAMOS downloads in `scripts/build_outlines.py` with your inventory (outlines and areas), and with a length-change series if one exists for your region. Many countries publish inventories; the global Randolph Glacier Inventory and GLIMS are alternatives.
+2. **Area limits:** in `worker/worker.js` change the bounding box `SWISS` to your region. In `index.html` update `SWISS_VIEW`, the built-in glacier list `DEFAULTS` and the `GLACIER_INFO` texts. Only write facts you can source.
+3. **Season:** the page looks for the clearest scene between 1 July and 20 September (`CDSE.months`, `LAST_DAY`). In the southern hemisphere or the tropics choose the end of your melt season instead, and change the matching date checks in the Worker.
+4. **National figures:** the Switzerland tab uses yearly ice loss and total ice volume from GLAMOS and SCNAT (`VOLUME_LOSS`, `ICE_2024`). Replace them with your own source or remove the tab.
+5. **Texts and credits:** the About chapter, sources list and credits line must list your data.
 
-To remove the relay later, delete the `CDSE_RELAY_URL` variable and run the workflow again.
+Open an issue if you get stuck. I would be glad to hear about a dashboard for another region and to link to it.
 
-## Running locally
+## Contributing
 
-```bash
-python3 scripts/serve.py      # opens http://localhost:8000
-```
+Contributions are welcome: bug reports, ideas, translations, glacier texts with sources, or code. Please open an issue first for larger changes. A few ground rules:
 
-`serve.py` needs a CDSE OAuth client (CDSE dashboard → User settings → OAuth clients). It takes the credentials from the environment variables `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, or asks for them when it starts and can save them in `scripts/.cdse-credentials`. That file is listed in `.gitignore` and is never uploaded.
+- **Only documented facts.** Every figure and text about a glacier needs a source. If the origin of a name or a number is unknown, say so.
+- **Keep it calm and compact:** little text, details behind small "i" buttons or in the About chapter.
+- **No CSS or SVG filters on page elements for image effects** (Safari on iPhone ignores them); process pixels in a canvas.
+- **After changing how scenes are scored or rendered,** raise `CDSE.version` in `index.html` so browsers drop old images.
+- Test locally with `scripts/serve.py`. `CLAUDE.md` describes the structure of `index.html` and a test checklist.
 
-## Updating the data locally
-
-```bash
-python3 scripts/build_outlines.py
-```
-
-No extra packages are needed. On macOS with the python.org installer, run *Install Certificates.command* once if you get a certificate error.
+Things that would help: more glaciers and regions, translations, verified glacier texts, and testing on real iPhones and in Safari.
 
 ## Data sources and licences
 
+- **Imagery:** Copernicus Sentinel-2 L1C and L2A via the Copernicus Data Space Ecosystem. Contains modified Copernicus Sentinel data. Free for any use with attribution.
 - **Glacier areas and outlines:** GLAMOS Swiss Glacier Inventories 1850, 1973 and 2023, CC BY 4.0.
-- **Length change:** GLAMOS (2025), Swiss Glacier Length Change, release 2025, doi:10.18750/lengthchange.2025.r2025. Free for scientific and non-commercial use, with the source indicated.
-- **Annual volume loss:** GLAMOS and Swiss Academy of Sciences (SCNAT) annual glacier reports. National ice volume: 46.4 km³ at the end of 2024 (GLAMOS annual report 2024).
-- **Ice thickness:** Grab, M. et al. (2021), Ice thickness distribution of all Swiss glaciers, Journal of Glaciology 67(266), via the swisstopo map service (layer ch.swisstopo.geologie-gletschermaechtigkeit).
-- **Water use:** SVGW water statistics (about 900–950 million m³ a year; 142 litres per person per day in households).
-- **Imagery:** Copernicus Sentinel-2 Level-1C and Level-2A via the Copernicus Data Space Ecosystem; contains modified Copernicus Sentinel data. Free for any use with attribution.
-- **Background:** Sentinel-2 cloudless 2024 by EOX IT Services GmbH (s2maps.eu), CC BY-NC-SA 4.0.
-- **Base map:** © OpenStreetMap contributors (ODbL), tiles from tile.openstreetmap.org, used under the OpenStreetMap tile usage policy.
-- **Map labels:** © OpenStreetMap contributors, rendering EOX.
+- **Length change:** GLAMOS (2025), Swiss Glacier Length Change, release 2025, doi:10.18750/lengthchange.2025.r2025. Free for scientific and **non-commercial** use with the source indicated. The length today is read from the GLAMOS figure [lc_stat_frequency](https://doi.glamos.ch/figures/lc_stat_frequency.pdf).
+- **Yearly volume loss:** GLAMOS and the Swiss Academy of Sciences (SCNAT) annual glacier reports.
+- **Ice thickness and volume per glacier:** Grab et al. (2021), Journal of Glaciology 67(266), via the swisstopo map service.
+- **Water use:** SVGW water statistics.
+- **Background:** Sentinel-2 cloudless 2024 by EOX IT Services GmbH ([s2maps.eu](https://s2maps.eu)), CC BY-NC-SA 4.0. **Base map and place labels:** © OpenStreetMap contributors.
+- **Font:** Schibsted Grotesk, SIL Open Font Licence 1.1 (`fonts/OFL.txt`).
 
-Because the GLAMOS length-change data are licensed for non-commercial use only, the site as published is for non-commercial use.
+Because the length-change data and the EOX background are licensed for non-commercial use, **the site as published is non-commercial.** If you reuse this project commercially, check each source above.
 
-No licence has been chosen yet for the code in this repository. Add a `LICENSE` file if you want others to reuse it.
+No licence has been chosen for the code in this repository yet. Until one is added, please ask before reusing it.
+
+## Credits
+
+Created by Jochem Braakhekke. See also [For Your Ice](https://foryourice.org/). Built with [Leaflet](https://leafletjs.com/).

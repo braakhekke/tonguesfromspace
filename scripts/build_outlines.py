@@ -20,6 +20,7 @@ When GLAMOS publishes a newer inventory, pass its zip URL with --latest and
 --latest-label (e.g. "SGI2029") and re-run.
 """
 import argparse, csv, io, json, math, os, sqlite3, struct, sys, tempfile, urllib.request, zipfile
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
 LATEST_URL = "https://doi.glamos.ch/data/inventory/inventory_sgi2023_r2026.zip"
@@ -254,7 +255,7 @@ def to_wgs84(e, n):
     y, x = e / 1e6, n / 1e6
     lam = 2.6779094 + 4.728982 * y + 0.791484 * y * x + 0.1306 * y * x * x - 0.0436 * y ** 3
     phi = 16.9023892 + 3.238272 * x - 0.270978 * y * y - 0.002528 * x * x - 0.0447 * y * y * x - 0.0140 * x ** 3
-    return round(lam * 100 / 36, 6), round(phi * 100 / 36, 6)
+    return round(lam * 100 / 36, 5), round(phi * 100 / 36, 5)       # 5 decimals = about 1 m, far below the 10 m pixels, and about 25 % smaller
 
 def group(feats, rows, id_field):
     groups = {}
@@ -308,6 +309,37 @@ def best_match(g, groups):
         if hits > best_hits: best, best_hits = (key, og), hits
     return best
 
+HEIGHT_URL = "https://api3.geo.admin.ch/rest/services/height"
+
+def terrain_height(x, y):
+    """Terrain height in m (swisstopo height service) at an inventory coordinate, or None."""
+    q = f"?easting={x:.1f}&northing={y:.1f}&sr={2056 if x > 2e6 else 21781}"
+    for _ in range(2):
+        try:
+            req = urllib.request.Request(HEIGHT_URL + q, headers={"User-Agent": "glacier-dashboard/1.0"})
+            with urllib.request.urlopen(req, timeout=20, context=_ssl_context()) as r:
+                return float(json.loads(r.read())["height"])
+        except Exception:
+            pass
+    return None
+
+def terminus(polys):
+    """Where the tongue ends: the lowest point of the outline of the main body, found with the swisstopo
+    height service (every ~100th vertex first, then all vertices around the lowest one).
+    Returns {"tip": [lat, lng], "tip_m": height} or None when the service does not answer."""
+    ring = max((p[0] for p in polys), key=len)
+    step = max(1, len(ring) // 100)
+    with ThreadPoolExecutor(8) as ex:
+        rough = list(zip(range(0, len(ring), step), ex.map(lambda i: terrain_height(*ring[i][:2]), range(0, len(ring), step))))
+        rough = [(i, h) for i, h in rough if h is not None]
+        if len(rough) < 20: return None
+        i0 = min(rough, key=lambda t: t[1])[0]
+        idx = [(i0 + k) % len(ring) for k in range(-step, step + 1)]
+        fine = [(i, h) for i, h in zip(idx, ex.map(lambda i: terrain_height(*ring[i][:2]), idx)) if h is not None]
+    i, h = min(fine or rough, key=lambda t: t[1])
+    lng, lat = to_wgs84(*ring[i][:2])
+    return {"tip": [lat, lng], "tip_m": round(h)}
+
 def norm_name(s):
     import unicodedata
     s = unicodedata.normalize("NFD", s or "").encode("ascii", "ignore").decode().lower()
@@ -343,7 +375,27 @@ def length_stats(series, since="2016"):
         "latest_m": round(last["dl"], 1),
         "latest_period": [last["start"][:4], last["end"][:4]],
         "observations": len(series),
+        # every survey as [start year, end year, change in m], so the page can add up any range of years
+        "series": [[int(r["start"][:4]), int(r["end"][:4]), round(r["dl"], 1)] for r in series],
     }
+
+def inventory_stats(groups, top):
+    """How many glaciers the newest inventory lists, how big they are, and the share of the ten largest."""
+    areas = [g["area"] for g in groups.values()]
+    total = sum(areas)
+    return {"count": len(areas), "area_km2": round(total, 1),
+            "top_share_pct": round(100 * sum(g["area"] for _, g in top) / total),
+            "n_over_1km2": sum(1 for a in areas if a >= 1), "n_under_0_1km2": sum(1 for a in areas if a < 0.1),
+            "n_under_0_5km2": sum(1 for a in areas if a < 0.5)}
+
+def previous_terminus(path):
+    """{glacier id: (area, terminus)} from the glaciers.js built last time, so the swisstopo height service is asked only for new or changed glaciers."""
+    try:
+        with open(path, encoding="utf-8") as f:
+            old = json.loads(f.read().split("window.GLACIER_DATA = ", 1)[1].rstrip().rstrip(";"))
+        return {g["id"]: (g.get("area_km2"), g.get("terminus")) for g in old.get("glaciers", []) if g.get("terminus")}
+    except (OSError, IndexError, ValueError, KeyError):
+        return {}
 
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
@@ -386,6 +438,7 @@ def main():
         lc_id, lc_name = read_length_change(a.lengthchange)
         print(f"  {len(lc_id)} glaciers with length-change measurements")
 
+    prev = previous_terminus(a.out)
     out = []
     for rank, (gid, g) in enumerate(top, 1):
         best = best_match(g, oldest)
@@ -398,6 +451,7 @@ def main():
             "center": None, "outline": geojson(g["polys"], a.simplify), "oldest": None,
             "mid": {"area_km2": round(bmid[1]["area"], 2)} if bmid else None,
             "length": length_stats(series),
+            "terminus": prev[gid][1] if gid in prev and prev[gid][0] == round(g["area"], 2) else terminus(g["polys"]),
         }
         (s, w), (n, e) = entry["bbox"]; entry["center"] = [round((s + n) / 2, 5), round((w + e) / 2, 5)]
         if best:
@@ -407,6 +461,7 @@ def main():
         out.append(entry)
         L = entry["length"]
         lc = f"{L['total_m']} m since {L['first_year']}" if L else "not measured"
+        T = entry["terminus"]; lc += f" | tip {T['tip_m']} m asl" if T else " | tip not found"
         print(f"  {rank:2d}. {name:<30} {g['area']:7.2f} km² | {a.oldest_label} "
               f"{entry['oldest']['area_km2'] if entry['oldest'] else '-'} | {a.mid_label} "
               f"{entry['mid']['area_km2'] if entry['mid'] else '-'} | length change {lc}")
@@ -416,6 +471,7 @@ def main():
         "latest_label": a.latest_label, "oldest_label": a.oldest_label, "mid_label": a.mid_label,
         "sources": [a.latest, a.oldest, a.mid, a.lengthchange],
         "licence": "GLAMOS Swiss Glacier Inventories (CC BY 4.0); GLAMOS Swiss Glacier Length Change (scientific and non-commercial use, cite GLAMOS)",
+        "inventory": inventory_stats(latest, top),
         "glaciers": out,
     }
     # Leave the file alone when nothing but the date would change (keeps the git history clean).
