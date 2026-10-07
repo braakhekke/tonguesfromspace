@@ -340,10 +340,16 @@ details.about .note,details.about .src{margin:0 0 8px}
 .video-frame{position:absolute;z-index:655;border:2px solid #fff;border-radius:4px;box-shadow:0 0 0 9999px rgba(10,18,22,.55);pointer-events:none}
 .video-frame span{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;background:var(--rock);color:#fff;font-size:12px;padding:3px 8px;border-radius:4px}
 .video-frame span:empty{display:none}
+.vf-boxes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
+.ph{position:absolute;border:1.5px dashed rgba(255,255,255,.9);border-radius:6px;background:rgba(255,255,255,.1)}
+.ph em{position:absolute;left:4px;top:2px;font:600 9.5px/1.2 var(--sans);color:#fff;font-style:normal;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap}
+.ph.water{background:rgba(143,221,243,.2);border-color:#8FDDF3}
+.vs-guide{font-size:11px!important;line-height:1.35!important;color:var(--moraine)}
 .is-framing .divider,.is-framing .handle,.is-framing .layerbox,.is-framing .year-tag,.is-framing .mapbar .mtool{visibility:hidden}
 .video-sheet{position:fixed;left:16px;bottom:16px;z-index:2000;width:min(300px,calc(100% - 32px));max-height:calc(100% - 32px);overflow-y:auto;background:var(--sheet);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
 .video-sheet .hint{margin:0;font-size:11.5px;line-height:1.4}
 .video-sheet .segment button{padding:5px 2px;font-size:13px;line-height:1.2}
+.video-sheet .segment button{white-space:normal}
 .video-sheet .segment button small{display:block;font-size:10.5px;font-weight:400;color:var(--moraine)}
 .video-sheet .segment button[aria-pressed="true"] small{color:var(--rock)}
 .vs-note{margin:0}
@@ -654,7 +660,7 @@ details.about .note,details.about .src{margin:0 0 8px}
     <div class="pick-hint" id="pickHint" aria-live="polite"><b id="pickTitle">Select a glacier to start</b><span id="pickText">Click a red box on the map, or choose a glacier from the list.</span></div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
-    <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span></div>
+    <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"></div></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
@@ -671,7 +677,9 @@ details.about .note,details.about .src{margin:0 0 8px}
   <div class="segment" role="group" aria-label="Format">
     <button type="button" id="vfReel" aria-pressed="true">9:16<small id="vfReelNote">(Reels, TikTok)</small></button>
     <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Instagram feed)</small></button>
+    <button type="button" id="vfWide" aria-pressed="false">16:9<small>(standard)</small></button>
   </div>
+  <p class="hint vs-guide" id="vsGuide"></p>
   <div class="segment vo-video" role="group" aria-label="Video type">
     <button type="button" id="vtTimelapse" aria-pressed="true">Timelapse</button>
     <button type="button" id="vtSwipe" aria-pressed="false">Slider</button>
@@ -851,6 +859,12 @@ const DATA = window.GLACIER_DATA || null;
 const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 /* canton and mountain range of glaciers that are not in the built-in list (Wikipedia: Findel Glacier, Fee Glacier) */
 const PLACE = { findel: ['Valais', 'Pennine Alps'], fee: ['Valais', 'Pennine Alps'] };
+/* bounding box [[south, west], [north, east]] of a bbox and, if given, a GeoJSON MultiPolygon (lng, lat) */
+function unionBbox(bbox, geom){
+  let [[s, w], [n, e]] = bbox;
+  if (geom) geom.coordinates.forEach(poly => poly[0].forEach(([x, y]) => { if (y < s) s = y; if (y > n) n = y; if (x < w) w = x; if (x > e) e = x; }));
+  return [[s, w], [n, e]];
+}
 let GLACIERS;
 if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
   GLACIERS = DATA.glaciers.map(g => {
@@ -860,7 +874,8 @@ if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
       lede: `${g.name} is one of the ten largest glaciers in the newest Swiss Glacier Inventory.`,
       look: 'Compare the position of the tongue and the extent of bare rock along the margins between years.', note: ''
     };
-    return {...base, inv: g, center: g.center, bounds: padBounds(g.bbox, 0.08)};
+    const extent = unionBbox(g.bbox, g.oldest && g.oldest.outline);      // the 1850 outline is the largest extent: pictures and boxes must contain it with room around
+    return {...base, inv: g, center: g.center, extent, bounds: padBounds(extent, 0.08)};
   });
 } else {
   GLACIERS = DEFAULTS.map(d => ({...d}));
@@ -1022,7 +1037,9 @@ const idb = (() => {
       r.onupgradeneeded = () => { const db = r.result;
         if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
         if (!db.objectStoreNames.contains('use')) db.createObjectStore('use'); };      // use: key -> {t: last used, s: size in bytes}
-      r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
+      r.onsuccess = () => { const db = r.result; db.onversionchange = () => { db.close(); dbp = null; }; res(db); };    // let a newer page upgrade the database
+      r.onerror = () => rej(r.error);
+      r.onblocked = () => setTimeout(() => rej(new Error('cache blocked by another tab')), 2500);   // an old tab holds the old version: go on without the cache instead of waiting for ever
     } catch (e) { rej(e); }
   }));
   const wait = req => new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); });
@@ -1055,9 +1072,17 @@ const idb = (() => {
 })();
 
 /* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
+const IMAGE_MARGIN = 0.33;      // share of the 1850 extent added on every side (this gives Aletsch about 24 x 35 km, which looked right)
+/* Glaciers with their own margins along the length of the picture, as a share of the picture height: Aletsch is long and its image needs little space beyond the 1850 outline at both ends */
+const NS_MARGIN = [['aletsch', 0.08, 0.07]];      // [name part, north, south]; 8 % + 7 % keeps the picture under 2500 px, i.e. 10 m pixels
 const EXTRA_NORTH = [['findel', 0.15]];        // glaciers whose image reaches further north (share of the image height)
 function imageFootprint(g){
-  const b = padBounds(g.bounds, 0.35);   // generous margin around the glacier, for panning and video crops
+  const b = g.extent ? padBounds(g.extent, IMAGE_MARGIN) : padBounds(g.bounds, 0.35);   // margin around the 1850 extent, for panning and video crops
+  const ns = g.extent && NS_MARGIN.find(([k]) => norm(g.local || g.name).includes(k));
+  if (ns) {                                          // north and south margins as a share of the finished picture height
+    const [[s0], [n0]] = g.extent, eh = n0 - s0, H = eh / (1 - ns[1] - ns[2]);
+    b[0][0] = s0 - ns[2] * H; b[1][0] = n0 + ns[1] * H;
+  }
   const extra = EXTRA_NORTH.find(([k]) => norm(g.local || g.name).includes(k));
   if (extra) b[1][0] += (b[1][0] - b[0][0]) * extra[1];
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
@@ -1712,7 +1737,7 @@ function renderStory(){
     </div>
 
     <div class="about-wrap">
-      <a class="gh-invite" href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Help build this</b> The code is open. Join in, or make a dashboard like this for glaciers in your own region.<em>github.com/braakhekke/tonguesfromspace</em></span></a>
+      <a class="gh-invite" href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Want to see more tongues? Help build this!</b> The code is open. Join in, or make a dashboard like this for glaciers in your own region.<em>github.com/braakhekke/tonguesfromspace</em></span></a>
     <details class="about">
       <summary><span class="info-btn" aria-hidden="true">i</span> About Tongues from Space</summary>
       <div class="about-sec"><b>Why Tongues from Space</b>
@@ -1753,6 +1778,7 @@ function renderStory(){
           <li>Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0)${DATA ? `, built ${DATA.generated}` : ''}</li>
           <li>Length change: GLAMOS, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (non-commercial use); length today: GLAMOS, <a href="https://doi.glamos.ch/figures/lc_stat_frequency.pdf" target="_blank" rel="noopener">figure lc_stat_frequency</a></li>
           <li>Volume loss: GLAMOS and SCNAT annual reports; ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo; water use: SVGW</li>
+          <li>This project: code under the MIT licence, own texts under CC BY 4.0, open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a></li>
           <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX</li>
         </ul>
       </div>
@@ -2293,11 +2319,19 @@ const VIDEO = {
   fps: 30,
   formats: {   // safe zones keep text clear of the apps' own buttons and captions
     reel: { w:1080, h:1920, safe:{ top:270, bottom:670, left:65, right:140 } },   // Meta: keep clear of the top 14 %, bottom 35 %, sides 6 % (and the button rail at the bottom right)
-    feed: { w:1080, h:1350, safe:{ top:84,  bottom:96,  left:72, right:72 } }
+    feed: { w:1080, h:1350, safe:{ top:84,  bottom:96,  left:72, right:72 } },
+    wide: { w:1920, h:1080, safe:{ top:56,  bottom:56,  left:90, right:90 } }       // 16:9: text high and low, the image stays free
   },
   intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0, water: 3.6,
   codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
 };
+/* Where text may sit. Animations in 9:16 follow Instagram Reels and TikTok (clear of the app's buttons and captions); every picture, and 16:9 and 4:5,
+   keep the text at the very top and bottom. */
+const STILL_MARGINS = { reel: { top: 74, bottom: 66, left: 64, right: 64 }, feed: { top: 74, bottom: 66, left: 64, right: 64 }, wide: { top: 56, bottom: 56, left: 90, right: 90 } };
+const marginsFor = (kind, fmt) => kind === 'image' ? STILL_MARGINS[fmt] : VIDEO.formats[fmt].safe;
+const FMT_SUFFIX = { reel: '9x16', feed: '4x5', wide: '16x9' };
+const STILL_PANEL_H = 268, STILL_YEAR_H = 174;
+const waterPanelW = (W, H, maxW) => W > H ? Math.min(maxW + 40, 1040) : maxW + 40;
 const vstate = { fmt: 'reel', type: 'timelapse', kind: 'video', busy: false };      // kind: 'video' (animation) or 'image' (one picture)
 /* swipe: [position, seconds]. Position = where the later year starts: 1 = only the first year, 0 = only the later one.
    Back and forth twice, then settle in the middle. A move eases from the previous position. */
@@ -2330,6 +2364,27 @@ function frameGroundRes(){            // metres of terrain per video pixel
   const a = map.containerPointToLatLng([r.x, r.y + r.h / 2]), b = map.containerPointToLatLng([r.x + r.w, r.y + r.h / 2]);
   return map.distance(a, b) / F.w;
 }
+/* Boxes on the map frame that show where the text will sit, from the same margins the drawing uses */
+function layoutBoxes(){
+  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, image = vstate.kind === 'image', S = marginsFor(vstate.kind, vstate.fmt);
+  const maxW = W - S.left - S.right, base = H - S.bottom, wide = W > H, swipe = !image && vstate.type === 'swipe', B = [];
+  B.push({ l: 'Title, glacier, place', x: S.left, y: S.top, w: Math.min(maxW, wide ? W * 0.42 : maxW * 0.92), h: 150 });
+  const bh = image || swipe ? 190 : 240;
+  B.push({ l: image ? 'Year, date, credit' : swipe ? 'Years, credit' : 'Year, date, progress', x: S.left, y: base - bh + 12, w: wide ? W * 0.26 : maxW * 0.52, h: bh });
+  if (image) B.push({ l: 'Scale, site', x: W - S.right - 300, y: base - 100, w: 300, h: 106 });
+  else if (swipe) { B.push({ l: 'Scale', x: W - S.right - 260, y: S.top - 8, w: 260, h: 56 }); B.push({ l: 'Site', x: W - S.right - 260, y: base - 34, w: 260, h: 40 }); }
+  else { B.push({ l: 'Site', x: W - S.right - 260, y: S.top, w: 260, h: 36 }); B.push({ l: 'Scale', x: W - S.right - 300, y: base - 100, w: 300, h: 106 }); }
+  if (image && $('vImgWater').checked) { const pw = waterPanelW(W, H, maxW); B.push({ l: 'Water facts', water: true, x: S.left - 20, y: base - STILL_YEAR_H - 34 - STILL_PANEL_H, w: pw, h: STILL_PANEL_H }); }
+  if (!image && $('vWater').checked) B.push({ l: 'Water facts: a card of 3.6 s before the end', water: true, x: S.left, y: S.top + 10, w: Math.min(maxW, 1100), h: H * 0.5 });
+  return { W, H, B };
+}
+function guideText(){
+  const video = vstate.kind !== 'image';
+  if (vstate.fmt === 'reel') return video ? "Text placement follows the guidance of Instagram Reels and TikTok: it stays clear of the top, the caption area at the bottom and the button column on the right."
+                                          : 'Text sits at the very top and bottom edges of the full phone screen, so the picture stays as free as possible.';
+  if (vstate.fmt === 'feed') return 'Text sits at the very top and bottom of the Instagram feed picture.';
+  return 'Text sits high and low, so most of the 16:9 image stays free.';
+}
 function updateFrame(){
   if ($('videoSheet').hidden) return;
   sheetOverlap = measureSheetOverlap();
@@ -2348,6 +2403,9 @@ function updateFrame(){
   sheetOverlap = measureSheetOverlap();               // the info line can change the panel height
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  $('vsGuide').textContent = guideText();
+  const L = layoutBoxes();
+  $('vfBoxes').innerHTML = L.B.map(b => `<i class="ph${b.water ? ' water' : ''}" style="left:${(b.x / L.W * 100).toFixed(2)}%;top:${(b.y / L.H * 100).toFixed(2)}%;width:${(b.w / L.W * 100).toFixed(2)}%;height:${(b.h / L.H * 100).toFixed(2)}%"><em>${b.l}</em></i>`).join('');
 }
 const introLen = () => $('vIntro').checked ? VIDEO.intro : 0;
 const videoDuration = n => (vstate.type === 'swipe'
@@ -2379,10 +2437,11 @@ function closeVideo(){
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0;
 }
 $('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = closeVideo;
-const setFmt = f => { vstate.fmt = f; $('vfReel').setAttribute('aria-pressed', f === 'reel'); $('vfFeed').setAttribute('aria-pressed', f === 'feed'); updateFrame(); };
-$('vfReel').onclick = () => setFmt('reel'); $('vfFeed').onclick = () => setFmt('feed');
+const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide' };
+const setFmt = f => { vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f)); updateFrame(); };
+Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
 $('vSpeed').onchange = updateFrame;
-$('vWater').onchange = updateFrame; $('vIntro').onchange = updateFrame;
+$('vWater').onchange = updateFrame; $('vIntro').onchange = updateFrame; $('vImgWater').onchange = updateFrame;
 $('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); };   // show the 1850 outline on the map as well
 function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); updateFrame(); }
 $('vtTimelapse').onclick = () => setType('timelapse'); $('vtSwipe').onclick = () => setType('swipe');
@@ -2443,11 +2502,12 @@ function shade(ctx, W, H, S){
   g.addColorStop(0, 'rgba(8,14,18,0)'); g.addColorStop(1, 'rgba(8,14,18,.8)');
   ctx.fillStyle = g; ctx.fillRect(0, H - S.bottom - 380, W, S.bottom + 380);
 }
-function drawHeader(ctx, S, maxW, g){
+function drawHeader(ctx, S, maxW, g){          // the same title block as the single picture: label, full glacier name, a clear gap, then the place
   const x = S.left;
-  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, S.top + 28, {blur:8, color:'#FF5A4E'});
-  const gs = fitText(ctx, g.name, 800, 60, maxW); shadowText(ctx, g.name, x, S.top + 28 + gs + 8);
-  ctx.font = `500 23px ${FONT}`; shadowText(ctx, [g.canton, g.range].filter(Boolean).join(', ') || 'Switzerland', x, S.top + 28 + gs + 42, {blur:8});
+  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, S.top + 22, {blur:8, color:'#FF5A4E'});
+  const gs = fitText(ctx, stillName(g), 800, 68, maxW), ny = S.top + 22 + gs + 16;
+  shadowText(ctx, stillName(g), x, ny);
+  ctx.font = `500 26px ${FONT}`; shadowText(ctx, [g.canton, g.range, 'Switzerland'].filter(Boolean).join(', '), x, ny + 46, {blur:8});
 }
 function drawScaleBar(ctx, info, x, y, maxW){
   const m = niceScale(maxW * 0.28 * info.res), px = m / info.res;
@@ -2473,7 +2533,7 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
   }
   ctx.font = `800 104px ${FONT}`;
   if (hz) {          // the first year sits in the upper picture under the title, the later year in the lower picture; each shows only on its own picture
-    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, split); ctx.clip(); shadowText(ctx, String(info.years[0]), S.left - 4, S.top + 250, {blur:20}); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, split); ctx.clip(); shadowText(ctx, String(info.years[0]), S.left - 4, S.top + 290, {blur:20}); ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip(); shadowText(ctx, String(info.years[1]), S.left - 4, base - 40, {blur:20}); ctx.restore();
   } else {           // the first year on the left, the later year on the right; each fades when its image is fully hidden
     ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 40, {blur:20}); ctx.restore();
@@ -2481,7 +2541,8 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
   }
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${Math.min(...info.years)} and ${Math.max(...info.years)}`, S.left, base, {blur:6, color:'rgba(255,255,255,.88)'});
-  drawScaleBar(ctx, info, W - S.right - niceScale(maxW * 0.28 * info.res) / info.res, S.top + 40, maxW);
+  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
+  drawScaleBar(ctx, info, W - S.right - niceScale(maxW * 0.28 * info.res) / info.res, S.top + 30, maxW);      // top right, level with the title label: clear of the long glacier name below
 }
 function drawLabels(ctx, W, H, S, info, k){
   const g = info.glacier, sc = info.scenes[k], x = S.left, maxW = W - S.left - S.right;
@@ -2489,36 +2550,38 @@ function drawLabels(ctx, W, H, S, info, k){
   ctx.textBaseline = 'alphabetic';
   // top: site title, glacier, canton
   drawHeader(ctx, S, maxW, g);
-  const gs = 0;
   if (info.outline) {
-    const y = S.top + 150;
+    const y = S.top + 205;
     ctx.save(); ctx.strokeStyle = '#F2A93B'; ctx.lineWidth = 5; ctx.setLineDash([14, 9]);
     ctx.beginPath(); ctx.moveTo(x, y - 10); ctx.lineTo(x + 56, y - 10); ctx.stroke(); ctx.restore();
     ctx.font = `500 22px ${FONT}`; shadowText(ctx, 'Glacier outline about 1850', x + 72, y, {blur:8});
   }
-  // bottom: year, date, progress, scale bar, credit
+  // bottom: credit and site, date, progress, year, scale bar
   const base = H - S.bottom;
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0] === info.years[info.years.length - 1] ? info.years[0] : `${info.years[0]}–${info.years[info.years.length - 1]}`}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, {blur:6, color:'rgba(255,255,255,.88)'});
-  const dotsY = base - 44, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
-  if (info.still) { ctx.font = `600 28px ${FONT}`; shadowText(ctx, fmtDate(info.scenes[k].date), x, dotsY + 6, {blur:8}); }
-  else info.years.forEach((y, i) => {
+  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, S.top + 22, {align:'right', blur:8});      // top right: the long credit line owns the bottom
+  ctx.font = `600 28px ${FONT}`; shadowText(ctx, fmtDate(sc.date), x, base - 42, {blur:8});
+  const dotsY = base - 42 - 50, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
+  info.years.forEach((y, i) => {
     ctx.fillStyle = i <= k ? '#fff' : 'rgba(255,255,255,.32)';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x + i * (dw + 8), dotsY, dw, 8, 4) : ctx.rect(x + i * (dw + 8), dotsY, dw, 8); ctx.fill();
   });
   ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, dotsY - 30, {blur:20});
-  // scale bar, right
-  const m = niceScale(maxW * 0.3 * info.res), px = m / info.res, sx = W - S.right - px, sy = dotsY - 46;
+  // scale bar, right, level with the date
+  const m = niceScale(maxW * 0.3 * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 56;
   ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
   ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
-  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 18, {align:'center', blur:8});
+  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, {align:'center', blur:8});
 }
 function drawIntro(ctx, W, H, S, info){
-  ctx.fillStyle = 'rgba(8,14,18,.62)'; ctx.fillRect(0, 0, W, H);
-  const x = S.left, maxW = W - S.left - S.right, mid = S.top + (H - S.top - S.bottom) * 0.42;
+  ctx.fillStyle = 'rgba(8,14,18,.55)'; ctx.fillRect(0, 0, W, H);
+  const x = S.left, maxW = W - S.left - S.right, g = info.glacier, mid = S.top + (H - S.top - S.bottom) * 0.42;
   ctx.font = `700 27px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
-  const gs = fitText(ctx, info.glacier.name, 800, 92, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 20);
-  ctx.font = `500 34px ${FONT}`; shadowText(ctx, info.compare ? `${info.years[0]} and ${info.years[1]}` : `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 76);
+  const gs = fitText(ctx, stillName(g), 800, 84, maxW), ny = mid - 120 + gs + 24; shadowText(ctx, stillName(g), x, ny);
+  ctx.font = `500 30px ${FONT}`; shadowText(ctx, [g.canton, g.range, 'Switzerland'].filter(Boolean).join(', '), x, ny + 56, {blur:8});
+  ctx.font = `500 34px ${FONT}`; shadowText(ctx, info.compare ? `${info.years[0]} and ${info.years[1]}` : `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, ny + 122);
+  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom, {blur:8});
 }
 function waterIcon(ctx, kind, x, y, s){
   ctx.save();
@@ -2530,8 +2593,8 @@ function waterIcon(ctx, kind, x, y, s){
   ctx.restore();
 }
 function drawWaterStill(ctx, W, H, S, info){
-  const w = info.water, x = S.left, maxW = W - S.left - S.right;
-  ctx.fillStyle = 'rgba(8,14,18,.78)'; ctx.fillRect(0, 0, W, H);
+  const w = info.water, x = S.left, maxW = Math.min(W - S.left - S.right, 1100);
+  ctx.fillStyle = 'rgba(8,14,18,.6)'; ctx.fillRect(0, 0, W, H);
   let y = S.top + 60;
   ctx.font = `700 26px ${FONT}`; shadowText(ctx, 'HOW MUCH WATER IS THAT?', x, y, {blur:6, color:'#FF5A4E'});
   if (w.litres > 0) {
@@ -2539,24 +2602,24 @@ function drawWaterStill(ctx, W, H, S, info){
     y += 52; ctx.font = `600 30px ${FONT}`;
     wrap(ctx, `of fresh water melted from all Swiss glaciers, autumn ${w.from} to autumn ${w.to}`, x, y, maxW, 40).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
     y += 40;
-    const rows = [['pool', `${fmtN(w.litres / POOL_L, 1)} Olympic swimming pools`],
-                  ['lake', `${(w.litres / 1e12 / LAKE_ZURICH_KM3).toFixed(1)} × the volume of Lake Zurich`],
-                  ['tap', `${(w.litres / 1e12 / SWISS_SUPPLY_KM3).toFixed(1)} years of all Swiss tap water`]];
+    const N = waterNumbers(w.litres / 0.9e12);          // the same numbers as on the cards and the picture
+    const rows = [['pool', `${N.poolsLong} Olympic swimming pools`],
+                  ['tap', `${N.tap.toFixed(1)} years of all Swiss tap water`]];
     ctx.font = `600 32px ${FONT}`;
     rows.forEach(([k, t]) => { y += 66; waterIcon(ctx, k, x, y - 40, 46); shadowText(ctx, t, x + 66, y); });
   }
   if (w.glacier) {
-    const gl = w.glacier.km3 * iceShareLeft() * 0.9e12;
+    const G = waterNumbers(w.glacier.km3 * iceShareLeft());
     y += 96; ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(x, y - 40, maxW, 2);
     ctx.font = `600 30px ${FONT}`;
-    wrap(ctx, `${info.glacier.name} still holds about ${fmtN(gl, 1)} litres: ${fmtN(gl / POOL_L, 1)} Olympic pools.`, x, y + 6, maxW, 40).forEach(l => shadowText(ctx, l.t, x, l.y));
+    wrap(ctx, `${stillName(info.glacier)} still holds about ${G.litresText} litres (an estimate): ${G.poolsLong} Olympic pools, ${G.tap.toFixed(1)} years of Swiss tap water.`, x, y + 6, maxW, 40).forEach(l => shadowText(ctx, l.t, x, l.y));
   }
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Sources: GLAMOS, SVGW${w.glacier ? ', Grab et al. 2021' : ''}`, x, H - S.bottom, {blur:6, color:'rgba(255,255,255,.8)'});
 }
 function drawOutro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.74)'; ctx.fillRect(0, 0, W, H);
-  const x = S.left, maxW = W - S.left - S.right;
+  const x = S.left, maxW = Math.min(W - S.left - S.right, 1100);
   let y = S.top + 120;
   if (info.lost) {
     ctx.font = `800 140px ${FONT}`; shadowText(ctx, `−${info.lost} %`, x - 4, y + 110, {color:'#FF5A4E'});
@@ -2570,7 +2633,7 @@ function drawOutro(ctx, W, H, S, info){
                  info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : '',
                  info.lost ? 'Volume loss: GLAMOS, Swiss Academy of Sciences' : ''].filter(Boolean);
   lines.forEach(t => wrap(ctx, t, x, y, maxW, 31).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 44; }));
-  ctx.font = `700 31px ${FONT}`; shadowText(ctx, info.site, x, H - S.bottom - 10);
+  ctx.font = `700 31px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom - 10);
 }
 function wrap(ctx, text, x, y, maxW, lh){
   const words = text.split(' '), out = []; let line = '';
@@ -2621,8 +2684,8 @@ function waterNumbers(km3){
 /* ---- the still picture: title and glacier at the very top, year, scale bar and credit at the very bottom, water facts in between ---- */
 const SITE_NAME = 'tonguesfromspace.com';
 const stillName = g => (g.local || g.name).replace(/\s*\(.*?\)\s*/g, ' ').trim();       // the full local name, "Grosser Aletschgletscher", "Glacier de Corbassière"
-function drawStill(ctx, W, H, info, water){
-  const S = { top: 74, bottom: 66, left: 64, right: 64 }, x = S.left, maxW = W - S.left - S.right, g = info.glacier, k = 0;
+function drawStill(ctx, W, H, info, water, S){
+  const x = S.left, maxW = W - S.left - S.right, g = info.glacier, k = 0;
   shade(ctx, W, H, { top: Math.min(S.top, 120), bottom: Math.min(S.bottom, 120) });
   ctx.textBaseline = 'alphabetic';
   // top
@@ -2642,12 +2705,12 @@ function drawStill(ctx, W, H, info, water){
   ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, { align: 'center', blur: 8 });
   // water facts: a quiet panel above the year
   if (water) {
-    const yearTop = base - 42 - 38 - 94, ph = 268, pb = yearTop - 34, py = pb - ph;
-    ctx.save(); ctx.fillStyle = 'rgba(8,14,18,.36)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 20, py, maxW + 40, ph, 22) : ctx.rect(x - 20, py, maxW + 40, ph); ctx.fill(); ctx.restore();
+    const yearTop = base - STILL_YEAR_H, ph = STILL_PANEL_H, pb = yearTop - 34, py = pb - ph, pw = waterPanelW(W, H, maxW);
+    ctx.save(); ctx.fillStyle = 'rgba(8,14,18,.36)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 20, py, pw, ph, 22) : ctx.rect(x - 20, py, pw, ph); ctx.fill(); ctx.restore();
     const n = waterNumbers(water.km3);
     let y = py + 44;
     ctx.font = `700 21px ${FONT}`; shadowText(ctx, `ICE IN THIS GLACIER, AUTUMN ${water.year}`, x, y, { blur: 6, color: '#FF7A6E' });
-    const big = `${n.litresText} litres`; y += 8 + fitText(ctx, big, 800, 64, maxW);
+    const big = `${n.litresText} litres`; y += 8 + fitText(ctx, big, 800, 64, pw - 40);
     shadowText(ctx, big, x, y, { blur: 10, color: '#8FDDF3' });
     ctx.font = `500 26px ${FONT}`; y += 42; shadowText(ctx, `of fresh water, stored as about ${n.km3Text} km³ of ice`, x, y, { blur: 8 });
     ctx.font = `600 26px ${FONT}`; y += 42;
@@ -2658,7 +2721,7 @@ function drawStill(ctx, W, H, info, water){
 async function makeImage(){
   const ys = videoYears();
   if (!ys.length) return showNotice('No picture available for this year.');
-  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = F.safe;
+  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = marginsFor('image', vstate.fmt);
   vstate.busy = true; $('vsGo').disabled = true;
   try {
     const { g, bases, info } = await frameBases(ys, W, H);
@@ -2672,9 +2735,9 @@ async function makeImage(){
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(bases[0], 0, 0);
-    drawStill(ctx, W, H, info, water);                  // a picture is not a Reel: text sits at the very top and bottom in both formats
+    drawStill(ctx, W, H, info, water, S);               // a picture is not a Reel: text sits at the very top and bottom
     const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
-    const name = `tonguesfromspace-${shortSlug(g.name)}-${ys.join('-')}-${vstate.fmt === 'reel' ? '9x16' : '4x5'}.jpg`;
+    const name = `tonguesfromspace-${shortSlug(g.name)}-${ys.join('-')}-${FMT_SUFFIX[vstate.fmt]}.jpg`;
     const file = new File([blob], name, { type: 'image/jpeg' });
     progress(1, 'Image ready');
     if (COARSE && navigator.canShare && navigator.canShare({ files: [file] })) {
@@ -2689,7 +2752,7 @@ async function makeImage(){
 async function makeVideo(){
   const ys = videoYears();
   if (ys.length < 2) return showNotice(vstate.type === 'swipe' ? 'Pick two different years in Compare first.' : 'Pick a timelapse range of at least two years first.');
-  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = F.safe, fps = VIDEO.fps;
+  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = marginsFor('video', vstate.fmt), fps = VIDEO.fps;
   const cfg = await pickCodec(W, H);
   if (!cfg) return showNotice('This browser cannot create MP4 (H.264) videos. Try Chrome, Edge, or Safari on iPhone, iPad or Mac.');
   vstate.busy = true; $('vsGo').disabled = true;
@@ -2767,7 +2830,7 @@ async function makeVideo(){
 
     // 4. MP4 file, then share (phones) or download
     const mp4 = muxMp4({ width: W, height: H, fps, avcC: desc, samples: chunks });
-    const name = `tonguesfromspace-${shortSlug(g.name)}-${vstate.type === 'swipe' ? 'slider' : 'timelapse'}-${ys[0]}-${ys[ys.length - 1]}-${vstate.fmt === 'reel' ? '9x16' : '4x5'}.mp4`;
+    const name = `tonguesfromspace-${shortSlug(g.name)}-${vstate.type === 'swipe' ? 'slider' : 'timelapse'}-${ys[0]}-${ys[ys.length - 1]}-${FMT_SUFFIX[vstate.fmt]}.mp4`;
     const file = new File([mp4], name, { type: 'video/mp4' });
     progress(1, 'Video ready');
     if (COARSE && navigator.canShare && navigator.canShare({ files: [file] })) {
