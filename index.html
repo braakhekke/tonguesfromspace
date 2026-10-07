@@ -231,6 +231,11 @@ details.about .note,details.about .src{margin:0 0 8px}
 .info-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .info-btn[aria-expanded="true"]{background:var(--accent);color:#fff}
 .kf-box .src{margin:6px 0 0;padding:0 10px}
+.about-sec{margin:0 0 12px}
+.about-sec b{display:block;font-size:12.5px;color:var(--rock);margin:0 0 3px}
+.about-sec p{font-size:12px;line-height:1.5;color:var(--moraine);margin:0 0 6px}
+.src-list{margin:0;padding-left:16px;font-size:11.5px;line-height:1.5;color:var(--moraine)}
+.src-list a{color:var(--crevasse)}
 .kf-note{font-size:11.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .stat .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
@@ -248,21 +253,22 @@ details.about .note,details.about .src{margin:0 0 8px}
 .facts td{text-align:right;padding:7px 0;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;font-weight:500}
 .facts td.loss{color:var(--loss)}
 .water{margin:14px 0 4px;padding:16px;border-radius:10px;background:linear-gradient(160deg,#EAF3F7,#F7FAFB);border:1px solid var(--rule)}
-.water .w-hero{font-size:34px;font-weight:800;letter-spacing:-.02em;color:var(--crevasse);line-height:1;font-variant-numeric:tabular-nums}
-.water .w-hero small{display:block;font-size:13px;font-weight:600;color:var(--rock);letter-spacing:0;margin-top:6px}
+.water .w-hero{font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--crevasse);line-height:1;font-variant-numeric:tabular-nums}
+.water .w-hero small{display:block;font-size:12px;font-weight:600;color:var(--rock);letter-spacing:0;margin-top:6px}
 .water .w-chips{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0 10px}
-.water .w-chips button{border:1px solid var(--rule);background:#fff;border-radius:999px;padding:6px 11px;font-size:12.5px;cursor:pointer;color:var(--rock)}
+.water .w-chips button{border:1px solid var(--rule);background:#fff;border-radius:999px;padding:5px 10px;font-size:12px;cursor:pointer;color:var(--rock)}
 .water .w-chips button[aria-pressed="true"]{background:var(--crevasse);border-color:var(--crevasse);color:#fff}
-.water .w-big{font-size:22px;font-weight:800;color:var(--rock);margin:4px 0 2px}
-.water .w-text{font-size:13px;line-height:1.5;margin:0 0 8px}
+.water .w-big{font-size:16px;font-weight:800;color:var(--rock);margin:4px 0 2px}
+.water .w-text{font-size:12.5px;line-height:1.5;margin:0 0 8px}
 .water .w-icons{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
 .water .w-icons svg{width:22px;height:22px}
+.water .w-icons svg.lake{width:46px;height:26px}
 .water .w-key{font-size:11px;color:var(--moraine)}
 .gwater{margin-top:10px}
-.gwater .w-hero{font-size:28px}
+.gwater .w-hero{font-size:21px}
 .g-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 8px}
 .g-row div{background:#fff;border:1px solid var(--rule);border-radius:8px;padding:8px 6px;text-align:center}
-.g-row b{display:block;font-size:15px;white-space:nowrap;color:var(--rock);font-variant-numeric:tabular-nums}
+.g-row b{display:block;font-size:14px;white-space:nowrap;color:var(--rock);font-variant-numeric:tabular-nums}
 .g-row span{display:block;font-size:11px;color:var(--moraine);margin-top:2px;line-height:1.25}
 @media (max-width:720px){.g-row{grid-template-columns:repeat(2,1fr)}}
 .water .w-live{margin-top:12px;padding-top:10px;border-top:1px dashed var(--rule);font-size:12.5px;color:var(--rock)}
@@ -463,6 +469,7 @@ details.about .note,details.about .src{margin:0 0 8px}
         <div class="row">
           <button type="button" class="play" id="playBtn">Play</button>
           <select class="small" id="speedSel" aria-label="Speed">
+            <option value="300">Very fast</option>
             <option value="600">Fast</option>
             <option value="1200" selected>Normal</option>
             <option value="2200">Slow</option>
@@ -566,7 +573,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   <div class="vs-opts">
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
     <label class="toggle"><input type="checkbox" id="vWater"> <span>Add water facts</span></label>
-    <label class="toggle">Speed <select class="small" id="vSpeed"><option value="0.35">Very fast</option><option value="0.7">Fast</option><option value="1.1" selected>Normal</option><option value="1.8">Slow</option></select></label>
+    <label class="toggle">Speed <select class="small" id="vSpeed"><option value="0.2">Very fast</option><option value="0.7">Fast</option><option value="1.1" selected>Normal</option><option value="1.8">Slow</option></select></label>
   </div>
   <p class="hint" id="vsInfo"></p>
   <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
@@ -1434,13 +1441,13 @@ function renderStory(){
   const lost = 1 - inRange.reduce((r, n) => r * (1 - n.v / 100), 1);
   const max = Math.max(...VOLUME_LOSS.map(n => n.v));
 
-  let spanText = 'Pick two years to see what changed in between.';
-  if (known && lo === hi) spanText = `Both sides show ${lo}. Pick two different years to see change.`;
-  else if (known) spanText = `<b>${lo} to ${hi}</b>, ${hi - lo} melt season${hi - lo > 1 ? 's' : ''}.` +
+  let spanText = 'In red are the melt seasons in your selection. Pick two years to see what changed in between.';
+  if (known && lo === hi) spanText = `You selected only ${lo}. Pick two different years to see the melt seasons in between.`;
+  else if (known) spanText = `In red are the melt seasons in your selection. You selected <b>${lo} to ${hi}</b>.` +
     (inRange.length ? (() => {
       const ice = iceVolume(lo) - iceVolume(Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y)), water = ice * 0.9;
-      return ` Swiss glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of their ice: ${ice.toFixed(1)} km³.` +
-        '';
+      return ` In those ${hi - lo} melt season${hi - lo > 1 ? 's' : ''}, Swiss glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of their ice: ${ice.toFixed(1)} km³.` +
+        (inRange.some(n => n.approx) ? ' Values marked ≈ are rounded.' : '');
     })() : '');
 
   const statsHtml = renderStats(g);
@@ -1468,9 +1475,6 @@ function renderStory(){
 
     <div class="tab-panel" data-panel="figures" ${storyTab === 'figures' ? '' : 'hidden'}>
       ${statsHtml}
-      <p class="note with-info">Key figures from GLAMOS <button type="button" class="info-btn" aria-expanded="false" aria-controls="kfNote" aria-label="About these figures"
-        onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></p>
-      <div id="kfNote" class="kf-box" hidden>${keyFiguresNote()}${statsSource()}</div>
       <div id="gWater"></div>
     </div>
 
@@ -1484,26 +1488,40 @@ function renderStory(){
             <span class="v">${n.approx ? '≈' : ''}${n.v.toFixed(1)} %</span>
           </div>`).join('')}
       </div>
-      <p class="note">Red: the melt seasons in your selection. ≈ rounded values.</p>
       <p class="span-note">${spanText}</p>
       ${waterSection(lo, hi)}
     </div>
 
     <details class="about">
       <summary><span class="info-btn" aria-hidden="true">i</span> About the images, data and sources</summary>
-    <p class="note">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene up to the 20th is used (in 2024 up to the 14th, because of heavy snowfall on the 15th); if September has no clear scene, the best one from August, then from July. The image is then rendered from Level-1C with the Copernicus Browser true colour process (atmospheric correction, contrast curve and a saturation boost), which keeps shaded slopes natural. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
-    <p class="note">Why late summer: Swiss glacier monitoring works with the glaciological year, 1 October to 30 September. September marks the end of the melt season, when the glacier is at its smallest and the year's melt is complete, and it is when GLAMOS takes its end-of-summer measurements. An image from September therefore shows nearly the same moment as the annual figures in the Switzerland tab. The search stops at 20 September rather than the very end of the month: from then on, the first autumn snowfalls become likely, and fresh snow hides the tongue and the true extent of the ice. In 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
-    ${state.style === 'false' ? '<p class="note">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
-    <p class="note">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
-
-      <p class="note">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself; measurements are geodesic.</p>
-    <p class="src">
-      Imagery: Copernicus Sentinel-2 Level-1C (images) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.<br>
-      Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.<br>
-      Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0).${DATA ? ` Outlines built on ${DATA.generated}.` : ''}<br>
-      Length change: GLAMOS, Swiss Glacier Length Change, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (scientific and non-commercial use).<br>
-      Annual volume loss: GLAMOS and Swiss Academy of Sciences annual glacier reports. National ice volume: GLAMOS annual report 2024 (46.4 km³ at the end of 2024). Ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo. Water use: SVGW water statistics.
-    </p>
+      <div class="about-sec"><b>The images</b>
+        <p>One Sentinel-2 scene per year: the clearest late-summer view. All acquisitions from July to 20 September are scored for cloud and snow cover; the best September scene wins, otherwise August, otherwise July. Rendered from Level-1C with the Copernicus Browser true colour process, which keeps shaded slopes natural.</p>
+        ${state.style === 'false' ? '<p>Infrared: near infrared shown as red. Bare ice absorbs it and turns blue, snow stays white, so the tongue and the snow line stand out.</p>' : ''}
+        ${state.style === 'parece' ? '<p>Parece: B8A, B11 and B12. Snow and ice reflect near infrared but not shortwave infrared and turn red; clouds stay white.</p>' : ''}
+      </div>
+      <div class="about-sec"><b>Why September, until the 20th</b>
+        <p>Swiss glacier monitoring uses the glaciological year, 1 October to 30 September. September is the end of the melt season and when GLAMOS measures, so the images match the annual figures. After about 20 September the first autumn snow often hides the tongue and the true ice extent. In 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
+      </div>
+      <div class="about-sec"><b>Glacier figures (Stats tab)</b>
+        <p>All from one source, Glacier Monitoring Switzerland (GLAMOS); a dash means GLAMOS has no value. Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label}, ${DATA.mid_label || 'SGI1973'} and ${DATA.latest_label}` : '1850, 1973 and 2016'}. Length change: measured at the tongue, negative means retreat; one survey can span several years. When tributaries separate, part of an area drop is a change of definition, not only melt.${DATA ? '' : ' <em>The GLAMOS data file is not loaded yet.</em>'}</p>
+      </div>
+      <div class="about-sec"><b>Ice and water</b>
+        <p>Swiss glaciers held about 46.4 km³ of ice at the end of 2024 (GLAMOS); other years follow from the annual losses. Ice per glacier: Grab et al. (2021), state around 2016. 1 km³ of ice gives about 0.9 trillion litres of water. Comparisons: Olympic pool 2.5 million litres, Lake Zurich 3.9 km³, Swiss water supply about 930 million m³ a year (SVGW).</p>
+      </div>
+      <div class="about-sec"><b>Measuring</b>
+        <p>Measure length and Measure area on the map toolbar give geodesic results, correct at any zoom.</p>
+      </div>
+      <div class="about-sec"><b>Sources</b>
+        <ul class="src-list">
+          <li>Imagery: Copernicus Sentinel-2 L1C and L2A, contains modified Copernicus Sentinel data, <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a></li>
+          <li>Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0)${DATA ? `, built ${DATA.generated}` : ''}</li>
+          <li>Length change: GLAMOS, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (non-commercial use)</li>
+          <li>Volume loss: GLAMOS and SCNAT annual reports</li>
+          <li>Ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo</li>
+          <li>Water use: SVGW water statistics</li>
+          <li>Background: Sentinel-2 cloudless 2024 by EOX (CC BY-NC-SA 4.0); map © OpenStreetMap contributors</li>
+        </ul>
+      </div>
     </details>`;
   document.querySelectorAll('#story .tabs button').forEach(bt => bt.onclick = () => {
     storyTab = bt.dataset.tab;
@@ -1657,7 +1675,7 @@ function renderGlacierWater(){
         <div><b>${(v.km3 * 0.9 / SWISS_SUPPLY_KM3).toFixed(1)}</b><span>years of Swiss tap water</span></div>
         ${v.max ? `<div><b>${Math.round(v.max)} m</b><span>thickest ice</span></div>` : `<div><b>${v.mean} m</b><span>mean thickness</span></div>`}
       </div>
-      <p class="w-key">Ice volume: Grab et al. (2021) via swisstopo. 1 km³ of ice gives about 0.9 trillion litres of water.</p>
+      <p class="w-key">Ice volume: Grab et al. (2021) via swisstopo.</p>
     </section>`;
   });
 }
@@ -1665,7 +1683,7 @@ function renderGlacierWater(){
 /* ---------- "How much water is that?" ---------- */
 const W_ICONS = {
   pool: '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="2" fill="#5FB8D9"/><path d="M4 12c2-1.5 4 1.5 6 0s4 1.5 6 0 4 1.5 4 0" stroke="#fff" stroke-width="1.4" fill="none"/></svg>',
-  lake: '<svg viewBox="0 0 24 24"><path d="M3 15c0-5 5-9 10-8 5 1 8 4 8 7s-4 5-9 5-9-1-9-4z" fill="#2D6E8E"/><path d="M7 14c2-1 3 1 5 0s3 1 5 0" stroke="#9CD3E6" stroke-width="1.3" fill="none"/></svg>',
+  lake: '<svg class="lake" viewBox="0 0 41 21"><path d="M2.4 1.2 L9 4.6 L16 9.4 L22.8 13.4 L26.6 15.6 L27.9 16.5 L33 16.7 L38.6 17.2 L39.6 18.1 L38.4 19.2 L33 18.9 L28.2 17.4 L27.3 18.5 L25.4 18.6 L21.2 16.9 L14 13.1 L7.2 8.1 L1.4 3.1 Z" fill="#2D6E8E"/></svg>',   // outline of Lake Zurich (Zurich to the Obersee)
   tap: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="#fff" stroke="#22313A" stroke-width="1.4"/><path d="M3 9h18" stroke="#C8322A" stroke-width="2.4"/><path d="M12 12.5c-1.6 2-2.4 3.2-2.4 4.1a2.4 2.4 0 0 0 4.8 0c0-.9-.8-2.1-2.4-4.1z" fill="#2D6E8E"/></svg>',
   person: '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.4" fill="#22313A"/><path d="M5.5 21c.5-4.4 3-6.6 6.5-6.6s6 2.2 6.5 6.6z" fill="#22313A"/></svg>'
 };
@@ -2120,7 +2138,7 @@ function waterIcon(ctx, kind, x, y, s){
   ctx.save();
   if (kind === 'pool') { ctx.fillStyle = '#5FB8D9'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y + s * 0.2, s, s * 0.6, s * 0.12) : ctx.rect(x, y + s * 0.2, s, s * 0.6); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = s * 0.07; ctx.beginPath(); for (let i = 0; i <= 4; i++) { const px = x + s * (0.1 + i * 0.2), py = y + s * (i % 2 ? 0.55 : 0.45); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); }
-  if (kind === 'lake') { ctx.fillStyle = '#2D6E8E'; ctx.beginPath(); ctx.ellipse(x + s / 2, y + s / 2, s / 2, s * 0.32, -0.2, 0, Math.PI * 2); ctx.fill(); }
+  if (kind === 'lake') { ctx.fillStyle = '#5FB8D9'; ctx.translate(x, y + s * 0.25); ctx.scale(s / 40, s / 40); ctx.fill(new Path2D('M2.4 1.2 L9 4.6 L16 9.4 L22.8 13.4 L26.6 15.6 L27.9 16.5 L33 16.7 L38.6 17.2 L39.6 18.1 L38.4 19.2 L33 18.9 L28.2 17.4 L27.3 18.5 L25.4 18.6 L21.2 16.9 L14 13.1 L7.2 8.1 L1.4 3.1 Z')); }
   if (kind === 'tap') { ctx.fillStyle = '#9CD3E6'; ctx.beginPath(); ctx.moveTo(x + s / 2, y + s * 0.1); ctx.bezierCurveTo(x + s * 0.95, y + s * 0.6, x + s * 0.8, y + s * 0.95, x + s / 2, y + s * 0.95);
     ctx.bezierCurveTo(x + s * 0.2, y + s * 0.95, x + s * 0.05, y + s * 0.6, x + s / 2, y + s * 0.1); ctx.fill(); }
   ctx.restore();
