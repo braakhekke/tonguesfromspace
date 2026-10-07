@@ -344,6 +344,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .ph{position:absolute;border:1.5px dashed rgba(255,255,255,.9);border-radius:6px;background:rgba(255,255,255,.1)}
 .ph em{position:absolute;left:4px;top:2px;font:600 9.5px/1.2 var(--sans);color:#fff;font-style:normal;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap}
 .ph.water{background:rgba(143,221,243,.2);border-color:#8FDDF3}
+.ph.low em{top:auto;bottom:3px}
 .vs-guide{font-size:11px!important;line-height:1.35!important;color:var(--moraine)}
 .is-framing .divider,.is-framing .handle,.is-framing .layerbox,.is-framing .year-tag,.is-framing .mapbar .mtool{visibility:hidden}
 .video-sheet{position:fixed;left:16px;bottom:16px;z-index:2000;width:min(300px,calc(100% - 32px));max-height:calc(100% - 32px);overflow-y:auto;background:var(--sheet);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
@@ -673,11 +674,11 @@ details.about .note,details.about .src{margin:0 0 8px}
 <!-- ================= VIDEO EXPORT PANEL ================= -->
 <section class="video-sheet" id="videoSheet" role="dialog" aria-label="Download animation" hidden>
   <div class="vs-head"><strong id="vsTitle">Download animation</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
-  <p class="hint">Move and zoom the map until the tongue sits inside the white frame.</p>
+  <p class="hint">Move and zoom until the tongue fits the frame.</p>
   <div class="segment" role="group" aria-label="Format">
-    <button type="button" id="vfReel" aria-pressed="true">9:16<small id="vfReelNote">(Reels, TikTok)</small></button>
-    <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Instagram feed)</small></button>
-    <button type="button" id="vfWide" aria-pressed="false">16:9<small>(standard)</small></button>
+    <button type="button" id="vfWide" aria-pressed="true">16:9<small>(standard)</small></button>
+    <button type="button" id="vfReel" aria-pressed="false">9:16<small id="vfReelNote">(Reels, TikTok)</small></button>
+    <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Insta feed)</small></button>
   </div>
   <p class="hint vs-guide" id="vsGuide"></p>
   <div class="segment vo-video" role="group" aria-label="Video type">
@@ -685,14 +686,14 @@ details.about .note,details.about .src{margin:0 0 8px}
     <button type="button" id="vtSwipe" aria-pressed="false">Slider</button>
   </div>
   <div class="vs-opts">
-    <label class="toggle vo-image"><input type="checkbox" id="vImgWater"> <span>Add water facts of this year</span></label>
-    <label class="toggle vo-video"><input type="checkbox" id="vIntro" checked> <span>Include the front page</span></label>
-    <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
-    <label class="toggle vo-video"><input type="checkbox" id="vWater"> <span>Add water facts</span></label>
+    <label class="toggle vo-image"><input type="checkbox" id="vImgWater"> <span>Add water facts</span></label>
+    <label class="toggle vo-video"><input type="checkbox" id="vIntro" checked> <span>Add a title slide</span></label>
+    <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show 1850 outline</span></label>
+    <label class="toggle vo-video"><input type="checkbox" id="vEnd" checked> <span>Add informative end slide</span></label>
     <label class="toggle speed-row vo-video"><span>Speed</span> <select class="small" id="vSpeed"><option value="2.2">0.5 fps</option><option value="1.2" selected>1.0 fps</option><option value="0.6">2.0 fps</option><option value="0.3">4.0 fps</option></select></label>
   </div>
   <p class="hint vs-note" id="vsInfo"></p>
-  <p class="hint vs-help"><span id="vsSource"></span> <span class="vo-video">The result is an MP4 for Instagram, TikTok or anywhere else.</span></p>
+  <p class="hint vs-help"><span id="vsSource"></span> <span class="vo-video">Result: MP4, ready for Instagram or TikTok.</span></p>
   <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
   <button type="button" class="play" id="vsGo" style="width:100%;padding:9px 12px;font-size:14px">Download video</button>
 </section>
@@ -2249,8 +2250,12 @@ if (prefs.hideL) setPanel('left', true, false);
 if (prefs.hideR) setPanel('right', true, false);
 
 function chooseGlacier(id){
+  const first = !glacierPicked;
   glacierPicked = true; updatePickHint();
-  if (state.glacier === id) { stopPlay(); return focusTongue(); }
+  if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines
+    stopPlay(); if (first) { drawOutlines(); writeHash(); }
+    return focusTongue();
+  }
   stopPlay();
   state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); drawTonguePin(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
@@ -2322,7 +2327,7 @@ const VIDEO = {
     feed: { w:1080, h:1350, safe:{ top:84,  bottom:96,  left:72, right:72 } },
     wide: { w:1920, h:1080, safe:{ top:56,  bottom:56,  left:90, right:90 } }       // 16:9: text high and low, the image stays free
   },
-  intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0, water: 3.6,
+  intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0, end: 6.5,   // outro: plain closing card with the credits; end: the informative end slide (replaces it)
   codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
 };
 /* Where text may sit. Animations in 9:16 follow Instagram Reels and TikTok (clear of the app's buttons and captions); every picture, and 16:9 and 4:5,
@@ -2332,7 +2337,7 @@ const marginsFor = (kind, fmt) => kind === 'image' ? STILL_MARGINS[fmt] : VIDEO.
 const FMT_SUFFIX = { reel: '9x16', feed: '4x5', wide: '16x9' };
 const STILL_PANEL_H = 268, STILL_YEAR_H = 174;
 const waterPanelW = (W, H, maxW) => W > H ? Math.min(maxW + 40, 1040) : maxW + 40;
-const vstate = { fmt: 'reel', type: 'timelapse', kind: 'video', busy: false };      // kind: 'video' (animation) or 'image' (one picture)
+const vstate = { fmt: 'wide', type: 'timelapse', kind: 'video', busy: false };      // kind: 'video' (animation) or 'image' (one picture)
 /* swipe: [position, seconds]. Position = where the later year starts: 1 = only the first year, 0 = only the later one.
    Back and forth twice, then settle in the middle. A move eases from the previous position. */
 const SWIPE_KEYS = [[1, 1.0], [0, 1.7], [0, 0.7], [1, 1.5], [1, 0.5], [0, 1.5], [0, 0.7], [1, 1.5], [1, 0.4], [0.5, 1.2], [0.5, 1.4]];
@@ -2374,43 +2379,44 @@ function layoutBoxes(){
   if (image) B.push({ l: 'Scale, site', x: W - S.right - 300, y: base - 100, w: 300, h: 106 });
   else if (swipe) { B.push({ l: 'Scale', x: W - S.right - 260, y: S.top - 8, w: 260, h: 56 }); B.push({ l: 'Site', x: W - S.right - 260, y: base - 34, w: 260, h: 40 }); }
   else { B.push({ l: 'Site', x: W - S.right - 260, y: S.top, w: 260, h: 36 }); B.push({ l: 'Scale', x: W - S.right - 300, y: base - 100, w: 300, h: 106 }); }
-  if (image && $('vImgWater').checked) { const pw = waterPanelW(W, H, maxW); B.push({ l: 'Water facts', water: true, x: S.left - 20, y: base - STILL_YEAR_H - 34 - STILL_PANEL_H, w: pw, h: STILL_PANEL_H }); }
-  if (!image && $('vWater').checked) B.push({ l: 'Water facts: a card of 3.6 s before the end', water: true, x: S.left, y: S.top + 10, w: Math.min(maxW, 1100), h: H * 0.5 });
+  if (image && $('vImgWater').checked) { const pw = waterPanelW(W, H, maxW); B.push({ l: 'Water facts', water: true, low: true, x: S.left - 20, y: base - STILL_YEAR_H - 34 - STILL_PANEL_H, w: pw, h: STILL_PANEL_H }); }
+  if (!image && $('vEnd').checked) B.push({ l: 'End slide: glacier, Switzerland', water: true, low: true, x: S.left, y: S.top, w: Math.min(maxW, 1100), h: END_H0 * endScale(H, S) });
   return { W, H, B };
 }
 function guideText(){
   const video = vstate.kind !== 'image';
-  if (vstate.fmt === 'reel') return video ? "Text placement follows the guidance of Instagram Reels and TikTok: it stays clear of the top, the caption area at the bottom and the button column on the right."
-                                          : 'Text sits at the very top and bottom edges of the full phone screen, so the picture stays as free as possible.';
-  if (vstate.fmt === 'feed') return 'Text sits at the very top and bottom of the Instagram feed picture.';
-  return 'Text sits high and low, so most of the 16:9 image stays free.';
+  if (vstate.fmt === 'reel') return video ? 'Text stays clear of the Reels and TikTok buttons and captions.'
+                                          : 'Text sits at the top and bottom edge, so the picture stays free.';
+  if (vstate.fmt === 'feed') return 'Text sits at the top and bottom.';
+  return 'Text sits high and low, so the image stays free.';
 }
 function updateFrame(){
   if ($('videoSheet').hidden) return;
   sheetOverlap = measureSheetOverlap();
   const res = frameGroundRes();
-  $('videoFrameNote').textContent = res < 4 ? `Zoom out a little for a sharper ${vstate.kind === 'image' ? 'picture' : 'video'}` : '';
+  $('videoFrameNote').textContent = res < 4 ? `Zoom out for a sharper ${vstate.kind === 'image' ? 'picture' : 'video'}` : '';
   const ys = videoYears();
-  $('vsSource').textContent = vstate.kind === 'image' ? '' : vstate.type === 'swipe' ? `The two years come from Compare (${horiz() ? 'top and bottom' : 'left and right'} image).` : 'The years come from the timelapse range (From and To).';
+  $('vsSource').textContent = vstate.kind === 'image' ? '' : vstate.type === 'swipe' ? `Years from Compare (${horiz() ? 'top and bottom' : 'left and right'}).` : 'Years from the timelapse range.';
   if (vstate.kind === 'image') {
-    $('vsInfo').textContent = ys.length ? `One picture of ${ys[0]}.` : 'No picture available for this year.';
-    if (res < 4) $('vsInfo').textContent += ' The images have 10 m pixels, so this close in the picture will look soft.';
+    $('vsInfo').textContent = ys.length ? `One picture, ${ys[0]}.` : 'No picture for this year.';
+    if (res < 4) $('vsInfo').textContent += ' Images have 10 m pixels: this close, the picture looks soft.';
   } else $('vsInfo').textContent = ys.length < 2
-    ? (vstate.type === 'swipe' ? 'Pick two different years in Compare first.' : 'Pick a timelapse range of at least two years first.')
-    : (vstate.type === 'swipe' ? `Slider between ${ys[0]} and ${ys[1]}, about ${Math.round(videoDuration(2))} seconds.`
-                               : `${ys.length} years, ${ys[0]} to ${ys[ys.length - 1]}, about ${Math.round(videoDuration(ys.length))} seconds.`) +
-      (res < 4 ? ' The images have 10 m pixels, so this close in the video will look soft.' : '');
+    ? (vstate.type === 'swipe' ? 'Pick two years in Compare first.' : 'Pick at least two years first.')
+    : (vstate.type === 'swipe' ? `Slider, ${ys[0]} and ${ys[1]}, about ${Math.round(videoDuration(2))} s.`
+                               : `${ys.length} years, ${ys[0]}–${ys[ys.length - 1]}, about ${Math.round(videoDuration(ys.length))} s.`) +
+      (res < 4 ? ' Images have 10 m pixels: this close, the video looks soft.' : '');
   sheetOverlap = measureSheetOverlap();               // the info line can change the panel height
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
   $('vsGuide').textContent = guideText();
   const L = layoutBoxes();
-  $('vfBoxes').innerHTML = L.B.map(b => `<i class="ph${b.water ? ' water' : ''}" style="left:${(b.x / L.W * 100).toFixed(2)}%;top:${(b.y / L.H * 100).toFixed(2)}%;width:${(b.w / L.W * 100).toFixed(2)}%;height:${(b.h / L.H * 100).toFixed(2)}%"><em>${b.l}</em></i>`).join('');
+  $('vfBoxes').innerHTML = L.B.map(b => `<i class="ph${b.water ? ' water' : ''}${b.low ? ' low' : ''}" style="left:${(b.x / L.W * 100).toFixed(2)}%;top:${(b.y / L.H * 100).toFixed(2)}%;width:${(b.w / L.W * 100).toFixed(2)}%;height:${(b.h / L.H * 100).toFixed(2)}%"><em>${b.l}</em></i>`).join('');
 }
 const introLen = () => $('vIntro').checked ? VIDEO.intro : 0;
+const tailLength = () => $('vEnd').checked ? VIDEO.end : VIDEO.outro;
 const videoDuration = n => (vstate.type === 'swipe'
-  ? introLen() + swipeLength(+$('vSpeed').value / 1.2) + VIDEO.outro
-  : introLen() + n * +$('vSpeed').value + VIDEO.hold + VIDEO.outro) + ($('vWater').checked ? VIDEO.water : 0);
+  ? introLen() + swipeLength(+$('vSpeed').value / 1.2) + tailLength()
+  : introLen() + n * +$('vSpeed').value + VIDEO.hold + tailLength());
 map.on('move zoom resize', updateFrame);
 
 function openVideo(kind = 'video'){
@@ -2441,7 +2447,7 @@ const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide' };
 const setFmt = f => { vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f)); updateFrame(); };
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
 $('vSpeed').onchange = updateFrame;
-$('vWater').onchange = updateFrame; $('vIntro').onchange = updateFrame; $('vImgWater').onchange = updateFrame;
+$('vEnd').onchange = updateFrame; $('vIntro').onchange = updateFrame; $('vImgWater').onchange = updateFrame;
 $('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); };   // show the 1850 outline on the map as well
 function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); updateFrame(); }
 $('vtTimelapse').onclick = () => setType('timelapse'); $('vtSwipe').onclick = () => setType('swipe');
@@ -2592,46 +2598,59 @@ function waterIcon(ctx, kind, x, y, s){
     ctx.bezierCurveTo(x + s * 0.2, y + s * 0.95, x + s * 0.05, y + s * 0.6, x + s / 2, y + s * 0.1); ctx.fill(); }
   ctx.restore();
 }
-function drawWaterStill(ctx, W, H, S, info){
-  const w = info.water, x = S.left, maxW = Math.min(W - S.left - S.right, 1100);
-  ctx.fillStyle = 'rgba(8,14,18,.6)'; ctx.fillRect(0, 0, W, H);
-  let y = S.top + 60;
-  ctx.font = `700 26px ${FONT}`; shadowText(ctx, 'HOW MUCH WATER IS THAT?', x, y, {blur:6, color:'#FF5A4E'});
-  if (w.litres > 0) {
-    y += 96; ctx.font = `800 ${fitText(ctx, fmtN(w.litres, 1) + ' litres', 800, 84, maxW)}px ${FONT}`; shadowText(ctx, fmtN(w.litres, 1) + ' litres', x, y, {color:'#7FD3EE'});
-    y += 52; ctx.font = `600 30px ${FONT}`;
-    wrap(ctx, `of fresh water melted from all Swiss glaciers, autumn ${w.from} to autumn ${w.to}`, x, y, maxW, 40).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
-    y += 40;
-    const N = waterNumbers(w.litres / 0.9e12);          // the same numbers as on the cards and the picture
-    const rows = [['pool', `${N.poolsLong} Olympic swimming pools`],
-                  ['tap', `${N.tap.toFixed(1)} years of all Swiss tap water`]];
-    ctx.font = `600 32px ${FONT}`;
-    rows.forEach(([k, t]) => { y += 66; waterIcon(ctx, k, x, y - 40, 46); shadowText(ctx, t, x + 66, y); });
+/* The informative end slide: what melted in the chosen period, this glacier on top, all of Switzerland below, credits small in the corner.
+   Drawn at a fixed design size (END_H0 high) and scaled down when the safe area is short, as on 16:9. */
+const END_H0 = 760;
+const endScale = (H, S) => Math.min(1, (H - S.top - S.bottom - 80) / END_H0);
+function endBlock(ctx, y, maxW, label, d){            // one block of numbers; returns the baseline of its last line
+  ctx.font = `700 24px ${FONT}`; shadowText(ctx, label, 0, y, {blur:6, color:'#FF5A4E'});
+  if (d.pct) {
+    ctx.font = `600 22px ${FONT}`; const cw = ctx.measureText('of total glacier volume').width;
+    shadowText(ctx, 'of total glacier volume', maxW, y + 14, {align:'right', blur:6, color:'rgba(255,255,255,.88)'});
+    ctx.font = `800 56px ${FONT}`; shadowText(ctx, `−${d.pct} %`, maxW - cw - 14, y + 14, {align:'right', color:'#FF5A4E'});
   }
-  if (w.glacier) {
-    const G = waterNumbers(w.glacier.km3 * iceShareLeft());
-    y += 96; ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.fillRect(x, y - 40, maxW, 2);
-    ctx.font = `600 30px ${FONT}`;
-    wrap(ctx, `${stillName(info.glacier)} still holds about ${G.litresText} litres (an estimate): ${G.poolsLong} Olympic pools, ${G.tap.toFixed(1)} years of Swiss tap water.`, x, y + 6, maxW, 40).forEach(l => shadowText(ctx, l.t, x, l.y));
-  }
-  ctx.font = `500 19px ${FONT}`;
-  shadowText(ctx, `Sources: GLAMOS, SVGW${w.glacier ? ', Grab et al. 2021' : ''}`, x, H - S.bottom, {blur:6, color:'rgba(255,255,255,.8)'});
+  y += 88; const big = `${d.N.litresText} litres`;
+  ctx.font = `800 ${fitText(ctx, big, 800, 82, maxW)}px ${FONT}`; shadowText(ctx, big, 0, y, {color:'#7FD3EE', blur:10});
+  y += 46; ctx.font = `600 28px ${FONT}`;
+  wrap(ctx, d.sub, 0, y, maxW, 37).forEach(l => { shadowText(ctx, l.t, 0, l.y); y = l.y; });
+  y += 20;
+  [['pool', `${d.N.poolsLong} Olympic swimming pools`], ['tap', `${d.N.tap.toFixed(1)} years of all Swiss tap water`]].forEach(([k, t]) => {
+    y += 58; waterIcon(ctx, k, 0, y - 36, 42); ctx.font = `600 31px ${FONT}`; shadowText(ctx, t, 62, y);
+  });
+  if (d.note) { y += 50; ctx.font = `500 25px ${FONT}`; shadowText(ctx, d.note, 0, y, {blur:6, color:'rgba(255,255,255,.82)'}); }
+  return y;
 }
-function drawOutro(ctx, W, H, S, info){
+function drawEndSlide(ctx, W, H, S, info){
+  const e = info.end, w = Math.min(W - S.left - S.right, 1100) / endScale(H, S), u = endScale(H, S);
+  ctx.fillStyle = 'rgba(8,14,18,.78)'; ctx.fillRect(0, 0, W, H);
+  ctx.save(); ctx.translate(S.left, S.top); ctx.scale(u, u);
+  let y = 30; ctx.font = `600 30px ${FONT}`;
+  wrap(ctx, `In the time period you selected (${e.from} – ${e.to}) this changed:`, 0, y, w, 40).forEach(l => { shadowText(ctx, l.t, 0, l.y, {color:'rgba(255,255,255,.92)'}); y = l.y; });
+  y += 66;
+  if (e.glacier) {
+    y = endBlock(ctx, y, w, stillName(info.glacier).toUpperCase(), e.glacier) + 40;
+    ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fillRect(0, y, w, 2); y += 64;
+  }
+  endBlock(ctx, y, w, 'ALL SWISS GLACIERS', e.swiss);
+  ctx.restore();
+  // credits: small, bottom left; the site name bottom right
+  const base = H - S.bottom, lh = 23;
+  ctx.font = `500 17px ${FONT}`;
+  const credit = [`Satellite images: contains modified Copernicus Sentinel data ${info.compare ? `${info.years[0]} and ${info.years[1]}` : `${info.years[0]}–${info.years[info.years.length - 1]}`}, Copernicus Data Space Ecosystem`,
+                  info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : '',
+                  `Ice losses: GLAMOS, Swiss Academy of Sciences${e.glacier ? '; ice of the glacier: Grab et al. 2021' : ''}`,
+                  'Tap water: SVGW'].filter(Boolean).join(' · ');
+  const lines = wrap(ctx, credit, S.left, base, W - S.left - S.right - 300, lh);
+  lines.forEach((l, i) => shadowText(ctx, l.t, S.left, base - (lines.length - 1 - i) * lh, {blur:4, color:'rgba(255,255,255,.72)'}));
+  ctx.font = `700 26px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
+}
+function drawOutro(ctx, W, H, S, info){            // plain closing card: credits and the site
   ctx.fillStyle = 'rgba(8,14,18,.74)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = Math.min(W - S.left - S.right, 1100);
   let y = S.top + 120;
-  if (info.lost) {
-    ctx.font = `800 140px ${FONT}`; shadowText(ctx, `−${info.lost} %`, x - 4, y + 110, {color:'#FF5A4E'});
-    y += 172;
-    ctx.font = `600 36px ${FONT}`;
-    wrap(ctx, `of the ice of all Swiss glaciers melted between autumn ${Math.min(...info.years)} and ${Math.max(...info.years)}`, x, y, maxW, 46).forEach(l => { shadowText(ctx, l.t, x, l.y); y = l.y; });
-    y += 70;
-  }
   ctx.font = `500 23px ${FONT}`;
   const lines = [`Satellite images: contains modified Copernicus Sentinel data ${info.compare ? `${info.years[0]} and ${info.years[1]}` : `${info.years[0]}–${info.years[info.years.length - 1]}`}, Copernicus Data Space Ecosystem`,
-                 info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : '',
-                 info.lost ? 'Volume loss: GLAMOS, Swiss Academy of Sciences' : ''].filter(Boolean);
+                 info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : ''].filter(Boolean);
   lines.forEach(t => wrap(ctx, t, x, y, maxW, 31).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 44; }));
   ctx.font = `700 31px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom - 10);
 }
@@ -2762,19 +2781,23 @@ async function makeVideo(){
 
     // 2. timeline
     const intro = introLen(), per = +$('vSpeed').value, fade = Math.min(VIDEO.fade, per * 0.45), k = per / 1.2;   // k: speed factor for the swipe
-    const total = vstate.type === 'swipe'
-      ? intro + swipeLength(k) + VIDEO.outro
-      : intro + ys.length * per + VIDEO.hold + VIDEO.outro;
-    const water = $('vWater').checked;
-    const n = Math.round((total + (water ? VIDEO.water : 0)) * fps);
-    if (water) {                                   // national litres for the period, and the glacier's own store if known
-      const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi, last);
-      info.water = { litres: to > lo ? (iceVolume(lo) - iceVolume(to)) * 0.9e12 : 0, from: lo, to, glacier: await glacierVolume(g).catch(() => null) };
+    let useEnd = $('vEnd').checked;
+    if (useEnd) {                                  // what melted in the chosen period: all of Switzerland, and this glacier (estimate) if its ice is known
+      const to = Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y), melt = iceVolume(lo) - iceVolume(to);
+      if (to > lo && melt > 0) {
+        const gv = await glacierVolume(g).catch(() => null), share = melt / iceVolume(2016);
+        info.end = { from: lo, to,
+          swiss: { N: waterNumbers(melt), pct: info.lost, sub: `of fresh water melted from all Swiss glaciers, about ${waterNumbers(melt).km3Text} km³ of ice` },
+          glacier: gv ? { N: waterNumbers(gv.km3 * share), sub: `of fresh water melted from this glacier (an estimate), about ${waterNumbers(gv.km3 * share).km3Text} km³ of ice`,
+                          note: `It still holds about ${waterNumbers(gv.km3 * iceVolume(to) / iceVolume(2016)).litresText} litres of ice (autumn ${to}).` } : null };
+      } else useEnd = false;                       // no loss data for this period: the plain closing card
     }
-    const tail = u => {                            // u: seconds after the main part
-      if (water && u < VIDEO.water) { drawWaterStill(ctx, W, H, S, info); return; }
-      drawOutro(ctx, W, H, S, info);
-    };
+    const tailLen = useEnd ? VIDEO.end : VIDEO.outro;
+    const total = vstate.type === 'swipe'
+      ? intro + swipeLength(k) + tailLen
+      : intro + ys.length * per + VIDEO.hold + tailLen;
+    const n = Math.round(total * fps);
+    const tail = u => { if (useEnd) drawEndSlide(ctx, W, H, S, info); else drawOutro(ctx, W, H, S, info); };   // u: seconds after the main part
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
