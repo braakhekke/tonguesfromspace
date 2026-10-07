@@ -417,6 +417,33 @@ details.about .note,details.about .src{margin:0 0 8px}
   .video-sheet{left:auto;right:0;bottom:0;width:42vw;border-radius:14px 0 0 0}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+
+/* ---------- one card style for all stats (Stats and Switzerland tabs) ---------- */
+.tab-panel{gap:12px}
+.stats{gap:12px}
+.card,.stat-group,.water{background:var(--sheet);border:1px solid var(--rule);border-radius:12px;padding:12px 14px;margin:0}
+.card-h,.stat-group h4{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:0 0 10px;padding:0;border:0;font-size:11.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
+.card-h small{flex-basis:100%;margin:-4px 0 0 32px;font-size:11px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--moraine)}
+.card-h .ico,.stat-group .ico{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:7px;background:var(--ice);color:var(--crevasse);flex:none}
+.card-h .ico.red,.stat-group:last-child .ico{background:#F6DCDA;color:var(--accent)}
+.card-h .ico svg,.stat-group .ico svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.stat{background:var(--firn);border-radius:8px;padding:9px 10px}
+.stat .v,.g-row b{font-size:16px;font-weight:700;color:var(--rock)}
+.stat.loss .v{color:var(--accent)}
+.stat .k,.g-row span{font-size:11px;color:var(--moraine)}
+.water .w-hero,.gwater .w-hero{font-size:22px;color:var(--crevasse)}
+.water .w-hero small{font-size:11.5px;font-weight:500;color:var(--moraine);margin-top:5px}
+.water .w-big{font-size:15px}
+.g-row{gap:6px;margin:12px 0 0}
+.g-row div{background:var(--firn);border:0;border-radius:8px;padding:9px 6px}
+.span-note{margin:10px 0 0;font-size:12px;line-height:1.5;background:var(--firn)}
+.bars{margin:0}
+.bar{font-size:12px}
+.cum{margin:0}
+.cum figcaption{font-size:12.5px;color:var(--rock);margin-top:6px;display:flex;align-items:center;flex-wrap:wrap;gap:4px 0}
+.cum .k{width:13px;height:13px;border-radius:3px;margin:0 6px 0 0}
+.cum .k-lost{margin-left:14px}
+.cum .k-sel{background:var(--accent);opacity:.25;margin-left:14px;outline:1px dashed var(--accent)}
 </style>
 </head>
 <body>
@@ -1486,9 +1513,10 @@ function renderStory(){
     </div>
 
     <div class="tab-panel" data-panel="swiss" ${storyTab === 'swiss' ? '' : 'hidden'}>
-      <p class="mini-h">Ice left in all Swiss glaciers</p>
+      <section class="card"><div class="card-h"><span class="ico">${ICONS.area}</span>Ice left in all Swiss glaciers</div>
       ${cumulativeChart(lo, hi)}
-      <p class="mini-h">Share of all Swiss glacier ice lost each year</p>
+      </section>
+      <section class="card"><div class="card-h"><span class="ico red">${ICONS.change}</span>Ice lost per year<small>share of all Swiss glacier ice</small></div>
       <div class="bars">
         ${VOLUME_LOSS.map(n => `
           <div class="bar ${n.y > lo && n.y <= hi ? 'in-range' : ''}">
@@ -1498,6 +1526,7 @@ function renderStory(){
           </div>`).join('')}
       </div>
       <p class="span-note">${spanText}</p>
+      </section>
       ${waterSection(lo, hi)}
     </div>
 
@@ -1576,6 +1605,7 @@ const ICONS = {
    Area           about 1850 | 1973 | latest inventory | change since 1850   (Swiss Glacier Inventories)
    Length change  measured since | total since then | since 2016 | latest measurement   (GLAMOS length-change series)
    Nothing is filled in from other sources: a value GLAMOS does not have is shown as a dash. */
+ICONS.drop = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c-3.2 4.4-5.6 7.7-5.6 10.6a5.6 5.6 0 0 0 11.2 0C17.6 10.7 15.2 7.4 12 3z"/></svg>';
 ICONS.flag = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>';
 ICONS.sum  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5H6l6 7-6 7h12"/></svg>';
 ICONS.cal  = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>';
@@ -1676,7 +1706,7 @@ function renderGlacierWater(){
   glacierVolume(g).then(v => {
     if (!v || currentGlacier() !== g) return;
     const litres = v.km3 * 0.9 * 1e12;
-    slot.innerHTML = `<section class="water gwater">
+    slot.innerHTML = `<section class="water gwater"><div class="card-h"><span class="ico">${ICONS.drop}</span>Ice and water in this glacier</div>
       <div class="w-hero">${fmtN(litres, 1)} litres<small>of fresh water are stored in ${g.name} as about ${v.km3.toFixed(2)} km³ of ice (state around 2016)</small></div>
       <div class="g-row">
         <div><b>${(n => n >= 1e6 ? (n / 1e6).toFixed(1) + ' M' : n >= 1e3 ? Math.round(n / 1e3) + ' k' : Math.round(n))(litres / POOL_L)}</b><span>Olympic pools</span></div>
@@ -1710,7 +1740,12 @@ function cumulativeChart(lo, hi){
   const line = years.map((y, i) => `${i ? 'L' : 'M'}${X(y).toFixed(1)},${Y(vols[i]).toFixed(1)}`).join(' ');
   const lostArea = `M${X(CUM_BASE_YEAR)},${Y(base)} ${years.map((y, i) => `L${X(y).toFixed(1)},${Y(vols[i]).toFixed(1)}`).join(' ')} L${X(last)},${Y(base)} Z`;
   const iceArea = `${line} L${X(last)},${Y(0)} L${X(CUM_BASE_YEAR)},${Y(0)} Z`;
-  const sel = lo && hi && hi > lo ? `<rect x="${X(Math.max(lo, CUM_BASE_YEAR))}" y="${T}" width="${Math.max(0, X(Math.min(hi, last)) - X(Math.max(lo, CUM_BASE_YEAR)))}" height="${H - T - B}" fill="var(--accent)" opacity=".08"/>` : '';
+  const selA = lo && hi && hi > lo && hi > CUM_BASE_YEAR ? Math.max(lo, CUM_BASE_YEAR) : null, selB = selA !== null ? Math.min(hi, last) : null;
+  const sel = selA !== null && selB > selA ? `<rect x="${X(selA)}" y="${T}" width="${X(selB) - X(selA)}" height="${H - T - B}" fill="var(--accent)" opacity=".13"/>
+      <line x1="${X(selA)}" x2="${X(selA)}" y1="${T}" y2="${H - B}" stroke="var(--accent)" stroke-dasharray="3 3"/>
+      <line x1="${X(selB)}" x2="${X(selB)}" y1="${T}" y2="${H - B}" stroke="var(--accent)" stroke-dasharray="3 3"/>` : '';
+  const selLine = selA !== null && selB > selA ? years.map((y, i) => [y, vols[i]]).filter(([y]) => y >= selA && y <= selB)
+      .map(([y, v], i) => `${i ? 'L' : 'M'}${X(y).toFixed(1)},${Y(v).toFixed(1)}`).join(' ') : '';
   const ticks = [0, top / 2, top].map(v => `<text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v}</text><line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--rule)"/>`).join('');
   const xt = years.filter(y => (y - CUM_BASE_YEAR) % 2 === 0 || y === last).map(y => `<text x="${X(y)}" y="${H - 8}" text-anchor="middle">${y}</text>`).join('');
   const lostPct = Math.round((1 - end / base) * 100);
@@ -1721,14 +1756,15 @@ function cumulativeChart(lo, hi){
       <path d="${lostArea}" fill="var(--accent)" opacity=".28"/>
       <line x1="${L}" x2="${W - R}" y1="${Y(base)}" y2="${Y(base)}" stroke="var(--accent)" stroke-dasharray="4 3" stroke-width="1.2"/>
       <path d="${line}" fill="none" stroke="var(--crevasse)" stroke-width="2.2"/>
-      ${years.map((y, i) => `<circle cx="${X(y)}" cy="${Y(vols[i])}" r="2.4" fill="var(--crevasse)"/>`).join('')}
+      ${selLine ? `<path d="${selLine}" fill="none" stroke="var(--accent)" stroke-width="3.4" stroke-linecap="round"/>` : ''}
+      ${years.map((y, i) => `<circle cx="${X(y)}" cy="${Y(vols[i])}" r="${selA !== null && y >= selA && y <= selB ? 3.4 : 2.4}" fill="${selA !== null && y >= selA && y <= selB ? 'var(--accent)' : 'var(--crevasse)'}"/>`).join('')}
       <text x="${L + 4}" y="${Y(base) - 6}" class="lbl">${base.toFixed(1)} km³ in ${CUM_BASE_YEAR}</text>
       <text x="${W - R}" y="${Y(end) + 16}" text-anchor="end" class="lbl red">−${lostPct} %</text>
       <text x="${W - R}" y="${Y(end) + 29}" text-anchor="end" class="lbl">${end.toFixed(1)} km³ in ${last}</text>
       <text x="${L - 6}" y="${T - 9}" text-anchor="end">km³</text>
       ${xt}
     </svg>
-    <figcaption><span class="k k-ice"></span>ice left <span class="k k-lost"></span>lost since ${CUM_BASE_YEAR}. Start: autumn ${CUM_BASE_YEAR}, the first year of the images, where an independent radar survey (Grab et al. 2021) measured 58.7 km³, matching this calculation.</figcaption>
+    <figcaption><span class="k k-ice"></span>Ice left <span class="k k-lost"></span>Lost since ${CUM_BASE_YEAR}${selA !== null ? ' <span class="k k-sel"></span>Your selection' : ''}</figcaption>
   </figure>`;
 }
 function waterCompare(kind, litres){
@@ -1753,7 +1789,7 @@ function waterSection(lo, hi){
   if (to <= lo) return '';
   const litres = (iceVolume(lo) - iceVolume(to)) * 0.9 * 1e12;
   return `<section class="water" id="waterBox" data-litres="${litres}">
-    <h3 style="margin:0 0 10px;padding:0;border:0">How much water is that?</h3>
+    <div class="card-h"><span class="ico">${ICONS.drop}</span>How much water is that?</div>
     <div class="w-hero"><span id="wCount">0</span> litres<small>of fresh water melted from Swiss glaciers, from autumn ${lo} to autumn ${to}</small></div>
     <div class="w-chips" role="group" aria-label="Compare with">
       ${[['pool', 'Swimming pools'], ['lake', 'Lake Zurich'], ['tap', 'Swiss tap water'], ['person', 'Per resident']].map(([k, t]) =>
