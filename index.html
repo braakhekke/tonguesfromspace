@@ -53,7 +53,22 @@ button,select,input{font:inherit;color:inherit}
 .brand h1::after{content:'';display:block;width:42px;height:4px;background:var(--accent);border-radius:2px;margin-top:10px}
 .brand p{margin:0;color:var(--moraine);font-size:13.5px}
 .group h2{font-size:13.5px;font-weight:600;margin:0 0 10px}
-.hint{font-size:12.5px;color:var(--moraine);margin:8px 0 0}
+.step{display:flex;flex-direction:column;gap:10px}
+.step-h{display:flex;align-items:center;gap:8px;margin:0;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.step-h .num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0}
+.m-select{display:none;width:100%;min-height:42px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
+.note{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0}
+.note:empty{display:none}
+.swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.sw{border:1.5px solid var(--rule);background:var(--sheet);border-radius:10px;padding:5px 5px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:12px;font-weight:600;color:var(--rock)}
+.sw i{display:block;height:28px;border-radius:6px}
+.sw-true i{background:linear-gradient(120deg,#3f5a34 0%,#7d8a5a 25%,#9a8f80 48%,#c8d3da 72%,#f4f7f9 100%)}
+.sw-false i{background:linear-gradient(120deg,#a3203a 0%,#c7535e 28%,#6e6a72 50%,#7fcfe0 74%,#f4f7f9 100%)}
+.sw-parece i{background:linear-gradient(120deg,#f1dfb6 0%,#d9a46f 28%,#8c5a8c 52%,#2f4f86 76%,#12203d 100%)}
+.sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.sw:hover{border-color:var(--crevasse)}
+.loop{margin:0 0 0 auto;font-size:12.5px}
+.hint{font-size:11.5px;color:var(--moraine);margin:8px 0 0}
 .glaciers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
 .glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;gap:6px;text-align:left;padding:7px 10px;border:0;background:none;border-radius:6px;cursor:pointer}
 .glaciers button:hover{background:var(--firn)}
@@ -68,7 +83,7 @@ button,select,input{font:inherit;color:inherit}
 .segment button{border:0;background:none;padding:8px 0;border-radius:6px;cursor:pointer;font-weight:500}
 .segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:0 1px 3px rgba(34,49,58,.18);font-weight:600}
 
-.side-label{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.side-label{font-size:11.5px;font-weight:700;color:var(--moraine);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
 .side-label span{font-size:12.5px;color:var(--moraine)}
 .years{display:grid;grid-template-columns:repeat(6,1fr);gap:3px}
 .years button{padding:4px 0;border:1px solid var(--rule);background:var(--sheet);border-radius:4px;cursor:pointer;font-variant-numeric:tabular-nums;font-size:12px;line-height:1.3}
@@ -90,7 +105,7 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:8px;backgrou
 .hint .warn{color:var(--loss);font-weight:600}
 .hint code{font-size:11.5px;background:var(--firn);padding:1px 4px;border-radius:3px}
 .swatch{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle}
-.status{font-size:12.5px;color:var(--moraine)}
+.status{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0;padding:6px 8px;background:var(--firn);border-radius:6px}
 .colophon{margin-top:auto;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--moraine)}
 .colophon p{margin:0 0 10px}
 .colophon strong{color:var(--rock);font-weight:600}
@@ -186,6 +201,22 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .story .sub{color:var(--moraine);font-size:12.5px;margin:0 0 16px}
 .story .lede{font-family:var(--serif);font-size:15px;line-height:1.55;margin:0 0 18px}
 .story h2::before{content:'';display:block;width:36px;height:4px;background:var(--accent);border-radius:2px;margin-bottom:12px}
+.tabs{display:flex;gap:2px;border-bottom:2px solid var(--rule);margin:14px 0 14px}
+.tabs button{flex:1;border:0;background:none;padding:9px 6px;font-weight:700;font-size:13px;color:var(--moraine);border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
+.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tab-panel{display:flex;flex-direction:column;gap:10px}
+.tab-panel[hidden]{display:none}
+.fact-k{display:block;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.fact.name .fact-k{color:var(--crevasse)}
+.mini-h{font-size:12.5px;font-weight:700;margin:0}
+.cb-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.cb-links .fact-k{flex-basis:100%;color:var(--moraine)}
+.cb-links .cb{flex:0 0 auto;padding:5px 10px;font-size:12.5px;border-radius:999px}
+details.about{margin-top:22px;border-top:1px solid var(--rule);padding-top:12px}
+details.about summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--rock);display:flex;align-items:center;gap:8px;list-style:none}
+details.about summary::-webkit-details-marker{display:none}
+details.about[open] summary{margin-bottom:10px}
+details.about .note,details.about .src{margin:0 0 8px}
 .story .fact{font-size:14px;line-height:1.55;margin:0 0 10px;padding:10px 12px;border-left:3px solid var(--accent);background:var(--firn);border-radius:0 6px 6px 0}
 .story .fact.name{border-left-color:var(--crevasse)}
 .story .fact small{display:block;color:var(--moraine);font-size:11.5px;margin-top:4px}
@@ -199,7 +230,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .with-info{display:flex;align-items:center;gap:8px}
 .info-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .info-btn[aria-expanded="true"]{background:var(--accent);color:#fff}
-.kf-note{font-size:12.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
+.kf-note{font-size:11.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .stat .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .stat .v small{font-size:12px;font-weight:500}
@@ -225,7 +256,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .water .w-text{font-size:13px;line-height:1.5;margin:0 0 8px}
 .water .w-icons{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
 .water .w-icons svg{width:22px;height:22px}
-.water .w-key{font-size:11.5px;color:var(--moraine)}
+.water .w-key{font-size:11px;color:var(--moraine)}
 .gwater{margin-top:10px}
 .gwater .w-hero{font-size:28px}
 .g-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:12px 0 8px}
@@ -247,7 +278,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 .cb-links{display:flex;flex-direction:column;gap:6px}
 .cb{border:1px solid var(--rock);background:var(--sheet);border-radius:6px;padding:8px 12px;cursor:pointer;text-align:left;font-size:13.5px}
 .cb:hover{background:var(--firn)}
-.src{font-size:12.5px;color:var(--moraine);line-height:1.5}
+.src{font-size:11.5px;color:var(--moraine);line-height:1.5}
 .src a{color:var(--crevasse)}
 
 @media (max-width:1100px){
@@ -293,10 +324,10 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
   .stage{order:1;height:60vh;height:60dvh;min-height:330px}
   .mbar{display:flex;flex-direction:column;gap:10px;order:2;background:var(--sheet);padding:12px 14px 14px;border-bottom:1px solid var(--rule)}
+  .controls{order:2;height:auto;border-right:0;border-bottom:1px solid var(--rule);padding:14px 16px 18px;gap:18px}
   .story{order:3;padding:20px 18px 32px}
-  .controls{order:4;height:auto;border-right:0;border-top:1px solid var(--rule);padding:18px}
-  .controls .brand,#glacierGroup,#modeGroup,#compareControls,#imageGroup{display:none}
-  #timelapseControls > .group:nth-child(-n+2){display:none}
+  .controls .brand,#glacierList,#rankNote{display:none}
+  .m-select{display:block!important}
   .mimage{align-items:center}
   .mimage .segment{flex:1.3}
   .mimage{flex-wrap:wrap}
@@ -345,14 +376,14 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .app{display:flex;flex-direction:column;height:auto}
   .stage{position:fixed;left:0;top:0;bottom:0;width:58vw;height:auto;min-height:0;z-index:1}
-  .mhead{order:0} .mbar{order:2} .story{order:3} .controls{order:4}
+  .mhead{order:0} .controls{order:2} .story{order:3}
   .mhead,.mbar,.story,.controls{margin-left:58vw}
   .mhead{display:block;padding:8px 14px}
   .mhead strong{display:block;font-size:15px;font-weight:800}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
   .mbar{display:flex;flex-direction:column;gap:8px;padding:10px 14px}
-  .controls .brand,#glacierGroup,#modeGroup,#compareControls{display:none}
-  #timelapseControls > .group:nth-child(-n+2){display:none}
+  .controls .brand,#glacierList,#rankNote{display:none}
+  .m-select{display:block!important}
   .mbar select{width:100%;min-height:40px;font-size:15px;border:1px solid var(--rule);border-radius:8px;padding:6px 8px;background:var(--sheet)}
   .mrow{display:flex;gap:8px;align-items:flex-end}
   .mrow label{flex:1;display:flex;flex-direction:column;font-size:12px;color:var(--moraine);gap:2px}
@@ -387,86 +418,71 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
   <!-- ================= MOBILE HEADER (phones only) ================= -->
   <header class="mhead" id="mhead">
     <strong>Swiss Glacier Tongues from Space</strong>
-    <span>Created to increase public glacier awareness - by Jochem Braakhekke</span>
+    <span>Created to increase glacial awareness - by Jochem Braakhekke</span>
   </header>
 
   <!-- ================= LEFT ================= -->
   <aside class="controls" aria-label="Settings">
     <div class="brand">
       <h1>Swiss Glacier Tongues from Space</h1>
-      <p>Watch the tongues of the ten largest Swiss glaciers retreat in Sentinel-2 imagery, from 2016 to present day.</p>
-      <p class="byline">Created to increase public glacier awareness - by Jochem Braakhekke. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+      <p>The ten largest Swiss glaciers, seen from space every summer since 2016.</p>
+      <p class="byline">Created to increase glacial awareness - by <strong>Jochem Braakhekke</strong>. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
     </div>
 
-    <div class="group" id="glacierGroup">
-      <h2>Choose a glacier</h2>
+    <section class="step" id="glacierGroup">
+      <h2 class="step-h"><span class="num">1</span>Glacier</h2>
+      <select id="mGlacier" class="m-select" aria-label="Glacier"></select>
       <ul class="glaciers" id="glacierList"></ul>
-      <p class="hint" id="rankNote"></p>
-    </div>
+      <p class="note" id="rankNote"></p>
+    </section>
 
+    <section class="step" id="vizGroup">
+      <h2 class="step-h"><span class="num">2</span>Visualisation</h2>
+      <div id="modeGroup">
+        <div class="segment" role="group" aria-label="View mode">
+          <button type="button" id="modeCompare" aria-pressed="true">Compare</button>
+          <button type="button" id="modeTimelapse" aria-pressed="false">Timelapse</button>
+        </div>
+      </div>
 
-    <div class="group" id="modeGroup">
-      <div class="segment" role="group" aria-label="View mode">
-        <button type="button" id="modeCompare" aria-pressed="true">Compare</button>
-        <button type="button" id="modeTimelapse" aria-pressed="false">Timelapse</button>
+      <div class="swatches" id="imageGroup" role="group" aria-label="Colours">
+        <button type="button" class="sw sw-true" id="styleTrue" aria-pressed="true"><i></i><span>Natural</span></button>
+        <button type="button" class="sw sw-false" id="styleFalse" aria-pressed="false"><i></i><span>Infrared</span></button>
+        <button type="button" class="sw sw-parece" id="styleParece" aria-pressed="false"><i></i><span>Parece</span></button>
       </div>
-      <div class="row actions" style="margin-top:10px">
-        <button type="button" class="act" id="shareBtn">Share this view</button>
-        <button type="button" class="act" id="videoBtn">Create animation</button>
-      </div>
-    </div>
+      <p class="note" id="styleNote"></p>
 
-    <div class="stack" id="compareControls">
-      <div class="group">
-        <div class="side-label"><h2>Left image</h2><span>before</span></div>
-        <div class="years" id="yearsA" role="group" aria-label="Year for left image"></div>
+      <div class="stack" id="compareControls">
+        <div><div class="side-label">Left</div><div class="years" id="yearsA" role="group" aria-label="Year for left image"></div></div>
+        <div><div class="side-label">Right</div><div class="years" id="yearsB" role="group" aria-label="Year for right image"></div></div>
       </div>
-      <div class="group">
-        <div class="side-label"><h2>Right image</h2><span>after</span></div>
-        <div class="years" id="yearsB" role="group" aria-label="Year for right image"></div>
-      </div>
-    </div>
-
-    <div class="stack" id="timelapseControls" hidden>
-      <div class="group">
-        <div class="side-label"><h2>From</h2><span>first frame</span></div>
-        <div class="years" id="yearsFrom" role="group" aria-label="First year of timelapse"></div>
-      </div>
-      <div class="group">
-        <div class="side-label"><h2>To</h2><span>last frame</span></div>
-        <div class="years" id="yearsTo" role="group" aria-label="Last year of timelapse"></div>
-      </div>
-      <div class="group">
+      <div class="stack" id="timelapseControls" hidden>
+        <div><div class="side-label">From</div><div class="years" id="yearsFrom" role="group" aria-label="First year of timelapse"></div></div>
+        <div><div class="side-label">To</div><div class="years" id="yearsTo" role="group" aria-label="Last year of timelapse"></div></div>
         <div class="row">
           <button type="button" class="play" id="playBtn">Play</button>
-          <select class="small" id="speedSel" aria-label="Seconds per frame">
+          <select class="small" id="speedSel" aria-label="Speed">
             <option value="600">Fast</option>
             <option value="1200" selected>Normal</option>
             <option value="2200">Slow</option>
           </select>
+          <label class="toggle loop"><input type="checkbox" id="loopToggle" checked> <span>Loop</span></label>
         </div>
-        <input type="range" class="frame" id="frameSlider" min="0" max="0" value="0" aria-label="Timelapse frame" style="margin-top:12px">
-        <label class="toggle" style="margin-top:6px"><input type="checkbox" id="loopToggle" checked> <span>Loop</span></label>
+        <input type="range" class="frame" id="frameSlider" min="0" max="0" value="0" aria-label="Timelapse frame">
       </div>
-    </div>
+      <p class="status" id="status">Looking for the clearest scene of each year…</p>
 
-    <div class="group" id="imageGroup">
-      <h2>Image</h2>
-      <div class="segment" role="group" aria-label="Colour" style="margin-bottom:6px">
-        <button type="button" id="styleTrue" aria-pressed="true">True color</button>
-        <button type="button" id="styleFalse" aria-pressed="false">False color</button>
-        <button type="button" id="styleParece" aria-pressed="false">Parece</button>
-      </div>
-      <p class="hint" id="styleNote" style="margin:0 0 12px"></p>
       <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
       <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
-      <label class="slider-row" for="snowContrast"><span>Snow contrast</span><output id="snowOut">0 %</output></label>
-      <input type="range" class="frame" id="snowContrast" min="0" max="1" step="0.05" value="0" aria-label="Contrast in snow and bright ice">
-      <p class="hint" style="margin:2px 0 12px">Lifts shadows and mid-tones; bright ice keeps its detail. No new downloads needed.</p>
-    </div>
+    </section>
 
-
-    <p class="status" id="status">Looking for the clearest scene of each year…</p>
+    <section class="step" id="shareGroup">
+      <h2 class="step-h"><span class="num">3</span>Download and share</h2>
+      <div class="row actions">
+        <button type="button" class="act" id="videoBtn">Create animation</button>
+        <button type="button" class="act" id="shareBtn">Share this view</button>
+      </div>
+    </section>
 
     <footer class="colophon">
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
@@ -509,7 +525,7 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
       <button type="button" id="zoomOut" aria-label="Zoom out">−</button>
       <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
       <span class="sep"></span>
-      <button type="button" id="swissBtn" aria-label="All of Switzerland"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 7.5v9M7.5 12h9"/></svg><span class="lbl">Switzerland</span></button>
+      <button type="button" id="swissBtn" aria-label="All ten glaciers"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 7.5v9M7.5 12h9"/></svg><span class="lbl">All glaciers</span></button>
       <button type="button" id="tongueBtn" aria-label="Tongue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span class="lbl">Tongue</span></button>
       <button type="button" id="fitBtn" aria-label="Whole glacier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Whole glacier</span></button>
       <span class="sep"></span>
@@ -529,34 +545,6 @@ details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:
     <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span></div>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
   </main>
-
-  <!-- ================= MOBILE CONTROL BAR (phones only, directly under the map) ================= -->
-  <section class="mbar" id="mbar" aria-label="Glacier and years">
-    <label class="mlabel" for="mGlacier">Choose a glacier</label>
-    <select id="mGlacier"></select>
-    <div class="segment" role="group" aria-label="View mode">
-      <button type="button" id="mCompare" aria-pressed="true">Compare</button>
-      <button type="button" id="mTimelapse" aria-pressed="false">Timelapse</button>
-    </div>
-    <div class="mrow mimage">
-      <div class="segment" role="group" aria-label="Colour"><button type="button" id="mStyleTrue">True color</button><button type="button" id="mStyleFalse">False color</button><button type="button" id="mStyleParece">Parece</button></div>
-      <div class="mbright"><label>Brightness <input type="range" id="mBright" min="0.6" max="1.8" step="0.05" aria-label="Image brightness"></label>
-      <label>Snow contrast <input type="range" id="mSnow" min="0" max="1" step="0.05" aria-label="Contrast in snow and bright ice"></label></div>
-    </div>
-    <div class="mrow" id="mCompareRow">
-      <label>Left<select id="mA"></select></label>
-      <label>Right<select id="mB"></select></label>
-    </div>
-    <div class="mrow" id="mTimelapseRow" hidden>
-      <label>From<select id="mFrom"></select></label>
-      <label>To<select id="mTo"></select></label>
-      <button type="button" class="play" id="mPlay">Play</button>
-    </div>
-    <div class="mrow">
-      <button type="button" class="act" id="mShare">Share</button>
-      <button type="button" class="act" id="mVideo">Create animation</button>
-    </div>
-  </section>
 
   <!-- ================= RIGHT ================= -->
   <article class="story" id="story" aria-live="polite"></article>
@@ -1058,7 +1046,7 @@ function setBackground(){
 }
 function imageryLayer(yr, pane, opacity=1){
   const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className:'scene-img'});
-  loadImage(g, yr).then(url => ov.setUrl(url)).catch(e => { setStatus(e.message); showNotice(e.message); });
+  loadImage(g, yr).then(url => showImage(ov, url)).catch(e => { setStatus(e.message); showNotice(e.message); });
   return ov;
 }
 
@@ -1117,7 +1105,6 @@ function buildTimelapse(){
   const s = document.getElementById('frameSlider');
   s.max = Math.max(0, tlLayers.length - 1); s.value = state.frame;
   document.getElementById('playBtn').disabled = tlLayers.length < 2;
-  if (document.getElementById('mPlay')) document.getElementById('mPlay').disabled = tlLayers.length < 2;
   showFrame(state.frame);
 }
 function showFrame(i){
@@ -1135,7 +1122,7 @@ function showFrame(i){
 }
 function play(){
   if (tlLayers.length < 2) return;
-  state.playing = true; document.getElementById('playBtn').textContent = 'Pause'; document.getElementById('mPlay').textContent = 'Pause';
+  state.playing = true; document.getElementById('playBtn').textContent = 'Pause';
   if (state.frame >= tlLayers.length - 1) showFrame(0);
   const tick = () => {
     let next = state.frame + 1;
@@ -1150,7 +1137,7 @@ function play(){
 }
 function stopPlay(){
   clearTimeout(state.timer); state.playing = false;
-  document.getElementById('playBtn').textContent = 'Play'; document.getElementById('mPlay').textContent = 'Play';
+  document.getElementById('playBtn').textContent = 'Play';
 }
 document.getElementById('playBtn').onclick = () => state.playing ? stopPlay() : play();
 document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
@@ -1373,9 +1360,9 @@ function renderMode(){
   document.getElementById('styleParece').setAttribute('aria-pressed', state.style === 'parece');
   applyBrightness();
   document.getElementById('styleNote').textContent = {
-    true: 'Natural colors, as the eye would see them.',
-    false: 'Near infrared shown as red: vegetation red, snow white, glacier ice cyan to blue, water and wet debris dark.',
-    parece: 'Experimental: B8A (narrow near infrared) as red, B11 and B12 (shortwave infrared) as green and blue. Snow and ice look dark here, rock and vegetation bright.'
+    true: '',
+    false: 'Near infrared as red: vegetation red, bare ice blue.',
+    parece: 'Experimental: bands B8A, B11, B12. Snow and ice dark.'
   }[state.style];
 }
 function setStyle(st){
@@ -1388,22 +1375,45 @@ function setStyle(st){
 const BRIGHT_DEFAULT = 1.0;      // the colour process above is already balanced
 /* Snow contrast: tones above 0.5 are spread out with a power curve (0 = off), so detail in bright snow and ice shows.
    y = x below 0.5;  y = 0.5 + 0.5 * ((x - 0.5) / 0.5) ** (1 + 2.5 * amount) above. White stays white. */
-const snowAmount = () => typeof prefs.snow === 'number' ? prefs.snow : 0;
+const snowAmount = () => 0;          // snow contrast removed; the curve stays available for the video code
 const snowCurve = (x, a) => x <= 0.5 ? x : 0.5 + 0.5 * Math.pow((x - 0.5) / 0.5, 1 + 2.5 * a);
 const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGHT_DEFAULT;
+/* Brightness is applied to the image pixels in a canvas (same gamma curve, white stays white).
+   CSS/SVG filters on page elements do not work in Safari on iPhone, so no filters are used. */
+const liveImages = new Set();
+const adjCache = new Map();
+function adjustedUrl(orig, b){
+  if (Math.abs(b - 1) < 0.01) return Promise.resolve(orig);
+  const key = orig + '|' + b.toFixed(2);
+  if (!adjCache.has(key)) adjCache.set(key, (async () => {
+    const bmp = await createImageBitmap(await (await fetch(orig)).blob());
+    const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
+    const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0); if (bmp.close) bmp.close();
+    const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data, lut = new Uint8ClampedArray(256);
+    for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+    for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
+    ctx.putImageData(d, 0, 0);
+    const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.92));
+    return URL.createObjectURL(blob);
+  })());
+  return adjCache.get(key);
+}
+function showImage(ov, orig){
+  ov._orig = orig; liveImages.add(ov);
+  const b = brightness();
+  adjustedUrl(orig, b).then(u => { if (ov._orig === orig && Math.abs(brightness() - b) < 0.001) ov.setUrl(u); }).catch(() => ov.setUrl(orig));
+}
+let brightTimer = null;
 function applyBrightness(){
-  const b = brightness(), exp = (1 / b).toFixed(3), a = snowAmount();
-  document.querySelectorAll('#gammaFx feComponentTransfer:first-child > *').forEach(fn => fn.setAttribute('exponent', exp));
-  const table = Array.from({length: 33}, (_, i) => snowCurve(i / 32, a).toFixed(4)).join(' ');
-  document.querySelectorAll('#snowFx > *').forEach(fn => { if (a > 0.001) { fn.setAttribute('type', 'table'); fn.setAttribute('tableValues', table); } else { fn.setAttribute('type', 'identity'); fn.removeAttribute('tableValues'); } });
-  ['paneA','paneB','paneT'].forEach(n => map.getPane(n).style.filter = Math.abs(b - 1) < 0.01 && a < 0.001 ? '' : 'url(#gammaFx)');
-  document.getElementById('snowContrast').value = a;
-  document.getElementById('snowOut').textContent = `${Math.round(a * 100)} %`;
-  if (document.getElementById('mSnow')) document.getElementById('mSnow').value = a;
+  const b = brightness();
   document.getElementById('brightness').value = b;
   document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
+  clearTimeout(brightTimer);
+  brightTimer = setTimeout(() => {
+    for (const [k, p] of adjCache) if (!k.endsWith('|' + b.toFixed(2))) { adjCache.delete(k); p.then(u => setTimeout(() => URL.revokeObjectURL(u), 5000)).catch(() => {}); }
+    liveImages.forEach(ov => { if (!map.hasLayer(ov)) { liveImages.delete(ov); return; } if (ov._orig) showImage(ov, ov._orig); });
+  }, 120);
 }
-document.getElementById('snowContrast').oninput = e => { prefs.snow = +e.target.value; savePrefs(); applyBrightness(); };
 document.getElementById('brightness').oninput = e => {
   prefs.bright = +e.target.value; savePrefs(); applyBrightness();
 };
@@ -1411,6 +1421,7 @@ document.getElementById('styleTrue').onclick = () => setStyle('true');
 document.getElementById('styleFalse').onclick = () => setStyle('false');
 document.getElementById('styleParece').onclick = () => setStyle('parece');
 
+let storyTab = 'look';     // tab in the right panel, kept when switching glacier
 function renderStory(){
   const g = currentGlacier();
   const [lo, hi] = state.mode === 'timelapse'
@@ -1423,65 +1434,80 @@ function renderStory(){
 
   let spanText = 'Pick two years to see what changed in between.';
   if (known && lo === hi) spanText = `Both sides show ${lo}. Pick two different years to see change.`;
-  else if (known) spanText = `You are looking at ${lo} to ${hi}, ${hi - lo} melt season${hi - lo > 1 ? 's' : ''}.` +
+  else if (known) spanText = `<b>${lo} to ${hi}</b>, ${hi - lo} melt season${hi - lo > 1 ? 's' : ''}.` +
     (inRange.length ? (() => {
       const ice = iceVolume(lo) - iceVolume(Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y)), water = ice * 0.9;
-      return ` Over those seasons Switzerland's glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of the ice they held in autumn ${lo}:` +
-        ` about ${ice.toFixed(1)} km³ of ice, or <strong>${water >= 1 ? (water).toFixed(1) + ' trillion' : Math.round(water * 1000) + ' billion'} litres</strong> of fresh water.` +
+      return ` Swiss glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of their ice: ${ice.toFixed(1)} km³.` +
         '';
     })() : '');
 
   const statsHtml = renderStats(g);
 
+  const info = GLACIER_INFO[g.id] || GLACIER_INFO[shortSlug(g.name)];
+  const tab = t => `role="tab" data-tab="${t}" aria-selected="${storyTab === t}"`;
   document.getElementById('story').innerHTML = `
     <h2>${g.name}</h2>
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede}</p>
 
-    <h3>What to look for</h3>
-    <p class="body">${g.look}</p>
-    ${g.note ? `<p class="body">${g.note}</p>` : ''}
-    ${(() => { const info = GLACIER_INFO[g.id] || GLACIER_INFO[shortSlug(g.name)]; if (!info) return '';
-      return `<h3>Did you know?</h3><p class="fact">${info.fact}</p>
-      <h3>Where the name comes from</h3><p class="fact name">${info.name}${info.src ? `<small>Source: ${info.src}</small>` : ''}</p>`; })()}
-
-    <h3 class="with-info">Key figures <button type="button" class="info-btn" aria-expanded="false" aria-controls="kfNote" aria-label="About these figures"
-      onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></h3>
-    <div id="kfNote" hidden>${keyFiguresNote()}</div>
-    ${statsHtml}
-    <div id="gWater"></div>
-    <p class="body">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself. Measurements are geodesic, so they stay correct at any zoom.</p>
-
-    <h3>All Swiss glaciers: share of ice volume lost each year</h3>
-    <div class="bars">
-      ${VOLUME_LOSS.map(n => `
-        <div class="bar ${n.y > lo && n.y <= hi ? 'in-range' : ''}">
-          <span>${n.y}</span>
-          <span class="track"><span class="fill" style="width:${n.v / max * 100}%"></span></span>
-          <span class="v">${n.approx ? '≈' : ''}${n.v.toFixed(1)} %</span>
-        </div>`).join('')}
+    <div class="tabs" role="tablist" aria-label="About this glacier">
+      <button type="button" ${tab('look')}>What to see</button>
+      <button type="button" ${tab('figures')}>Figures</button>
+      <button type="button" ${tab('swiss')}>Switzerland</button>
     </div>
-    <p class="src">Red bars are the melt seasons inside your selection. At the end of 2024 Swiss glaciers still held about 46.4 km³ of ice (GLAMOS), roughly 42 trillion litres of fresh water. Each value is the loss relative to the ice left the year before, for October to September. 2022 is the record and 2026 the second-worst year. Values marked ≈ were reported as rounded figures.</p>
-    <p class="span-note">${spanText}</p>
-    ${waterSection(lo, hi)}
 
-    <h3>Reading the images</h3>
-    <p class="body">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene up to the 20th is used (in 2024 up to the 14th, because of heavy snowfall on the 15th); if September has no clear scene, the best one from August, then from July. The image is then rendered from Level-1C with the Copernicus Browser true colour process (atmospheric correction, contrast curve and a saturation boost), which keeps shaded slopes natural. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
-    ${state.style === 'false' ? '<p class="body">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
-    <p class="body">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
+    <div class="tab-panel" data-panel="look" ${storyTab === 'look' ? '' : 'hidden'}>
+      <p class="body">${g.look}</p>
+      ${g.note ? `<p class="body">${g.note}</p>` : ''}
+      ${info ? `<div class="fact"><span class="fact-k">Did you know?</span>${info.fact}</div>
+      <div class="fact name"><span class="fact-k">The name</span>${info.name}${info.src ? `<small>Source: ${info.src}</small>` : ''}</div>` : ''}
+      ${cbYears().length ? `<div class="cb-links"><span class="fact-k">Open the scene in the Copernicus Browser</span>${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">${fmtDate(state.available[y].date)}</button>`).join('')}</div>` : ''}
+    </div>
 
-    <h3>Explore in the Copernicus Browser</h3>
-    <p class="body">Open the scene of each year in the Copernicus Browser, on the same date and view, to look at other band combinations or neighbouring dates.</p>
-    <div class="cb-links">${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join('')}</div>
+    <div class="tab-panel" data-panel="figures" ${storyTab === 'figures' ? '' : 'hidden'}>
+      <p class="note with-info">Key figures from GLAMOS <button type="button" class="info-btn" aria-expanded="false" aria-controls="kfNote" aria-label="About these figures"
+        onclick="const n=document.getElementById('kfNote');n.hidden=!n.hidden;this.setAttribute('aria-expanded',!n.hidden)">i</button></p>
+      <div id="kfNote" hidden>${keyFiguresNote()}</div>
+      ${statsHtml}
+      <div id="gWater"></div>
+    </div>
 
-    <h3>Sources</h3>
+    <div class="tab-panel" data-panel="swiss" ${storyTab === 'swiss' ? '' : 'hidden'}>
+      <p class="mini-h">Share of all Swiss glacier ice lost each year</p>
+      <div class="bars">
+        ${VOLUME_LOSS.map(n => `
+          <div class="bar ${n.y > lo && n.y <= hi ? 'in-range' : ''}">
+            <span>${n.y}</span>
+            <span class="track"><span class="fill" style="width:${n.v / max * 100}%"></span></span>
+            <span class="v">${n.approx ? '≈' : ''}${n.v.toFixed(1)} %</span>
+          </div>`).join('')}
+      </div>
+      <p class="note">Red: the melt seasons in your selection. ≈ rounded values.</p>
+      <p class="span-note">${spanText}</p>
+      ${waterSection(lo, hi)}
+    </div>
+
+    <details class="about">
+      <summary><span class="info-btn" aria-hidden="true">i</span> About the images, data and sources</summary>
+    <p class="note">Each image is a single Sentinel-2 scene: the clearest late-summer view of that year. For every year, all acquisitions from July to September are scored for cloud and snow cover. The best September scene up to the 20th is used (in 2024 up to the 14th, because of heavy snowfall on the 15th); if September has no clear scene, the best one from August, then from July. The image is then rendered from Level-1C with the Copernicus Browser true colour process (atmospheric correction, contrast curve and a saturation boost), which keeps shaded slopes natural. That is when the least seasonal snow covers the ice, so the tongue and the bare rock around it show best. The date of each scene is shown under the year.</p>
+    ${state.style === 'false' ? '<p class="note">False color shows near infrared as red. Ice absorbs near infrared much more than snow, so bare glacier ice turns cyan to blue while snow stays white. That makes the edge of the bare tongue and the snow line easier to see than in true color.</p>' : ''}
+    <p class="note">Inventory areas count each glacier as it was defined at the time. When tributaries separate, part of the drop in area is a change of definition, not only melt.</p>
+
+      <p class="note">Use Measure length and Measure area on the toolbar to measure retreat or ice extent yourself; measurements are geodesic.</p>
     <p class="src">
       Imagery: Copernicus Sentinel-2 Level-1C (images) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>. Free for any use with attribution.<br>
       Map: © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors.<br>
       Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0).${DATA ? ` Outlines built on ${DATA.generated}.` : ''}<br>
       Length change: GLAMOS, Swiss Glacier Length Change, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (scientific and non-commercial use).<br>
       Annual volume loss: GLAMOS and Swiss Academy of Sciences annual glacier reports. National ice volume: GLAMOS annual report 2024 (46.4 km³ at the end of 2024). Ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo. Water use: SVGW water statistics.
-    </p>`;
+    </p>
+    </details>`;
+  document.querySelectorAll('#story .tabs button').forEach(bt => bt.onclick = () => {
+    storyTab = bt.dataset.tab;
+    document.querySelectorAll('#story .tabs button').forEach(x => x.setAttribute('aria-selected', x === bt));
+    document.querySelectorAll('#story .tab-panel').forEach(pn => pn.hidden = pn.dataset.panel !== storyTab);
+    if (storyTab === 'swiss') wireWater();
+  });
   wireWater();
   renderGlacierWater();
 }
@@ -1753,7 +1779,11 @@ function updateBoxes(){
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
 }
-function showSwitzerland(animate = true){ stopPlay(); map.fitBounds(SWISS_VIEW, {animate, padding: [10, 10]}); }
+function glaciersExtent(){
+  const b = GLACIERS.map(g => g.bounds);
+  return [[Math.min(...b.map(x => x[0][0])), Math.min(...b.map(x => x[0][1]))], [Math.max(...b.map(x => x[1][0])), Math.max(...b.map(x => x[1][1]))]];
+}
+function showSwitzerland(animate = true){ stopPlay(); map.fitBounds(glaciersExtent(), {animate, padding: [40, 40]}); }
 map.on('zoomend', updateBoxes);
 document.getElementById('boxToggle').checked = prefs.boxes !== false;
 document.getElementById('boxToggle').onchange = e => { prefs.boxes = e.target.checked; savePrefs(); updateBoxes(); };
@@ -1822,41 +1852,11 @@ function chooseGlacier(id){
   state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); setThickness(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
-function yearOptions(sel, key, range){
-  sel.innerHTML = YEARS.map(y => {
-    const sc = state.available[y];
-    const label = !state.checked ? `${y}` : sc ? `${y}, ${+sc.date.slice(8, 10)} ${['Jul', 'Aug', 'Sep'][+sc.date.slice(5, 7) - 7]}` : `${y}: no clear scene`;
-    return `<option value="${y}" ${sc ? '' : 'disabled'} ${state[key] === y ? 'selected' : ''}>${label}</option>`;
-  }).join('');
-  sel.disabled = !state.checked;
-  sel.onchange = () => {
-    state[key] = +sel.value;
-    if (range && state.from > state.to) [state.from, state.to] = [state.to, state.from];
-    refreshAll();
-  };
-}
-function renderMobileBar(){
+function renderMobileBar(){                 // phones: the glacier list becomes a dropdown
   const gs = $('mGlacier');
   gs.innerHTML = GLACIERS.map((g, i) => `<option value="${g.id}" ${g.id === state.glacier ? 'selected' : ''}>${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²</option>`).join('');
   gs.onchange = () => chooseGlacier(gs.value);
-  yearOptions($('mA'), 'a'); yearOptions($('mB'), 'b');
-  yearOptions($('mFrom'), 'from', true); yearOptions($('mTo'), 'to', true);
-  const tl = state.mode === 'timelapse';
-  $('mCompare').setAttribute('aria-pressed', !tl); $('mTimelapse').setAttribute('aria-pressed', tl);
-  $('mCompareRow').hidden = tl; $('mTimelapseRow').hidden = !tl;
-  $('mPlay').textContent = state.playing ? 'Pause' : 'Play';
-  $('mStyleTrue').setAttribute('aria-pressed', state.style === 'true'); $('mStyleFalse').setAttribute('aria-pressed', state.style === 'false'); $('mStyleParece').setAttribute('aria-pressed', state.style === 'parece');
-  $('mBright').value = brightness();
-  $('mPlay').disabled = $('playBtn').disabled;
 }
-$('mCompare').onclick = () => $('modeCompare').click();
-$('mTimelapse').onclick = () => $('modeTimelapse').click();
-$('mStyleTrue').onclick = () => { setStyle('true'); renderMobileBar(); };
-$('mStyleFalse').onclick = () => { setStyle('false'); renderMobileBar(); };
-$('mStyleParece').onclick = () => { setStyle('parece'); renderMobileBar(); };
-$('mBright').oninput = e => { prefs.bright = +e.target.value; savePrefs(); applyBrightness(); };
-$('mSnow').oninput = e => { prefs.snow = +e.target.value; savePrefs(); applyBrightness(); };
-$('mPlay').onclick = () => { state.playing ? stopPlay() : play(); renderMobileBar(); };
 
 /* Map tools on phones: layers and measuring live behind two small buttons */
 $('layersBtn').onclick = () => {
@@ -1893,7 +1893,6 @@ async function shareView(){
   try { await navigator.clipboard.writeText(url); showNotice('Link copied. Paste it anywhere to share this view.'); }
   catch { prompt('Copy this link:', url); }
 }
-$('mShare').onclick = shareView;
 $('shareBtn').onclick = shareView;
 
 /* Mobile data: a timelapse loads one image per year the first time */
@@ -1978,7 +1977,7 @@ function closeVideo(){
   if (vstate.busy) return;
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing');
 }
-$('videoBtn').onclick = openVideo; $('mVideo').onclick = openVideo; $('vsClose').onclick = closeVideo;
+$('videoBtn').onclick = openVideo; $('vsClose').onclick = closeVideo;
 const setFmt = f => { vstate.fmt = f; $('vfReel').setAttribute('aria-pressed', f === 'reel'); $('vfFeed').setAttribute('aria-pressed', f === 'feed'); updateFrame(); };
 $('vfReel').onclick = () => setFmt('reel'); $('vfFeed').onclick = () => setFmt('feed');
 $('vSpeed').onchange = updateFrame;
