@@ -3,21 +3,19 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tongues from Space - Switzerland</title>
+<title>Swiss Glacier Tongues from Space</title>
 <meta name="description" content="Compare and animate Sentinel-2 satellite images of the ten largest Swiss glacier tongues, 2016 to today, with GLAMOS glacier figures.">
-<meta property="og:title" content="Tongues from Space - Switzerland">
+<meta property="og:title" content="Swiss Glacier Tongues from Space">
 <meta property="og:description" content="Watch the tongues of the ten largest Swiss glaciers retreat in satellite imagery, from 2016 to present day.">
 <meta property="og:type" content="website">
-<meta property="og:image" content="https://braakhekke.github.io/tonguesfromspace/images/preview-social.jpg">
-<meta property="og:image:width" content="1200">
-<meta property="og:image:height" content="589">
-<meta property="og:image:alt" content="Tongues from Space - Switzerland: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2024, and glacier figures">
+<meta property="og:image" content="https://braakhekke.github.io/tonguesfromspace/preview.jpg">
 <meta property="og:url" content="https://braakhekke.github.io/tonguesfromspace/">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:image" content="https://braakhekke.github.io/tonguesfromspace/images/preview-social.jpg">
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2322313A'/><text x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='white' letter-spacing='-1'>TFS</text></svg>">
-<link rel="preload" href="fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Schibsted+Grotesk:wght@400;500;600;800&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
 <!--
   Swiss glacier comparison dashboard
   ----------------------------------
@@ -32,13 +30,11 @@
   Base map: OpenStreetMap (can be switched off on the map).
 -->
 <style>
-/* Schibsted Grotesk (SIL Open Font Licence 1.1, see fonts/OFL.txt), served from this site: no request to Google */
-@font-face{font-family:"Schibsted Grotesk";src:url(fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
 :root{
   --firn:#F1F5F6; --sheet:#FFFFFF; --rock:#22313A; --moraine:#6B7378;
   --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#D9E1E4;
   --accent:#C8322A;
-  --old:#F2A93B; --new:#5FE0F0; --measure:#FFD84D;
+  --old:#F2A93B; --new:#5FE0F0; --measure:#FFD84D; --ice-a:#FFD84D; --ice-b:#FF5A3D;
   --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
   --serif:var(--sans);
 }
@@ -57,6 +53,7 @@ button,select,input{font:inherit;color:inherit}
 .brand h1::after{content:'';display:block;width:42px;height:4px;background:var(--accent);border-radius:2px;margin-top:10px}
 .brand p{margin:0;color:var(--moraine);font-size:13.5px}
 .brand .what{margin-top:2px;line-height:1.4}
+.group h2{font-size:13.5px;font-weight:600;margin:0 0 10px}
 .step{display:flex;flex-direction:column;gap:10px}
 .step-h{display:flex;align-items:center;gap:8px;margin:0;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 .step-h .num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0}
@@ -71,6 +68,7 @@ button,select,input{font:inherit;color:inherit}
 .sw-parece i{background:linear-gradient(120deg,#5a1016 0%,#c3333b 26%,#b9a89c 52%,#f3f3f3 74%,#0e1218 100%)}
 .sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .sw:hover{border-color:var(--crevasse)}
+.loop{margin:0 0 0 auto;font-size:12.5px}
 .hint{font-size:11.5px;color:var(--moraine);margin:8px 0 0}
 .glaciers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
 .glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;gap:6px;text-align:left;padding:7px 10px;border:0;background:none;border-radius:6px;cursor:pointer}
@@ -79,17 +77,12 @@ button,select,input{font:inherit;color:inherit}
 .glaciers button[aria-pressed="true"]{background:var(--ice)}
 .glaciers .rank{color:var(--moraine);font-variant-numeric:tabular-nums;font-size:13px}
 .glaciers .name{font-weight:600}
-.glaciers .area{color:var(--moraine);font-size:12.5px}
+.glaciers .area{color:var(--moraine);font-size:12.5px;font-variant-numeric:tabular-nums}
 
 .segment{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--firn);border-radius:8px;padding:3px}
-.modes{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.modes button{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 4px 8px;border:1.5px solid var(--rule);border-radius:10px;background:var(--sheet);cursor:pointer;font-size:12.5px;font-weight:600;color:var(--moraine)}
-.modes button svg{width:24px;height:24px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.modes button:hover{border-color:var(--crevasse)}
-.modes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);color:var(--accent)}
 .segment button:disabled{color:#A9B1B5;cursor:not-allowed}
-.segment button{border:0;background:none;padding:8px 0;white-space:nowrap;border-radius:6px;cursor:pointer;font-weight:500}
-.segment button .ico-s{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:4px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.segment button{border:0;background:none;padding:8px 0;border-radius:6px;cursor:pointer;font-weight:500}
+.segment button .ico-s{display:inline-block;width:15px;height:15px;vertical-align:-3px;margin-right:6px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:0 1px 3px rgba(34,49,58,.18);font-weight:600}
 
 .side-label{font-size:11.5px;font-weight:700;color:var(--moraine);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
@@ -119,22 +112,32 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer;margin-bottom:6px}
 .toggle input:disabled + span{color:#A9B1B5}
 .hint .warn{color:var(--loss);font-weight:600}
+.hint code{font-size:11.5px;background:var(--firn);padding:1px 4px;border-radius:3px}
 .swatch{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle}
 .status{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0;padding:6px 8px;background:var(--firn);border-radius:6px}
 .status.busy{display:flex;align-items:center;gap:8px}
 .status.busy::before{content:'';flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--rule);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
+.colophon{margin-top:auto;padding-top:16px;border-top:1px solid var(--rule);font-size:12.5px;color:var(--moraine)}
+.colophon p{margin:0 0 10px}
+.colophon strong{color:var(--rock);font-weight:600}
 .brand .byline{margin-top:10px;font-size:12.5px;color:var(--rock)}
 .brand .byline a{color:var(--crevasse);font-weight:600}
 .step .fyi{margin-top:6px}
-.fyi{display:block;text-align:center;text-decoration:none;color:var(--rock);background:#FFF6DA;border:1px solid #F3DE94;border-radius:12px;padding:14px 14px 12px}
+.fyi{display:block;text-decoration:none;color:var(--rock);background:#FFF6DA;border:1px solid #F3DE94;border-radius:8px;padding:10px 12px}
 .fyi:hover{border-color:#E2B93B}
-.fyi-img{display:block;width:96px;height:auto;margin:0 auto 10px;border-radius:2px;box-shadow:0 3px 10px rgba(34,49,58,.28)}
-.fyi-ask{display:block;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent);margin-bottom:2px}
-.fyi-name{display:block;font-weight:800;font-size:16px;letter-spacing:-.01em}
-.fyi-text{display:block;font-size:12px;color:var(--moraine);margin-top:4px;line-height:1.4}
-.fyi-go{display:inline-block;margin-top:9px;font-size:12.5px;font-weight:700;color:#fff;background:var(--accent);border-radius:999px;padding:5px 14px}
-.fyi:hover .fyi-go{background:#a92720}
+.fyi-ask{display:block;font-size:12.5px;color:var(--rock);margin-bottom:4px}
+.fyi-name{display:block;font-weight:800;font-size:14px;letter-spacing:-.01em}
+.fyi-text{display:block;font-size:12px;color:var(--moraine);margin-top:2px;line-height:1.4}
+details.source{border:1px solid var(--rule);border-radius:8px;padding:10px 12px}
+details.source summary{cursor:pointer;font-size:13.5px;font-weight:600}
+details.source summary span{font-weight:400;color:var(--moraine)}
+details.source label.toggle{display:flex;color:var(--rock)}
+details.source input:not([type=checkbox]),details.source select{width:100%;border:1px solid var(--rule);border-radius:6px;padding:7px 8px;background:var(--sheet)}
+details.source .apply{margin-top:12px;width:100%;border:1px solid var(--rock);background:var(--rock);color:#fff;border-radius:6px;padding:8px;cursor:pointer;font-weight:600}
+details.token-alt{margin-top:8px}
+details.token-alt summary{font-size:12.5px;font-weight:500;color:var(--crevasse);cursor:pointer}
+details.source label{display:block;font-size:12.5px;color:var(--moraine);margin:10px 0 4px}
 
 /* ---------- centre ---------- */
 .stage{position:relative;min-height:0;background:#1d2a31;overflow:hidden}   /* nothing on the map may widen the page */
@@ -144,16 +147,6 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .year-tag small{display:block;font-size:12px;font-weight:500;letter-spacing:0;margin-top:6px;opacity:.85}
 #tagA,#tagT{left:18px}
 #tagB{right:18px;text-align:right}
-.orient{display:flex;align-items:center;gap:6px;margin-bottom:-8px}
-.orient .side-label{margin:0 4px 0 0}
-.orient button{display:inline-flex;align-items:center;justify-content:center;width:46px;height:38px;padding:0;border:1.5px solid var(--rule);border-radius:10px;background:var(--sheet);color:var(--moraine);cursor:pointer}
-.orient button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.orient button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
-.is-horiz .divider{top:0;bottom:auto;left:0;right:0;width:auto;height:2px;margin:-1px 0 0}
-.is-horiz #tagB{right:auto;left:18px;text-align:left}
-.is-horiz .handle{cursor:ns-resize}
-.is-horiz .handle svg{transform:rotate(90deg)}
-@media (max-width:720px){.is-horiz #tagB{left:12px}}
 .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:640;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.4)}
 .handle{position:absolute;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;z-index:660;display:grid;place-items:center;cursor:ew-resize;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.35);border:0}
 .handle svg{width:20px;height:20px;stroke:var(--rock)}
@@ -185,29 +178,32 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .layerbox{position:absolute;right:12px;top:104px;z-index:665;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 12px 6px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:220px}
 .lb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:0;background:none;padding:0 0 6px;margin:0;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);cursor:pointer}
 .lb-head svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;transition:transform .2s}
-.lb-group{margin:8px 0 3px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--moraine)}
-.lb-group:first-child{margin-top:0}
 .layerbox.min .lb-body{display:none}
 .layerbox.min .lb-head{padding:0}
 .layerbox.min .lb-head svg{transform:rotate(180deg)}
 .gbox-num{background:var(--accent);color:#fff;font:800 13px/24px var(--sans);width:24px;height:24px;border-radius:50%;text-align:center;box-shadow:0 1px 6px rgba(0,0,0,.45);border:2px solid #fff;cursor:pointer}
 .gbox-num.sel{background:#fff;color:var(--accent);border-color:var(--accent)}
-.pick-hint{position:absolute;left:50%;top:14px;transform:translateX(-50%);z-index:664;width:min(310px,calc(100% - 24px));background:rgba(255,255,255,.96);border-radius:12px;padding:10px 14px 11px;text-align:center;box-shadow:0 4px 18px rgba(0,0,0,.32);border-top:4px solid var(--accent);pointer-events:none;opacity:0;visibility:hidden;transition:opacity .25s,visibility .25s}
-.pick-hint.show{opacity:1;visibility:visible}
-.pick-hint b{display:block;font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent)}
-.pick-hint span{display:block;font-size:13px;line-height:1.4;color:var(--rock);margin-top:3px}
-.is-framing .pick-hint{display:none}
-@media (max-width:720px){.pick-hint{top:92px}}
 .gbox-tip{font-family:var(--sans);font-weight:600;font-size:12.5px}
 .pin-sw{display:inline-block;width:14px;height:14px;margin:0 2px;border-radius:50%;border:2px solid #fff;background:rgba(200,50,42,.25);box-shadow:0 0 0 1.5px var(--accent);vertical-align:-3px}
 .tongue-pin{position:relative;width:30px;height:30px;border-radius:50%;border:3px solid #fff;background:rgba(200,50,42,.25);box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.5)}
 .tongue-pin::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff}
 .tongue-pin span{position:absolute;left:38px;top:50%;transform:translateY(-50%);white-space:nowrap;background:var(--accent);color:#fff;font:700 11.5px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:4px 7px;border-radius:5px;box-shadow:0 1px 6px rgba(0,0,0,.4)}
 .is-framing .tongue-pin{visibility:hidden}
+.thick-card{position:absolute;left:12px;bottom:34px;z-index:664;background:rgba(255,255,255,.96);border-radius:8px;padding:8px 10px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:210px;max-height:45%;overflow:auto}
+.thick-card strong{display:block;font-size:12px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent)}
+.thick-card span{display:block;font-size:11px;color:var(--moraine);margin:1px 0 6px}
+.thick-card img{display:block;max-width:100%}
+.thick-card a{font-size:12px;color:var(--crevasse)}
+.thick-img{border-radius:14px}
+@media (max-width:720px){.thick-card{bottom:84px;left:8px;max-width:160px;padding:6px 8px}}
 .layerbox .toggle{font-size:12.5px;margin-bottom:4px}
 .layerbox .hint{font-size:11.5px;margin:2px 0 2px}
 .layerbox .hint:empty{display:none}
+.ice-chip{display:inline-block;width:10px;height:10px;border-radius:2px;margin:0 3px 0 6px;vertical-align:-1px}
+.ice-chip:first-child{margin-left:0}
 @media (max-width:720px){.layerbox{top:88px;right:8px;padding:6px 10px 4px}}
+.legend{position:absolute;right:10px;bottom:116px;z-index:660;background:rgba(255,255,255,.94);border-radius:6px;padding:8px 10px;font-size:12.5px;display:none;line-height:1.7}
+.legend.show{display:block}
 .notice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:680;background:var(--sheet);border-radius:8px;padding:16px 18px;width:min(360px,calc(100% - 32px));max-width:none;font-size:14px;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .notice.show{display:block}
 .credits{position:absolute;left:0;right:0;bottom:0;z-index:665;background:rgba(255,255,255,.88);color:var(--rock);font-size:11px;line-height:20px;height:20px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border:0;text-align:left;width:100%}
@@ -236,21 +232,13 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .cb-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .cb-links .fact-k{flex-basis:100%;color:var(--moraine)}
 .cb-links .cb{flex:0 0 auto;padding:5px 10px;font-size:12.5px;border-radius:999px}
-.about-wrap{margin-top:22px;border-top:1px solid var(--rule);padding-top:12px}
-.gh-invite{display:flex;gap:10px;align-items:flex-start;text-decoration:none;color:var(--rock);background:var(--firn);border-radius:10px;padding:10px 12px;margin-bottom:12px}
-.gh-invite:hover{background:#E6EDEF}
-.gh-invite svg{width:22px;height:22px;flex:none;fill:var(--rock);margin-top:1px}
-.gh-invite span{font-size:12px;line-height:1.45;color:var(--moraine)}
-.gh-invite b{display:block;font-size:12.5px;color:var(--rock)}
-.gh-invite em{display:block;font-style:normal;color:var(--crevasse);margin-top:2px;font-weight:600}
-details.about{margin-top:0}
+details.about{margin-top:22px;border-top:1px solid var(--rule);padding-top:12px}
 details.about summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--rock);display:flex;align-items:center;gap:8px;list-style:none}
 details.about summary::-webkit-details-marker{display:none}
 details.about[open] summary{margin-bottom:10px}
 details.about .note,details.about .src{margin:0 0 8px}
 .story .fact{font-size:14px;line-height:1.55;margin:0 0 10px;padding:10px 12px;border-left:3px solid var(--accent);background:var(--firn);border-radius:0 6px 6px 0}
 .story .fact.name{border-left-color:var(--crevasse)}
-.story p.body small.srcline{display:block;color:var(--moraine);font-size:11.5px;margin-top:3px}
 .story .fact small{display:block;color:var(--moraine);font-size:11.5px;margin-top:4px}
 .story h3{color:var(--accent);font-size:13px;font-weight:600;margin:28px 0 10px;padding-top:16px;border-top:1px solid var(--rule)}
 .story p.body{font-family:var(--serif);font-size:14px;line-height:1.55;margin:0 0 10px}
@@ -270,7 +258,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .src-list a{color:var(--crevasse)}
 .kf-note{font-size:11.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
-.stat .v{font-size:17px;font-weight:600;white-space:nowrap}
+.stat .v{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
 .stat .v small{font-size:12px;font-weight:500}
 .stat .k{font-size:11.5px;color:var(--moraine);line-height:1.3;display:flex;align-items:center;gap:4px}
 .stat .k.note{font-style:italic;display:block}
@@ -279,11 +267,14 @@ details.about .note,details.about .src{margin:0 0 8px}
 .stat.loss .mini{color:var(--loss)}
 .stat.loss .v{color:var(--loss)}
 .stat-group .ico{flex:none}
+.facts{width:100%;border-collapse:collapse;font-size:14px}
+.facts th{text-align:left;font-weight:400;color:var(--moraine);padding:7px 0;border-bottom:1px solid var(--rule);width:58%}
+.facts td{text-align:right;padding:7px 0;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;font-weight:500}
+.facts td.loss{color:var(--loss)}
 .cum{margin:0 0 6px}
 .cum svg{width:100%;height:auto;display:block;font-family:var(--sans);font-size:10px;fill:var(--moraine)}
 .cum .lbl{font-size:10.5px;font-weight:700;fill:var(--rock)}
 .cum .lbl.red{fill:var(--accent);font-size:13px}
-.cum .lbl.mid{font-size:28px;font-weight:800;fill:var(--crevasse)}
 .cum figcaption{font-size:11px;line-height:1.45;color:var(--moraine);margin-top:4px}
 .cum .k{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 4px 0 0}
 .cum .k-ice{background:#CFE3EA}.cum .k-lost{background:var(--accent);opacity:.4;margin-left:8px}
@@ -331,7 +322,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .dl svg{width:26px;height:26px;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;margin-bottom:3px}
 .dl b{font-size:13px;font-weight:700;line-height:1.2}
 .dl small{font-size:11px;color:var(--moraine)}
-.mhead,.mobile-only{display:none}
+.mhead,.mbar,.mobile-only{display:none}
 .mhead .desk-note{display:none}
 .mapbar button svg{display:none;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 .mapbar button[aria-pressed="true"] svg{stroke:#fff}
@@ -348,8 +339,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .video-sheet .segment button[aria-pressed="true"] small{color:var(--rock)}
 .vs-note{margin:0}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
-.vs-opts .toggle input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent);flex:none}
-.vs-opts .toggle span{line-height:1.3}
+.vs-opts .vo-image{justify-content:space-between}
 .vs-note:empty{display:none}
 .vs-head{display:flex;justify-content:space-between;align-items:center}
 .vs-head strong{font-size:13.5px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
@@ -377,11 +367,27 @@ details.about .note,details.about .src{margin:0 0 8px}
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
   .mhead span.desk-note{display:inline-block}
   .stage{order:1;height:60vh;height:60dvh;min-height:330px}
+  .mbar{display:flex;flex-direction:column;gap:10px;order:2;background:var(--sheet);padding:12px 14px 14px;border-bottom:1px solid var(--rule)}
   .controls{order:2;height:auto;border-right:0;border-bottom:1px solid var(--rule);padding:14px 16px 18px;gap:18px}
   .story{order:3;padding:20px 18px 32px}
   .controls .brand,#glacierList,#rankNote{display:none}
   .m-select{display:block!important}
+  .mimage{align-items:center}
+  .mimage .segment{flex:1.3}
+  .mimage{flex-wrap:wrap}
+  .mimage .segment{flex:1 1 100%}
+  .mimage .segment button{min-height:38px;font-size:14px}
+  .mbright{flex:1;display:flex;flex-direction:column;font-size:12.5px;color:var(--moraine);gap:2px}
+  .mbright input{width:100%;accent-color:var(--accent);min-height:26px}
+  .mbright label{display:flex;flex-direction:column}
 
+  .mlabel{font-size:12.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);margin-bottom:-4px}
+  .mbar select{width:100%;min-height:44px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
+  .mbar .segment button{min-height:40px;font-size:15px}
+  .mrow{display:flex;gap:8px;align-items:flex-end}
+  .mrow label{flex:1;display:flex;flex-direction:column;font-size:12.5px;color:var(--moraine);gap:3px}
+  .mrow .play{flex:0 0 auto;min-height:44px;padding:0 18px}
+  .mrow .act{min-height:44px;font-size:15px}
 
   .year-tag{font-size:34px;top:10px;max-width:calc(50% - 16px)}
   .year-tag small{font-size:11px;line-height:1.25}
@@ -395,11 +401,9 @@ details.about .note,details.about .src{margin:0 0 8px}
   .mapbar .mtool{display:none}
   .mapbar.more-open .mtool{display:inline-flex}
   .mobile-only{display:inline-flex}
-  .layerbox{display:none;top:58px;right:8px;padding:10px 12px 6px;max-width:240px;max-height:calc(100% - 58px - 96px);overflow-y:auto;overscroll-behavior:contain}
-  .app.more-open .layerbox{max-height:calc(100% - 58px - 150px)}
+  .layerbox{display:none;top:58px;right:8px;padding:10px 12px 6px;max-width:240px}
   .layerbox.open{display:block}
-  .layerbox .toggle{font-size:14.5px;min-height:32px;margin:0}
-  .layerbox .lb-group{margin-top:6px}
+  .layerbox .toggle{font-size:15px;min-height:36px;margin:0}
   .layerbox .toggle input{width:20px;height:20px}
   .leaflet-control-scale{margin-bottom:84px!important}
   .credits{font-size:12px;line-height:22px;height:22px}
@@ -423,12 +427,17 @@ details.about .note,details.about .src{margin:0 0 8px}
   .app{display:flex;flex-direction:column;height:auto}
   .stage{position:fixed;left:0;top:0;bottom:0;width:58vw;height:auto;min-height:0;z-index:1}
   .mhead{order:0} .controls{order:2} .story{order:3}
-  .mhead,.story,.controls{margin-left:58vw}
+  .mhead,.mbar,.story,.controls{margin-left:58vw}
   .mhead{display:block;padding:8px 14px}
   .mhead strong{display:block;font-size:15px;font-weight:800}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
+  .mbar{display:flex;flex-direction:column;gap:8px;padding:10px 14px}
   .controls .brand,#glacierList,#rankNote{display:none}
   .m-select{display:block!important}
+  .mbar select{width:100%;min-height:40px;font-size:15px;border:1px solid var(--rule);border-radius:8px;padding:6px 8px;background:var(--sheet)}
+  .mrow{display:flex;gap:8px;align-items:flex-end}
+  .mrow label{flex:1;display:flex;flex-direction:column;font-size:12px;color:var(--moraine);gap:2px}
+  .mrow .act,.mrow .play{min-height:40px}
   .story,.controls{height:auto;border:0;border-top:1px solid var(--rule)}
   .year-tag{font-size:30px}
   .mapbar{bottom:28px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px)}
@@ -438,7 +447,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   .mapbar .mtool{display:none}
   .mapbar.more-open .mtool{display:inline-flex}
   .mobile-only{display:inline-flex}
-  .layerbox{display:none;top:54px;right:8px;max-height:calc(100% - 54px - 86px);overflow-y:auto}
+  .layerbox{display:none;top:54px;right:8px}
   .layerbox.open{display:block}
   .leaflet-control-scale{margin-bottom:80px!important}
   .app.more-open .leaflet-control-scale{margin-bottom:130px!important}
@@ -458,7 +467,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .card-h .ico.red{background:#F6DCDA;color:var(--accent)}
 .card-h .ico svg,.stat-group .ico svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px}
-.stat .v{font-size:14px;font-weight:600;color:var(--rock)}
+.stat .v{font-size:16px;font-weight:700;color:var(--rock)}
 .stat.loss .v{color:var(--accent)}
 .stat .k{font-size:11px;color:var(--moraine)}
 .span-note{margin:10px 0 0;padding:9px 10px;border-radius:8px;font-size:11.5px;line-height:1.45;color:var(--moraine);background:var(--firn)}
@@ -489,19 +498,11 @@ details.about .note,details.about .src{margin:0 0 8px}
 
 /* ---------- area card: two tiles and one wide change tile with a bar ---------- */
 .stat.wide{grid-column:1 / -1}
-.stat.wide .v{display:flex;align-items:baseline;gap:8px;font-size:22px;font-weight:800;letter-spacing:-.01em}
-.stat.wide .v small{font-size:13px;font-weight:700}
-.stat.wide.loss{background:#FBEDEC;padding:11px 12px}
-.stat.wide.loss .k{color:#7a3a36}
-.stat.wide:not(.loss) .v{font-size:20px}
-.stat.wide.loss .v{color:var(--accent)}
+.stat.wide .v{display:flex;align-items:baseline;gap:8px}
 .gwater .stat.wide .v{color:var(--crevasse)}
 .abar{display:block;height:8px;border-radius:4px;background:#F0C9C6;overflow:hidden;margin:6px 0 2px}
 .abar i{display:block;height:100%;background:var(--crevasse);border-radius:4px 0 0 4px}
-.abar-key{display:flex;justify-content:space-between;font-size:12px;color:#7a3a36}
-.stat .k.note{font-size:10px;line-height:1.3}
-.stat.wide.loss .k{font-size:12.5px}
-.stat.wide.loss .k.note{font-size:10px}
+.abar-key{display:flex;justify-content:space-between;font-size:10.5px;color:var(--moraine)}
 
 /* ---------- water chart readout and partly filled icons ---------- */
 .cum-read{font-size:11.5px;line-height:1.45;color:var(--moraine);background:var(--firn);border-radius:8px;padding:9px 10px;margin-top:8px;min-height:2.9em}
@@ -513,19 +514,26 @@ details.about .note,details.about .src{margin:0 0 8px}
 </style>
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <filter id="gammaFx" color-interpolation-filters="sRGB"><feComponentTransfer>
+    <feFuncR type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncG type="gamma" amplitude="1" exponent="1" offset="0"/><feFuncB type="gamma" amplitude="1" exponent="1" offset="0"/>
+  </feComponentTransfer><feComponentTransfer id="snowFx">
+    <feFuncR type="identity"/><feFuncG type="identity"/><feFuncB type="identity"/>
+  </feComponentTransfer></filter>
+</svg>
 <div class="app" id="app">
 
   <!-- ================= MOBILE HEADER (phones only) ================= -->
   <header class="mhead" id="mhead">
-    <strong>Tongues from Space - Switzerland</strong>
+    <strong>Swiss Glacier Tongues from Space</strong>
     <span>Created to increase glacial awareness - by Jochem Braakhekke</span>
-    <span class="desk-note">Best viewed on a large display.</span>
+    <span class="desk-note">Best viewed on a desktop or laptop.</span>
   </header>
 
   <!-- ================= LEFT ================= -->
   <aside class="controls" aria-label="Settings">
     <div class="brand">
-      <h1>Tongues from Space - Switzerland</h1>
+      <h1>Swiss Glacier Tongues from Space</h1>
       <p>The ten largest Swiss glaciers, seen from space every summer since 2016.</p>
       <p class="what">Compare satellite images from different years, watch a timelapse, explore the glacier figures and download animations to share.</p>
       <p class="byline">Created to increase glacial awareness - by Jochem Braakhekke. See also <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
@@ -541,10 +549,9 @@ details.about .note,details.about .src{margin:0 0 8px}
     <section class="step" id="vizGroup">
       <h2 class="step-h"><span class="num">2</span>Visualisation</h2>
       <div id="modeGroup">
-        <div class="modes" role="group" aria-label="View mode">
-          <button type="button" id="modeSingle" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg><span>One year</span></button>
-          <button type="button" id="modeCompare" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16M8 10l-2 2 2 2M16 10l2 2-2 2"/></svg><span>Compare</span></button>
-          <button type="button" id="modeTimelapse" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><span>Timelapse</span></button>
+        <div class="segment" role="group" aria-label="View mode">
+          <button type="button" id="modeCompare" aria-pressed="true"><svg class="ico-s" viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M8 10l-2 2 2 2M16 10l2 2-2 2"/></svg>Compare</button>
+          <button type="button" id="modeTimelapse" aria-pressed="false"><svg class="ico-s" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg>Timelapse</button>
         </div>
       </div>
 
@@ -556,15 +563,8 @@ details.about .note,details.about .src{margin:0 0 8px}
       <p class="note" id="styleNote"></p>
 
       <div class="stack" id="compareControls">
-        <div class="orient" role="group" aria-label="Slider direction"><span class="side-label">Slider</span>
-          <button type="button" id="orientV" aria-pressed="true" aria-label="Vertical slider: left and right" title="Vertical slider: left and right"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M8.5 10l-2 2 2 2M15.5 10l2 2-2 2"/></svg></button>
-          <button type="button" id="orientH" aria-pressed="false" aria-label="Horizontal slider: top and bottom" title="Horizontal slider: top and bottom"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18M10 8.500l2-2 2 2M10 15.500l2 2 2-2"/></svg></button>
-        </div>
-        <div><div class="side-label" id="labelA">Left</div><div class="years" id="yearsA" role="group" aria-label="Year for left image"></div></div>
-        <div><div class="side-label" id="labelB">Right</div><div class="years" id="yearsB" role="group" aria-label="Year for right image"></div></div>
-      </div>
-      <div class="stack" id="singleControls" hidden>
-        <div><div class="side-label">Year</div><div class="years" id="yearsOne" role="group" aria-label="Year to show"></div></div>
+        <div><div class="side-label">Left</div><div class="years" id="yearsA" role="group" aria-label="Year for left image"></div></div>
+        <div><div class="side-label">Right</div><div class="years" id="yearsB" role="group" aria-label="Year for right image"></div></div>
       </div>
       <div class="stack" id="timelapseControls" hidden>
         <div><div class="side-label">From</div><div class="years" id="yearsFrom" role="group" aria-label="First year of timelapse"></div></div>
@@ -574,9 +574,9 @@ details.about .note,details.about .src{margin:0 0 8px}
           <label class="speed" title="Speed in frames (years) per second"><svg class="speed-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0"/><path id="speedNeedle" d="M12 18V9"/><circle cx="12" cy="18" r="1.4"/></svg>
           <select class="small" id="speedSel" aria-label="Speed">
             <option value="2200">0.5 fps</option>
-            <option value="1200" selected>1.0 fps</option>
-            <option value="600">2.0 fps</option>
-            <option value="300">4.0 fps</option>
+            <option value="1200" selected>0.8 fps</option>
+            <option value="600">1.7 fps</option>
+            <option value="300">3.3 fps</option>
           </select></label>
           <label class="toggle loop"><input type="checkbox" id="loopToggle" checked> <span>Loop</span></label>
         </div>
@@ -596,11 +596,9 @@ details.about .note,details.about .src{margin:0 0 8px}
       </div>
       <button type="button" class="act" id="shareBtn">Share this view</button>
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
-        <img class="fyi-img" src="images/foryourice.jpg" alt="A framed glacier art print by For Your Ice" width="420" height="517" loading="lazy">
-        <span class="fyi-ask">Glacier art for your wall</span>
+        <span class="fyi-ask">Want a glacier on your wall?</span>
         <span class="fyi-name">For Your Ice</span>
-        <span class="fyi-text">Take a piece of the ice home. Every print supports new visual tools that bring glaciers closer to people.</span>
-        <span class="fyi-go">See the prints →</span>
+        <span class="fyi-text">Proceeds support the creation of new visual tools to increase public glacier awareness.</span>
       </a>
     </section>
 
@@ -624,13 +622,13 @@ details.about .note,details.about .src{margin:0 0 8px}
     <div class="layerbox" id="layerbox" role="group" aria-label="Map layers">
       <button type="button" class="lb-head" id="lbToggle" aria-expanded="true"><span>Layers</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
       <div class="lb-body">
-      <div class="lb-group">This glacier</div>
       <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Outline 1850</span></span></label>
-      <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline 2023</span></span></label>
-      <label class="toggle"><input type="checkbox" id="pinToggle"> <span><i class="pin-sw"></i> <span id="pinLabel">Tongue indication</span></span></label>
-      <div class="lb-group">Overview</div>
+      <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline today</span></span></label>
+      <label class="toggle"><input type="checkbox" id="iceToggle"> <span><i class="swatch" style="border-color:var(--ice-a)"></i> Ice edge (ablation zone)</span></label>
+      <p class="hint" id="iceNote"></p>
+      <label class="toggle"><input type="checkbox" id="pinToggle"> <span><i class="pin-sw"></i> Tongue indication</span></label>
       <label class="toggle"><input type="checkbox" id="boxToggle" checked> <span><i class="swatch" style="border-color:var(--accent)"></i> Glacier boxes</span></label>
-      <div class="lb-group">Background</div>
+      <label class="toggle"><input type="checkbox" id="thickToggle"> <span>Ice thickness <small style="color:var(--moraine)">(Grab et al. 2021)</small></span></label>
       <label class="toggle"><input type="checkbox" id="mosaicToggle" checked> <span>Sentinel-2 background</span></label>
       <label class="toggle"><input type="checkbox" id="osmToggle"> <span>OpenStreetMap</span></label>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place labels</span></label>
@@ -651,9 +649,13 @@ details.about .note,details.about .src{margin:0 0 8px}
       <button type="button" id="layersBtn" class="mobile-only" aria-label="Map layers" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
       <button type="button" id="moreBtn" class="mobile-only" aria-label="Measuring tools" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
     </div>
-    <div class="pick-hint" id="pickHint" aria-live="polite"><b id="pickTitle">Select a glacier to start</b><span id="pickText">Click a red box on the map, or choose a glacier from the list.</span></div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
+    <div class="thick-card" id="thickCard" hidden>
+      <strong>Ice thickness</strong><span>state around 2016, Grab et al. 2021</span>
+      <img id="thickLegend" alt="Legend: ice thickness in metres">
+      <a id="thickLegendLink" href="https://map.geo.admin.ch/?layers=ch.swisstopo.geologie-gletschermaechtigkeit" target="_blank" rel="noopener" hidden>Legend on map.geo.admin.ch</a>
+    </div>
     <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
@@ -669,7 +671,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   <div class="vs-head"><strong id="vsTitle">Download animation</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
   <p class="hint">Move and zoom the map until the tongue sits inside the white frame.</p>
   <div class="segment" role="group" aria-label="Format">
-    <button type="button" id="vfReel" aria-pressed="true">9:16<small id="vfReelNote">(Reels, TikTok)</small></button>
+    <button type="button" id="vfReel" aria-pressed="true">9:16<small>(Reels, TikTok)</small></button>
     <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Instagram feed)</small></button>
   </div>
   <div class="segment vo-video" role="group" aria-label="Video type">
@@ -677,11 +679,11 @@ details.about .note,details.about .src{margin:0 0 8px}
     <button type="button" id="vtSwipe" aria-pressed="false">Slider</button>
   </div>
   <div class="vs-opts">
-    <label class="toggle vo-image"><input type="checkbox" id="vImgWater"> <span>Add water facts of this year</span></label>
+    <label class="toggle vo-image vo-year"><span>Year</span> <select class="small" id="vImgYear" aria-label="Year of the picture"></select></label>
     <label class="toggle vo-video"><input type="checkbox" id="vIntro" checked> <span>Include the front page</span></label>
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show the 1850 outline</span></label>
     <label class="toggle vo-video"><input type="checkbox" id="vWater"> <span>Add water facts</span></label>
-    <label class="toggle speed-row vo-video"><span>Speed</span> <select class="small" id="vSpeed"><option value="2.2">0.5 fps</option><option value="1.2" selected>1.0 fps</option><option value="0.6">2.0 fps</option><option value="0.3">4.0 fps</option></select></label>
+    <label class="toggle speed-row vo-video"><span>Speed</span> <select class="small" id="vSpeed"><option value="2.2">0.5 fps</option><option value="1.2" selected>0.8 fps</option><option value="0.6">1.7 fps</option><option value="0.3">3.3 fps</option></select></label>
   </div>
   <p class="hint vs-note" id="vsInfo"></p>
   <p class="hint vs-help"><span id="vsSource"></span> <span class="vo-video">The result is an MP4 for Instagram, TikTok or anywhere else.</span></p>
@@ -689,7 +691,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   <button type="button" class="play" id="vsGo" style="width:100%;padding:9px 12px;font-size:14px">Download video</button>
 </section>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <!-- optional: generated by build_outlines.py. Missing file = built-in list, no outlines. -->
 <script src="glaciers.js"></script>
 <!-- optional: written by the deploy workflow; sets the address of the Copernicus relay (Cloudflare Worker) -->
@@ -730,117 +732,112 @@ const VOLUME_LOSS = [
 const DEFAULTS = [
   { id:'aletsch', tongue:[46.424,8.032], keys:['grosser aletsch'], name:'Grosser Aletsch', local:'Grosser Aletschgletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.47,8.04], bounds:[[46.40,7.95],[46.56,8.12]], a1850:105.6, a1973:86.6, a2016:78.49, aNew:[75.79,2023], len:[26.5,24.0,22.6],
-    lede:'The largest glacier in the Alps. Several firn streams meet at Konkordiaplatz before the tongue curves south-west towards the Massa gorge above Brig.',
-    look:'Follow the tongue south of the bend at Märjelen and compare where clean ice gives way to grey rock. The dark medial moraines running down the middle are easy to follow from year to year.',
-    note:'In summer 2026 almost six metres of ice disappeared at one measuring point at Konkordiaplatz, about as much as in the extreme year 2022. This is a single point, not an average of the whole glacier.<small class="srcline">Source: GLAMOS, reported by wetter.net (September 2026)</small>' },
+    lede:'The largest glacier in the Alps. Four tributary ice streams meet at Konkordiaplatz before the tongue curves south-west towards the Massa gorge above Brig.',
+    look:'Follow the tongue south of the bend at Märjelen and compare where clean ice gives way to grey rock. The dark medial moraines running down the middle widen as the ice thins.',
+    note:'2026 brought the largest melt ever measured on Aletsch. At the lowest measuring point the ice lost about 13 metres of thickness in one year.' },
   { id:'gorner', tongue:[45.978,7.778], keys:['gorner'], name:'Gorner', local:'Gornergletscher', canton:'Valais', range:'Pennine Alps',
     center:[45.95,7.81], bounds:[[45.90,7.72],[46.00,7.90]], a1850:66.0, a1973:59.7, a2016:41.24, aNew:[35.37,2023], len:[15.9,13.5,12.4],
-    lede:'The second-largest glacier in Switzerland by area (SGI2023), flowing west from Monte Rosa towards Zermatt. Its main tributary is the Grenzgletscher.',
-    look:'Look at the confluence with the Grenzgletscher, where the ice-marginal Gornersee forms.',
-    note:'Since its last major expansion in 1859 the Gorner glacier has lost more than 2.7 km of length (figure as of 2014).<small class="srcline">Source: Wikipedia (Gorner Glacier)</small>' },
+    lede:'The second-largest glacier in Switzerland, flowing west from Monte Rosa towards Zermatt. Several tributaries, including the Grenzgletscher, join it from the south.',
+    look:'Look at the confluence with the Grenzgletscher, where the ice-marginal Gornersee forms in some summers, and at the Monte Rosa glacier in the middle, which no longer reaches the main stream.',
+    note:'Part of the drop in area since 1850 comes from tributaries that have separated and are now counted as glaciers of their own.' },
   { id:'fiescher', tz:14, tongue:[46.468,8.145], keys:['fiescher'], name:'Fiescher', local:'Fieschergletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.49,8.15], bounds:[[46.42,8.08],[46.57,8.22]], a1850:37.4, a1973:34.2, a2016:29.75, aNew:[28.51,2023], len:[17.1,15.4,14.7], lenYear:2012,
     lede:'The second-longest glacier in the Alps, draining south from the Finsteraarhorn and Gross Fiescherhorn towards the village of Fiesch in the Goms valley.',
-    look:'Compare the tip of the narrow lower tongue and the width of bare rock along its flanks.',
-    note:'At 16 km it is the second-longest glacier in the Alps, after the Aletsch.<small class="srcline">Source: Wikipedia (Fiescher Glacier)</small>' },
+    look:'The narrow lower tongue in the gorge above Fiesch reacts fastest. Compare its tip and the width of bare rock along its flanks.',
+    note:'Fiescher sits right next to Aletsch, so zooming out shows both ice streams retreating side by side.' },
   { id:'unteraar', tongue:[46.563,8.252], keys:['unteraar'], name:'Unteraar', local:'Unteraargletscher', canton:'Bern', range:'Bernese Alps',
     center:[46.56,8.24], bounds:[[46.51,8.12],[46.61,8.33]], a1850:33.4, a1973:29.5, a2016:22.70, aNew:[20.36,2024], len:[14.5,12.9,11.8],
     lede:'Formed where the Finsteraar and Lauteraar glaciers merge, the Unteraar flows east into the Grimselsee, the reservoir behind the Grimsel hydropower dams.',
-    look:'Debris covers nearly the whole tongue, so it looks grey rather than white. Watch the front near the lake and the dark central moraine where the two source glaciers join.',
-    note:'The debris cover is typically 5 to 15 cm thick and acts like an insulating layer, so mass loss is somewhat slowed.<small class="srcline">Source: Wikipedia (Unteraargletscher)</small>' },
+    look:'The tongue is buried under rock debris, so it looks grey rather than white. Watch the debris-covered front near the lake and the dark central moraine where the two source glaciers join.',
+    note:'Debris slows surface melt, but the tongue is still thinning and pulling back up the valley.' },
   { id:'oberaletsch', tz:14.25, tongue:[46.414,7.992], keys:['oberaletsch'], name:'Oberaletsch', local:'Oberaletschgletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.43,7.98], bounds:[[46.39,7.90],[46.48,8.05]], a1850:26.6, a1973:22.8, a2016:17.05, aNew:null, len:[10.4,9.1,8.8], lenYear:2011,
-    lede:'Until about 1880 a tributary of the Great Aletsch. Both glaciers have since retreated so far that they no longer meet.',
-    look:'Compare the gap between the Oberaletsch tongue and the Great Aletsch, and the Beich glacier, the western arm that joins it.',
-    note:'Its length fell from 9.05 km in 1973 to 8.77 km in 2007.<small class="srcline">Source: Wikipedia (Oberaletsch Glacier)</small>' },
+    lede:'Once a tributary of the Great Aletsch, the Oberaletsch now ends on its own, about 1.3 km short of its former junction. Both glaciers feed the river Massa.',
+    look:'Compare the gap between the Oberaletsch tongue and the Great Aletsch to the east, and the Beich glacier joining from the north.',
+    note:'Its tongue is almost completely covered in debris, which is why it looks dark on the satellite images.' },
   { id:'corbassiere', tz:14.25, tongue:[45.987,7.296], keys:['corbassiere'], name:'Corbassière', local:'Glacier de Corbassière', canton:'Valais', range:'Pennine Alps',
     center:[45.97,7.30], bounds:[[45.92,7.24],[46.03,7.36]], a1850:20.7, a1973:18.3, a2016:14.95, aNew:[14.08,2023], len:[12.9,10.1,9.6],
-    lede:'A long valley glacier flowing north from the Grand Combin above the Val de Bagnes, 9.8 km long.',
-    look:'Compare the narrow lower tongue and the moraine walls left along its sides.',
-    note:'' },
+    lede:'The largest glacier in Lower Valais, flowing north from the Grand Combin through a long, gently sloping valley.',
+    look:'The wide, flat upper plateau at about 3,300 m holds snow longest. Compare the narrow lower tongue and the moraine walls left along its sides.',
+    note:'Flat glaciers like this one react slowly at first, then lose large areas once the snow line rises above their plateau.' },
   { id:'morteratsch', tz:14.5, tongue:[46.421,9.931], keys:['morteratsch'], name:'Morteratsch', local:'Vadret da Morteratsch', canton:'Graubünden', range:'Bernina Range',
     center:[46.41,9.93], bounds:[[46.37,9.86],[46.46,9.99]], a1850:19.3, a1973:16.4, a2016:14.93, aNew:null, len:[8.9,7.0,6.2],
-    lede:'Flowing north from Piz Bernina in the Engadin. Together with the Pers glacier from Piz Palü it drains via the Inn into the Danube and the Black Sea.',
-    look:'The tongue is reached on foot from Morteratsch station; time panels along the glacier trail show where the ice stood in past years. Compare the tongue tip and the junction with the Pers glacier.',
-    note:'Of the ten glaciers here it is the only one that drains to the Black Sea; the others drain to the North Sea or the Mediterranean.<small class="srcline">Source: Wikipedia (Morteratsch Glacier)</small>' },
+    lede:'The largest glacier in eastern Switzerland, flowing north from Piz Bernina. Together with the Pers glacier from Piz Palü it drains via the Inn into the Danube and the Black Sea.',
+    look:'The tongue ends in a valley reachable on foot from the railway; signposts there mark where the ice stood in past years. Compare the tongue tip and the junction with the Pers glacier.',
+    note:'It is the only glacier in this top ten that drains to the Black Sea rather than the North Sea or the Mediterranean.' },
   { id:'zmutt', tz:14.25, tongue:[45.99,7.672], keys:['zmutt'], name:'Zmutt', local:'Zmuttgletscher', canton:'Valais', range:'Pennine Alps',
     center:[45.99,7.62], bounds:[[45.95,7.54],[46.03,7.70]], a1850:19.8, a1973:16.9, a2016:14.82, aNew:null, len:[8.6,6.7,null], lenYear:null,
     lede:'Flowing east below the north face of the Matterhorn towards Zermatt, fed by the Tiefmatten and Stockji glaciers.',
     look:'Most of the lower tongue is covered in debris and looks like a rocky valley floor. Use the bright ice upstream and the reservoir at Zmutt as reference points.',
-    note:'' },
+    note:'Debris-covered tongues are hard to map from space; the inventory outlines show where the ice under the rock still is.' },
   { id:'rhone', tz:14.5, tongue:[46.588,8.385], keys:['rhone'], name:'Rhone', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
     center:[46.61,8.39], bounds:[[46.56,8.33],[46.66,8.44]], a1850:20.2, a1973:17.6, a2016:14.64, aNew:null, len:[9.2,8.0,7.7],
     lede:'The source of the river Rhône, flowing south from the Dammastock towards Gletsch at the Furka and Grimsel passes.',
     look:'A lake has formed where the tongue used to lie on the rock step above Gletsch. Compare its size and the bare rock around it from year to year.',
-    note:'In summer 2026 the Rhône glacier lost more than four metres of ice in a single month. Meltwater has carved cavities under the tongue that collapse into pits.<small class="srcline">Source: Euronews, 7 August 2026 (Matthias Huss, GLAMOS)</small>' },
+    note:'The Rhône glacier had its largest melt on record in 2026, and collapse pits are opening on its tongue where meltwater has hollowed out the ice.' },
   { id:'trift', tz:14.5, tongue:[46.678,8.364], keys:['trift'], name:'Trift', local:'Triftgletscher (Gadmen)', canton:'Bern', range:'Urner Alps',
     center:[46.67,8.36], bounds:[[46.63,8.30],[46.72,8.43]], a1850:19.3, a1973:16.5, a2016:14.56, aNew:null, len:[7.6,5.8,3.7],
-    lede:'A glacier above the Gadmen valley whose tongue sank into a growing lake in the early 2000s, leaving the Triftsee, spanned by a suspension bridge.',
-    look:'The lake below the steep ice fall is the best marker for how far the tongue has retreated.',
-    note:'In 1973 the Trift glacier was 5.75 km long; GLAMOS lists 3.64 km today.<small class="srcline">Source: swisseduc.ch (Trift glacier); GLAMOS</small>' }
+    lede:'A glacier above the Gadmen valley whose tongue collapsed in the early 2000s, leaving a new lake, the Triftsee, spanned by a suspension bridge.',
+    look:'The lake below the steep ice fall is the best marker. The ice fall itself retreats a little more almost every summer.',
+    note:'Between 1973 and 2013 its length shrank from 5.8 to 3.7 km, the largest relative loss in this list.' }
 ];
 
 /* "Did you know?" and "Where the name comes from" per glacier. Only documented facts; uncertain origins say so. */
 const GLACIER_INFO = {
  "aletsch": {
-  "fact": "At Konkordiaplatz, where its ice streams meet, the ice is more than 900 m thick. Local legend tells of the Rollibock, a huge buck with long horns and fiery eyes and a body covered in ice chunks, who punishes people who harm nature.",
+  "fact": "At Konkordiaplatz, where its tributaries meet, the ice is up to about 900 m thick. Local legend tells of the Rollibock, a guardian creature with long horns and fiery eyes that lives in the ice and turns nasty when people harm nature.",
   "name": "Named after the Alp Aletsch below it, first recorded in 1231 as <em>Alech</em>. Where the name itself comes from is unknown.",
-  "src": "Historical Dictionary of Switzerland (Aletschgletscher); bergpunkt.ch (Aletsch); Bergwelten (Rollibock)"
+  "src": "Historical Dictionary of Switzerland (HLS); Bergwelten"
  },
  "gorner": {
-  "fact": "Its ice-marginal lake, the Gornersee, fills every year and usually drains in summer in a glacial lake outburst flood. With its tributaries it forms the second-largest glacier system in the Alps after the Aletsch (53 km², 2007).",
-  "name": "From the <em>Gorneren</em>, the high pastures above Zermatt: in 1579 the farmers' guild regulated when sheep could graze there. <em>Gorner</em> is assumed to come from Romansh <em>cornu</em>, \"horned\". Zermatt people also called the Monte Rosa peaks the <em>Gornerhorn</em> in the early 19th century.",
-  "src": "Wikipedia (Gorner Glacier; Gornergrat); Gornergrat Bahn (history of the name)"
+  "fact": "Its lower part is polythermal: some of the ice is colder than its melting point. It is the largest glacier of this kind in the Alps.",
+  "name": "From the <em>Gorneren</em>, the high pastures above Zermatt, mentioned in 1579 when the village regulated when sheep could graze there. Monte Rosa itself was once called the <em>Gornerhorn</em>.",
+  "src": "Gornergrat Bahn history; Wikipedia"
  },
  "fiescher": {
-  "fact": "In 1678 the people of Fiesch vowed to live virtuously and to pray that the Aletsch glacier would stop growing, because it threatened their valley. In 2010 the Vatican allowed them to change the vow: their annual procession now also prays about climate change and glacier melting.",
-  "name": "\"Of Fiesch\": named after the village and valley below it. The village appears as <em>Vios</em> in 1203 and <em>Viesch</em> in 1438.",
-  "src": "Beobachter (\"Um Gottes willen\"); swissinfo.ch; Historical Dictionary of Switzerland (Fiesch)"
+  "fact": "For more than 400 years, the people of Fiesch prayed for the glaciers to melt, because the ice threatened their valley. In 2010 the Pope allowed them to change their vow: since then they may pray against the melting.",
+  "name": "Named after the village of Fiesch, from Latin <em>vīcus</em>, \"village\". Until the 19th century it was mostly written <em>Viesch</em>.",
+  "src": "Wikipedia (Fiesch)"
  },
  "unteraar": {
-  "fact": "In the 19th century the naturalists Franz Josef Hugi and Louis Agassiz spent many months here. Agassiz and his team lived under a huge boulder on the medial moraine, which they named the \"Hôtel des Neuchâtelois\", while they studied the glacier. It was one of the first subjects of glaciology.",
-  "name": "\"Lower Aare glacier\": the larger of the two sources of the river Aare, with the Oberaar glacier. The Aare, 288 km, is the longest river that flows entirely within Switzerland.",
-  "src": "Wikipedia (Unteraargletscher); Agassiz, Life and Correspondence (1893); MySwitzerland.com (Aare)"
+  "fact": "In the 1840s the naturalist Louis Agassiz and his team camped on its moraine in a rock shelter they called the \"Hôtel des Neuchâtelois\", and measured how fast the ice moves. It is one of the birthplaces of glacier science.",
+  "name": "\"Lower Aare glacier\": together with the Oberaar glacier it is a source of the river Aare, the longest river running entirely within Switzerland.",
+  "src": "general glaciological history"
  },
  "oberaletsch": {
-  "fact": "Until about 1880 it still flowed into the Aletsch glacier. Both glaciers have retreated so far that they no longer join.",
-  "name": "\"Upper Aletsch glacier\" (German <em>Ober-</em>, upper): it shares its name with the Aletsch glacier it once joined.",
+  "fact": "During the Little Ice Age, around 1850, it was still part of the Great Aletsch. Today its tongue ends well before the junction.",
+  "name": "\"Upper Aletsch glacier\", after the same Alp Aletsch as its large neighbour.",
   "src": "Wikipedia (Oberaletsch Glacier)"
  },
  "corbassiere": {
-  "fact": "It starts above 4,000 m on the north slope of the Grand Combin and its tongue ends at about 2,300 m. It is 9.8 km long.",
-  "name": "A French place name of the Val de Bagnes; its origin is not documented in the sources we checked.",
-  "src": "Wikipedia (Corbassière Glacier)"
+  "fact": "It flows down from the Grand Combin (4,314 m), one of the highest summits of the Valais, and is the largest glacier in Lower Valais.",
+  "name": "A French place name of the Val de Bagnes; its exact origin is not documented in the sources we checked.",
+  "src": ""
  },
  "morteratsch": {
-  "fact": "With about 1.2 km³ of ice it is the third-largest glacier in the Eastern Alps, after the Pasterze and the Gepatschferner.",
-  "name": "A legend explains the name: Annetta, a farmer's daughter, died of sorrow while her beloved herdsman Aratsch was away as a soldier. When he returned he rode into a crevasse, and her ghost is said to wander the alp crying \"Mort Aratsch!\" (\"Aratsch is dead\"). A documented etymology is not in the sources we checked.",
-  "src": "Wikipedia (Morteratsch Glacier); Pontresina Tourism (Legends in the Bernina glacier region)"
+  "fact": "Together with the Pers glacier it holds about 1.2 km³ of ice, the largest volume of any glacier in the Eastern Alps.",
+  "name": "Romansh <em>murter</em>, a high alpine pasture, with the enlarging ending <em>-atsch</em>: \"the big high pasture\". Legend tells it differently: the ghost of Annetta wandered the alp crying \"Mort Aratsch!\" (\"Aratsch is dead\") after her beloved herdsman rode into the glacier.",
+  "src": "Wikipedia (Morteratsch); Tages-Anzeiger"
  },
  "zmutt": {
-  "fact": "Debris now covers about 32 % of the glacier surface, up from about 13 % in 1859. This debris slowed the glacier's response: its length and area have changed little compared with debris-free glaciers, although the mass loss is similar. Water from the Zmutt valley is collected at the Z'Mutt pumping station of the Grande Dixence system.",
-  "name": "Named after the hamlet of Zmutt in the municipality of Zermatt. The origin of the name is not documented in the sources we checked.",
-  "src": "The Cryosphere, vol. 13 (2019), Zmuttgletscher study; Grande Dixence SA; Wikipedia (Zmutt)"
+  "fact": "Below the north face of the Matterhorn, its tongue is so covered in rock debris that it looks like a stony valley floor. Its meltwater is collected at the Zmutt reservoir for the Grande Dixence hydropower system.",
+  "name": "Named after the hamlet of Zmutt above Zermatt. The origin of the name is not documented in the sources we checked.",
+  "src": ""
  },
  "rhone": {
-  "fact": "Every summer an ice grotto is dug into the glacier at the Hotel Belvédère on the Furka Pass, a tradition since about 1870. To slow the melting, the lowest part of the tongue is covered with white fleece.",
-  "name": "From the river it feeds: the Rhône (Latin <em>Rhodanus</em>). Its etymology is unclear; Celtic and Greek origins have been proposed.",
-  "src": "showcaves.com (Eisgrotte Rhonegletscher); freizeit.ch; Historical Dictionary of Switzerland; Wikipedia (Rhône)"
+  "fact": "Every summer an ice grotto is dug into the glacier near the Belvédère, and since the 2000s parts of the tongue have been covered with white fleece blankets to slow the melting.",
+  "name": "From the river it feeds: the Rhône, Latin <em>Rhodanus</em>, a name of Celtic origin.",
+  "src": "general sources"
  },
  "trift": {
-  "fact": "In the 2004/05 measuring year the Trift glacier retreated by 216 m, more than any other monitored glacier in Switzerland, because its tongue ended in a lake that sped up the melting. A suspension bridge about 170 m long (opened 2009, replacing one built in 2004) spans the Triftsee so hikers can still reach the hut.",
-  "name": "German <em>Trift</em> is a path along which livestock is driven, from <em>treiben</em>, \"to drive\".",
-  "src": "plattformj.ch (glacier measurements, 2006); Wikipedia (Trift Bridge); Duden"
+  "fact": "When its tongue retreated, a new lake formed in front of it. The Trift suspension bridge, about 170 m long, was built across the gorge so hikers could still reach the hut.",
+  "name": "German <em>Trift</em> is an old word for a path along which livestock is driven to pasture.",
+  "src": "general sources"
  },
  "fee": {
-  "fact": "At Mittelallalin, 3,500 m high, glaciologist Benedikt Schnyder carved an artificial ice cave into the glacier: the Ice Pavilion, 5,500 m² with a 71 m tunnel. It closed in 2024 for safety reasons, because the glacier retreats; a virtual reality experience replaced it.",
-  "name": "Named after Saas-Fee, the village below it, which appears as <em>Vee</em> in 1304. Where the name itself comes from is not documented in the sources we checked.",
-  "src": "showcaves.com (Eispavillon Mittelallalin); Historical Dictionary of Switzerland (Saas-Fee)"
- },
- "findel": {
-  "fact": "Around the middle of the 19th century its tongue still reached down to about 2,100 m, near the hamlet of Findeln and below the tree line. Since then it has retreated by more than 2.5 km, and since the 1970s by more than 1 km. Its meltwater, the Findelbach, joins the Gornera and the Zmuttbach to form the Matter Vispa.",
-  "name": "Named after the hamlet of Findeln, 2 km east of Zermatt at 2,051 m, near where the tongue once ended. The origin of the name Findeln itself is not documented in the sources we checked.",
-  "src": "Wikipedia (Findelgletscher; Findeln)"
+  "fact": "Inside the glacier at Mittelallalin, high above Saas-Fee, is the Ice Pavilion, a cave carved into the ice that visitors can walk into.",
+  "name": "Named after Saas-Fee, the village below it.",
+  "src": ""
  }
 };
 
@@ -849,14 +846,12 @@ const GLACIER_INFO = {
    ===================================================================== */
 const DATA = window.GLACIER_DATA || null;
 const norm = s => (s || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
-/* canton and mountain range of glaciers that are not in the built-in list (Wikipedia: Findel Glacier, Fee Glacier) */
-const PLACE = { findel: ['Valais', 'Pennine Alps'], fee: ['Valais', 'Pennine Alps'] };
 let GLACIERS;
 if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
   GLACIERS = DATA.glaciers.map(g => {
     const d = DEFAULTS.find(d => d.keys.some(k => norm(g.name).includes(k)) && L.latLng(d.center).distanceTo(g.center) < 12000);
     const base = d ? {...d} : {
-      id: 'sgi-' + g.id, name: shortName(g.name), local: g.name, canton: (PLACE[norm(shortName(g.name))] || [])[0] || '', range: (PLACE[norm(shortName(g.name))] || [])[1] || '',
+      id: 'sgi-' + g.id, name: shortName(g.name), local: g.name, canton: '', range: '',
       lede: `${g.name} is one of the ten largest glaciers in the newest Swiss Glacier Inventory.`,
       look: 'Compare the position of the tongue and the extent of bare rock along the margins between years.', note: ''
     };
@@ -880,11 +875,10 @@ function padBounds(b, f){ const dy=(b[1][0]-b[0][0])*f, dx=(b[1][1]-b[0][1])*f; 
 /* One inventory for every glacier, so ranking and displayed areas are comparable:
    SGI2016 built in (newest inventory with published areas for all ten), or the inventory in glaciers.js. */
 const rankArea = g => g.inv ? g.inv.area_km2 : g.a2016;
-/* Length in km and the year of the last survey, read from the GLAMOS figure "lc_stat_frequency": https://doi.glamos.ch/figures/lc_stat_frequency.pdf
-   km = the number printed at the right end of the glacier's row; year = where the last bar of that row ends (the figure's last column is 2024 to 2025).
-   Corbassière and Zmutt are surveyed every few years: their last bars end in 2023. Keyed by the short name of the glacier (the figure calls Findel "Findelen"). */
-const CURRENT_LENGTH = { 'grosser aletsch': {km: 22.11, year: 2025}, 'fiescher': {km: 14.18, year: 2025}, 'gorner': {km: 11.90, year: 2025}, 'unteraar': {km: 11.46, year: 2025},
-  'corbassiere': {km: 9.20, year: 2023}, 'rhone': {km: 7.16, year: 2025}, 'findel': {km: 5.99, year: 2025}, 'zmutt': {km: 5.93, year: 2023}, 'fee': {km: 4.12, year: 2025}, 'trift': {km: 3.64, year: 2025} };
+/* Length today in km, read from the GLAMOS figure "lc_stat_frequency" (2025 release): https://doi.glamos.ch/figures/lc_stat_frequency.pdf
+   Keyed by the short name of the glacier (the figure calls Findel "Findelen"). A glacier that is not listed gets no length. */
+const CURRENT_LENGTH_KM = { 'grosser aletsch': 22.11, 'fiescher': 14.18, 'gorner': 11.90, 'unteraar': 11.46, 'corbassiere': 9.20,
+  'rhone': 7.16, 'findel': 5.99, 'zmutt': 5.93, 'fee': 4.12, 'trift': 3.64 };
 const rankLabel = () => DATA ? DATA.latest_label : 'SGI2016';
 GLACIERS.sort((x, y) => rankArea(y) - rankArea(x));
 
@@ -1000,58 +994,26 @@ async function cdse(route, body, accept, label = ''){
     const msg = await errorText(r);
     console.error(`Copernicus ${what} ${label} failed: HTTP ${r.status}`, msg, body);
     if ((r.status >= 500 || r.status === 429) && attempt < 2) { await new Promise(res => setTimeout(res, 2000 * (attempt + 1))); continue; }
-    if (r.status === 429) throw new Error('Too many requests in a short time, or Copernicus is busy. Wait a minute and try again.');
+    if (r.status === 429) throw new Error('Copernicus is busy or the monthly quota is used up. Try again later.');
     throw new Error(`Copernicus ${what}${label ? ' for ' + label : ''} failed (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
   }
 }
 
 /* ---------- caches: memory first, then IndexedDB so repeat visits cost nothing ---------- */
 const memCache = new Map();
-/* Browser cache (IndexedDB "tfs-cache"): what the page has already fetched from Copernicus and swisstopo, so that coming back, or switching
-   between glaciers and years, needs no new requests.  Three kinds of entries:
-     scene|...  the clearest scene of a glacier and year (a few hundred bytes)
-     img|...    the satellite image of one scene and colour mode (a JPEG of about 0.3 to 0.7 MB)
-     vol|...    the ice volume of a glacier from swisstopo
-   Only the images are large. They are capped (IMG_CAP): when the total is over the cap, the images used longest ago are deleted until it is
-   down to IMG_KEEP. Images made by an older CDSE.version are deleted at start. Everything else is tiny and kept. */
-const IMG_CAP = 150 * 1024 * 1024, IMG_KEEP = 110 * 1024 * 1024;       // all ten glaciers in Natural colours are about 60 to 70 MB
 const idb = (() => {
-  let dbp = null, trimTimer = null;
+  let dbp = null;
   const open = () => dbp || (dbp = new Promise((res, rej) => {
-    try { const r = indexedDB.open('tfs-cache', 2);
-      r.onupgradeneeded = () => { const db = r.result;
-        if (!db.objectStoreNames.contains('kv')) db.createObjectStore('kv');
-        if (!db.objectStoreNames.contains('use')) db.createObjectStore('use'); };      // use: key -> {t: last used, s: size in bytes}
+    try { const r = indexedDB.open('tfs-cache', 1);
+      r.onupgradeneeded = () => r.result.createObjectStore('kv');
       r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error);
     } catch (e) { rej(e); }
   }));
-  const wait = req => new Promise((res, rej) => { req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error); });
-  const run = fn => open().then(db => fn(db)).catch(() => null);
-  const touch = (k, v) => run(db => wait(db.transaction('use', 'readwrite').objectStore('use').put({t: Date.now(), s: v.size}, k)));
-  async function trim(){
-    await run(async db => {
-      const tx = db.transaction(['kv', 'use'], 'readwrite'), kv = tx.objectStore('kv'), use = tx.objectStore('use');   // one transaction: it stays open while we only wait for database requests
-      const keys = await wait(kv.getAllKeys()), uk = await wait(use.getAllKeys()), uv = await wait(use.getAll());
-      const uses = new Map(uk.map((k, i) => [k, uv[i]]));
-      const imgs = [];
-      for (const k of keys) {
-        if (!/^[^|]+\|img\|/.test(String(k))) continue;
-        if (!String(k).startsWith(CDSE.version + '|')) { kv.delete(k); use.delete(k); continue; }          // older rendering: gone
-        let u = uses.get(k);
-        if (!u) { const v = await wait(kv.get(k)); u = {t: 0, s: v && v.size || 0}; use.put(u, k); }      // saved before the cap existed
-        imgs.push([k, u]);
-      }
-      let total = imgs.reduce((n, [, u]) => n + u.s, 0);
-      if (total <= IMG_CAP) return;
-      imgs.sort((a, b) => a[1].t - b[1].t);
-      for (const [k, u] of imgs) { if (total <= IMG_KEEP) break; kv.delete(k); use.delete(k); total -= u.s; }
-    });
-  }
-  setTimeout(trim, 4000);                                                  // once, a few seconds after the page starts
-  return {
-    get: k => run(async db => { const v = await wait(db.transaction('kv').objectStore('kv').get(k)); if (v instanceof Blob) touch(k, v); return v; }),
-    set: (k, v) => run(async db => { await wait(db.transaction('kv', 'readwrite').objectStore('kv').put(v, k)); if (v instanceof Blob) { await touch(k, v); clearTimeout(trimTimer); trimTimer = setTimeout(trim, 3000); } })
-  };
+  const tx = (mode, fn) => open().then(db => new Promise((res, rej) => {
+    const t = db.transaction('kv', mode), req = fn(t.objectStore('kv'));
+    req.onsuccess = () => res(req.result); req.onerror = () => rej(req.error);
+  })).catch(() => null);
+  return { get: k => tx('readonly', st => st.get(k)), set: (k, v) => tx('readwrite', st => st.put(v, k)) };
 })();
 
 /* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
@@ -1147,7 +1109,7 @@ const fmtDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day
    ===================================================================== */
 const state = {
   glacier: GLACIERS[0].id, mode: 'compare',
-  a: null, b: null, from: null, to: null, one: null,
+  a: null, b: null, from: null, to: null,
   split: 0.5, available: {}, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,
   style: ['false', 'parece'].includes(prefs.style) ? prefs.style : 'true'
@@ -1156,11 +1118,11 @@ let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there ins
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
-  if (['timelapse', 'single'].includes(p.get('m'))) state.mode = p.get('m');
-  ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
+  if (p.get('m') === 'timelapse') state.mode = 'timelapse';
+  ['a','b','from','to'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
 })();
 const writeHash = () => history.replaceState(null, '',
-  `#${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}`);
+  `#g=${state.glacier}&m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}`);
 const okYears = () => YEARS.filter(y => state.available[y]);
 const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 
@@ -1169,7 +1131,7 @@ const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
    ===================================================================== */
 const TWO_FINGER = matchMedia('(pointer:coarse)').matches;   // touch screens: one finger scrolls the page, two move the map
 const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.5, dragging: !TWO_FINGER});
-[['bgPane',205],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['labels',450],['measure',620]].forEach(([n,z]) => {
+[['bgPane',205],['thickPane',300],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['iceA',431],['iceB',432],['labels',450],['measure',620]].forEach(([n,z]) => {
   map.createPane(n); map.getPane(n).style.zIndex = z;
 });
 map.getPane('bgPane').style.filter = 'brightness(.78) saturate(.9)';   // background a little darker than the scene
@@ -1177,14 +1139,16 @@ map.getPane('labels').style.pointerEvents = 'none';
 L.control.scale({position:'bottomright', imperial:false, maxWidth:150}).addTo(map);
 
 function updateCredits(){
-  const yrs = state.mode !== 'compare'
+  const yrs = state.mode === 'timelapse'
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
   const parts = yrs.length ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
+  if (document.getElementById('thickToggle') && document.getElementById('thickToggle').checked) parts.push('Ice thickness (state around 2016): Grab et al. 2021, GLAMOS, via swisstopo');
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
+  if (document.getElementById('iceToggle') && document.getElementById('iceToggle').checked) parts.push('Ice edge: derived here from Sentinel-2 L2A (NDSI)');
   document.getElementById('credits').innerHTML = parts.join(' · ');
 }
 (function(){ const c = document.getElementById('credits');
@@ -1224,51 +1188,35 @@ function setCompareLayers(){
   layerB = imageryLayer(state.b, 'paneB').addTo(map);
   clip(); updateCredits();
 }
-/* The slider: split is 0..1 of the map width (vertical divider) or height (horizontal divider). The horizontal one keeps
-   the year label of the upper image fully visible and the handle clear of the toolbar. */
-const horiz = () => prefs.orient === 'h';
-function splitRange(){
-  if (!horiz()) return [.02, .98];
-  const size = map.getSize(), tag = document.getElementById('tagA');
-  const st = document.getElementById('stage').getBoundingClientRect(), bar = document.querySelector('.mapbar').getBoundingClientRect();
-  const free = bar.height ? (bar.top - st.top - 34) / size.y : 1 - 104 / size.y;           // the handle stops above the toolbar, also when it has two rows
-  return [Math.min(.4, ((tag ? tag.offsetHeight : 90) + 22) / size.y), Math.max(.5, Math.min(.92, free))];
-}
 function clip(){
-  const size = map.getSize(), [lo, hi] = splitRange();
-  state.split = Math.min(hi, Math.max(lo, state.split));
+  const size = map.getSize();
   const nw = map.containerPointToLayerPoint([0,0]), se = map.containerPointToLayerPoint(size);
-  const dv = document.getElementById('divider'), h = document.getElementById('handle'), tagB = document.getElementById('tagB');
-  document.getElementById('app').classList.toggle('is-horiz', horiz());
-  if (horiz()) {
-    const cy = nw.y + size.y * state.split, py = size.y * state.split;
-    map.getPane('paneA').style.clip = `rect(${nw.y}px, ${se.x}px, ${cy}px, ${nw.x}px)`;
-    map.getPane('paneB').style.clip = `rect(${cy}px, ${se.x}px, ${se.y}px, ${nw.x}px)`;
-    dv.style.top = py + 'px'; dv.style.left = '';
-    h.style.left = '50%'; h.style.top = py + 'px'; tagB.style.top = (py + 12) + 'px';
-  } else {
-    const cx = nw.x + size.x * state.split, px = size.x * state.split;
-    map.getPane('paneA').style.clip = `rect(${nw.y}px, ${cx}px, ${se.y}px, ${nw.x}px)`;
-    map.getPane('paneB').style.clip = `rect(${nw.y}px, ${se.x}px, ${se.y}px, ${cx}px)`;
-    dv.style.left = px + 'px'; dv.style.top = '';
-    h.style.left = px + 'px'; h.style.top = ''; tagB.style.top = '';
-  }
-  h.setAttribute('aria-valuenow', Math.round(state.split * 100)); h.setAttribute('aria-orientation', horiz() ? 'vertical' : 'horizontal');
+  const cx = nw.x + size.x * state.split;
+  map.getPane('paneA').style.clip = `rect(${nw.y}px, ${cx}px, ${se.y}px, ${nw.x}px)`;
+  map.getPane('paneB').style.clip = `rect(${nw.y}px, ${se.x}px, ${se.y}px, ${cx}px)`;
+  map.getPane('iceA').style.clip = map.getPane('paneA').style.clip;     // the ice edge of each year shows on that year's side
+  map.getPane('iceB').style.clip = map.getPane('paneB').style.clip;
+  const px = size.x * state.split;
+  document.getElementById('divider').style.left = px + 'px';
+  const h = document.getElementById('handle');
+  h.style.left = px + 'px'; h.setAttribute('aria-valuenow', Math.round(state.split * 100));
 }
 map.on('move zoom resize', clip);
 
 (function swipe(){
   const handle = document.getElementById('handle'), stage = document.getElementById('stage');
   let dragging = false;
-  const setPos = e => { const r = stage.getBoundingClientRect(); state.split = horiz() ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width; clip(); };
+  const setX = cx => { const r = stage.getBoundingClientRect(); state.split = Math.min(.98, Math.max(.02, (cx - r.left) / r.width)); clip(); };
   handle.addEventListener('pointerdown', e => { dragging = true; handle.setPointerCapture(e.pointerId); map.dragging.disable(); e.preventDefault(); });
-  handle.addEventListener('pointermove', e => dragging && setPos(e));
+  handle.addEventListener('pointermove', e => dragging && setX(e.clientX));
   const end = () => { dragging = false; if (!TWO_FINGER) map.dragging.enable(); };
   handle.addEventListener('pointerup', end); handle.addEventListener('pointercancel', end);
   handle.addEventListener('keydown', e => {
-    const step = e.shiftKey ? .1 : .02, less = ['ArrowLeft', 'ArrowUp'].includes(e.key), more = ['ArrowRight', 'ArrowDown'].includes(e.key);
-    if (less) state.split -= step; else if (more) state.split += step;
-    else if (e.key === 'Home') state.split = 0; else if (e.key === 'End') state.split = 1;
+    const step = e.shiftKey ? .1 : .02;
+    if (e.key === 'ArrowLeft') state.split = Math.max(.02, state.split - step);
+    else if (e.key === 'ArrowRight') state.split = Math.min(.98, state.split + step);
+    else if (e.key === 'Home') state.split = .02;
+    else if (e.key === 'End') state.split = .98;
     else return;
     e.preventDefault(); clip();
   });
@@ -1276,11 +1224,11 @@ map.on('move zoom resize', clip);
 
 /* ---------- timelapse ---------- */
 let tlLayers = [];   // [{yr, layer}]
-const tlFrames = () => state.mode === 'single' ? okYears().filter(y => y === state.one) : okYears().filter(y => y >= state.from && y <= state.to);
+const tlFrames = () => okYears().filter(y => y >= state.from && y <= state.to);
 function buildTimelapse(){
   stopPlay();
   tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
-  if (state.mode === 'compare') return;
+  if (state.mode !== 'timelapse') return;
   // every frame stays loaded at opacity 0 so switching is instant
   tlLayers = tlFrames().map(yr => ({yr, layer: imageryLayer(yr, 'paneT', 0).addTo(map)}));
   state.frame = Math.min(state.frame, Math.max(0, tlLayers.length - 1));
@@ -1295,10 +1243,10 @@ function showFrame(i){
   tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0));
   setTag('tagT', tlLayers[i].yr);
   const sc = state.available[tlLayers[i].yr];
-  document.getElementById('tagTsub').textContent = state.mode === 'single' ? `${sc ? fmtDate(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}${STYLE_LABEL[state.style]}` : `${sc ? fmtDate(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`;
-  document.getElementById('tlDots').innerHTML = state.mode === 'single' ? '' : tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
+  document.getElementById('tagTsub').textContent = `${sc ? fmtDate(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`;
+  document.getElementById('tlDots').innerHTML = tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
   document.getElementById('frameSlider').value = i;
-  updateCredits();
+  updateCredits(); drawIceFrame();
   const cb = document.querySelector('.cb-links');
   if (cb) cb.innerHTML = cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join('');
 }
@@ -1349,7 +1297,7 @@ function drawOutlines(){
   if (!g.inv) {
     if (document.getElementById('oldToggle').checked || document.getElementById('newToggle').checked)
       showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need glaciers.js next to this page. See the note under "On the map".');
-    return;
+    return updateLegend();
   }
   if (document.getElementById('oldToggle').checked && !g.inv.oldest)
     showNotice(`No ${DATA.oldest_label} outline was matched for ${g.name}.`);
@@ -1360,9 +1308,184 @@ function drawOutlines(){
     outlineLayers.old = mk(g.inv.oldest.outline, getVar('--old'), '7 6', `${g.name}, ${DATA.oldest_label}`, g.inv.oldest.area_km2).addTo(map);
   if (document.getElementById('newToggle').checked)
     outlineLayers.new = mk(g.inv.outline, getVar('--new'), null, `${g.name}, ${DATA.latest_label}${g.inv.year ? ' ('+g.inv.year+')' : ''}`, g.inv.area_km2).addTo(map);
-  updateCredits();
+  updateLegend(); updateCredits();
+}
+function updateLegend(){
+  /* the swatches next to the check boxes in the map layer box act as the legend */
 }
 const getVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+
+/* ---------- ice edge lines: the margin of the bare ice (ablation zone), from a spectral index ----------
+   For the scene of each year the Process API classifies every 10 m pixel from Sentinel-2 L2A:
+     snow or ice  = NDSI (B03 - B11) / (B03 + B11) above 0.4 and near infrared (B08) above 0.11   (the usual snow-index thresholds)
+     bare ice     = of those, red (B04) up to 0.45;  snow = brighter than that   (this last threshold is our own, set by eye, not validated)
+     clouds and shadows (SCL 3, 8, 9, 10) and missing data are left out.
+   Lines are drawn only where bare ice borders ground that is not snow or ice, inside the 1850 outline of the glacier. They stay open where the
+   bare ice turns into snow (the snow line), under cloud and at the edge of the area. Debris-covered ice has the spectrum of rock and is not found. */
+const ICE_VERSION = 'ice-v2';
+const ICE_EVALSCRIPT = `//VERSION=3
+function setup(){return{input:[{bands:["B03","B04","B08","B11","SCL","dataMask"]}],output:{bands:1,sampleType:"UINT8"}};}
+function evaluatePixel(s){
+ if(s.dataMask==0||s.SCL==0)return[0];
+ if(s.SCL==3||s.SCL==8||s.SCL==9||s.SCL==10)return[240];
+ var n=(s.B03-s.B11)/(s.B03+s.B11);
+ if(n>0.4&&s.B08>0.11)return[s.B04>0.45?180:120];
+ return[60];
+}`;                      // 0 no data, 60 other ground, 120 bare ice, 180 snow, 240 cloud (codes far apart, so a JPEG would survive as well)
+const ICE_MIN_EDGES = 30;       // shorter pieces (about 300 m) are noise
+const iceReady = new Map();     // key -> lines, once loaded
+const icePromises = new Map();
+const iceKey = (g, yr) => { const sc = state.available[yr]; return sc ? `${CDSE.version}|${ICE_VERSION}|${g.id}|${sc.date}|${imageFootprint(g).bbox.join(',')}` : null; };
+async function iceLinesFor(g, yr){
+  const key = iceKey(g, yr);
+  if (!key) return null;
+  if (iceReady.has(key)) return iceReady.get(key);
+  if (!icePromises.has(key)) {
+    const p = (async () => {
+      const hit = await idb.get(key);
+      if (hit && hit.lines) return hit.lines;
+      const fp = imageFootprint(g), sc = state.available[yr];
+      const blob = await queued(() => cdse('process', {
+        input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
+                 data: [{ type: CDSE.collection, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` } } }] },
+        output: { width: fp.w, height: fp.h, responses: [{ identifier:'default', format:{ type:'image/png' } }] },
+        evalscript: ICE_EVALSCRIPT
+      }, 'image/png', `${g.name}, ice edge ${fmtDate(sc.date)}`).then(r => r.blob()));
+      const lines = await iceLinesFromMask(g, blob, fp);
+      idb.set(key, {lines});
+      return lines;
+    })();
+    icePromises.set(key, p);
+    p.catch(() => icePromises.delete(key));
+  }
+  const lines = await icePromises.get(key);
+  iceReady.set(key, lines);
+  return lines;
+}
+async function iceLinesFromMask(g, blob, fp){
+  const w = fp.w, h = fp.h, bmp = await createImageBitmap(blob);
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  const ctx = c.getContext('2d', {willReadFrequently: true});
+  ctx.drawImage(bmp, 0, 0, w, h); if (bmp.close) bmp.close();
+  const px = ctx.getImageData(0, 0, w, h).data, cls = new Uint8Array(w * h);
+  for (let i = 0; i < cls.length; i++) cls[i] = Math.round(px[4 * i] / 60);
+  // the area in which lines are kept: the 1850 outline (else the newest one), a little widened
+  const P = ll => { const q = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return [(q.x - fp.bbox[0]) / (fp.bbox[2] - fp.bbox[0]) * w, (fp.bbox[3] - q.y) / (fp.bbox[3] - fp.bbox[1]) * h]; };
+  const geom = g.inv && (g.inv.oldest ? g.inv.oldest.outline : g.inv.outline);
+  if (!geom) return [];
+  ctx.clearRect(0, 0, w, h); ctx.fillStyle = ctx.strokeStyle = '#fff'; ctx.lineWidth = 8; ctx.lineJoin = 'round';
+  ctx.beginPath();
+  geom.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); }));
+  ctx.fill('evenodd'); ctx.stroke();
+  const area = ctx.getImageData(0, 0, w, h).data;
+  // thin stripes of rock inside the ice (moraines) are not the margin: close gaps up to 6 px (60 m) in snow and ice together
+  const hit = new Uint8Array(w * h), tmp = new Uint8Array(w * h), R = 3;
+  const sweep = (src, dst, grow, horizontal) => {            // square window of 2R+1 pixels, in one direction
+    const n1 = horizontal ? h : w, n2 = horizontal ? w : h;
+    for (let a = 0; a < n1; a++) {
+      let cnt = 0;                                         // pixels in the window that count as 'on' (grow) or 'off' (shrink)
+      const at = b => horizontal ? a * w + b : b * w + a, on = b => grow ? src[at(b)] === 1 : src[at(b)] === 0;
+      for (let b = 0; b < Math.min(R, n2); b++) if (on(b)) cnt++;
+      for (let b = 0; b < n2; b++) {
+        if (b + R < n2 && on(b + R)) cnt++;
+        if (b - R - 1 >= 0 && on(b - R - 1)) cnt--;
+        dst[at(b)] = grow ? (cnt > 0 ? 1 : 0) : (cnt > 0 ? 0 : 1);
+      }
+    }
+  };
+  for (let i = 0; i < cls.length; i++) hit[i] = cls[i] === 2 || cls[i] === 3 ? 1 : 0;
+  sweep(hit, tmp, true, true); sweep(tmp, hit, true, false);             // grow
+  sweep(hit, tmp, false, true); sweep(tmp, hit, false, false);           // shrink: a closing
+  for (let i = 0; i < cls.length; i++) if (hit[i] && cls[i] === 1) cls[i] = 2;
+  // pixel edges between bare ice (2) and other ground (1), as a graph on the pixel corners
+  const W1 = w + 1, adj = new Map();
+  const link = (a, b) => { (adj.get(a) || adj.set(a, []).get(a)).push(b); (adj.get(b) || adj.set(b, []).get(b)).push(a); };
+  for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+    const i = y * w + x;
+    if (cls[i] !== 2 || !area[4 * i + 3]) continue;
+    if (y === 0 || cls[i - w] === 1) link(y * W1 + x, y * W1 + x + 1);
+    if (y === h - 1 || cls[i + w] === 1) link((y + 1) * W1 + x, (y + 1) * W1 + x + 1);
+    if (x === 0 || cls[i - 1] === 1) link(y * W1 + x, (y + 1) * W1 + x);
+    if (x === w - 1 || cls[i + 1] === 1) link(y * W1 + x + 1, (y + 1) * W1 + x + 1);
+  }
+  // walk the graph from every corner that is an end or a junction: only open pieces are kept, closed rings (islands) are dropped
+  const used = new Set(), N = W1 * (h + 1), ek = (a, b) => a < b ? a * N + b : b * N + a, chains = [];
+  for (const [v, nb] of adj) {
+    if (nb.length === 2) continue;
+    for (const n0 of nb) {
+      if (used.has(ek(v, n0))) continue;
+      const path = [v]; let prev = v, cur = n0; used.add(ek(v, n0));
+      for (;;) {
+        path.push(cur);
+        const nx = adj.get(cur);
+        if (nx.length !== 2) break;
+        const next = nx[0] === prev ? nx[1] : nx[0];
+        if (used.has(ek(cur, next))) break;
+        used.add(ek(cur, next)); prev = cur; cur = next;
+      }
+      if (path.length - 1 >= ICE_MIN_EDGES) chains.push(path);
+    }
+  }
+  // smooth the pixel staircase (moving average), then back to latitude and longitude
+  return chains.map(path => {
+    const pts = path.map(v => [v % W1, Math.floor(v / W1)]), k = 4, sm = pts.map((p, i) => {
+      let sx = 0, sy = 0, n = 0;
+      for (let j = Math.max(0, i - k); j <= Math.min(pts.length - 1, i + k); j++) { sx += pts[j][0]; sy += pts[j][1]; n++; }
+      return i === 0 || i === pts.length - 1 ? p : [sx / n, sy / n];
+    });
+    return sm.filter((_, i) => i % 2 === 0 || i === sm.length - 1).map(([x, y]) => {
+      const ll = L.CRS.EPSG3857.unproject(L.point(fp.bbox[0] + x / w * (fp.bbox[2] - fp.bbox[0]), fp.bbox[3] - y / h * (fp.bbox[3] - fp.bbox[1])));
+      return [+ll.lat.toFixed(5), +ll.lng.toFixed(5)];
+    });
+  });
+}
+const iceLayers = {};
+let iceGen = 0;
+function clearIceLines(){ Object.values(iceLayers).forEach(l => map.removeLayer(l)); Object.keys(iceLayers).forEach(k => delete iceLayers[k]); }
+function showIceLines(slot, lines, color){
+  const pane = {A: 'iceA', B: 'iceB'}[slot] || 'outlines';
+  if (iceLayers[slot]) map.removeLayer(iceLayers[slot]);
+  delete iceLayers[slot];
+  if (lines && lines.length) iceLayers[slot] = L.polyline(lines, {pane, color, weight:3, opacity:.95, lineJoin:'round', interactive:false}).addTo(map);
+}
+/* draws the lines of the years on show; a newer call makes older ones stale */
+async function updateIceLines(){
+  const gen = ++iceGen, note = document.getElementById('iceNote');
+  clearIceLines();
+  if (!document.getElementById('iceToggle').checked) { note.textContent = ''; return; }
+  const g = currentGlacier();
+  if (!g.inv) { note.textContent = 'Needs the glacier data (glaciers.js).'; return; }
+  if (!state.checked) return;
+  const chip = (c, y) => `<i class="ice-chip" style="background:${c}"></i>${y}`;
+  const jobs = state.mode === 'timelapse'
+    ? [['T', tlLayers[state.frame] && tlLayers[state.frame].yr, getVar('--ice-a')]]
+    : [['A', state.a, getVar('--ice-a')], ['B', state.b, getVar('--ice-b')]].filter((j, i, a) => i === 0 || j[1] !== a[0][1]);
+  note.innerHTML = 'Loading…';
+  try {
+    for (const [slot, yr, color] of jobs) {
+      if (!yr || !state.available[yr]) continue;
+      const lines = await iceLinesFor(g, yr);
+      if (gen !== iceGen) return;
+      showIceLines(slot, lines, color);
+    }
+    note.innerHTML = jobs.map(([, yr, c]) => chip(c, yr)).join('') + ' · bare ice only, debris-covered ice is not detected';
+    if (state.mode === 'timelapse') preloadIce(g, gen);
+  } catch (e) {
+    if (gen === iceGen) note.textContent = 'Not available: ' + (e.message || e);
+  }
+}
+function preloadIce(g, gen){            // timelapse: load the other years in the background, so playing does not wait
+  tlFrames().forEach(y => { if (iceKey(g, y) && !iceReady.has(iceKey(g, y))) iceLinesFor(g, y).catch(() => {}); });
+}
+function drawIceFrame(){                // timelapse: the lines of the frame on show, if loaded
+  if (state.mode !== 'timelapse' || !document.getElementById('iceToggle').checked) return;
+  const g = currentGlacier(), t = tlLayers[state.frame], key = t && iceKey(g, t.yr);
+  if (key && iceReady.has(key)) showIceLines('T', iceReady.get(key), getVar('--ice-a'));
+  else { clearIceLines(); if (key) iceLinesFor(g, t.yr).then(() => state.playing || drawIceFrame()).catch(() => {}); }
+  document.getElementById('iceNote').innerHTML = t ? `<i class="ice-chip" style="background:${getVar('--ice-a')}"></i>${t.yr} · bare ice only, debris-covered ice is not detected` : '';
+}
+document.getElementById('iceToggle').checked = prefs.ice === true;
+document.getElementById('iceToggle').onchange = e => { prefs.ice = e.target.checked; savePrefs(); updateIceLines(); updateCredits(); };
 
 /* ---------- measuring ---------- */
 const M = {mode:null, pts:[], temp:null, group:L.layerGroup().addTo(map)};
@@ -1445,8 +1568,7 @@ function tongueBounds(g){
   if (!geom || !T) return null;
   const ring = geom.coordinates.map(poly => poly[0]).sort((a, b) => b.length - a.length)[0];    // the main body
   if (!ring) return null;
-  const tip = L.latLng(T.tip), gb = L.latLngBounds(g.bounds), size = Math.max(gb.getSouthWest().distanceTo(gb.getSouthEast()), gb.getSouthWest().distanceTo(gb.getNorthWest())),
-    reach = Math.min(TONGUE_REACH, size * 0.35), near = ring.map(([x, y]) => L.latLng(y, x)).filter(p => p.distanceTo(tip) <= reach);   // a small glacier gets a smaller window
+  const tip = L.latLng(T.tip), near = ring.map(([x, y]) => L.latLng(y, x)).filter(p => p.distanceTo(tip) <= TONGUE_REACH);
   if (near.length < 3) return null;
   const mid = L.latLngBounds(near).getCenter();
   const c = L.latLng(tip.lat + (mid.lat - tip.lat) * TONGUE_SHIFT, tip.lng + (mid.lng - tip.lng) * TONGUE_SHIFT);
@@ -1462,18 +1584,12 @@ function drawTonguePin(){
   if (!document.getElementById('pinToggle').checked || !at) return;
   tonguePin = L.marker(at, {icon: L.divIcon({className: '', html: '<div class="tongue-pin"><span>Tongue</span></div>', iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false}).addTo(map);
 }
-/* The tongue view is always closer than the whole-glacier view: at least TONGUE_CLOSER zoom levels more. */
-const TONGUE_CLOSER = 1;
-function wholeGlacierZoom(g){ return map.getBoundsZoom(g.bounds, false, L.point(40, 40)); }
 function focusTongue(animate = true){
   const g = currentGlacier(), b = tongueBounds(g), small = matchMedia('(max-width:720px)').matches;
   if (b) {
-    const tl = L.point(small ? 24 : 40, small ? 64 : 80), br = L.point(small ? 24 : 40, small ? 100 : 110);
-    const fit = map.getBoundsZoom(b, false, tl.add(br));
-    const zoom = Math.min(map.getMaxZoom(), Math.max(Math.min(15, fit - TONGUE_ZOOM_OUT), wholeGlacierZoom(g) + TONGUE_CLOSER));
-    // centre like fitBounds with padding, at that zoom
-    const mid = map.project(b.getSouthWest(), zoom).add(map.project(b.getNorthEast(), zoom)).divideBy(2).add(br.subtract(tl).divideBy(2));
-    map.setView(map.unproject(mid, zoom), zoom, {animate});
+    const tl = [small ? 24 : 40, small ? 64 : 80], br = [small ? 24 : 40, small ? 100 : 110];
+    const fit = map.getBoundsZoom(b, false, L.point(tl[0] + br[0], tl[1] + br[1]));
+    map.fitBounds(b, {animate, maxZoom: Math.min(15, fit - TONGUE_ZOOM_OUT), paddingTopLeft: tl, paddingBottomRight: br});
   }
   else if (g.tongue) map.setView(g.tongue, g.tz || TONGUE_ZOOM, {animate});
   else fitGlacier(animate);
@@ -1506,7 +1622,7 @@ async function checkYears(){
   }
   if (firstError) showNotice('Some years could not be checked: ' + firstError.message);
   const fix = (k, fallback) => { if (!state.available[state[k]]) state[k] = fallback; };
-  fix('a', ok[0]); fix('b', ok[ok.length - 1]); fix('from', ok[0]); fix('to', ok[ok.length - 1]); fix('one', ok[ok.length - 1]);
+  fix('a', ok[0]); fix('b', ok[ok.length - 1]); fix('from', ok[0]); fix('to', ok[ok.length - 1]);
   if (state.a === state.b && ok.length > 1) { state.a = ok[0]; state.b = ok[ok.length - 1]; }
   setStatus(statusLine());
   refreshAll();
@@ -1565,20 +1681,18 @@ function yearChips(boxId, key, opts = {}){
 }
 function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
-  yearChips('yearsFrom', 'from', {range:true}); yearChips('yearsTo', 'to', {range:true}); yearChips('yearsOne', 'one');
+  yearChips('yearsFrom', 'from', {range:true}); yearChips('yearsTo', 'to', {range:true});
   if (typeof renderMobileBar === 'function') renderMobileBar();
 }
 function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
 
 function renderMode(){
-  const tl = state.mode !== 'compare';          // timelapse and one year both show on the single image pane
+  const tl = state.mode === 'timelapse';
   document.getElementById('app').classList.toggle('is-timelapse', tl);
-  document.getElementById('modeCompare').setAttribute('aria-pressed', state.mode === 'compare');
-  document.getElementById('modeTimelapse').setAttribute('aria-pressed', state.mode === 'timelapse');
-  document.getElementById('modeSingle').setAttribute('aria-pressed', state.mode === 'single');
-  document.getElementById('compareControls').hidden = state.mode !== 'compare';
-  document.getElementById('singleControls').hidden = state.mode !== 'single';
-  document.getElementById('timelapseControls').hidden = state.mode !== 'timelapse';
+  document.getElementById('modeCompare').setAttribute('aria-pressed', !tl);
+  document.getElementById('modeTimelapse').setAttribute('aria-pressed', tl);
+  document.getElementById('compareControls').hidden = tl;
+  document.getElementById('timelapseControls').hidden = !tl;
   ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl ? 'none' : '');
   map.getPane('paneT').style.display = tl ? '' : 'none';
   updateTags();
@@ -1600,6 +1714,10 @@ function setStyle(st){
 }
 /* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Remembered. */
 const BRIGHT_DEFAULT = 1.0;      // the colour process above is already balanced
+/* Snow contrast: tones above 0.5 are spread out with a power curve (0 = off), so detail in bright snow and ice shows.
+   y = x below 0.5;  y = 0.5 + 0.5 * ((x - 0.5) / 0.5) ** (1 + 2.5 * amount) above. White stays white. */
+const snowAmount = () => 0;          // snow contrast removed; the curve stays available for the video code
+const snowCurve = (x, a) => x <= 0.5 ? x : 0.5 + 0.5 * Math.pow((x - 0.5) / 0.5, 1 + 2.5 * a);
 const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGHT_DEFAULT;
 /* Brightness is applied to the image pixels in a canvas (same gamma curve, white stays white).
    CSS/SVG filters on page elements do not work in Safari on iPhone, so no filters are used. */
@@ -1647,8 +1765,8 @@ document.getElementById('styleParece').onclick = () => setStyle('parece');
 let storyTab = 'look';     // tab in the right panel, kept when switching glacier
 function renderStory(){
   const g = currentGlacier();
-  const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
-    : state.mode === 'timelapse' ? [Math.min(state.from, state.to), Math.max(state.from, state.to)]
+  const [lo, hi] = state.mode === 'timelapse'
+    ? [Math.min(state.from, state.to), Math.max(state.from, state.to)]
     : [Math.min(state.a, state.b), Math.max(state.a, state.b)];
   const known = lo && hi;
   const inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
@@ -1656,8 +1774,8 @@ function renderStory(){
   const max = Math.max(...VOLUME_LOSS.map(n => n.v));
 
   let spanText = 'The melt seasons you select are shown in red. Pick two years to see what changed in between.';
-  if (known && lo === hi) spanText = state.mode === 'single' ? `You are looking at ${lo}. Choose Compare or Timelapse to see the melt seasons between two years.` : `You selected only ${lo}. Pick two different years to see the melt seasons in between.`;
-  else if (known) spanText = `In the <b>${hi - lo} melt season${hi - lo > 1 ? 's' : ''}</b> you selected (in red), Swiss glaciers lost <strong>${(lost * 100).toFixed(1)} %</strong> of their ice; ca. ${(iceVolume(lo) - iceVolume(Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y))).toFixed(1)} km³.` +
+  if (known && lo === hi) spanText = `You selected only ${lo}. Pick two different years to see the melt seasons in between.`;
+  else if (known) spanText = `In the <b>${hi - lo} melt season${hi - lo > 1 ? 's' : ''}</b> you selected (in red), Swiss glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of their ice: ${(iceVolume(lo) - iceVolume(Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y))).toFixed(1)} km³.` +
     (inRange.length ? '' : '') +
     '';
 
@@ -1665,9 +1783,7 @@ function renderStory(){
 
   const info = GLACIER_INFO[g.id] || GLACIER_INFO[shortSlug(g.name)];
   const tab = t => `role="tab" data-tab="${t}" aria-selected="${storyTab === t}"`;
-  const storyEl = document.getElementById('story'), aboutOpen = !!(storyEl.querySelector('details.about') || {}).open, keepScroll = storyEl.scrollTop, sameGlacier = storyEl.dataset.glacier === g.id;
-  storyEl.dataset.glacier = g.id;
-  storyEl.innerHTML = `
+  document.getElementById('story').innerHTML = `
     <h2>${g.name}</h2>
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede}</p>
@@ -1695,7 +1811,7 @@ function renderStory(){
       <section class="card"><div class="card-h"><span class="ico">${ICONS.area}</span>Ice left in all Swiss glaciers</div>
       ${cumulativeChart(lo, hi)}
       </section>
-      <section class="card"><div class="card-h"><span class="ico">${ICONS.change}</span>Ice lost per year<small>share of all Swiss glacier ice</small></div>
+      <section class="card"><div class="card-h"><span class="ico red">${ICONS.change}</span>Ice lost per year<small>share of all Swiss glacier ice</small></div>
       <div class="bars">
         ${VOLUME_LOSS.map(n => `
           <div class="bar ${n.y > lo && n.y <= hi ? 'in-range' : ''}">
@@ -1709,15 +1825,8 @@ function renderStory(){
       ${waterSection(lo, hi)}
     </div>
 
-    <div class="about-wrap">
-      <a class="gh-invite" href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Help build this</b> The code is open. Join in, or make a dashboard like this for glaciers in your own region.<em>github.com/braakhekke/tonguesfromspace</em></span></a>
     <details class="about">
       <summary><span class="info-btn" aria-hidden="true">i</span> About the images, data and sources</summary>
-      <div class="about-sec"><b>Why Tongues from Space</b>
-        <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
-        <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
-        <p>I hope this dashboard sparks awareness of glaciers and of why they matter to society, for instance because of the water they store. That is why the ice is also shown in litres, swimming pools and Lake Zurich. — Jochem Braakhekke</p>
-      </div>
       <div class="about-sec"><b>The satellite images</b>
         <p>One Sentinel-2 scene per glacier and year: the clearest view between 1 July and 20 September. Every acquisition is scored for cloud and snow cover; the best September scene wins, otherwise August, otherwise July. The pictures are rendered from Level-1C data with the Copernicus Browser true colour process, which keeps shaded slopes natural.</p>
         <p>Why not after the 20th: Swiss glacier monitoring counts in glaciological years (1 October to 30 September) and GLAMOS measures at the end of the melt season, so September images match the annual figures. After about 20 September fresh snow often hides the tongue; in 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
@@ -1739,11 +1848,15 @@ function renderStory(){
       </div>
       <div class="about-sec"><b>Glacier figures</b>
         <p>All from GLAMOS; a dash means no value. <em>Area:</em> Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label} and ${DATA.latest_label}` : '1850 and 2016'}. When tributaries separate, part of an area drop is a change of definition, not only melt.${DATA ? '' : ' <em>The GLAMOS data file is not loaded yet.</em>'}</p>
-        <p><em>Length change</em> is measured at the tongue; negative means retreat. GLAMOS publishes only the change between surveys, never the length, so the lengths are derived. The latest length is read from a GLAMOS overview figure, which prints one length per glacier; the year shown with it is where the last bar of that glacier ends in the figure (2025 for most, 2023 for Corbassière and Zmutt, which are surveyed every few years). "Length in 1870" (or the year of the first survey) is that length plus all the retreat recorded since then: for Aletsch 22.1 km + 3.4 km = about 25.5 km. It is exact only when the surveys follow each other without gaps and the survey data reach the year of the figure; otherwise the tile shows "≈" and the real value may differ by the retreat of the missing years.</p>
+        <p><em>Length change</em> is measured at the tongue; negative means retreat. GLAMOS publishes only the change between surveys, never the length, so the lengths are derived. "Length today" is read from a GLAMOS overview figure (2025 release). "Length in 1870" (or the year of the first survey) is that length plus all the retreat recorded since then: for Aletsch 22.1 km + 3.4 km = about 25.5 km. This is exact only when the surveys follow each other without gaps; otherwise the tile shows "≈" and the real value may differ.</p>
         <p>"Change between" adds up the surveys that lie completely inside the chosen years. The tile says when they cover a shorter period, because one survey can span several years and the newest data end before the newest images.</p>
       </div>
       <div class="about-sec"><b>Ice and water</b>
         <p>Swiss glaciers held about 46.4 km³ of ice at the end of 2024 (GLAMOS); other years follow from the national yearly losses. 1 km³ of ice gives about 0.9 trillion litres of water. For one glacier, Grab et al. (2021) measured the ice around 2016; the dashboard reduces that by the national loss since, a best estimate and not a measurement. Comparisons: Olympic pool 2.5 million litres, Lake Zurich 3.9 km³, Swiss water supply about 930 million m³ a year (SVGW).</p>
+      </div>
+      <div class="about-sec"><b>Ice edge lines (experimental)</b>
+        <p>The layer "Ice edge (ablation zone)" draws the margin of the bare ice at the lower end of the glacier, computed here from the Level-2A scene of that year. Snow and ice are picked with the snow index NDSI = (B03 − B11) / (B03 + B11) above 0.4 and near infrared (B08) above 0.11, the usual snow thresholds; the darker of those pixels (red band B04 up to 0.45, our own threshold, set by eye and not validated) count as bare ice. Gaps up to 60 m, such as moraine stripes, are closed. Lines follow the border between bare ice and bare ground inside the 1850 outline and stay open at the snow line, under clouds and where data are missing.</p>
+        <p>Debris-covered ice looks like rock and is not found, so on such tongues the line ends above the real tip (about 1 km on Aletsch). On a 2023 scene the method found 82 to 95 % of the SGI2023 area as snow or ice for eight glaciers, but only about 54 % for Unteraar and 53 % for Zmutt. The lines are no official outlines.</p>
       </div>
       <div class="about-sec"><b>Sources</b>
         <ul class="src-list">
@@ -1754,8 +1867,7 @@ function renderStory(){
           <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX</li>
         </ul>
       </div>
-    </details>
-    </div>`;
+    </details>`;
   document.querySelectorAll('#story .tabs button').forEach(bt => bt.onclick = () => {
     storyTab = bt.dataset.tab;
     document.querySelectorAll('#story .tabs button').forEach(x => x.setAttribute('aria-selected', x === bt));
@@ -1764,13 +1876,11 @@ function renderStory(){
   });
   wireWater(); wireCum();
   renderGlacierWater();
-  if (aboutOpen) storyEl.querySelector('details.about').open = true;      // a year click must not close it or move the panel
-  storyEl.scrollTop = sameGlacier ? keepScroll : 0;      // another glacier starts at the top
 }
 
 /* ---------- Copernicus Browser deep link ---------- */
 function cbYears(){
-  const ys = state.mode !== 'compare'
+  const ys = state.mode === 'timelapse'
     ? [tlLayers[state.frame] ? tlLayers[state.frame].yr : state.to]
     : [state.a, state.b];
   return [...new Set(ys.filter(y => y && state.available[y]))].sort();
@@ -1816,11 +1926,9 @@ function stats(g, lo, hi){
   const km2 = v => ok(v) ? `${v.toFixed(1)} km²` : null;
   const lcHint = inv ? 'not measured by GLAMOS' : 'glacier data not loaded yet';
   // length at the first survey = length today minus the recorded changes; exact only when the surveys follow each other without gaps
-  const cur = CURRENT_LENGTH[norm(g.name)], nowKm = cur && cur.km, nowYear = cur && cur.year, firstKm = L && nowKm != null ? nowKm - L.total_m / 1000 : null;
+  const nowKm = CURRENT_LENGTH_KM[norm(g.name)], firstKm = L && nowKm != null ? nowKm - L.total_m / 1000 : null;
   const ordered = L && L.series ? L.series.slice().sort((x, y) => x[0] - y[0] || x[1] - y[1]) : [];
   const clean = ordered.length > 0 && ordered.every((r, i) => i === 0 || r[0] === ordered[i - 1][1]);
-  const late = L && nowYear ? nowYear - L.last_year : 0;           // years between the length in the figure and the last survey in the series
-  const exact = clean && late < 2;
   // change in the chosen range: the surveys that lie completely inside it (start year >= from, end year <= to)
   let range = null, rangeHint = lcHint, cover = '';
   if (L && L.series) {
@@ -1840,16 +1948,16 @@ function stats(g, lo, hi){
       {ico:'past', k:'About 1850', v:km2(a1850)},
       {ico:'now',  k:`${refY}`,    v:km2(aRef)},
       {ico:'down', k:`Change between 1850 and ${refY}`, loss:true, wide:true,
-       left: ok(a1850) && ok(aRef) && a1850 > 0 ? Math.max(0, Math.min(1, aRef / a1850)) : null, leftOf:'1850 area',
+       left: ok(a1850) && ok(aRef) && a1850 > 0 ? Math.max(0, Math.min(1, aRef / a1850)) : null,
        v: ok(a1850) && ok(aRef) ? `${(aRef - a1850).toFixed(1).replace('-', '−')} km²` : null,
        sub: ok(a1850) && ok(aRef) ? `${((aRef - a1850) / a1850 * 100).toFixed(0).replace('-', '−')} %` : ''}
     ],
     length: [
       ...(nowKm != null && firstKm != null ? [
-        {ico:'flag', k:`Length in ${L.first_year}`, v:`${exact ? '' : '≈ '}${firstKm.toFixed(1)} km`, hint:lcHint,
-         cover: exact ? `Calculated: length in ${nowYear} plus the retreat recorded since` : !clean ? 'Approximate: the survey record has gaps' : `Approximate: surveys after ${L.last_year} are not in the data`},
-        {ico:'now',  k:`Length in ${nowYear}`, v:`${nowKm.toFixed(1)} km`, hint:lcHint, cover: L.last_year < nowYear ? `GLAMOS figure; the survey data here end in ${L.last_year}` : 'GLAMOS, last survey'},
-        {ico:'sum',  k:`Change since ${L.first_year}`, loss:true, wide:true, v: fmtM(L.total_m), left: Math.max(0, Math.min(1, nowKm / firstKm)), leftOf:`${L.first_year} length`, hint:lcHint}
+        {ico:'flag', k:`Length in ${L.first_year}`, v:`${clean ? '' : '≈ '}${firstKm.toFixed(1)} km`, hint:lcHint,
+         cover: clean ? 'Calculated: length today plus the recorded retreat' : 'Approximate: the survey record has gaps'},
+        {ico:'now',  k:'Length today (GLAMOS, 2025)', v:`${nowKm.toFixed(1)} km`, hint:lcHint},
+        {ico:'sum',  k:`Change since ${L.first_year}`, loss:true, wide:true, v: fmtM(L.total_m), left: Math.max(0, Math.min(1, nowKm / firstKm)), hint:lcHint}
       ] : [
         {ico:'flag', k:'First measurement', v: L ? `${L.first_year}` : null, sub: L ? `${L.observations} surveys` : '', hint:lcHint},
         {ico:'sum',  k: L ? `Change since ${L.first_year}` : 'Change since start', loss:true, v: L ? fmtM(L.total_m) : null, hint:lcHint}
@@ -1867,14 +1975,18 @@ function renderStats(g, lo, hi){
       <div class="stat-row ${key}">${S[key].map(t => `
         <div class="stat${t.loss && t.v ? ' loss' : ''}${t.wide ? ' wide' : ''}">
           <span class="v">${t.v ?? '—'}${t.v && t.sub ? ` <small>${t.sub}</small>` : ''}</span>
-          ${t.left != null ? `<span class="abar" role="img" aria-label="${Math.round(t.left * 100)} percent of the 1850 area is left"><i style="width:${(t.left * 100).toFixed(1)}%"></i></span><span class="abar-key"><span>${Math.round(t.left * 100)} % of the ${t.leftOf} left</span></span>` : ''}
+          ${t.left != null ? `<span class="abar" role="img" aria-label="${Math.round(t.left * 100)} percent of the 1850 area is left"><i style="width:${(t.left * 100).toFixed(1)}%"></i></span><span class="abar-key"><span>left today ${Math.round(t.left * 100)} %</span><span>lost ${Math.round((1 - t.left) * 100)} %</span></span>` : ''}
           <span class="k"><i class="mini">${ICONS[t.ico]}</i>${t.k}</span>
           ${!t.v && t.hint ? `<span class="k note">${t.hint}</span>` : ''}
           ${t.v && t.cover ? `<span class="k note">${t.cover}</span>` : ''}
         </div>`).join('')}
       </div>
     </section>`;
-  return `<div class="stats">${group('area','Area')}${group('length','Length')}</div>`;
+  return `<div class="stats">${group('area','Area')}${group('length','Length change of the glacier')}</div>`;
+}
+function statsSource(){
+  return `<p class="src">Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label} and ${DATA.latest_label}` : '1850 and 2016'}.
+      Length change: GLAMOS length-change series, measured at the glacier tongue; negative values mean retreat. Surveys can span several years.</p>`;
 }
 /* ---------- ice volume of the selected glacier: Grab et al. (2021), from the swisstopo map service ----------
    map.geo.admin.ch shows area, volume and maximum / mean ice thickness per glacier for the thickness layer.
@@ -1928,18 +2040,19 @@ function renderGlacierWater(){
   glacierVolume(g).then(v => {
     if (!v || currentGlacier() !== g) return;
     const estKm3 = v.km3 * iceShareLeft(), lastY = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, litres = estKm3 * 0.9 * 1e12;
-    const N = waterNumbers(estKm3);
+    const pools = (n => n >= 1e6 ? (n / 1e6).toFixed(1) + ' M' : n >= 1e3 ? Math.round(n / 1e3) + ' k' : Math.round(n))(litres / POOL_L);
     const nationalLossPct = Math.round((1 - iceShareLeft()) * 100);
+    const lakes = estKm3 * 0.9 / LAKE_ZURICH_KM3, tap = estKm3 * 0.9 / SWISS_SUPPLY_KM3;
     slot.innerHTML = `<section class="card gwater"><div class="card-h"><span class="ico">${ICONS.drop}</span>Ice and water in this glacier</div>
       <div class="stat-row">
         <div class="stat wide">
-          <span class="v">${N.litresText} litres</span>
-          <span class="k">of fresh water, stored as an estimated ${N.km3Text} km³ of ice in the ${g.local || g.name} (autumn ${lastY})</span>
-          <span class="k note">Best estimate, not a measurement: ${v.km3.toFixed(1)} km³ were measured around 2016 (Grab et al. 2021), reduced by the ${nationalLossPct} % that Swiss glaciers lost on average since.</span>
+          <span class="v">${fmtN(litres, 1)} litres</span>
+          <span class="k">of fresh water, stored as an estimated ${estKm3.toFixed(2)} km³ of ice in the ${g.local || g.name} (autumn ${lastY})</span>
+          <span class="k note">Best estimate, not a measurement: ${v.km3.toFixed(2)} km³ were measured around 2016 (Grab et al. 2021), reduced by the ${nationalLossPct} % that Swiss glaciers lost on average since.</span>
         </div>
-        <div class="stat"><span class="v">${N.poolsText}</span><span class="k">Olympic pools</span></div>
-        <div class="stat"><span class="v">${N.lakes.toFixed(1)} ×</span><span class="k">Lake Zurich</span></div>
-        <div class="stat"><span class="v">${N.tap.toFixed(1)}</span><span class="k">years of Swiss tap water</span></div>
+        <div class="stat"><span class="v">${pools}</span><span class="k">Olympic pools</span></div>
+        <div class="stat"><span class="v">${lakes.toFixed(lakes < 1 ? 2 : 1)} ×</span><span class="k">Lake Zurich</span></div>
+        <div class="stat"><span class="v">${tap.toFixed(1)}</span><span class="k">years of Swiss tap water</span></div>
         ${v.max ? `<div class="stat"><span class="v">${Math.round(v.max)} m</span><span class="k">thickest ice (2016)</span></div>` : `<div class="stat"><span class="v">${v.mean} m</span><span class="k">mean thickness</span></div>`}
       </div>
     </section>`;
@@ -2008,8 +2121,8 @@ function cumulativeChart(lo, hi){
       ${selLine ? `<path d="${selLine}" fill="none" stroke="var(--accent)" stroke-width="3.4" stroke-linecap="round"/>` : ''}
       ${years.map((y, i) => `<circle cx="${X(y)}" cy="${Y(vols[i])}" r="${selA !== null && y >= selA && y <= selB ? 3.4 : 2.4}" fill="${selA !== null && y >= selA && y <= selB ? 'var(--accent)' : 'var(--crevasse)'}"/>`).join('')}
       <text x="${L + 4}" y="${Y(base) - 6}" class="lbl">${base.toFixed(1)} km³ in ${CUM_BASE_YEAR}</text>
-      <text x="${W - R}" y="${Y(end) + 16}" text-anchor="end" class="lbl">${end.toFixed(1)} km³ in ${last}</text>
-      <text x="${(L + W - R) / 2}" y="${(Y(vols[Math.floor(vols.length / 2)]) + Y(0)) / 2 + 8}" text-anchor="middle" class="lbl mid">${100 - lostPct} %</text>
+      <text x="${W - R}" y="${Y(end) + 16}" text-anchor="end" class="lbl red">−${lostPct} %</text>
+      <text x="${W - R}" y="${Y(end) + 29}" text-anchor="end" class="lbl">${end.toFixed(1)} km³ in ${last}</text>
       <text x="${L - 6}" y="${T - 9}" text-anchor="end">km³</text>
       ${xt}
       <g id="cumCursor" hidden><line y1="${T}" y2="${H - B}" stroke="var(--rock)" stroke-width="1" stroke-dasharray="2 2"/><circle r="5" fill="#fff" stroke="var(--rock)" stroke-width="2"/></g>
@@ -2053,17 +2166,15 @@ function waterSection(lo, hi){
   </section>`;
 }
 /* after each story render: count up, wire the chips, start the live counter */
-let liveStart = Date.now(), liveTimer = null, lastCounted = null;
+let liveStart = Date.now(), liveTimer = null;
 function wireWater(){
   const box = document.getElementById('waterBox');
   clearInterval(liveTimer);
   if (!box) return;
   const litres = +box.dataset.litres, out = document.getElementById('wCount'), t0 = performance.now(), dur = 1400;
-  const again = lastCounted !== null && Math.abs(lastCounted - litres) < 1;       // same number as before: no count-up from zero
-  lastCounted = litres;
   const step = now => { const k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
     out.textContent = fmtN(litres * e, 1); if (k < 1) requestAnimationFrame(step); };
-  matchMedia('(prefers-reduced-motion:reduce)').matches || again ? (out.textContent = fmtN(litres, 1)) : requestAnimationFrame(step);
+  matchMedia('(prefers-reduced-motion:reduce)').matches ? (out.textContent = fmtN(litres, 1)) : requestAnimationFrame(step);
   box.querySelectorAll('.w-chips button').forEach(b => b.onclick = () => {
     waterKind = b.dataset.kind;
     box.querySelectorAll('.w-chips button').forEach(x => x.setAttribute('aria-pressed', x === b));
@@ -2077,13 +2188,18 @@ function wireWater(){
   tick(); liveTimer = setInterval(tick, 1000);
 }
 
+function keyFiguresNote(){
+  return `<p class="kf-note">For consistency, all key figures come from a single source, Glacier Monitoring Switzerland (GLAMOS):
+    areas from its Swiss Glacier Inventories, length changes from its tongue measurements. Nothing is filled in from other sources,
+    so a figure GLAMOS has not measured for a glacier is shown as a dash.${DATA ? '' :
+    ' <strong>The GLAMOS data file (glaciers.js) is not loaded yet</strong>; until then the areas are built-in copies of the inventory values and length changes are missing.'}</p>`;
+}
 
 function renderOutlineControls(){
   const has = !!DATA, yr = l => (l || '').replace(/\D/g, '') || l;
   ['oldToggle','newToggle'].forEach(id => document.getElementById(id).disabled = !has);
   document.getElementById('oldLabel').textContent = `Outline ${has ? yr(DATA.oldest_label) : '1850'}`;
   document.getElementById('newLabel').textContent = `Outline ${has ? yr(DATA.latest_label) : '2023'}`;
-  document.getElementById('pinLabel').textContent = `Tongue indication ${has ? yr(DATA.latest_label) : '2023'}`;
   document.getElementById('outlineNote').textContent = has ? '' : 'Outlines appear once the glacier data (glaciers.js) has been built.';
 }
 
@@ -2091,26 +2207,14 @@ function refreshAll(){
   renderMode(); renderYears();
   setTag('tagA', state.a); setTag('tagB', state.b);
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
-  renderStory(); writeHash();
+  renderStory(); writeHash(); updateIceLines();
 }
 
 /* =====================================================================
    8. Controls
    ===================================================================== */
-function setOrient(o){
-  prefs.orient = o; savePrefs();
-  document.getElementById('orientV').setAttribute('aria-pressed', o !== 'h'); document.getElementById('orientH').setAttribute('aria-pressed', o === 'h');
-  document.getElementById('labelA').textContent = o === 'h' ? 'Top' : 'Left'; document.getElementById('labelB').textContent = o === 'h' ? 'Bottom' : 'Right';
-  document.getElementById('yearsA').setAttribute('aria-label', o === 'h' ? 'Year for top image' : 'Year for left image');
-  document.getElementById('yearsB').setAttribute('aria-label', o === 'h' ? 'Year for bottom image' : 'Year for right image');
-  state.split = .5;
-  clip();
-}
-document.getElementById('orientV').onclick = () => setOrient('v'); document.getElementById('orientH').onclick = () => setOrient('h');
-setOrient(prefs.orient === 'h' ? 'h' : 'v');
 document.getElementById('modeCompare').onclick = () => { state.mode = 'compare'; refreshAll(); };
 document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); mobileDataNote(); };
-document.getElementById('modeSingle').onclick = () => { state.mode = 'single'; state.frame = 0; refreshAll(); };
 
 
 
@@ -2169,8 +2273,39 @@ document.getElementById('boxToggle').onchange = e => { prefs.boxes = e.target.ch
 document.getElementById('swissBtn').onclick = () => showSwitzerland();
 drawBoxes(); drawTonguePin();
 
-/* swisstopo layer of the ice thickness (Grab et al. 2021), used for the volume of the selected glacier (identify service) */
+/* ---------- ice thickness: Grab et al. (2021), SwissGlacierThickness-R2020, served by swisstopo ---------- */
 const THICK_LAYER = 'ch.swisstopo.geologie-gletschermaechtigkeit';
+let thickImg = null;
+/* One WMS image with exactly the extent of the satellite scene: lines up with it and shows nothing outside. */
+function thicknessUrl(fp){
+  const k = Math.min(1, 2000 / Math.max(fp.w, fp.h));
+  return 'https://wms.geo.admin.ch/?' + new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.3.0', REQUEST: 'GetMap', LAYERS: THICK_LAYER, STYLES: '',
+    CRS: 'EPSG:3857', BBOX: fp.bbox.join(','), WIDTH: Math.round(fp.w * k), HEIGHT: Math.round(fp.h * k), FORMAT: 'image/png', TRANSPARENT: 'TRUE' });
+}
+const LEGEND_URLS = [`https://api3.geo.admin.ch/static/images/legends/${THICK_LAYER}_en.png`, `https://api3.geo.admin.ch/static/images/legends/${THICK_LAYER}_de.png`,
+  `https://wms.geo.admin.ch/?SERVICE=WMS&REQUEST=GetLegendGraphic&VERSION=1.3.0&FORMAT=image/png&LAYER=${THICK_LAYER}&lang=en`];
+function loadLegend(){
+  const img = document.getElementById('thickLegend'), link = document.getElementById('thickLegendLink');
+  if (img.dataset.tried) return;
+  img.dataset.tried = '1';
+  let i = 0;
+  img.onerror = () => { if (++i < LEGEND_URLS.length) img.src = LEGEND_URLS[i]; else { img.hidden = true; link.hidden = false; } };
+  img.src = LEGEND_URLS[0];
+}
+function setThickness(){
+  const on = document.getElementById('thickToggle').checked;
+  if (thickImg) { map.removeLayer(thickImg); thickImg = null; }
+  if (on) {
+    const fp = imageFootprint(currentGlacier());
+    thickImg = L.imageOverlay(thicknessUrl(fp), fp.bounds, {pane: 'thickPane', opacity: 0.8, interactive: false, className: 'thick-img'}).addTo(map);
+    loadLegend();
+  }
+  document.getElementById('thickCard').hidden = !on;
+  updateCredits();
+}
+document.getElementById('thickToggle').checked = prefs.thick === true;
+document.getElementById('thickToggle').onchange = e => { prefs.thick = e.target.checked; savePrefs(); setThickness(); };
+setThickness();
 
 /* Map layer box: minimize, mosaic background, OpenStreetMap */
 const lb = document.getElementById('layerbox');
@@ -2194,20 +2329,6 @@ document.getElementById('osmToggle').onchange = e => {
 const COARSE = matchMedia('(pointer:coarse)').matches;
 const $ = id => document.getElementById(id);
 
-/* Pick-a-glacier message: at the start until a glacier is chosen, and again whenever the map is zoomed out beyond the first view */
-let glacierPicked = OPEN_ON_GLACIER;
-const START_ZOOM = () => map.getBoundsZoom(glaciersExtent(), false, L.point(80, 80));
-function updatePickHint(){
-  const far = map.getZoom() < START_ZOOM() - 0.5;
-  const el = $('pickHint');
-  if (!glacierPicked || far) {
-    $('pickTitle').textContent = far ? 'Zoom in and select a glacier' : 'Select a glacier to start';
-    $('pickText').textContent = far ? 'Zoom in, then click a red box on the map or choose a glacier from the list.' : 'Click a red box on the map, or choose a glacier from the list.';
-  }
-  el.classList.toggle('show', !glacierPicked || far);
-}
-map.on('zoomend', updatePickHint);
-
 /* Hide or show the side panels (desktop and tablet); the map gets the room */
 function setPanel(side, hidden, save = true){
   $('app').classList.toggle(side === 'left' ? 'no-left' : 'no-right', hidden);
@@ -2221,10 +2342,9 @@ if (prefs.hideL) setPanel('left', true, false);
 if (prefs.hideR) setPanel('right', true, false);
 
 function chooseGlacier(id){
-  glacierPicked = true; updatePickHint();
   if (state.glacier === id) { stopPlay(); return focusTongue(); }
   stopPlay();
-  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); drawTonguePin(); focusTongue(); writeHash();
+  state.glacier = id; clearIceLines(); renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); drawTonguePin(); setThickness(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
 function renderMobileBar(){                 // phones: the glacier list becomes a dropdown
@@ -2234,17 +2354,15 @@ function renderMobileBar(){                 // phones: the glacier list becomes 
 }
 
 /* Map tools on phones: layers and measuring live behind two small buttons */
-function setMore(open){
-  setTimeout(() => clip(), 0);
-  document.querySelector('.mapbar').classList.toggle('more-open', open); $('app').classList.toggle('more-open', open);
-  $('moreBtn').setAttribute('aria-expanded', open); $('moreBtn').setAttribute('aria-pressed', open);
-}
-function setLayers(open){
-  $('layerbox').classList.toggle('open', open);
+$('layersBtn').onclick = () => {
+  const open = $('layerbox').classList.toggle('open');
   $('layersBtn').setAttribute('aria-expanded', open); $('layersBtn').setAttribute('aria-pressed', open);
-}
-$('layersBtn').onclick = () => { const open = !$('layerbox').classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
-$('moreBtn').onclick = () => { const open = !document.querySelector('.mapbar').classList.contains('more-open'); setMore(open); if (open) setLayers(false); };
+};
+$('moreBtn').onclick = () => {
+  const open = document.querySelector('.mapbar').classList.toggle('more-open');
+  $('app').classList.toggle('more-open', open);
+  $('moreBtn').setAttribute('aria-expanded', open); $('moreBtn').setAttribute('aria-pressed', open);
+};
 
 /* Two fingers move the map on touch screens; one finger scrolls the page.
    Leaflet's pinch handler zooms and pans with two fingers; single-finger dragging is switched off. */
@@ -2263,9 +2381,9 @@ if (COARSE) {
 /* Sharing: the address already contains glacier, mode and years */
 async function shareView(){
   const g = currentGlacier(), url = location.href;
-  const text = state.mode === 'single' ? `${g.name}, ${state.one}` : state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
+  const text = state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
   if (navigator.share) {
-    try { await navigator.share({title:'Tongues from Space - Switzerland', text, url}); return; }
+    try { await navigator.share({title:'Swiss Glacier Tongues from Space', text, url}); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
   try { await navigator.clipboard.writeText(url); showNotice('Link copied. Paste it anywhere to share this view.'); }
@@ -2290,7 +2408,7 @@ function mobileDataNote(){
 const VIDEO = {
   fps: 30,
   formats: {   // safe zones keep text clear of the apps' own buttons and captions
-    reel: { w:1080, h:1920, safe:{ top:270, bottom:670, left:65, right:140 } },   // Meta: keep clear of the top 14 %, bottom 35 %, sides 6 % (and the button rail at the bottom right)
+    reel: { w:1080, h:1920, safe:{ top:250, bottom:430, left:72, right:150 } },
     feed: { w:1080, h:1350, safe:{ top:84,  bottom:96,  left:72, right:72 } }
   },
   intro: 1.6, fade: 0.4, hold: 1.2, outro: 3.0, water: 3.6,
@@ -2301,9 +2419,7 @@ const vstate = { fmt: 'reel', type: 'timelapse', kind: 'video', busy: false };  
    Back and forth twice, then settle in the middle. A move eases from the previous position. */
 const SWIPE_KEYS = [[1, 1.0], [0, 1.7], [0, 0.7], [1, 1.5], [1, 0.5], [0, 1.5], [0, 0.7], [1, 1.5], [1, 0.4], [0.5, 1.2], [0.5, 1.4]];
 const swipeLength = k => SWIPE_KEYS.reduce((a, [, d]) => a + d * k, 0);
-/* the picture shows the year on screen: One year, the frame of the Timelapse, or the right-hand year of Compare */
-const stillYear = () => state.mode === 'single' ? state.one : state.mode === 'timelapse' && tlLayers[state.frame] ? tlLayers[state.frame].yr : state.b;
-const videoYears = () => vstate.kind === 'image' ? [stillYear()].filter(y => state.available[y])
+const videoYears = () => vstate.kind === 'image' ? [+$('vImgYear').value].filter(y => state.available[y])
   : vstate.type === 'swipe' ? [state.a, state.b].filter(y => state.available[y]).filter((y, i, a) => a.indexOf(y) === i)
   : tlFrames();
 const FONT = '"Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif';
@@ -2334,7 +2450,7 @@ function updateFrame(){
   const res = frameGroundRes();
   $('videoFrameNote').textContent = res < 4 ? `Zoom out a little for a sharper ${vstate.kind === 'image' ? 'picture' : 'video'}` : '';
   const ys = videoYears();
-  $('vsSource').textContent = vstate.kind === 'image' ? '' : vstate.type === 'swipe' ? `The two years come from Compare (${horiz() ? 'top and bottom' : 'left and right'} image).` : 'The years come from the timelapse range (From and To).';
+  $('vsSource').textContent = vstate.kind === 'image' ? '' : vstate.type === 'swipe' ? 'The two years come from Compare (left and right image).' : 'The years come from the timelapse range (From and To).';
   if (vstate.kind === 'image') {
     $('vsInfo').textContent = ys.length ? `One picture of ${ys[0]}.` : 'No picture available for this year.';
     if (res < 4) $('vsInfo').textContent += ' The images have 10 m pixels, so this close in the picture will look soft.';
@@ -2359,9 +2475,12 @@ function openVideo(kind = 'video'){
   }
   vstate.kind = kind;
   const image = kind === 'image';
-  $('vfReelNote').textContent = image ? '(full phone screen)' : '(Reels, TikTok)';
   $('videoSheet').classList.toggle('is-image', image);
   $('vsTitle').textContent = image ? 'Download image' : 'Download animation';
+  if (image) {
+    const ok = okYears(), now = state.mode === 'timelapse' && tlLayers[state.frame] ? tlLayers[state.frame].yr : state.b;
+    $('vImgYear').innerHTML = ok.map(y => `<option value="${y}">${y}</option>`).join(''); $('vImgYear').value = ok.includes(now) ? now : ok[ok.length - 1];
+  }
   setType(!image && state.mode === 'compare' ? 'swipe' : 'timelapse');
   stopPlay();
   const g = currentGlacier(), hasOld = !!(g.inv && g.inv.oldest);
@@ -2377,6 +2496,7 @@ function closeVideo(){
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0;
 }
 $('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = closeVideo;
+$('vImgYear').onchange = updateFrame;
 const setFmt = f => { vstate.fmt = f; $('vfReel').setAttribute('aria-pressed', f === 'reel'); $('vfFeed').setAttribute('aria-pressed', f === 'feed'); updateFrame(); };
 $('vfReel').onclick = () => setFmt('reel'); $('vfFeed').onclick = () => setFmt('feed');
 $('vSpeed').onchange = updateFrame;
@@ -2414,9 +2534,9 @@ async function buildBase(img, crop, W, H, outline){
   const fp = crop.fp, s = W / (crop.x1 - crop.x0);
   ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   ctx.drawImage(img, (fp.bbox[0] - crop.x0) * s, (crop.y1 - fp.bbox[3]) * s, (fp.bbox[2] - fp.bbox[0]) * s, (fp.bbox[3] - fp.bbox[1]) * s);
-  const b = brightness();
-  if (Math.abs(b - 1) > 0.01) {                         // same curve as the brightness slider
-    const lut = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+  const b = brightness(), sa = snowAmount();
+  if (Math.abs(b - 1) > 0.01 || sa > 0.001) {          // same curves as the brightness and snow contrast sliders
+    const lut = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) lut[i] = 255 * snowCurve(Math.pow(i / 255, 1 / b), sa);
     const d = ctx.getImageData(0, 0, W, H), px = d.data;
     for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
     ctx.putImageData(d, 0, 0);
@@ -2443,7 +2563,7 @@ function shade(ctx, W, H, S){
 }
 function drawHeader(ctx, S, maxW, g){
   const x = S.left;
-  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, S.top + 28, {blur:8, color:'#FF5A4E'});
+  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, S.top + 28, {blur:8, color:'#FF5A4E'});
   const gs = fitText(ctx, g.name, 800, 60, maxW); shadowText(ctx, g.name, x, S.top + 28 + gs + 8);
   ctx.font = `500 23px ${FONT}`; shadowText(ctx, [g.canton, g.range].filter(Boolean).join(', ') || 'Switzerland', x, S.top + 28 + gs + 42, {blur:8});
 }
@@ -2456,27 +2576,21 @@ function drawScaleBar(ctx, info, x, y, maxW){
 }
 function drawSwipeLabels(ctx, W, H, S, info, split){
   shade(ctx, W, H, S);
-  const maxW = W - S.left - S.right, base = H - S.bottom, hz = info.horiz;
+  const maxW = W - S.left - S.right, base = H - S.bottom;
   drawHeader(ctx, S, maxW, info.glacier);
   // divider with a round handle
-  const along = hz ? H : W;
-  if (split > 2 && split < along - 2) {
+  if (split > 2 && split < W - 2) {
     ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 10;
-    if (hz) ctx.fillRect(0, split - 2, W, 4); else ctx.fillRect(split - 2, 0, 4, H);
-    const cx = hz ? W * 0.5 : split, cy = hz ? split : H * 0.5;
-    ctx.beginPath(); ctx.arc(cx, cy, 30, 0, Math.PI * 2); ctx.fill(); ctx.restore();
+    ctx.fillRect(split - 2, 0, 4, H);
+    ctx.beginPath(); ctx.arc(split, H * 0.5, 30, 0, Math.PI * 2); ctx.fill(); ctx.restore();
     ctx.save(); ctx.strokeStyle = '#22313A'; ctx.lineWidth = 4; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    ctx.translate(cx, cy); if (hz) ctx.rotate(Math.PI / 2);
-    ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-16, 0); ctx.lineTo(-6, 10); ctx.moveTo(6, -10); ctx.lineTo(16, 0); ctx.lineTo(6, 10); ctx.stroke(); ctx.restore();
+    ctx.beginPath(); ctx.moveTo(split - 6, H * 0.5 - 10); ctx.lineTo(split - 16, H * 0.5); ctx.lineTo(split - 6, H * 0.5 + 10);
+    ctx.moveTo(split + 6, H * 0.5 - 10); ctx.lineTo(split + 16, H * 0.5); ctx.lineTo(split + 6, H * 0.5 + 10); ctx.stroke(); ctx.restore();
   }
+  // the two years: first on the left, later on the right; each fades when its image is fully hidden
   ctx.font = `800 104px ${FONT}`;
-  if (hz) {          // the first year sits in the upper picture under the title, the later year in the lower picture; each shows only on its own picture
-    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, split); ctx.clip(); shadowText(ctx, String(info.years[0]), S.left - 4, S.top + 250, {blur:20}); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip(); shadowText(ctx, String(info.years[1]), S.left - 4, base - 40, {blur:20}); ctx.restore();
-  } else {           // the first year on the left, the later year on the right; each fades when its image is fully hidden
-    ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 40, {blur:20}); ctx.restore();
-    ctx.save(); ctx.globalAlpha = Math.min(1, (W - split) / (W * 0.25)); shadowText(ctx, String(info.years[1]), W - S.right, base - 40, {blur:20, align:'right'}); ctx.restore();
-  }
+  ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 40, {blur:20}); ctx.restore();
+  ctx.save(); ctx.globalAlpha = Math.min(1, (W - split) / (W * 0.25)); shadowText(ctx, String(info.years[1]), W - S.right, base - 40, {blur:20, align:'right'}); ctx.restore();
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${Math.min(...info.years)} and ${Math.max(...info.years)}`, S.left, base, {blur:6, color:'rgba(255,255,255,.88)'});
   drawScaleBar(ctx, info, W - S.right - niceScale(maxW * 0.28 * info.res) / info.res, S.top + 40, maxW);
@@ -2514,9 +2628,9 @@ function drawLabels(ctx, W, H, S, info, k){
 function drawIntro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.62)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = W - S.left - S.right, mid = S.top + (H - S.top - S.bottom) * 0.42;
-  ctx.font = `700 27px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
+  ctx.font = `700 27px ${FONT}`; shadowText(ctx, 'SWISS GLACIER TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
   const gs = fitText(ctx, info.glacier.name, 800, 92, maxW); shadowText(ctx, info.glacier.name, x, mid - 120 + gs + 20);
-  ctx.font = `500 34px ${FONT}`; shadowText(ctx, info.compare ? `${info.years[0]} and ${info.years[1]}` : `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 76);
+  ctx.font = `500 34px ${FONT}`; shadowText(ctx, `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, mid - 120 + gs + 76);
 }
 function waterIcon(ctx, kind, x, y, s){
   ctx.save();
@@ -2564,7 +2678,7 @@ function drawOutro(ctx, W, H, S, info){
     y += 70;
   }
   ctx.font = `500 23px ${FONT}`;
-  const lines = [`Satellite images: contains modified Copernicus Sentinel data ${info.compare ? `${info.years[0]} and ${info.years[1]}` : `${info.years[0]}–${info.years[info.years.length - 1]}`}, Copernicus Data Space Ecosystem`,
+  const lines = [`Satellite images: contains modified Copernicus Sentinel data ${info.years[0]}–${info.years[info.years.length - 1]}, Copernicus Data Space Ecosystem`,
                  info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : '',
                  info.lost ? 'Volume loss: GLAMOS, Swiss Academy of Sciences' : ''].filter(Boolean);
   lines.forEach(t => wrap(ctx, t, x, y, maxW, 31).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 44; }));
@@ -2609,50 +2723,6 @@ async function frameBases(ys, W, H){
     site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
   return { g, bases, outline, info };
 }
-/* One set of water numbers for a glacier, used on the card, in the chapter and on the picture: one digit after the comma */
-const fmtPools = (n, long) => n >= 1e6 ? (n / 1e6).toFixed(1) + (long ? ' million' : ' M') : n >= 1e3 ? (n / 1e3).toFixed(1) + (long ? ' thousand' : ' k') : n.toFixed(1);
-function waterNumbers(km3){
-  const litres = km3 * 0.9e12, pools = litres / POOL_L;
-  return { km3, km3Text: km3.toFixed(1), litres, litresText: fmtN(litres, 1), pools, poolsText: fmtPools(pools, false), poolsLong: fmtPools(pools, true),
-           lakes: km3 * 0.9 / LAKE_ZURICH_KM3, tap: km3 * 0.9 / SWISS_SUPPLY_KM3 };
-}
-/* ---- the still picture: title and glacier at the very top, year, scale bar and credit at the very bottom, water facts in between ---- */
-const SITE_NAME = 'tonguesfromspace.com';
-const stillName = g => (g.local || g.name).replace(/\s*\(.*?\)\s*/g, ' ').trim();       // the full local name, "Grosser Aletschgletscher", "Glacier de Corbassière"
-function drawStill(ctx, W, H, info, water){
-  const S = { top: 74, bottom: 66, left: 64, right: 64 }, x = S.left, maxW = W - S.left - S.right, g = info.glacier, k = 0;
-  shade(ctx, W, H, { top: Math.min(S.top, 120), bottom: Math.min(S.bottom, 120) });
-  ctx.textBaseline = 'alphabetic';
-  // top
-  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, S.top + 22, { blur: 8, color: '#FF5A4E' });
-  const gs = fitText(ctx, stillName(g), 800, 68, maxW), ny = S.top + 22 + gs + 16;
-  shadowText(ctx, stillName(g), x, ny);
-  ctx.font = `500 26px ${FONT}`; shadowText(ctx, [g.canton, g.range, 'Switzerland'].filter(Boolean).join(', '), x, ny + 46, { blur: 8 });
-  // bottom
-  const base = H - S.bottom, sc = info.scenes[k];
-  ctx.font = `500 19px ${FONT}`; shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0]}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, { blur: 6, color: 'rgba(255,255,255,.88)' });
-  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, { align: 'right', blur: 8 });
-  ctx.font = `600 28px ${FONT}`; shadowText(ctx, fmtDate(sc.date), x, base - 42, { blur: 8 });
-  ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, base - 42 - 38, { blur: 20 });
-  const m = niceScale(maxW * 0.3 * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 56;
-  ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
-  ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
-  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, { align: 'center', blur: 8 });
-  // water facts: a quiet panel above the year
-  if (water) {
-    const yearTop = base - 42 - 38 - 94, ph = 268, pb = yearTop - 34, py = pb - ph;
-    ctx.save(); ctx.fillStyle = 'rgba(8,14,18,.36)'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - 20, py, maxW + 40, ph, 22) : ctx.rect(x - 20, py, maxW + 40, ph); ctx.fill(); ctx.restore();
-    const n = waterNumbers(water.km3);
-    let y = py + 44;
-    ctx.font = `700 21px ${FONT}`; shadowText(ctx, `ICE IN THIS GLACIER, AUTUMN ${water.year}`, x, y, { blur: 6, color: '#FF7A6E' });
-    const big = `${n.litresText} litres`; y += 8 + fitText(ctx, big, 800, 64, maxW);
-    shadowText(ctx, big, x, y, { blur: 10, color: '#8FDDF3' });
-    ctx.font = `500 26px ${FONT}`; y += 42; shadowText(ctx, `of fresh water, stored as about ${n.km3Text} km³ of ice`, x, y, { blur: 8 });
-    ctx.font = `600 26px ${FONT}`; y += 42;
-    shadowText(ctx, `${n.poolsLong} Olympic pools  ·  ${n.tap.toFixed(1)} years of Swiss tap water`, x, y, { blur: 8 });
-    ctx.font = `500 17px ${FONT}`; y += 36; shadowText(ctx, 'Estimate: Grab et al. 2021 (ice around 2016), scaled with the yearly Swiss loss (GLAMOS)', x, y, { blur: 6, color: 'rgba(255,255,255,.8)' });
-  }
-}
 async function makeImage(){
   const ys = videoYears();
   if (!ys.length) return showNotice('No picture available for this year.');
@@ -2661,16 +2731,10 @@ async function makeImage(){
   try {
     const { g, bases, info } = await frameBases(ys, W, H);
     info.still = true;
-    let water = null;
-    if ($('vImgWater').checked) {
-      const v = await glacierVolume(g).catch(() => null);
-      if (!v) showNotice('The ice volume of this glacier is not available, so the picture is made without water facts.');
-      else { const km3 = v.km3 * iceVolume(ys[0]) / iceVolume(2016); water = { year: ys[0], km3, litres: km3 * 0.9e12 }; }
-    }
     const canvas = document.createElement('canvas'); canvas.width = W; canvas.height = H;
     const ctx = canvas.getContext('2d');
     ctx.drawImage(bases[0], 0, 0);
-    drawStill(ctx, W, H, info, water);                  // a picture is not a Reel: text sits at the very top and bottom in both formats
+    drawLabels(ctx, W, H, S, info, 0);
     const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
     const name = `tonguesfromspace-${shortSlug(g.name)}-${ys.join('-')}-${vstate.fmt === 'reel' ? '9x16' : '4x5'}.jpg`;
     const file = new File([blob], name, { type: 'image/jpeg' });
@@ -2693,7 +2757,6 @@ async function makeVideo(){
   vstate.busy = true; $('vsGo').disabled = true;
   try {
     const { g, bases, info } = await frameBases(ys, W, H), lo = Math.min(...ys), hi = Math.max(...ys);
-    info.compare = vstate.type === 'swipe'; info.horiz = info.compare && horiz();       // the slider runs the way it does on screen
 
     // 2. timeline
     const intro = introLen(), per = +$('vSpeed').value, fade = Math.min(VIDEO.fade, per * 0.45), k = per / 1.2;   // k: speed factor for the swipe
@@ -2715,16 +2778,15 @@ async function makeVideo(){
     const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
     const renderSwipe = t => {
       if (t < intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
-      let u = t - intro, from = 1, split = null;          // split: where the later year starts, along the width (vertical divider) or the height (horizontal); the full length = only the first year
-      const along = info.horiz ? H : W;
+      let u = t - intro, from = 1, split = null;          // split: x where the later year starts (W = only the first)
       for (const [to, d] of SWIPE_KEYS) {
         const dur = d * k;
-        if (u < dur) { split = along * (from + (to - from) * ease(u / dur)); break; }
+        if (u < dur) { split = W * (from + (to - from) * ease(u / dur)); break; }
         u -= dur; from = to;
       }
       if (split === null) { ctx.drawImage(bases[1], 0, 0); tail(u); return; }
       ctx.drawImage(bases[0], 0, 0);
-      ctx.save(); ctx.beginPath(); if (info.horiz) ctx.rect(0, split, W, H - split); else ctx.rect(split, 0, W - split, H); ctx.clip(); ctx.drawImage(bases[1], 0, 0); ctx.restore();
+      ctx.save(); ctx.beginPath(); ctx.rect(split, 0, W - split, H); ctx.clip(); ctx.drawImage(bases[1], 0, 0); ctx.restore();
       drawSwipeLabels(ctx, W, H, S, info, split);
     };
     const render = vstate.type === 'swipe' ? renderSwipe : t => {
@@ -2839,7 +2901,6 @@ updateBoxes();
 renderStory();
 updateCredits();
 checkYears();
-updatePickHint();
 </script>
 </body>
 </html>

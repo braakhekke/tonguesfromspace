@@ -51,6 +51,9 @@ jobs:
           mkdir -p _site
           cp index.html _site/
           [ -f preview.jpg ] && cp preview.jpg _site/ || true
+          mkdir -p _site/images
+          for f in images/foryourice.jpg images/preview-social.jpg; do [ -f "$f" ] && cp "$f" _site/images/ || true; done
+          mkdir -p _site/fonts && cp fonts/*.woff2 _site/fonts/ && { [ -f fonts/OFL.txt ] && cp fonts/OFL.txt _site/fonts/ || true; }
           [ -f glaciers.js ] && cp glaciers.js _site/ || echo "glaciers.js not available yet"
           touch _site/.nojekyll
 

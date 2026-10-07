@@ -99,9 +99,19 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         super().end_headers()
 
+    def _hidden(self):
+        """The credentials file, .git and other dot files and the scripts folder are never served."""
+        parts = [x for x in urllib.parse.unquote(self.path.split("?")[0]).split("/") if x]
+        return any(x.startswith(".") for x in parts) or (parts[:1] == ["scripts"])
+
+    def do_HEAD(self):
+        return self._send(404, "text/plain", b"Not found") if self._hidden() else super().do_HEAD()
+
     def do_GET(self):
         if self.path == "/cdse/ping":
             return self._send(200, "application/json", b'{"relay":true,"managed":true}')
+        if self._hidden():
+            return self._send(404, "text/plain", b"Not found")
         return super().do_GET()
 
     def do_POST(self):
