@@ -252,6 +252,13 @@ details.about .note,details.about .src{margin:0 0 8px}
 .facts th{text-align:left;font-weight:400;color:var(--moraine);padding:7px 0;border-bottom:1px solid var(--rule);width:58%}
 .facts td{text-align:right;padding:7px 0;border-bottom:1px solid var(--rule);font-variant-numeric:tabular-nums;font-weight:500}
 .facts td.loss{color:var(--loss)}
+.cum{margin:0 0 6px}
+.cum svg{width:100%;height:auto;display:block;font-family:var(--sans);font-size:10px;fill:var(--moraine)}
+.cum .lbl{font-size:10.5px;font-weight:700;fill:var(--rock)}
+.cum .lbl.red{fill:var(--accent);font-size:13px}
+.cum figcaption{font-size:11px;line-height:1.45;color:var(--moraine);margin-top:4px}
+.cum .k{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 4px 0 0}
+.cum .k-ice{background:#CFE3EA}.cum .k-lost{background:var(--accent);opacity:.4;margin-left:8px}
 .water{margin:14px 0 4px;padding:16px;border-radius:10px;background:linear-gradient(160deg,#EAF3F7,#F7FAFB);border:1px solid var(--rule)}
 .water .w-hero{font-size:24px;font-weight:800;letter-spacing:-.02em;color:var(--crevasse);line-height:1;font-variant-numeric:tabular-nums}
 .water .w-hero small{display:block;font-size:12px;font-weight:600;color:var(--rock);letter-spacing:0;margin-top:6px}
@@ -262,7 +269,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .water .w-text{font-size:12.5px;line-height:1.5;margin:0 0 8px}
 .water .w-icons{display:flex;flex-wrap:wrap;gap:4px;margin:6px 0 4px}
 .water .w-icons svg{width:22px;height:22px}
-.water .w-icons svg.lake{width:46px;height:26px}
+.water .w-icons svg.lake{width:34px;height:22px}
 .water .w-key{font-size:11px;color:var(--moraine)}
 .gwater{margin-top:10px}
 .gwater .w-hero{font-size:21px}
@@ -1447,7 +1454,7 @@ function renderStory(){
     (inRange.length ? (() => {
       const ice = iceVolume(lo) - iceVolume(Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y)), water = ice * 0.9;
       return ` In those ${hi - lo} melt season${hi - lo > 1 ? 's' : ''}, Swiss glaciers lost about <strong>${(lost * 100).toFixed(0)} %</strong> of their ice: ${ice.toFixed(1)} km³.` +
-        (inRange.some(n => n.approx) ? ' Values marked ≈ are rounded.' : '');
+        '';
     })() : '');
 
   const statsHtml = renderStats(g);
@@ -1479,6 +1486,8 @@ function renderStory(){
     </div>
 
     <div class="tab-panel" data-panel="swiss" ${storyTab === 'swiss' ? '' : 'hidden'}>
+      <p class="mini-h">Ice left in all Swiss glaciers</p>
+      ${cumulativeChart(lo, hi)}
       <p class="mini-h">Share of all Swiss glacier ice lost each year</p>
       <div class="bars">
         ${VOLUME_LOSS.map(n => `
@@ -1675,7 +1684,6 @@ function renderGlacierWater(){
         <div><b>${(v.km3 * 0.9 / SWISS_SUPPLY_KM3).toFixed(1)}</b><span>years of Swiss tap water</span></div>
         ${v.max ? `<div><b>${Math.round(v.max)} m</b><span>thickest ice</span></div>` : `<div><b>${v.mean} m</b><span>mean thickness</span></div>`}
       </div>
-      <p class="w-key">Ice volume: Grab et al. (2021) via swisstopo.</p>
     </section>`;
   });
 }
@@ -1683,11 +1691,46 @@ function renderGlacierWater(){
 /* ---------- "How much water is that?" ---------- */
 const W_ICONS = {
   pool: '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="2" fill="#5FB8D9"/><path d="M4 12c2-1.5 4 1.5 6 0s4 1.5 6 0 4 1.5 4 0" stroke="#fff" stroke-width="1.4" fill="none"/></svg>',
-  lake: '<svg class="lake" viewBox="0 0 41 21"><path d="M2.4 1.2 L9 4.6 L16 9.4 L22.8 13.4 L26.6 15.6 L27.9 16.5 L33 16.7 L38.6 17.2 L39.6 18.1 L38.4 19.2 L33 18.9 L28.2 17.4 L27.3 18.5 L25.4 18.6 L21.2 16.9 L14 13.1 L7.2 8.1 L1.4 3.1 Z" fill="#2D6E8E"/></svg>',   // outline of Lake Zurich (Zurich to the Obersee)
+  lake: '<svg class="lake" viewBox="0 0 33 20"><path d="M3 11.5c0-3.6 3.4-6.2 7.6-6.4 2.6-.1 3.8 1.2 6.2 1 3-.2 4.4-2.1 7.5-1.6 3.4.5 5.7 2.6 5.7 5.6 0 3.5-3 5.4-6.6 5.8-2.6.3-3.9-.9-6.5-.6-2.8.3-4.4 2-7.5 1.6C5.4 16.6 3 14.6 3 11.5z" fill="#2D6E8E"/><path d="M9 11.5c2-1 3.5 1 5.5 0s3.5 1 5.5 0" stroke="#9CD3E6" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>',
   tap: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2.5" fill="#fff" stroke="#22313A" stroke-width="1.4"/><path d="M3 9h18" stroke="#C8322A" stroke-width="2.4"/><path d="M12 12.5c-1.6 2-2.4 3.2-2.4 4.1a2.4 2.4 0 0 0 4.8 0c0-.9-.8-2.1-2.4-4.1z" fill="#2D6E8E"/></svg>',
-  person: '<svg viewBox="0 0 24 24"><circle cx="12" cy="7" r="3.4" fill="#22313A"/><path d="M5.5 21c.5-4.4 3-6.6 6.5-6.6s6 2.2 6.5 6.6z" fill="#22313A"/></svg>'
+  person: '<svg viewBox="0 0 24 24"><rect x="3.5" y="5" width="17" height="15" rx="2.5" fill="#fff" stroke="#22313A" stroke-width="1.5"/><path d="M3.5 9.5h17" stroke="#C8322A" stroke-width="3"/><path d="M8 3.5v3M16 3.5v3" stroke="#22313A" stroke-width="1.6" stroke-linecap="round"/><path d="M7.5 13h2M11 13h2M14.5 13h2M7.5 16.5h2M11 16.5h2" stroke="#9AA6AC" stroke-width="1.5" stroke-linecap="round"/></svg>'
 };
 const fmtN = (n, d = 1) => n >= 1e12 ? `${(n / 1e12).toFixed(d)} trillion` : n >= 1e9 ? `${(n / 1e9).toFixed(d)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(d)} million` : Math.round(n).toLocaleString('en');
+/* Ice left in all Swiss glaciers since autumn 2016.
+   Base: autumn 2016, the first year of the images. Counting back from GLAMOS (46.4 km³ at the end of 2024)
+   gives 58.8 km³; an independent radar survey (Grab et al. 2021) measured 58.7 ± 2.5 km³ for 2016.
+   The axis starts at 0 so the decline is shown at its true size. */
+const CUM_BASE_YEAR = 2016;
+function cumulativeChart(lo, hi){
+  const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, years = [];
+  for (let y = CUM_BASE_YEAR; y <= last; y++) years.push(y);
+  const vols = years.map(iceVolume), base = vols[0], end = vols[vols.length - 1];
+  const W = 340, H = 180, L = 34, R = 10, T = 22, B = 24, top = Math.ceil(base / 10) * 10;
+  const X = y => L + (y - CUM_BASE_YEAR) / (last - CUM_BASE_YEAR) * (W - L - R), Y = v => T + (1 - v / top) * (H - T - B);
+  const line = years.map((y, i) => `${i ? 'L' : 'M'}${X(y).toFixed(1)},${Y(vols[i]).toFixed(1)}`).join(' ');
+  const lostArea = `M${X(CUM_BASE_YEAR)},${Y(base)} ${years.map((y, i) => `L${X(y).toFixed(1)},${Y(vols[i]).toFixed(1)}`).join(' ')} L${X(last)},${Y(base)} Z`;
+  const iceArea = `${line} L${X(last)},${Y(0)} L${X(CUM_BASE_YEAR)},${Y(0)} Z`;
+  const sel = lo && hi && hi > lo ? `<rect x="${X(Math.max(lo, CUM_BASE_YEAR))}" y="${T}" width="${Math.max(0, X(Math.min(hi, last)) - X(Math.max(lo, CUM_BASE_YEAR)))}" height="${H - T - B}" fill="var(--accent)" opacity=".08"/>` : '';
+  const ticks = [0, top / 2, top].map(v => `<text x="${L - 6}" y="${Y(v) + 4}" text-anchor="end">${v}</text><line x1="${L}" x2="${W - R}" y1="${Y(v)}" y2="${Y(v)}" stroke="var(--rule)"/>`).join('');
+  const xt = years.filter(y => (y - CUM_BASE_YEAR) % 2 === 0 || y === last).map(y => `<text x="${X(y)}" y="${H - 8}" text-anchor="middle">${y}</text>`).join('');
+  const lostPct = Math.round((1 - end / base) * 100);
+  return `<figure class="cum">
+    <svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Ice in all Swiss glaciers fell from ${base.toFixed(1)} km³ in ${CUM_BASE_YEAR} to ${end.toFixed(1)} km³ in ${last}, a loss of ${lostPct} percent">
+      ${ticks}${sel}
+      <path d="${iceArea}" fill="#CFE3EA"/>
+      <path d="${lostArea}" fill="var(--accent)" opacity=".28"/>
+      <line x1="${L}" x2="${W - R}" y1="${Y(base)}" y2="${Y(base)}" stroke="var(--accent)" stroke-dasharray="4 3" stroke-width="1.2"/>
+      <path d="${line}" fill="none" stroke="var(--crevasse)" stroke-width="2.2"/>
+      ${years.map((y, i) => `<circle cx="${X(y)}" cy="${Y(vols[i])}" r="2.4" fill="var(--crevasse)"/>`).join('')}
+      <text x="${L + 4}" y="${Y(base) - 6}" class="lbl">${base.toFixed(1)} km³ in ${CUM_BASE_YEAR}</text>
+      <text x="${W - R}" y="${Y(end) + 16}" text-anchor="end" class="lbl red">−${lostPct} %</text>
+      <text x="${W - R}" y="${Y(end) + 29}" text-anchor="end" class="lbl">${end.toFixed(1)} km³ in ${last}</text>
+      <text x="${L - 6}" y="${T - 9}" text-anchor="end">km³</text>
+      ${xt}
+    </svg>
+    <figcaption><span class="k k-ice"></span>ice left <span class="k k-lost"></span>lost since ${CUM_BASE_YEAR}. Start: autumn ${CUM_BASE_YEAR}, the first year of the images, where an independent radar survey (Grab et al. 2021) measured 58.7 km³, matching this calculation.</figcaption>
+  </figure>`;
+}
 function waterCompare(kind, litres){
   const km3 = litres / 1e12;
   const icons = (icon, n, unit) => {          // up to 40 icons; the last one partly filled
@@ -1701,7 +1744,7 @@ function waterCompare(kind, litres){
   if (kind === 'tap') { const n = km3 / SWISS_SUPPLY_KM3;
     return `<div class="w-big">${n.toFixed(1)} years of tap water</div><p class="w-text">That is how long it would supply all of Switzerland's homes, businesses and industry, which together use about 930 million m³ a year.</p>${icons('tap', n, '1 icon = one year of water supply for all of Switzerland')}`; }
   const each = litres / SWISS_POP, yrs = each / (HOUSEHOLD_L_DAY * 365);
-  return `<div class="w-big">${fmtN(each, 2)} litres per resident</div><p class="w-text">Shared among Switzerland's 9 million residents, each person's share would cover their household water use (142 litres a day) for about <b>${Math.round(yrs)} years</b>.</p>${icons('person', Math.min(40, yrs / 2), '1 icon = two years of one person\'s household water')}`;
+  return `<div class="w-big">${fmtN(each, 2)} litres per resident</div><p class="w-text">Shared among Switzerland's 9 million residents, each person's share would cover their household water use (142 litres a day) for about <b>${Math.round(yrs)} years</b>.</p>${icons('person', Math.min(40, yrs), '1 icon = one year of one person\'s household water')}`;
 }
 let waterKind = 'pool';
 function waterSection(lo, hi){
@@ -1711,7 +1754,7 @@ function waterSection(lo, hi){
   const litres = (iceVolume(lo) - iceVolume(to)) * 0.9 * 1e12;
   return `<section class="water" id="waterBox" data-litres="${litres}">
     <h3 style="margin:0 0 10px;padding:0;border:0">How much water is that?</h3>
-    <div class="w-hero"><span id="wCount">0</span> litres<small>of fresh water melted from Swiss glaciers, autumn ${lo} to autumn ${to}</small></div>
+    <div class="w-hero"><span id="wCount">0</span> litres<small>of fresh water melted from Swiss glaciers, from autumn ${lo} to autumn ${to}</small></div>
     <div class="w-chips" role="group" aria-label="Compare with">
       ${[['pool', 'Swimming pools'], ['lake', 'Lake Zurich'], ['tap', 'Swiss tap water'], ['person', 'Per resident']].map(([k, t]) =>
         `<button type="button" data-kind="${k}" aria-pressed="${k === waterKind}">${t}</button>`).join('')}
@@ -2138,7 +2181,7 @@ function waterIcon(ctx, kind, x, y, s){
   ctx.save();
   if (kind === 'pool') { ctx.fillStyle = '#5FB8D9'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y + s * 0.2, s, s * 0.6, s * 0.12) : ctx.rect(x, y + s * 0.2, s, s * 0.6); ctx.fill();
     ctx.strokeStyle = '#fff'; ctx.lineWidth = s * 0.07; ctx.beginPath(); for (let i = 0; i <= 4; i++) { const px = x + s * (0.1 + i * 0.2), py = y + s * (i % 2 ? 0.55 : 0.45); i ? ctx.lineTo(px, py) : ctx.moveTo(px, py); } ctx.stroke(); }
-  if (kind === 'lake') { ctx.fillStyle = '#5FB8D9'; ctx.translate(x, y + s * 0.25); ctx.scale(s / 40, s / 40); ctx.fill(new Path2D('M2.4 1.2 L9 4.6 L16 9.4 L22.8 13.4 L26.6 15.6 L27.9 16.5 L33 16.7 L38.6 17.2 L39.6 18.1 L38.4 19.2 L33 18.9 L28.2 17.4 L27.3 18.5 L25.4 18.6 L21.2 16.9 L14 13.1 L7.2 8.1 L1.4 3.1 Z')); }
+  if (kind === 'lake') { ctx.fillStyle = '#5FB8D9'; ctx.translate(x, y + s * 0.1); ctx.scale(s / 33, s / 33); ctx.fill(new Path2D('M3 11.5c0-3.6 3.4-6.2 7.6-6.4 2.6-.1 3.8 1.2 6.2 1 3-.2 4.4-2.1 7.5-1.6 3.4.5 5.7 2.6 5.7 5.6 0 3.5-3 5.4-6.6 5.8-2.6.3-3.9-.9-6.5-.6-2.8.3-4.4 2-7.5 1.6C5.4 16.6 3 14.6 3 11.5z')); }
   if (kind === 'tap') { ctx.fillStyle = '#9CD3E6'; ctx.beginPath(); ctx.moveTo(x + s / 2, y + s * 0.1); ctx.bezierCurveTo(x + s * 0.95, y + s * 0.6, x + s * 0.8, y + s * 0.95, x + s / 2, y + s * 0.95);
     ctx.bezierCurveTo(x + s * 0.2, y + s * 0.95, x + s * 0.05, y + s * 0.6, x + s / 2, y + s * 0.1); ctx.fill(); }
   ctx.restore();
