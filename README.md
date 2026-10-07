@@ -109,9 +109,13 @@ Things that would help: more glaciers and regions, translations, verified glacie
 - **Background:** Sentinel-2 cloudless 2024 by EOX IT Services GmbH ([s2maps.eu](https://s2maps.eu)), CC BY-NC-SA 4.0. **Base map and place labels:** © OpenStreetMap contributors.
 - **Font:** Schibsted Grotesk, SIL Open Font Licence 1.1 (`fonts/OFL.txt`).
 
-Because the length-change data and the EOX background are licensed for non-commercial use, **the site as published is non-commercial.** If you reuse this project commercially, check each source above.
+## Licences
 
-No licence has been chosen for the code in this repository yet. Until one is added, please ask before reusing it.
+The project has three kinds of content, each with its own licence:
+
+- **Code** (`index.html`, `worker/`, `scripts/`, the workflow): [MIT](LICENSE). Use, change and share it freely, also for a dashboard for another region, as long as the licence notice stays with the code.
+- **Texts** written for this project (the glacier descriptions, the About chapters, this README): [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). Reuse them with credit to Jochem Braakhekke and a link to the licence. The pictures in `images/` (the preview and the For Your Ice print) are not covered by this: please ask first.
+- **Data and fonts:** they keep the licences listed above, which the project licences cannot change. Because the GLAMOS length-change data and the EOX background are licensed for non-commercial use, **the site as published is non-commercial.** If you reuse the project commercially, check each source above, or leave those two out.
 
 ## Credits
 

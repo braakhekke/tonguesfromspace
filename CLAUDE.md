@@ -58,6 +58,7 @@ browser ── /cdse/statistics, /cdse/process ──> relay ──> Copernicus 
   - Copernicus data and GLAMOS inventories (CC BY 4.0): allow commercial use.
   
   So the site is non-commercial. Keep the credits line and the Sources list complete when adding data.
+  - Project licences: code MIT (`LICENSE`), own texts CC BY 4.0; third-party data and the font keep theirs (see README, "Licences").
 - **The user edits files himself between sessions.** Always work from the current file, never from an older copy.
 - **No CSS or SVG filters on page elements for image effects:** Safari on iPhone ignores them. Process pixels in a canvas.
 - **Edit whole CSS rules or functions;** partial find/replace has broken selectors before. Check the result.
