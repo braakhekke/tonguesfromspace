@@ -66,9 +66,9 @@ button,select,input{font:inherit;color:inherit}
 .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .sw{border:1.5px solid var(--rule);background:var(--sheet);border-radius:10px;padding:5px 5px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:12px;font-weight:600;color:var(--rock)}
 .sw i{display:block;height:28px;border-radius:6px}
-.sw-true i{background:linear-gradient(120deg,#3f5a34 0%,#7d8a5a 25%,#9a8f80 48%,#c8d3da 72%,#f4f7f9 100%)}
-.sw-false i{background:linear-gradient(120deg,#a3203a 0%,#c7535e 28%,#6e6a72 50%,#7fcfe0 74%,#f4f7f9 100%)}
-.sw-parece i{background:linear-gradient(120deg,#5a1016 0%,#c3333b 26%,#b9a89c 52%,#f3f3f3 74%,#0e1218 100%)}
+.sw-natural i{background:linear-gradient(120deg,#3f5a34 0%,#7d8a5a 25%,#9a8f80 48%,#c8d3da 72%,#f4f7f9 100%)}
+.sw-false1 i{background:linear-gradient(120deg,#a3203a 0%,#c7535e 28%,#6e6a72 50%,#7fcfe0 74%,#f4f7f9 100%)}
+.sw-false2 i{background:linear-gradient(120deg,#5a1016 0%,#c3333b 26%,#b9a89c 52%,#f3f3f3 74%,#0e1218 100%)}
 .sw[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .sw:hover{border-color:var(--crevasse)}
 .hint{font-size:11.5px;color:var(--moraine);margin:8px 0 0}
@@ -549,9 +549,9 @@ details.about .note,details.about .src{margin:0 0 8px}
       </div>
 
       <div class="swatches" id="imageGroup" role="group" aria-label="Colours">
-        <button type="button" class="sw sw-true" id="styleTrue" aria-pressed="true"><i></i><span>Natural</span></button>
-        <button type="button" class="sw sw-false" id="styleFalse" aria-pressed="false"><i></i><span>Infrared</span></button>
-        <button type="button" class="sw sw-parece" id="styleParece" aria-pressed="false"><i></i><span>Parece</span></button>
+        <button type="button" class="sw sw-natural" id="styleNatural" aria-pressed="true"><i></i><span>Natural</span></button>
+        <button type="button" class="sw sw-false1" id="styleFalse1" aria-pressed="false"><i></i><span>False 1</span></button>
+        <button type="button" class="sw sw-false2" id="styleFalse2" aria-pressed="false"><i></i><span>False 2</span></button>
       </div>
       <p class="note" id="styleNote"></p>
 
@@ -625,7 +625,7 @@ details.about .note,details.about .src{margin:0 0 8px}
       <button type="button" class="lb-head" id="lbToggle" aria-expanded="true"><span>Layers</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
       <div class="lb-body">
       <div class="lb-group">This glacier</div>
-      <label class="toggle"><input type="checkbox" id="oldToggle"> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Outline 1850</span></span></label>
+      <label class="toggle"><input type="checkbox" id="oldToggle" checked> <span><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i> <span id="oldLabel">Outline 1850</span></span></label>
       <label class="toggle"><input type="checkbox" id="newToggle"> <span><i class="swatch" style="border-color:var(--new)"></i> <span id="newLabel">Outline 2023</span></span></label>
       <label class="toggle"><input type="checkbox" id="pinToggle"> <span><i class="pin-sw"></i> <span id="pinLabel">Tongue indication</span></span></label>
       <div class="lb-group">Overview</div>
@@ -936,11 +936,11 @@ function evaluatePixel(s){
    maxR 3, midR 0.13, sat 1.3, gamma 2.3, gOff 0.01, ray 0.013 / 0.024 / 0.041 for red / green / blue. */
 const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray: { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0, B8A: 0, B11: 0, B12: 0 } };
 /* band combinations as red, green, blue */
-const STYLE_BANDS = { true: ['B04','B03','B02'], false: ['B08','B04','B03'], parece: ['B8A','B11','B12'] };
-const STYLE_LABEL = { true: '', false: ', false color', parece: ', Parece (B8A, B11, B12)' };
+const STYLE_BANDS = { natural: ['B04','B03','B02'], false1: ['B08','B04','B03'], false2: ['B8A','B11','B12'] };
+const STYLE_LABEL = { natural: ', Natural color (B04, B03, B02)', false1: ', False color 1 (B08, B04, B03)', false2: ', False color 2 (B8A, B11, B12)' };
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style){
-  const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.true;
+  const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
   const T = TRUE_COLOR;
   return `//VERSION=3
 var maxR = ${T.maxR}, midR = ${T.midR}, sat = ${T.sat}, gamma = ${T.gamma}, gOff = ${T.gOff};
@@ -1115,7 +1115,7 @@ const runQueue = () => { while (active < 3 && queue.length) { active++; const jo
 const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
 function loadImage(g, yr){
   const sc = state.available[yr], style = state.style, fp = imageFootprint(g);
-  const key = `${CDSE.version}|img|${style}-${(STYLE_BANDS[style] || []).join('')}|${g.id}|${sc.date}|${fp.bbox.join(',')}`;
+  const key = `${CDSE.version}|img|${(STYLE_BANDS[style] || []).join('')}|${g.id}|${sc.date}|${fp.bbox.join(',')}`;
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
@@ -1150,7 +1150,7 @@ const state = {
   a: null, b: null, from: null, to: null, one: null,
   split: 0.5, available: {}, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,
-  style: ['false', 'parece'].includes(prefs.style) ? prefs.style : 'true'
+  style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
 };
 let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
 (function readHash(){
@@ -1345,6 +1345,7 @@ const multiArea = geom => geom.coordinates.reduce((s, poly) => s + geodesicArea(
 function drawOutlines(){
   Object.values(outlineLayers).forEach(l => l && map.removeLayer(l));
   outlineLayers.old = outlineLayers.new = null;
+  if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
   const g = currentGlacier();
   if (!g.inv) {
     if (document.getElementById('oldToggle').checked || document.getElementById('newToggle').checked)
@@ -1431,7 +1432,8 @@ document.getElementById('zoomIn').onclick = () => map.zoomIn();
 document.getElementById('zoomOut').onclick = () => map.zoomOut();
 document.getElementById('fitBtn').onclick = () => fitGlacier();
 document.getElementById('labelsToggle').onchange = e => { e.target.checked ? labels.addTo(map) : map.removeLayer(labels); updateCredits(); };
-document.getElementById('oldToggle').onchange = drawOutlines;
+document.getElementById('oldToggle').checked = prefs.old !== false;
+document.getElementById('oldToggle').onchange = () => { prefs.old = document.getElementById('oldToggle').checked; savePrefs(); drawOutlines(); };
 document.getElementById('newToggle').onchange = drawOutlines;
 function fitGlacier(animate = true){ map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
 const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
@@ -1582,14 +1584,14 @@ function renderMode(){
   ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl ? 'none' : '');
   map.getPane('paneT').style.display = tl ? '' : 'none';
   updateTags();
-  document.getElementById('styleTrue').setAttribute('aria-pressed', state.style === 'true');
-  document.getElementById('styleFalse').setAttribute('aria-pressed', state.style === 'false');
-  document.getElementById('styleParece').setAttribute('aria-pressed', state.style === 'parece');
+  document.getElementById('styleNatural').setAttribute('aria-pressed', state.style === 'natural');
+  document.getElementById('styleFalse1').setAttribute('aria-pressed', state.style === 'false1');
+  document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
   applyBrightness();
   document.getElementById('styleNote').textContent = {
-    true: 'Close to what the eye sees: snow white, rock grey, plants green.',
-    false: 'Plants look red, snow white, bare ice light blue, water dark.',
-    parece: 'Snow and ice look red, clouds white, rock pale, water black.'
+    natural: 'Close to what the eye sees: snow white, rock grey, plants green.',
+    false1: 'Plants look red, snow white, bare ice light blue, water dark.',
+    false2: 'Snow and ice look red, clouds white, rock pale, water black.'
   }[state.style];
 }
 function setStyle(st){
@@ -1640,9 +1642,9 @@ function applyBrightness(){
 document.getElementById('brightness').oninput = e => {
   prefs.bright = +e.target.value; savePrefs(); applyBrightness();
 };
-document.getElementById('styleTrue').onclick = () => setStyle('true');
-document.getElementById('styleFalse').onclick = () => setStyle('false');
-document.getElementById('styleParece').onclick = () => setStyle('parece');
+document.getElementById('styleNatural').onclick = () => setStyle('natural');
+document.getElementById('styleFalse1').onclick = () => setStyle('false1');
+document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 
 let storyTab = 'look';     // tab in the right panel, kept when switching glacier
 function renderStory(){
@@ -1712,7 +1714,7 @@ function renderStory(){
     <div class="about-wrap">
       <a class="gh-invite" href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Help build this</b> The code is open. Join in, or make a dashboard like this for glaciers in your own region.<em>github.com/braakhekke/tonguesfromspace</em></span></a>
     <details class="about">
-      <summary><span class="info-btn" aria-hidden="true">i</span> About the images, data and sources</summary>
+      <summary><span class="info-btn" aria-hidden="true">i</span> About Tongues from Space</summary>
       <div class="about-sec"><b>Why Tongues from Space</b>
         <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
         <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
@@ -1724,15 +1726,15 @@ function renderStory(){
       </div>
       <div class="about-sec"><b>Sentinel-2</b>
         <p>Two European satellites of the Copernicus programme (2A since 2015, 2B since 2017), looking straight down on a strip 290 km wide.</p>
-        <p><em>Spatial:</em> pixels of 10 m (blue, green, red and near infrared), 20 m (six bands) or 60 m (three). Details under about 10 m are invisible. Natural and Infrared use 10 m bands; Parece uses 20 m bands and looks softer.</p>
+        <p><em>Spatial:</em> pixels of 10 m (blue, green, red and near infrared), 20 m (six bands) or 60 m (three). Details under about 10 m are invisible. Natural and False 1 use 10 m bands; False 2 uses 20 m bands and looks softer.</p>
         <p><em>Spectral:</em> 13 bands, from visible light (about 443 nm) to shortwave infrared (about 2190 nm).</p>
         <p><em>Temporal:</em> each satellite returns every 10 days, both together every 5 days at the equator and more often at higher latitudes. Over Aletsch we counted about 3 acquisitions a week and up to 4 (32, 33 and 41 days between 1 July and 20 September in 2023 to 2025). Clouds, shadow and fresh snow remove many of them.</p>
       </div>
       <div class="about-sec"><b>The colours</b>
-        <p>Each picture combines three bands as red, green and blue. Infrared and Parece are false colours: the colours are a code, not what you would see.</p>
+        <p>Each picture combines three bands as red, green and blue. False 1 and False 2 are false colours: the colours are a code, not what you would see.</p>
         <p><em>Natural</em> (B04, B03, B02): close to what the eye sees. Snow white, rock grey, plants green.</p>
-        <p><em>Infrared</em> (B08, B04, B03): near infrared shown as red. Plants red, snow white, bare ice light blue, water dark; this sets bare ice, snow and vegetation apart.</p>
-        <p><em>Parece</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental, handy to tell ice from cloud.</p>
+        <p><em>False 1</em> (B08, B04, B03), infrared: near infrared shown as red. Plants red, snow white, bare ice light blue, water dark; this sets bare ice, snow and vegetation apart.</p>
+        <p><em>False 2</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental, handy to tell ice from cloud.</p>
       </div>
       <div class="about-sec"><b>Why only these ten glaciers</b>
         <p>${DATA && DATA.inventory ? `The Swiss Glacier Inventory ${DATA.latest_label} lists ${DATA.inventory.count.toLocaleString('en')} glaciers with a total area of ${Math.round(DATA.inventory.area_km2)} km². The ten largest hold ${DATA.inventory.top_share_pct} % of it; ${DATA.inventory.n_under_0_5km2.toLocaleString('en')} are smaller than 0.5 km² and ${DATA.inventory.n_under_0_1km2.toLocaleString('en')} smaller than 0.1 km².` : 'Switzerland has about 1,400 glaciers (GLAMOS), most of them small.'} With 10 m pixels a glacier of 0.1 km² is only about 1,000 pixels: its tongue is a few pixels wide, and a retreat of a few metres a year is less than one pixel. The ten largest have tongues many pixels wide that retreat by tens of metres, which shows clearly.</p>
@@ -2833,6 +2835,7 @@ function muxMp4({ width, height, fps, avcC, samples }){
    ===================================================================== */
 renderGlacierList();
 renderOutlineControls();
+drawOutlines();
 renderMode(); renderYears();
 if (OPEN_ON_GLACIER) focusTongue(false); else showSwitzerland(false);
 updateBoxes();
