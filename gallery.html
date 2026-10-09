@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gallery - Tongues from Space Switzerland</title>
+<meta name="description" content="Pictures and animations of Swiss glacier tongues made with the Tongues from Space Switzerland dashboard and shared by visitors.">
+<link rel="stylesheet" href="pages.css">
+<style>
+.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:0 0 16px}
+.filters label{display:flex;flex-direction:column;gap:3px;font-size:11.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--moraine)}
+.filters select{-webkit-appearance:none;appearance:none;border:1px solid var(--rule);border-radius:6px;padding:7px 32px 7px 10px;font-size:13.5px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--rock);width:190px;max-width:100%;text-overflow:ellipsis;cursor:pointer;
+  background:var(--sheet) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%236B7378' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 10px center/15px}      /* the chevron sits close to the text, not at the far edge */
+.filters .count{margin-left:auto;font-size:12.5px;color:var(--moraine)}
+.filters button{border:0;background:none;color:var(--crevasse);font-weight:600;font-size:13px;cursor:pointer;padding:7px 2px}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;align-items:start}
+.item{padding:0;overflow:hidden;display:flex;flex-direction:column}
+.media{background:#070b14;display:grid;place-items:center}
+.media img,.media video{display:block;width:100%;height:auto;max-height:70vh;object-fit:contain}
+.item .meta{padding:10px 12px 12px;display:flex;flex-direction:column;gap:4px}
+.item h2{margin:0;font-size:16px;line-height:1.25;font-weight:800}
+.item .kind{margin:0;font-size:11.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.item .by{margin:0;font-size:12px;color:var(--moraine)}
+.item .dl{align-self:flex-start;margin-top:6px;font-size:12.5px;padding:6px 10px}
+.empty{padding:28px 0;color:var(--moraine)}
+.cta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 18px}
+</style>
+</head>
+<body>
+<header class="top"><div class="in"><h1><span class="t1">Tongues from Space</span> Switzerland <span class="t1">Gallery</span></h1><a class="back" href="index.html">← Back to the dashboard</a></div></header>
+<main class="wrap">
+  <p class="lede">Pictures and animations of Swiss glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
+  <div class="cta"><a class="btn primary" href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Download animation or Download image, then Share it in the gallery.</span></div>
+  <div class="filters" role="search" aria-label="Filter the gallery">
+    <label>Glacier<select id="fGlacier"><option value="">All glaciers</option></select></label>
+    <label>Year<select id="fYear"><option value="">All years</option></select></label>
+    <label>Type<select id="fType"><option value="">All types</option><option value="still">Image</option><option value="timelapse">Timelapse</option><option value="slider">Slider (before and after)</option></select></label>
+    <label>Bands<select id="fStyle"><option value="">All band combinations</option><option value="natural">Natural colour (B04-B03-B02)</option><option value="false1">False colour 1, infrared (B08-B04-B03)</option><option value="false2">False colour 2 (B8A-B11-B12)</option></select></label>
+    <button type="button" id="fReset" hidden>Clear filters</button>
+    <span class="count" id="count" aria-live="polite"></span>
+  </div>
+  <div class="grid" id="grid"></div>
+  <p class="empty" id="empty" hidden></p>
+  <p class="note" style="margin-top:24px">Satellite images: contains modified Copernicus Sentinel data, processed via the Copernicus Data Space Ecosystem. Glacier outlines: GLAMOS. Items are shared by visitors; to have one removed, open an issue on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>.</p>
+</main>
+<script src="config.js"></script>
+<script>
+const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
+const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider' };
+const STYLE = { natural: 'Natural colour', false1: 'False colour 1 (infrared)', false2: 'False colour 2' };
+const FMT = { reel: '9:16', feed: '4:5', wide: '16:9' };
+const $ = id => document.getElementById(id);
+let items = [];
+
+function el(tag, cls, text){ const e = document.createElement(tag); if (cls) e.className = cls; if (text !== undefined) e.textContent = text; return e; }
+function card(it){
+  const src = `${RELAY}/gallery/file/${it.id}`, a = el('article', 'card item');
+  const media = el('div', 'media');
+  const [w, h] = { reel: [9, 16], feed: [4, 5], wide: [16, 9] }[it.fmt] || [1, 1];
+  media.style.aspectRatio = `${w} / ${h}`;
+  let m;
+  if (it.kind === 'video') { m = el('video'); m.controls = true; m.muted = true; m.loop = true; m.playsInline = true; m.preload = 'metadata'; m.src = src + '#t=0.1'; }
+  else { m = el('img'); m.loading = 'lazy'; m.src = src; m.alt = `${it.name}, ${it.years[0]}`; }
+  media.appendChild(m);
+  const meta = el('div', 'meta');
+  meta.append(el('p', 'kind', `${TYPE[it.type] || it.type} · ${FMT[it.fmt] || ''}`), el('h2', '', it.name),
+    el('p', '', it.years.length > 1 ? `${it.years[0]} to ${it.years[it.years.length - 1]}` : String(it.years[0])),
+    el('p', 'by', STYLE[it.style] || ''));
+  if (it.nick) meta.appendChild(el('p', 'by', 'by ' + it.nick));
+  const dl = el('a', 'btn dl', it.kind === 'video' ? 'Download video' : 'Download image'); dl.href = src + '?download=1'; dl.rel = 'noopener';
+  meta.appendChild(dl);
+  a.append(media, meta);
+  return a;
+}
+function fill(sel, values, label){
+  const keep = sel.value;
+  values.forEach(([v, t]) => { const o = el('option', '', t); o.value = v; sel.appendChild(o); });
+  sel.value = keep;
+}
+function render(){
+  const f = { glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value };
+  const list = items.filter(it => (!f.glacier || it.glacier === f.glacier) && (!f.year || it.years.includes(+f.year)) && (!f.type || it.type === f.type) && (!f.style || it.style === f.style));
+  const grid = $('grid'); grid.replaceChildren(...list.map(card));
+  $('count').textContent = items.length ? `${list.length} of ${items.length}` : '';
+  $('fReset').hidden = !(f.glacier || f.year || f.type || f.style);
+  const none = !list.length;
+  $('empty').hidden = !none;
+  $('empty').textContent = !items.length ? 'Nothing here yet. Be the first: make a picture or animation in the dashboard and share it.' : 'Nothing matches these filters.';
+  const p = new URLSearchParams(Object.entries(f).filter(([, v]) => v));
+  history.replaceState(null, '', p.toString() ? '#' + p : location.pathname + location.search);
+}
+['fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).onchange = render);
+$('fReset').onclick = () => { ['fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).value = ''); render(); };
+
+(async function boot(){
+  if (!RELAY) { $('empty').hidden = false; $('empty').textContent = 'The gallery needs the relay address (config.js), which is written when the site is deployed.'; return; }
+  try {
+    const r = await fetch(RELAY + '/gallery/list');
+    if (!r.ok) throw new Error(r.status);
+    items = (await r.json()).items || [];
+  } catch { $('empty').hidden = false; $('empty').textContent = 'The gallery could not be loaded. Please try again later.'; return; }
+  const glaciers = new Map(items.map(it => [it.glacier, it.name])), years = new Set(items.flatMap(it => it.years));
+  fill($('fGlacier'), [...glaciers].sort((a, b) => a[1].localeCompare(b[1])));
+  fill($('fYear'), [...years].sort((a, b) => b - a).map(y => [y, String(y)]));
+  const p = new URLSearchParams(location.hash.slice(1));
+  [['glacier', 'fGlacier'], ['year', 'fYear'], ['type', 'fType'], ['style', 'fStyle']].forEach(([k, id]) => { if (p.get(k)) $(id).value = p.get(k); if ($(id).selectedIndex < 0) $(id).value = ''; });
+  render();
+})();
+</script>
+</body>
+</html>
