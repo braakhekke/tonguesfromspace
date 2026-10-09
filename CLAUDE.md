@@ -25,7 +25,7 @@ Script sections are marked with `/* ===== n. Title ===== */` comments:
 4. **State and URL hash.**
 5. **Map:** panes, OSM, EOX background (`BG_YEAR`), swipe, timelapse, outlines, measuring, brightness (canvas, `adjustedUrl`).
 6. **Scene search** for the selected glacier (`checkYears`, `statusLine`).
-7. **Rendering:** left panel, `renderStory` (tabs What to see / Stats / Switzerland, collapsed About), stats cards, glacier volume (`glacierVolume`), water section, `cumulativeChart`.
+7. **Rendering:** left panel, `renderStory` (tabs Fun / Stats / Switzerland; Stats opens first, collapsed About), stats cards, glacier volume (`glacierVolume`), water section, `cumulativeChart`.
 8. **Controls:** glacier boxes overview, tongue indication, layer panel (grouped: This glacier, Overview, Background).
 10. **Phones:** glacier dropdown, map tools, two-finger map, sharing.
 11. **Create animation:** framing, drawing, WebCodecs H.264 encoding, `muxMp4` (own MP4 packer).
@@ -46,6 +46,7 @@ browser ── /cdse/statistics, /cdse/process ──> relay ──> Copernicus 
   - EOX Sentinel-2 cloudless tiles (background);
   - OpenStreetMap;
   - swisstopo: identify for the per-glacier volume (the ice thickness map layer was removed, see `experiments/ice-thickness-layer/`).
+  - swisstopo colour topographic map (Pixelkarte farbe, WMTS), an optional base map; free to use with the source reference "© swisstopo". The swissALTI3D hillshade (WMTS) is a second optional base map, same terms.
 
 ## Rules
 
