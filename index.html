@@ -15,7 +15,7 @@
 <meta property="og:url" content="https://braakhekke.github.io/tonguesfromspace/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://braakhekke.github.io/tonguesfromspace/images/preview-social.jpg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2322313A'/><text x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='white' letter-spacing='-1'>TFS</text></svg>">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2322313A'/><text x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='white' letter-spacing='-1'>TfS</text></svg>">
 <link rel="preload" href="fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <!--
@@ -89,7 +89,6 @@ button,select,input{font:inherit;color:inherit}
 .modes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);color:var(--accent)}
 .segment button:disabled{color:#A9B1B5;cursor:not-allowed}
 .segment button{border:0;background:none;padding:8px 0;white-space:nowrap;border-radius:6px;cursor:pointer;font-weight:500}
-.segment button .ico-s{display:inline-block;width:14px;height:14px;vertical-align:-2px;margin-right:4px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:0 1px 3px rgba(34,49,58,.18);font-weight:600}
 
 .side-label{font-size:11.5px;font-weight:700;color:var(--moraine);text-transform:uppercase;letter-spacing:.05em;margin:0 0 4px}
@@ -118,7 +117,6 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .slider-row output{color:var(--moraine);font-variant-numeric:tabular-nums}
 .toggle{display:flex;align-items:center;gap:8px;font-size:13.5px;cursor:pointer;margin-bottom:6px}
 .toggle input:disabled + span{color:#A9B1B5}
-.hint .warn{color:var(--loss);font-weight:600}
 .swatch{display:inline-block;width:18px;height:0;border-top:3px solid;vertical-align:middle}
 .status{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0;padding:6px 8px;background:var(--firn);border-radius:6px}
 .status.busy{display:flex;align-items:center;gap:8px}
@@ -161,10 +159,12 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .scene-img{border-radius:14px;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 8px 28px rgba(0,0,0,.45)}
 .is-framing .scene-img{border-radius:0;box-shadow:none}
 /* static Sentinel-2 background for all of Switzerland, a little darker than the scene */
-.leaflet-bgPane-pane,.bg-dim{filter:brightness(.78) saturate(.9)}
+.leaflet-bgPane-pane{filter:brightness(.78) saturate(.9)}
 .is-timelapse .layerbox{top:14px}
 .is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
 #tagT{display:none}
+#tagT small{white-space:nowrap}
+#tagT{max-width:calc(100% - 24px)}
 .is-timelapse #tagT{display:block}
 .tl-dots{display:flex;gap:4px;margin-top:10px}
 .tl-dots i{display:block;width:16px;height:4px;border-radius:2px;background:rgba(255,255,255,.35)}
@@ -173,6 +173,7 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .mapbar{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);z-index:670;display:flex;align-items:center;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:calc(100% - 24px);overflow-x:auto}
 .mapbar button{border:0;background:none;padding:6px 10px;border-radius:5px;cursor:pointer;font-size:14px;white-space:nowrap}
 .mapbar button:hover{background:var(--firn)}
+.mapbar button:disabled{opacity:.35;cursor:default;background:none}
 .mapbar button[aria-pressed="true"]{background:var(--rock);color:#fff}
 .mapbar .zoom{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--moraine)}
 .mapbar .sep{width:1px;height:20px;background:var(--rule);margin:0 4px;flex:none}
@@ -225,14 +226,14 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .story .sub{color:var(--moraine);font-size:12.5px;margin:0 0 16px}
 .story .lede{font-family:var(--serif);font-size:15px;line-height:1.55;margin:0 0 18px}
 .story h2::before{content:'';display:block;width:36px;height:4px;background:var(--accent);border-radius:2px;margin-bottom:12px}
-.tabs{display:flex;gap:2px;border-bottom:2px solid var(--rule);margin:14px 0 14px}
-.tabs button{flex:1;border:0;background:none;padding:9px 6px;font-weight:700;font-size:13px;color:var(--moraine);border-bottom:3px solid transparent;margin-bottom:-2px;cursor:pointer}
-.tabs button[aria-selected="true"]{color:var(--accent);border-bottom-color:var(--accent)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--rule);margin:16px 0 14px}
+.tabs button{flex:1;border:1px solid var(--rule);border-bottom:0;background:var(--firn);padding:9px 6px 8px;font-weight:700;font-size:13px;color:var(--moraine);border-radius:9px 9px 0 0;margin-bottom:-1px;cursor:pointer}
+.tabs button:hover{color:var(--rock);background:#E6EDF0}
+.tabs button[aria-selected="true"]{background:var(--sheet);color:var(--accent);border-top:3px solid var(--accent);padding-top:6px;border-bottom:1px solid var(--sheet);cursor:default}
 .tab-panel{display:flex;flex-direction:column;gap:10px}
 .tab-panel[hidden]{display:none}
 .fact-k{display:block;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
 .fact.name .fact-k{color:var(--crevasse)}
-.mini-h{font-size:12.5px;font-weight:700;margin:0}
 .cb-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .cb-links .fact-k{flex-basis:100%;color:var(--moraine)}
 .cb-links .cb{flex:0 0 auto;padding:5px 10px;font-size:12.5px;border-radius:999px}
@@ -244,7 +245,7 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .gh-invite b{display:block;font-size:12.5px;color:var(--rock)}
 .gh-invite em{display:block;font-style:normal;color:var(--crevasse);margin-top:2px;font-weight:600}
 details.about{margin-top:0}
-details.about summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--rock);display:flex;align-items:center;gap:8px;list-style:none}
+details.about summary{cursor:pointer;font-size:12.5px;font-weight:700;color:var(--rock);display:flex;align-items:center;justify-content:center;gap:8px;list-style:none}
 details.about summary::-webkit-details-marker{display:none}
 details.about[open] summary{margin-bottom:10px}
 details.about .note,details.about .src{margin:0 0 8px}
@@ -252,6 +253,10 @@ details.about .note,details.about .src{margin:0 0 8px}
 .story .fact.name{border-left-color:var(--crevasse)}
 .story p.body small.srcline{display:block;color:var(--moraine);font-size:11.5px;margin-top:3px}
 .story .fact small{display:block;color:var(--moraine);font-size:11.5px;margin-top:4px}
+.story .fact.trail{border-left-color:var(--crevasse)} .fact.trail .fact-k{color:var(--crevasse)}
+.tr-row{margin:8px 0 0;font-size:13.5px;line-height:1.5} .tr-row b{display:inline-block;min-width:34px;color:var(--rock)}
+.tr-row a{color:var(--crevasse);font-weight:600} .tr-t{display:block}
+.tr-maps{display:block;font-size:12px;margin-top:2px} .tr-maps a{font-weight:500}
 .story h3{color:var(--accent);font-size:13px;font-weight:600;margin:28px 0 10px;padding-top:16px;border-top:1px solid var(--rule)}
 .story p.body{font-family:var(--serif);font-size:14px;line-height:1.55;margin:0 0 10px}
 .stats{display:flex;flex-direction:column;gap:16px}
@@ -259,16 +264,13 @@ details.about .note,details.about .src{margin:0 0 8px}
 .stat-group .ico{display:inline-grid;place-items:center;width:24px;height:24px;border-radius:6px;background:var(--ice);color:var(--crevasse)}
 .stat-group .ico svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .stat-row{display:grid;grid-template-columns:repeat(2,1fr);gap:6px}
-.with-info{display:flex;align-items:center;gap:8px}
 .info-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .info-btn[aria-expanded="true"]{background:var(--accent);color:#fff}
-.kf-box .src{margin:6px 0 0;padding:0 10px}
 .about-sec{margin:0 0 12px}
 .about-sec b{display:block;font-size:12.5px;color:var(--rock);margin:0 0 3px}
 .about-sec p{font-size:12px;line-height:1.5;color:var(--moraine);margin:0 0 6px}
 .src-list{margin:0;padding-left:16px;font-size:11.5px;line-height:1.5;color:var(--moraine)}
 .src-list a{color:var(--crevasse)}
-.kf-note{font-size:11.5px;color:var(--moraine);background:var(--firn);border-left:3px solid var(--crevasse);border-radius:4px;padding:8px 10px;margin:0 0 14px;line-height:1.45}
 .stat{background:var(--firn);border-radius:8px;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
 .stat .v{font-size:17px;font-weight:600;white-space:nowrap}
 .stat .v small{font-size:12px;font-weight:500}
@@ -286,6 +288,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .cum .lbl.mid{font-size:28px;font-weight:800;fill:var(--crevasse)}
 .cum figcaption{font-size:11px;line-height:1.45;color:var(--moraine);margin-top:4px}
 .cum .k{display:inline-block;width:10px;height:10px;border-radius:2px;vertical-align:-1px;margin:0 4px 0 0}
+.share-box{font-size:13px;line-height:1.45;margin:0;padding:9px 12px;border-left:3px solid var(--crevasse);background:var(--firn);border-radius:0 6px 6px 0}
 .cum .k-ice{background:#CFE3EA}.cum .k-lost{background:var(--accent);opacity:.4;margin-left:8px}
 .water{margin:14px 0 4px;padding:16px;border-radius:10px;background:linear-gradient(160deg,#EAF3F7,#F7FAFB);border:1px solid var(--rule)}
 .water .w-chips{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
@@ -302,7 +305,6 @@ details.about .note,details.about .src{margin:0 0 8px}
 .water .w-live{margin-top:10px;padding:9px 10px;border-radius:8px;background:var(--firn);font-size:11.5px;line-height:1.45;color:var(--moraine)}
 .water .w-live b{color:var(--accent);font-variant-numeric:tabular-nums}
 .span-note{font-size:13px;background:var(--firn);border-radius:6px;padding:10px 12px;margin:0 0 6px}
-.span-note strong{color:var(--loss)}
 .bars{display:flex;flex-direction:column;gap:5px;margin:6px 0 8px}
 .bar{display:grid;grid-template-columns:42px 1fr 50px;align-items:center;gap:8px;font-size:13px;font-variant-numeric:tabular-nums}
 .bar .track{height:12px;background:var(--firn);border-radius:2px;overflow:hidden}
@@ -324,7 +326,6 @@ details.about .note,details.about .src{margin:0 0 8px}
 /* ---------- shared: action buttons, video export, gesture hint ---------- */
 .act{flex:1;border:1px solid var(--rock);background:var(--sheet);border-radius:6px;padding:8px 10px;cursor:pointer;font-size:13px;font-weight:500}
 .act:hover{background:var(--firn)}
-.actions{flex-direction:column;align-items:stretch;gap:6px}
 .dl-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dl{display:flex;flex-direction:column;align-items:center;gap:3px;padding:12px 6px 10px;border:1px solid var(--rule);border-radius:12px;background:var(--sheet);cursor:pointer;text-align:center;color:var(--rock)}
 .dl:hover{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
@@ -341,10 +342,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .video-frame span{position:absolute;left:50%;top:-30px;transform:translateX(-50%);white-space:nowrap;background:var(--rock);color:#fff;font-size:12px;padding:3px 8px;border-radius:4px}
 .video-frame span:empty{display:none}
 .vf-boxes{position:absolute;inset:0;pointer-events:none;overflow:hidden}
-.ph{position:absolute;border:1.5px dashed rgba(255,255,255,.9);border-radius:6px;background:rgba(255,255,255,.1)}
-.ph em{position:absolute;left:4px;top:2px;font:600 9.5px/1.2 var(--sans);color:#fff;font-style:normal;text-shadow:0 1px 3px rgba(0,0,0,.8);white-space:nowrap}
-.ph.water{background:rgba(143,221,243,.2);border-color:#8FDDF3}
-.ph.low em{top:auto;bottom:3px}
+.vf-boxes canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .vs-guide{font-size:11px!important;line-height:1.35!important;color:var(--moraine)}
 .is-framing .divider,.is-framing .handle,.is-framing .layerbox,.is-framing .year-tag,.is-framing .mapbar .mtool{visibility:hidden}
 .video-sheet{position:fixed;left:16px;bottom:16px;z-index:2000;width:min(300px,calc(100% - 32px));max-height:calc(100% - 32px);overflow-y:auto;background:var(--sheet);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
@@ -357,6 +355,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
 .vs-opts .toggle input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent);flex:none}
 .vs-opts .toggle span{line-height:1.3}
+.vo-outside{margin:4px 0 2px;font-size:13px}
 .vs-note:empty{display:none}
 .vs-head{display:flex;justify-content:space-between;align-items:center}
 .vs-head strong{font-size:13.5px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
@@ -593,6 +592,9 @@ details.about .note,details.about .src{margin:0 0 8px}
 
       <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
       <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
+      <label class="slider-row" for="outside" title="How visible the satellite image is outside the 1850 glacier outline: 0 % shows only the background map there"><span>Outside the 1850 outline</span><output id="outsideOut">100 %</output></label>
+      <input type="range" class="frame" id="outside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline">
+      <p class="hint" id="outsideNote" hidden>Turn off background layers to see the real effect.</p>
     </section>
 
     <section class="step" id="shareGroup">
@@ -649,19 +651,19 @@ details.about .note,details.about .src{margin:0 0 8px}
       <button type="button" id="zoomIn" aria-label="Zoom in">+</button>
       <span class="sep"></span>
       <button type="button" id="swissBtn" aria-label="All ten glaciers"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M12 7.5v9M7.5 12h9"/></svg><span class="lbl">All glaciers</span></button>
-      <button type="button" id="tongueBtn" aria-label="Tongue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></svg><span class="lbl">Tongue</span></button>
+      <button type="button" id="tongueBtn" aria-label="Tongue"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8" style="fill:currentColor;fill-opacity:.2"/><circle cx="12" cy="12" r="2" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Tongue</span></button>
       <button type="button" id="fitBtn" aria-label="Whole glacier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span class="lbl">Whole glacier</span></button>
       <span class="sep"></span>
       <button type="button" id="measureDist" class="mtool" aria-pressed="false" aria-label="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span class="lbl">Measure length</span></button>
       <button type="button" id="measureArea" class="mtool" aria-pressed="false" aria-label="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span class="lbl">Measure area</span></button>
-      <button type="button" id="measureClear" class="mtool" aria-label="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg><span class="lbl">Clear</span></button>
+      <button type="button" id="measureClear" class="mtool" aria-label="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg><span class="lbl">Clear</span></button>
       <button type="button" id="layersBtn" class="mobile-only" aria-label="Map layers" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>
       <button type="button" id="moreBtn" class="mobile-only" aria-label="Measuring tools" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
     </div>
     <div class="pick-hint" id="pickHint" aria-live="polite"><b id="pickTitle">Select a glacier to start</b><span id="pickText">Click a red box on the map, or choose a glacier from the list.</span></div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
-    <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"></div></div>
+    <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
@@ -689,6 +691,8 @@ details.about .note,details.about .src{margin:0 0 8px}
     <label class="toggle vo-image"><input type="checkbox" id="vImgWater"> <span>Add water facts</span></label>
     <label class="toggle vo-video"><input type="checkbox" id="vIntro" checked> <span>Add a title slide</span></label>
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show 1850 outline</span></label>
+    <div class="vo-outside"><label class="slider-row" for="vOutside"><span>Outside the 1850 outline</span><output id="vOutsideOut">100 %</output></label>
+      <input type="range" class="frame" id="vOutside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline"></div>
     <label class="toggle vo-video"><input type="checkbox" id="vEnd" checked> <span>Add informative end slide</span></label>
     <label class="toggle speed-row vo-video"><span>Speed</span> <select class="small" id="vSpeed"><option value="2.2">0.5 fps</option><option value="1.2" selected>1.0 fps</option><option value="0.6">2.0 fps</option><option value="0.3">4.0 fps</option></select></label>
   </div>
@@ -790,6 +794,52 @@ const DEFAULTS = [
 ];
 
 /* "Did you know?" and "Where the name comes from" per glacier. Only documented facts; uncertain origins say so. */
+/* Hike and bike near each tongue. Route numbers and distances from the tongue tip: SchweizMobil route data of the Federal Roads Office (ASTRA) on geo.admin.ch, checked October 2026;
+   the title links to the page the description follows. `bike: null` = no marked SchweizMobil bike route within about 3 km of the tongue. */
+const TRAILS = {
+ aletsch: {
+  hike: { title: 'Aletsch Panoramaweg (route 39)', text: 'Belalp to Riederalp, high above the glacier with several viewpoints. Passes 1.3 km from the tongue.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
+  bike: { title: 'Moosfluh Enduro (mountain bike route 131)', text: 'From the Moosfluh viewpoint down to Mörel. Passes 1.4 km from the tongue.', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-131', kind: 'mtb' } },
+ gorner: {
+  hike: { title: 'Gornergrat to Riffelberg', text: 'From the Gornergrat down past the Riffelsee: 4.7 km, about 1 h 25 min, T2.', url: 'https://wegwandern.ch/wanderung/wanderung-gornergrat-zermatt-rotenboden-riffelsee-riffelberg-wandern/', kind: 'wander' }, bike: null },
+ fiescher: {
+  hike: { title: 'Aletsch Panoramaweg, Märjelensee to Bellwald (route 39)', text: 'Passes 0.7 km from the tongue; the Burghütte stands at the foot of the glacier.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
+  bike: { title: 'Valais Panorama Bike (mountain bike route 81)', text: 'Through the upper Goms, 3.0 km from the tongue.', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-81', kind: 'mtb' } },
+ unteraar: {
+  hike: { title: 'Grimsel Hospiz to the Lauteraarhütte', text: 'Along the Grimselsee to the hut above the glacier: 10.2 km, about 4 h.', url: 'https://www.interlaken.swiss/erlebnisse/tour/wandern-am-ursprung-der-aare', kind: 'wander' }, bike: null },
+ corbassiere: {
+  hike: { title: 'Cabane de Panossière via the Col des Otanes', text: 'Circular tour from Mauvoisin with views of the glacier from the pass: 12.9 km, about 6 h 15 min.', url: 'https://www.novo-monde.com/en/panossiere-hut-valais/', kind: 'wander' }, bike: null },
+ zmutt: {
+  hike: { title: 'Zermatt to the Schönbielhütte', text: 'Over the moraine above the glacier, the Matterhorn north face alongside: 11 km, about 4 h.', url: 'https://www.bergwelten.com/t/w/24489', kind: 'wander' }, bike: null },
+ rhone: {
+  hike: { title: 'Furka-Höhenweg, Oberwald to the Furkapass (route 51)', text: 'Views of the Rhône glacier and the Goms: 11 km, about 5½ h, demanding. Passes 1.4 km from the tongue.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-51', kind: 'wander' },
+  bike: { title: 'Rhone-Route (Veloland route 1)', text: 'Starts in Andermatt; the first stage climbs the Furka Pass. Passes 0.7 km from the tongue.', url: 'https://schweizmobil.ch/en/cycling-in-switzerland/route-1', kind: 'velo' } },
+ trift: {
+  hike: { title: 'Triftbrücke', text: 'A 170 m suspension bridge with the glacier at the head of the lake: about 1.5 h from the top station.', url: 'https://www.myswitzerland.com/en-gb/experiences/route/trift-bridge-a-spectacular-pedestrian-bridge/', kind: 'wander' }, bike: null },
+ fee: {
+  hike: { title: 'Längfluh to Saas-Fee', text: 'From the Längfluh viewpoint above the glacier to the village: 6.5 km, about 2 h 15 min.', url: 'https://www.valais.ch/de/shop/bergbahnen/bergbahnfahrt-nach-langfluh-saas-fee', kind: 'wander' }, bike: null },
+ findel: {
+  hike: { title: 'Naturweg, Riffelalp to Sunnegga', text: 'Through a stone-pine forest to the retreating glacier, with Matterhorn views: 6.2 km, about 1 h 40 min.', url: 'https://zermatt.swiss/p/naturweg-nr-19-01tVj000005EvuoIAC', kind: 'wander' }, bike: null }
+};
+/* swisstopo's approximate WGS84 to LV95 formulas (about 1 m), for the map links */
+const lv95 = (lon, lat) => {
+  const p = (lat * 3600 - 169028.66) / 10000, l = (lon * 3600 - 26782.5) / 10000;
+  return [2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3,
+          1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3].map(Math.round);
+};
+const TRAIL_LAYERS = { wander: 'Wanderland', velo: 'Veloland', mtb: 'Mountainbikeland' };
+function trailMaps(g, kind){       // the SchweizMobil map around the tongue, with the route layer on
+  const at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue; if (!at) return '';
+  const [E, N] = lv95(at[1], at[0]);
+  return `<span class="tr-maps"><a href="https://map.schweizmobil.ch/?lang=en&amp;E=${E}&amp;N=${N}&amp;resolution=25&amp;layers=${TRAIL_LAYERS[kind]}" target="_blank" rel="noopener">SchweizMobil map</a></span>`;
+}
+function trailsHtml(g, key){
+  const t = TRAILS[key]; if (!t) return '';
+  const row = (label, r, kindFallback) => r
+    ? `<div class="tr-row"><b>${label}</b> ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>` : r.title}<span class="tr-t">${r.text}</span>${trailMaps(g, r.kind)}</div>`
+    : `<div class="tr-row"><b>${label}</b><span class="tr-t">No marked bike route within about 3 km of the tongue.</span>${trailMaps(g, kindFallback)}</div>`;
+  return `<div class="fact trail"><span class="fact-k">Hike and bike</span>${row('Hike', t.hike, 'wander')}${row('Bike', t.bike, 'velo')}</div>`;
+}
 const GLACIER_INFO = {
  "aletsch": {
   "fact": "At Konkordiaplatz, where its ice streams meet, the ice is more than 900 m thick. Local legend tells of the Rollibock, a huge buck with long horns and fiery eyes and a body covered in ice chunks, who punishes people who harm nature.",
@@ -927,7 +977,6 @@ const CDSE = {
   maxPx:      2500,            // Process API output limit per side
   version:    'l1c-v4'         // bump when scoring or rendering changes, to invalidate cached results
 };
-const MONTH_NAME = {7:'July', 8:'August', 9:'September'};
 /* latest allowed day per year (MM-DD); default 20 September. 2024: heavy snowfall on 15 September. */
 const LAST_DAY = { default: '09-20', 2024: '09-14' };
 const lastDay = yr => LAST_DAY[yr] || LAST_DAY.default;
@@ -1236,6 +1285,7 @@ function setBackground(){
 }
 function imageryLayer(yr, pane, opacity=1){
   const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className:'scene-img'});
+  ov._g = g;
   loadImage(g, yr).then(url => showImage(ov, url)).catch(e => { setStatus(e.message); showNotice(e.message); });
   return ov;
 }
@@ -1325,6 +1375,7 @@ function showFrame(i){
   document.getElementById('tlDots').innerHTML = state.mode === 'single' ? '' : tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
   document.getElementById('frameSlider').value = i;
   updateCredits();
+  syncPane();
   const cb = document.querySelector('.cb-links');
   if (cb) cb.innerHTML = cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join('');
 }
@@ -1371,6 +1422,7 @@ const multiArea = geom => geom.coordinates.reduce((s, poly) => s + geodesicArea(
 function drawOutlines(){
   Object.values(outlineLayers).forEach(l => l && map.removeLayer(l));
   outlineLayers.old = outlineLayers.new = null;
+  syncOutsideUi();
   if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
   const g = currentGlacier();
   if (!g.inv) {
@@ -1397,6 +1449,7 @@ const fmtLen = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(m < 10
 const fmtArea = m2 => m2 < 1e5 ? `${Math.round(m2).toLocaleString('en')} m²` : `${(m2/1e6).toFixed(2)} km²`;
 const pathLen = pts => pts.reduce((s, p, i) => i ? s + map.distance(pts[i-1], p) : 0, 0);
 const ringOf = pts => pts.map(p => [p.lng, p.lat]);
+const updateClear = () => { document.getElementById('measureClear').disabled = !M.group.getLayers().length; };   // grey out the eraser when there is nothing to erase
 function startMeasure(mode){
   cancelMeasure();
   M.mode = mode; map.doubleClickZoom.disable();
@@ -1416,7 +1469,7 @@ function drawTemp(cursor){
   const pts = cursor ? [...M.pts, cursor] : M.pts;
   const style = {pane:'measure', color:getVar('--measure'), weight:3, dashArray:'6 5', fillOpacity:.15, interactive:false};
   M.temp = (M.mode === 'area' && pts.length > 2 ? L.polygon(pts, style) : L.polyline(pts, style)).addTo(M.group);
-  updateMeasureText(cursor);
+  updateMeasureText(cursor); updateClear();
 }
 map.on('click', e => { if (!M.mode) return; M.pts.push(e.latlng); drawTemp(); });
 map.on('mousemove', e => { if (M.mode && M.pts.length) drawTemp(e.latlng); });
@@ -1440,12 +1493,14 @@ function endMeasure(){
   document.getElementById('app').classList.remove('measuring');
   ['measureDist','measureArea'].forEach(id => document.getElementById(id).setAttribute('aria-pressed','false'));
   document.getElementById('measureHint').classList.remove('show');
+  updateClear();
 }
 document.getElementById('measureDist').onclick = () => M.mode === 'dist' ? cancelMeasure() : startMeasure('dist');
 document.getElementById('measureArea').onclick = () => M.mode === 'area' ? cancelMeasure() : startMeasure('area');
 document.getElementById('measureFinish').onclick = finishMeasure;
 document.getElementById('measureCancel').onclick = cancelMeasure;
-document.getElementById('measureClear').onclick = () => { cancelMeasure(); M.group.clearLayers(); };
+document.getElementById('measureClear').onclick = () => { cancelMeasure(); M.group.clearLayers(); updateClear(); };
+updateClear();
 document.addEventListener('keydown', e => {
   if (!M.mode) return;
   if (e.key === 'Escape') cancelMeasure();
@@ -1591,10 +1646,18 @@ function yearChips(boxId, key, opts = {}){
     box.appendChild(b);
   });
 }
+/* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
+function syncPane(){
+  try {
+    if (!$('videoSheet').hidden && vstate.kind === 'video' && state.mode !== 'single') { const t = state.mode === 'compare' ? 'swipe' : 'timelapse'; if (vstate.type !== t) setType(t); }   // the pane follows the mode buttons
+    updateFrame();
+  } catch {}
+}
 function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
   yearChips('yearsFrom', 'from', {range:true}); yearChips('yearsTo', 'to', {range:true}); yearChips('yearsOne', 'one');
   if (typeof renderMobileBar === 'function') renderMobileBar();
+  syncPane();
 }
 function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
 
@@ -1615,8 +1678,8 @@ function renderMode(){
   document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
   applyBrightness();
   document.getElementById('styleNote').textContent = {
-    natural: 'Close to what the eye sees: snow white, rock grey, plants green.',
-    false1: 'Plants look red, snow white, bare ice light blue, water dark.',
+    natural: 'As our eyes see it: snow white, rock grey, plants green.',
+    false1: 'Plants look red, snow white, bare ice grey, water dark/blue.',
     false2: 'Snow and ice look red, clouds white, rock pale, water black.'
   }[state.style];
 }
@@ -1633,38 +1696,85 @@ const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGH
    CSS/SVG filters on page elements do not work in Safari on iPhone, so no filters are used. */
 const liveImages = new Set();
 const adjCache = new Map();
-function adjustedUrl(orig, b){
-  if (Math.abs(b - 1) < 0.01) return Promise.resolve(orig);
-  const key = orig + '|' + b.toFixed(2);
+/* Outside the 1850 outline: the image gets this opacity there (1 = untouched), so the background map shows through. Needs the glacier's outline. */
+const outsideAlpha = () => typeof prefs.outside === 'number' ? prefs.outside : 1;
+const stampOf = (b, o) => b.toFixed(2) + '|' + (o < 0.99 ? o.toFixed(2) : '');
+const outlineGeom = g => g && g.inv && g.inv.oldest ? g.inv.oldest.outline : null;
+function adjustedUrl(orig, b, o, g){
+  const geom = o < 0.99 ? outlineGeom(g) : null;
+  if (Math.abs(b - 1) < 0.01 && !geom) return Promise.resolve(orig);
+  const key = orig + '|' + stampOf(b, o);
   if (!adjCache.has(key)) adjCache.set(key, (async () => {
     const bmp = await createImageBitmap(await (await fetch(orig)).blob());
     const c = document.createElement('canvas'); c.width = bmp.width; c.height = bmp.height;
     const ctx = c.getContext('2d'); ctx.drawImage(bmp, 0, 0); if (bmp.close) bmp.close();
-    const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data, lut = new Uint8ClampedArray(256);
-    for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
-    for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
-    ctx.putImageData(d, 0, 0);
-    const blob = await new Promise(res => c.toBlob(res, 'image/jpeg', 0.92));
+    if (Math.abs(b - 1) >= 0.01) {
+      const d = ctx.getImageData(0, 0, c.width, c.height), px = d.data, lut = new Uint8ClampedArray(256);
+      for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+      for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
+      ctx.putImageData(d, 0, 0);
+    }
+    if (geom) {
+      const bb = imageFootprint(g).bbox, m = document.createElement('canvas'); m.width = c.width; m.height = c.height;
+      const mc = m.getContext('2d'); mc.fillStyle = `rgba(0,0,0,${o})`; mc.fillRect(0, 0, m.width, m.height);
+      mc.fillStyle = '#000'; mc.beginPath();
+      geom.coordinates.forEach(poly => poly.forEach(ring => {
+        ring.forEach((pt, i) => { const p = L.CRS.EPSG3857.project(L.latLng(pt[1], pt[0])), x = (p.x - bb[0]) / (bb[2] - bb[0]) * m.width, y = (bb[3] - p.y) / (bb[3] - bb[1]) * m.height; i ? mc.lineTo(x, y) : mc.moveTo(x, y); });
+        mc.closePath();
+      }));
+      mc.fill('evenodd');
+      ctx.globalCompositeOperation = 'destination-in'; ctx.drawImage(m, 0, 0); ctx.globalCompositeOperation = 'source-over';
+    }
+    const blob = await new Promise(res => c.toBlob(res, geom ? 'image/png' : 'image/jpeg', 0.92));      // transparency needs PNG
     return URL.createObjectURL(blob);
   })());
   return adjCache.get(key);
 }
 function showImage(ov, orig){
   ov._orig = orig; liveImages.add(ov);
-  const b = brightness();
-  adjustedUrl(orig, b).then(u => { if (ov._orig === orig && Math.abs(brightness() - b) < 0.001) ov.setUrl(u); }).catch(() => ov.setUrl(orig));
+  const b = brightness(), o = outsideAlpha(), stamp = stampOf(b, o);
+  adjustedUrl(orig, b, o, ov._g).then(u => { if (ov._orig === orig && stampOf(brightness(), outsideAlpha()) === stamp) ov.setUrl(u); }).catch(() => ov.setUrl(orig));
 }
 let brightTimer = null;
+function refreshImages(){            // after a change of brightness or of the outside opacity: drop old results, redo the pictures on the map
+  clearTimeout(brightTimer);
+  brightTimer = setTimeout(() => {
+    const keep = '|' + stampOf(brightness(), outsideAlpha());
+    for (const [k, p] of adjCache) if (!k.endsWith(keep)) { adjCache.delete(k); p.then(u => setTimeout(() => URL.revokeObjectURL(u), 5000)).catch(() => {}); }
+    liveImages.forEach(ov => { if (!map.hasLayer(ov)) { liveImages.delete(ov); return; } if (ov._orig) showImage(ov, ov._orig); });
+  }, 120);
+}
 function applyBrightness(){
   const b = brightness();
   document.getElementById('brightness').value = b;
   document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
-  clearTimeout(brightTimer);
-  brightTimer = setTimeout(() => {
-    for (const [k, p] of adjCache) if (!k.endsWith('|' + b.toFixed(2))) { adjCache.delete(k); p.then(u => setTimeout(() => URL.revokeObjectURL(u), 5000)).catch(() => {}); }
-    liveImages.forEach(ov => { if (!map.hasLayer(ov)) { liveImages.delete(ov); return; } if (ov._orig) showImage(ov, ov._orig); });
-  }, 120);
+  refreshImages();
 }
+function syncOutsideUi(){            // the slider on the map panel and the one in the download pane are one setting
+  const o = outsideAlpha(), has = !!outlineGeom(typeof currentGlacier === 'function' ? currentGlacier() : null);
+  [['outside', 'outsideOut'], ['vOutside', 'vOutsideOut']].forEach(([id, out]) => {
+    const el = document.getElementById(id); if (!el) return;
+    el.value = o; el.disabled = !has; document.getElementById(out).textContent = `${Math.round(o * 100)} %`;
+  });
+  const bgOn = ['mosaicToggle', 'osmToggle', 'labelsToggle'].some(id => document.getElementById(id).checked);
+  document.getElementById('outsideNote').hidden = !(has && o < 0.99 && bgOn);      // the download pane switches them off itself
+}
+['mosaicToggle', 'osmToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
+/* While the download pane is open and the picture outside the outline is made transparent, the background layers are switched off: a download has no map underneath, so the preview must not show one.
+   They come back when the opacity returns to 100 % or the pane closes (a layer you switched on again yourself stays on). The saved layer settings are not touched. */
+let bgOff = null;
+function syncBackgrounds(){
+  const open = !document.getElementById('videoSheet').hidden, low = open && outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier());
+  const ids = ['mosaicToggle', 'osmToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm };
+  const flip = (id, on) => { const el = document.getElementById(id); el.checked = on; el.dispatchEvent(new Event('change')); };
+  if (low && !bgOff) { bgOff = ids.filter(id => document.getElementById(id).checked); bgOff.forEach(id => flip(id, false)); }
+  else if (!low && bgOff) { bgOff.forEach(id => { if (!document.getElementById(id).checked) flip(id, true); }); bgOff = null; }
+  else return;
+  prefs.mosaic = keep.mosaic; prefs.osm = keep.osm; savePrefs();
+}
+const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); };
+['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
+syncOutsideUi();
 document.getElementById('brightness').oninput = e => {
   prefs.bright = +e.target.value; savePrefs(); applyBrightness();
 };
@@ -1672,7 +1782,7 @@ document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
 document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 
-let storyTab = 'look';     // tab in the right panel, kept when switching glacier
+let storyTab = 'figures';     // tab in the right panel: Stats on start, then kept when switching glacier
 function renderStory(){
   const g = currentGlacier();
   const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
@@ -1711,6 +1821,7 @@ function renderStory(){
       ${g.note ? `<p class="body">${g.note}</p>` : ''}
       ${info ? `<div class="fact"><span class="fact-k">Did you know?</span>${info.fact}</div>
       <div class="fact name"><span class="fact-k">The name</span>${info.name}${info.src ? `<small>Source: ${info.src}</small>` : ''}</div>` : ''}
+      ${trailsHtml(g, TRAILS[g.id] ? g.id : shortSlug(g.name))}
       ${cbYears().length ? `<div class="cb-links"><span class="fact-k">Open the scene in the Copernicus Browser</span>${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">${fmtDate(state.available[y].date)}</button>`).join('')}</div>` : ''}
     </div>
 
@@ -1720,6 +1831,7 @@ function renderStory(){
     </div>
 
     <div class="tab-panel" data-panel="swiss" ${storyTab === 'swiss' ? '' : 'hidden'}>
+      <p class="share-box" id="shareBox" hidden></p>
       <section class="card"><div class="card-h"><span class="ico">${ICONS.area}</span>Ice left in all Swiss glaciers</div>
       ${cumulativeChart(lo, hi)}
       </section>
@@ -1740,7 +1852,7 @@ function renderStory(){
     <div class="about-wrap">
       <a class="gh-invite" href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Want to see more tongues? Help build this!</b> The code is open. Join in, or make a dashboard like this for glaciers in your own region.<em>github.com/braakhekke/tonguesfromspace</em></span></a>
     <details class="about">
-      <summary><span class="info-btn" aria-hidden="true">i</span> About Tongues from Space</summary>
+      <summary><span class="info-btn" aria-hidden="true">i</span> About TfS, the data, and more</summary>
       <div class="about-sec"><b>Why Tongues from Space</b>
         <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
         <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
@@ -1758,8 +1870,8 @@ function renderStory(){
       </div>
       <div class="about-sec"><b>The colours</b>
         <p>Each picture combines three bands as red, green and blue. False 1 and False 2 are false colours: the colours are a code, not what you would see.</p>
-        <p><em>Natural</em> (B04, B03, B02): close to what the eye sees. Snow white, rock grey, plants green.</p>
-        <p><em>False 1</em> (B08, B04, B03), infrared: near infrared shown as red. Plants red, snow white, bare ice light blue, water dark; this sets bare ice, snow and vegetation apart.</p>
+        <p><em>Natural</em> (B04, B03, B02): as our eyes see it. Snow white, rock grey, plants green.</p>
+        <p><em>False 1</em> (B08, B04, B03), infrared: near infrared shown as red. Plants red, snow white, bare ice grey, water dark/blue; this sets bare ice, snow and vegetation apart.</p>
         <p><em>False 2</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental, handy to tell ice from cloud.</p>
       </div>
       <div class="about-sec"><b>Why only these ten glaciers</b>
@@ -1778,6 +1890,7 @@ function renderStory(){
           <li>Imagery: Copernicus Sentinel-2 L1C and L2A, contains modified Copernicus Sentinel data, <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a></li>
           <li>Glacier areas and outlines: <a href="https://www.glamos.ch" target="_blank" rel="noopener">GLAMOS</a> Swiss Glacier Inventories (CC BY 4.0)${DATA ? `, built ${DATA.generated}` : ''}</li>
           <li>Length change: GLAMOS, <a href="https://doi.org/10.18750/lengthchange.2025.r2025" target="_blank" rel="noopener">doi:10.18750/lengthchange.2025.r2025</a> (non-commercial use); length today: GLAMOS, <a href="https://doi.glamos.ch/figures/lc_stat_frequency.pdf" target="_blank" rel="noopener">figure lc_stat_frequency</a></li>
+          <li>Hike and bike routes: SchweizMobil route data of the Federal Roads Office (ASTRA), via <a href="https://map.geo.admin.ch" target="_blank" rel="noopener">swisstopo geo.admin.ch</a>; the pages named in each box</li>
           <li>Volume loss: GLAMOS and SCNAT annual reports; ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo; water use: SVGW</li>
           <li>This project: code under the MIT licence, own texts under CC BY 4.0, open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a></li>
           <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX</li>
@@ -1792,7 +1905,7 @@ function renderStory(){
     if (storyTab === 'swiss') { wireWater(); wireCum(); }
   });
   wireWater(); wireCum();
-  renderGlacierWater();
+  renderGlacierWater(); renderShare();
   if (aboutOpen) storyEl.querySelector('details.about').open = true;      // a year click must not close it or move the panel
   storyEl.scrollTop = sameGlacier ? keepScroll : 0;      // another glacier starts at the top
 }
@@ -1951,6 +2064,19 @@ const glacierVolume = (() => {
 /* Grab et al. (2021) give the ice of each glacier around 2016. The national yearly losses (GLAMOS) tell how much of the Swiss ice is left
    since then. Applied to one glacier this is an estimate: single glaciers lose more or less than the average. */
 const iceShareLeft = () => iceVolume(VOLUME_LOSS[VOLUME_LOSS.length - 1].y) / iceVolume(2016);
+/* The selected glacier's part of the Swiss ice, as a line above the figures of the Switzerland tab: its measured volume around 2016
+   (Grab et al. 2021, via swisstopo), the latest volume survey, against the national ice of that year. */
+const shareText = sh => `${sh * 100 < 10 ? (sh * 100).toFixed(1) : Math.round(sh * 100)} %`;
+function renderShare(){
+  const g = currentGlacier(), box = document.getElementById('shareBox');
+  if (!box) return;
+  glacierVolume(g).then(v => {
+    if (!v || currentGlacier() !== g) return;
+    const total = iceVolume(2016);
+    box.hidden = false;
+    box.innerHTML = `The ${g.local || g.name} holds <b>${shareText(v.km3 / total)}</b> of all Swiss glacier ice in the latest volume survey (2016): ${v.km3.toFixed(1)} of ${total.toFixed(1)} km³.`;
+  });
+}
 function renderGlacierWater(){
   const g = currentGlacier(), slot = document.getElementById('gWater');
   if (!slot) return;
@@ -2134,6 +2260,7 @@ function setOrient(o){
   document.getElementById('yearsB').setAttribute('aria-label', o === 'h' ? 'Year for bottom image' : 'Year for right image');
   state.split = .5;
   clip();
+  syncPane();           // an open download pane shows the new direction
 }
 document.getElementById('orientV').onclick = () => setOrient('v'); document.getElementById('orientH').onclick = () => setOrient('h');
 setOrient(prefs.orient === 'h' ? 'h' : 'v');
@@ -2154,7 +2281,6 @@ function showNotice(msg){
 }
 
 /* ---------- Switzerland overview: the ten glaciers as red boxes, clickable ---------- */
-const SWISS_VIEW = [[45.8, 5.95], [47.82, 10.5]];
 const BOX_MAX_ZOOM = 11.25;                      // boxes show when zoomed out; at a glacier they would clutter the image
 const boxLayer = L.layerGroup();
 /* The red boxes have exactly the size of the satellite image of each glacier, with the same rounded corners (14 px, as on .scene-img). */
@@ -2369,19 +2495,20 @@ function frameGroundRes(){            // metres of terrain per video pixel
   const a = map.containerPointToLatLng([r.x, r.y + r.h / 2]), b = map.containerPointToLatLng([r.x + r.w, r.y + r.h / 2]);
   return map.distance(a, b) / F.w;
 }
-/* Boxes on the map frame that show where the text will sit, from the same margins the drawing uses */
-function layoutBoxes(){
-  const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, image = vstate.kind === 'image', S = marginsFor(vstate.kind, vstate.fmt);
-  const maxW = W - S.left - S.right, base = H - S.bottom, wide = W > H, swipe = !image && vstate.type === 'swipe', B = [];
-  B.push({ l: 'Title, glacier, place', x: S.left, y: S.top, w: Math.min(maxW, wide ? W * 0.42 : maxW * 0.92), h: 150 });
-  const bh = image || swipe ? 190 : 240;
-  B.push({ l: image ? 'Year, date, credit' : swipe ? 'Years, credit' : 'Year, date, progress', x: S.left, y: base - bh + 12, w: wide ? W * 0.26 : maxW * 0.52, h: bh });
-  if (image) B.push({ l: 'Scale, site', x: W - S.right - 300, y: base - 100, w: 300, h: 106 });
-  else if (swipe) { B.push({ l: 'Scale', x: W - S.right - 260, y: S.top - 8, w: 260, h: 56 }); B.push({ l: 'Site', x: W - S.right - 260, y: base - 34, w: 260, h: 40 }); }
-  else { B.push({ l: 'Site', x: W - S.right - 260, y: S.top, w: 260, h: 36 }); B.push({ l: 'Scale', x: W - S.right - 300, y: base - 100, w: 300, h: 106 }); }
-  if (image && $('vImgWater').checked) { const pw = waterPanelW(W, H, maxW); B.push({ l: 'Water facts', water: true, low: true, x: S.left - 20, y: base - STILL_YEAR_H - 34 - STILL_PANEL_H, w: pw, h: STILL_PANEL_H }); }
-  if (!image && $('vEnd').checked) B.push({ l: 'End slide: glacier, Switzerland', water: true, low: true, x: S.left, y: S.top, w: Math.min(maxW, 1100), h: END_H0 * endScale(H, S) });
-  return { W, H, B };
+/* The text on the map frame: drawn with the same functions as the finished picture or video (timelapse, slider or single picture), over the live map.
+   The intro, the water facts and the end slide are left out. */
+function drawPreview(){
+  const cv = $('vfPreview'), F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = 0.5, ys = videoYears();
+  cv.width = Math.round(W * q); cv.height = Math.round(H * q);
+  const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
+  if (!ys.length) return;
+  const g = currentGlacier(), S = marginsFor(vstate.kind, vstate.fmt), swipe = vstate.kind !== 'image' && vstate.type === 'swipe';
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && g.inv && g.inv.oldest), res: frameGroundRes(), compare: swipe, horiz: swipe && horiz() };
+  ctx.save(); ctx.scale(q, q);
+  if (vstate.kind === 'image') drawStill(ctx, W, H, info, null, S);
+  else if (swipe) drawSwipeLabels(ctx, W, H, S, info, (info.horiz ? H : W) / 2);
+  else drawLabels(ctx, W, H, S, info, Math.floor((ys.length - 1) / 2));
+  ctx.restore();
 }
 function guideText(){
   const video = vstate.kind !== 'image';
@@ -2409,8 +2536,7 @@ function updateFrame(){
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
   $('vsGuide').textContent = guideText();
-  const L = layoutBoxes();
-  $('vfBoxes').innerHTML = L.B.map(b => `<i class="ph${b.water ? ' water' : ''}${b.low ? ' low' : ''}" style="left:${(b.x / L.W * 100).toFixed(2)}%;top:${(b.y / L.H * 100).toFixed(2)}%;width:${(b.w / L.W * 100).toFixed(2)}%;height:${(b.h / L.H * 100).toFixed(2)}%"><em>${b.l}</em></i>`).join('');
+  drawPreview();
 }
 const introLen = () => $('vIntro').checked ? VIDEO.intro : 0;
 const tailLength = () => $('vEnd').checked ? VIDEO.end : VIDEO.outro;
@@ -2418,6 +2544,7 @@ const videoDuration = n => (vstate.type === 'swipe'
   ? introLen() + swipeLength(+$('vSpeed').value / 1.2) + tailLength()
   : introLen() + n * +$('vSpeed').value + VIDEO.hold + tailLength());
 map.on('move zoom resize', updateFrame);
+Promise.all(['700 24px', '800 120px', '600 28px', '500 20px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))).then(updateFrame);   // the preview uses the real font
 
 function openVideo(kind = 'video'){
   if (kind === 'video' && typeof VideoEncoder === 'undefined') {
@@ -2435,12 +2562,14 @@ function openVideo(kind = 'video'){
   $('videoSheet').hidden = false; $('videoFrame').hidden = false;
   $('app').classList.add('is-framing');
   $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
+  syncBackgrounds();
   updateFrame();
   if (matchMedia('(max-width:720px)').matches) $('stage').scrollIntoView({behavior:'smooth', block:'start'});
 }
 function closeVideo(){
   if (vstate.busy) return;
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0;
+  syncBackgrounds();
 }
 $('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = closeVideo;
 const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide' };
@@ -2449,7 +2578,12 @@ Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
 $('vSpeed').onchange = updateFrame;
 $('vEnd').onchange = updateFrame; $('vIntro').onchange = updateFrame; $('vImgWater').onchange = updateFrame;
 $('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); };   // show the 1850 outline on the map as well
-function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); updateFrame(); }
+/* The map behind the pane shows what the pane will make: Timelapse, Compare (the slider) or One year (a single image) */
+function syncModeToPane(){
+  const want = vstate.kind === 'image' ? 'modeSingle' : vstate.type === 'swipe' ? 'modeCompare' : 'modeTimelapse';
+  if (!$(want).getAttribute('aria-pressed') || $(want).getAttribute('aria-pressed') === 'false') $(want).click();
+}
+function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); syncModeToPane(); updateFrame(); }
 $('vtTimelapse').onclick = () => setType('timelapse'); $('vtSwipe').onclick = () => setType('swipe');
 
 function progress(frac, label){
@@ -2474,7 +2608,7 @@ function shadowText(ctx, text, x, y, opts = {}){
   ctx.restore();
 }
 /* One base picture per year: crop from the Copernicus image, brightness curve, optional 1850 outline */
-async function buildBase(img, crop, W, H, outline){
+async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1){
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
   ctx.fillStyle = '#1d2a31'; ctx.fillRect(0, 0, W, H);
@@ -2488,8 +2622,13 @@ async function buildBase(img, crop, W, H, outline){
     for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
     ctx.putImageData(d, 0, 0);
   }
+  const P = ll => { const p = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return [(p.x - crop.x0) * s, (crop.y1 - p.y) * s]; };
+  if (maskGeom && o < 0.99) {                           // outside the outline the picture fades towards the base colour (a download has no map underneath)
+    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, H);
+    maskGeom.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); }));
+    ctx.clip('evenodd'); ctx.fillStyle = `rgba(29,42,49,${1 - o})`; ctx.fillRect(0, 0, W, H); ctx.restore();
+  }
   if (outline) {
-    const P = ll => { const p = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return [(p.x - crop.x0) * s, (crop.y1 - p.y) * s]; };
     ctx.save();
     ctx.lineWidth = 5; ctx.strokeStyle = '#F2A93B'; ctx.setLineDash([22, 14]); ctx.lineJoin = 'round';
     ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
@@ -2684,7 +2823,7 @@ async function frameBases(ys, W, H){
   const bases = [];
   for (const [i, url] of urls.entries()) {
     const bmp = await createImageBitmap(await (await fetch(url)).blob());
-    bases.push(await buildBase(bmp, crop, W, H, outline)); bmp.close();
+    bases.push(await buildBase(bmp, crop, W, H, outline, outlineGeom(g), outsideAlpha())); bmp.close();
     progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
   }
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
