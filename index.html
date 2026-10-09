@@ -413,8 +413,9 @@ details.about .note,details.about .src{margin:0 0 8px}
   .years button{padding:8px 0;font-size:14px}
   .toggle{min-height:36px}
   .fyi{padding:14px 16px}
-  .measure-hint{top:60px;font-size:14px}
-  .measure-hint button{min-height:38px;padding:6px 14px}
+  .measure-hint{top:56px;font-size:12.5px;padding:4px 5px 4px 10px;gap:6px;flex-wrap:nowrap;max-width:calc(100% - 16px)}
+  .measure-hint #measureText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .measure-hint button{min-height:30px;padding:3px 10px;font-size:12.5px;flex:none}
   .video-sheet{left:0;right:0;bottom:0;width:100%;max-height:44dvh;border-radius:14px 14px 0 0;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:6px}
   .video-sheet .vs-help{display:none}
   .vs-opts{grid-template-columns:1fr 1fr;column-gap:10px}
@@ -441,6 +442,9 @@ details.about .note,details.about .src{margin:0 0 8px}
   .mapbar .sep,.mapbar .lbl{display:none}
   .mapbar button{min-width:40px;min-height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
   .mapbar button svg{display:block}
+  .measure-hint{top:48px;font-size:12px;padding:3px 5px 3px 10px;gap:6px;flex-wrap:nowrap;max-width:calc(100% - 16px)}
+  .measure-hint #measureText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .measure-hint button{min-height:28px;padding:2px 9px;font-size:12px;flex:none}
   .mapbar .mtool{display:none}
   .mapbar.more-open .mtool{display:inline-flex}
   .mobile-only{display:inline-flex}
@@ -1486,9 +1490,10 @@ function startMeasure(mode){
 }
 function updateMeasureText(cursor){
   const pts = cursor ? [...M.pts, cursor] : M.pts, el = document.getElementById('measureText');
-  if (!pts.length) el.textContent = M.mode === 'dist' ? 'Click on the map to start a line.' : 'Click on the map to start an area.';
-  else if (M.mode === 'dist') el.textContent = `Length ${fmtLen(pathLen(pts))}. Double-click or press Finish.`;
-  else el.textContent = pts.length < 3 ? 'Add at least three points.' : `Area ${fmtArea(geodesicArea(ringOf(pts)))}. Double-click or press Finish.`;
+  const phone = COARSE, tap = phone ? 'Tap' : 'Click';          // on phones the hint stays short: it sits on the picture
+  if (!pts.length) el.textContent = M.mode === 'dist' ? `${tap} the map to start a line.` : `${tap} the map to start an area.`;
+  else if (M.mode === 'dist') el.textContent = `Length ${fmtLen(pathLen(pts))}.${phone ? '' : ' Double-click or press Finish.'}`;
+  else el.textContent = pts.length < 3 ? (phone ? 'Add 3 points.' : 'Add at least three points.') : `Area ${fmtArea(geodesicArea(ringOf(pts)))}.${phone ? '' : ' Double-click or press Finish.'}`;
 }
 function drawTemp(cursor){
   if (M.temp) M.group.removeLayer(M.temp);
