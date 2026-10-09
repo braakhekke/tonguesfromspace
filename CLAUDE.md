@@ -69,7 +69,7 @@ browser ── /cdse/statistics, /cdse/process ──> relay ──> Copernicus 
 
 - **Calm and compact.** Little text; explanations go into the collapsed "About Tongues from Space" or behind small "i" buttons. Small notes 11–11.5 px.
 - **Red accent `--accent: #C8322A`** for headers and loss; **blue `--crevasse`** for ice and water. Stats in white cards: red uppercase card header with an icon, grey tiles.
-- **Left panel:** numbered steps 1 Glacier, 2 Visualisation, 3 Download and share. On phones: map first, then that panel, then the story; two fingers move the map.
+- **Left panel:** numbered steps 1 Choose a glacier, 2 Visualise, 3 Download and share. On phones: map first, then that panel, then the story; two fingers move the map.
 - **UI text in English.**
 
 ## Testing a change
