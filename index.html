@@ -187,6 +187,10 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .layerbox{position:absolute;right:12px;top:104px;z-index:665;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 12px 6px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:220px}
 .lb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:0;background:none;padding:0 0 6px;margin:0;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);cursor:pointer}
 .lb-head svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;transition:transform .2s}
+.trail-legend{margin:0 0 6px 26px;font-size:11.5px;color:var(--moraine);display:flex;flex-direction:column;gap:1px}
+.trail-legend[hidden]{display:none}
+.trail-legend span{display:flex;align-items:center;gap:7px}
+.trail-legend i{display:inline-block;width:22px;height:0;border-top:2px dashed var(--c)}
 .lb-group{margin:8px 0 3px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--moraine)}
 .lb-group:first-child{margin-top:0}
 .layerbox.min .lb-body{display:none}
@@ -652,6 +656,8 @@ details.about .note,details.about .src{margin:0 0 8px}
       <label class="toggle"><input type="checkbox" id="topoToggle"> <span>swisstopo map</span></label>
       <label class="toggle"><input type="checkbox" id="altiToggle"> <span>swissALTI3D hillshade</span></label>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place labels</span></label>
+      <label class="toggle"><input type="checkbox" id="trailsToggle"> <span>Hiking trails (swisstopo)</span></label>
+      <div class="trail-legend" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span></div>
       <p class="hint" id="outlineNote"></p>
       </div>
     </div>
@@ -997,20 +1003,29 @@ const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v4'         // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v6'         // bump when scoring or rendering changes, to invalidate cached results
 };
 /* latest allowed day per year (MM-DD); default 20 September. 2024: heavy snowfall on 15 September. */
 const LAST_DAY = { default: '09-20', 2024: '09-14' };
 const lastDay = yr => LAST_DAY[yr] || LAST_DAY.default;
 
 /* Scene scoring: SCL 3 = cloud shadow, 8/9 = cloud, 10 = thin cirrus, 11 = snow or ice. */
+/* One acquisition only. A day can hold two passes over the same place (two orbits, e.g. S2A on R108 and S2B on R065 on 7 September 2025), which sit a few pixels apart.
+   The scene search scores each orbit of a day separately over the glacier itself (slots A and B: the orbit of the first scene, and of the first scene of another orbit; the mean of
+   orbA / orbB is the orbit number), and a picture is made from the scenes of the chosen orbit only, so it is never a patchwork. */
+const ONE_ORBIT = `function preProcessScenes(c){ var t = c.scenes.tiles, m = t.length > 1 ? /_R\\d{3}_/.exec(JSON.stringify(t[0])) : null; if (m) c.scenes.tiles = t.filter(function(x){ return JSON.stringify(x).indexOf(m[0]) >= 0; }); return c; }`;
+const orbitFilter = orbit => !orbit ? ONE_ORBIT : `function preProcessScenes(c){ c.scenes.tiles = c.scenes.tiles.filter(function(x){ return JSON.stringify(x).indexOf("_${orbit}_") >= 0; }); return c; }`;
 const SCENE_EVALSCRIPT = `//VERSION=3
-function setup(){ return { input:[{ bands:["SCL","dataMask"] }],
-  output:[{ id:"cloud", bands:1, sampleType:"FLOAT32" }, { id:"snow", bands:1, sampleType:"FLOAT32" }, { id:"dataMask", bands:1 }] }; }
-function evaluatePixel(s){
-  var cloud = (s.SCL == 3 || s.SCL == 8 || s.SCL == 9 || s.SCL == 10) ? 1 : 0;
-  var snow = (s.SCL == 11) ? 1 : 0;
-  return { cloud:[cloud], snow:[snow], dataMask:[(s.dataMask == 1 && s.SCL != 0) ? 1 : 0] };
+function setup(){ return { input:[{ bands:["SCL","dataMask"] }], mosaicking:"TILE",
+  output:[{ id:"cloudA", bands:1, sampleType:"FLOAT32" }, { id:"snowA", bands:1, sampleType:"FLOAT32" }, { id:"validA", bands:1, sampleType:"FLOAT32" }, { id:"orbA", bands:1, sampleType:"FLOAT32" },
+          { id:"cloudB", bands:1, sampleType:"FLOAT32" }, { id:"snowB", bands:1, sampleType:"FLOAT32" }, { id:"validB", bands:1, sampleType:"FLOAT32" }, { id:"orbB", bands:1, sampleType:"FLOAT32" }, { id:"dataMask", bands:1 }] }; }
+var ORB = [], OA = 0, OB = 0;
+function preProcessScenes(c){ ORB = c.scenes.tiles.map(function(t){ var m = /_R(\\d{3})_/.exec(JSON.stringify(t)); return m ? +m[1] : 0; }); OA = ORB[0] || 0; OB = 0; for (var i = 1; i < ORB.length; i++) if (ORB[i] && ORB[i] !== OA) { OB = ORB[i]; break; } return c; }
+function evaluatePixel(ss){
+  var a = { c:0, s:0, v:0 }, b = { c:0, s:0, v:0 };
+  for (var i = 0; i < ss.length; i++) { var x = ss[i]; if (x.dataMask != 1 || x.SCL == 0) continue; var t = ORB[i] === OA ? a : ORB[i] === OB ? b : null;
+    if (t && !t.v) { t.v = 1; t.c = (x.SCL == 3 || x.SCL == 8 || x.SCL == 9 || x.SCL == 10) ? 1 : 0; t.s = x.SCL == 11 ? 1 : 0; } }
+  return { cloudA:[a.c], snowA:[a.s], validA:[a.v], orbA:[OA], cloudB:[b.c], snowB:[b.s], validB:[b.v], orbB:[OB], dataMask:[1] };
 }`;
 
 /* Same stretch for every year and glacier, so brightness differences are real.
@@ -1027,19 +1042,21 @@ const STYLE_BANDS = { natural: ['B04','B03','B02'], false1: ['B08','B04','B03'],
 const STYLE_NAME = { natural: 'natural color', false1: 'false color 1', false2: 'false color 2' };
 const styleLine = style => { const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
-function evalscriptFor(style){
+function evalscriptFor(style, orbit){
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
   const T = TRUE_COLOR;
   return `//VERSION=3
 var maxR = ${T.maxR}, midR = ${T.midR}, sat = ${T.sat}, gamma = ${T.gamma}, gOff = ${T.gOff};
 var gOffPow = Math.pow(gOff, gamma), gOffRange = Math.pow(1 + gOff, gamma) - gOffPow;
-function setup(){ return { input:["${r}","${g}","${b}","dataMask"], output:{ bands:3 } }; }
+function setup(){ return { input:["${r}","${g}","${b}","dataMask"], mosaicking:"TILE", output:{ bands:3 } }; }
+${orbitFilter(orbit)}
 function clip(s){ return s < 0 ? 0 : s > 1 ? 1 : s; }
 function adj(a, tx, ty, maxC){ var ar = clip(a / maxC); return ar * (ar * (tx / maxC + ty - 1) - ty) / (ar * (2 * tx / maxC - 1) - tx / maxC); }
 function adjGamma(b){ return (Math.pow(b + gOff, gamma) - gOffPow) / gOffRange; }
 function sAdj(a){ return adjGamma(adj(a, midR, 1, maxR)); }
 function sRGB(c){ return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 0.41666666666) - 0.055; }
-function evaluatePixel(p){
+function evaluatePixel(ss){
+  var p = ss[0] || { dataMask:0 }; for (var i = 0; i < ss.length; i++) if (ss[i].dataMask == 1) { p = ss[i]; break; }
   if (!p.dataMask) return [0.11, 0.16, 0.19];
   var lr = sAdj(p.${r} - ${T.ray[r]}), lg = sAdj(p.${g} - ${T.ray[g]}), lb = sAdj(p.${b} - ${T.ray[b]});
   var avg = (lr + lg + lb) / 3 * (1 - sat);
@@ -1194,13 +1211,13 @@ async function findScene(g, yr){
       aggregation: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-09-21T00:00:00Z` },   // up to and including 20 September
                      aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: fp.statsRes, resy: fp.statsRes }
     }, 'application/json', `${g.name}, summer ${yr}`)).json();
-    const days = (j.data || []).map(d => {
+    const days = (j.data || []).flatMap(d => {          // per day up to two scenes, one for each orbit, each scored over the whole image area
       try {
-        const c = d.outputs.cloud.bands.B0.stats, s = d.outputs.snow.bands.B0.stats;
-        return { date: d.interval.from.slice(0, 10), cloud: c.mean, snow: s.mean,
-                 cover: c.sampleCount ? 1 - c.noDataCount / c.sampleCount : 0 };
-      } catch { return null; }
-    }).filter(d => d && d.date.slice(5) <= lastDay(yr) && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
+        const o = d.outputs, m = k => o[k].bands.B0.stats.mean, date = d.interval.from.slice(0, 10);
+        return ['A', 'B'].map(k => { const valid = m('valid' + k), orb = Math.round(m('orb' + k));
+          return valid > 0 && orb ? { date, orbit: 'R' + String(orb).padStart(3, '0'), cloud: m('cloud' + k) / valid, snow: m('snow' + k) / valid, cover: valid } : null; }).filter(Boolean);
+      } catch { return []; }
+    }).filter(d => d.date.slice(5) <= lastDay(yr) && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
     const scene = pickScene(days);
     idb.set(key, {scene, savedAt: Date.now()});
     return scene;
@@ -1216,7 +1233,7 @@ const runQueue = () => { while (active < 3 && queue.length) { active++; const jo
 const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
 function loadImage(g, yr){
   const sc = state.available[yr], style = state.style, fp = imageFootprint(g);
-  const key = `${CDSE.version}|img|${(STYLE_BANDS[style] || []).join('')}|${g.id}|${sc.date}|${fp.bbox.join(',')}`;
+  const key = `${CDSE.version}|img|${(STYLE_BANDS[style] || []).join('')}|${g.id}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}`;
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
@@ -1227,7 +1244,7 @@ function loadImage(g, yr){
         input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
                  data: [{ type: IMAGE_COLLECTION, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }] },   // bilinear: smooth 20 and 60 m bands
         output: { width: fp.w, height: fp.h, responses: [{ identifier:'default', format:{ type:'image/jpeg' } }] },
-        evalscript: evalscriptFor(style)
+        evalscript: evalscriptFor(style, sc.orbit)
       }, 'image/jpeg', `${g.name}, ${fmtDate(sc.date)}`).then(r => r.blob()));
       idb.set(key, blob);
       return URL.createObjectURL(blob);
@@ -1254,12 +1271,16 @@ const state = {
   frame: 0, playing: false, timer: null,
   style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
 };
+let HASH_TAB = null;            // a shared link can name the tab of the right panel: fun, stats or switzerland
 let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
   if (['timelapse', 'single'].includes(p.get('m'))) state.mode = p.get('m');
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
+  if (['natural', 'false1', 'false2'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
+  if (p.get('ol') === '1') prefs.old = true;                                                      // ol=1: show the 1850 outline
+  HASH_TAB = { fun: 'look', stats: 'figures', switzerland: 'swiss' }[p.get('t')] || null;
 })();
 const writeHash = () => history.replaceState(null, '',
   `#${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}`);
@@ -1286,6 +1307,7 @@ function updateCredits(){
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
+  if (document.getElementById('trailsToggle').checked) parts.push('Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
@@ -1334,6 +1356,33 @@ if (prefs.topo === true) topo.addTo(map);
 const alti = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/{z}/{x}/{y}.png',
   {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo (swissALTI3D)'});
 if (prefs.alti === true) alti.addTo(map);
+/* swisstopo's hiking trails (swissTLM3D), just the trails, as a transparent overlay on the imagery. They are drawn only inside the image area of the glacier (the red box);
+   tiles that lie wholly outside it are not even fetched. The tiles come one zoom level finer and are shown at half size, so the lines are half as thick. */
+const TrailsLayer = L.TileLayer.extend({
+  _clip: [],
+  setClip(list){ this._clip = list; if (this._map) this.redraw(); },
+  createTile(coords, done){
+    const size = this.getTileSize(), tile = document.createElement('canvas'), k = 256 / size.x;
+    tile.width = tile.height = 256; tile.style.width = size.x + 'px'; tile.style.height = size.y + 'px';
+    const origin = coords.scaleBy(size), rects = this._clip.map(b => { const a = this._map.project(b.getNorthWest(), coords.z).subtract(origin), c = this._map.project(b.getSouthEast(), coords.z).subtract(origin);
+      return { x0: Math.max(0, a.x), y0: Math.max(0, a.y), x1: Math.min(size.x, c.x), y1: Math.min(size.y, c.y) }; }).filter(r => r.x1 > r.x0 && r.y1 > r.y0);
+    if (!rects.length) { setTimeout(() => done(null, tile)); return tile; }
+    const img = new Image();
+    img.onload = () => { const ctx = tile.getContext('2d'); ctx.beginPath(); rects.forEach(r => ctx.rect(r.x0 * k, r.y0 * k, (r.x1 - r.x0) * k, (r.y1 - r.y0) * k)); ctx.clip(); ctx.drawImage(img, 0, 0, 256, 256); done(null, tile); };
+    img.onerror = () => done(null, tile);
+    img.src = this.getTileUrl(coords);
+    return tile;
+  }
+});
+const trails = new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
+  {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'});
+let trailClipKey = '';
+function updateTrailClip(){          // the selected glacier's image area; before one is chosen, the ten image areas of the overview
+  const picked = typeof glacierPicked !== 'undefined' && glacierPicked, list = picked ? [currentGlacier()] : GLACIERS, key = picked ? state.glacier : '*';
+  if (key === trailClipKey) return; trailClipKey = key;
+  trails.setClip(list.map(g => L.latLngBounds(imageFootprint(g).bounds)));
+}
+if (prefs.trails === true) trails.addTo(map);
 const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
   {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
 
@@ -1830,12 +1879,15 @@ function syncOutsideUi(){            // the slider on the map panel and the one 
 ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
 /* While the download pane is open and the picture outside the outline is made transparent, the background layers are switched off: a download has no map underneath, so the preview must not show one.
    They come back when the opacity returns to 100 % or the pane closes (a layer you switched on again yourself stays on). The saved layer settings are not touched. */
-let bgOff = null, labelsAuto = false;
+let bgOff = null, labelsAuto = false, trailsAuto = false;
 function syncBackgrounds(){
   const open = !document.getElementById('videoSheet').hidden, labelsEl = document.getElementById('labelsToggle');
   const flipLabels = on => { labelsEl.checked = on; labelsEl.dispatchEvent(new Event('change')); };
   if (open && labelsEl.checked && !labelsAuto) { labelsAuto = true; flipLabels(false); }              // place names stay off while a download pane is open
   else if (!open && labelsAuto) { labelsAuto = false; if (!labelsEl.checked) flipLabels(true); }      // and come back when it closes
+  const trailsEl = document.getElementById('trailsToggle'), flipTrails = on => { const keepPref = prefs.trails; trailsEl.checked = on; trailsEl.dispatchEvent(new Event('change')); prefs.trails = keepPref; savePrefs(); };      // your saved choice is not touched
+  if (open && trailsEl.checked && !trailsAuto) { trailsAuto = true; flipTrails(false); }                 // the hiking trails are not in the downloads either
+  else if (!open && trailsAuto) { trailsAuto = false; if (!trailsEl.checked) flipTrails(true); }
   const low = open && outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier());
   const ids = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm, topo: prefs.topo, alti: prefs.alti };
   const flip = (id, on) => { const el = document.getElementById(id); el.checked = on; el.dispatchEvent(new Event('change')); };
@@ -1863,7 +1915,7 @@ document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
 document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 
-let storyTab = 'figures';     // tab in the right panel: Stats on start, then kept when switching glacier
+let storyTab = HASH_TAB || 'figures';     // tab in the right panel: Stats on start, then kept when switching glacier
 function renderStory(){
   const g = currentGlacier();
   const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
@@ -1974,7 +2026,7 @@ function renderStory(){
           <li>Hike and bike routes: SchweizMobil route data of the Federal Roads Office (ASTRA), via <a href="https://map.geo.admin.ch" target="_blank" rel="noopener">swisstopo geo.admin.ch</a>; the pages named in each box</li>
           <li>Volume loss: GLAMOS and SCNAT annual reports; ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo; water use: SVGW</li>
           <li>This project: code under the MIT licence, own texts under CC BY 4.0, open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a></li>
-          <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX; colour topographic map and swissALTI3D hillshade © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a></li>
+          <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX; colour topographic map, swissALTI3D hillshade and hiking trails (swissTLM3D) © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a></li>
         </ul>
       </div>
     </details>
@@ -2438,6 +2490,12 @@ document.getElementById('topoToggle').onchange = e => {
   prefs.topo = e.target.checked; savePrefs();
   e.target.checked ? topo.addTo(map) : map.removeLayer(topo); updateCredits();
 };
+document.getElementById('trailsToggle').checked = prefs.trails === true;
+document.getElementById('trailsToggle').onchange = e => {
+  prefs.trails = e.target.checked; savePrefs();
+  if (e.target.checked) { updateTrailClip(); trails.addTo(map); } else map.removeLayer(trails); document.getElementById('trailLegend').hidden = !e.target.checked; updateCredits();
+};
+document.getElementById('trailLegend').hidden = !document.getElementById('trailsToggle').checked;
 document.getElementById('altiToggle').checked = prefs.alti === true;
 document.getElementById('altiToggle').onchange = e => {
   if (e.target.checked) onlyBase('altiToggle');
@@ -2485,7 +2543,7 @@ function chooseGlacier(id){
     return focusTongue();
   }
   stopPlay();
-  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); drawTonguePin(); focusTongue(); writeHash();
+  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); updateTrailClip(); drawTonguePin(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
 function renderMobileBar(){                 // phones: the glacier list becomes a dropdown
@@ -3215,7 +3273,7 @@ renderOutlineControls();
 drawOutlines();
 renderMode(); renderYears();
 if (OPEN_ON_GLACIER) focusTongue(false); else showSwitzerland(false);
-updateBoxes();
+updateBoxes(); updateTrailClip();
 renderStory();
 updateCredits();
 checkYears();
