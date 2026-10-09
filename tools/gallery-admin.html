@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gallery moderation: Tongues from Space</title>
+<style>
+:root{color-scheme:dark;--bg:#10181d;--surface:#1a242b;--line:#2e3a42;--txt:#fff;--txt2:#c3c8cc;--accent:#FF5A4E;--ok:#4fc08d}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:13px/1.45 -apple-system,"Helvetica Neue",Arial,sans-serif;padding:14px 18px 60px}
+h1{font-size:14px;margin:0 0 10px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+h2{font-size:12.5px;margin:22px 0 8px;color:var(--txt2);text-transform:uppercase;letter-spacing:.05em}
+input,button{font:inherit;border-radius:6px;border:1px solid var(--line);background:var(--surface);color:var(--txt);padding:6px 10px}
+button{cursor:pointer;font-weight:600}
+button.ok{background:var(--ok);border-color:var(--ok);color:#06210f}
+button.no{background:var(--accent);border-color:var(--accent);color:#fff}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px}
+.it{background:var(--surface);border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.it img,.it video{display:block;width:100%;max-height:50vh;object-fit:contain;background:#000}
+.it .m{padding:8px 10px;display:flex;flex-direction:column;gap:6px;color:var(--txt2)}
+.it .b{display:flex;gap:6px}
+#msg{margin:8px 0;color:var(--txt2)}
+</style>
+</head>
+<body>
+<h1>Gallery moderation</h1>
+<p>Local use: <code>python3 -m http.server 8000</code> in the project folder, then open this page at http://localhost:8000/tools/gallery-admin.html. The relay address comes from <code>config.js</code>.</p>
+<form id="login"><input type="password" id="token" placeholder="Admin token" autocomplete="off"> <button type="submit">Load</button></form>
+<div id="msg" role="status"></div>
+<h2>Waiting for approval</h2><div class="grid" id="pending"></div>
+<h2>Published</h2><div class="grid" id="approved"></div>
+<script src="../config.js"></script>
+<script>
+const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
+const $ = id => document.getElementById(id);
+let token = '';
+const auth = () => ({ Authorization: 'Bearer ' + token });
+const el = (t, c, x) => { const e = document.createElement(t); if (c) e.className = c; if (x !== undefined) e.textContent = x; return e; };
+async function api(path, opt = {}){
+  const r = await fetch(RELAY + '/gallery/' + path, { ...opt, headers: { ...auth(), ...(opt.body ? { 'Content-Type': 'application/json' } : {}) } });
+  if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || r.status);
+  return r;
+}
+async function card(it, area, buttons){
+  const c = el('div', 'it');
+  const blob = URL.createObjectURL(await (await api(`admin/file/${area}/${it.id}`)).blob());
+  const m = it.kind === 'video' ? Object.assign(el('video'), { src: blob, controls: true, muted: true, loop: true, playsInline: true }) : Object.assign(el('img'), { src: blob });
+  const info = el('div', 'm');
+  info.append(el('div', '', `${it.name} · ${it.years.join(', ')} · ${it.type} · ${it.style} · ${it.fmt}`),
+    el('div', '', `${it.nick ? 'by ' + it.nick + ' · ' : ''}${(it.bytes / 1e6).toFixed(1)} MB · ${new Date(it.ts).toLocaleString()}`));
+  const b = el('div', 'b');
+  buttons.forEach(([label, cls, action]) => { const x = el('button', cls, label); x.onclick = async () => { x.disabled = true; try { await api('admin/' + action, { method: 'POST', body: JSON.stringify({ id: it.id }) }); load(); } catch (e) { $('msg').textContent = e.message; x.disabled = false; } }; b.appendChild(x); });
+  info.appendChild(b); c.append(m, info);
+  return c;
+}
+async function load(){
+  $('msg').textContent = 'Loading…';
+  try {
+    const [p, a] = await Promise.all([api('admin/pending').then(r => r.json()), fetch(RELAY + '/gallery/list').then(r => r.json())]);
+    $('pending').replaceChildren(...await Promise.all(p.items.map(it => card(it, 'pending', [['Approve', 'ok', 'approve'], ['Reject', 'no', 'reject']]))));
+    $('approved').replaceChildren(...await Promise.all(a.items.map(it => card(it, 'approved', [['Remove', 'no', 'remove']]))));
+    $('msg').textContent = `${p.items.length} waiting, ${a.items.length} published.`;
+  } catch (e) { $('msg').textContent = 'Failed: ' + e.message; }
+}
+$('login').onsubmit = e => { e.preventDefault(); token = $('token').value.trim(); if (token) load(); };
+</script>
+</body>
+</html>

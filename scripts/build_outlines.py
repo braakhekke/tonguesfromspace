@@ -6,6 +6,8 @@ Downloads the Swiss Glacier Inventories 1850, 1973 and 2023 (CC BY 4.0) and the 
 length-change series from GLAMOS, ranks glaciers by area in the newest inventory, matches
 each to its 1850 outline and 1973 area, adds its length-change figures, and writes
 glaciers.js to the repository root, next to index.html. The dashboard picks it up automatically.
+It also adds the GLAMOS volume-change survey of each glacier, the Swiss-wide glacier volume per
+year, and the radar ice thickness (thinned to one mean per 50 m cell, written to thickness.js).
 
     python3 scripts/build_outlines.py              # SGI2023 (newest) vs SGI1850 (oldest)
     python3 scripts/build_outlines.py --top 10 --simplify 8
@@ -19,7 +21,7 @@ which is far below the 10 m pixel size of Sentinel-2.
 When GLAMOS publishes a newer inventory, pass its zip URL with --latest and
 --latest-label (e.g. "SGI2029") and re-run.
 """
-import argparse, csv, io, json, math, os, sqlite3, struct, sys, tempfile, urllib.request, zipfile
+import argparse, csv, hashlib, io, json, math, os, sqlite3, struct, sys, tempfile, urllib.request, zipfile
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
@@ -27,6 +29,10 @@ LATEST_URL = "https://doi.glamos.ch/data/inventory/inventory_sgi2023_r2026.zip"
 OLDEST_URL = "https://doi.glamos.ch/data/inventory/inventory_sgi1850_r1992.zip"
 MID_URL    = "https://doi.glamos.ch/data/inventory/inventory_sgi1973_r1976.zip"
 LENGTH_URL = "https://doi.glamos.ch/data/lengthchange/lengthchange.csv"
+VOLUME_URL = "https://doi.glamos.ch/data/volumechange/volumechange.csv"
+SWISS_URL  = "https://doi.glamos.ch/data/massbalance_swisswide/massbalance_swisswide_2025_r2025.zip"
+THICK_URL  = "https://doi.glamos.ch/data/icethickness/icethickness_2020_r2020.zip"
+BALANCE_URL = "https://doi.glamos.ch/data/massbalance/massbalance_2025_r2025.zip"
 
 SKIP_WORDS = ("debris", "divide", "location", "centre", "center", "line", "point", "surface")
 
@@ -379,6 +385,114 @@ def length_stats(series, since="2016"):
         "series": [[int(r["start"][:4]), int(r["end"][:4]), round(r["dl"], 1)] for r in series],
     }
 
+# ---------------------------------------------------------------- volume change, Swiss-wide volume, radar thickness
+def read_volume_change(src):
+    """GLAMOS volume-change CSV (geodetic, from DEM comparisons) -> {SGI id: [interval, ...]}.
+    Interval = [start year, end year, dV km3, mean thickness change m, geodetic balance m w.e./a, sigma m w.e./a, covered %].
+    The same period can appear with different DEM sources; the one with the larger coverage is kept.
+    All intervals are kept, back to the first elevation model (for Aletsch 1927); the page draws the whole history and picks the newest for its tiles."""
+    text = fetch_bytes(src).decode("utf-8-sig", "replace").splitlines()
+    start = next(i for i, l in enumerate(text) if l.startswith("SGI-ID"))
+    best = {}
+    for r in csv.reader(text[start + 2:]):
+        if len(r) < 14 or not r[0].strip(): continue
+        try:
+            sy, ey = int(r[3][:4]), int(r[4][:4])
+            rec = [sy, ey, round(float(r[9]), 4), round(float(r[10]), 1), round(float(r[11]), 2), round(float(r[12]), 2), round(float(r[13]))]
+        except ValueError: continue
+        if ey <= sy: continue
+        k = (r[0].strip(), sy, ey)
+        if k not in best or rec[6] > best[k][6]: best[k] = rec
+    out = {}
+    for (gid, _, _), rec in best.items(): out.setdefault(gid, []).append(rec)
+    for v in out.values(): v.sort(key=lambda x: (x[1], x[0]))
+    return out
+
+def volume_stats(intervals, ref=2016):
+    """The interval to show for one glacier: the one that ends last (and covers at least 90 %), starting closest to the first satellite year."""
+    ok = [r for r in (intervals or []) if r[6] >= 90 and r[0] >= ref - 2]
+    if not ok: return None
+    last = max(r[1] for r in ok)
+    b = min((r for r in ok if r[1] == last), key=lambda r: (abs(r[0] - ref), -r[6]))
+    return {"from": b[0], "to": b[1], "dV_km3": b[2], "dh_m": b[3], "bal_mwe_a": b[4], "sigma": b[5], "covered_pct": b[6],
+            "series": intervals}
+
+def read_balance(src):
+    """GLAMOS glacier mass balance zip (direct measurements on about 40 glaciers, hydrological year) -> {SGI id: [[year, annual balance mm w.e.], ...]}.
+    The year is the one the hydrological year ends in (autumn of that year)."""
+    zf = load_zip(src)
+    name = next(n for n in zf.namelist() if "fixdate" in n and "elevationbins" not in n and n.endswith(".csv"))
+    text = zf.read(name).decode("utf-8-sig", "replace").splitlines()
+    start = next(i for i, l in enumerate(text) if l.startswith("glacier name"))
+    out = {}
+    for r in csv.reader(text[start + 3:]):
+        if len(r) < 8 or not r[1].strip(): continue
+        try: y, ba = int(r[4][:4]), float(r[7])
+        except ValueError: continue
+        out.setdefault(r[1].strip(), []).append([y, round(ba)])
+    for v in out.values(): v.sort()
+    return out
+
+def read_swisswide(src):
+    """GLAMOS Swiss-wide mass balance zip -> (total Swiss glacier volume per year [[year, km3, change in % against the year before], ...] from 2010,
+    mass balance of all Swiss glaciers per year [[year, mm w.e.], ...] from 1915)."""
+    zf = load_zip(src)
+    name = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
+    text = zf.read(name).decode("utf-8-sig", "replace").splitlines()
+    start = next(i for i, l in enumerate(text) if l.startswith("catchment"))
+    out, bal = [], []
+    for r in csv.reader(text[start + 2:]):
+        if len(r) < 6 or r[0].strip() != "Switzerland": continue
+        try: y, v = int(r[1]), float(r[4])
+        except ValueError: continue
+        try: pct = round(float(r[5]), 2)
+        except ValueError: pct = None
+        try: bal.append([y, round(float(r[3]) * 1000)])       # m w.e. -> mm w.e., like the glacier series
+        except ValueError: pass
+        if y >= 2010: out.append([y, round(v, 3), pct])
+    return out, bal
+
+def read_thickness(src, ids, cell=50):
+    """GLAMOS radar ice thickness zip (ASCII, one file per glacier and source) -> ({id: summary}, {id: [[lat, lng, thickness m, survey year], ...]}).
+    The points of all files of a glacier are thinned to one mean per cell x cell metres so the page can draw them.
+    Every profile has its own survey date (first column, yyyymmdd). A cell keeps the mean thickness of each survey year that touched it:
+    [lat, lng, thickness of the newest year, that year, [[year, thickness], ...] only when the cell was measured in more than one year]."""
+    zf = load_zip(src)
+    wanted = {i: [n for n in zf.namelist() if n.startswith(i + "_") and n.endswith(".txt")] for i in ids}
+    summary, points = {}, {}
+    for gid, names in wanted.items():
+        cells, raw, mx, mx_year, mx_at, years = {}, 0, 0.0, None, None, set()
+        for n in names:
+            for line in zf.read(n).decode("utf-8", "replace").splitlines():
+                if not line or line[0] == "#": continue
+                f = line.split("\t")
+                if len(f) < 9: continue
+                try: e, nn, th = float(f[3]), float(f[4]), float(f[8])
+                except ValueError: continue
+                if th <= 0: continue
+                y = int(f[0][:4]) if f[0][:4].isdigit() and f[0][:4] != "0000" else None
+                raw += 1
+                if th > mx: mx, mx_year, mx_at = th, y, (e, nn)
+                if y: years.add(y)
+                c = cells.setdefault((int(e // cell), int(nn // cell)), [0.0, 0.0, 0.0, 0, {}])
+                c[0] += e; c[1] += nn; c[2] += th; c[3] += 1
+                t = c[4].setdefault(y or 0, [0.0, 0]); t[0] += th; t[1] += 1
+        if not cells: continue
+        pts = []
+        for c in cells.values():
+            lng, lat = to_wgs84(c[0] / c[3], c[1] / c[3])
+            per = sorted((y, round(t[0] / t[1])) for y, t in c[4].items())
+            ny, nm = per[-1]
+            pt = [lat, lng, nm, ny or None]
+            if len(per) > 1: pt.append([[y or None, m] for y, m in per])
+            pts.append(pt)
+        pts.sort()
+        points[gid] = pts
+        lng, lat = to_wgs84(*mx_at)
+        summary[gid] = {"max_m": round(mx), "max_year": mx_year, "max_at": [lat, lng], "n_points": raw, "n_cells": len(pts), "files": len(names),
+                        "years": [min(years), max(years)] if years else None}
+    return summary, points
+
 def inventory_stats(groups, top):
     """How many glaciers the newest inventory lists, how big they are, and the share of the ten largest."""
     areas = [g["area"] for g in groups.values()]
@@ -397,6 +511,20 @@ def previous_terminus(path):
     except (OSError, IndexError, ValueError, KeyError):
         return {}
 
+def thickness_text(pts):
+    return "/* generated by build_outlines.py - do not edit */\nwindow.GLACIER_THICKNESS = " + json.dumps(pts, separators=(",", ":")) + ";\n"
+
+def write_thickness(path, pts):
+    """thickness.js: radar thickness cells per glacier, loaded by the page only when the layer is switched on."""
+    if not pts: return
+    text = thickness_text(pts)
+    try:
+        with open(path, encoding="utf-8") as f:
+            if f.read() == text: return
+    except OSError: pass
+    with open(path, "w", encoding="utf-8") as f: f.write(text)
+    print(f"Wrote {path} ({os.path.getsize(path) / 1024:.0f} kB)")
+
 def main():
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--latest", default=LATEST_URL, help="zip (URL or path) of the newest inventory")
@@ -406,6 +534,10 @@ def main():
     ap.add_argument("--mid", default=MID_URL, help="zip (URL or path) of a middle inventory, for its area only")
     ap.add_argument("--mid-label", default="SGI1973")
     ap.add_argument("--lengthchange", default=LENGTH_URL, help="GLAMOS length-change CSV (URL or path); 'none' to skip")
+    ap.add_argument("--volumechange", default=VOLUME_URL, help="GLAMOS volume-change CSV (URL or path); 'none' to skip")
+    ap.add_argument("--balance", default=BALANCE_URL, help="GLAMOS glacier mass balance zip (URL or path); 'none' to skip")
+    ap.add_argument("--swisswide", default=SWISS_URL, help="GLAMOS Swiss-wide mass balance zip (URL or path); 'none' to skip")
+    ap.add_argument("--thickness", default=THICK_URL, help="GLAMOS radar ice thickness zip (URL or path); 'none' to skip")
     ap.add_argument("--top", type=int, default=10)
     ap.add_argument("--simplify", type=float, default=8, help="outline simplification tolerance in metres")
     here = os.path.dirname(os.path.abspath(__file__))
@@ -438,6 +570,27 @@ def main():
         lc_id, lc_name = read_length_change(a.lengthchange)
         print(f"  {len(lc_id)} glaciers with length-change measurements")
 
+    vc = {}
+    if a.volumechange.lower() != "none":
+        print("Reading volume change")
+        vc = read_volume_change(a.volumechange)
+        print(f"  {len(vc)} glaciers with volume-change surveys")
+    mb = {}
+    if a.balance.lower() != "none":
+        print("Reading annual mass balance")
+        mb = read_balance(a.balance)
+        print(f"  {len(mb)} glaciers with direct mass-balance series")
+    swiss, swiss_bal = [], []
+    if a.swisswide.lower() != "none":
+        print("Reading Swiss-wide glacier volume")
+        swiss, swiss_bal = read_swisswide(a.swisswide)
+        print(f"  {len(swiss)} years, {swiss[0][0]}-{swiss[-1][0]}, last {swiss[-1][1]} km3")
+    th_sum, th_pts = {}, {}
+    if a.thickness.lower() != "none":
+        print("Reading radar ice thickness")
+        th_sum, th_pts = read_thickness(a.thickness, [gid for gid, _ in top])
+        print(f"  {sum(len(v) for v in th_pts.values())} cells for {len(th_pts)} glaciers")
+
     prev = previous_terminus(a.out)
     out = []
     for rank, (gid, g) in enumerate(top, 1):
@@ -451,6 +604,9 @@ def main():
             "center": None, "outline": geojson(g["polys"], a.simplify), "oldest": None,
             "mid": {"area_km2": round(bmid[1]["area"], 2)} if bmid else None,
             "length": length_stats(series),
+            "volume": volume_stats(vc.get(gid)),
+            "radar": th_sum.get(gid),
+            "balance": mb.get(gid),
             "terminus": prev[gid][1] if gid in prev and prev[gid][0] == round(g["area"], 2) else terminus(g["polys"]),
         }
         (s, w), (n, e) = entry["bbox"]; entry["center"] = [round((s + n) / 2, 5), round((w + e) / 2, 5)]
@@ -462,6 +618,8 @@ def main():
         L = entry["length"]
         lc = f"{L['total_m']} m since {L['first_year']}" if L else "not measured"
         T = entry["terminus"]; lc += f" | tip {T['tip_m']} m asl" if T else " | tip not found"
+        V = entry["volume"]
+        lc += f" | dV {V['dV_km3']} km3 {V['from']}-{V['to']}" if V else " | no volume survey"
         print(f"  {rank:2d}. {name:<30} {g['area']:7.2f} km² | {a.oldest_label} "
               f"{entry['oldest']['area_km2'] if entry['oldest'] else '-'} | {a.mid_label} "
               f"{entry['mid']['area_km2'] if entry['mid'] else '-'} | length change {lc}")
@@ -469,11 +627,16 @@ def main():
     payload = {
         "generated": date.today().isoformat(),
         "latest_label": a.latest_label, "oldest_label": a.oldest_label, "mid_label": a.mid_label,
-        "sources": [a.latest, a.oldest, a.mid, a.lengthchange],
-        "licence": "GLAMOS Swiss Glacier Inventories (CC BY 4.0); GLAMOS Swiss Glacier Length Change (scientific and non-commercial use, cite GLAMOS)",
+        "sources": [a.latest, a.oldest, a.mid, a.lengthchange, a.volumechange, a.swisswide, a.thickness, a.balance],
+        "licence": "GLAMOS Swiss Glacier Inventories, Ice Thickness (CC BY 4.0); GLAMOS Swiss Glacier Length Change, Volume Change, Mass Balance and Swisswide Mass Balance (scientific and non-commercial use, cite GLAMOS)",
+        "swiss_volume": swiss,
+        "swiss_balance": swiss_bal,
+        # the page asks for thickness.js?v=<this>, so a rebuilt file is never served from the browser cache
+        "thickness_id": hashlib.md5(thickness_text(th_pts).encode()).hexdigest()[:8] if th_pts else None,
         "inventory": inventory_stats(latest, top),
         "glaciers": out,
     }
+    write_thickness(os.path.join(os.path.dirname(os.path.abspath(a.out)), "thickness.js"), th_pts)
     # Leave the file alone when nothing but the date would change (keeps the git history clean).
     if os.path.exists(a.out):
         try:

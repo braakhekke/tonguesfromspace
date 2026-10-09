@@ -1,4 +1,4 @@
-# Builds glaciers.js from GLAMOS and publishes the site on GitHub Pages.
+# Builds glaciers.js and thickness.js from GLAMOS and publishes the site on GitHub Pages.
 # Runs on every push to main, on the 1st of each month, and on demand (Actions tab -> Run workflow).
 name: Build data and deploy
 
@@ -10,7 +10,7 @@ on:
   workflow_dispatch:
 
 permissions:
-  contents: write      # commit the refreshed glaciers.js
+  contents: write      # commit the refreshed glaciers.js and thickness.js
   pages: write
   id-token: write
 
@@ -28,15 +28,15 @@ jobs:
         with:
           python-version: "3.12"
 
-      - name: Download GLAMOS data and build glaciers.js
+      - name: Download GLAMOS data and build glaciers.js and thickness.js
         id: data
         continue-on-error: true      # if GLAMOS is unreachable, publish with the last committed data
         run: python scripts/build_outlines.py --out glaciers.js
 
-      - name: Commit glaciers.js if it changed
+      - name: Commit glaciers.js and thickness.js if they changed
         if: steps.data.outcome == 'success' && github.event_name != 'pull_request'
         run: |
-          git add glaciers.js
+          git add glaciers.js thickness.js
           if git diff --cached --quiet; then
             echo "glaciers.js unchanged"
           else
@@ -50,11 +50,13 @@ jobs:
         run: |
           mkdir -p _site
           cp index.html _site/
+          cp gallery.html pages.css _site/
           [ -f preview.jpg ] && cp preview.jpg _site/ || true
           mkdir -p _site/images
           for f in images/foryourice.jpg images/preview-social.jpg; do [ -f "$f" ] && cp "$f" _site/images/ || true; done
           mkdir -p _site/fonts && cp fonts/*.woff2 _site/fonts/ && { [ -f fonts/OFL.txt ] && cp fonts/OFL.txt _site/fonts/ || true; }
           [ -f glaciers.js ] && cp glaciers.js _site/ || echo "glaciers.js not available yet"
+          [ -f thickness.js ] && cp thickness.js _site/ || echo "no thickness.js: the radar layer shows nothing"
           [ -f scenes.json ] && cp scenes.json _site/ || echo "no scenes.json: automatic scene choice only"
           touch _site/.nojekyll
 
