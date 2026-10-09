@@ -15,7 +15,7 @@
 <meta property="og:url" content="https://braakhekke.github.io/tonguesfromspace/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://braakhekke.github.io/tonguesfromspace/images/preview-social.jpg">
-<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='12' fill='%2322313A'/><text x='32' y='42' text-anchor='middle' font-family='Arial,Helvetica,sans-serif' font-weight='900' font-size='26' fill='white' letter-spacing='-1'>TfS</text></svg>">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 200%27%3E%3Cdefs%3E%3Cmask id=%27ringcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Ccircle cx=%27164%27 cy=%2736%27 r=%2727%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%275%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Ccircle cx=%27100%27 cy=%27100%27 r=%2790%27 fill=%27none%27 stroke=%27%230A1B33%27 stroke-width=%2710%27 mask=%27url(%23ringcut)%27/%3E%3Cg transform=%27translate(100 100) scale(0.78) translate(-96 -101)%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url(%23mouthcut)%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url(%23groovecut)%27/%3E%3C/g%3E%3Cpath transform=%27translate(164 36) scale(1.65) translate(-164 -36)%27 d=%27M164 24 Q165 35 176 36 Q165 37 164 48 Q163 37 152 36 Q163 35 164 24 Z%27/%3E%3C/g%3E%3C/svg%3E">
 <link rel="preload" href="fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <!--
@@ -53,6 +53,12 @@ button,select,input{font:inherit;color:inherit}
 
 /* ---------- left ---------- */
 .controls{background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
+.brand-top{display:flex;align-items:flex-start;gap:12px;margin:0 0 8px}
+.brand .brand-top h1{margin:0;line-height:1.1}
+.brand h1 .t1{display:block;color:#0A1B33}
+.brand h1 .t2{display:block;color:var(--accent)}
+.brand .brand-top h1::after{margin-top:8px}
+.brand-logo{flex:none;width:56px;height:auto;margin-top:1px}
 .brand h1{font-size:22px;line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.01em;color:var(--accent)}
 .brand h1::after{content:'';display:block;width:42px;height:4px;background:var(--accent);border-radius:2px;margin-top:10px}
 .brand p{margin:0;color:var(--moraine);font-size:13.5px}
@@ -386,6 +392,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 @media (max-width:720px){
   .app{display:flex;flex-direction:column;height:auto}
   .mhead{display:block;order:0;background:var(--sheet);padding:10px 14px 8px;border-bottom:1px solid var(--rule);text-align:center}
+  .mhead-logo{display:inline-block;vertical-align:-6px;height:26px;width:auto;margin-right:8px}
   .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:var(--accent)}
   .mhead{border-top:4px solid var(--accent)}
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
@@ -438,6 +445,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   .mhead{order:0} .controls{order:2} .story{order:3}
   .mhead,.story,.controls{margin-left:58vw}
   .mhead{display:block;padding:8px 14px;text-align:center}
+  .mhead-logo{height:20px;vertical-align:-4px;margin-right:6px}
   .mhead strong{display:block;font-size:15px;font-weight:800}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
   .controls .brand,#glacierList,#rankNote{display:none}
@@ -533,14 +541,17 @@ details.about .note,details.about .src{margin:0 0 8px}
 
   <!-- ================= MOBILE HEADER (phones only) ================= -->
   <header class="mhead" id="mhead">
-    <strong>Tongues from Space - Switzerland</strong>
+    <strong><img class="mhead-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="30" height="28">Tongues from Space - Switzerland</strong>
     <span>Designed to increase glacial awareness - by J. Braakhekke</span>
   </header>
 
   <!-- ================= LEFT ================= -->
   <aside class="controls" aria-label="Settings">
     <div class="brand">
-      <h1>Tongues from Space - Switzerland</h1>
+      <div class="brand-top">
+        <img class="brand-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="52" height="49">
+        <h1><span class="t1">Tongues from Space</span> <span class="t2">Switzerland</span></h1>
+      </div>
       <p>The ten largest Swiss glaciers, as seen from space every summer since 2016.</p>
       <p class="what">Explore, compare, create, and share those tongues!</p>
       <p class="byline">Designed to increase public glacial awareness - by J. Braakhekke.</p>
@@ -1197,8 +1208,16 @@ function pickScene(days){
     .sort((a, b) => (a.cloud - b.cloud) || b.date.localeCompare(a.date));
   return rest.length ? {...rest[0], clear:false} : null;
 }
+/* Scenes chosen with tools/pick-scenes.html: scenes.json in the repository root holds, per glacier (inventory id) and year, the day and orbit. They replace the automatic choice;
+   years that are not in the file still use it. A missing or broken file means the automatic choice everywhere. */
+const SCENES_FILE = fetch('scenes.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null);
+async function curatedScene(g, yr){
+  const file = await SCENES_FILE, entry = file && file.glaciers && g.inv && file.glaciers[g.inv.id], p = entry && entry.picks && entry.picks[yr];
+  return p && /^\d{4}-\d{2}-\d{2}$/.test(p.date) && /^R\d{3}$/.test(p.orbit || '') ? {date: p.date, orbit: p.orbit, cloud: 0, snow: 0, clear: true, curated: true} : null;
+}
 async function findScene(g, yr){
   if (yr === CURRENT_YEAR && new Date() < new Date(`${yr}-07-02T00:00:00Z`)) return null;   // no summer yet
+  const chosen = await curatedScene(g, yr); if (chosen) return chosen;
   const fp = imageFootprint(g), key = `${CDSE.version}|scene|${g.id}|${yr}|${fp.bbox.join(',')}`;
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
@@ -1716,7 +1735,8 @@ function statusLine(){
   const ok = okYears(), missing = YEARS.filter(y => !state.available[y]);
   if (!ok.length) return 'No satellite images available.';
   const cloudy = ok.filter(y => !state.available[y].clear);
-  return `Scenes found for ${ok[0]}–${ok[ok.length-1]}` + (missing.length ? `; none usable for ${missing.join(', ')}` : '') +
+  const picked = ok.filter(y => state.available[y].curated);
+  return (picked.length === ok.length ? `Scenes chosen with the scene picker for ${ok[0]}–${ok[ok.length-1]}` : `Scenes found for ${ok[0]}–${ok[ok.length-1]}`) + (missing.length ? `; none usable for ${missing.join(', ')}` : '') +
     (cloudy.length ? `. No fully clear scene in ${cloudy.join(', ')}, so the least cloudy one is shown.` : '.');
 }
 /* Year labels on the map: year plus the date of the scene */
@@ -1993,7 +2013,8 @@ function renderStory(){
       </div>
       <div class="about-sec"><b>The satellite images</b>
         <p>One Sentinel-2 scene per glacier and year: the clearest view between 1 July and 20 September. Every acquisition is scored for cloud and snow cover; the best September scene wins, otherwise August, otherwise July. The pictures are rendered from Level-1C data with the Copernicus Browser true colour process, which keeps shaded slopes natural.</p>
-        <p>Why not after the 20th: Swiss glacier monitoring counts in glaciological years (1 October to 30 September) and GLAMOS measures at the end of the melt season, so September images match the annual figures. After about 20 September fresh snow often hides the tongue; in 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
+        <p>For some glaciers the scene of each year was chosen with a separate picking tool instead (<code>tools/pick-scenes.html</code>). It scores every acquisition from 1 August to the middle of October for cloud, cloud shadow, mountain shadow, snow and haze, in the bottom 3 km of the tongue and over the whole image, prefers days near 30 September, and keeps one satellite orbit for all years. No cloud, cloud shadow or big mountain shadow is allowed in the bottom 3 km (the limits are loosened only for a year that would otherwise have no scene) and not more than 10 % cloud anywhere in the image.</p>
+        <p>Why not after the 20th (for the automatic choice): Swiss glacier monitoring counts in glaciological years (1 October to 30 September) and GLAMOS measures at the end of the melt season, so September images match the annual figures. After about 20 September fresh snow often hides the tongue; in 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
       </div>
       <div class="about-sec"><b>Sentinel-2</b>
         <p>Two European satellites of the Copernicus programme (2A since 2015, 2B since 2017), looking straight down on a strip 290 km wide.</p>
@@ -2837,9 +2858,21 @@ function shade(ctx, W, H, S){
   g.addColorStop(0, 'rgba(8,14,18,.72)'); g.addColorStop(1, 'rgba(8,14,18,0)');
   ctx.fillStyle = g; ctx.fillRect(0, 0, W, S.top + 260);
 }
+/* The white logo in front of the label "TONGUES FROM SPACE" on pictures and videos; loaded once, drawn as a picture (not text) */
+const LOGO_URL = 'data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%23FFFFFF%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E';   // embedded: the logo folder is not published
+let logoImg = null;
+async function loadLogo(){
+  if (logoImg) return;
+  try { const im = new Image(); im.src = LOGO_URL; await im.decode(); logoImg = im; } catch {}
+}
+function brandLabel(ctx, x, y, size, h){            // logo (h high) and the red label on baseline y; returns nothing, the label font stays set
+  let tx = x;
+  if (logoImg) { const w = h * 200 / 190; ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, x, y - size * 0.36 - h / 2, w, h); ctx.restore(); tx = x + w + h * 0.3; }
+  ctx.font = `700 ${size}px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', tx, y, {blur:8, color:'#FF5A4E'});
+}
 function drawHeader(ctx, S, maxW, g){          // the same title block as the single picture: label, full glacier name, a clear gap, then the place
   const x = S.left;
-  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, S.top + 22, {blur:8, color:'#FF5A4E'});
+  brandLabel(ctx, x, S.top + 22, 24, 44);
   const gs = fitText(ctx, stillName(g), 800, 68, maxW), ny = S.top + 22 + gs + 16;
   shadowText(ctx, stillName(g), x, ny);
   ctx.font = `500 26px ${FONT}`; shadowText(ctx, [g.canton, g.range, 'Switzerland'].filter(Boolean).join(', '), x, ny + 46, {blur:8});
@@ -2866,7 +2899,7 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
     ctx.translate(cx, cy); if (hz) ctx.rotate(Math.PI / 2);
     ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-16, 0); ctx.lineTo(-6, 10); ctx.moveTo(6, -10); ctx.lineTo(16, 0); ctx.lineTo(6, 10); ctx.stroke(); ctx.restore();
   }
-  ctx.font = `800 104px ${FONT}`;
+  ctx.font = `800 69px ${FONT}`;
   if (hz) {          // the first year sits in the upper picture under the title, the later year in the lower picture; each shows only on its own picture
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, split); ctx.clip(); shadowText(ctx, String(info.years[0]), S.left - 4, S.top + 290, {blur:20}); ctx.restore();
     ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip(); shadowText(ctx, String(info.years[1]), S.left - 4, base - 66, {blur:20}); ctx.restore();
@@ -2877,7 +2910,7 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
   ctx.font = `500 21px ${FONT}`; shadowText(ctx, styleLine(info.style), S.left, base - 30, {blur:8, color:'rgba(255,255,255,.9)'});
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${Math.min(...info.years)} and ${Math.max(...info.years)}`, S.left, base, {blur:6, color:'rgba(255,255,255,.88)'});
-  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
+  ctx.font = `500 19px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
   drawScaleBar(ctx, info, W - S.right - niceScale(Math.min(maxW * 0.28, 300) * info.res) / info.res, S.top + 30, maxW);      // top right, level with the title label: clear of the long glacier name below
 }
 /* the date and, after a bullet, what the picture is: Sentinel-2, the colour style and its bands, on one line */
@@ -2901,28 +2934,40 @@ function drawLabels(ctx, W, H, S, info, k){
   const base = H - S.bottom;
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0] === info.years[info.years.length - 1] ? info.years[0] : `${info.years[0]}–${info.years[info.years.length - 1]}`}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, {blur:6, color:'rgba(255,255,255,.88)'});
-  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, S.top + 22, {align:'right', blur:8});      // top right: the long credit line owns the bottom
+  const blockW = scaleSiteSize(ctx, info, maxW).w;
+  ctx.font = `600 22px ${FONT}`; const dw0 = ctx.measureText(fmtDM(sc.date)).width; ctx.font = `500 22px ${FONT}`;
+  const dateW = dw0 + ctx.measureText(` · ${styleLine(info.style)}`).width;
+  drawScaleSite(ctx, info, W, S, maxW, base, dateW + 28 > maxW - blockW ? 34 : 0);      // bottom right, on the credit line; the bar rises above the date line when that is long
   dateLine(ctx, fmtDM(sc.date), info.style, x, base - 42, {blur:8});
-  const dotsY = base - 42 - 50, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
+  const dotsY = base - 42 - 50, dw = Math.min(64, (maxW - blockW - 28 - 8 * (info.years.length - 1)) / info.years.length);      // the dots stop short of the scale bar
   info.years.forEach((y, i) => {
     ctx.fillStyle = i <= k ? '#fff' : 'rgba(255,255,255,.32)';
     ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x + i * (dw + 8), dotsY, dw, 8, 4) : ctx.rect(x + i * (dw + 8), dotsY, dw, 8); ctx.fill();
   });
-  ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, dotsY - 30, {blur:20});
-  // scale bar, right, level with the date
-  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 130;
+  ctx.font = `800 85px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, dotsY - 26, {blur:20});
+}
+/* Bottom right: the site name on the credit line, flush with the right margin, with the scale bar centred above it (the block is as wide as the wider of the two).
+   lift raises the bar further when the date line beside it is too long to share the row. */
+function scaleSiteSize(ctx, info, maxW){
+  ctx.font = `500 19px ${FONT}`; const tw = ctx.measureText(SITE_NAME).width;
+  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res;
+  return { tw, m, px, w: Math.max(tw, px) };
+}
+function drawScaleSite(ctx, info, W, S, maxW, yText, lift = 0){
+  const z = scaleSiteSize(ctx, info, maxW), cx = W - S.right - z.w / 2, y = yText - 38 - lift;
+  ctx.font = `500 19px ${FONT}`; shadowText(ctx, SITE_NAME, cx, yText, {align:'center', blur:8});
   ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
-  ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
-  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, {align:'center', blur:8});
+  ctx.fillRect(cx - z.px / 2, y, z.px, 6); ctx.fillRect(cx - z.px / 2, y - 14, 4, 20); ctx.fillRect(cx + z.px / 2 - 4, y - 14, 4, 20); ctx.restore();
+  ctx.font = `600 22px ${FONT}`; shadowText(ctx, z.m >= 1000 ? `${z.m / 1000} km` : `${z.m} m`, cx, y - 20, {align:'center', blur:8});
 }
 function drawIntro(ctx, W, H, S, info){
   ctx.fillStyle = 'rgba(8,14,18,.55)'; ctx.fillRect(0, 0, W, H);
   const x = S.left, maxW = W - S.left - S.right, g = info.glacier, mid = S.top + (H - S.top - S.bottom) * 0.42;
-  ctx.font = `700 27px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, mid - 120, {blur:8, color:'#FF5A4E'});
+  brandLabel(ctx, x, mid - 120, 27, 52);
   const gs = fitText(ctx, stillName(g), 800, 84, maxW), ny = mid - 120 + gs + 24; shadowText(ctx, stillName(g), x, ny);
   ctx.font = `500 30px ${FONT}`; shadowText(ctx, [g.canton, g.range, 'Switzerland'].filter(Boolean).join(', '), x, ny + 56, {blur:8});
   ctx.font = `500 34px ${FONT}`; shadowText(ctx, info.compare ? `${info.years[0]} and ${info.years[1]}` : `Satellite images ${info.years[0]} to ${info.years[info.years.length - 1]}`, x, ny + 122);
-  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom, {blur:8});
+  ctx.font = `500 22px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom, {blur:8});
 }
 function waterIcon(ctx, kind, x, y, s){
   ctx.save();
@@ -2977,7 +3022,7 @@ function drawEndSlide(ctx, W, H, S, info){
                   'Tap water: SVGW'].filter(Boolean).join(' · ');
   const lines = wrap(ctx, credit, S.left, base, W - S.left - S.right - 300, lh);
   lines.forEach((l, i) => shadowText(ctx, l.t, S.left, base - (lines.length - 1 - i) * lh, {blur:4, color:'rgba(255,255,255,.72)'}));
-  ctx.font = `700 26px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
+  ctx.font = `500 17px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
 }
 function drawOutro(ctx, W, H, S, info){            // plain closing card: credits and the site
   ctx.fillStyle = 'rgba(8,14,18,.74)'; ctx.fillRect(0, 0, W, H);
@@ -2987,7 +3032,8 @@ function drawOutro(ctx, W, H, S, info){            // plain closing card: credit
   const lines = [`Satellite images: contains modified Copernicus Sentinel data ${info.compare ? `${info.years[0]} and ${info.years[1]}` : `${info.years[0]}–${info.years[info.years.length - 1]}`}, Copernicus Data Space Ecosystem`,
                  info.outline ? 'Glacier outline: GLAMOS, Swiss Glacier Inventory 1850' : ''].filter(Boolean);
   lines.forEach(t => wrap(ctx, t, x, y, maxW, 31).forEach(l => { shadowText(ctx, l.t, x, l.y, {blur:6, color:'rgba(255,255,255,.9)'}); y = l.y + 44; }));
-  ctx.font = `700 31px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom - 10);
+  if (logoImg) { const lh = 90; ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, x, H - S.bottom - 10 - 31 - 24 - lh, lh * 200 / 190, lh); ctx.restore(); }
+  ctx.font = `500 23px ${FONT}`; shadowText(ctx, SITE_NAME, x, H - S.bottom - 10);
 }
 function wrap(ctx, text, x, y, maxW, lh){
   const words = text.split(' '), out = []; let line = '';
@@ -3011,7 +3057,7 @@ async function frameBases(ys, W, H){
   const se = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x + r.w, r.y + r.h]));
   const crop = { x0: nw.x, x1: se.x, y1: nw.y, fp };
   const outline = $('vOutline').checked && g.inv && g.inv.oldest ? g.inv.oldest.outline : null;
-  await Promise.all(['600 30px', '800 120px', '500 30px', '700 40px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {})));
+  await Promise.all([loadLogo(), ...['600 30px', '800 120px', '500 30px', '700 40px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))]);
 
   // images of all years (most are cached already), decoded one after the other with createImageBitmap: robust also on phones
   let done = 0;
@@ -3061,20 +3107,16 @@ function drawStill(ctx, W, H, info, water, S){
   shade(ctx, W, H, { top: Math.min(S.top, 120), bottom: Math.min(S.bottom, 120) });
   ctx.textBaseline = 'alphabetic';
   // top
-  ctx.font = `700 24px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', x, S.top + 22, { blur: 8, color: '#FF5A4E' });
+  brandLabel(ctx, x, S.top + 22, 24, 44);
   const gs = fitText(ctx, stillName(g), 800, 68, maxW), ny = S.top + 22 + gs + 16;
   shadowText(ctx, stillName(g), x, ny);
   ctx.font = `500 26px ${FONT}`; shadowText(ctx, [g.canton, g.range, 'Switzerland'].filter(Boolean).join(', '), x, ny + 46, { blur: 8 });
   // bottom
   const base = H - S.bottom, sc = info.scenes[k];
   ctx.font = `500 19px ${FONT}`; shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0]}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, { blur: 6, color: 'rgba(255,255,255,.88)' });
-  ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, { align: 'right', blur: 8 });
+  drawScaleSite(ctx, info, W, S, maxW, base);
   dateLine(ctx, fmtDM(sc.date), info.style, x, base - 42, { blur: 8 });
   ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, base - 42 - 38, { blur: 20 });
-  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 130;
-  ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
-  ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
-  ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, { align: 'center', blur: 8 });
   // water facts: a quiet panel above the year, as wide as its text; the user can drag it
   if (water) {
     const P = waterPanel(ctx, W, H, S, water), n = waterNumbers(water.km3), tx = P.x + 20;

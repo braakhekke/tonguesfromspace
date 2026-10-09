@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pick scenes: Tongues from Space</title>
+<style>
+:root{color-scheme:dark;--bg:#10181d;--surface:#1a1a19;--line:#2e2e2b;--txt:#fff;--txt2:#c3c2b7;--muted:#8c8b84;--accent:#FF5A4E;--ok:#4fc08d;--warn:#f0b429}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:13px/1.45 -apple-system,"Helvetica Neue",Arial,sans-serif;padding:14px 18px 60px}
+h1{font-size:14px;margin:0 0 2px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+h2{font-size:13px;margin:20px 0 6px;text-transform:uppercase;letter-spacing:.05em}
+p.sub{color:var(--txt2);margin:2px 0 10px;max-width:920px}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:end;margin:8px 0}
+label{display:block;color:var(--txt2);font-size:11.5px;margin-bottom:2px}
+select,input,button{padding:6px 10px;background:#0e161b;color:var(--txt);border:1px solid var(--line);border-radius:6px;font:inherit}
+input[type=range]{padding:0}
+button{cursor:pointer;background:#22333d} button:hover{background:#2b4250} button:disabled{opacity:.4;cursor:default}
+button.go{background:var(--accent);border-color:var(--accent);font-weight:700}
+#status{color:var(--txt2);min-height:18px;margin:6px 0} #err{color:#f19a8f;white-space:pre-wrap}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px}
+table{border-collapse:collapse;font-size:12.5px;width:100%} th,td{padding:5px 10px;text-align:left;border-bottom:1px solid var(--line);white-space:nowrap} th{color:var(--txt2);font-weight:600}
+tr.orb{cursor:pointer} tr.orb:hover{background:#222} tr.orb.on{background:#2a2418;outline:1px solid var(--warn)}
+.best{color:var(--ok);font-weight:700}
+.layout{display:grid;grid-template-columns:minmax(0,4fr) minmax(0,5fr);gap:18px;align-items:start}
+@media(max-width:1100px){.layout{grid-template-columns:1fr}}
+#viewer{position:relative;background:#0b1114;border-radius:10px;overflow:hidden}
+#viewer canvas{display:block;width:100%;height:auto}
+#cap{position:absolute;left:16px;top:10px;text-shadow:0 1px 14px rgba(0,0,0,.8);pointer-events:none}
+#cap b{display:block;font-size:clamp(30px,5vw,60px);line-height:1;font-weight:800;letter-spacing:-.03em}
+#cap span{display:block;margin-top:5px;font-size:13px}
+#sheet{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:10px}
+.yc{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px}
+.yc h3{margin:0 0 4px;font-size:15px;display:flex;justify-content:space-between;align-items:baseline}
+.yc h3 small{font-weight:400;color:var(--muted);font-size:11px}
+.yc img.main{display:block;width:100%;border-radius:6px;cursor:pointer;background:#0b1114;min-height:60px}
+.yc .nums{font-size:11.5px;color:var(--txt2);margin:4px 0}
+.yc .flag{color:var(--warn)} .yc .star{color:var(--accent)}
+.alts{display:grid;grid-template-columns:repeat(3,1fr);gap:4px}
+.alts div{font-size:10.5px;color:var(--muted);text-align:center;cursor:pointer}
+.alts img{display:block;width:100%;border-radius:4px;opacity:.75;border:1px solid transparent}
+.alts div:hover img{opacity:1;border-color:var(--txt2)}
+.yc.none{opacity:.55}
+.key{color:var(--txt2);font-size:11.5px;margin:6px 0 0;max-width:920px}
+</style>
+</head>
+<body>
+<h1>Pick scenes</h1>
+<p class="sub">One frame per year for a glacier timelapse. Every Sentinel-2 acquisition between 1 August and the end date is scored over the <b>tongue window</b> (the area within a radius of the tongue tip, cut to the image area of the site): cloud, cloud shadow, thin cirrus, snow, and haze (aerosol optical thickness), with a preference for scenes near 30 September, the end of the glaciological year. A hard rule keeps out every scene with cloud, cloud shadow or a big mountain shadow in the bottom 3 km of the tongue, and every scene with much cloud anywhere in the image (the limits are set next to the Search button). An orbit with a year that has no scene is marked incomplete and cannot be the lowest-cost orbit. Pictures are also compared with the other pictures of the same orbit, which catches what the numbers miss (haze, shadows, snow patches on the rock around the glacier). For every orbit the tool finds the date of the year that gives the tightest, cleanest timelapse; you choose the orbit and swap single years. The result is saved as <code>scenes.json</code>.</p>
+<div class="row">
+  <div><label for="gl">Glacier</label><select id="gl"></select></div>
+  <div><label for="rad">Tongue window radius: <b id="radOut">3</b> km</label><input id="rad" type="range" min="1" max="8" step="0.5" value="3" style="width:150px"></div>
+  <div><label for="endDay">Latest day</label><select id="endDay"></select></div>
+  <div><label for="dateW">Same date every year: <b id="dateOut">ignore</b></label><input id="dateW" type="range" min="0" max="3" step="1" value="0" style="width:120px"></div>
+  <div><label for="ruleOn"><input type="checkbox" id="ruleOn" checked> Bottom 3 km of the tongue: at most</label><span style="color:var(--txt2)"><input id="ruleCloud" type="number" min="0" max="20" step="0.5" value="1" style="width:60px"> % cloud or cloud shadow, <input id="ruleDark" type="number" min="0" max="50" step="1" value="10" style="width:60px"> % mountain shadow (both loosen if a year would stay empty)</span></div>
+  <div><label for="ruleImg">Whole image: at most (never loosened)</label><span style="color:var(--txt2)"><input id="ruleImg" type="number" min="0" max="100" step="1" value="10" style="width:60px"> % cloud, shadow or cirrus, also upstream</span></div>
+  <button id="run" class="go">Search</button>
+  <button id="save" disabled title="Keep this glacier's choice in the browser and in scenes.json">Save choice</button>
+  <button id="download" title="Download scenes.json with all saved glaciers">Download scenes.json</button>
+</div>
+<div id="status">Choose a glacier and press Search.</div><div id="err"></div>
+
+<h2>Orbits</h2>
+<div class="card"><table id="orbits"><tr><td>No search yet.</td></tr></table>
+<p class="key">For each orbit: the best day of the year (every year then takes the best scene near that day), how many years have a usable scene, how far apart the dates lie, and the average tongue snow, cloud and anomaly of the chosen frames. The cost adds up all scores (lower is better); a missing year counts as a bad frame. Click an orbit to use it.</p></div>
+
+<div class="layout">
+  <div><h2>Timelapse</h2>
+    <div id="viewer"><canvas id="cv"></canvas><div id="cap"><b id="yr"></b><span id="dt"></span></div></div>
+    <div class="row"><button id="play">Play</button><div><label for="fps">Speed</label><input id="fps" type="range" min="0.5" max="4" step="0.25" value="1.25" style="width:120px"></div></div>
+  </div>
+  <div><h2>One frame per year</h2><div id="sheet"></div>
+    <p class="key">Large picture = the pick. Small pictures = the next best scenes of the same orbit: click one to use it instead. ⚠ = the picture differs from the other pictures of this orbit more than usual (haze, shadow, snow on the rock). ★ = your earlier hand pick from <code>experiments/late-season/picks/</code>.</p></div>
+</div>
+
+<script src="../glaciers.js"></script>
+<script src="../config.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+const DATA = window.GLACIER_DATA;
+const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
+const CURRENT_YEAR = new Date().getUTCFullYear(), YEARS = Array.from({length: CURRENT_YEAR - 2015}, (_, i) => 2016 + i);
+const START = '08-01';                                          // earliest day of a candidate
+const R = 6378137, merc = (lon, lat) => [R * lon * Math.PI / 180, R * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))];
+const unmerc = (x, y) => [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
+const CRS = 'http://www.opengis.net/def/crs/EPSG/0/3857';
+const dayNum = d => Math.round(Date.UTC(+d.slice(0, 4), +d.slice(5, 7) - 1, +d.slice(8, 10)) / 864e5);
+const doy = d => dayNum(d) - dayNum(d.slice(0, 4) + '-01-01');                  // day of the year, 0 = 1 January
+const doyLabel = n => new Date(Date.UTC(2023, 0, 1 + Math.round(n))).toLocaleDateString('en-GB', {day: 'numeric', month: 'short', timeZone: 'UTC'});
+const fmtDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'});
+const fmtShort = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day: 'numeric', month: 'short', timeZone: 'UTC'});
+const median = a => { const s = a.slice().sort((x, y) => x - y), n = s.length; return n ? (n % 2 ? s[(n - 1) / 2] : (s[n / 2 - 1] + s[n / 2]) / 2) : 0; };
+const mad = a => { const m = median(a); return median(a.map(x => Math.abs(x - m))) * 1.4826; };
+const pct = x => Math.round(x * 100) + ' %';
+
+/* ---------- relay ---------- */
+let queueN = 0; const queue = [];
+const pump = () => { while (queueN < 3 && queue.length) { queueN++; const j = queue.shift(); j().finally(() => { queueN--; pump(); }); } };
+const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); pump(); });
+async function relay(route, body, accept){
+  for (let a = 0; ; a++) {
+    let r; try { r = await fetch(`${RELAY}/cdse/${route}`, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: accept }, body: JSON.stringify(body) }); }
+    catch (e) { if (a < 4) { await new Promise(s => setTimeout(s, 2000 * (a + 1))); continue; } throw new Error('no connection to the relay'); }
+    if (r.ok) return r;
+    const t = await r.text();
+    if ((r.status >= 500 || r.status === 429) && a < 7) {
+      const asked = +r.headers.get('Retry-After') * 1000 || 0;
+      await new Promise(s => setTimeout(s, Math.min(40000, Math.max(asked, 3000 * 2 ** a)) + Math.random() * 1000)); continue;
+    }
+    const e = new Error(`HTTP ${r.status}: ${t.replace(/<[^>]+>/g, ' ').slice(0, 400)}`); e.text = t; e.status = r.status; throw e;
+  }
+}
+
+/* ---------- scene statistics ---------- */
+/* Per day and per orbit (slots A and B, as on the site) over the area: nine numbers, each a mean over the pixels that a scene covers (pixels outside the
+   area or without any scene are left out through the output dataMask; so a window polygon works):
+   valid (the scene of this orbit covers the pixel), cloud (SCL 8, 9), cloud shadow (3), thin cirrus (10), snow (11), aerosol optical thickness (haze),
+   the cloud mask of Sentinel Hub's second detector (CLM), the sun's zenith angle, dark area pixels (SCL 2: terrain shadow and other dark ground). Divided by valid they are the share of the covered area (AOT and sun: the average). The orbit number comes in the output "orb". The text must stay under 2000 characters (Worker). */
+const STATS_SCRIPT = `//VERSION=3
+function setup(){ return { input:[{ bands:["SCL","AOT","CLM","sunZenithAngles","dataMask"] }], mosaicking:"TILE",
+  output:[{ id:"A", bands:9, sampleType:"FLOAT32" }, { id:"B", bands:9, sampleType:"FLOAT32" }, { id:"orb", bands:2, sampleType:"FLOAT32" }, { id:"dataMask", bands:1 }] }; }
+var ORB = [], OA = 0, OB = 0;
+function preProcessScenes(c){ ORB = c.scenes.tiles.map(function(t){ var m = /_R(\\d{3})_/.exec(JSON.stringify(t)); return m ? +m[1] : 0; }); OA = ORB[0] || 0; OB = 0; for (var i = 1; i < ORB.length; i++) if (ORB[i] && ORB[i] !== OA) { OB = ORB[i]; break; } return c; }
+function evaluatePixel(ss){
+  var a = [0,0,0,0,0,0,0,0,0], b = [0,0,0,0,0,0,0,0,0], any = 0;
+  for (var i = 0; i < ss.length; i++) { var x = ss[i]; if (x.dataMask != 1 || x.SCL == 0) continue; any = 1; var t = ORB[i] === OA ? a : ORB[i] === OB ? b : null;
+    if (t && !t[0]) { var s = x.SCL; t[0] = 1; t[1] = (s == 8 || s == 9) ? 1 : 0; t[2] = s == 3 ? 1 : 0; t[3] = s == 10 ? 1 : 0; t[4] = s == 11 ? 1 : 0; t[5] = x.AOT; t[6] = x.CLM; t[7] = x.sunZenithAngles; t[8] = s == 2 ? 1 : 0; } }
+  return { A:a, B:b, orb:[OA, OB], dataMask:[any] };
+}`;
+/* the picture: Copernicus Browser true colour process of the Level-1C scene, of one orbit only */
+const COP_SCRIPT = orbit => `//VERSION=3
+var maxR = 3, midR = 0.13, sat = 1.3, gamma = 2.3, gOff = 0.01;
+var gOffPow = Math.pow(gOff, gamma), gOffRange = Math.pow(1 + gOff, gamma) - gOffPow;
+function setup(){ return { input:["B04","B03","B02","dataMask"], mosaicking:"TILE", output:{ bands:3 } }; }
+function preProcessScenes(c){ c.scenes.tiles = c.scenes.tiles.filter(function(x){ return JSON.stringify(x).indexOf("_${orbit}_") >= 0; }); return c; }
+function clip(s){ return s < 0 ? 0 : s > 1 ? 1 : s; }
+function adj(a, tx, ty, maxC){ var ar = clip(a / maxC); return ar * (ar * (tx / maxC + ty - 1) - ty) / (ar * (2 * tx / maxC - 1) - tx / maxC); }
+function adjGamma(b){ return (Math.pow(b + gOff, gamma) - gOffPow) / gOffRange; }
+function sAdj(a){ return adjGamma(adj(a, midR, 1, maxR)); }
+function sRGB(c){ return c <= 0.0031308 ? 12.92 * c : 1.055 * Math.pow(c, 0.41666666666) - 0.055; }
+function evaluatePixel(ss){
+  var p = ss[0] || { dataMask:0 }; for (var i = 0; i < ss.length; i++) if (ss[i].dataMask == 1) { p = ss[i]; break; }
+  if (!p.dataMask) return [0.11, 0.16, 0.19];
+  var lr = sAdj(p.B04 - 0.013), lg = sAdj(p.B03 - 0.024), lb = sAdj(p.B02 - 0.041);
+  var avg = (lr + lg + lb) / 3 * (1 - sat);
+  return [sRGB(clip(avg + lr * sat)), sRGB(clip(avg + lg * sat)), sRGB(clip(avg + lb * sat))];
+}`;
+
+/* ---------- the areas: the image area of the site (red box) and the tongue window ---------- */
+const norm = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+function siteFootprint(g){               // the same rules as imageFootprint() in index.html
+  let [[s, w], [n, e]] = g.bbox;
+  const o = g.oldest && g.oldest.outline;
+  if (o) o.coordinates.forEach(poly => poly[0].forEach(([x, y]) => { if (y < s) s = y; if (y > n) n = y; if (x < w) w = x; if (x > e) e = x; }));
+  const dy = (n - s) * 0.33, dx = (e - w) * 0.33; let S = s - dy, W = w - dx, N = n + dy, E = e + dx;       // IMAGE_MARGIN 0.33
+  if (norm(g.name).includes('aletsch')) { const H = (n - s) / (1 - 0.08 - 0.07); S = s - 0.07 * H; N = n + 0.08 * H; }     // NS_MARGIN
+  if (norm(g.name).includes('findel')) N += (N - S) * 0.15;                                                              // EXTRA_NORTH
+  if (norm(g.name).includes('rhone')) { const d = 2000 / (111320 * Math.cos((S + N) / 2 * Math.PI / 180)); W -= d; E += d; }      // EXTRA_EW
+  const a = merc(W, S), b = merc(E, N);
+  return [a[0], a[1], b[0], b[1]].map(Math.round);
+}
+function tongueWindow(g, fp, km){       // circle around the tongue tip, cut to the red box; as a Web Mercator polygon
+  const [lat, lon] = g.terminus ? g.terminus.tip : g.center;
+  const [w, s] = unmerc(fp[0], fp[1]), [e, n] = unmerc(fp[2], fp[3]);
+  let poly = turf.circle([lon, lat], km, { steps: 64, units: 'kilometers' });
+  try { const box = turf.bboxPolygon([w, s, e, n]), cut = turf.intersect(poly, box); if (cut) poly = cut; } catch {}
+  const proj = c => typeof c[0] === 'number' ? merc(c[0], c[1]).map(Math.round) : c.map(proj), coords = proj(poly.geometry.coordinates);
+  const pts = JSON.stringify(coords).match(/-?\d+,-?\d+/g).map(t => t.split(',').map(Number)), xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  return { bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], geometry: { type: poly.geometry.type, coordinates: coords } };
+}
+
+/* ---------- state ---------- */
+let G = null, gen = 0, timer = null, cur = 0;
+const PICKS = {};       // earlier hand picks: glacier id -> Set of "date|orbit"
+const DATE_WEIGHT = [0, 0.004, 0.012, 0.03], DATE_NAME = ['ignore', 'low', 'medium', 'strict'];     // cost per day away from the common day of the year
+const W = { cloud: 1, shadow: 1, cirrus: 0.5, snow: 1, snowBox: 2, cloudBox: 2, centre: 0.01, aot: 0.1, anomaly: 0.15, miss: 1.5 };      // cost weights; aot and anomaly are in "typical deviations" (robust z-scores), the others are shares of the tongue window or of the whole image area (Box); centre = cost per day away from 30 September, the end of the glaciological year. Tuned on the hand picks of Aletsch: of the 19 that lie before 15 October it agrees exactly with 15 and within 5 days with 17
+const imgSize = fp => { const w = fp[2] - fp[0], h = fp[3] - fp[1], k = 480 / Math.max(w, h); return [Math.round(w * k), Math.round(h * k)]; };
+
+/* ---------- search ---------- */
+async function statsYear(bnd, y, res){
+  const run = b => queued(() => relay('statistics', {
+    input: { bounds: { ...b, properties: { crs: CRS } }, data: [{ type: 'sentinel-2-l2a', dataFilter: { mosaickingOrder: 'leastCC' } }] },
+    aggregation: { timeRange: { from: `${y}-07-01T00:00:00Z`, to: `${y}-11-01T00:00:00Z` }, aggregationInterval: { of: 'P1D' }, evalscript: STATS_SCRIPT, resx: res, resy: res } }, 'application/json')).then(r => r.json());
+  let j;
+  try { j = await run(bnd); }
+  catch (e) { if (e.status === 400 && /geometry/i.test(e.text || e.message) && bnd.geometry) j = await run({ bbox: bnd.bbox }); else throw e; }
+  const out = [];
+  (j.data || []).forEach(d => {
+    try {
+      const date = d.interval.from.slice(0, 10), o = d.outputs, m = (k, i) => o[k].bands['B' + i].stats.mean;
+      ['A', 'B'].forEach((k, si) => {
+        const valid = m(k, 0), orb = Math.round(m('orb', si));
+        if (!(valid > 0) || !orb) return;
+        const st = o[k].bands.B0.stats, cov = (1 - st.noDataCount / st.sampleCount) * valid;       // share of the area that this orbit's scene covers (meaningful for a plain box)
+        out.push({ date, orbit: 'R' + String(orb).padStart(3, '0'), valid, cov, cloud: Math.max(m(k, 1), m(k, 6)) / valid, cloudScl: m(k, 1) / valid, cloudClm: m(k, 6) / valid, shadow: m(k, 2) / valid, cirrus: m(k, 3) / valid, snow: m(k, 4) / valid, aot: m(k, 5) / valid, sun: m(k, 7) / valid, dark: m(k, 8) / valid });
+      });
+    } catch {}
+  });
+  return out;
+}
+const cloudiness = c => c.cloud + c.shadow + c.cirrus;
+async function search(){
+  const my = ++gen, g = DATA.glaciers.find(x => x.id === $('gl').value), km = +$('rad').value, endDay = $('endDay').value;
+  stopPlay(); $('err').textContent = ''; $('run').disabled = true; $('save').disabled = true;
+  const fp = siteFootprint(g), win = tongueWindow(g, fp, km), win3 = km === 3 ? win : tongueWindow(g, fp, 3);        // win3: the bottom 3 km of the tongue, for the hard rule
+  const res = 40, boxRes = Math.max(res * 2, Math.ceil(Math.max(fp[2] - fp[0], fp[3] - fp[1]) / 250));
+  G = { g, fp, km, endDay, win, all: [], cand: [], orbitList: [], bmp: {}, url: {}, pick: {}, orbit: null, my, count: { raw: 0, full: 0, boxed: 0 } };
+  $('status').textContent = 'Searching all scenes…'; render();
+  let done = 0; const total = YEARS.length;
+  let years;
+  try { years = await Promise.all(YEARS.map(async y => {
+    const [tw, box, t3] = await Promise.all([statsYear(win, y, res), statsYear({ bbox: fp }, y, boxRes), win3 === win ? null : statsYear(win3, y, res)]);
+    const near = new Map((t3 || tw).map(c => [c.date + '|' + c.orbit, c]));
+    if (my !== gen) return [];
+    $('status').textContent = `Searching all scenes… ${++done} of ${total} years`;
+    const cover = new Map(box.map(b => [b.date + '|' + b.orbit, b]));
+    const inWin = tw.filter(c => c.date.slice(5) >= START && c.date.slice(5) <= endDay), full = inWin.filter(c => c.valid > 0), boxed = full.filter(c => ((cover.get(c.date + '|' + c.orbit) || {}).cov || 0) >= 0.999);
+    G.count.raw += inWin.length; G.count.full += full.length; G.count.boxed += boxed.length; if (!G.sample && tw.length) G.sample = { tw: tw.slice(0, 2), box: box.slice(0, 2) };
+    return boxed.map(c => { const b = cover.get(c.date + '|' + c.orbit), n = near.get(c.date + '|' + c.orbit) || c; return { ...c, nearCloud: n.cloud + n.shadow + n.cirrus, nearDark: n.dark, snowBox: b.snow, cloudBox: b.cloud + b.shadow + b.cirrus, year: +c.date.slice(0, 4), key: c.date + '|' + c.orbit }; });
+  }));
+  } catch (e) {
+    if (my !== gen) return;
+    const quota = /INSUFFICIENT_PROCESSING_UNITS/.test(e.text || e.message || '');
+    $('status').textContent = quota ? 'Copernicus says the relay\'s account has no processing units or requests left (HTTP 403). Wait, or add a second account to the Worker (CDSE_CLIENT_ID_2 and CDSE_CLIENT_SECRET_2).' : 'The search failed: ' + (e.message || e);
+    $('run').disabled = false; return;
+  }
+  if (my !== gen) return;
+  G.all = years.flat();
+  if (!G.all.length) { $('status').textContent = `No usable scene: ${G.count.raw} scenes in the date window, ${G.count.full} cover the tongue window, ${G.count.boxed} also cover the whole image area.`; $('err').textContent = JSON.stringify(G.sample || null); $('run').disabled = false; return; }
+  await rebuild(my);
+}
+/* the hard rule: in the bottom 3 km of the tongue no cloud or cloud shadow (SCL 3, 8, 9, 10 or the second cloud detector) and no big mountain shadow (SCL 2, dark ground) */
+const rule = () => ({ on: $('ruleOn').checked, cloud: +$('ruleCloud').value / 100, dark: +$('ruleDark').value / 100, img: +$('ruleImg').value / 100 });
+const passes = (c, r) => !r.on || (c.nearCloud <= r.cloud && c.nearDark <= r.dark && c.cloudBox <= r.img);       // img: cloud, cloud shadow and cirrus anywhere in the image (upstream on the glacier); never relaxed
+/* A year without a passing scene is not allowed: for every orbit and year the limits are loosened step by step (1 point of cloud and 3 points of mountain shadow per step)
+   until at least one scene passes. The scenes of such a year are marked "relaxed". */
+const RELAX_STEP = { cloud: 0.01, dark: 0.03 }, RELAX_MAX = 30;
+async function rebuild(my){
+  const r = rule(), pre = c => cost(c), groups = new Map();
+  G.all.filter(c => cloudiness(c) <= 0.4).forEach(c => { const k = c.year + '|' + c.orbit; (groups.get(k) || groups.set(k, []).get(k)).push(c); });
+  G.cand = []; G.relaxed = 0; G.dropped = 0;
+  groups.forEach(list => {
+    let k = 0, good = list.filter(c => passes(c, r));
+    if (r.on) while (!good.length && k < RELAX_MAX) { k++; const q = { on: true, img: r.img, cloud: r.cloud + k * RELAX_STEP.cloud, dark: r.dark + k * RELAX_STEP.dark }; good = list.filter(c => passes(c, q)); }
+    if (k) G.relaxed++;
+    G.dropped += list.length - good.length;
+    // keep the promising ones: at most 4 per orbit and year
+    good.sort((a, b) => pre(a) - pre(b)).slice(0, 4).forEach(c => { c.relax = k; c.limits = { cloud: r.cloud + k * RELAX_STEP.cloud, dark: r.dark + k * RELAX_STEP.dark }; G.cand.push(c); });
+  });
+  G.orbitList = [...new Set(G.cand.map(c => c.orbit))].sort();
+  $('status').textContent = `${G.all.length} scenes in the window, ${G.dropped} fail the bottom-3-km rule, ${G.cand.length} candidates. Loading pictures…`;
+  await loadPictures(my);
+  if (my !== gen) return;
+  anomalies(); choose(); $('run').disabled = false; $('save').disabled = false;
+  $('status').textContent = `${G.cand.length} candidates in ${G.orbitList.length} orbit${G.orbitList.length === 1 ? '' : 's'} (${G.dropped} scenes fail the bottom-3-km rule${G.relaxed ? `; in ${G.relaxed} orbit-years no scene passed, so the limits were relaxed` : ''}). Choose an orbit; swap single years if needed, then Save choice.`;
+  render(); loadSaved();
+}
+
+/* ---------- pictures and the anomaly score ---------- */
+function loadPictures(my){
+  const [w, h] = imgSize(G.fp); let n = 0;
+  return Promise.all(G.cand.filter(c => !G.bmp[c.key]).map(c => queued(() => relay('process', {
+    input: { bounds: { bbox: G.fp, properties: { crs: CRS } },
+             data: [{ type: 'sentinel-2-l1c', dataFilter: { timeRange: { from: `${c.date}T00:00:00Z`, to: `${c.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }] },
+    output: { width: w, height: h, responses: [{ identifier: 'default', format: { type: 'image/jpeg' } }] }, evalscript: COP_SCRIPT(c.orbit) }, 'image/jpeg'))
+    .then(async r => { const blob = await r.blob(); if (my !== gen) return; G.bmp[c.key] = await createImageBitmap(blob); G.url[c.key] = URL.createObjectURL(blob);
+      $('status').textContent = `Loading pictures… ${++n}`; })
+    .catch(e => { $('err').textContent += `${c.date} ${c.orbit}: ${e.message}\n`; })));
+}
+function maskOf(w, h){            // 1 = terrain outside the 1850 glacier outline (stable ground), 0 = the glacier area
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const x = cv.getContext('2d'), [x0, y0, x1, y1] = G.fp;
+  x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.fillStyle = '#000'; x.strokeStyle = '#000'; x.lineWidth = 6; x.lineJoin = 'round';
+  const o = G.g.oldest && G.g.oldest.outline;
+  if (o) o.coordinates.forEach(poly => poly.forEach(ring => { x.beginPath(); ring.forEach(([lon, lat], i) => { const [mx, my] = merc(lon, lat), px = (mx - x0) / (x1 - x0) * w, py = (y1 - my) / (y1 - y0) * h; i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.closePath(); x.fill(); x.stroke(); }));
+  return x.getImageData(0, 0, w, h).data;
+}
+function anomalies(){             // distance of each picture from the per-pixel median of the same orbit, over stable terrain
+  const S = 200, [bw, bh] = imgSize(G.fp), k = S / Math.max(bw, bh), w = Math.round(bw * k), h = Math.round(bh * k), mask = maskOf(w, h);
+  const cv = document.createElement('canvas'); cv.width = w; cv.height = h; const x = cv.getContext('2d', { willReadFrequently: true });
+  const px = c => { x.drawImage(G.bmp[c.key], 0, 0, w, h); return x.getImageData(0, 0, w, h).data; };
+  G.orbitList.forEach(o => {
+    const list = G.cand.filter(c => c.orbit === o && G.bmp[c.key]), data = list.map(px), med = new Uint8Array(w * h * 3), buf = new Array(list.length);
+    for (let p = 0, q = 0; p < w * h; p++) for (let ch = 0; ch < 3; ch++, q++) { for (let i = 0; i < data.length; i++) buf[i] = data[i][p * 4 + ch]; med[q] = list.length > 2 ? median(buf) : buf[0]; }
+    list.forEach((c, i) => { let sum = 0, n = 0; for (let p = 0; p < w * h; p++) if (mask[p * 4] > 128) { for (let ch = 0; ch < 3; ch++) sum += Math.abs(data[i][p * 4 + ch] - med[p * 3 + ch]); n += 3; } c.anom = n ? sum / n / 255 : 0; });
+  });
+  // robust z-scores within each orbit: how unusual a picture is among its orbit's pictures
+  G.orbitList.forEach(o => {
+    const list = G.cand.filter(c => c.orbit === o), A = list.map(c => c.anom || 0), aot = list.map(c => c.aot), mA = median(A), sA = Math.max(mad(A), 0.01), mT = median(aot), sT = Math.max(mad(aot), 0.005);
+    list.forEach(c => { c.anomZ = Math.min(4, Math.max(0, (c.anom - mA) / sA)); c.aotZ = Math.min(4, Math.max(0, (c.aot - mT) / sT)); });
+  });
+}
+
+/* ---------- scoring and the choice ---------- */
+const cost = c => W.centre * Math.abs(doy(c.date) - doy('2023-09-30')) + W.cloud * c.cloud + W.shadow * c.shadow + W.cirrus * c.cirrus + W.snow * c.snow + W.snowBox * c.snowBox + W.cloudBox * c.cloudBox + W.aot * (c.aotZ || 0) + W.anomaly * (c.anomZ || 0);
+function pathFor(orbit){          // the day of the year T that gives the lowest total cost, every year taking its best scene near T
+  const dw = DATE_WEIGHT[+$('dateW').value], byYear = {};
+  G.cand.filter(c => c.orbit === orbit && G.bmp[c.key]).forEach(c => (byYear[c.year] ||= []).push(c));
+  const lo = doy('2023-' + START), hi = doy('2023-' + G.endDay);
+  let best = null;
+  for (let T = lo; T <= hi; T++) {
+    let total = 0, picks = {}, years = 0;
+    YEARS.forEach(y => {
+      const l = byYear[y]; if (!l) { total += W.miss; return; }
+      const s = l.map(c => [cost(c) + dw * Math.abs(doy(c.date) - T), c]).sort((a, b) => a[0] - b[0])[0];
+      total += s[0]; picks[y] = s[1].key; years++;
+    });
+    if (!best || total < best.total) best = { T, total, picks, years };
+  }
+  return best;
+}
+function choose(){
+  G.paths = {}; G.orbitList.forEach(o => { G.paths[o] = pathFor(o); });
+  const complete = G.orbitList.filter(o => G.paths[o].years === YEARS.length), pool = complete.length ? complete : G.orbitList;       // an orbit with a missing year cannot win
+  const winner = [...pool].sort((a, b) => G.paths[a].total - G.paths[b].total)[0];
+  G.orbit = G.orbit && G.paths[G.orbit] ? G.orbit : winner; G.winner = winner;
+  setPicks(G.orbit);
+}
+function setPicks(o){ G.orbit = o; G.pick = { ...G.paths[o].picks }; }
+const cand = key => G.cand.find(c => c.key === key);
+const picked = () => G ? YEARS.map(y => G.pick[y] ? cand(G.pick[y]) : null) : [];
+
+/* ---------- display ---------- */
+function agree(o, list){          // how many years the pick is one of your earlier hand picks, out of the years you picked in this orbit
+  const hand = PICKS[G.g.id]; if (!hand) return '-';
+  const years = new Set([...hand].filter(k => k.endsWith('|' + o)).map(k => +k.slice(0, 4)));
+  return years.size ? `${list.filter(c => hand.has(c.key)).length} of ${years.size}` : '-';
+}
+function orbitTable(){
+  if (!G || !G.orbitList.length) { $('orbits').innerHTML = '<tr><td>No search yet.</td></tr>'; return; }
+  const rows = G.orbitList.map(o => {
+    const p = G.paths[o], list = YEARS.map(y => p.picks[y] && cand(p.picks[y])).filter(Boolean);
+    const days = list.map(c => doy(c.date)), avg = f => list.length ? list.reduce((a, c) => a + f(c), 0) / list.length : 0;
+    return `<tr class="orb ${o === G.orbit ? 'on' : ''}" data-o="${o}"><td><b>${o}</b>${o === G.winner ? ' <span class="best">lowest cost</span>' : list.length < YEARS.length ? ' <span style="color:#f19a8f">incomplete</span>' : ''}</td><td>${list.length} of ${YEARS.length}${list.length < YEARS.length ? ` <span style="color:#f19a8f">(missing ${YEARS.filter(y => !p.picks[y]).join(', ')})</span>` : ''}${list.some(c => c.relax) ? ` <span class="flag" style="color:var(--warn)">(${list.filter(c => c.relax).length} relaxed)</span>` : ''}</td><td>${DATE_WEIGHT[+$('dateW').value] ? doyLabel(p.T) : '-'}</td>
+      <td>${list.length ? `${doyLabel(Math.min(...days))} to ${doyLabel(Math.max(...days))} (${Math.max(...days) - Math.min(...days)} days)` : '-'}</td><td>${pct(avg(c => c.snow))}</td><td>${pct(avg(c => c.snowBox))}</td><td>${pct(avg(c => c.cloudBox))}</td><td>${avg(c => c.anomZ || 0).toFixed(1)}</td><td>${agree(o, list)}</td><td>${p.total.toFixed(2)}</td></tr>`;
+  });
+  $('orbits').innerHTML = `<tr><th>Orbit</th><th>Years</th><th title="Only when 'Same date every year' is on">Common day</th><th>Date range of the picks</th><th>Tongue snow</th><th>Snow in the image</th><th>Cloud in the image</th><th>Anomaly</th><th>Same as your picks</th><th>Cost</th></tr>${rows.join('')}`;
+  $('orbits').querySelectorAll('tr.orb').forEach(tr => tr.onclick = () => { setPicks(tr.dataset.o); render(); });
+}
+function sheet(){
+  const hand = G && PICKS[G.g.id] || new Set();
+  $('sheet').innerHTML = YEARS.map(y => {
+    const c = G && G.pick[y] && cand(G.pick[y]);
+    if (!c) return `<div class="yc none"><h3>${y}</h3><div class="nums">no usable scene${G && G.orbit ? ' in ' + G.orbit : ''}</div></div>`;
+    const alts = G.cand.filter(a => a.year === y && a.orbit === G.orbit && a.key !== c.key && G.url[a.key]).sort((a, b) => cost(a) - cost(b)).slice(0, 3);
+    return `<div class="yc"><h3>${y}<small>${fmtShort(c.date)} ${c.orbit}</small></h3>
+      <img class="main" data-y="${y}" src="${G.url[c.key] || ''}" alt="${y}">
+      <div class="nums">bottom 3 km: cloud ${pct(c.nearCloud)} · shade ${pct(c.nearDark)}${c.relax ? `<br><span class="flag" title="No scene passed the limits in this year, so they were loosened until one did">⚠ limits relaxed to ${pct(c.limits.cloud)} / ${pct(c.limits.dark)}</span>` : ''}<br>tongue snow ${pct(c.snow)} · image snow ${pct(c.snowBox)}<br>cloud ${pct(c.cloudBox)} · haze ${c.aot.toFixed(3)}${c.anomZ >= 2 ? ' <span class="flag">⚠ anomaly</span>' : ''}${hand.has(c.key) ? ' <span class="star">★</span>' : ''}</div>
+      <div class="alts">${alts.map(a => `<div data-k="${a.key}" data-y="${y}" title="${fmtDate(a.date)}: tongue snow ${pct(a.snow)}, image snow ${pct(a.snowBox)}, cloud ${pct(a.cloudBox)}"><img src="${G.url[a.key]}" alt="">${fmtShort(a.date)}</div>`).join('')}</div></div>`;
+  }).join('');
+  $('sheet').querySelectorAll('.alts div').forEach(d => d.onclick = () => { G.pick[d.dataset.y] = d.dataset.k; render(); });
+  $('sheet').querySelectorAll('img.main').forEach(i => i.onclick = () => { stopPlay(); const fr = frames(); const k = fr.findIndex(f => f.year === +i.dataset.y); if (k >= 0) { cur = k; show(); } });
+}
+const frames = () => picked().filter(Boolean);
+function show(){
+  const fr = frames(), cv = $('cv');
+  if (!fr.length) { cv.width = 4; cv.height = 3; $('yr').textContent = ''; $('dt').textContent = ''; return; }
+  cur = (cur + fr.length) % fr.length; const c = fr[cur], b = G.bmp[c.key];
+  cv.width = b.width; cv.height = b.height; cv.getContext('2d').drawImage(b, 0, 0);
+  $('yr').textContent = c.year; $('dt').textContent = `${fmtDate(c.date)} · ${c.orbit}`;
+}
+function stopPlay(){ clearInterval(timer); timer = null; $('play').textContent = 'Play'; }
+$('play').onclick = () => { if (timer) return stopPlay(); $('play').textContent = 'Pause'; timer = setInterval(() => { cur++; show(); }, 1000 / +$('fps').value); };
+$('fps').oninput = () => { if (timer) { stopPlay(); $('play').click(); } };
+addEventListener('keydown', e => { if (e.target !== document.body) return; if (e.code === 'Space') { e.preventDefault(); $('play').click(); } else if (e.key === 'ArrowRight') { stopPlay(); cur++; show(); } else if (e.key === 'ArrowLeft') { stopPlay(); cur--; show(); } });
+function render(){ orbitTable(); sheet(); show(); }
+
+/* ---------- saving: scenes.json ---------- */
+const STORE = 'scenesJson';
+/* The repository's scenes.json is the base: glaciers saved earlier (maybe from another browser) are kept. A glacier saved in this browser replaces the file's entry if it is newer. */
+let FILE_STORE = null;
+const FILE_READY = fetch('../scenes.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { FILE_STORE = j; }).catch(() => {});
+const readLocal = () => { try { return JSON.parse(localStorage.getItem(STORE) || 'null') || { version: 1, glaciers: {} }; } catch { return { version: 1, glaciers: {} }; } };
+function readStore(){
+  const local = readLocal(), out = { version: 1, glaciers: { ...((FILE_STORE && FILE_STORE.glaciers) || {}) } };
+  Object.entries(local.glaciers || {}).forEach(([id, v]) => { const f = out.glaciers[id]; if (!f || (v.savedAt || '') >= (f.savedAt || '')) out.glaciers[id] = v; });
+  out.generated = local.generated || (FILE_STORE && FILE_STORE.generated);
+  return out;
+}
+async function saveChoice(){
+  await FILE_READY;
+  if (!G || !G.orbit) return;
+  const picks = {}; picked().forEach(c => { if (c) picks[c.year] = { date: c.date, orbit: c.orbit, ...(c.relax ? { relaxed: true } : {}) }; });
+  const s = readLocal(); s.generated = new Date().toISOString();
+  s.glaciers[G.g.id] = { name: G.g.name, orbit: G.orbit, window: { radiusKm: G.km, from: START, to: G.endDay }, savedAt: s.generated, picks };
+  try { localStorage.setItem(STORE, JSON.stringify(s)); } catch {}
+  $('status').textContent = `Saved ${Object.keys(picks).length} years for ${G.g.name}. Download scenes.json and put it in the repository root.`;
+}
+$('save').onclick = saveChoice;
+$('download').onclick = async () => {
+  await FILE_READY; const s = readStore(), a = document.createElement('a'); a.download = 'scenes.json'; a.href = URL.createObjectURL(new Blob([JSON.stringify(s, null, 1)], { type: 'application/json' })); a.click();
+};
+async function loadSaved(){          // a saved choice for this glacier: show it (orbit and years), so a later visit starts where you stopped
+  await FILE_READY; const s = readStore().glaciers[G.g.id]; if (!s || !G.paths[s.orbit]) return;
+  G.orbit = s.orbit; G.pick = {};
+  YEARS.forEach(y => { const p = s.picks[y], c = p && G.cand.find(c => c.key === p.date + '|' + p.orbit); if (c) G.pick[y] = c.key; });
+  $('status').textContent += ' (Showing your saved choice.)'; render();
+}
+
+/* ---------- start ---------- */
+$('gl').innerHTML = DATA.glaciers.map(g => `<option value="${g.id}" ${g.id === 'B36-26' ? 'selected' : ''}>${g.name}</option>`).join('');
+$('endDay').innerHTML = ['10-01', '10-08', '10-15', '10-22', '10-31'].map(d => `<option value="${d}" ${d === '10-15' ? 'selected' : ''}>${fmtShort('2023-' + d)}</option>`).join('');
+$('rad').oninput = () => { $('radOut').textContent = $('rad').value; };
+$('dateW').oninput = () => { $('dateOut').textContent = DATE_NAME[+$('dateW').value]; if (G && G.orbitList.length && G.cand.length) { choose(); render(); } };
+$('run').onclick = search;
+['ruleOn', 'ruleCloud', 'ruleDark', 'ruleImg'].forEach(id => $(id).onchange = () => { if (G && G.all && G.all.length) { stopPlay(); $('run').disabled = true; rebuild(++gen); } });
+(async () => {              // earlier hand picks, for comparison
+  for (const g of DATA.glaciers) { try { const r = await fetch(`../experiments/late-season/picks/picks-${g.id}.json`, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); PICKS[g.id] = new Set((j.cand || []).map(c => c.date + '|' + c.orbit)); } } catch {} }
+})();
+render();
+if (location.hash.startsWith('#auto')) search().then(() => { const o = location.hash.split('=')[1]; if (o && G.paths && G.paths[o]) { setPicks(o); render(); } });      // for testing: starts the search by itself (#auto=R108 also shows that orbit)
+</script>
+</body>
+</html>
