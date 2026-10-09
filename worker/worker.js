@@ -15,6 +15,7 @@
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
  *   CDSE_CLIENT_SECRET  secret   OAuth client secret
+ *   CDSE_CLIENT_ID_2 / CDSE_CLIENT_SECRET_2   optional second account (and _3, _4, _5): used when the first has no processing units left
  *   ALLOWED_ORIGINS     text     e.g. "https://braakhekke.github.io,http://localhost:8000"
  *   CACHE               KV namespace binding (optional but recommended): image cache
  *
@@ -35,7 +36,11 @@ const yearOk = y => Number.isInteger(+y) && +y >= FIRST_YEAR && +y <= lastYear()
 const MIN_STATS_RES = 40;                                           // metres (CRS units); keeps scene scoring cheap
 const DAY = 86400;
 
-let token = null, tokenUntil = 0;                                    // reused while the isolate lives
+/* Copernicus accounts: CDSE_CLIENT_ID / CDSE_CLIENT_SECRET, then the same names with _2, _3, _4, _5. They are used in this order; an account that answers
+   "insufficient processing units" is put last for an hour, so the next one takes over. */
+const clients = env => { const out = []; for (let i = 1; i <= 5; i++) { const x = i === 1 ? '' : '_' + i, id = env['CDSE_CLIENT_ID' + x], secret = env['CDSE_CLIENT_SECRET' + x]; if (id && secret) out.push({ n: i, id, secret }); } return out; };
+const tokens = new Map();                                            // account number -> { token, until }, reused while the isolate lives
+const spent = new Map();                                             // account number -> time (ms) until which it counts as out of units
 const inflight = new Map();
 /* Fair-use limit per visitor (IP address) for requests that go on to Copernicus (cache hits are free and not counted).
    Kept in the memory of the running Worker instance: no KV writes. It is a brake, not a wall: Cloudflare may run several
@@ -63,7 +68,7 @@ export default {
     if (!route) return json({ error: 'Not found' }, 404, cors);
     if (request.method !== 'POST') return json({ error: 'Use POST' }, 405, cors);
     if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
-    if (!env.CDSE_CLIENT_ID || !env.CDSE_CLIENT_SECRET)
+    if (!clients(env).length)
       return json({ relayError: 'The relay has no Copernicus credentials yet (set CDSE_CLIENT_ID and CDSE_CLIENT_SECRET).' }, 502, cors);
 
     const text = await request.text();
@@ -109,27 +114,36 @@ function upstream(env) {
     process: `${sh}/process/v1`
   };
 }
-async function getToken(env, force = false) {
-  if (!force && token && Date.now() < tokenUntil) return token;
+async function getToken(env, c, force = false) {
+  const have = tokens.get(c.n);
+  if (!force && have && Date.now() < have.until) return have.token;
   const r = await fetch(upstream(env).token, {
     method: 'POST',
     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: env.CDSE_CLIENT_ID, client_secret: env.CDSE_CLIENT_SECRET })
+    body: new URLSearchParams({ grant_type: 'client_credentials', client_id: c.id, client_secret: c.secret })
   });
-  if (!r.ok) throw new Error(`The relay could not log in to Copernicus (HTTP ${r.status}). Check the Worker secrets.`);
+  if (!r.ok) throw new Error(`The relay could not log in to Copernicus with account ${c.n} (HTTP ${r.status}). Check the Worker secrets.`);
   const j = await r.json();
-  token = j.access_token;
-  tokenUntil = Date.now() + Math.max(30, (j.expires_in || 300) - 60) * 1000;
-  return token;
+  tokens.set(c.n, { token: j.access_token, until: Date.now() + Math.max(30, (j.expires_in || 300) - 60) * 1000 });
+  return j.access_token;
 }
 async function callCdse(env, target, text, accept) {
-  const go = async force => fetch(target, {
-    method: 'POST', body: text,
-    headers: { 'Authorization': `Bearer ${await getToken(env, force)}`, 'Content-Type': 'application/json', 'Accept': accept }
-  });
-  let r = await go(false);
-  if (r.status === 401) r = await go(true);   // token expired early: log in again once
-  return r;
+  const now = Date.now(), list = clients(env), fresh = list.filter(c => !(spent.get(c.n) > now)), used = list.filter(c => spent.get(c.n) > now);
+  let last = null, failure = null;
+  for (const c of [...fresh, ...used]) {
+    try {
+      const go = async force => fetch(target, {
+        method: 'POST', body: text,
+        headers: { 'Authorization': `Bearer ${await getToken(env, c, force)}`, 'Content-Type': 'application/json', 'Accept': accept }
+      });
+      let r = await go(false);
+      if (r.status === 401) r = await go(true);   // token expired early: log in again once
+      if (r.status === 403 && /INSUFFICIENT_PROCESSING_UNITS/.test(await r.clone().text())) { spent.set(c.n, now + 3600e3); last = r; continue; }   // this account is out of units: try the next one
+      return r;
+    } catch (e) { failure = e; }                 // a login problem with this account: try the next one
+  }
+  if (last) return last;
+  throw failure || new Error('No Copernicus account available.');
 }
 
 /* ---------- request checks: only what the dashboard needs ---------- */
@@ -151,13 +165,13 @@ function checkBounds(inp, collections = [COLLECTION]) {
   if (!Array.isArray(inp.data) || inp.data.length !== 1 || !collections.includes(inp.data[0].type)) return 'data collection';
   return null;
 }
-const summerDay = d => /^\d{4}-0[789]-\d{2}$/.test(d) && yearOk(d.slice(0, 4));
+const summerDay = d => /^\d{4}-(0[789]|10)-\d{2}$/.test(d) && yearOk(d.slice(0, 4));   // July to October (the late-season experiment)
 function checkProcess(b) {
   const inp = b && b.input, out = b && b.output;
   const bad = checkBounds(inp, [COLLECTION, IMAGES, MOSAIC]); if (bad) return bad;
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
   if (!tr || typeof tr.from !== 'string' || !summerDay(tr.from.slice(0, 10)) || tr.from.slice(10) !== 'T00:00:00Z' ||
-      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and September)';
+      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and October)';
   if (inp.data[0].type === MOSAIC && tr.from.slice(4, 10) !== '-07-01') return 'mosaic date (the July to September quarter)';
   if (!out || !(out.width > 0 && out.width <= MAX_PX) || !(out.height > 0 && out.height <= MAX_PX)) return 'image size';
   if (!Array.isArray(out.responses) || out.responses.length !== 1 ||
@@ -169,7 +183,7 @@ function checkStatistics(b) {
   const bad = checkBounds(b && b.input); if (bad) return bad;
   const ag = b.aggregation;
   if (!ag || !ag.timeRange || !/^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) || !yearOk(ag.timeRange.from.slice(0, 4)) ||
-      ![ '-09-21T00:00:00Z', '-10-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to)) return 'period (July 1 to September 20 of one year)';
+      ![ '-09-21T00:00:00Z', '-10-01T00:00:00Z', '-10-11T00:00:00Z', '-11-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to)) return 'period (July 1 to the end of October of one year)';
   if (!ag.aggregationInterval || ag.aggregationInterval.of !== 'P1D') return 'interval';
   if (!(ag.resx >= MIN_STATS_RES && ag.resy >= MIN_STATS_RES)) return 'resolution';
   if (typeof ag.evalscript !== 'string' || ag.evalscript.length > 2000) return 'evalscript';
