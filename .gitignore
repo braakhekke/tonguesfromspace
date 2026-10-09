@@ -6,3 +6,5 @@ scripts/.cdse-credentials
 __pycache__/
 # my own notes: the original README, kept for myself
 README.private.md
+# logos: kept local, not published
+logo/
