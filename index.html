@@ -592,6 +592,8 @@ details.about .note,details.about .src{margin:0 0 8px}
 
       <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
       <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
+      <label class="slider-row" for="imgOpacity" title="How opaque the satellite images are: lower values let the background layers show through everywhere"><span>Image opacity</span><output id="imgOpacityOut">100 %</output></label>
+      <input type="range" class="frame" id="imgOpacity" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite images">
       <label class="slider-row" for="outside" title="How visible the satellite image is outside the 1850 glacier outline: 0 % shows only the background map there"><span>Outside the 1850 outline</span><output id="outsideOut">100 %</output></label>
       <input type="range" class="frame" id="outside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline">
       <p class="hint" id="outsideNote" hidden>Turn off background layers to see the real effect.</p>
@@ -642,6 +644,8 @@ details.about .note,details.about .src{margin:0 0 8px}
       <div class="lb-group">Background</div>
       <label class="toggle"><input type="checkbox" id="mosaicToggle" checked> <span>Sentinel-2 background</span></label>
       <label class="toggle"><input type="checkbox" id="osmToggle"> <span>OpenStreetMap</span></label>
+      <label class="toggle"><input type="checkbox" id="topoToggle"> <span>swisstopo map</span></label>
+      <label class="toggle"><input type="checkbox" id="altiToggle"> <span>swissALTI3D hillshade</span></label>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place labels</span></label>
       <p class="hint" id="outlineNote"></p>
       </div>
@@ -750,12 +754,12 @@ const DEFAULTS = [
     center:[45.95,7.81], bounds:[[45.90,7.72],[46.00,7.90]], a1850:66.0, a1973:59.7, a2016:41.24, aNew:[35.37,2023], len:[15.9,13.5,12.4],
     lede:'The second-largest glacier in Switzerland by area (SGI2023), flowing west from Monte Rosa towards Zermatt. Its main tributary is the Grenzgletscher.',
     look:'Look at the confluence with the Grenzgletscher, where the ice-marginal Gornersee forms.',
-    note:'Since its last major expansion in 1859 the Gorner glacier has lost more than 2.7 km of length (figure as of 2014).<small class="srcline">Source: Wikipedia (Gorner Glacier)</small>' },
+    note:'' },
   { id:'fiescher', tz:14, tongue:[46.468,8.145], keys:['fiescher'], name:'Fiescher', local:'Fieschergletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.49,8.15], bounds:[[46.42,8.08],[46.57,8.22]], a1850:37.4, a1973:34.2, a2016:29.75, aNew:[28.51,2023], len:[17.1,15.4,14.7], lenYear:2012,
     lede:'The second-longest glacier in the Alps, draining south from the Finsteraarhorn and Gross Fiescherhorn towards the village of Fiesch in the Goms valley.',
-    look:'Compare the tip of the narrow lower tongue and the width of bare rock along its flanks.',
-    note:'At 16 km it is the second-longest glacier in the Alps, after the Aletsch.<small class="srcline">Source: Wikipedia (Fiescher Glacier)</small>' },
+    look:'Follow the narrow lower tongue towards Fiesch and watch the bare rock along its flanks.',
+    note:'' },
   { id:'unteraar', tongue:[46.563,8.252], keys:['unteraar'], name:'Unteraar', local:'Unteraargletscher', canton:'Bern', range:'Bernese Alps',
     center:[46.56,8.24], bounds:[[46.51,8.12],[46.61,8.33]], a1850:33.4, a1973:29.5, a2016:22.70, aNew:[20.36,2024], len:[14.5,12.9,11.8],
     lede:'Formed where the Finsteraar and Lauteraar glaciers merge, the Unteraar flows east into the Grimselsee, the reservoir behind the Grimsel hydropower dams.',
@@ -765,11 +769,11 @@ const DEFAULTS = [
     center:[46.43,7.98], bounds:[[46.39,7.90],[46.48,8.05]], a1850:26.6, a1973:22.8, a2016:17.05, aNew:null, len:[10.4,9.1,8.8], lenYear:2011,
     lede:'Until about 1880 a tributary of the Great Aletsch. Both glaciers have since retreated so far that they no longer meet.',
     look:'Compare the gap between the Oberaletsch tongue and the Great Aletsch, and the Beich glacier, the western arm that joins it.',
-    note:'Its length fell from 9.05 km in 1973 to 8.77 km in 2007.<small class="srcline">Source: Wikipedia (Oberaletsch Glacier)</small>' },
+    note:'' },
   { id:'corbassiere', tz:14.25, tongue:[45.987,7.296], keys:['corbassiere'], name:'Corbassière', local:'Glacier de Corbassière', canton:'Valais', range:'Pennine Alps',
     center:[45.97,7.30], bounds:[[45.92,7.24],[46.03,7.36]], a1850:20.7, a1973:18.3, a2016:14.95, aNew:[14.08,2023], len:[12.9,10.1,9.6],
     lede:'A long valley glacier flowing north from the Grand Combin above the Val de Bagnes, 9.8 km long.',
-    look:'Compare the narrow lower tongue and the moraine walls left along its sides.',
+    look:'Follow the narrow lower tongue and the moraine walls it has left along its sides.',
     note:'' },
   { id:'morteratsch', tz:14.5, tongue:[46.421,9.931], keys:['morteratsch'], name:'Morteratsch', local:'Vadret da Morteratsch', canton:'Graubünden', range:'Bernina Range',
     center:[46.41,9.93], bounds:[[46.37,9.86],[46.46,9.99]], a1850:19.3, a1973:16.4, a2016:14.93, aNew:null, len:[8.9,7.0,6.2],
@@ -790,7 +794,7 @@ const DEFAULTS = [
     center:[46.67,8.36], bounds:[[46.63,8.30],[46.72,8.43]], a1850:19.3, a1973:16.5, a2016:14.56, aNew:null, len:[7.6,5.8,3.7],
     lede:'A glacier above the Gadmen valley whose tongue sank into a growing lake in the early 2000s, leaving the Triftsee, spanned by a suspension bridge.',
     look:'The lake below the steep ice fall is the best marker for how far the tongue has retreated.',
-    note:'In 1973 the Trift glacier was 5.75 km long; GLAMOS lists 3.64 km today.<small class="srcline">Source: swisseduc.ch (Trift glacier); GLAMOS</small>' }
+    note:'' }
 ];
 
 /* "Did you know?" and "Where the name comes from" per glacier. Only documented facts; uncertain origins say so. */
@@ -844,62 +848,74 @@ const GLACIER_INFO = {
  "aletsch": {
   "fact": "At Konkordiaplatz, where its ice streams meet, the ice is more than 900 m thick. Local legend tells of the Rollibock, a huge buck with long horns and fiery eyes and a body covered in ice chunks, who punishes people who harm nature.",
   "name": "Named after the Alp Aletsch below it, first recorded in 1231 as <em>Alech</em>. Where the name itself comes from is unknown.",
-  "src": "Historical Dictionary of Switzerland (Aletschgletscher); bergpunkt.ch (Aletsch); Bergwelten (Rollibock)"
+  "factSrc": "bergpunkt.ch (Aletsch); Bergwelten (Rollibock)",
+  "src": "Historical Dictionary of Switzerland (Aletschgletscher)"
  },
  "gorner": {
   "fact": "Its ice-marginal lake, the Gornersee, fills every year and usually drains in summer in a glacial lake outburst flood. With its tributaries it forms the second-largest glacier system in the Alps after the Aletsch (53 km², 2007).",
   "name": "From the <em>Gorneren</em>, the high pastures above Zermatt: in 1579 the farmers' guild regulated when sheep could graze there. <em>Gorner</em> is assumed to come from Romansh <em>cornu</em>, \"horned\". Zermatt people also called the Monte Rosa peaks the <em>Gornerhorn</em> in the early 19th century.",
-  "src": "Wikipedia (Gorner Glacier; Gornergrat); Gornergrat Bahn (history of the name)"
+  "factSrc": "Wikipedia (Gorner Glacier)",
+  "src": "Wikipedia (Gornergrat); Gornergrat Bahn (history of the name)"
  },
  "fiescher": {
   "fact": "In 1678 the people of Fiesch vowed to live virtuously and to pray that the Aletsch glacier would stop growing, because it threatened their valley. In 2010 the Vatican allowed them to change the vow: their annual procession now also prays about climate change and glacier melting.",
   "name": "\"Of Fiesch\": named after the village and valley below it. The village appears as <em>Vios</em> in 1203 and <em>Viesch</em> in 1438.",
-  "src": "Beobachter (\"Um Gottes willen\"); swissinfo.ch; Historical Dictionary of Switzerland (Fiesch)"
+  "factSrc": "Beobachter (\"Um Gottes willen\"); swissinfo.ch",
+  "src": "Historical Dictionary of Switzerland (Fiesch)"
  },
  "unteraar": {
   "fact": "In the 19th century the naturalists Franz Josef Hugi and Louis Agassiz spent many months here. Agassiz and his team lived under a huge boulder on the medial moraine, which they named the \"Hôtel des Neuchâtelois\", while they studied the glacier. It was one of the first subjects of glaciology.",
   "name": "\"Lower Aare glacier\": the larger of the two sources of the river Aare, with the Oberaar glacier. The Aare, 288 km, is the longest river that flows entirely within Switzerland.",
-  "src": "Wikipedia (Unteraargletscher); Agassiz, Life and Correspondence (1893); MySwitzerland.com (Aare)"
+  "factSrc": "Wikipedia (Unteraargletscher); Agassiz, Life and Correspondence (1893)",
+  "src": "Wikipedia (Unteraargletscher); MySwitzerland.com (Aare)"
  },
  "oberaletsch": {
   "fact": "Until about 1880 it still flowed into the Aletsch glacier. Both glaciers have retreated so far that they no longer join.",
   "name": "\"Upper Aletsch glacier\" (German <em>Ober-</em>, upper): it shares its name with the Aletsch glacier it once joined.",
+  "factSrc": "Wikipedia (Oberaletsch Glacier)",
   "src": "Wikipedia (Oberaletsch Glacier)"
  },
  "corbassiere": {
   "fact": "It starts above 4,000 m on the north slope of the Grand Combin and its tongue ends at about 2,300 m. It is 9.8 km long.",
   "name": "A French place name of the Val de Bagnes; its origin is not documented in the sources we checked.",
+  "factSrc": "Wikipedia (Corbassière Glacier)",
   "src": "Wikipedia (Corbassière Glacier)"
  },
  "morteratsch": {
   "fact": "With about 1.2 km³ of ice it is the third-largest glacier in the Eastern Alps, after the Pasterze and the Gepatschferner.",
   "name": "A legend explains the name: Annetta, a farmer's daughter, died of sorrow while her beloved herdsman Aratsch was away as a soldier. When he returned he rode into a crevasse, and her ghost is said to wander the alp crying \"Mort Aratsch!\" (\"Aratsch is dead\"). A documented etymology is not in the sources we checked.",
+  "factSrc": "Wikipedia (Morteratsch Glacier)",
   "src": "Wikipedia (Morteratsch Glacier); Pontresina Tourism (Legends in the Bernina glacier region)"
  },
  "zmutt": {
   "fact": "Debris now covers about 32 % of the glacier surface, up from about 13 % in 1859. This debris slowed the glacier's response: its length and area have changed little compared with debris-free glaciers, although the mass loss is similar. Water from the Zmutt valley is collected at the Z'Mutt pumping station of the Grande Dixence system.",
   "name": "Named after the hamlet of Zmutt in the municipality of Zermatt. The origin of the name is not documented in the sources we checked.",
-  "src": "The Cryosphere, vol. 13 (2019), Zmuttgletscher study; Grande Dixence SA; Wikipedia (Zmutt)"
+  "factSrc": "The Cryosphere, vol. 13 (2019), Zmuttgletscher study; Grande Dixence SA",
+  "src": "Wikipedia (Zmutt)"
  },
  "rhone": {
-  "fact": "Every summer an ice grotto is dug into the glacier at the Hotel Belvédère on the Furka Pass, a tradition since about 1870. To slow the melting, the lowest part of the tongue is covered with white fleece.",
+  "fact": "Every summer an ice grotto was dug into the glacier at the Hotel Belvédère on the Furka Pass, a tradition since about 1870, and up to 100,000 people a year came to see it. To slow the melting, the lowest part of the tongue was covered with white fleece. In September 2026 Valais rejected the operator's appeal against the order to restore the site, so the grotto can no longer be operated. Can you spot the tarpaulins on the tongue in the images?",
   "name": "From the river it feeds: the Rhône (Latin <em>Rhodanus</em>). Its etymology is unclear; Celtic and Greek origins have been proposed.",
-  "src": "showcaves.com (Eisgrotte Rhonegletscher); freizeit.ch; Historical Dictionary of Switzerland; Wikipedia (Rhône)"
+  "factSrc": "showcaves.com (Eisgrotte Rhonegletscher); freizeit.ch; <a href=\"https://www.swissinfo.ch/eng/glaciers-permafrost/swiss-rh%C3%B4ne-glacier-ice-cave-ordered-closed/92010080\" target=\"_blank\" rel=\"noopener\">swissinfo.ch, 5 September 2026</a>",
+  "src": "Historical Dictionary of Switzerland; Wikipedia (Rhône)"
  },
  "trift": {
   "fact": "In the 2004/05 measuring year the Trift glacier retreated by 216 m, more than any other monitored glacier in Switzerland, because its tongue ended in a lake that sped up the melting. A suspension bridge about 170 m long (opened 2009, replacing one built in 2004) spans the Triftsee so hikers can still reach the hut.",
   "name": "German <em>Trift</em> is a path along which livestock is driven, from <em>treiben</em>, \"to drive\".",
-  "src": "plattformj.ch (glacier measurements, 2006); Wikipedia (Trift Bridge); Duden"
+  "factSrc": "plattformj.ch (glacier measurements, 2006); Wikipedia (Trift Bridge)",
+  "src": "Duden"
  },
  "fee": {
   "fact": "At Mittelallalin, 3,500 m high, glaciologist Benedikt Schnyder carved an artificial ice cave into the glacier: the Ice Pavilion, 5,500 m² with a 71 m tunnel. It closed in 2024 for safety reasons, because the glacier retreats; a virtual reality experience replaced it.",
   "name": "Named after Saas-Fee, the village below it, which appears as <em>Vee</em> in 1304. Where the name itself comes from is not documented in the sources we checked.",
-  "src": "showcaves.com (Eispavillon Mittelallalin); Historical Dictionary of Switzerland (Saas-Fee)"
+  "factSrc": "showcaves.com (Eispavillon Mittelallalin)",
+  "src": "Historical Dictionary of Switzerland (Saas-Fee)"
  },
  "findel": {
   "fact": "Around the middle of the 19th century its tongue still reached down to about 2,100 m, near the hamlet of Findeln and below the tree line. Since then it has retreated by more than 2.5 km, and since the 1970s by more than 1 km. Its meltwater, the Findelbach, joins the Gornera and the Zmuttbach to form the Matter Vispa.",
   "name": "Named after the hamlet of Findeln, 2 km east of Zermatt at 2,051 m, near where the tongue once ended. The origin of the name Findeln itself is not documented in the sources we checked.",
-  "src": "Wikipedia (Findelgletscher; Findeln)"
+  "factSrc": "Wikipedia (Findelgletscher)",
+  "src": "Wikipedia (Findeln)"
  }
 };
 
@@ -923,7 +939,7 @@ if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
     const base = d ? {...d} : {
       id: 'sgi-' + g.id, name: shortName(g.name), local: g.name, canton: (PLACE[norm(shortName(g.name))] || [])[0] || '', range: (PLACE[norm(shortName(g.name))] || [])[1] || '',
       lede: `${g.name} is one of the ten largest glaciers in the newest Swiss Glacier Inventory.`,
-      look: 'Compare the position of the tongue and the extent of bare rock along the margins between years.', note: ''
+      look: '', note: ''
     };
     const extent = unionBbox(g.bbox, g.oldest && g.oldest.outline);      // the 1850 outline is the largest extent: pictures and boxes must contain it with room around
     return {...base, inv: g, center: g.center, extent, bounds: padBounds(extent, 0.08)};
@@ -1258,6 +1274,8 @@ function updateCredits(){
   const parts = yrs.length ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
+  if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
+  if (document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
   document.getElementById('credits').innerHTML = parts.join(' · ');
@@ -1268,6 +1286,14 @@ function updateCredits(){
 const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom:17, maxNativeZoom:19, attribution:'© OpenStreetMap contributors'});
 if (prefs.osm === true) osm.addTo(map);
+/* swisstopo's colour topographic map (Pixelkarte farbe), free to use with a source reference */
+const topo = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',
+  {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo'});
+if (prefs.topo === true) topo.addTo(map);
+/* swisstopo's relief shading of the swissALTI3D elevation model */
+const alti = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/{z}/{x}/{y}.png',
+  {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo (swissALTI3D)'});
+if (prefs.alti === true) alti.addTo(map);
 const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
   {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
 
@@ -1756,22 +1782,31 @@ function syncOutsideUi(){            // the slider on the map panel and the one 
     const el = document.getElementById(id); if (!el) return;
     el.value = o; el.disabled = !has; document.getElementById(out).textContent = `${Math.round(o * 100)} %`;
   });
-  const bgOn = ['mosaicToggle', 'osmToggle', 'labelsToggle'].some(id => document.getElementById(id).checked);
+  const bgOn = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'].some(id => document.getElementById(id).checked);
   document.getElementById('outsideNote').hidden = !(has && o < 0.99 && bgOn);      // the download pane switches them off itself
 }
-['mosaicToggle', 'osmToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
+['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
 /* While the download pane is open and the picture outside the outline is made transparent, the background layers are switched off: a download has no map underneath, so the preview must not show one.
    They come back when the opacity returns to 100 % or the pane closes (a layer you switched on again yourself stays on). The saved layer settings are not touched. */
 let bgOff = null;
 function syncBackgrounds(){
   const open = !document.getElementById('videoSheet').hidden, low = open && outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier());
-  const ids = ['mosaicToggle', 'osmToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm };
+  const ids = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm, topo: prefs.topo, alti: prefs.alti };
   const flip = (id, on) => { const el = document.getElementById(id); el.checked = on; el.dispatchEvent(new Event('change')); };
   if (low && !bgOff) { bgOff = ids.filter(id => document.getElementById(id).checked); bgOff.forEach(id => flip(id, false)); }
   else if (!low && bgOff) { bgOff.forEach(id => { if (!document.getElementById(id).checked) flip(id, true); }); bgOff = null; }
   else return;
-  prefs.mosaic = keep.mosaic; prefs.osm = keep.osm; savePrefs();
+  prefs.mosaic = keep.mosaic; prefs.osm = keep.osm; prefs.topo = keep.topo; prefs.alti = keep.alti; savePrefs();
 }
+/* Opacity of the whole satellite image (all years, compare and timelapse): the background layers show through. Remembered. */
+const imgOpacity = () => typeof prefs.imgOpacity === 'number' ? prefs.imgOpacity : 1;
+function applyImgOpacity(){
+  const o = imgOpacity();
+  ['paneA', 'paneB', 'paneT'].forEach(n => { map.getPane(n).style.opacity = o; });
+  document.getElementById('imgOpacity').value = o; document.getElementById('imgOpacityOut').textContent = `${Math.round(o * 100)} %`;
+}
+document.getElementById('imgOpacity').oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); };
+applyImgOpacity();
 const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); };
 ['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
 syncOutsideUi();
@@ -1811,15 +1846,15 @@ function renderStory(){
     <p class="lede">${g.lede}</p>
 
     <div class="tabs" role="tablist" aria-label="About this glacier">
-      <button type="button" ${tab('look')}>What to see</button>
+      <button type="button" ${tab('look')}>Fun</button>
       <button type="button" ${tab('figures')}>Stats</button>
       <button type="button" ${tab('swiss')}>Switzerland</button>
     </div>
 
     <div class="tab-panel" data-panel="look" ${storyTab === 'look' ? '' : 'hidden'}>
-      <p class="body">${g.look}</p>
+      ${g.look ? `<p class="body">${g.look}</p>` : ''}
       ${g.note ? `<p class="body">${g.note}</p>` : ''}
-      ${info ? `<div class="fact"><span class="fact-k">Did you know?</span>${info.fact}</div>
+      ${info ? `<div class="fact"><span class="fact-k">Did you know?</span>${info.fact}${info.factSrc ? `<small>Source: ${info.factSrc}</small>` : ''}</div>
       <div class="fact name"><span class="fact-k">The name</span>${info.name}${info.src ? `<small>Source: ${info.src}</small>` : ''}</div>` : ''}
       ${trailsHtml(g, TRAILS[g.id] ? g.id : shortSlug(g.name))}
       ${cbYears().length ? `<div class="cb-links"><span class="fact-k">Open the scene in the Copernicus Browser</span>${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">${fmtDate(state.available[y].date)}</button>`).join('')}</div>` : ''}
@@ -1893,7 +1928,7 @@ function renderStory(){
           <li>Hike and bike routes: SchweizMobil route data of the Federal Roads Office (ASTRA), via <a href="https://map.geo.admin.ch" target="_blank" rel="noopener">swisstopo geo.admin.ch</a>; the pages named in each box</li>
           <li>Volume loss: GLAMOS and SCNAT annual reports; ice thickness: Grab et al. (2021), Journal of Glaciology 67(266), via swisstopo; water use: SVGW</li>
           <li>This project: code under the MIT licence, own texts under CC BY 4.0, open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a></li>
-          <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX</li>
+          <li>Background: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX; colour topographic map and swissALTI3D hillshade © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a></li>
         </ul>
       </div>
     </details>
@@ -2335,12 +2370,28 @@ document.getElementById('lbToggle').onclick = () => {
   document.getElementById('lbToggle').setAttribute('aria-expanded', !min);
 };
 document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;
-document.getElementById('mosaicToggle').onchange = e => { prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
+/* the three base maps replace each other: switching one on switches the others off */
+const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle'];
+function onlyBase(id){ BASE_TOGGLES.forEach(o => { const el = document.getElementById(o); if (o !== id && el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); }
+document.getElementById('mosaicToggle').onchange = e => { if (e.target.checked) onlyBase('mosaicToggle'); prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
 setBackground();
 document.getElementById('osmToggle').checked = prefs.osm === true;
 document.getElementById('osmToggle').onchange = e => {
+  if (e.target.checked) onlyBase('osmToggle');
   prefs.osm = e.target.checked; savePrefs();
   e.target.checked ? osm.addTo(map) : map.removeLayer(osm); updateCredits();
+};
+document.getElementById('topoToggle').checked = prefs.topo === true;
+document.getElementById('topoToggle').onchange = e => {
+  if (e.target.checked) onlyBase('topoToggle');
+  prefs.topo = e.target.checked; savePrefs();
+  e.target.checked ? topo.addTo(map) : map.removeLayer(topo); updateCredits();
+};
+document.getElementById('altiToggle').checked = prefs.alti === true;
+document.getElementById('altiToggle').onchange = e => {
+  if (e.target.checked) onlyBase('altiToggle');
+  prefs.alti = e.target.checked; savePrefs();
+  e.target.checked ? alti.addTo(map) : map.removeLayer(alti); updateCredits();
 };
 
 /* =====================================================================
