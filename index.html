@@ -140,6 +140,7 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .leaflet-container{font-family:var(--sans)}
 .year-tag{position:absolute;top:14px;z-index:650;color:#fff;font-weight:800;font-size:clamp(34px,5vw,64px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-shadow:0 1px 14px rgba(0,0,0,.55);pointer-events:none}
 .year-tag small{display:block;font-size:12px;font-weight:500;letter-spacing:0;margin-top:6px;opacity:.85}
+.year-tag .nw{white-space:nowrap}
 #tagA,#tagT{left:18px}
 #tagB{right:18px;text-align:right}
 .orient{display:flex;align-items:center;gap:6px;margin-bottom:-8px}
@@ -155,15 +156,15 @@ select.small{border:1px solid var(--rule);border-radius:6px;padding:6px 8px;back
 .divider{position:absolute;top:0;bottom:0;width:2px;margin-left:-1px;background:#fff;z-index:640;pointer-events:none;box-shadow:0 0 6px rgba(0,0,0,.4)}
 .handle{position:absolute;top:50%;width:38px;height:38px;margin:-19px 0 0 -19px;border-radius:50%;background:#fff;z-index:660;display:grid;place-items:center;cursor:ew-resize;touch-action:none;box-shadow:0 2px 10px rgba(0,0,0,.35);border:0}
 .handle svg{width:20px;height:20px;stroke:var(--rock)}
-/* satellite scene: thin frame and rounded corners (not while framing a video) */
-.scene-img{border-radius:14px;box-shadow:0 0 0 2px rgba(255,255,255,.9),0 8px 28px rgba(0,0,0,.45)}
+/* satellite scene: rounded corners and a soft shadow; the red glacier box is the frame (not while framing a video) */
+.scene-img{border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
 .is-framing .scene-img{border-radius:0;box-shadow:none}
+.is-framing .gframe{display:none}
 /* static Sentinel-2 background for all of Switzerland, a little darker than the scene */
 .leaflet-bgPane-pane{filter:brightness(.78) saturate(.9)}
 .is-timelapse .layerbox{top:14px}
 .is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
 #tagT{display:none}
-#tagT small{white-space:nowrap}
 #tagT{max-width:calc(100% - 24px)}
 .is-timelapse #tagT{display:block}
 .tl-dots{display:flex;gap:4px;margin-top:10px}
@@ -353,10 +354,12 @@ details.about .note,details.about .src{margin:0 0 8px}
 .video-sheet .segment button small{display:block;font-size:10.5px;font-weight:400;color:var(--moraine)}
 .video-sheet .segment button[aria-pressed="true"] small{color:var(--rock)}
 .vs-note{margin:0}
+.video-sheet.is-swipe .vo-tl{display:none}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
 .vs-opts .toggle input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent);flex:none}
 .vs-opts .toggle span{line-height:1.3}
-.vo-outside{margin:4px 0 2px;font-size:13px}
+.vo-outside{margin:4px 0 2px;font-size:13px;grid-column:1 / -1}
+.vo-outside input[type=range]{width:100%;margin:0}
 .vs-note:empty{display:none}
 .vs-head{display:flex;justify-content:space-between;align-items:center}
 .vs-head strong{font-size:13.5px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
@@ -696,7 +699,7 @@ details.about .note,details.about .src{margin:0 0 8px}
   <div class="vs-opts">
     <label class="toggle vo-image"><input type="checkbox" id="vImgWater"> <span>Add water facts</span></label>
     <small class="vo-image" id="waterHint" hidden style="color:var(--moraine);font-size:11.5px;margin:-2px 0 4px 24px">Drag to your preferred position.</small>
-    <label class="toggle vo-video"><input type="checkbox" id="vIntro" checked> <span>Add a title slide</span></label>
+    <label class="toggle vo-video vo-tl"><input type="checkbox" id="vIntro" checked> <span>Add a title slide</span></label>
     <label class="toggle"><input type="checkbox" id="vOutline"> <span>Show 1850 outline</span></label>
     <div class="vo-outside"><label class="slider-row" for="vOutside"><span>Opacity outside the 1850 outline</span><output id="vOutsideOut">100 %</output></label>
       <input type="range" class="frame" id="vOutside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline"></div>
@@ -1021,7 +1024,8 @@ function evaluatePixel(s){
 const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray: { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0, B8A: 0, B11: 0, B12: 0 } };
 /* band combinations as red, green, blue */
 const STYLE_BANDS = { natural: ['B04','B03','B02'], false1: ['B08','B04','B03'], false2: ['B8A','B11','B12'] };
-const STYLE_LABEL = { natural: ', Natural color (B04, B03, B02)', false1: ', False color 1 (B08, B04, B03)', false2: ', False color 2 (B8A, B11, B12)' };
+const STYLE_NAME = { natural: 'natural color', false1: 'false color 1', false2: 'false color 2' };
+const styleLine = style => { const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style){
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
@@ -1145,6 +1149,7 @@ const IMAGE_MARGIN = 0.33;      // share of the 1850 extent added on every side 
 /* Glaciers with their own margins along the length of the picture, as a share of the picture height: Aletsch is long and its image needs little space beyond the 1850 outline at both ends */
 const NS_MARGIN = [['aletsch', 0.08, 0.07]];      // [name part, north, south]; 8 % + 7 % keeps the picture under 2500 px, i.e. 10 m pixels
 const EXTRA_NORTH = [['findel', 0.15]];        // glaciers whose image reaches further north (share of the image height)
+const EXTRA_EW = [['rhone', 2000]];            // glaciers whose image is wider on both the west and the east side (metres)
 function imageFootprint(g){
   const b = g.extent ? padBounds(g.extent, IMAGE_MARGIN) : padBounds(g.bounds, 0.35);   // margin around the 1850 extent, for panning and video crops
   const ns = g.extent && NS_MARGIN.find(([k]) => norm(g.local || g.name).includes(k));
@@ -1154,6 +1159,8 @@ function imageFootprint(g){
   }
   const extra = EXTRA_NORTH.find(([k]) => norm(g.local || g.name).includes(k));
   if (extra) b[1][0] += (b[1][0] - b[0][0]) * extra[1];
+  const ew = EXTRA_EW.find(([k]) => norm(g.local || g.name).includes(k));
+  if (ew) { const d = ew[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180)); b[0][1] -= d; b[1][1] += d; }
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
   const lat = (b[0][0] + b[1][0]) / 2, scale = 1 / Math.cos(lat * Math.PI / 180);   // Mercator metres per ground metre
   let w = Math.round((ne.x - sw.x) / (CDSE.groundRes * scale)), h = Math.round((ne.y - sw.y) / (CDSE.groundRes * scale));
@@ -1263,7 +1270,7 @@ const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
    5. Map
    ===================================================================== */
 const TWO_FINGER = matchMedia('(pointer:coarse)').matches;   // touch screens: one finger scrolls the page, two move the map
-const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.5, dragging: !TWO_FINGER});
+const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:120, dragging: !TWO_FINGER});      // fine zoom steps: quarter levels, half a level per button press
 [['bgPane',205],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['labels',450],['measure',620]].forEach(([n,z]) => {
   map.createPane(n); map.getPane(n).style.zIndex = z;
 });
@@ -1424,13 +1431,15 @@ function buildTimelapse(){
   document.getElementById('playBtn').disabled = tlLayers.length < 2;
   showFrame(state.frame);
 }
+/* the line under a year on the map: the date, then what the picture is, on one row; it only breaks between the two parts */
+function tagLine(el, first){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style)}</span>`; }
 function showFrame(i){
   if (!tlLayers.length) { setTag('tagT', '–'); return; }
   state.frame = i;
   tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0));
   setTag('tagT', tlLayers[i].yr);
   const sc = state.available[tlLayers[i].yr];
-  document.getElementById('tagTsub').textContent = state.mode === 'single' ? `${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}${STYLE_LABEL[state.style]}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`;
+  tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`);
   document.getElementById('tlDots').innerHTML = state.mode === 'single' ? '' : tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
   document.getElementById('frameSlider').value = i;
   updateCredits();
@@ -1665,8 +1674,7 @@ function statusLine(){
 function updateTags(){
   const sub = y => { const sc = state.available[y]; return sc ? `${fmtDM(sc.date)}${sc.clear ? '' : ', some clouds'}` : 'Sentinel-2'; };
   setTag('tagA', state.a); setTag('tagB', state.b);
-  document.querySelector('#tagA small').textContent = sub(state.a) + STYLE_LABEL[state.style];
-  document.querySelector('#tagB small').textContent = sub(state.b) + STYLE_LABEL[state.style];
+  tagLine(document.querySelector('#tagA small'), sub(state.a)); tagLine(document.querySelector('#tagB small'), sub(state.b));
 }
 
 /* =====================================================================
@@ -1822,9 +1830,13 @@ function syncOutsideUi(){            // the slider on the map panel and the one 
 ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
 /* While the download pane is open and the picture outside the outline is made transparent, the background layers are switched off: a download has no map underneath, so the preview must not show one.
    They come back when the opacity returns to 100 % or the pane closes (a layer you switched on again yourself stays on). The saved layer settings are not touched. */
-let bgOff = null;
+let bgOff = null, labelsAuto = false;
 function syncBackgrounds(){
-  const open = !document.getElementById('videoSheet').hidden, low = open && outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier());
+  const open = !document.getElementById('videoSheet').hidden, labelsEl = document.getElementById('labelsToggle');
+  const flipLabels = on => { labelsEl.checked = on; labelsEl.dispatchEvent(new Event('change')); };
+  if (open && labelsEl.checked && !labelsAuto) { labelsAuto = true; flipLabels(false); }              // place names stay off while a download pane is open
+  else if (!open && labelsAuto) { labelsAuto = false; if (!labelsEl.checked) flipLabels(true); }      // and come back when it closes
+  const low = open && outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier());
   const ids = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm, topo: prefs.topo, alti: prefs.alti };
   const flip = (id, on) => { const el = document.getElementById(id); el.checked = on; el.dispatchEvent(new Event('change')); };
   if (low && !bgOff) { bgOff = ids.filter(id => document.getElementById(id).checked); bgOff.forEach(id => flip(id, false)); }
@@ -2352,6 +2364,7 @@ function showNotice(msg){
 /* ---------- Switzerland overview: the ten glaciers as red boxes, clickable ---------- */
 const BOX_MAX_ZOOM = 11.25;                      // boxes show when zoomed out; at a glacier they would clutter the image
 const boxLayer = L.layerGroup();
+const frameLayer = L.layerGroup();               // zoomed in: the red line stays as the outline of the selected glacier's image
 /* The red boxes have exactly the size of the satellite image of each glacier, with the same rounded corners (14 px, as on .scene-img). */
 function roundedBox(b, maxR = 14){
   const z = map.getZoom();
@@ -2363,7 +2376,7 @@ function roundedBox(b, maxR = 14){
   return pts;
 }
 function drawBoxes(){
-  boxLayer.clearLayers();
+  boxLayer.clearLayers(); frameLayer.clearLayers();
   GLACIERS.forEach((g, i) => {
     const sel = g.id === state.glacier, fp = imageFootprint(g).bounds;
     const rect = L.polygon(roundedBox(fp), {color: getVar('--accent'), weight: sel ? 3 : 2, fillColor: getVar('--accent'), fillOpacity: sel ? 0.08 : 0.22, className: 'gbox'});
@@ -2373,12 +2386,16 @@ function drawBoxes(){
       icon: L.divIcon({className: '', html: `<div class="gbox-num${sel ? ' sel' : ''}">${i + 1}</div>`, iconSize: [24, 24], iconAnchor: [12, 12]}),
       keyboard: true, title: tip}).on('click', () => chooseGlacier(g.id));
     boxLayer.addLayer(rect).addLayer(num);
+    if (sel) frameLayer.addLayer(L.polygon(roundedBox(fp), {color: getVar('--accent'), weight: 3, fill: false, interactive: false, className: 'gframe'}));
   });
 }
 function updateBoxes(){
   const show = document.getElementById('boxToggle').checked && map.getZoom() <= BOX_MAX_ZOOM;
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
+  const frame = map.getZoom() > BOX_MAX_ZOOM && typeof glacierPicked !== 'undefined' && glacierPicked;      // zoomed in, the boxes are gone; the frame of the chosen glacier stays
+  if (frame && !map.hasLayer(frameLayer)) frameLayer.addTo(map);
+  if (!frame && map.hasLayer(frameLayer)) map.removeLayer(frameLayer);
 }
 function glaciersExtent(){
   const b = GLACIERS.map(g => imageFootprint(g).bounds);
@@ -2468,7 +2485,7 @@ function chooseGlacier(id){
     return focusTongue();
   }
   stopPlay();
-  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); drawTonguePin(); focusTongue(); writeHash();
+  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); drawTonguePin(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
 function renderMobileBar(){                 // phones: the glacier list becomes a dropdown
@@ -2549,8 +2566,8 @@ const FMT_SUFFIX = { reel: '9x16', feed: '4x5', wide: '16x9' };
 const STILL_YEAR_H = 174;
 const vstate = { fmt: 'wide', type: 'timelapse', kind: 'video', busy: false, waterPos: null };      // kind: 'video' (animation) or 'image' (one picture)
 /* swipe: [position, seconds]. Position = where the later year starts: 1 = only the first year, 0 = only the later one.
-   Back and forth twice, then settle in the middle. A move eases from the previous position. */
-const SWIPE_KEYS = [[1, 1.0], [0, 1.7], [0, 0.7], [1, 1.5], [1, 0.5], [0, 1.5], [0, 0.7], [1, 1.5], [1, 0.4], [0.5, 1.2], [0.5, 1.4]];
+   It starts in the middle, goes back and forth twice and settles in the middle again. A move eases from the previous position. */
+const SWIPE_KEYS = [[0.5, 0.8], [1, 1.2], [1, 0.5], [0, 1.7], [0, 0.7], [1, 1.5], [1, 0.4], [0, 1.5], [0, 0.7], [0.5, 1.2], [0.5, 1.4]];
 const swipeLength = k => SWIPE_KEYS.reduce((a, [, d]) => a + d * k, 0);
 /* the picture shows the year on screen: One year, the frame of the Timelapse, or the right-hand year of Compare */
 const stillYear = () => state.mode === 'single' ? state.one : state.mode === 'timelapse' && tlLayers[state.frame] ? tlLayers[state.frame].yr : state.b;
@@ -2598,7 +2615,7 @@ function drawPreview(){
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!ys.length) { $('waterDrag').hidden = true; return; }
   const g = currentGlacier(), S = marginsFor(vstate.kind, vstate.fmt), swipe = vstate.kind !== 'image' && vstate.type === 'swipe';
-  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && g.inv && g.inv.oldest), res: frameGroundRes(), compare: swipe, horiz: swipe && horiz() };
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && g.inv && g.inv.oldest), res: frameGroundRes(), style: state.style, compare: swipe, horiz: swipe && horiz() };
   ctx.save(); ctx.scale(q, q);
   const wf = vstate.kind === 'image' && $('vImgWater').checked ? previewWater(g, ys[0]) : null;
   if (vstate.kind === 'image') drawStill(ctx, W, H, info, wf, S);
@@ -2656,7 +2673,7 @@ function updateFrame(){
   drawPreview();
   $('waterHint').hidden = !(vstate.kind === 'image' && $('vImgWater').checked);
 }
-const introLen = () => $('vIntro').checked ? VIDEO.intro : 0;
+const introLen = () => vstate.type === 'swipe' ? 0 : $('vIntro').checked ? VIDEO.intro : 0;      // the slider has no title slide
 const tailLength = () => $('vEnd').checked ? VIDEO.end : VIDEO.outro;
 const videoDuration = n => (vstate.type === 'swipe'
   ? introLen() + swipeLength(+$('vSpeed').value / 1.2) + tailLength()
@@ -2701,7 +2718,7 @@ function syncModeToPane(){
   const want = vstate.kind === 'image' ? 'modeSingle' : vstate.type === 'swipe' ? 'modeCompare' : 'modeTimelapse';
   if (!$(want).getAttribute('aria-pressed') || $(want).getAttribute('aria-pressed') === 'false') $(want).click();
 }
-function setType(t){ vstate.type = t; $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); syncModeToPane(); updateFrame(); }
+function setType(t){ vstate.type = t; $('videoSheet').classList.toggle('is-swipe', t === 'swipe'); $('vtTimelapse').setAttribute('aria-pressed', t === 'timelapse'); $('vtSwipe').setAttribute('aria-pressed', t === 'swipe'); syncModeToPane(); updateFrame(); }
 $('vtTimelapse').onclick = () => setType('timelapse'); $('vtSwipe').onclick = () => setType('swipe');
 
 function progress(frac, label){
@@ -2794,15 +2811,21 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
   ctx.font = `800 104px ${FONT}`;
   if (hz) {          // the first year sits in the upper picture under the title, the later year in the lower picture; each shows only on its own picture
     ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, split); ctx.clip(); shadowText(ctx, String(info.years[0]), S.left - 4, S.top + 290, {blur:20}); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip(); shadowText(ctx, String(info.years[1]), S.left - 4, base - 40, {blur:20}); ctx.restore();
+    ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip(); shadowText(ctx, String(info.years[1]), S.left - 4, base - 66, {blur:20}); ctx.restore();
   } else {           // the first year on the left, the later year on the right; each fades when its image is fully hidden
-    ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 40, {blur:20}); ctx.restore();
-    ctx.save(); ctx.globalAlpha = Math.min(1, (W - split) / (W * 0.25)); shadowText(ctx, String(info.years[1]), W - S.right, base - 40, {blur:20, align:'right'}); ctx.restore();
+    ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 66, {blur:20}); ctx.restore();
+    ctx.save(); ctx.globalAlpha = Math.min(1, (W - split) / (W * 0.25)); shadowText(ctx, String(info.years[1]), W - S.right, base - 66, {blur:20, align:'right'}); ctx.restore();
   }
+  ctx.font = `500 21px ${FONT}`; shadowText(ctx, styleLine(info.style), S.left, base - 30, {blur:8, color:'rgba(255,255,255,.9)'});
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${Math.min(...info.years)} and ${Math.max(...info.years)}`, S.left, base, {blur:6, color:'rgba(255,255,255,.88)'});
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8});
   drawScaleBar(ctx, info, W - S.right - niceScale(Math.min(maxW * 0.28, 300) * info.res) / info.res, S.top + 30, maxW);      // top right, level with the title label: clear of the long glacier name below
+}
+/* the date and, after a bullet, what the picture is: Sentinel-2, the colour style and its bands, on one line */
+function dateLine(ctx, date, style, x, y, opts){
+  ctx.font = `600 22px ${FONT}`; shadowText(ctx, date, x, y, opts); const w = ctx.measureText(date).width;
+  ctx.font = `500 22px ${FONT}`; shadowText(ctx, ` · ${styleLine(style)}`, x + w, y, { ...opts, color: 'rgba(255,255,255,.92)' });
 }
 function drawLabels(ctx, W, H, S, info, k){
   const g = info.glacier, sc = info.scenes[k], x = S.left, maxW = W - S.left - S.right;
@@ -2821,7 +2844,7 @@ function drawLabels(ctx, W, H, S, info, k){
   ctx.font = `500 19px ${FONT}`;
   shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0] === info.years[info.years.length - 1] ? info.years[0] : `${info.years[0]}–${info.years[info.years.length - 1]}`}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, {blur:6, color:'rgba(255,255,255,.88)'});
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, S.top + 22, {align:'right', blur:8});      // top right: the long credit line owns the bottom
-  ctx.font = `600 28px ${FONT}`; shadowText(ctx, fmtDM(sc.date), x, base - 42, {blur:8});
+  dateLine(ctx, fmtDM(sc.date), info.style, x, base - 42, {blur:8});
   const dotsY = base - 42 - 50, dw = Math.min(64, (maxW - 8 * (info.years.length - 1)) / info.years.length);
   info.years.forEach((y, i) => {
     ctx.fillStyle = i <= k ? '#fff' : 'rgba(255,255,255,.32)';
@@ -2829,7 +2852,7 @@ function drawLabels(ctx, W, H, S, info, k){
   });
   ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, dotsY - 30, {blur:20});
   // scale bar, right, level with the date
-  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 56;
+  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 130;
   ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
   ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
   ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, {align:'center', blur:8});
@@ -2942,7 +2965,7 @@ async function frameBases(ys, W, H){
     progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
   }
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
-  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(),
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(), style: state.style,
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
     site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
   return { g, bases, outline, info };
@@ -2955,7 +2978,7 @@ function waterNumbers(km3){
            lakes: km3 * 0.9 / LAKE_ZURICH_KM3, tap: km3 * 0.9 / SWISS_SUPPLY_KM3 };
 }
 /* ---- the still picture: title and glacier at the very top, year, scale bar and credit at the very bottom, water facts in between ---- */
-const SITE_NAME = 'tonguesfromspace.com';
+const SITE_NAME = 'tonguesfromspace.org';
 const stillName = g => (g.local || g.name).replace(/\s*\(.*?\)\s*/g, ' ').trim();       // the full local name, "Grosser Aletschgletscher", "Glacier de Corbassière"
 /* Size and place of the water facts panel in the picture: as wide as its longest line, at its usual spot above the year or where the user dragged it (water.pos, as shares of the picture) */
 function waterPanel(ctx, W, H, S, water){
@@ -2988,9 +3011,9 @@ function drawStill(ctx, W, H, info, water, S){
   const base = H - S.bottom, sc = info.scenes[k];
   ctx.font = `500 19px ${FONT}`; shadowText(ctx, `Contains modified Copernicus Sentinel data ${info.years[0]}${info.outline ? '. Outline: GLAMOS' : ''}`, x, base, { blur: 6, color: 'rgba(255,255,255,.88)' });
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, { align: 'right', blur: 8 });
-  ctx.font = `600 28px ${FONT}`; shadowText(ctx, fmtDM(sc.date), x, base - 42, { blur: 8 });
+  dateLine(ctx, fmtDM(sc.date), info.style, x, base - 42, { blur: 8 });
   ctx.font = `800 128px ${FONT}`; shadowText(ctx, String(info.years[k]), x - 4, base - 42 - 38, { blur: 20 });
-  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 56;
+  const m = niceScale(Math.min(maxW * 0.3, 300) * info.res), px = m / info.res, sx = W - S.right - px, sy = base - 130;
   ctx.save(); ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
   ctx.fillRect(sx, sy, px, 6); ctx.fillRect(sx, sy - 14, 4, 20); ctx.fillRect(sx + px - 4, sy - 14, 4, 20); ctx.restore();
   ctx.font = `600 22px ${FONT}`; shadowText(ctx, m >= 1000 ? `${m / 1000} km` : `${m} m`, sx + px / 2, sy - 20, { align: 'center', blur: 8 });
@@ -3071,7 +3094,7 @@ async function makeVideo(){
     const ease = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
     const renderSwipe = t => {
       if (t < intro) { ctx.drawImage(bases[0], 0, 0); drawIntro(ctx, W, H, S, info); return; }
-      let u = t - intro, from = 1, split = null;          // split: where the later year starts, along the width (vertical divider) or the height (horizontal); the full length = only the first year
+      let u = t - intro, from = 0.5, split = null;          // split: where the later year starts, along the width (vertical divider) or the height (horizontal); the full length = only the first year
       const along = info.horiz ? H : W;
       for (const [to, d] of SWIPE_KEYS) {
         const dur = d * k;
