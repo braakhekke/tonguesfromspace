@@ -1106,14 +1106,14 @@ body.has-full{overflow:hidden}
 <section class="video-sheet" id="videoSheet" role="dialog" aria-label="Download animation" hidden>
   <div class="vs-head"><strong id="vsTitle">Download animation</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
   <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Your image</button><button type="button" id="vkVideo" aria-pressed="true">Your animation</button></div>
-  <p class="hint vs-move">Move and zoom until the tongue fits the frame.</p>
   <div class="segment" role="group" aria-label="Format">
     <button type="button" id="vfWide" aria-pressed="true">16:9<small>(standard)</small></button>
     <button type="button" id="vfReel" aria-pressed="false">9:16<small id="vfReelNote">(Reels, TikTok)</small></button>
     <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Insta feed)</small></button>
   </div>
-  <div class="segment vs-area" role="group" aria-label="Area shown"><button type="button" id="vaTongue" aria-pressed="false" title="Zoom the frame to the tongue">Tongue</button><button type="button" id="vaWhole" aria-pressed="false" title="Fit the whole glacier in the frame">Whole glacier</button></div>
   <p class="hint vs-guide" id="vsGuide"></p>
+  <div class="segment vs-area" role="group" aria-label="Area shown"><button type="button" id="vaTongue" aria-pressed="false" title="Zoom the frame to the tongue">Tongue</button><button type="button" id="vaWhole" aria-pressed="false" title="Fit the whole glacier in the frame">Whole glacier</button></div>
+  <p class="hint vs-move">Or move and zoom the map yourself, until the frame shows what you want.</p>
   <div class="vs-opts">
     <label class="toggle speed-row" id="vFactsRow" title="Three facts about the glacier on the picture or video: Ice (volume, estimate), Retreat (length, area, thickness) or Size (area, thickness, tongue height)"><span class="fk"><input type="checkbox" id="vFacts"> <span>Glacier facts</span></span> <select class="small" id="vFactSet" aria-label="Which facts"><option value="ice">Ice</option><option value="retreat">Retreat</option><option value="size">Size</option></select></label>
     <label class="toggle vo-video vo-3d"><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
@@ -3935,7 +3935,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
   $('vsTitle').textContent = (image ? 'Download image' : 'Download animation') + (in3D ? ' (3D)' : '');
-  document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Move and zoom until the tongue fits the frame.';
+  document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Or move and zoom the map yourself, until the frame shows what you want.';
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
     $('videoSheet').hidden = false; $('videoFrame').hidden = false;
     $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
