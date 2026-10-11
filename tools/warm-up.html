@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Warm up the image cache: Tongues from Space</title>
+<style>
+:root{color-scheme:dark;--bg:#10181d;--surface:#1a1a19;--line:#2e2e2b;--txt:#fff;--txt2:#c3c2b7;--muted:#8c8b84;--accent:#FF5A4E}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--txt);font:13px/1.45 -apple-system,"Helvetica Neue",Arial,sans-serif;padding:14px 18px 60px;max-width:900px}
+h1{font-size:14px;margin:0 0 2px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
+p.sub{color:var(--txt2);margin:2px 0 12px}
+.row{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin:10px 0}
+label{color:var(--txt2)}
+button{padding:6px 12px;background:#22333d;color:var(--txt);border:1px solid var(--line);border-radius:6px;font:inherit;cursor:pointer}
+button:hover{background:#2b4250} button:disabled{opacity:.4;cursor:default}
+#bar{height:8px;background:#0e161b;border-radius:4px;overflow:hidden;margin:10px 0 4px}
+#bar i{display:block;height:100%;width:0;background:var(--accent)}
+#status{color:var(--txt2);min-height:18px}
+#log{white-space:pre-wrap;color:#f19a8f;font-size:12px;margin-top:8px}
+iframe{position:absolute;left:-9999px;width:1200px;height:800px;border:0}
+</style>
+</head>
+<body>
+<h1>Warm up the image cache</h1>
+<p class="sub">Requests every satellite image of the scenes in <b>scenes.json</b> once, in two kinds (the whole glacier area for the map, and the small strip picture the 3D view uses), through the relay, so that the relay's cache (Cloudflare KV, 180 days) already holds them when the first visitor comes. It runs the real code of <b>index.html</b> in a hidden frame, so the requests are exactly the ones the site makes. Run it after the deploy, from a copy of the same commit: <code>python3 -m http.server 8000</code>, then open <code>http://localhost:8000/tools/warm-up.html</code>. The relay allows that address. Each new image is one Copernicus request and one KV write (the free plan allows 1,000 writes a day); images already in the cache cost nothing. With both kinds and one colour style a full run is about 220 images (and so about 220 writes); with all three styles about 660, so spread that over days. The strip pictures are small and make the 3D view quick for the first visitor, who does not have to wait for Copernicus.</p>
+<div class="row">
+  <label><input type="checkbox" id="k_full" checked> Whole glacier area (map)</label>
+  <label><input type="checkbox" id="k_strip" checked> Strip picture (3D view)</label>
+  <label><input type="checkbox" id="s_natural" checked> Natural colour</label>
+  <label><input type="checkbox" id="s_false1"> False colour 1 (infrared)</label>
+  <label><input type="checkbox" id="s_false2"> False colour 2</label>
+  <button id="go" disabled>Start</button>
+  <button id="stop" disabled>Stop</button>
+</div>
+<div id="bar"><i></i></div>
+<div id="status">Loading the site…</div>
+<div id="log"></div>
+<iframe id="site" src="../index.html"></iframe>
+<script>
+const $ = id => document.getElementById(id), sleep = ms => new Promise(r => setTimeout(r, ms));
+const site = $('site');
+let W = null, stopped = false;
+const PARALLEL = 3, GAP_MS = 1000;           // at most about 60 new images a minute; the relay's limit is 90 a minute and 600 an hour per address
+
+site.onload = async () => {
+  W = site.contentWindow;
+  for (let i = 0; i < 100; i++) {            // wait until the site has built its glacier list
+    try { if (W.eval('typeof GLACIERS !== "undefined" && GLACIERS.length && typeof loadImage === "function" && typeof loadStripPicture === "function"')) break; } catch {}
+    await sleep(300);
+  }
+  const n = W.eval('GLACIERS.length');
+  $('status').textContent = `Ready: ${n} glaciers. Choose the kinds of picture and the colour styles, then press Start.`;
+  $('go').disabled = false;
+};
+
+$('stop').onclick = () => { stopped = true; $('stop').disabled = true; };
+$('go').onclick = async () => {
+  stopped = false; $('go').disabled = true; $('stop').disabled = false; $('log').textContent = '';
+  const styles = ['natural', 'false1', 'false2'].filter(s => $('s_' + s).checked), kinds = ['full', 'strip'].filter(k => $('k_' + k).checked);
+  // the list of jobs: glacier x year (with the scene the site would choose) x style
+  const jobs = [];
+  $('status').textContent = 'Looking up the scenes…';
+  const glaciers = W.eval('GLACIERS.map(g => g.id)');
+  for (const id of glaciers) {
+    W.__id = id;
+    const scenes = await W.eval('(async () => { const g = GLACIERS.find(x => x.id === __id), out = {}; for (const y of YEARS) { try { out[y] = await findScene(g, y); } catch (e) { out[y] = null; } } return out; })()');
+    Object.entries(scenes).forEach(([y, sc]) => { if (sc) styles.forEach(style => kinds.forEach(kind => jobs.push({id, y: +y, style, sc, kind}))); });
+    if (stopped) break;
+  }
+  let done = 0, failed = 0; const total = jobs.length, started = Date.now();
+  const tick = () => { $('bar').firstElementChild.style.width = (100 * done / total) + '%'; $('status').textContent = `${done} of ${total} images${failed ? `, ${failed} failed` : ''}${stopped ? ' (stopped)' : ''}`; };
+  const worker = async () => {
+    while (!stopped && jobs.length) {
+      const j = jobs.shift();
+      W.__job = j;
+      for (let attempt = 0; attempt < 2; attempt++) {
+        try {
+          await W.eval('(async () => { const g = GLACIERS.find(x => x.id === __job.id); state.style = __job.style; state.available[__job.y] = __job.sc; await (__job.kind === "strip" ? loadStripPicture(g, __job.y) : loadImage(g, __job.y)); })()');
+          break;
+        } catch (e) {
+          if (attempt) { failed++; $('log').textContent += `${j.id} ${j.y} ${j.style} ${j.kind}: ${e.message || e}\n`; }
+          else await sleep(5000);
+        }
+      }
+      done++; tick(); await sleep(GAP_MS);
+    }
+  };
+  tick();
+  await Promise.all(Array.from({length: PARALLEL}, worker));
+  const min = Math.round((Date.now() - started) / 60000);
+  $('status').textContent = `${stopped ? 'Stopped' : 'Finished'}: ${done} of ${total} images in ${min} min${failed ? `, ${failed} failed (see below)` : ''}.`;
+  $('go').disabled = false; $('stop').disabled = true;
+};
+</script>
+</body>
+</html>
