@@ -58,7 +58,570 @@
      "orbit": "R108"
     }
    }
+  },
+  "B56-07": {
+   "name": "Gornergletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-29",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2017": {
+     "date": "2017-10-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2018": {
+     "date": "2018-09-24",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2019": {
+     "date": "2019-09-04",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2020": {
+     "date": "2020-08-19",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2021": {
+     "date": "2021-09-23",
+     "orbit": "R065"
+    },
+    "2022": {
+     "date": "2022-09-18",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2023": {
+     "date": "2023-10-03",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-08-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2026": {
+     "date": "2026-09-22",
+     "orbit": "R065"
+    }
+   }
+  },
+  "B40-07": {
+   "name": "Fieschergletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-29",
+     "orbit": "R065"
+    },
+    "2017": {
+     "date": "2017-10-14",
+     "orbit": "R065"
+    },
+    "2018": {
+     "date": "2018-10-04",
+     "orbit": "R065"
+    },
+    "2019": {
+     "date": "2019-09-29",
+     "orbit": "R065"
+    },
+    "2020": {
+     "date": "2020-09-13",
+     "orbit": "R065"
+    },
+    "2021": {
+     "date": "2021-08-14",
+     "orbit": "R065"
+    },
+    "2022": {
+     "date": "2022-09-18",
+     "orbit": "R065"
+    },
+    "2023": {
+     "date": "2023-10-08",
+     "orbit": "R065"
+    },
+    "2024": {
+     "date": "2024-08-23",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-10-14",
+     "orbit": "R065"
+    },
+    "2026": {
+     "date": "2026-09-27",
+     "orbit": "R065"
+    }
+   }
+  },
+  "A54g-11": {
+   "name": "Unteraargletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2017": {
+     "date": "2017-08-25",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2018": {
+     "date": "2018-08-15",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2019": {
+     "date": "2019-08-25",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2020": {
+     "date": "2020-08-09",
+     "orbit": "R065"
+    },
+    "2021": {
+     "date": "2021-08-14",
+     "orbit": "R065"
+    },
+    "2022": {
+     "date": "2022-08-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2023": {
+     "date": "2023-08-19",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-23",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-08-08",
+     "orbit": "R065"
+    },
+    "2026": {
+     "date": "2026-08-13",
+     "orbit": "R065",
+     "relaxed": true
+    }
+   }
+  },
+  "B83-03": {
+   "name": "Glacier de Corbassière",
+   "orbit": "R108",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-22",
+     "orbit": "R108"
+    },
+    "2017": {
+     "date": "2017-10-07",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2018": {
+     "date": "2018-09-27",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2019": {
+     "date": "2019-09-27",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2020": {
+     "date": "2020-08-07",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2021": {
+     "date": "2021-08-17",
+     "orbit": "R108"
+    },
+    "2022": {
+     "date": "2022-09-11",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2023": {
+     "date": "2023-10-01",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-21",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-09-20",
+     "orbit": "R108",
+     "relaxed": true
+    },
+    "2026": {
+     "date": "2026-09-22",
+     "orbit": "R108",
+     "relaxed": true
+    }
+   }
+  },
+  "B57-05": {
+   "name": "Zmuttgletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-29",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2017": {
+     "date": "2017-08-20",
+     "orbit": "R065"
+    },
+    "2018": {
+     "date": "2018-09-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2019": {
+     "date": "2019-09-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2020": {
+     "date": "2020-08-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2021": {
+     "date": "2021-08-09",
+     "orbit": "R065"
+    },
+    "2022": {
+     "date": "2022-08-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2023": {
+     "date": "2023-09-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-08-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2026": {
+     "date": "2026-09-19",
+     "orbit": "R065",
+     "relaxed": true
+    }
+   }
+  },
+  "B43-03": {
+   "name": "Rhonegletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-29",
+     "orbit": "R065"
+    },
+    "2017": {
+     "date": "2017-08-25",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2018": {
+     "date": "2018-10-04",
+     "orbit": "R065"
+    },
+    "2019": {
+     "date": "2019-09-29",
+     "orbit": "R065"
+    },
+    "2020": {
+     "date": "2020-09-13",
+     "orbit": "R065"
+    },
+    "2021": {
+     "date": "2021-09-23",
+     "orbit": "R065"
+    },
+    "2022": {
+     "date": "2022-08-09",
+     "orbit": "R065"
+    },
+    "2023": {
+     "date": "2023-09-28",
+     "orbit": "R065"
+    },
+    "2024": {
+     "date": "2024-08-23",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-08-18",
+     "orbit": "R065"
+    },
+    "2026": {
+     "date": "2026-09-27",
+     "orbit": "R065"
+    }
+   }
+  },
+  "B56-03": {
+   "name": "Findelgletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-29",
+     "orbit": "R065"
+    },
+    "2017": {
+     "date": "2017-10-14",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2018": {
+     "date": "2018-09-24",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2019": {
+     "date": "2019-09-29",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2020": {
+     "date": "2020-08-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2021": {
+     "date": "2021-08-14",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2022": {
+     "date": "2022-09-18",
+     "orbit": "R065"
+    },
+    "2023": {
+     "date": "2023-10-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-08-25",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2026": {
+     "date": "2026-09-22",
+     "orbit": "R065"
+    }
+   }
+  },
+  "B53-04": {
+   "name": "Feegletscher",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-29",
+     "orbit": "R065"
+    },
+    "2017": {
+     "date": "2017-10-04",
+     "orbit": "R065"
+    },
+    "2018": {
+     "date": "2018-09-24",
+     "orbit": "R065"
+    },
+    "2019": {
+     "date": "2019-09-29",
+     "orbit": "R065"
+    },
+    "2020": {
+     "date": "2020-08-19",
+     "orbit": "R065"
+    },
+    "2021": {
+     "date": "2021-09-23",
+     "orbit": "R065"
+    },
+    "2022": {
+     "date": "2022-09-18",
+     "orbit": "R065"
+    },
+    "2023": {
+     "date": "2023-10-13",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-23",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-10-07",
+     "orbit": "R065"
+    },
+    "2026": {
+     "date": "2026-09-27",
+     "orbit": "R065"
+    }
+   }
+  },
+  "A54e-24": {
+   "name": "Triftgletscher (BE)",
+   "orbit": "R065",
+   "window": {
+    "radiusKm": 3,
+    "from": "08-01",
+    "to": "10-15"
+   },
+   "savedAt": "2026-10-10T09:54:32.000Z",
+   "picks": {
+    "2016": {
+     "date": "2016-09-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2017": {
+     "date": "2017-08-30",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2018": {
+     "date": "2018-09-19",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2019": {
+     "date": "2019-08-25",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2020": {
+     "date": "2020-08-09",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2021": {
+     "date": "2021-09-18",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2022": {
+     "date": "2022-08-24",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2023": {
+     "date": "2023-08-24",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2024": {
+     "date": "2024-08-23",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2025": {
+     "date": "2025-08-08",
+     "orbit": "R065",
+     "relaxed": true
+    },
+    "2026": {
+     "date": "2026-08-03",
+     "orbit": "R065",
+     "relaxed": true
+    }
+   }
   }
  },
- "generated": "2026-10-09T18:57:38.031Z"
+ "generated": "2026-10-10T09:54:32.000Z"
 }

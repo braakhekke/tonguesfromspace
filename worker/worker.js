@@ -8,9 +8,10 @@
  * Only the two requests this dashboard makes are accepted, so the relay cannot be used to spend
  * your quota on anything else:
  *   statistics  scoring of all Sentinel-2 L2A scenes of one summer (July 1 - October 1) over a
- *               Swiss glacier, daily, at coarse resolution
- *   process     the image of one chosen day between July and September, over a Swiss glacier,
- *               or the July-September quarterly mosaic around it (background)
+ *               Swiss glacier, daily, at coarse resolution; or of the last 75 days at most
+ *               (the "Latest" image), optionally over a polygon that lies inside the checked box
+ *   process     the image of one chosen day between July and September (or in the last 130 days),
+ *               over a Swiss glacier, or the July-September quarterly mosaic around it (background)
  *
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
@@ -172,16 +173,32 @@ function checkBounds(inp, collections = [COLLECTION]) {
   if (/3857/.test(crs)) { const [w, s] = mercToLonLat(bb[0], bb[1]), [e, n] = mercToLonLat(bb[2], bb[3]); bb = [w, s, e, n]; }
   else if (crs && !/4326|CRS84/.test(crs)) return 'coordinate system';
   if (!insideSwitzerland(bb)) return 'area outside Switzerland';
+  if (!geometryInside(inp.bounds.geometry, inp.bounds.bbox.map(Number))) return 'polygon outside its box';
   if (!Array.isArray(inp.data) || inp.data.length !== 1 || !collections.includes(inp.data[0].type)) return 'data collection';
   return null;
 }
+const DAY_MS = 864e5;
+/* "Latest image": the newest clear scene of the last weeks, any month. A statistics window that ends today (or tomorrow) and is at most 75 days long,
+   and a picture of a day in the last 130 days. These requests change every day, so they are cached for one day only (see ttlFor). */
+const rollingWindow = tr => {
+  const re = /^\d{4}-\d{2}-\d{2}T00:00:00Z$/;
+  if (!tr || !re.test(tr.from) || !re.test(tr.to)) return false;
+  const f = Date.parse(tr.from), e = Date.parse(tr.to), now = Date.now();
+  return e > f && e - f <= 75 * DAY_MS && e <= now + 2 * DAY_MS && f >= now - 130 * DAY_MS;
+};
+const recentDay = d => { const t = Date.parse(d + 'T00:00:00Z'); return Number.isFinite(t) && t <= Date.now() + DAY_MS && t >= Date.now() - 130 * DAY_MS; };
+const geometryInside = (g, bb) => {          // every coordinate of an optional polygon lies inside the checked box (so the box check covers the polygon)
+  if (!g) return true;
+  const walk = c => Array.isArray(c[0]) ? c.every(walk) : (c[0] >= bb[0] - 1 && c[0] <= bb[2] + 1 && c[1] >= bb[1] - 1 && c[1] <= bb[3] + 1);
+  return ['Polygon', 'MultiPolygon'].includes(g.type) && Array.isArray(g.coordinates) && walk(g.coordinates);
+};
 const summerDay = d => /^\d{4}-(0[789]|10)-\d{2}$/.test(d) && yearOk(d.slice(0, 4));   // July to October (the late-season experiment)
 function checkProcess(b) {
   const inp = b && b.input, out = b && b.output;
   const bad = checkBounds(inp, [COLLECTION, IMAGES, MOSAIC]); if (bad) return bad;
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
-  if (!tr || typeof tr.from !== 'string' || !summerDay(tr.from.slice(0, 10)) || tr.from.slice(10) !== 'T00:00:00Z' ||
-      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and October)';
+  if (!tr || typeof tr.from !== 'string' || !(summerDay(tr.from.slice(0, 10)) || recentDay(tr.from.slice(0, 10))) || tr.from.slice(10) !== 'T00:00:00Z' ||
+      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and October, or in the last 130 days)';
   if (inp.data[0].type === MOSAIC && tr.from.slice(4, 10) !== '-07-01') return 'mosaic date (the July to September quarter)';
   if (!out || !(out.width > 0 && out.width <= MAX_PX) || !(out.height > 0 && out.height <= MAX_PX)) return 'image size';
   if (!Array.isArray(out.responses) || out.responses.length !== 1 ||
@@ -192,8 +209,9 @@ function checkProcess(b) {
 function checkStatistics(b) {
   const bad = checkBounds(b && b.input); if (bad) return bad;
   const ag = b.aggregation;
-  if (!ag || !ag.timeRange || !/^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) || !yearOk(ag.timeRange.from.slice(0, 4)) ||
-      ![ '-09-21T00:00:00Z', '-10-01T00:00:00Z', '-10-11T00:00:00Z', '-11-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to)) return 'period (July 1 to the end of October of one year)';
+  const summer = ag && ag.timeRange && /^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) && yearOk(ag.timeRange.from.slice(0, 4)) &&
+    [ '-09-21T00:00:00Z', '-10-01T00:00:00Z', '-10-11T00:00:00Z', '-11-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to);
+  if (!ag || !ag.timeRange || !(summer || rollingWindow(ag.timeRange))) return 'period (July 1 to the end of October of one year, or the last 75 days)';
   if (!ag.aggregationInterval || ag.aggregationInterval.of !== 'P1D') return 'interval';
   if (!(ag.resx >= MIN_STATS_RES && ag.resy >= MIN_STATS_RES)) return 'resolution';
   if (typeof ag.evalscript !== 'string' || ag.evalscript.length > 2000) return 'evalscript';
@@ -205,7 +223,9 @@ function checkStatistics(b) {
    (fewer KV writes; the free plan allows 1,000 a day). */
 function ttlFor(route, body) {
   if (route === 'process') return 180 * DAY;
-  const year = +body.aggregation.timeRange.from.slice(0, 4);
+  const tr = body.aggregation.timeRange;
+  if (!/^\d{4}-07-01T00:00:00Z$/.test(tr.from)) return DAY;       // a rolling window ("latest image") changes every day
+  const year = +tr.from.slice(0, 4);
   return year < new Date().getUTCFullYear() ? 180 * DAY : DAY;
 }
 
@@ -400,13 +420,14 @@ function cleanMeta(m) {
   if (typeof m.glacier !== 'string' || !/^[A-Za-z0-9_.-]{1,30}$/.test(m.glacier)) return 'glacier';
   if (typeof m.name !== 'string' || !/^[\p{L}\p{N} .'’-]{1,40}$/u.test(m.name)) return 'glacier name';
   if (!Array.isArray(m.years) || m.years.length < 1 || m.years.length > 15 || !m.years.every(yearOk)) return 'years';
-  if (GAL_TYPES[type] === 'image' ? m.years.length !== 1 : m.years.length < 2) return 'years';
+  const view = m.view === '3d' ? '3d' : 'map';                              // the 3D view of a tongue; its camera video may show a single year
+  if (GAL_TYPES[type] === 'image' ? m.years.length > 2 : m.years.length < (view === '3d' ? 1 : 2)) return 'years';      // a picture shows one year, or two (Compare)
   let nick = '';
   if (m.nick !== undefined && m.nick !== '') {
     if (typeof m.nick !== 'string' || !/^[\p{L}\p{N} ._'’@-]{1,30}$/u.test(m.nick.trim())) return 'nickname';
     nick = m.nick.trim();
   }
-  return { glacier: m.glacier, name: m.name, years: m.years.map(Number), kind: GAL_TYPES[type], type, fmt, style, nick };
+  return { glacier: m.glacier, name: m.name, years: m.years.map(Number), kind: GAL_TYPES[type], type, view, fmt, style, nick };
 }
 
 /* The file must really be a JPEG (still) or an MP4 (video) with the exact pixel size of its format. */

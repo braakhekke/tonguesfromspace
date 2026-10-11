@@ -58,6 +58,10 @@ jobs:
           [ -f glaciers.js ] && cp glaciers.js _site/ || echo "glaciers.js not available yet"
           [ -f thickness.js ] && cp thickness.js _site/ || echo "no thickness.js: the radar layer shows nothing"
           [ -f scenes.json ] && cp scenes.json _site/ || echo "no scenes.json: automatic scene choice only"
+          [ -f cloudmasks.json ] && cp cloudmasks.json _site/ || echo "no cloudmasks.json: the Latest option shows nothing"
+          [ -f sightline.js ] && cp sightline.js _site/ || echo "no sightline.js: no line-of-sight layer on the trails"
+          [ -d demchange ] && cp -r demchange _site/ || echo "no demchange folder: the 3D view keeps the ice surface of the terrain tiles for every year"
+          [ -d terrain ] && cp -r terrain _site/ || echo "no terrain folder: the 3D view builds the terrain from the terrain tiles, which is slower"
           touch _site/.nojekyll
 
       - name: Write site configuration (Copernicus relay address)
