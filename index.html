@@ -699,6 +699,10 @@ sup.fn a:hover{text-decoration:underline}
   .layerbox.in-flow .lb-group:first-child{margin-top:0}
   .layerbox.in-flow .toggle{font-size:14px}
   .layerbox.in-flow .lb-more{display:none!important}
+  /* full screen: the layer menu rises from the bottom edge of the screen, with a clear way out at the top and bottom */
+  body.has-full .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:2100;max-height:58dvh;overflow-y:auto;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
+  body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet)}
+  body.has-full .layerbox.in-flow .lb-head span::after{content:' · tap to close';font-weight:500;color:var(--moraine);font-size:12.5px}
   .lb-close-bottom{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:9px;border:1.5px solid var(--rule);border-radius:8px;background:var(--sheet);font:700 13.5px var(--sans);color:var(--rock);cursor:pointer;column-span:all}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -3350,7 +3354,7 @@ function drawBoxes(){
     const sel = picked && g.id === state.glacier, fp = imageFootprint(g).bounds, geom = outlineGeom(g);
     if (sel) {            // the picture of the chosen glacier: a thin white frame, with a small label written along its top edge
       frameLayer.addLayer(L.polygon(roundedBox(fp), {color: '#fff', weight: 1.5, opacity: .95, fill: false, interactive: false, className: 'gframe'}));
-      frameLayer.addLayer(L.marker([fp[1][0], fp[0][1]], {interactive: false, keyboard: false, icon: L.divIcon({className: 'frame-label', html: '<span>Current selection</span>', iconSize: [140, 12], iconAnchor: [-15, 13]})}));
+      frameLayer.addLayer(L.marker([fp[1][0], fp[0][1]], {interactive: false, keyboard: false, icon: L.divIcon({className: 'frame-label', html: `<span>Current selection: ${g.name}</span>`, iconSize: [220, 12], iconAnchor: [-15, 13]})}));
     }
     const style = {color: getVar('--accent'), weight: sel ? 2.5 : 2, fillColor: getVar('--accent'), fillOpacity: sel ? 0.2 : 0.12, className: 'gbox'};
     const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : L.polygon(roundedBox(fp), {...style, fillOpacity: sel ? 0.05 : 0.1});
@@ -3511,8 +3515,9 @@ function setFull(on){
   const stage = $('stage'), app = $('app');
   if (PHONE.matches) {
     stage.classList.toggle('is-full', on); document.body.classList.toggle('has-full', on);
+    if (on) [$('layerbox'), $('v3dLayers')].forEach(x => stage.appendChild(x)); else placeLayers();      // the browser's own full screen shows only the visual and what is inside it: the layer menus go in for the time being
     if (on) { stage.classList.remove('mini'); try { stage.requestFullscreen && stage.requestFullscreen().catch(() => {}); } catch {} }
-    else if (document.fullscreenElement) try { document.exitFullscreen(); } catch {}
+    else { if (document.fullscreenElement) try { document.exitFullscreen(); } catch {} setTimeout(evalMini, 50); }      // back from full screen: the small window returns if the visual is still scrolled out of view
   } else {                                   // bigger screens: both panels slide away, and back on leaving
     if (on) { fullState.saved = {l: app.classList.contains('no-left'), r: app.classList.contains('no-right')}; setPanel('left', true, false); setPanel('right', true, false); }
     else if (fullState.saved) { setPanel('left', fullState.saved.l, false); setPanel('right', fullState.saved.r, false); fullState.saved = null; }
@@ -3536,11 +3541,12 @@ function setMini(on){
   const stage = $('stage'); if (stage.classList.contains('mini') === on) return;
   stage.classList.toggle('mini', on); map.invalidateSize({pan: false}); clip && clip();
 }
-if ('IntersectionObserver' in window) new IntersectionObserver(([en]) => {
-  const below = !en.isIntersecting && en.boundingClientRect.bottom < 0;
+function evalMini(){            // the small window shows while the visual is scrolled out above the screen
+  const below = $('stageSlot').getBoundingClientRect().bottom < 0;
   if (!below) miniClosed = false;
   setMini(PHONE.matches && below && !miniClosed && glacierPicked && $('videoSheet').hidden && !$('stage').classList.contains('is-full'));
-}).observe($('stageSlot'));
+}
+if ('IntersectionObserver' in window) new IntersectionObserver(evalMini).observe($('stageSlot'));
 $('miniBig').onclick = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
 $('miniFull').onclick = () => setFull(true);
 $('miniClose').onclick = () => { miniClosed = true; setMini(false); };
