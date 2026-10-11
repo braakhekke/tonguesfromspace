@@ -1074,6 +1074,7 @@ body.has-full{overflow:hidden}
 <!-- ================= VIDEO EXPORT PANEL ================= -->
 <section class="video-sheet" id="videoSheet" role="dialog" aria-label="Download animation" hidden>
   <div class="vs-head"><strong id="vsTitle">Download animation</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
+  <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Your image</button><button type="button" id="vkVideo" aria-pressed="true">Your animation</button></div>
   <p class="hint vs-move">Move and zoom until the tongue fits the frame.</p>
   <div class="segment" role="group" aria-label="Format">
     <button type="button" id="vfWide" aria-pressed="true">16:9<small>(standard)</small></button>
@@ -3539,10 +3540,13 @@ const fullState = {saved: null};
 function setFull(on){
   const stage = $('stage'), app = $('app');
   if (PHONE.matches) {
+    const c0 = map.getCenter(), z0 = map.getZoom();            // the middle of what is on show stays the middle (the small window's centre becomes the centre of the full screen)
     stage.classList.toggle('is-full', on); document.body.classList.toggle('has-full', on);
     if (on) [$('layerbox'), $('v3dLayers')].forEach(x => stage.appendChild(x)); else placeLayers();      // the browser's own full screen shows only the visual and what is inside it: the layer menus go in for the time being
     if (on) { stage.classList.remove('mini'); try { stage.requestFullscreen && stage.requestFullscreen().catch(() => {}); } catch {} }
     else { if (document.fullscreenElement) try { document.exitFullscreen(); } catch {} setTimeout(evalMini, 50); }      // back from full screen: the small window returns if the visual is still scrolled out of view
+    map.invalidateSize({pan: false}); map.setView(c0, z0, {animate: false});
+    [150, 400, 800].forEach(t => setTimeout(() => { map.invalidateSize({pan: false}); map.setView(c0, z0, {animate: false}); }, t));      // the browser's full screen changes the size a moment later
   } else {                                   // bigger screens: both panels slide away, and back on leaving
     if (on) { fullState.saved = {l: app.classList.contains('no-left'), r: app.classList.contains('no-right')}; setPanel('left', true, false); setPanel('right', true, false); }
     else if (fullState.saved) { setPanel('left', fullState.saved.l, false); setPanel('right', fullState.saved.r, false); fullState.saved = null; }
@@ -3786,8 +3790,20 @@ function placeFrame(){
 /* Frame areas: the frame on the map fitted to the tongue or to the whole glacier */
 function frameTo(whole){
   const g = currentGlacier(), r = frameRect(), size = map.getSize();
-  const b = whole ? g.bounds : tongueBounds(g) || g.bounds;
-  map.fitBounds(b, {paddingTopLeft: [r.x + 12, r.y + 12], paddingBottomRight: [size.x - (r.x + r.w) + 12, size.y - (r.y + r.h) + 12]});
+  if (!whole) {
+    const b = tongueBounds(g) || g.bounds;
+    return map.fitBounds(b, {paddingTopLeft: [r.x + 12, r.y + 12], paddingBottomRight: [size.x - (r.x + r.w) + 12, size.y - (r.y + r.h) + 12]});
+  }
+  /* The whole glacier in the frame. The centre is moved so that no edge of the frame leaves the satellite picture where the frame's shape allows it; where the picture is not wide or tall enough for the frame (a tall frame on a wide picture), the frame may reach beyond it */
+  const fp = imageFootprint(g).bounds, gb = g.bounds, P = (ll, z) => map.project(L.latLng(ll), z);
+  const ext = (b, z) => { const a = P([b[1][0], b[0][1]], z), c = P([b[0][0], b[1][1]], z); return {x0: a.x, y0: a.y, x1: c.x, y1: c.y}; };
+  const g0 = ext(gb, 0);
+  const zFit = Math.log2(Math.min((r.w - 24) / (g0.x1 - g0.x0), (r.h - 24) / (g0.y1 - g0.y0)));       // the glacier just fits the frame
+  const z = Math.min(map.getMaxZoom(), Math.floor(zFit * 4) / 4);
+  const F = ext(fp, z), G = ext(gb, z), clamp = (v, lo, hi) => lo > hi ? v : Math.min(hi, Math.max(lo, v));      // a frame larger than the picture in that direction: the glacier stays in the middle
+  const cx = clamp((G.x0 + G.x1) / 2, F.x0 + r.w / 2, F.x1 - r.w / 2), cy = clamp((G.y0 + G.y1) / 2, F.y0 + r.h / 2, F.y1 - r.h / 2);      // where the middle of the frame goes
+  const mid = L.point(cx + (size.x / 2 - (r.x + r.w / 2)), cy + (size.y / 2 - (r.y + r.h / 2)));      // the frame sits off the middle of the map: so does the map's centre
+  map.setView(map.unproject(mid, z), z);
 }
 function frameExceedsImage(){            // the frame reaches beyond the satellite picture of the glacier
   const g = currentGlacier(), r = frameRect(), fp = imageFootprint(g).bounds, ll = p => map.containerPointToLatLng(p);
@@ -3846,6 +3862,7 @@ function openVideo(kind = 'video'){
   const image = kind === 'image', in3D = viewMode === '3d';
   $('vfReelNote').textContent = image ? '(full phone screen)' : '(Reels, TikTok)';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
+  $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
   $('vsTitle').textContent = (image ? 'Download image' : 'Download animation') + (in3D ? ' (3D)' : '');
   document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Move and zoom until the tongue fits the frame.';
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
@@ -3879,7 +3896,8 @@ function closeVideo(){
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0;
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
 }
-$('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = closeVideo;
+$('vkImage').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('video'); };      // switch between the two panes without closing
+$('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide' };
 const setFmt = f => { vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f)); updateFrame(); };
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
