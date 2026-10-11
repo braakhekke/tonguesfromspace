@@ -702,6 +702,7 @@ sup.fn a:hover{text-decoration:underline}
   /* full screen: the layer menu rises from the bottom edge of the screen, with a clear way out at the top and bottom */
   body.has-full .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:2100;max-height:58dvh;overflow-y:auto;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
   body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet)}
+  body.has-full .layerbox.in-flow .lb-close-bottom{display:none}
   body.has-full .layerbox.in-flow .lb-head span::after{content:' · tap to close';font-weight:500;color:var(--moraine);font-size:12.5px}
   .lb-close-bottom{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:9px;border:1.5px solid var(--rule);border-radius:8px;background:var(--sheet);font:700 13.5px var(--sans);color:var(--rock);cursor:pointer;column-span:all}
 }
@@ -773,6 +774,7 @@ body.has-full{overflow:hidden}
   .stage-slot .stage{height:100%}
   .stage.mini{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(58vw,250px);height:150px!important;min-height:0;z-index:900;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.5);border:2px solid #fff}
   .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container){display:none!important}
+  .stage.mini .leaflet-control-scale{display:none}
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
   .stage.mini .mini-ctl{display:flex;position:absolute;right:4px;bottom:4px;z-index:700;gap:4px}
@@ -3539,12 +3541,13 @@ document.addEventListener('fullscreenchange', () => { if (!document.fullscreenEl
 let miniClosed = false;
 function setMini(on){
   const stage = $('stage'); if (stage.classList.contains('mini') === on) return;
-  stage.classList.toggle('mini', on); map.invalidateSize({pan: false}); clip && clip();
+  const c = map.getCenter(), z = map.getZoom();            // the small window shows the middle of what the big one showed, at the same scale
+  stage.classList.toggle('mini', on); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
 function evalMini(){            // the small window shows while the visual is scrolled out above the screen
   const below = $('stageSlot').getBoundingClientRect().bottom < 0;
   if (!below) miniClosed = false;
-  setMini(PHONE.matches && below && !miniClosed && glacierPicked && $('videoSheet').hidden && !$('stage').classList.contains('is-full'));
+  setMini(PHONE.matches && below && !miniClosed && glacierPicked && viewMode !== '3d' && $('videoSheet').hidden && !$('stage').classList.contains('is-full'));      // not in the 3D view: the small window has only the map
 }
 if ('IntersectionObserver' in window) new IntersectionObserver(evalMini).observe($('stageSlot'));
 $('miniBig').onclick = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
