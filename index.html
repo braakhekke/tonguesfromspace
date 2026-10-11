@@ -76,6 +76,7 @@ button,select,input{font:inherit;color:inherit}
 .down-hint{display:none;border:0;background:none;padding:2px 0;color:var(--crevasse);font:600 13px var(--sans);text-align:left;cursor:pointer;text-decoration:underline}
 @media (max-width:720px){.down-hint:not([hidden]){display:block}}
 .step-h .num{width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font-size:11.5px;letter-spacing:0}
+.m-select.placeholder{color:var(--moraine);font-style:italic}
 .m-select{display:none;width:100%;min-height:42px;font-size:16px;border:1px solid var(--rule);border-radius:8px;padding:8px 10px;background:var(--sheet)}
 .note{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0}
 .note:empty{display:none}
@@ -212,7 +213,9 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 /* satellite scene: rounded corners and a soft shadow; the red glacier box is the frame (not while framing a video) */
 .scene-img{border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
 .is-framing .scene-img{border-radius:0;box-shadow:none}
-.is-framing .gframe{display:none}
+.is-framing .gframe,.is-framing .frame-label{display:none}
+.frame-label{pointer-events:none}
+.frame-label span{display:block;font:600 9.5px/12px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:#fff;white-space:nowrap;text-shadow:0 0 3px rgba(0,0,0,.85),0 0 6px rgba(0,0,0,.6)}
 /* static Sentinel-2 background for all of Switzerland, a little darker than the scene */
 .leaflet-bgPane-pane{filter:brightness(.78) saturate(.9)}
 .is-timelapse .layerbox{top:14px}
@@ -339,6 +342,12 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 
 /* ---------- right ---------- */
 .story{background:var(--sheet);border-left:1px solid var(--rule);overflow-y:auto;padding:0 26px 40px;display:flex;flex-direction:column}
+.story-empty{display:none}
+.story.empty .story-empty{display:block}
+.story-empty h2{margin:0 0 6px}
+.story-empty p{margin:0 0 16px;color:var(--moraine);font-size:14px;line-height:1.5}
+.story.empty > :is(h2,.sub,.lede,.tabs,.tab-panel){display:none}
+.story.empty > .story-empty h2{display:block}
 .story::before{content:'';display:block;flex:none;height:24px}      /* the top space is inside the scroll, so a sticky card header sits flush with the top edge */
 .story > *{flex:none}
 .story h2{font-size:25px;line-height:1.05;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
@@ -686,7 +695,7 @@ sup.fn a:hover{text-decoration:underline}
   .layerbox.in-flow .lb-head{position:static;background:transparent;padding:10px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
   .layerbox.in-flow.min .lb-body,.layerbox.in-flow .lb-body{display:block;column-count:2;column-gap:18px;padding-top:6px}
   .layerbox.in-flow .lb-body > *{break-inside:avoid}
-  .layerbox.in-flow .lb-group{break-after:avoid;margin-top:8px}
+  .layerbox.in-flow .lb-group{break-after:avoid;break-after:avoid-column;-webkit-column-break-after:avoid;margin-top:8px}
   .layerbox.in-flow .lb-group:first-child{margin-top:0}
   .layerbox.in-flow .toggle{font-size:14px}
   .layerbox.in-flow .lb-more{display:none!important}
@@ -974,7 +983,7 @@ body.has-full{overflow:hidden}
       <label class="toggle" title="Hiking trails"><input type="checkbox" id="trailsToggle"> <span>Hiking trails</span></label>
       <div class="trail-legend" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="sightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
       <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span>Place names</span></label>
-      <label class="toggle" title="The ten glaciers as red outlines you can click"><input type="checkbox" id="boxToggle" checked> <span><i class="swatch" style="border-color:var(--accent)"></i> Glacier outlines</span></label>
+      <label class="toggle" title="The ten glaciers as red outlines you can click. Before a glacier is chosen they always show."><input type="checkbox" id="boxToggle" checked> <span><i class="swatch" style="border-color:var(--accent)"></i> Selectable glaciers</span></label>
       <p class="hint" id="outlineNote"></p>
       </div>
       <button type="button" class="lb-close-bottom" id="lbCloseBottom"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>Close layers</button>
@@ -984,9 +993,9 @@ body.has-full{overflow:hidden}
       <button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
       <button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
       <span class="sep"></span>
-      <button type="button" id="swissBtn" aria-label="All ten glaciers" title="Zoom out to all ten glaciers"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="3" width="8" height="8" rx="1.5"/><rect x="13" y="3" width="8" height="8" rx="1.5"/><rect x="3" y="13" width="8" height="8" rx="1.5"/><rect x="13" y="13" width="8" height="8" rx="1.5"/></svg><span class="lbl">All glaciers</span></button>
-      <button type="button" id="tongueBtn" aria-label="Tongue" title="Zoom to the tongue tip"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h12v8c0 5-3 9-6 10-3-1-6-5-6-10z" style="fill:currentColor;fill-opacity:.2"/></svg><span class="lbl">Tongue</span></button>
-      <button type="button" id="fitBtn" aria-label="Whole glacier" title="Fit the whole glacier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8V4h4M20 8V4h-4M4 16v4h4M20 16v4h-4"/><path d="M8 16l3-5 2 3 1.5-2L17 16z"/></svg><span class="lbl">Whole glacier</span></button>
+      <button type="button" id="swissBtn" aria-label="All ten glaciers" title="Zoom out to all ten glaciers"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="2.5" width="19" height="19" rx="3"/><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" transform="translate(1.01 0.36) scale(0.062)" style="fill:currentColor;stroke:none"/><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" transform="translate(9.20 1.59) scale(0.054)" style="fill:currentColor;stroke:none"/><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" transform="translate(3.42 7.14) scale(0.07)" style="fill:currentColor;stroke:none"/><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" transform="translate(11.90 9.30) scale(0.05)" style="fill:currentColor;stroke:none"/></svg><span class="lbl">All glaciers</span></button>
+      <button type="button" id="tongueBtn" aria-label="Tongue" title="Zoom to the tongue tip"><svg viewBox="66 74 110 114" aria-hidden="true"><defs><mask id="tongueIcoCut" maskUnits="userSpaceOnUse" x="60" y="70" width="120" height="124"><rect x="60" y="70" width="120" height="124" fill="#fff"/><path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/></mask></defs><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#tongueIcoCut)" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Tongue</span></button>
+      <button type="button" id="fitBtn" aria-label="Whole glacier" title="Fit the whole glacier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8V3.5H8M20.5 8V3.5H16M3.5 16v4.5H8M20.5 16v4.5H16"/><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" transform="translate(2.1 1.8) scale(.085)" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Whole glacier</span></button>
       <span class="sep"></span>
       <button type="button" id="measureDist" class="mtool" aria-pressed="false" aria-label="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span class="lbl">Measure length</span></button>
       <button type="button" id="measureArea" class="mtool" aria-pressed="false" aria-label="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span class="lbl">Measure area</span></button>
@@ -2325,7 +2334,7 @@ function renderGlacierList(){
   GLACIERS.forEach((g, i) => {
     const area = rankArea(g);
     const li = document.createElement('li'), b = document.createElement('button');
-    b.type = 'button'; b.setAttribute('aria-pressed', g.id === state.glacier);
+    b.type = 'button'; b.setAttribute('aria-pressed', glacierPicked && g.id === state.glacier);      // nothing is highlighted before the first choice
     b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${area.toFixed(2)} km²</span>`;
     b.onclick = () => chooseGlacier(g.id);
     li.appendChild(b); ul.appendChild(li);
@@ -2577,9 +2586,10 @@ function renderStory(){
   const info = GLACIER_INFO[g.id] || GLACIER_INFO[shortSlug(g.name)];
   const tab = t => `role="tab" data-tab="${t}" aria-selected="${storyTab === t}"`;
   const storyEl = document.getElementById('story'), aboutOpen = !!(storyEl.querySelector('details.about') || {}).open, keepScroll = storyEl.scrollTop, sameGlacier = storyEl.dataset.glacier === g.id;
-  storyEl.dataset.glacier = g.id;
+  storyEl.dataset.glacier = g.id; storyEl.classList.toggle('empty', !glacierPicked);
   const openCards = sameGlacier ? [...storyEl.querySelectorAll('details.coll[open]')].map(d => d.firstElementChild.textContent.trim()) : [];      // the cards you had open stay open when the panel is redrawn
   storyEl.innerHTML = `
+    <div class="story-empty"><h2>Nothing selected yet</h2><p>Click a glacier on the map, or pick one from the list. Its story, figures and sources show up here.</p></div>
     <h2>${g.name} Glacier</h2>
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede.replace('by area,', `by area${fn('sgi')},`)}</p>
@@ -3338,9 +3348,12 @@ function drawBoxes(){
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
   GLACIERS.forEach((g, i) => {
     const sel = picked && g.id === state.glacier, fp = imageFootprint(g).bounds, geom = outlineGeom(g);
-    if (sel) frameLayer.addLayer(L.polygon(roundedBox(fp), {color: getVar('--accent'), weight: 3, fill: false, interactive: false, className: 'gframe'}));
-    const style = {color: getVar('--accent'), weight: sel ? 3 : 2, fillColor: getVar('--accent'), fillOpacity: sel ? 0.6 : 0.4, className: 'gbox'};
-    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : L.polygon(roundedBox(fp), {...style, fillOpacity: sel ? 0.08 : 0.22});
+    if (sel) {            // the picture of the chosen glacier: a thin white frame, with a small label written along its top edge
+      frameLayer.addLayer(L.polygon(roundedBox(fp), {color: '#fff', weight: 1.5, opacity: .95, fill: false, interactive: false, className: 'gframe'}));
+      frameLayer.addLayer(L.marker([fp[1][0], fp[0][1]], {interactive: false, keyboard: false, icon: L.divIcon({className: 'frame-label', html: '<span>Current selection</span>', iconSize: [140, 12], iconAnchor: [-15, 13]})}));
+    }
+    const style = {color: getVar('--accent'), weight: sel ? 2.5 : 2, fillColor: getVar('--accent'), fillOpacity: sel ? 0.2 : 0.12, className: 'gbox'};
+    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : L.polygon(roundedBox(fp), {...style, fillOpacity: sel ? 0.05 : 0.1});
     const tip = `${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²`;
     shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => chooseGlacier(g.id));
     const num = L.marker(geom ? badgeLatLng(g) : [fp[1][0], (fp[0][1] + fp[1][1]) / 2], {
@@ -3350,7 +3363,8 @@ function drawBoxes(){
   });
 }
 function updateBoxes(){
-  const show = document.getElementById('boxToggle').checked && map.getZoom() <= BOX_MAX_ZOOM && !$('app').classList.contains('is-framing');      // not in a download frame
+  const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
+  const show = (!picked || document.getElementById('boxToggle').checked) && map.getZoom() <= BOX_MAX_ZOOM && !$('app').classList.contains('is-framing');      // before the first choice they always show (the starting point); after it the layer switch decides. Not in a download frame
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
   const frame = typeof glacierPicked !== 'undefined' && glacierPicked;      // the frame of the chosen glacier's picture is red at every zoom
@@ -3431,7 +3445,7 @@ function updatePickHint(){
   const far = map.getZoom() < START_ZOOM() - 0.5, el = $('pickHint'), show = !glacierPicked || far;
   el.classList.toggle('show', show);
   const wasLocked = $('app').classList.contains('no-glacier');
-  $('app').classList.toggle('no-glacier', !glacierPicked);
+  $('app').classList.toggle('no-glacier', !glacierPicked); $('story').classList.toggle('empty', !glacierPicked);
   $('downHint').hidden = !glacierPicked;
   if (wasLocked && glacierPicked) {          // step 2 pops up as soon as a glacier is chosen
     const v = $('vizGroup'); v.classList.add('pop'); setTimeout(() => v.classList.remove('pop'), 1000);
@@ -3554,7 +3568,7 @@ function chooseGlacier(id){
   const first = !glacierPicked;
   glacierPicked = true; updatePickHint();
   if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines
-    stopPlay(); if (first) { drawOutlines(); writeHash(); updateTrailClip(); updateSight(); drawBoxes(); updateBoxes(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
+    stopPlay(); if (first) { drawOutlines(); writeHash(); updateTrailClip(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
     return focusTongue();
   }
   stopPlay();
@@ -3563,7 +3577,9 @@ function chooseGlacier(id){
 }
 function renderMobileBar(){                 // phones: the glacier list becomes a dropdown
   const gs = $('mGlacier');
-  gs.innerHTML = GLACIERS.map((g, i) => `<option value="${g.id}" ${g.id === state.glacier ? 'selected' : ''}>${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²</option>`).join('');
+  const none = !glacierPicked;      // before the first choice nothing is selected: the box asks for one
+  gs.innerHTML = (none ? '<option value="" disabled selected>Tap to choose a glacier</option>' : '') + GLACIERS.map((g, i) => `<option value="${g.id}" ${!none && g.id === state.glacier ? 'selected' : ''}>${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²</option>`).join('');
+  gs.classList.toggle('placeholder', none);
   gs.onchange = () => chooseGlacier(gs.value);
 }
 
