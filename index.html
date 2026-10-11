@@ -226,9 +226,17 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 #tagT{display:none}
 #tagT{max-width:calc(100% - 24px)}
 .is-timelapse #tagT{display:block}
-.tl-dots{display:flex;gap:4px;margin-top:10px}
-.tl-dots i{display:block;width:16px;height:4px;border-radius:2px;background:rgba(255,255,255,.35)}
-.tl-dots i.on{background:#fff}
+.tl-dots{margin-top:10px}
+.tl2{width:min(300px,56vw)}
+.tl2-ends{display:flex;justify-content:space-between;font-size:11px;font-weight:500;letter-spacing:0;opacity:.85;text-shadow:0 0 6px rgba(0,0,0,.6)}
+.tl2-ends b{font-weight:500}
+.tl2-track{position:relative;height:16px;margin-top:2px}
+.tl2-track::before{content:'';position:absolute;left:0;right:0;top:6.5px;height:3px;border-radius:2px;background:rgba(255,255,255,.32)}
+.tl2-fill{position:absolute;left:0;top:6.5px;height:3px;border-radius:2px;background:#fff}
+.tl2-tick{position:absolute;top:2px;width:2px;height:12px;margin-left:-1px;background:rgba(255,255,255,.4)}
+.tl2-tick.on{background:#fff}
+.tl2-dot{position:absolute;top:0;width:16px;height:16px;margin-left:-8px;border-radius:50%;background:#fff;box-shadow:0 0 8px rgba(0,0,0,.5)}
+.stage.mini .tl2{width:110px}.stage.mini .tl2-ends{font-size:9px}
 
 .mapbar{position:absolute;left:50%;bottom:32px;transform:translateX(-50%);z-index:670;display:flex;align-items:center;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:calc(100% - 24px);overflow-x:auto}
 .mapbar button{border:0;background:none;padding:6px 10px;border-radius:5px;cursor:pointer;font-size:14px;white-space:nowrap}
@@ -253,6 +261,14 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-bottom{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:1.4;color:#aebccb;pointer-events:none}
 .v3d-bottom a{color:#cfe3f1;pointer-events:auto}
 .n-short,.n-less,.v3d-top .h-short{display:none}
+.v3d-measure{position:absolute;left:12px;top:78px;z-index:6;display:flex;flex-direction:column;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.v3d-measure button{width:38px;height:38px;border:0;background:none;border-radius:6px;color:var(--rock);cursor:pointer;display:grid;place-items:center;padding:0}
+.v3d-measure button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.v3d-measure button[aria-pressed="true"]{background:var(--rock);color:#fff}
+.v3d-measure button:disabled{color:#A9B1B5;cursor:not-allowed}
+.v3d-mhint{top:14px;z-index:7}
+.v3d.measuring #v3dCanvas{cursor:crosshair}
+@media (max-width:720px){.v3d-mhint{top:56px;font-size:12.5px;max-width:calc(100% - 16px);flex-wrap:nowrap;padding:4px 5px 4px 10px;gap:6px}.v3d-mhint #v3dMText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v3d-mhint button{min-height:30px;flex:none}.v3d-measure{top:70px}}
 .n-more{pointer-events:auto;border:0;background:none;color:#cfe3f1;text-decoration:underline;font:inherit;padding:0 2px;cursor:pointer}
 .is-3d .leaflet-control-scale{display:none}      /* a map scale means little in perspective */
 @media (max-width:720px){
@@ -562,7 +578,6 @@ sup.fn a:hover{text-decoration:underline}
 .video-sheet .segment button[aria-pressed="true"] small{color:var(--rock)}
 .vs-note{margin:0}
 .video-sheet.is-swipe .vo-tl{display:none}
-.video-sheet.is-3d .vo-outside{display:none}
 .video-sheet.is-3d .vs-area{display:none}
 .is-framing #map{background:radial-gradient(1.2px 1.2px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 47% 61%,#cfe3ff,transparent),radial-gradient(1.6px 1.6px at 78% 18%,#fff,transparent),radial-gradient(1px 1px at 31% 84%,#fff,transparent),radial-gradient(1.3px 1.3px at 90% 72%,#ffe9c4,transparent),radial-gradient(.9px .9px at 64% 40%,#fff,transparent),#070b14;background-size:230px 230px}
 .video-sheet:not(.is-3d) .vo-3d{display:none}
@@ -709,6 +724,7 @@ sup.fn a:hover{text-decoration:underline}
   .layerbox.in-flow .lb-group:first-child{margin-top:0}
   .layerbox.in-flow .toggle{font-size:14px}
   .layerbox.in-flow .lb-more{display:none!important}
+  body.pane-open #layersBtn,body.pane-open .layers-bar{display:none!important}
   /* full screen: the layer menu rises from the bottom edge of the screen, with a clear way out at the top and bottom */
   body.has-full .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:2100;max-height:58dvh;overflow-y:auto;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
   body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet)}
@@ -783,9 +799,9 @@ body.has-full{overflow:hidden}
 @media (max-width:720px) and (orientation:portrait){
   .stage-slot{display:block;order:1;height:60vh;height:60dvh;min-height:330px}
   .stage-slot .stage{height:100%}
-  .stage.mini{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(58vw,250px);height:150px!important;min-height:0;z-index:900;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.5);border:2px solid #fff}
+  .stage.mini{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(72vw,320px);height:195px!important;min-height:0;z-index:900;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.5);border:2px solid #fff}
   .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d){display:none!important}
-  .stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
+  .stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
   .stage.mini .leaflet-control-scale{display:none}
   .stage.mini .v3d{pointer-events:none}      /* a touch on the small window scrolls the page, it does not turn the terrain */
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
@@ -935,12 +951,12 @@ body.has-full{overflow:hidden}
         <label class="slider-row" for="imgOpacity" title="How opaque the satellite images are: lower values let the background layers show through everywhere"><span>Image opacity</span><output id="imgOpacityOut">100 %</output></label>
         <input type="range" class="frame" id="imgOpacity" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite images">
       </div>
-      <div class="tune-row map-only">
+      <div class="tune-row">
         <label class="slider-row" for="outside" title="How visible the satellite image is around the glacier, outside the 1850 outline: 0 % shows only the background there"><span>Surroundings opacity</span><output id="outsideOut">100 %</output></label>
         <input type="range" class="frame" id="outside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline">
       </div>
       </div>
-      <p class="hint map-only outside-note" id="outsideNote" hidden></p>
+      <p class="hint outside-note" id="outsideNote" hidden></p>
     </section>
 
     <section class="step" id="shareGroup">
@@ -1053,6 +1069,12 @@ body.has-full{overflow:hidden}
           <button type="button" class="lb-close-bottom" id="l3CloseBottom"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>Close layers</button>
         </div>
       </div>
+      <div class="v3d-measure" id="v3dMeasure" role="toolbar" aria-label="Measuring tools">
+        <button type="button" id="v3mDist" aria-pressed="false" aria-label="Measure length" title="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg></button>
+        <button type="button" id="v3mArea" aria-pressed="false" aria-label="Measure area" title="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg></button>
+        <button type="button" id="v3mClear" aria-label="Clear measurements" title="Clear measurements" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg></button>
+      </div>
+      <div class="measure-hint v3d-mhint" id="v3dMHint" role="status"><span id="v3dMText"></span><button type="button" id="v3mFinish">Finish</button><button type="button" class="ghost" id="v3mCancel">Cancel</button></div>
       <div class="v3d-msg" id="v3dMsg"></div>
       <div class="v3d-div" id="v3dDiv" hidden role="slider" tabindex="0" aria-label="Move the line between the two years" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span class="v3d-handle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></span><span class="v3d-hint">Drag the line to compare</span></div>
       <div class="v3d-lab" id="v3dLabA" hidden></div><div class="v3d-lab" id="v3dLabB" hidden></div>
@@ -1782,6 +1804,7 @@ const state = {
 };
 let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
 let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
+let OPEN_3D = false;            // a shared link asks for the 3D view
 let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
@@ -1790,11 +1813,11 @@ let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is re
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
   if (['natural', 'false1', 'false2'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
   if (p.get('ol') === '1') prefs.old = true;                                                      // ol=1: show the 1850 outline
-  glacierPicked = OPEN_ON_GLACIER;
+  glacierPicked = OPEN_ON_GLACIER; OPEN_3D = OPEN_ON_GLACIER && p.get('v') === '3d';
   HASH_TAB = { discover: 'look', fun: 'look', stats: 'figures', switzerland: 'swiss' }[p.get('t')] || null;
 })();
 const writeHash = () => history.replaceState(null, '',
-  `#${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}`);
+  `#${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}${typeof viewMode !== 'undefined' && viewMode === '3d' ? '&v=3d' : ''}`);      // v=3d: the link opens the 3D view
 const okYears = () => YEARS.filter(y => state.available[y]);
 const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 
@@ -2018,7 +2041,9 @@ function showFrame(i){
   setTag('tagT', tlLayers[i].yr);
   const sc = state.available[tlLayers[i].yr];
   tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`);
-  document.getElementById('tlDots').innerHTML = state.mode === 'single' ? '' : tlLayers.map((_, k) => `<i class="${k <= i ? 'on' : ''}"></i>`).join('');
+  /* the timeline as in the Timelapse download: first and last year above a line, a tick for every year, the line filled up to the year on show, a round marker */
+  const nTl = tlLayers.length, pct = k => nTl > 1 ? k / (nTl - 1) * 100 : 0;
+  document.getElementById('tlDots').innerHTML = state.mode === 'single' || nTl < 2 ? '' : `<div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div>`;
   document.getElementById('frameSlider').value = i;
   updateCredits();
   if (viewMode === '3d' && v3dCtx && v3dCtx.follow && v3dCtx.years.includes(tlLayers[i].yr)) v3dCtx.follow(tlLayers[i].yr);      // the 3D view shows the frame too
@@ -2261,7 +2286,7 @@ document.addEventListener('keydown', e => {
 
 /* ---------- toolbar ---------- */
 document.getElementById('zoomIn').onclick = () => map.zoomIn();
-document.getElementById('zoomOut').onclick = () => map.zoomOut();
+document.getElementById('zoomOut').onclick = () => { if (!$('videoSheet').hidden && map.getZoom() <= map.getMinZoom() + 0.01) showNotice('Zoomed out as far as the download frame allows: it has to stay near the picture of this glacier.'); map.zoomOut(); };
 document.getElementById('fitBtn').onclick = () => fitGlacier();
 document.getElementById('labelsToggle').onchange = e => { e.target.checked ? labels.addTo(map) : map.removeLayer(labels); updateCredits(); };
 document.getElementById('oldToggle').checked = prefs.old === true;      // the 1850 outline is off until it is switched on
@@ -2587,7 +2612,7 @@ function applyImgOpacity(){
 }
 ['imgOpacity', 'mapOp'].forEach(id => document.getElementById(id).oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } });
 applyImgOpacity();
-const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); };
+const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); if (viewMode === '3d') refresh3D(); };      // the 3D picture is made again too
 ['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
 syncOutsideUi();
 document.getElementById('brightness').oninput = e => {
@@ -3437,6 +3462,7 @@ document.getElementById('radarToggle').onchange = e => { prefs.radar = e.target.
 document.getElementById('boxToggle').checked = prefs.boxes !== false;
 document.getElementById('boxToggle').onchange = e => { prefs.boxes = e.target.checked; savePrefs(); updateBoxes(); };
 document.getElementById('swissBtn').onclick = () => {
+  if (!$('videoSheet').hidden) return showNotice('A download frame is open, so the view stays close to the picture of this glacier: zooming out is limited so the frame cannot drift off its image. Close the download pane to see all glaciers.');
   const bt = document.getElementById('boxToggle');
   if (!bt.checked) { bt.checked = true; bt.dispatchEvent(new Event('change')); }      // the overview is where the boxes are for: switch them on (the layer switch keeps the choice)
   showSwitzerland();
@@ -3806,12 +3832,36 @@ function placeFrame(){
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
 }
+/* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine) */
+let zoomLimitKey = '';
+function limitFrameView(){
+  const on = !$('videoSheet').hidden && viewMode !== '3d';
+  if (!on) { if (zoomLimitKey) { zoomLimitKey = ''; map.setMinZoom(8); map.setMaxBounds(null); } return; }
+  const g = currentGlacier(), r = frameRect(), fp = imageFootprint(g).bounds, key = g.id + '|' + Math.round(r.w) + 'x' + Math.round(r.h);
+  if (key === zoomLimitKey) return; zoomLimitKey = key;
+  const a = map.project([fp[1][0], fp[0][1]], 0), c = map.project([fp[0][0], fp[1][1]], 0);
+  const zIn = Math.log2(Math.max(r.w / (c.x - a.x), r.h / (c.y - a.y)));            // the zoom at which the frame just fits the picture
+  map.setMinZoom(Math.max(8, Math.floor((zIn - 0.7) * 4) / 4));                       // the frame may reach about 1.6 times beyond the picture, no more
+  map.options.maxBoundsViscosity = 1; map.setMaxBounds(L.latLngBounds(fp).pad(0.6));
+}
 /* Frame areas: the frame on the map fitted to the tongue or to the whole glacier */
+/* "Tongue" and "Whole glacier" light up when pressed and go out again as soon as the frame is changed: another ratio, or moving or zooming the map */
+let areaSel = null;
+function syncAreaButtons(){
+  $('vaTongue').setAttribute('aria-pressed', !!areaSel && areaSel.which === 'tongue');
+  $('vaWhole').setAttribute('aria-pressed', !!areaSel && areaSel.which === 'whole');
+}
+function markArea(which){ areaSel = which ? {which, z: map.getZoom(), c: map.getCenter(), fmt: vstate.fmt} : null; syncAreaButtons(); }
+function checkAreaSel(){
+  if (!areaSel) return;
+  if (areaSel.fmt !== vstate.fmt || Math.abs(map.getZoom() - areaSel.z) > 0.01 || map.latLngToContainerPoint(areaSel.c).distanceTo(map.getSize().divideBy(2)) > 3) markArea(null);
+}
 function frameTo(whole){
   const g = currentGlacier(), r = frameRect(), size = map.getSize();
   if (!whole) {
     const b = tongueBounds(g) || g.bounds;
-    return map.fitBounds(b, {paddingTopLeft: [r.x + 12, r.y + 12], paddingBottomRight: [size.x - (r.x + r.w) + 12, size.y - (r.y + r.h) + 12]});
+    map.fitBounds(b, {animate: false, paddingTopLeft: [r.x + 12, r.y + 12], paddingBottomRight: [size.x - (r.x + r.w) + 12, size.y - (r.y + r.h) + 12]});
+    return markArea('tongue');
   }
   /* The whole glacier in the frame. The centre is moved so that no edge of the frame leaves the satellite picture where the frame's shape allows it; where the picture is not wide or tall enough for the frame (a tall frame on a wide picture), the frame may reach beyond it */
   const fp = imageFootprint(g).bounds, gb = g.bounds, P = (ll, z) => map.project(L.latLng(ll), z);
@@ -3822,7 +3872,8 @@ function frameTo(whole){
   const F = ext(fp, z), G = ext(gb, z), clamp = (v, lo, hi) => lo > hi ? v : Math.min(hi, Math.max(lo, v));      // a frame larger than the picture in that direction: the glacier stays in the middle
   const cx = clamp((G.x0 + G.x1) / 2, F.x0 + r.w / 2, F.x1 - r.w / 2), cy = clamp((G.y0 + G.y1) / 2, F.y0 + r.h / 2, F.y1 - r.h / 2);      // where the middle of the frame goes
   const mid = L.point(cx + (size.x / 2 - (r.x + r.w / 2)), cy + (size.y / 2 - (r.y + r.h / 2)));      // the frame sits off the middle of the map: so does the map's centre
-  map.setView(map.unproject(mid, z), z);
+  map.setView(map.unproject(mid, z), z, {animate: false});
+  markArea('whole');
 }
 function frameExceedsImage(){            // the frame reaches beyond the satellite picture of the glacier
   const g = currentGlacier(), r = frameRect(), fp = imageFootprint(g).bounds, ll = p => map.containerPointToLatLng(p);
@@ -3835,7 +3886,7 @@ function updateFrame(){
   if ($('videoSheet').hidden) return;
   if (viewMode === '3d') return update3DInfo();
   sheetOverlap = measureSheetOverlap();
-  syncBackgrounds();
+  syncBackgrounds(); limitFrameView(); checkAreaSel();
   const res = frameGroundRes();
   $('videoFrameNote').textContent = res < 4 ? `Zoom out for a sharper ${vstate.kind === 'image' ? 'picture' : 'video'}` : '';
   const ys = videoYears();
@@ -3878,6 +3929,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
     return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
   }
   vstate.kind = kind;
+  document.body.classList.add('pane-open'); setLayers(false);      // while a download pane is open the layer menu is not offered (it would open out of sight, behind the pane)
   const image = kind === 'image', in3D = viewMode === '3d';
   $('vfReelNote').textContent = image ? '(full phone screen)' : '(Reels, TikTok)';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
@@ -3892,6 +3944,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
     const g3 = currentGlacier(), has3 = !!(g3.inv && g3.inv.oldest); $('vOutline').disabled = !has3;      // a download shows the 1850 outline when the glacier has one
     if (has3 && !$('oldToggle').checked) { $('oldToggle').checked = true; drawOutlines(); sync3DMenu(); refresh3D(); }
     $('vOutline').checked = has3 && $('oldToggle').checked;
+    bringVisualIntoView(stay);
     return update3DInfo();
   }
   setType(!image && state.mode === 'compare' ? 'swipe' : 'timelapse');
@@ -3904,15 +3957,18 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
   lastExport = null; $('vsShareBox').hidden = true; $('vsShareForm').hidden = true; offerShare();
   syncBackgrounds();
   updateFrame();
-  if (!stay && matchMedia('(max-width:720px)').matches) {      // phones: the visual has to be on screen (the small window gives way to it)
-    if ($('stage').classList.contains('is-full')) setFull(false);
-    setMini(false);
-    $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
-  }
+  bringVisualIntoView(stay);
+}
+function bringVisualIntoView(stay){            // phones: the visual has to be on screen when a download pane opens (the small window gives way to it), in the map and in 3D
+  if (stay || !matchMedia('(max-width:720px)').matches) return;
+  if ($('stage').classList.contains('is-full')) setFull(false);
+  setMini(false);
+  $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
 }
 function closeVideo(){
   if (vstate.busy) return;
-  $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0;
+  document.body.classList.remove('pane-open');
+  $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
 }
 $('vkImage').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('video'); };      // switch between the two panes without closing
@@ -4684,6 +4740,20 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
     eye[1] = Math.max(eye[1], ground(eye[0], eye[2]) + 40); Object.assign(cam, keep); return eye;
   };
   const groundIn = (x, z) => Math.abs(x) <= HALF && z >= -up && z <= BACK ? groundNow(x, z) : -Infinity;      // -Infinity: not on the strip
+  const pick = (px, py, w, h) => {            // the place on the terrain under a pixel of a picture w x h: [x, z] of the scene, or null (the sky, or off the strip)
+    const {eye, tgt} = rig(), nz = [eye[0] - tgt[0], eye[1] - tgt[1], eye[2] - tgt[2]], lz = Math.hypot(...nz), z = nz.map(v => v / lz);
+    const xr = [z[2], 0, -z[0]], lx = Math.hypot(...xr), x = xr.map(v => v / lx), y = [z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0]];
+    const th = Math.tan(0.75 / 2), nx = (px / w) * 2 - 1, ny = 1 - (py / h) * 2, d = [0, 1, 2].map(i => x[i] * nx * th * (w / h) + y[i] * ny * th - z[i]), ld = Math.hypot(...d);
+    for (let i = 0; i < 3; i++) d[i] /= ld;
+    const at = t => [eye[0] + d[0] * t, eye[1] + d[1] * t, eye[2] + d[2] * t];
+    let prev = 50;
+    for (let t = 50; t < 30000; t += 25) {
+      const [X, Y, Z] = at(t), g = groundIn(X, Z);
+      if (g !== -Infinity && Y <= g) { let a = prev, b = t; for (let k = 0; k < 22; k++) { const m = (a + b) / 2, [mx, my, mz] = at(m); my <= groundIn(mx, mz) ? b = m : a = m; } const [rx, , rz] = at((a + b) / 2); return [rx, rz]; }
+      prev = t;
+    }
+    return null;
+  };
   const hold = on => { held = on; if (!on) redraw(); };
   const redraw = () => { if (!dirty) { dirty = true; requestAnimationFrame(draw); } };
   let onCam = null;      // told when the visitor moves the camera
@@ -4704,7 +4774,7 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
   const setTexture = (c, unit = 0) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texs[unit]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.generateMipmap(gl.TEXTURE_2D); redraw(); };
   const setSplit = (f, horizontal) => { split = f; hz = horizontal ? 1 : 0; redraw(); };
   const setHeights = (h1, h2 = h1) => { fill(h1, h2); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw(); };      // another year's ice surface
-  return {setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
+  return {pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
     gl.deleteBuffer(vb); gl.deleteBuffer(ib); texs.forEach(t => gl.deleteTexture(t)); gl.deleteProgram(pr); const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }};
 }
 let v3dCtx = null, v3dBusy = false;      // v3dCtx: what the download buttons need from the open 3D view
@@ -4765,6 +4835,7 @@ const outlineNew3D = g => !!(g.inv && g.inv.outline) && $('newToggle').checked;
 const radar3D = g => !!(g.inv && g.inv.radar) && $('radarToggle').checked;
 const layerCreditNames = g => [baseKey() && ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', altiToggle: 'swisstopo'}[baseKey()] || null), $('trailsToggle').checked && 'swisstopo', (outline3D(g) || outlineNew3D(g) || radar3D(g)) && 'GLAMOS', $('l3Names').checked && 'swisstopo'].filter(Boolean);
 const layersCredit = g => layerCreditNames(g).join(' · ');
+const layersCreditText = g => { const t = layersCredit(g); return t ? ` Layers: ${t}.` : ''; };      // the sentence in the full note under the 3D view
 /* The 3D view needs only the strip, which is a small part of the glacier area (Aletsch: about a twelfth): it asks the relay for a picture of just the box around the strip, at the same 10 m pixels.
    The box is cut in whole 10 m steps from the geometry of the strip (the baked file), so every visitor asks for exactly the same picture and the relay's cache serves it. If the whole-glacier
    picture is already here (the map shows it) it is used instead; if a strip picture cannot be had, the whole one is used and no more strips are tried in this visit. */
@@ -4789,7 +4860,14 @@ async function strip3DTexture(g, S, yr, nA){            // the satellite picture
   const p0 = toTex(0, 0), p1 = toTex(1, 0), p2 = toTex(0, 1);
   ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, TEX[0], TEX[1]); ctx.imageSmoothingQuality = 'high';
   if (baseKey()) await drawTiles(ctx, S, toTexM, V3D_BASES[baseKey()], 15);      // under the satellite picture, which shows it through where it is not opaque
-  ctx.globalAlpha = imgOpacity(); ctx.setTransform(p1[0] - p0[0], p1[1] - p0[1], p2[0] - p0[0], p2[1] - p0[1], p0[0], p0[1]); ctx.drawImage(bmp, 0, 0); if (bmp.close) bmp.close(); ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  const imgM = [p1[0] - p0[0], p1[1] - p0[1], p2[0] - p0[0], p2[1] - p0[1], p0[0], p0[1]], oa = outsideAlpha(), og = outlineGeom(g);
+  if (og && oa < 0.99) {            // surroundings opacity: the picture outside the 1850 outline is made fainter (the base map or empty space shows), inside it stays as it is
+    ctx.globalAlpha = imgOpacity() * oa; ctx.setTransform(...imgM); ctx.drawImage(bmp, 0, 0);
+    ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.save(); ctx.beginPath();
+    og.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const q = L.CRS.EPSG3857.project(L.latLng(pt[1], pt[0])), [x, y] = toTexM(q.x, q.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); }));
+    ctx.clip(); ctx.globalAlpha = imgOpacity(); ctx.setTransform(...imgM); ctx.drawImage(bmp, 0, 0); ctx.restore();
+  } else { ctx.globalAlpha = imgOpacity(); ctx.setTransform(...imgM); ctx.drawImage(bmp, 0, 0); }
+  if (bmp.close) bmp.close(); ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0);
   const sight = $('trailsToggle').checked && sightFor(g);
   if (sight) {            // where the tongue is in view from the trail, under the trail lines
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -4869,7 +4947,7 @@ function coarseBundle(b){            // every second point: the 28 m grid for de
 /* The note at the bottom of the 3D view: in full on bigger screens; on phones one short line (what the picture is made of) with "Details" for the rest */
 const shortLayerNames = g => layerCreditNames(g).filter(n => n !== 'swisstopo').map(n => ' · ' + n).join('');
 function note3DHtml(g, picture, when, usesDem, terrainNote){
-  const full = `Terrain: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>. ${picture}${terrainNote}<span id="v3dLc">${layersCredit(g)}</span> <button type="button" class="n-more n-less">Less</button>`;
+  const full = `Terrain: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>. ${picture}${terrainNote}<span id="v3dLc">${layersCreditText(g)}</span> <button type="button" class="n-more n-less">Less</button>`;
   const short = `Sentinel-2 ${when} · swisstopo · Mapterhorn<span id="v3dLcS">${shortLayerNames(g)}</span>${usesDem ? ' · ice surface: estimate' : ''} <button type="button" class="n-more">Details</button>`;
   return `<span class="n-short">${short}</span><span class="n-full">${full}</span>`;
 }
@@ -4878,6 +4956,7 @@ async function open3D(){
   const run = ++v3dRun, g = currentGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
   const cmp = state.mode === 'compare' && state.a !== state.b && state.available[state.a] && state.available[state.b] ? [state.a, state.b] : null;      // compare: both years side by side with a slider
   const years = cmp || (state.mode === 'timelapse' ? tlFrames() : [stillYear()].filter(y => state.available[y])), first = years.includes(stillYear()) ? stillYear() : years[years.length - 1];
+  if (M3.gid && M3.gid !== g.id) clear3Measure();      // measurements belong to the glacier they were made on
   sync3DMenu(); v3dCtx = null; hideDivider3D(); radarHover = radarSel = -1; $('v3dNote').textContent = ''; $('v3d').hidden = false; $('v3dTitle').textContent = `${g.name} in 3D`; msg.hidden = false;
   const keepCam = v3d && v3dCamId === g.id ? v3d.getCam() : null; v3dCamId = g.id;      // opening again for another year, mode or outline keeps the view the visitor chose
   if (v3d) { v3d.destroy(); v3d = null; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a lost WebGL context cannot be reused: new canvas
@@ -4925,9 +5004,9 @@ function setView(v){            // the stage shows the map or the 3D view; the p
   if (v === '3d' && !currentGlacier()) return showNotice('Choose a glacier first.');
   if (vstate.busy || v3dBusy) return;
   if (!$('videoSheet').hidden) closeVideo();
-  viewMode = v; $('app').classList.toggle('is-3d', v === '3d');
+  viewMode = v; $('app').classList.toggle('is-3d', v === '3d'); writeHash();
   $('viewMap').setAttribute('aria-pressed', v === 'map'); $('view3dBtn').setAttribute('aria-pressed', v === '3d');
-  setLayers(false);
+  setLayers(false); if (v === '3d') cancelMeasure(); else cancel3Measure();      // one measuring tool at a time
   if (v === '3d') { stopPlay(); open3D(); } else { close3D(); drawRadar(); loadDeferred(); }      // back on the map: its radar layer, if it was switched on or off meanwhile
 }
 $('viewMap').onclick = () => setView('map'); $('view3dBtn').onclick = () => setView('3d');
@@ -4941,7 +5020,7 @@ function sync3DMenu(){
   $('l3RadarLegend').hidden = !$('radarToggle').checked;
   $('l3RadarNote').textContent = !R ? 'No radar measurements for this glacier.' : `Surveys ${R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join(' and ')) : ''}. The ice has thinned since. The 3D view shows only about ten pins, the thickest of each stretch of the glacier, to keep loading and moving fast. Hover a pin for the thickness, click to keep it.`;
   $('l3Names').checked = prefs.names3d === true;
-  { const lc = $('v3dLc'); if (lc && v3dCtx) lc.textContent = layersCredit(v3dCtx.g); const ls = $('v3dLcS'); if (ls && v3dCtx) ls.textContent = shortLayerNames(v3dCtx.g); }
+  { const lc = $('v3dLc'); if (lc && v3dCtx) lc.textContent = layersCreditText(v3dCtx.g); const ls = $('v3dLcS'); if (ls && v3dCtx) ls.textContent = shortLayerNames(v3dCtx.g); }
   $('l3MaxNote').hidden = !$('maxToggle').checked || !!(R && R.max_at);
   $('l3Op').value = imgOpacity(); $('l3OpOut').textContent = `${Math.round(imgOpacity() * 100)} %`;
   if ($('vOutline')) $('vOutline').checked = $('oldToggle').checked && !$('vOutline').disabled;
@@ -5094,13 +5173,82 @@ function bindRadarPicking(cv){            // hovering, clicking and tapping on t
 }
 let pinRun = 0;
 const marksOn = () => $('pinToggle').checked || $('maxToggle').checked || $('l3Names').checked || !!(v3dCtx && radar3D(v3dCtx.g));
+/* ---------- measuring in the 3D view: length of a line and area of a shape on the terrain (ground distances, as on the map) ----------
+   A tap puts a point on the terrain (viewer.pick), the lines follow the ground and are drawn on the overlay with the other marks. Drags still turn the camera. */
+const M3 = {mode: null, pts: [], shapes: [], gid: null};      // points are [x, z] of the strip scene, in ground metres
+const measureOn3 = () => !!(M3.mode || M3.shapes.length);
+const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+const len3 = pts => pts.reduce((t, p, i) => i ? t + dist3(pts[i - 1], p) : 0, 0);
+const area3 = pts => Math.abs(pts.reduce((t, p, i) => { const q = pts[(i + 1) % pts.length]; return t + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
+function update3Measure(){
+  $('v3mDist').setAttribute('aria-pressed', M3.mode === 'dist'); $('v3mArea').setAttribute('aria-pressed', M3.mode === 'area');
+  $('v3mClear').disabled = !M3.shapes.length && !M3.pts.length;
+  $('v3dMHint').classList.toggle('show', !!M3.mode); $('v3d').classList.toggle('measuring', !!M3.mode);
+  const el = $('v3dMText'), tap = COARSE ? 'Tap' : 'Click', n = M3.pts.length;
+  if (!M3.mode) return;
+  if (!n) el.textContent = M3.mode === 'dist' ? `${tap} the terrain to start a line.` : `${tap} the terrain to start an area.`;
+  else if (M3.mode === 'dist') el.textContent = `Length ${fmtLen(len3(M3.pts))}.${COARSE ? '' : ' Double-click or press Finish.'}`;
+  else el.textContent = n < 3 ? (COARSE ? 'Add 3 points.' : 'Add at least three points.') : `Area ${fmtArea(area3(M3.pts))}.${COARSE ? '' : ' Double-click or press Finish.'}`;
+}
+function start3Measure(mode){
+  if (viewMode !== '3d' || !v3dCtx) return;
+  if (M3.gid !== v3dCtx.g.id) { M3.shapes = []; M3.gid = v3dCtx.g.id; }
+  M3.mode = mode; M3.pts = []; update3Measure(); pinLoop();
+}
+function cancel3Measure(){ M3.mode = null; M3.pts = []; update3Measure(); }
+function finish3Measure(){
+  const pts = M3.pts.filter((p, i) => i === 0 || dist3(p, M3.pts[i - 1]) > 3), mode = M3.mode;      // a double-click adds the same point twice
+  if (pts.length < (mode === 'area' ? 3 : 2)) return cancel3Measure();
+  M3.shapes.push({mode, pts}); M3.pts = []; update3Measure(); pinLoop();      // stay in the tool for the next shape
+}
+function clear3Measure(){ M3.mode = null; M3.pts = []; M3.shapes = []; update3Measure(); }
+$('v3mDist').onclick = () => M3.mode === 'dist' ? cancel3Measure() : start3Measure('dist');
+$('v3mArea').onclick = () => M3.mode === 'area' ? cancel3Measure() : start3Measure('area');
+$('v3mClear').onclick = clear3Measure; $('v3mFinish').onclick = finish3Measure; $('v3mCancel').onclick = cancel3Measure;
+let m3Down = null;
+$('v3d').addEventListener('pointerdown', e => { m3Down = M3.mode && !(e.target.closest && e.target.closest('button, .layerbox, input, .v3d-div, .v3d-measure, .v3d-mhint, a')) ? {x: e.clientX, y: e.clientY, t: performance.now()} : null; });
+$('v3d').addEventListener('pointerup', e => {
+  const d0 = m3Down; m3Down = null; if (!d0 || !M3.mode || !v3d) return;
+  if (Math.hypot(e.clientX - d0.x, e.clientY - d0.y) > 8 || performance.now() - d0.t > 600) return;      // a drag turns the camera, only a tap places a point
+  const r = $('v3dCanvas').getBoundingClientRect(), p = v3d.pick(e.clientX - r.left, e.clientY - r.top, r.width, r.height);
+  if (!p) return showNotice('Tap on the terrain, inside the picture.');
+  M3.pts.push(p); update3Measure(); pinLoop();
+});
+$('v3d').addEventListener('dblclick', () => { if (M3.mode) finish3Measure(); });
+function drawMeasure3D(ctx, viewer, w, h, u){            // the shapes on the terrain, over the picture
+  const list = M3.shapes.map(sh => ({...sh, done: true})); if (M3.mode && M3.pts.length) list.push({mode: M3.mode, pts: M3.pts, done: false});
+  if (!list.length) return;
+  const col = getVar('--measure') || '#FFD84D', up = (x, z) => viewer.groundY(x, z) + 6;
+  list.forEach(sh => {
+    const ring = sh.mode === 'area' && sh.pts.length > 2 ? [...sh.pts, sh.pts[0]] : sh.pts, poly = [];
+    ring.forEach((p, i) => { if (!i) return poly.push(p); const q = ring[i - 1], n = Math.max(1, Math.ceil(dist3(p, q) / 40)); for (let k = 1; k <= n; k++) poly.push([q[0] + (p[0] - q[0]) * k / n, q[1] + (p[1] - q[1]) * k / n]); });      // a leg is cut in short pieces: it follows the ground
+    const P = viewer.projectAt(poly.map(([x, z]) => [x, up(x, z), z, true]), w, h, null, null);
+    ctx.save(); ctx.lineWidth = 3 * u; ctx.strokeStyle = col; ctx.lineJoin = ctx.lineCap = 'round'; ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 4 * u;
+    if (!sh.done) ctx.setLineDash([8 * u, 6 * u]);
+    ctx.beginPath(); let pen = false; P.forEach(q => { if (!q || !q[2]) { pen = false; return; } pen ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); pen = true; }); ctx.stroke();
+    ctx.setLineDash([]); ctx.shadowBlur = 0;
+    const V = viewer.projectAt(sh.pts.map(([x, z]) => [x, up(x, z), z, true]), w, h, null, null);
+    V.forEach(q => { if (!q || !q[2]) return; ctx.fillStyle = '#fff'; ctx.strokeStyle = col; ctx.lineWidth = 2 * u; ctx.beginPath(); ctx.arc(q[0], q[1], 4.2 * u, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); });
+    if (sh.done) {            // the result on a small label at the middle of the shape
+      const text = sh.mode === 'dist' ? fmtLen(len3(sh.pts)) : `${fmtArea(area3(sh.pts))}, perimeter ${fmtLen(len3([...sh.pts, sh.pts[0]]))}`;
+      const mid = sh.mode === 'dist' ? poly[Math.floor(poly.length / 2)] : [sh.pts.reduce((t, p) => t + p[0], 0) / sh.pts.length, sh.pts.reduce((t, p) => t + p[1], 0) / sh.pts.length];
+      const q = viewer.projectAt([[mid[0], up(mid[0], mid[1]) + 10, mid[1], true]], w, h, null, null)[0];
+      if (q && q[2]) {
+        ctx.font = `600 ${12.5 * u}px ${FONT}`; const tw = ctx.measureText(text).width, px = 7 * u, hh = 22 * u;
+        ctx.fillStyle = getVar('--rock') || '#22313A'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(q[0] - tw / 2 - px, q[1] - hh / 2, tw + 2 * px, hh, 5 * u) : ctx.rect(q[0] - tw / 2 - px, q[1] - hh / 2, tw + 2 * px, hh); ctx.fill();
+        ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, q[0], q[1] + 0.5 * u);
+      }
+    }
+    ctx.restore();
+  });
+}
 function pinLoop(){            // while the 3D view shows marks: draw them over the picture, again and again, so that they move
   const cv = $('v3dOver'), run = ++pinRun, clear = () => { const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); radarHits = []; $('v3dTip').hidden = true; };
-  if (viewMode !== '3d' || !marksOn() || !v3dCtx || !v3d) return clear();
+  if (viewMode !== '3d' || (!marksOn() && !measureOn3()) || !v3dCtx || !v3d) return clear();
   ensureNames(v3dCtx); if (radar3D(v3dCtx.g) && !v3dCtx.radarList) radarPinsFor(v3dCtx);
   const tick = now => {
     if (run !== pinRun) return;
-    const c = v3dCtx, viewer = v3d, kc = $('v3dCanvas'); if (!c || !viewer || viewMode !== '3d' || !marksOn()) return clear();
+    const c = v3dCtx, viewer = v3d, kc = $('v3dCanvas'); if (!c || !viewer || viewMode !== '3d' || (!marksOn() && !measureOn3())) return clear();
     const dpr = Math.min(2, devicePixelRatio || 1), w = Math.round(kc.clientWidth * dpr), h = Math.round(kc.clientHeight * dpr);
     if (cv.width !== w || cv.height !== h) { cv.width = w; cv.height = h; }
     const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, w, h);
@@ -5108,6 +5256,7 @@ function pinLoop(){            // while the 3D view shows marks: draw them over 
     if (!v3dBusy) {
       if (radar3D(c.g)) { radarHits = drawRadarPins(ctx, c, viewer, w, h, null, null, u, radarHover, radarSel); placeRadarTip(w / kc.clientWidth); } else { radarHits = []; $('v3dTip').hidden = true; }
       drawMarks3D(ctx, projectMarks(c, viewer, w, h, null, null), now / 1000, u);
+      drawMeasure3D(ctx, viewer, w, h, u);
     }
     requestAnimationFrame(tick);
   };
@@ -5122,7 +5271,7 @@ function refresh3D(){            // a layer was switched: make the pictures agai
       if (c.cmp) { const [a, b] = await Promise.all(c.cmp.map(y => c.tex(y))); if (run !== v3dRun) return; viewer.setTexture(a, 0); viewer.setTexture(b, 1); }
       else { const y = c.current(), t = await c.tex(y); if (run !== v3dRun || c.current() !== y) return; viewer.setTexture(t); }
     } catch (e) { console.error(e); }
-    const lc = $('v3dLc'); if (lc) lc.textContent = layersCredit(c.g); const ls = $('v3dLcS'); if (ls) ls.textContent = shortLayerNames(c.g);
+    const lc = $('v3dLc'); if (lc) lc.textContent = layersCreditText(c.g); const ls = $('v3dLcS'); if (ls) ls.textContent = shortLayerNames(c.g);
     if (!$('videoSheet').hidden) update3DInfo();
   }, 80);
 }
@@ -5327,6 +5476,7 @@ renderStory();
 updateCredits();
 checkYears();
 updatePickHint();
+if (OPEN_3D) setView('3d');      // a shared link to the 3D view
 </script>
 </body>
 </html>
