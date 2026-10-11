@@ -252,6 +252,14 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-size:14px;color:#cfd9e3;pointer-events:none}
 .v3d-bottom{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:1.4;color:#aebccb;pointer-events:none}
 .v3d-bottom a{color:#cfe3f1;pointer-events:auto}
+.n-short,.n-less,.v3d-top .h-short{display:none}
+.n-more{pointer-events:auto;border:0;background:none;color:#cfe3f1;text-decoration:underline;font:inherit;padding:0 2px;cursor:pointer}
+.is-3d .leaflet-control-scale{display:none}      /* a map scale means little in perspective */
+@media (max-width:720px){
+  .v3d-top .h-full{display:none}.v3d-top .h-short{display:block}
+  .n-full{display:none}.n-short{display:inline}
+  #v3dNote.open .n-full{display:inline}#v3dNote.open .n-short{display:none}#v3dNote.open .n-less{display:inline}
+}
 .v3d-bottom [hidden]{display:none}
 .v3d-div{position:absolute;z-index:4;touch-action:none;display:flex;align-items:center;justify-content:center}
 .v3d-div[hidden]{display:none}
@@ -767,6 +775,7 @@ details.coll > summary:focus-visible{outline:2px solid var(--crevasse);outline-o
 .stage.is-full{position:fixed;inset:0;z-index:2000;height:auto!important;width:auto!important}
 .stage.is-full .full-exit{display:flex;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:700;align-items:center;gap:6px;border:0;border-radius:18px;padding:8px 12px;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
 body.has-full{overflow:hidden}
+.stage.is-full .v3d-top{right:112px}      /* the Close button of full screen sits top right: the hint text stops before it */
 @media (min-width:721px){
   .app.visual-only .full-exit{display:flex;position:absolute;top:14px;right:14px;z-index:700;align-items:center;gap:6px;border:0;border-radius:18px;padding:8px 12px;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
   .app.visual-only .layerbox{top:60px}
@@ -1018,7 +1027,7 @@ body.has-full{overflow:hidden}
     <div class="v3d" id="v3d" hidden role="dialog" aria-label="3D view of the tongue">
       <canvas id="v3dCanvas"></canvas>
       <canvas class="v3d-over" id="v3dOver"></canvas>
-      <div class="v3d-top"><b id="v3dTitle">3D view</b><span>Drag to turn and tilt, scroll or pinch to zoom. Years and mode: left panel.</span></div>
+      <div class="v3d-top"><b id="v3dTitle">3D view</b><span class="h-full">Drag to turn and tilt, scroll or pinch to zoom. Years and mode: left panel.</span><span class="h-short">Drag to turn · pinch to zoom</span></div>
       <div class="layerbox v3d-layers" id="v3dLayers" role="group" aria-label="Layers of the 3D view">
         <button type="button" class="lb-head" id="v3dLbToggle" aria-expanded="true"><span>Layers</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
         <div class="lb-body">
@@ -4847,6 +4856,14 @@ function coarseBundle(b){            // every second point: the 28 m grid for de
   const nA = b.nA / 2, nB = b.nB / 2, W = b.nB + 1, W2 = nB + 1, pick = a => { if (!a) return null; const o = new Float32Array((nA + 1) * W2); for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) o[j * W2 + i] = a[2 * j * W + 2 * i]; return o; };
   return {...b, nA, nB, heights: pick(b.heights), delta: pick(b.delta)};
 }
+/* The note at the bottom of the 3D view: in full on bigger screens; on phones one short line (what the picture is made of) with "Details" for the rest */
+const shortLayerNames = g => layerCreditNames(g).filter(n => n !== 'swisstopo').map(n => ' · ' + n).join('');
+function note3DHtml(g, picture, when, usesDem, terrainNote){
+  const full = `Terrain: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>. ${picture}${terrainNote}<span id="v3dLc">${layersCredit(g)}</span> <button type="button" class="n-more n-less">Less</button>`;
+  const short = `Sentinel-2 ${when} · swisstopo · Mapterhorn<span id="v3dLcS">${shortLayerNames(g)}</span>${usesDem ? ' · ice surface: estimate' : ''} <button type="button" class="n-more">Details</button>`;
+  return `<span class="n-short">${short}</span><span class="n-full">${full}</span>`;
+}
+$('v3dNote').addEventListener('click', e => { const b = e.target.closest && e.target.closest('.n-more'); if (b) $('v3dNote').classList.toggle('open'); });
 async function open3D(){
   const run = ++v3dRun, g = currentGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
   const cmp = state.mode === 'compare' && state.a !== state.b && state.available[state.a] && state.available[state.b] ? [state.a, state.b] : null;      // compare: both years side by side with a slider
@@ -4879,10 +4896,10 @@ async function open3D(){
     if (cmp) {
       v3d.setTexture(tc2, 1); showDivider3D(cmp, v3dCtx.hz);      // same direction as chosen for the map: stacked or side by side
       $('v3dTitle').textContent = `${g.name} ${cmp[0]} and ${cmp[1]} in 3D`;
-      $('v3dNote').innerHTML = `Terrain: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>. Pictures: Sentinel-2, ${fmtDate(state.available[cmp[0]].date)} and ${fmtDate(state.available[cmp[1]].date)}.${terrainNote}<span id="v3dLc">${layersCredit(g)}</span>`;
+      $('v3dNote').innerHTML = note3DHtml(g, `Pictures: Sentinel-2, ${fmtDate(state.available[cmp[0]].date)} and ${fmtDate(state.available[cmp[1]].date)}.`, `${state.available[cmp[0]].date.slice(0, 4)} and ${state.available[cmp[1]].date.slice(0, 4)}`, usesDem, terrainNote);
       return;
     }
-    const note = yr => { $('v3dTitle').textContent = `${g.name} ${yr} in 3D`; $('v3dNote').innerHTML = `Terrain: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>. Picture: Sentinel-2, ${fmtDate(state.available[yr].date)}.${terrainNote}<span id="v3dLc">${layersCredit(g)}</span>`; };
+    const note = yr => { $('v3dTitle').textContent = `${g.name} ${yr} in 3D`; $('v3dNote').innerHTML = note3DHtml(g, `Picture: Sentinel-2, ${fmtDate(state.available[yr].date)}.`, fmtDM(state.available[yr].date) + ' ' + yr, usesDem, terrainNote); };
     note(first);
     const showYear = async y => {      // the year follows the left panel (the frame of the timelapse); the terrain stays and only the picture changes
       current = y;
@@ -4914,7 +4931,7 @@ function sync3DMenu(){
   $('l3RadarLegend').hidden = !$('radarToggle').checked;
   $('l3RadarNote').textContent = !R ? 'No radar measurements for this glacier.' : `Surveys ${R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join(' and ')) : ''}. The ice has thinned since. The 3D view shows only about ten pins, the thickest of each stretch of the glacier, to keep loading and moving fast. Hover a pin for the thickness, click to keep it.`;
   $('l3Names').checked = prefs.names3d === true;
-  { const lc = $('v3dLc'); if (lc && v3dCtx) lc.textContent = layersCredit(v3dCtx.g); }
+  { const lc = $('v3dLc'); if (lc && v3dCtx) lc.textContent = layersCredit(v3dCtx.g); const ls = $('v3dLcS'); if (ls && v3dCtx) ls.textContent = shortLayerNames(v3dCtx.g); }
   $('l3MaxNote').hidden = !$('maxToggle').checked || !!(R && R.max_at);
   $('l3Op').value = imgOpacity(); $('l3OpOut').textContent = `${Math.round(imgOpacity() * 100)} %`;
   if ($('vOutline')) $('vOutline').checked = $('oldToggle').checked && !$('vOutline').disabled;
@@ -5095,7 +5112,7 @@ function refresh3D(){            // a layer was switched: make the pictures agai
       if (c.cmp) { const [a, b] = await Promise.all(c.cmp.map(y => c.tex(y))); if (run !== v3dRun) return; viewer.setTexture(a, 0); viewer.setTexture(b, 1); }
       else { const y = c.current(), t = await c.tex(y); if (run !== v3dRun || c.current() !== y) return; viewer.setTexture(t); }
     } catch (e) { console.error(e); }
-    const lc = $('v3dLc'); if (lc) lc.textContent = layersCredit(c.g);
+    const lc = $('v3dLc'); if (lc) lc.textContent = layersCredit(c.g); const ls = $('v3dLcS'); if (ls) ls.textContent = shortLayerNames(c.g);
     if (!$('videoSheet').hidden) update3DInfo();
   }, 80);
 }
