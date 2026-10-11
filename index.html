@@ -2436,6 +2436,10 @@ function yearChips(boxId, key, opts = {}){
 /* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
 function syncPane(){
   try {
+    if (!$('videoSheet').hidden && !vstate.busy && !v3dBusy) {            // the pane follows the mode buttons: a timelapse is an animation, one year is a picture
+      if (state.mode === 'timelapse' && vstate.kind === 'image') return openVideo('video', true);
+      if (state.mode === 'single' && vstate.kind === 'video' && viewMode !== '3d') return openVideo('image', true);      // in 3D one year can still be a camera flight
+    }
     if (!$('videoSheet').hidden && viewMode !== '3d' && vstate.kind === 'video' && state.mode !== 'single') { const t = state.mode === 'compare' ? 'swipe' : 'timelapse'; if (vstate.type !== t) setType(t); }   // the pane follows the mode buttons
     updateFrame();
   } catch {}
@@ -3869,7 +3873,7 @@ const videoDuration = n => (vstate.type === 'swipe'
 map.on('move zoom resize', updateFrame);
 Promise.all(['700 24px', '800 120px', '600 28px', '500 20px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))).then(updateFrame);   // the preview uses the real font
 
-function openVideo(kind = 'video'){
+function openVideo(kind = 'video', stay = false){            // stay: the pane changes where it is, the page does not scroll
   if (kind === 'video' && typeof VideoEncoder === 'undefined') {
     return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
   }
@@ -3900,7 +3904,7 @@ function openVideo(kind = 'video'){
   lastExport = null; $('vsShareBox').hidden = true; $('vsShareForm').hidden = true; offerShare();
   syncBackgrounds();
   updateFrame();
-  if (matchMedia('(max-width:720px)').matches) {      // phones: the visual has to be on screen (the small window gives way to it)
+  if (!stay && matchMedia('(max-width:720px)').matches) {      // phones: the visual has to be on screen (the small window gives way to it)
     if ($('stage').classList.contains('is-full')) setFull(false);
     setMini(false);
     $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
