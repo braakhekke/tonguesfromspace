@@ -1103,8 +1103,8 @@ body.has-full{overflow:hidden}
 </div>
 
 <!-- ================= VIDEO EXPORT PANEL ================= -->
-<section class="video-sheet" id="videoSheet" role="dialog" aria-label="Download animation" hidden>
-  <div class="vs-head"><strong id="vsTitle">Download animation</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
+<section class="video-sheet" id="videoSheet" role="dialog" aria-label="Create and share" hidden>
+  <div class="vs-head"><strong id="vsTitle">Create and share</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
   <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Your image</button><button type="button" id="vkVideo" aria-pressed="true">Your animation</button></div>
   <div class="segment" role="group" aria-label="Format">
     <button type="button" id="vfWide" aria-pressed="true">16:9<small>(standard)</small></button>
@@ -3934,7 +3934,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
   $('vfReelNote').textContent = image ? '(full phone screen)' : '(Reels, TikTok)';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
-  $('vsTitle').textContent = (image ? 'Download image' : 'Download animation') + (in3D ? ' (3D)' : '');
+  $('vsTitle').textContent = 'Create and share';      // the same name as step 3 in the left panel
   document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Or move and zoom the map yourself, until the frame shows what you want.';
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
     $('videoSheet').hidden = false; $('videoFrame').hidden = false;
@@ -3987,7 +3987,7 @@ function syncModeToPane(){
   const want = vstate.kind === 'image' ? (state.mode === 'compare' ? 'modeCompare' : 'modeSingle') : vstate.type === 'swipe' ? 'modeCompare' : 'modeTimelapse';
   if (!$(want).getAttribute('aria-pressed') || $(want).getAttribute('aria-pressed') === 'false') $(want).click();
 }
-function setType(t){ vstate.type = t; $('videoSheet').classList.toggle('is-swipe', t === 'swipe'); if (vstate.kind !== 'image' && viewMode !== '3d') $('vsTitle').textContent = t === 'swipe' ? 'Download slider animation' : 'Download timelapse animation'; syncModeToPane(); updateFrame(); }
+function setType(t){ vstate.type = t; $('videoSheet').classList.toggle('is-swipe', t === 'swipe'); syncModeToPane(); updateFrame(); }
 
 function progress(frac, label){
   $('vsProgress').hidden = false; $('vsBar').style.width = Math.round(frac * 100) + '%';
