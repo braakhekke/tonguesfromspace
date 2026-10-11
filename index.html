@@ -2037,9 +2037,15 @@ function play(){
   if (tlLayers.length < 2) return;
   state.playing = true; document.getElementById('playBtn').innerHTML = PAUSE_ICON;
   const begun = Date.now();
+  /* In the 3D view the map's own pictures are not loaded (they wait), the strip pictures are what plays: those are fetched here, all years together, so that every frame is quick */
+  let n3 = 0, pre3 = false;
+  if (viewMode === '3d' && v3dCtx && v3dCtx.S) {
+    pre3 = true; const c3 = v3dCtx;
+    tlLayers.forEach(t => { const spec = !stripPicturesOff && !imageHere(c3.g, t.yr) ? stripImageSpec(c3.S) : null; (spec ? loadImage(c3.g, t.yr, spec) : loadImage(c3.g, t.yr)).catch(() => {}).then(() => { n3++; }); });
+  }
   const wait = () => {            // the first run: every picture has to be loaded before the years change, else the frames flash
-    const ready = tlLayers.filter(t => t.layer._ready).length;
-    if (ready < tlLayers.length && Date.now() - begun < 20000) {
+    const ready = pre3 ? n3 : tlLayers.filter(t => t.layer._ready).length;
+    if (ready < tlLayers.length && Date.now() - begun < (pre3 ? 45000 : 20000)) {
       document.getElementById('playBtn').innerHTML = `<span class="spin-s"></span>${ready}/${tlLayers.length}`;
       state.timer = setTimeout(wait, 250); return;
     }
