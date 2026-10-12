@@ -163,9 +163,9 @@ function updateAerial(){
   clip(); updateCredits();
 }
 const satOn = () => document.getElementById('satToggle').checked;
-/* Is a picture of the glacier on show? The Sentinel-2 picture (or the 3D view, which has its own) of a chosen glacier. The controls and downloads that only make sense for it follow this. */
-const satShown = () => (typeof viewMode !== 'undefined' && viewMode === '3d') || (glacierPicked && satOn());
-const SAT_MSG = 'Pick a glacier or turn on the image layer in the layer menu.';
+/* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
+const satShown = () => glacierPicked && satOn();
+const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 picture layer in the layer menu.';
 function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
   return `<span class="nw">SWISSIMAGE ${siYear(yr)}</span> · <span class="nw">swisstopo aerial image</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
@@ -262,7 +262,7 @@ function buildTimelapse(){
   state.frame = Math.min(state.frame, Math.max(0, tlLayers.length - 1));
   const s = document.getElementById('frameSlider');
   s.max = Math.max(0, tlLayers.length - 1); s.value = state.frame;
-  document.getElementById('playBtn').disabled = tlLayers.length < 2;
+  document.getElementById('playBtn').disabled = tlLayers.length < 2; syncFullPlay();
   showFrame(state.frame);
 }
 /* the line under a year on the map: the date, then what the picture is, on one row; it only breaks between the two parts */
@@ -297,9 +297,15 @@ function updateSpeedIcon(){                 // the needle of the little gauge an
   document.getElementById('speedOut').textContent = `${SPEED_FPS[i]} fps`;
 }
 document.getElementById('speedSel').oninput = updateSpeedIcon; updateSpeedIcon();
+const FULL_ICONS = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.500v14H7zM13.500 5H17v14h-3.500z"/></svg>'};
+function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
+  const b = document.getElementById('fullPlay'); if (!b) return;
+  b.innerHTML = state.playing ? FULL_ICONS.pause : FULL_ICONS.play;
+  b.setAttribute('aria-label', state.playing ? 'Pause' : 'Play'); b.disabled = tlLayers.length < 2;
+}
 function play(){
   if (tlLayers.length < 2) return;
-  state.playing = true; document.getElementById('playBtn').innerHTML = PAUSE_ICON;
+  state.playing = true; document.getElementById('playBtn').innerHTML = PAUSE_ICON; syncFullPlay();
   const begun = Date.now();
   /* In the 3D view the map's own pictures are not loaded (they wait), the strip pictures are what plays: those are fetched here, all years together, so that every frame is quick */
   let n3 = 0, pre3 = false;
@@ -333,9 +339,9 @@ function play(){
 }
 function stopPlay(){
   clearTimeout(state.timer); state.playing = false;
-  document.getElementById('playBtn').innerHTML = PLAY_ICON;
+  document.getElementById('playBtn').innerHTML = PLAY_ICON; syncFullPlay();
 }
-document.getElementById('playBtn').onclick = () => state.playing ? stopPlay() : play();
+document.getElementById('playBtn').onclick = document.getElementById('fullPlay').onclick = () => state.playing ? stopPlay() : play();
 document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
 
 /* ---------- outlines ---------- */

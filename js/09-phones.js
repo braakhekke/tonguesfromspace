@@ -61,7 +61,7 @@ document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click',
   e.preventDefault(); history.replaceState(null, '', location.pathname + location.search); location.reload();
 }));
 $('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
-$('fsBtn').onclick = () => setFull(!isFull());
+$('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) setFull(false); });
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && $('stage').classList.contains('is-full')) setFull(false); });

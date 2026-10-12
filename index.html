@@ -84,6 +84,7 @@
           <button type="button" id="modeCompare" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16M8 10l-2 2 2 2M16 10l2 2-2 2"/></svg><span>Compare</span></button>
           <button type="button" id="modeTimelapse" class="sat-need" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><span>Timelapse</span></button>
         </div>
+        <div class="orient-sub" id="orientSub" hidden><div class="orient-pad" role="group" aria-label="Slider direction"><button type="button" id="orientV" aria-pressed="true" aria-label="Vertical slider: left and right" title="Vertical slider: left and right"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M8.5 10l-2 2 2 2M15.5 10l2 2-2 2"/></svg></button><button type="button" id="orientH" aria-pressed="false" aria-label="Horizontal slider: top and bottom" title="Horizontal slider: top and bottom"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18M10 8.500l2-2 2 2M10 15.500l2 2 2-2"/></svg></button></div></div>
       </div>
 
       <div id="colourGroup" class="sat-need"><div class="side-label">Colour composition</div>
@@ -95,10 +96,6 @@
       <p class="note sat-need" id="styleNote"></p>
 
       <div class="stack" id="compareControls">
-        <div class="orient" role="group" aria-label="Slider direction"><span class="side-label">Slider</span>
-          <button type="button" id="orientV" aria-pressed="true" aria-label="Vertical slider: left and right" title="Vertical slider: left and right"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M8.5 10l-2 2 2 2M15.5 10l2 2-2 2"/></svg></button>
-          <button type="button" id="orientH" aria-pressed="false" aria-label="Horizontal slider: top and bottom" title="Horizontal slider: top and bottom"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18M10 8.500l2-2 2 2M10 15.500l2 2 2-2"/></svg></button>
-        </div>
         <div><div class="side-label" id="labelA">Left</div><div class="years" id="yearsA" role="group" aria-label="Year for left image"></div></div>
         <div><div class="side-label" id="labelB">Right</div><div class="years" id="yearsB" role="group" aria-label="Year for right image"></div></div>
       </div>
@@ -240,6 +237,7 @@
           <label class="toggle"><input type="checkbox" id="l3Osm"> <span>OpenStreetMap</span></label>
           <label class="toggle"><input type="checkbox" id="l3Topo"> <span>swisstopo map</span></label>
           <label class="toggle" title="Relief shading of the terrain"><input type="checkbox" id="l3Alti"> <span>Hillshade</span></label>
+          <label class="toggle" title="The Sentinel-2 picture of the chosen year on the terrain"><input type="checkbox" id="l3Sat"> <span>Sentinel-2 picture</span></label>
           <label class="slider-row" for="l3Op"><span>Satellite picture</span><output id="l3OpOut">100 %</output></label>
           <input type="range" class="frame" id="l3Op" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite picture">
           <div class="lb-group">Overlays</div>
@@ -249,19 +247,21 @@
           <button type="button" class="lb-close-bottom" id="l3CloseBottom"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>Close layers</button>
         </div>
       </div>
-      <div class="v3d-measure" id="v3dMeasure" role="toolbar" aria-label="Measuring tools">
-        <button type="button" id="v3mDist" aria-pressed="false" aria-label="Measure length" title="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg></button>
-        <button type="button" id="v3mArea" aria-pressed="false" aria-label="Measure area" title="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg></button>
-        <button type="button" id="v3mClear" hidden aria-label="Clear measurements" title="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg></button>
+      <div class="v3d-measure" id="v3dMeasure" role="toolbar" aria-label="Measuring tools and old photographs">
+        <button type="button" id="v3dFs" aria-label="Full screen, visual only" title="Full screen, visual only (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span class="fs-in">Full screen</span><span class="fs-out">Exit full screen</span></button>
+        <button type="button" id="v3mDist" aria-pressed="false" aria-label="Measure length" title="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span>Measure length</span></button>
+        <button type="button" id="v3mArea" aria-pressed="false" aria-label="Measure area" title="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span>Measure area</span></button>
+        <button type="button" id="v3mClear" hidden aria-label="Clear measurements" title="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg><span>Clear</span></button>
+        <div class="v3d-photos" id="v3dPhotos" hidden role="group" aria-label="Historic photographs of this glacier"></div>
       </div>
       <div class="measure-hint v3d-mhint" id="v3dMHint" role="status"><span id="v3dMText"></span><button type="button" id="v3mFinish">Finish</button><button type="button" class="ghost" id="v3mCancel">Cancel</button></div>
       <div class="v3d-msg" id="v3dMsg"></div>
       <div class="v3d-div" id="v3dDiv" hidden role="slider" tabindex="0" aria-label="Move the line between the two years" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span class="v3d-handle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></span><span class="v3d-hint">Drag the line to compare</span></div>
       <div class="v3d-lab" id="v3dLabA" hidden></div><div class="v3d-lab" id="v3dLabB" hidden></div>
       <img class="v3d-photo" id="v3dPhoto" alt="" hidden>
-      <div class="v3d-photos" id="v3dPhotos" hidden role="group" aria-label="Historic photographs of this glacier"></div>
       <div class="v3d-photocap" id="v3dPhotoCap" hidden></div>
       <div class="v3d-tip" id="v3dTip" hidden></div>
+      <div class="v3d-tip v3d-camtip" id="v3dCamTip" hidden></div>
       <div class="v3d-bottom"><label>Height <input type="range" id="v3dExag" min="1" max="2" step="0.1" value="1"> <span id="v3dExagOut">1.0×</span></label><span id="v3dNote"></span></div>
     </div>
     <div class="notice" id="notice" role="alert"></div>
@@ -275,7 +275,8 @@
       <button type="button" id="miniFull" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       <button type="button" id="miniClose" aria-label="Close the small window" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
     </div>
-    <button type="button" class="full-exit" id="fullExit" aria-label="Leave full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span>Close</span></button>
+    <button type="button" class="full-play" id="fullPlay" aria-label="Play" title="Play or pause the timelapse"></button>
+    <button type="button" class="full-exit" id="fullExit" aria-label="Leave full screen" title="Leave full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
   </main></div>
 
   <!-- ================= RIGHT ================= -->
