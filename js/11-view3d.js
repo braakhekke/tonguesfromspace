@@ -461,7 +461,7 @@ function rodSpot(c, viewer, lay, pose){            // the place for the rod in a
   const cand = tongueCentres(c.g, c.S, [1000, 1200, 1400, 1600, 1800, 2000, 2200, 2400, 2800, 3200, 3600, 4000, 4400].filter(a => a < c.S.up - 200)); if (!cand.length) return null;
   const cw = $('v3dCanvas').clientWidth, ch = $('v3dCanvas').clientHeight, pts = [];
   cand.forEach(k => { const gy = viewer.groundY(k.x, k.z); pts.push([k.x, gy + 50, k.z, true]); });      // tested at an old-ice height: today's ice lies lower, so a ridge that hides it today may not have hidden the ice of the photograph
-  const pr = viewer.projectAt(pts, cw, ch, null, null); let best = null;
+  const pr = viewer.projectAt(pts, cw, ch, null, null); let best = /** @type {any} */ (null);
   cand.forEach((k, i) => {
     const q = pr[i]; if (!q || !q[2] || q[0] < lay.x + 20 || q[0] > lay.x + lay.w - 20 || q[1] < lay.y + 60 || q[1] > lay.y + lay.h - 20) return;
     const score = Math.hypot(q[0] - (lay.x + lay.w / 2), q[1] - (lay.y + lay.h * 0.55)) + Math.abs(k.a - 1600) * 0.05;
