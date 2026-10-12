@@ -1,0 +1,59 @@
+# Weekly health check of the PUBLIC site (tests/health.py): page, hashed data files, relay ping, and a real browser that opens a glacier and gets its
+# satellite picture through the relay. Past years come from the relay's cache, so this normally spends no Copernicus units.
+#
+# You are told like this:
+#   - a failed check opens ONE issue "Health check failed" (label: health-check) and GitHub emails you about it; while it stays broken the issue gets a
+#     comment per failed run (no flood of new issues);
+#   - when the check passes again the issue gets a comment and is closed (that is the "all good again" message);
+#   - a passing run in between sends nothing. To get a mail for every run too: GitHub -> Settings -> Notifications -> Actions -> untick
+#     "Send notifications for failed workflows only".
+# Note: GitHub stops scheduled workflows of a public repository after 60 days without any activity in the repository (commits, issues). Any push wakes it up again
+# (Actions tab -> Health check -> Enable workflow).
+name: Health check
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"          # Mondays, 06:17 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Install the test browser
+        run: |
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Check the public site and the relay
+        id: check
+        run: python tests/health.py 2>&1 | tee health.log; exit ${PIPESTATUS[0]}
+      - name: Open or update the issue when it failed
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create health-check --color C8322A --description "Weekly health check of the public site" 2>/dev/null || true
+          { echo "The weekly health check failed: $RUN_URL"; echo; echo '```'; tail -n 40 health.log 2>/dev/null || echo "(the check could not run; see the run)"; echo '```'; } > body.md
+          n=$(gh issue list --label health-check --state open --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then gh issue comment "$n" --body-file body.md
+          else gh issue create --title "Health check failed" --label health-check --body-file body.md; fi
+      - name: Close the issue when it passes again
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          n=$(gh issue list --label health-check --state open --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then gh issue close "$n" --comment "The health check passes again: $RUN_URL"; fi

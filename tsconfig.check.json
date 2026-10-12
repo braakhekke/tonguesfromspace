@@ -1,0 +1,13 @@
+{
+  "//": "Type check of the page's scripts as ONE program (they are plain scripts that share their top-level names). Run by scripts/check_types.py and the workflows. Not called jsconfig.json / tsconfig.json on purpose: VS Code would then underline every untyped literal. To see it in the editor, put // @ts-check on top of a file.",
+  "compilerOptions": {
+    "allowJs": true, "checkJs": true, "noEmit": true,
+    "target": "es2022", "lib": ["es2022", "dom", "dom.iterable"],
+    "strict": false, "noImplicitAny": false, "skipLibCheck": true, "types": []
+  },
+  "files": [
+    "types/globals.d.ts",
+    "js/01-data.js", "js/02-glaciers.js", "js/03-imagery.js", "js/04-state.js", "js/05-map.js", "js/06-scene-search.js",
+    "js/07-render.js", "js/08-controls.js", "js/09-phones.js", "js/10-animation.js", "js/11-view3d.js", "js/12-boot.js"
+  ]
+}

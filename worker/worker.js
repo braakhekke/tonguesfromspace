@@ -91,7 +91,7 @@ export default {
 
     // cache lookup
     const key = `${route}:${await sha256(text)}`;
-    const hit = await cacheGet(env, key);
+    const found = await cacheGet(env, key), hit = found && !found.stale ? found : null, stale = found && found.stale ? found : null;
     if (hit) return new Response(hit.body, { headers: { ...cors, 'Content-Type': hit.type, 'X-Cache': 'HIT' } });
 
     // forward to Copernicus (shared with identical requests already on their way)
@@ -110,7 +110,8 @@ export default {
       job.finally(() => inflight.delete(key)).catch(() => {});
     }
     let out;
-    try { out = await job; } catch (e) { return json({ relayError: e.message }, 502, cors); }
+    try { out = await job; } catch (e) { if (stale) return staleResponse(stale, cors); return json({ relayError: e.message }, 502, cors); }
+    if (stale && (out.status >= 500 || out.status === 429 || out.status === 403)) return staleResponse(stale, cors);      // Copernicus is down, busy or out of units: the older answer is better than none
     return new Response(out.data.slice(0), { status: out.status, headers: { ...cors, 'Content-Type': out.type, 'X-Cache': 'MISS' } });
   }
 };
@@ -229,12 +230,16 @@ function ttlFor(route, body) {
   return year < new Date().getUTCFullYear() ? 180 * DAY : DAY;
 }
 
-/* ---------- cache: KV if bound, otherwise the edge cache ---------- */
+/* ---------- cache: KV if bound, otherwise the edge cache ----------
+   Entries that are only fresh for a day (the current summer, the latest image) stay in KV for STALE_KEEP, marked stale after their day: they are used again
+   only when Copernicus cannot answer (see fetch). Long-lived entries are never stale. The edge cache (no KV) has no stale copies. */
+const STALE_KEEP = 7 * DAY;
+const staleResponse = (hit, cors) => new Response(hit.body, { headers: { ...cors, 'Content-Type': hit.type, 'X-Cache': 'STALE' } });
 async function cacheGet(env, key) {
   try {
     if (env.CACHE) {
       const v = await env.CACHE.getWithMetadata(key, 'arrayBuffer');
-      if (v && v.value) return { body: v.value, type: (v.metadata && v.metadata.type) || 'application/octet-stream' };
+      if (v && v.value) return { body: v.value, type: (v.metadata && v.metadata.type) || 'application/octet-stream', stale: !!(v.metadata && v.metadata.fresh && Date.now() > v.metadata.fresh) };
     } else if (typeof caches !== 'undefined') {
       const r = await caches.default.match(cacheUrl(key));
       if (r) return { body: await r.arrayBuffer(), type: r.headers.get('Content-Type') };
@@ -244,7 +249,7 @@ async function cacheGet(env, key) {
 }
 async function cachePut(env, key, data, type, ttl) {
   try {
-    if (env.CACHE) return await env.CACHE.put(key, data, { expirationTtl: ttl, metadata: { type } });
+    if (env.CACHE) return await env.CACHE.put(key, data, { expirationTtl: Math.max(ttl, STALE_KEEP), metadata: { type, fresh: Date.now() + ttl * 1000 } });
     if (typeof caches !== 'undefined')
       await caches.default.put(cacheUrl(key), new Response(data, { headers: { 'Content-Type': type, 'Cache-Control': `public, max-age=${ttl}` } }));
   } catch {}

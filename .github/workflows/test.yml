@@ -1,0 +1,41 @@
+# Checks that run on every pull request and on every branch except main (main runs the same checks inside deploy.yml, before it publishes).
+# Syntax of all scripts, the page in a headless Chromium (tests/test_site.py), the Worker (tests/test_worker.py).
+name: Tests
+
+on:
+  pull_request:
+  push:
+    branches-ignore: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4          # only for `node --check` in scripts/check_syntax.py
+        with:
+          node-version: "22"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+          cache-dependency-path: tests/requirements.txt
+      - name: Syntax of the scripts, pages, Worker and data files
+        run: python scripts/check_syntax.py
+      - name: Names, properties and argument counts (TypeScript, no types to write)
+        run: python scripts/check_types.py
+      - name: Install the test browser
+        run: |
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Tests on the files of the repository
+        run: python -m unittest discover -s tests -v
+      - name: Tests on the built site (split outlines, hashed names)
+        run: |
+          python scripts/build_site.py _site
+          TFS_SITE_DIR=_site python -m unittest tests.test_site -v

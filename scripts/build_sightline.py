@@ -17,9 +17,9 @@ Writes sightline.js: window.GLACIER_SIGHT[<SGI id>] = { eye, tongue_m, min_share
 The page draws them under the hiking trails of the map (and of the 3D view) and adds a line to the legend of the trails.
 
 Standard library only. Needs glaciers.js (from build_outlines.py). Takes a few minutes per glacier; ground tiles that are not in scripts/.dem-cache are downloaded.
-Usage: python3 scripts/build_sightline.py [--id A54e-24 ...]      (a run with --id replaces sightline.js with just those glaciers)
+Usage: python3 scripts/build_sightline.py [--id A54e-24 ...] [--redo]      (glaciers already in sightline.js are kept unless --redo)
 """
-import argparse, array, json, math, os, sys, urllib.error, urllib.parse, urllib.request, zipfile
+import argparse, array, json, math, os, sys, time, urllib.error, urllib.parse, urllib.request, zipfile
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, 'scripts', '.dem-cache')
@@ -46,13 +46,17 @@ def tile_zip(year, e, n):                  # path of the zip of one 1 km tile of
     path = os.path.join(CACHE, name + '_2.xyz.zip')
     if os.path.exists(path): return path
     os.makedirs(CACHE, exist_ok=True)
-    try:
-        print('  download', name, file=sys.stderr)
-        urllib.request.urlretrieve(f'https://data.geo.admin.ch/ch.swisstopo.swissalti3d/{name}/{name}_2_2056_5728.xyz.zip', path + '.part'); os.replace(path + '.part', path)
-        return path
-    except urllib.error.HTTPError as ex:
-        if ex.code in (403, 404): return None
-        raise
+    for attempt in range(5):               # a long run meets dropped connections: try again a few times
+        try:
+            print('  download', name, file=sys.stderr)
+            urllib.request.urlretrieve(f'https://data.geo.admin.ch/ch.swisstopo.swissalti3d/{name}/{name}_2_2056_5728.xyz.zip', path + '.part'); os.replace(path + '.part', path)
+            return path
+        except urllib.error.HTTPError as ex:
+            if ex.code in (403, 404): return None
+            time.sleep(5)
+        except (OSError, urllib.error.URLError):
+            time.sleep(5)
+    raise SystemExit(f'could not download {name}: run again, what is done is kept')
 
 
 def newest_tile(e, n):                      # the newest edition of a tile: first what is in the cache, then the network
@@ -174,12 +178,16 @@ def build(g):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*')      # without --id: every glacier in glaciers.js
+    ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*')      # without --id: every glacier in glaciers.js that is not in sightline.js yet
+    ap.add_argument('--redo', action='store_true', help='make the listed (or all) glaciers again even if they are in sightline.js')
     a = ap.parse_args()
     s = open(os.path.join(ROOT, 'glaciers.js'), encoding='utf-8').read()
     out = {}
+    if os.path.exists(OUT):                    # what was made before is kept
+        t = open(OUT, encoding='utf-8').read(); out = json.loads(t[t.index('{'):t.rindex('}') + 1])
     for g in json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers']:
         if (a.id and g['id'] not in a.id) or not (g.get('terminus') and g.get('outline')): continue
+        if g['id'] in out and not a.redo: print(f'{g["name"]}: already in sightline.js', file=sys.stderr); continue
         r = build(g)
         if r: out[g['id']] = r
         with open(OUT, 'w', encoding='utf-8') as f:            # written after every glacier, so a long run that stops keeps what it has

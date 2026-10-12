@@ -1,4 +1,4 @@
-# Builds glaciers.js and thickness.js from GLAMOS and publishes the site on GitHub Pages.
+# Builds glaciers.js and thickness.js from GLAMOS, checks the result and publishes the site on GitHub Pages.
 # Runs on every push to main, on the 1st of each month, and on demand (Actions tab -> Run workflow).
 name: Build data and deploy
 
@@ -46,30 +46,29 @@ jobs:
             git push
           fi
 
-      - name: Collect site files
-        run: |
-          mkdir -p _site
-          cp index.html _site/
-          cp gallery.html pages.css _site/
-          [ -f preview.jpg ] && cp preview.jpg _site/ || true
-          mkdir -p _site/images
-          for f in images/foryourice.jpg images/preview-social.jpg; do [ -f "$f" ] && cp "$f" _site/images/ || true; done
-          mkdir -p _site/fonts && cp fonts/*.woff2 _site/fonts/ && { [ -f fonts/OFL.txt ] && cp fonts/OFL.txt _site/fonts/ || true; }
-          [ -f glaciers.js ] && cp glaciers.js _site/ || echo "glaciers.js not available yet"
-          [ -f thickness.js ] && cp thickness.js _site/ || echo "no thickness.js: the radar layer shows nothing"
-          [ -f scenes.json ] && cp scenes.json _site/ || echo "no scenes.json: automatic scene choice only"
-          [ -f cloudmasks.json ] && cp cloudmasks.json _site/ || echo "no cloudmasks.json: the Latest option shows nothing"
-          [ -f sightline.js ] && cp sightline.js _site/ || echo "no sightline.js: no line-of-sight layer on the trails"
-          [ -d demchange ] && cp -r demchange _site/ || echo "no demchange folder: the 3D view keeps the ice surface of the terrain tiles for every year"
-          [ -d terrain ] && cp -r terrain _site/ || echo "no terrain folder: the 3D view builds the terrain from the terrain tiles, which is slower"
-          touch _site/.nojekyll
-
-      - name: Write site configuration (Copernicus relay address)
+      - name: Collect site files (split glaciers.js, content hashes, config.js)
         env:
           CDSE_RELAY_URL: ${{ vars.CDSE_RELAY_URL }}   # Settings -> Secrets and variables -> Actions -> Variables
         run: |
-          python3 -c 'import json,os; print("window.TFS_CONFIG = " + json.dumps({"relay": os.environ.get("CDSE_RELAY_URL","").strip()}) + ";")' > _site/config.js
-          cat _site/config.js
+          python scripts/build_site.py _site
+          cat _site/config.js | head -c 400; echo
+
+      # Nothing is published unless these pass: they look at exactly the files that would go live.
+      - uses: actions/setup-node@v4          # only for `node --check` in scripts/check_syntax.py
+        with:
+          node-version: "22"
+      - name: Syntax of the scripts, pages, Worker and data files
+        run: python scripts/check_syntax.py
+      - name: Names, properties and argument counts (TypeScript, no types to write)
+        run: python scripts/check_types.py
+      - name: Install the test browser
+        run: |
+          pip install -r tests/requirements.txt
+          python -m playwright install --with-deps chromium
+      - name: Tests on the built site
+        run: |
+          TFS_SITE_DIR=_site python -m unittest tests.test_site -v
+          python -m unittest tests.test_worker -v
 
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
