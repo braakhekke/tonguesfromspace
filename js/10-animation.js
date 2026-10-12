@@ -41,11 +41,18 @@ function measureSheetOverlap(){
   return across > 40 ? Math.max(0, st.bottom - sr.top) : 0;
 }
 const stageSize = () => viewMode === '3d' && $('v3dCanvas').clientWidth ? {x: $('v3dCanvas').clientWidth, y: $('v3dCanvas').clientHeight} : map.getSize();
+function visibleBox(){            // the part of the picture area the visitor can see, in its own pixels: cut to the browser window, and clear of the download pane where that stands at the side
+  const size = stageSize(), el = viewMode === '3d' && $('v3dCanvas').clientWidth ? $('v3dCanvas') : $('stage'), r = el.getBoundingClientRect();
+  let side = false, x0 = Math.max(0, -r.left), x1 = Math.min(size.x, innerWidth - r.left), y0 = Math.max(0, -r.top), y1 = Math.min(size.y, innerHeight - r.top);
+  const sh = $('videoSheet'); if (!sh.hidden) { const s = sh.getBoundingClientRect(); if (s.right > r.left + 8 && s.right < r.left + size.x * 0.4 && s.top < r.bottom - 120) x0 = Math.max(x0, s.right - r.left + 12), side = true; }      // the pane covers the left of the picture area: the frame starts to the right of it
+  return {side, x0, x1: Math.max(x0 + 100, x1), y0, y1: Math.max(y0 + 100, y1)};
+}
 function frameRect(){
-  const F = VIDEO.formats[vstate.fmt], size = stageSize(), m = 20, top = 44, bottom = Math.max(70, sheetOverlap + 12);
-  let h = size.y - top - m - bottom, w = h * F.w / F.h;
-  if (w > size.x - 2 * m) { w = size.x - 2 * m; h = w * F.h / F.w; }
-  return { x: (size.x - w) / 2, y: top + (size.y - top - bottom - h) / 2, w, h };
+  const F = VIDEO.formats[vstate.fmt], vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(70, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
+  const availW = vb.x1 - vb.x0 - 2 * m, availH = stageSize().y - top - m - bottom;
+  let h = availH, w = h * F.w / F.h;
+  if (w > availW) { w = availW; h = w * F.h / F.w; }
+  return { x: vb.x0 + m + (availW - w) / 2, y: top + (availH - h) / 2, w, h };
 }
 function frameSplit(){            // where the slider sits inside the frame (0 to 1, along the slider's direction)
   const r = frameRect(), size = map.getSize();
@@ -72,10 +79,44 @@ function drawPreview(){
   if (!swipe && $('vFacts').checked) { loadFacts(g); info.factSet = $('vFactSet').value; info.factBase = image ? FIRST_YEAR : ys[0]; }
   ctx.save(); ctx.scale(q, q);
   if (image && !swipe) drawStill(ctx, W, H, info, S);
-  else if (swipe) drawSwipeLabels(ctx, W, H, S, info, image ? frameSplit() * (info.horiz ? H : W) : (info.horiz ? H : W) / 2);
-  else drawLabels(ctx, W, H, S, info, Math.floor((ys.length - 1) / 2));
+  else if (swipe) drawSwipeLabels(ctx, W, H, S, info, image || vPrev.on ? frameSplit() * (info.horiz ? H : W) : (info.horiz ? H : W) / 2);
+  else drawLabels(ctx, W, H, S, info, vPrev.on && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2));
   ctx.restore();
 }
+/* A preview of the animation in the frame: the timelapse plays on the map (the labels follow its frame), the slider sweeps across; everything outside the frame is darker meanwhile. Stops with the pane, a new format or a click. */
+const vPrev = {on: false, raf: 0};
+const PV_ICON = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg>'};
+function stopPreview(){
+  if (!vPrev.on) return; vPrev.on = false; cancelAnimationFrame(vPrev.raf);
+  if (state.playing) stopPlay();
+  if (viewMode === '3d' && v3d && vPrev.cam0) { v3d.setCam(vPrev.cam0); vPrev.cam = null; if (v3dCtx && v3dCtx.cmp) setSplit3D(vPrev.split0); else if (vPrev.year0 && v3dCtx && v3dCtx.follow) v3dCtx.follow(vPrev.year0); drawPreview3D(); }      // the view, the line and the year come back
+  $('videoFrame').classList.remove('playing'); $('vfPlay').innerHTML = PV_ICON.play; $('vfPlay').setAttribute('aria-label', 'Play a preview');
+  if (vstate.kind !== 'image' && vstate.type === 'swipe') { clip(); drawPreview(); }
+}
+function startPreview3D(){            // the camera swings as in the video, the years change (timelapse) or the line moves (slider); everything is put back when it stops
+  const c = v3dCtx, viewer = v3d; if (!c || !viewer) return;
+  vPrev.cam0 = viewer.getCam(); vPrev.year0 = c.cmp ? null : c.current(); vPrev.split0 = v3dSplit; vPrev.cam = vPrev.cam0;
+  const t0 = performance.now(), swing = $('vSwing') && $('vSwing').checked, ys = !c.cmp && c.years && c.years.length > 1 ? c.years : null;
+  const tick = now => {
+    if (!vPrev.on) return; const t = (now - t0) / 1000, u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2, cam0 = vPrev.cam0;
+    if (swing) { vPrev.cam = {az: cam0.az + 0.5 * sw, el: cam0.el + 0.07 * bob, dist: cam0.dist * (1 - 0.1 * bob)}; viewer.setCam(vPrev.cam); } else vPrev.cam = cam0;
+    if (c.cmp) setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * t / 6));
+    else if (ys && c.follow) { const y = ys[Math.floor(t / 1.2) % ys.length]; if (y !== c.current()) c.follow(y); }
+    drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
+  };
+  vPrev.raf = requestAnimationFrame(tick);
+}
+function startPreview(){
+  if (vstate.kind === 'image' || vPrev.on) return;
+  if (viewMode === '3d') { vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); return startPreview3D(); }
+  vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview');
+  if (vstate.type === 'swipe') {            // the slider goes to and fro across the frame
+    const t0 = performance.now(), r = frameRect(), a = horiz() ? (r.y + 0.05 * r.h) / map.getSize().y : (r.x + 0.05 * r.w) / map.getSize().x, b = horiz() ? (r.y + 0.95 * r.h) / map.getSize().y : (r.x + 0.95 * r.w) / map.getSize().x;
+    const tick = now => { if (!vPrev.on) return; const u = ((now - t0) / (2600 * Math.max(0.3, perSec(0) / 1.2))) % 2, e = u < 1 ? u : 2 - u, s = e * e * (3 - 2 * e); state.split = a + (b - a) * s; clip(); drawPreview(); vPrev.raf = requestAnimationFrame(tick); };
+    vPrev.raf = requestAnimationFrame(tick);
+  } else { document.getElementById('loopToggle').checked = true; if (!state.playing) play(); }      // the map's timelapse plays; showFrame redraws the labels at every frame
+}
+$('vfPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
 function guideText(){
   const video = vstate.kind !== 'image';
   $('vSafeRow').hidden = !(video && vstate.fmt === 'reel');      // the Reels / TikTok choice only exists for a 9:16 video
@@ -156,7 +197,7 @@ function updateFrame(){
     : (vstate.type === 'swipe' ? `Slider, ${ys[0]} and ${ys[1]}, about ${Math.round(videoDuration(2))} s.`
                                : `${ys.length} years, ${ys[0]}–${ys[ys.length - 1]}, about ${Math.round(videoDuration(loopSeq(ys.length).length))} s.`) +
       (res < 4 ? ' Images have 10 m pixels: this close, the video looks soft.' : '');
-  placeFrame();
+  placeFrame(); $('vfPlay').style.display = vstate.kind === 'image' ? 'none' : '';      // the preview is for animations
   $('vsGuide').textContent = guideText();
   drawPreview();
   $('vFactsRow').style.display = (vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe') ? 'none' : '';      // the facts belong to a single year
@@ -165,9 +206,7 @@ function updateFrame(){
 const endLen = fmt => fmt === 'wide' ? 5 : 3.5;            // seconds of the fact card at the end of a video
 const tailLength = () => $('vEnd').value === 'facts' ? endLen(vstate.fmt) : 0;
 function perSec(n){            // seconds per year: the chosen speed, or the one that fits the video into 15 s (Reels, TikTok)
-  const v = $('vSpeed').value;
-  if (v !== 'fit') return +v;
-  return vstate.type === 'swipe' || !n ? 1.2 : Math.min(2.2, Math.max(0.3, (15 - VIDEO.hold - tailLength()) / n));
+  return 1 / +SPEED_FPS[+$('vSpeed').value];      // the speed setter of the panel: frames (years) per second, so one year lasts 1 / fps seconds
 }
 /* The order of the years in a timelapse of n years: once, or several loops. Between two loops it can run back through the years (the turning years are not shown twice). */
 function loopSeq(n){
@@ -185,7 +224,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
   if (kind === 'video' && typeof VideoEncoder === 'undefined') {
     return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
   }
-  vstate.kind = kind;
+  vstate.kind = kind; $('vfPlay').style.display = kind === 'image' ? 'none' : '';
   document.body.classList.add('pane-open'); setLayers(false); if (typeof cancelMeasure === 'function') cancelMeasure(); map.removeLayer(M.group);      // no layer menu (it would open out of sight, behind the pane) and no measurements: neither is part of a download
   const image = kind === 'image', in3D = viewMode === '3d';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
@@ -199,7 +238,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
     lastExport = null; $('vsShareBox').hidden = true; $('vsShareForm').hidden = true; offerShare();
     if (image && state.mode === 'timelapse') { const y = stillYear(); if (state.available[y]) state.one = y; $('modeSingle').click(); }      // a picture is of one year: the panel goes to One year, at the year on screen, as in Map view
     const g3 = currentGlacier(), has3 = !!(g3.inv && g3.inv.oldest); $('vOutline').disabled = !has3;      // a download shows the 1850 outline when the glacier has one
-    if (has3 && !$('oldToggle').checked) { $('oldToggle').checked = true; drawOutlines(); sync3DMenu(); refresh3D(); }
+    if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); sync3DMenu(); refresh3D(); }      // the 1850 outline starts off in a download pane (tick it to add it)
     $('vOutline').checked = has3 && $('oldToggle').checked;
     bringVisualIntoView(stay);
     return update3DInfo();
@@ -207,6 +246,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
   setType(!image && state.mode === 'compare' ? 'swipe' : 'timelapse');
   stopPlay();
   const g = currentGlacier(), hasOld = !!(g.inv && g.inv.oldest);
+  if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); }      // the 1850 outline starts off in a download pane (tick it to add it)
   $('vOutline').disabled = !hasOld; $('vOutline').checked = hasOld && $('oldToggle').checked;   // the same switch as the layer on the map
   $('videoSheet').hidden = false; $('videoFrame').hidden = false;
   $('app').classList.add('is-framing');
@@ -223,7 +263,7 @@ function bringVisualIntoView(stay){            // phones: the visual has to be o
   $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
 }
 function closeVideo(){
-  if (vstate.busy) return;
+  if (vstate.busy) return; stopPreview();
   document.body.classList.remove('pane-open'); M.group.addTo(map);
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
@@ -231,9 +271,14 @@ function closeVideo(){
 $('vkImage').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('video'); };      // switch between the two panes without closing
 $('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide' };
-const setFmt = f => { vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f)); updateFrame(); };
+const setFmt = f => { stopPreview(); vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f)); updateFrame(); };
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
-$('vSpeed').onchange = $('vSafe').onchange = updateFrame;
+/* the speed setter of the animation pane and the one under Compare / Timelapse are one setting */
+function syncSpeed(from){ const v = +$(from).value; ['speedSel', 'vSpeed'].forEach(id => { $(id).value = v; }); updateSpeedIcon(); const o = $('vSpeedOut'); if (o) o.textContent = `${SPEED_FPS[v]} fps`; const nd = $('vSpeedNeedle'); if (nd) nd.setAttribute('transform', `rotate(${-60 + v * 30} 12 18)`); }
+$('vSpeed').oninput = () => { syncSpeed('vSpeed'); updateFrame(); };
+$('speedSel').addEventListener('input', () => { syncSpeed('speedSel'); if (!$('videoSheet').hidden) updateFrame(); });
+syncSpeed('speedSel');
+$('vSafe').onchange = updateFrame;
 $('vEnd').onchange = updateFrame; $('vFacts').onchange = $('vFactSet').onchange = updateFrame;
 const syncLoops = () => { $('vBounce').disabled = +$('vLoops').value < 2; updateFrame(); };
 $('vLoops').onchange = syncLoops; $('vBounce').onchange = updateFrame; syncLoops();
@@ -301,9 +346,9 @@ async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1){
 }
 /* Short dark gradients keep the text readable on bright ice and snow, instead of boxes: one at the top, one behind the bottom block (text, facts, year). */
 function shade(ctx, W, H, S, blockH = 420){
-  let g = ctx.createLinearGradient(0, 0, 0, S.top + 210);
-  g.addColorStop(0, 'rgba(8,14,18,.6)'); g.addColorStop(1, 'rgba(8,14,18,0)');
-  ctx.fillStyle = g; ctx.fillRect(0, 0, W, S.top + 210);
+  let g = ctx.createLinearGradient(0, 0, 0, S.top + 340);
+  g.addColorStop(0, 'rgba(8,14,18,.58)'); g.addColorStop(.6, 'rgba(8,14,18,.24)'); g.addColorStop(1, 'rgba(8,14,18,0)');      // the one soft gradient behind the header, as on screen
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, S.top + 340);
   const base = H - S.bottom, top = Math.max(0, base - blockH), t1 = Math.min(1, (base + 50 - top) / (H - top));
   g = ctx.createLinearGradient(0, top, 0, H);
   g.addColorStop(0, 'rgba(8,14,18,0)'); g.addColorStop(t1, 'rgba(8,14,18,.58)'); g.addColorStop(1, 'rgba(8,14,18,.7)');
@@ -320,12 +365,24 @@ const FACT_BLUE = '#8FDDF3', FACT_RED = '#FF7A6E', MINUS_SIGN = '−';
 const easeIO = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
 const placeOf = (g, ...first) => [...first, g.canton, g.range].filter(Boolean).join(' · ');
 /* The credit line on pictures and videos: short, the full list of sources is in About on the site */
-const shortCredit = (years, extras = []) => `Modified Copernicus Sentinel data ${years} · ${[...new Set(extras.filter(Boolean))].map(x => x + ' · ').join('')}Created on ${SITE_NAME}`;
+const shortCredit = (years, extras = []) => `Modified Copernicus Sentinel data ${years}${[...new Set(extras.filter(Boolean))].map(x => ' · ' + x).join('')}`;      // the data credit; "Created on <site>" is its own line in the bottom right corner (siteLine)
+const SITE_LOGO_H = 30, siteLogoW = () => SITE_LOGO_H * 200 / 190 + 12;
+const siteLine = (ctx, xRight, y) => {            // "Created on tonguesfromspace.org" with the small logo behind it, right aligned; in 3D videos the logo turns with the camera
+  const lw = logoImg ? siteLogoW() : 0;
+  ctx.font = `600 22px ${FONT}`; shadowText(ctx, `Created on ${SITE_NAME}`, xRight - lw, y, {blur:6, color:'rgba(255,255,255,.9)', align:'right'});
+  if (!logoImg) return;
+  const lx = xRight - SITE_LOGO_H * 200 / 190, ly = y - SITE_LOGO_H * 0.8;
+  if (brandMotion) drawLogo3DAt(ctx, lx, ly, SITE_LOGO_H, brandMotion.cam, brandMotion.cam0);
+  else { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, lx, ly, SITE_LOGO_H * 200 / 190, SITE_LOGO_H); ctx.restore(); }
+};
+const siteLineW = ctx => { ctx.save(); ctx.font = `600 22px ${FONT}`; const w = ctx.measureText(`Created on ${SITE_NAME}`).width + (logoImg ? siteLogoW() : 0); ctx.restore(); return w; };
 const creditYears = info => info.compare ? `${info.years[0]} and ${info.years[1]}` : info.years[0] === info.years[info.years.length - 1] ? String(info.years[0]) : `${info.years[0]}–${info.years[info.years.length - 1]}`;
 /* One brand corner: the logo and the red label on one line (22 px, nothing smaller than 22 px anywhere: it must stay readable on a phone) */
+let brandMotion = null;      // 3D videos: {cam, cam0}, the camera now and at the start; the small logo of the brand corner then turns and tilts with it (set around draw3DLabels in js/11-view3d.js)
 function brandCorner(ctx, x, y){
   let tx = x; const h = 36;
-  if (logoImg) { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, x, y - h * .8, h * 200 / 190, h); ctx.restore(); tx = x + h * 200 / 190 + 12; }
+  if (logoImg && brandMotion) { drawLogo3DAt(ctx, x, y - h * .8, h, brandMotion.cam, brandMotion.cam0); tx = x + h * 200 / 190 + 12; }
+  else if (logoImg) { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, x, y - h * .8, h * 200 / 190, h); ctx.restore(); tx = x + h * 200 / 190 + 12; }
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', tx, y, {blur:8, color:'#FF5A4E'});
 }
 /* The map key: north arrow and scale bar side by side at the top right, on two shared lines (the labels on the brand label's baseline, the arrow's foot and the bar below) */
@@ -338,21 +395,39 @@ function mapKey(ctx, res, rightX, top){
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, 'N', ax, labelY, {align:'center', blur:6});
   ctx.font = `600 22px ${FONT}`; shadowText(ctx, k.m >= 1000 ? `${k.m / 1000} km` : `${k.m} m`, bx + k.px / 2, labelY, {align:'center', blur:8});
 }
-/* The top block: brand, glacier name (fitted to leave the map key free), place and the legend of the outlines. hA: opacity (the header fades in at the start of a video). */
-function drawTop(ctx, W, S, name, place, hA, legend, keyW){
-  const x = S.left, nameW = W - S.left - S.right - (keyW ? keyW + 36 : 0);
+/* The top block, built like the year tag on screen: the brand, then the year as the big line, under it the glacier and its place, then the date and what the picture is, then the legend of the outlines.
+   o: year (text), name, place, date [bold, long rest, short rest] or null, legend, keyW (width of the map key to keep clear), hA (opacity of everything but the brand and the year: the header fades in at the start of a video),
+   yearAlpha / yearClip (the first year of a slider picture fades and is cut with its image), shortDate (only the short rest of the date line). Returns the baseline of the last line. */
+const YEAR_PX = 88, NAME_PX = 34, SUB_PX = 24;
+const heroBase = S => S.top + 24 + 46 + Math.round(0.72 * YEAR_PX);      // the later year of a vertical slider sits under the map key on the right      // where the baseline of a year at full size lies
+function drawHeader(ctx, W, S, o){
+  const x = S.left, textW = W - S.left - S.right - (o.keyW ? o.keyW + 36 : 0);
   ctx.save(); ctx.textBaseline = 'alphabetic';
-  brandCorner(ctx, x, S.top + 24);      // the logo is there from the first frame: only the rest of the header fades in
-  ctx.globalAlpha *= hA;
-  const ns = fitText(ctx, name, 800, 56, nameW), ny = S.top + 44 + ns;
-  shadowText(ctx, name, x, ny);
-  ctx.font = `500 26px ${FONT}`; shadowText(ctx, place, x, ny + 38, {blur:8});
-  let ly = ny + 80;
-  legend.forEach(([color, dash, text]) => {
-    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x, ly - 8); ctx.lineTo(x + 50, ly - 8); ctx.stroke(); ctx.restore();
-    ctx.font = `500 22px ${FONT}`; shadowText(ctx, text, x + 66, ly, {blur:8}); ly += 34;
+  let y = S.top - 38;      // the top of the big year lines up with the top of the north arrow and scale bar (their labels start at S.top + 8)
+  if (o.year) {
+    const ys = fitText(ctx, o.year, 800, YEAR_PX, textW); y += 46 + Math.round(0.72 * ys);
+    ctx.save(); if (o.yearClip) { ctx.beginPath(); ctx.rect(...o.yearClip); ctx.clip(); } ctx.globalAlpha *= o.yearAlpha ?? 1; shadowText(ctx, o.year, x - 4, y, {blur:14});
+    if (o.date) { const yw = ctx.measureText(o.year).width; ctx.font = `700 ${SUB_PX + 4}px ${FONT}`; if (yw + 20 + ctx.measureText(o.date[0]).width <= textW) shadowText(ctx, o.date[0], x - 4 + yw + 20, y, {blur:8}); }      // the date of the picture: small, behind the year, on its baseline
+    ctx.restore();
+  } else y += 14;
+  ctx.globalAlpha *= o.hA ?? 1;
+  y += 46;
+  const ns = fitText(ctx, o.name, 700, NAME_PX, textW); shadowText(ctx, o.name, x, y, {blur:8}); const nw = ctx.measureText(o.name).width;
+  if (o.place) {
+    ctx.font = `500 ${SUB_PX}px ${FONT}`; const pt = ` · ${o.place}`;      // canton and range in the size of the line under them
+    if (nw + ctx.measureText(pt).width <= textW) shadowText(ctx, pt, x + nw, y, {blur:8, color:'rgba(255,255,255,.9)'});
+    else { y += 32; ctx.font = `500 ${SUB_PX}px ${FONT}`; shadowText(ctx, o.place, x, y, {blur:8, color:'rgba(255,255,255,.9)'}); }
+  }
+  if (o.date) {            // what the picture is, under the place: the long text when it fits, else the short one
+    y += 34; ctx.font = `500 ${SUB_PX}px ${FONT}`;
+    const rest = (!o.shortDate && ctx.measureText(o.date[1]).width <= textW ? o.date[1] : o.date[2]).replace(/^\s*·\s*/, ''); shadowText(ctx, rest, x, y, {blur:8, color:'rgba(255,255,255,.9)'});
+  }
+  (o.legend || []).forEach(([color, dash, text], i) => {
+    y += i ? 34 : 42;
+    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + 50, y - 8); ctx.stroke(); ctx.restore();
+    ctx.font = `500 22px ${FONT}`; shadowText(ctx, text, x + 66, y, {blur:8});
   });
-  ctx.restore();
+  ctx.restore(); return y;
 }
 /* Facts: flat dark tiles with a hairline edge (no blur: Safari ignores filters) */
 function drawFactTiles(ctx, tiles, x, y, tw, th, gap){
@@ -377,39 +452,32 @@ function drawTimeline(ctx, x0, x1, y, years, pos){
   ctx.strokeStyle = '#fff'; ctx.beginPath(); ctx.moveTo(x0, y); ctx.lineTo(xp, y); ctx.stroke();
   years.forEach((_, i) => { ctx.fillStyle = i <= pos + .01 ? '#fff' : 'rgba(255,255,255,.4)'; ctx.fillRect(x0 + (x1 - x0) * i / (n - 1) - 1, y - 6, 2, 12); });
   ctx.fillStyle = '#fff'; ctx.shadowColor = 'rgba(0,0,0,.5)'; ctx.shadowBlur = 8; ctx.beginPath(); ctx.arc(xp, y, 8, 0, 7); ctx.fill(); ctx.restore();
-  ctx.font = `500 22px ${FONT}`; shadowText(ctx, String(years[0]), x0, y - 16, {color:'rgba(255,255,255,.8)', blur:6});
-  shadowText(ctx, String(years[n - 1]), x1, y - 16, {color:'rgba(255,255,255,.8)', blur:6, align:'right'});
+  ctx.font = `500 22px ${FONT}`; shadowText(ctx, String(years[0]), x0, y - 16, {color:'rgba(255,255,255,.8)', blur:6, align:'center'});      // each year is centred over its tick
+  shadowText(ctx, String(years[n - 1]), x1, y - 16, {color:'rgba(255,255,255,.8)', blur:6, align:'center'});
 }
-/* The bottom block, from the bottom edge up: credit (and the site name where there is room), date line, the year, and above it the fact tiles; the timeline sits beside the year.
-   o: credit (text), date [bold, long rest, short rest], year (text), tiles, tl {years, pos}, site (name on the credit line). */
+/* The bottom block, from the bottom edge up: the credit line, the timeline of the years, and above it the fact tiles. (The year itself is in the header.)
+   o: credit (text), tiles, tl {years, pos}. */
 function drawBottom(ctx, W, H, S, o){
   const wide = W > H, x = S.left, maxW = W - S.left - S.right, lh = 28;
   ctx.textBaseline = 'alphabetic'; ctx.font = `500 22px ${FONT}`;
-  const lines = wrap(ctx, o.credit, 0, 0, maxW, lh).map(l => l.t), base0 = H - S.bottom - (lines.length - 1) * lh;
+  const sw = siteLineW(ctx) + 30, lines = wrap(ctx, o.credit, 0, 0, maxW - sw, lh).map(l => l.t), base0 = H - S.bottom - (lines.length - 1) * lh;
   lines.forEach((t, i) => shadowText(ctx, t, x, base0 + i * lh, {blur:6, color:'rgba(255,255,255,.78)'}));
-  let yb = base0;
-  if (o.date) {
-    ctx.font = `600 24px ${FONT}`; const dw = ctx.measureText(o.date[0]).width; ctx.font = `500 24px ${FONT}`;
-    const rest = dw + ctx.measureText(o.date[1]).width <= maxW ? o.date[1] : o.date[2];
-    ctx.font = `600 24px ${FONT}`; shadowText(ctx, o.date[0], x, base0 - 42, {blur:8});
-    ctx.font = `500 24px ${FONT}`; shadowText(ctx, rest, x + dw, base0 - 42, {blur:8, color:'rgba(255,255,255,.9)'});
-    yb = base0 - 42;
-  }
-  const yearBase = yb - 28, big = o.year.length <= 4;
-  if (big) ctx.font = `800 100px ${FONT}`; else fitText(ctx, o.year, 800, 64, maxW);
-  shadowText(ctx, o.year, x - (big ? 4 : 2), yearBase, {blur:14}); const yw = ctx.measureText(o.year).width;
+  siteLine(ctx, W - S.right, H - S.bottom);      // "Created on tonguesfromspace.org": the bottom right corner, level with the last line of the credit
+  let top = base0 - 40;
+  if (o.tl) { const yTL = base0 - 64; drawTimeline(ctx, x, W - S.right - 6, yTL, o.tl.years, o.tl.pos); top = yTL - 54; }
   const tiles = o.tiles || [], gap = 10, th = 92;
-  let tilesLeft = W - S.right;
   if (tiles.length) {
-    if (wide) { const tw = 260; tilesLeft = W - S.right - tiles.length * tw - (tiles.length - 1) * gap; drawFactTiles(ctx, tiles, tilesLeft, yearBase - th + 4, tw, th, gap); }
-    else { const tw = (maxW - (tiles.length - 1) * gap) / tiles.length; drawFactTiles(ctx, tiles, x, yearBase - 72 - 24 - th, tw, th, gap); }
+    if (wide) { const tw = 260, left = W - S.right - tiles.length * tw - (tiles.length - 1) * gap; drawFactTiles(ctx, tiles, left, top - th, tw, th, gap); }
+    else { const tw = (maxW - (tiles.length - 1) * gap) / tiles.length; drawFactTiles(ctx, tiles, x, top - th, tw, th, gap); }
   }
-  if (o.tl) drawTimeline(ctx, x + yw + 36, (wide && tiles.length ? tilesLeft - 50 : W - S.right - 6), yearBase - 18, o.tl.years, o.tl.pos);
 }
 function drawSwipeLabels(ctx, W, H, S, info, split){
   shade(ctx, W, H, S, 300);
-  const maxW = W - S.left - S.right, base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier;
-  drawTop(ctx, W, S, stillName(g), placeOf(g), hA, info.outline ? [['#F2A93B', [14, 9], 'Glacier outline about 1850']] : [], mapKeySize(info.res).w);
+  const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
+  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(info.style)}`, ` · Sentinel-2 · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`] : null;
+  const al = Math.min(1, split / (W * 0.25)), ar = Math.min(1, (W - split) / (W * 0.25));      // a year fades when its image is almost hidden
+  drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
+    yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], 'Glacier outline about 1850']] : []});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   // divider with a round handle
   const along = hz ? H : W;
@@ -422,27 +490,30 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
     ctx.translate(cx, cy); if (hz) ctx.rotate(Math.PI / 2);
     ctx.beginPath(); ctx.moveTo(-6, -10); ctx.lineTo(-16, 0); ctx.lineTo(-6, 10); ctx.moveTo(6, -10); ctx.lineTo(16, 0); ctx.lineTo(6, 10); ctx.stroke(); ctx.restore();
   }
-  ctx.font = `800 80px ${FONT}`;
-  if (hz) {          // the first year sits in the upper picture under the title, the later year in the lower picture; each shows only on its own picture
-    ctx.save(); ctx.beginPath(); ctx.rect(0, 0, W, split); ctx.clip(); shadowText(ctx, String(info.years[0]), S.left - 4, S.top + 300, {blur:20}); ctx.restore();
-    ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip(); shadowText(ctx, String(info.years[1]), S.left - 4, base - 72, {blur:20}); ctx.restore();
-  } else {           // the first year on the left, the later year on the right; each fades when its image is fully hidden
-    ctx.save(); ctx.globalAlpha = Math.min(1, split / (W * 0.25)); shadowText(ctx, String(info.years[0]), S.left - 4, base - 72, {blur:20}); ctx.restore();
-    ctx.save(); ctx.globalAlpha = Math.min(1, (W - split) / (W * 0.25)); shadowText(ctx, String(info.years[1]), W - S.right, base - 72, {blur:20, align:'right'}); ctx.restore();
+  // the later year, in the same type: top right over the right image, or at the bottom left over the lower image
+  const db = dateOf(1), dateLine = (x, y, align) => { if (!db) return; ctx.font = `600 ${SUB_PX}px ${FONT}`; const bw = ctx.measureText(db[0]).width; ctx.font = `500 ${SUB_PX}px ${FONT}`; const rw = ctx.measureText(db[2]).width;
+    if (align === 'right') { shadowText(ctx, db[2], x, y, {blur:8, color:'rgba(255,255,255,.9)', align:'right'}); ctx.font = `600 ${SUB_PX}px ${FONT}`; shadowText(ctx, db[0], x - rw, y, {blur:8, align:'right'}); }
+    else { ctx.font = `600 ${SUB_PX}px ${FONT}`; shadowText(ctx, db[0], x, y, {blur:8}); ctx.font = `500 ${SUB_PX}px ${FONT}`; shadowText(ctx, db[2], x + bw, y, {blur:8, color:'rgba(255,255,255,.9)'}); } };
+  ctx.font = `800 ${YEAR_PX}px ${FONT}`;
+  if (hz) {
+    ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip();
+    shadowText(ctx, String(info.years[1]), S.left - 4, base - 112, {blur:14}); dateLine(S.left, base - 72, 'left'); ctx.restore();
+  } else {
+    ctx.save(); ctx.globalAlpha = ar; const y = heroBase(S);
+    shadowText(ctx, String(info.years[1]), W - S.right, y, {blur:14, align:'right'}); dateLine(W - S.right, y + 46, 'right'); ctx.restore();
   }
-  ctx.font = `500 24px ${FONT}`; shadowText(ctx, styleLine(info.style), S.left, base - 34, {blur:8, color:'rgba(255,255,255,.9)'});
   ctx.font = `500 22px ${FONT}`; shadowText(ctx, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && 'GLAMOS']), S.left, base, {blur:6, color:'rgba(255,255,255,.78)'});
+  siteLine(ctx, W - S.right, base);
 }
 /* The frame of a single year (a picture, or one frame of a timelapse): top block, map key, bottom block with facts and timeline */
 function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){
   const g = info.glacier, hA = info.hA ?? 1;
   shade(ctx, W, H, S);
-  drawTop(ctx, W, S, stillName(g), placeOf(g), hA, info.outline ? [['#F2A93B', [14, 9], 'Glacier outline about 1850']] : [], mapKeySize(info.res).w);
+  drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: info.outline ? [['#F2A93B', [14, 9], 'Glacier outline about 1850']] : [],
+    date: [fmtDM(scene.date), ` · ${styleLine(info.style)}`, ` · Sentinel-2 · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`]});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawBottom(ctx, W, H, S, {
     credit: shortCredit(creditYears(info), [info.outline && 'GLAMOS']),
-    date: [fmtDM(scene.date), ` · ${styleLine(info.style)}`, ` · Sentinel-2 · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`],
-    year: String(yr), site: true,
     tiles: info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : [],
     tl: tlYears.length > 1 ? { years: tlYears, pos: Math.max(0, tlYears.indexOf(yr)) } : null
   });
@@ -484,9 +555,10 @@ function drawEndSlide(ctx, W, H, S, info, te){
   let tx = x; if (logoImg) { ctx.drawImage(logoImg, x, ty - 34, 44 * 200 / 190, 44); tx = x + 44 * 200 / 190 + 14; }
   ctx.font = `700 28px ${FONT}`; shadowText(ctx, SITE_NAME, tx, ty, {shadow:false}); ctx.restore();
   const base = H - S.bottom; ctx.font = `500 22px ${FONT}`;
-  const lines = wrap(ctx, shortCredit(creditYears(info), ['GLAMOS', e.glacier && 'Grab et al. 2021']), 0, 0, W - S.left - S.right - (wide ? 420 : 0), 30).map(l => l.t);
+  const lines = wrap(ctx, shortCredit(creditYears(info), ['GLAMOS', e.glacier && 'Grab et al. 2021']), 0, 0, W - S.left - S.right - siteLineW(ctx) - 30, 30).map(l => l.t);
   ctx.save(); ctx.globalAlpha *= A(.2);
   lines.forEach((l, i) => shadowText(ctx, l, x, base - (lines.length - 1 - i) * 30, {color:'rgba(255,255,255,.7)', shadow:false}));
+  ctx.save(); ctx.globalAlpha *= 1; siteLine(ctx, W - S.right, base); ctx.restore();
   ctx.restore(); ctx.restore();
 }
 function wrap(ctx, text, x, y, maxW, lh){

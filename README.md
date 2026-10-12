@@ -1,6 +1,6 @@
 # Tongues from Space - Switzerland
 
-**The ten largest Swiss glaciers, seen from space every summer since 2016. Compare satellite images from different years, create timelapses, explore the glacier figures and download animations to share.**
+**The ten largest Swiss glaciers: satellite images since 2016, aerial photos, 3D terrain and historic photographs. Compare different years, create timelapses, explore the glacier figures and download pictures and animations to share.**
 
 Live site: https://braakhekke.github.io/tonguesfromspace/
 
@@ -145,6 +145,6 @@ The project has three kinds of content, each with its own licence:
 
 ## Credits
 
-Historic photographs in the 3D view ("Then and now", Aletsch so far): ETH Library, Bildarchiv, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (each photo carries its own licence in the page); where the camera stood and looked was worked out by volunteers on [Smapshot](https://smapshot.heig-vd.ch) (HEIG-VD). `photos.json` is made by `scripts/build_photos.py`.
+Historic photographs in the 3D view ("Then and now"; Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel, Fee): ETH Library, Bildarchiv, [CC BY-SA 4.0](https://creativecommons.org/licenses/by-sa/4.0/) (each photo carries its own licence in the page); where the camera stood and looked was worked out by volunteers on [Smapshot](https://smapshot.heig-vd.ch) (HEIG-VD). `photos.json` is made by `scripts/build_photos.py`.
 
 Created by Jochem Braakhekke. See also [For Your Ice](https://foryourice.org/). Built with [Leaflet](https://leafletjs.com/).

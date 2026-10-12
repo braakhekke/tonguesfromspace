@@ -8,15 +8,47 @@ const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8
 });
 map.getPane('bgPane').style.filter = 'brightness(1.12) saturate(1)';   // background a little brighter than the plain tiles
 map.getPane('labels').style.pointerEvents = 'none';
-L.control.scale({position:'bottomright', imperial:false, maxWidth:150}).addTo(map);
+/* The scale bar: a slim bar of alternating dark and white quarters with its length written above (0, half, full), in the style of the map key on the downloads. It sits where Leaflet's own scale sat (same class, so the
+   margins of the toolbar rules still apply). */
+const NiceScale = L.Control.extend({
+  options: {position: 'bottomright', maxPx: 150},
+  onAdd(map){
+    const el = L.DomUtil.create('div', 'leaflet-control-scale tfs-scale'); this._el = el;
+    el.innerHTML = '<div class="ts-labels"><span class="ts-l0">0</span><span class="ts-lm"></span><span class="ts-l1"></span></div><div class="ts-bar"><i></i><i></i><i></i><i></i></div>';
+    L.DomEvent.disableClickPropagation(el); this._map = map; map.on('move zoom resize', this._update, this); map.whenReady(this._update, this); return el;      // the map has no view yet while the page loads
+  },
+  onRemove(map){ map.off('move zoom resize', this._update, this); },
+  _update(){
+    const map = this._map; if (!map._loaded) return;
+    const y = map.getSize().y, a = map.containerPointToLatLng([0, y - 1]), b = map.containerPointToLatLng([this.options.maxPx, y - 1]), maxM = a.distanceTo(b);
+    if (!(maxM > 0)) return;
+    const pow = 10 ** Math.floor(Math.log10(maxM)), r = maxM / pow, m = (r >= 5 ? 5 : r >= 2 ? 2 : 1) * pow, px = Math.round(m / maxM * this.options.maxPx);      // 1, 2 or 5 times a power of ten
+    const fmt = v => v >= 1000 ? `${+(v / 1000).toFixed(2)} km` : `${Math.round(v)} m`, el = this._el;
+    el.querySelector('.ts-bar').style.width = px + 'px'; el.querySelector('.ts-labels').style.width = px + 'px';
+    el.querySelector('.ts-lm').textContent = fmt(m / 2).replace(/ (km|m)$/, ''); el.querySelector('.ts-l1').textContent = fmt(m);
+  }
+});
+const scaleCtl = new NiceScale().addTo(map);
+/* On bigger screens the scale bar sits beside the LAYERS button (to its left, level with it, wherever that button is for the mode); on phones it stays at the bottom right. */
+function placeScale(){
+  const el = scaleCtl._el, lb = document.getElementById('layerbox'), st = document.getElementById('stage'); if (!el || !lb || !st) return;
+  const desk = matchMedia('(min-width:721px) and (min-height:521px)').matches && lb.offsetWidth > 0;
+  if (!desk) { if (el.parentNode === st) { map._controlCorners.bottomright.appendChild(el); el.classList.remove('at-layers'); el.style.top = el.style.right = ''; } return; }
+  if (el.parentNode !== st) st.appendChild(el);
+  el.classList.add('at-layers');
+  el.style.top = (lb.offsetTop + 12) + 'px'; el.style.right = (st.clientWidth - lb.offsetLeft + 38) + 'px';      // room for the last label, which is centred on the end of the bar, and a clear gap to the button
+}
+{ const lb = document.getElementById('layerbox'), st = document.getElementById('stage'), re = new ResizeObserver(() => placeScale()); re.observe(lb); re.observe(st);
+  new MutationObserver(() => placeScale()).observe(document.getElementById('app'), {attributes: true, attributeFilter: ['class']}); addEventListener('resize', placeScale); placeScale(); }
 
 function updateCredits(){
+  if (typeof viewMode !== 'undefined' && viewMode === '3d' && typeof updateCredits3D === 'function') return updateCredits3D();      // the 3D view names its sources in the same bar
   const yrs = state.mode !== 'compare'
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
   const sat = document.getElementById('satToggle').checked;
   const parts = yrs.length && sat ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
-  if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
+  if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].map(ed => ed + (flownYear(glacierPicked ? currentGlacier() : null, ed) ? ` (flown ${flownYear(currentGlacier(), ed)})` : '')).join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
@@ -52,14 +84,15 @@ function spaceCanvas(w, h, perStar = 20000, scale = 1){
   }
   x.restore();
   for (let i = 0, n = Math.round(w * h / perStar); i < n; i++) {         // the stars
-    const px = rnd() * w, py = rnd() * h, big = rnd() > .93, r = (0.4 + Math.pow(rnd(), 4) * 1.0) * scale * (big ? 1.5 : 1), a = 0.2 + rnd() * 0.5;
-    if (big) glow(px, py, r * 5, '190,210,255', .18);
+    const px = rnd() * w, py = rnd() * h, k = rnd(), bright = k > .975, big = k > .88, r = (0.4 + Math.pow(rnd(), 4) * 1.0) * scale * (bright ? 2.8 : big ? 1.7 : 1), a = bright ? 0.9 : 0.2 + rnd() * 0.5;
+    if (big) glow(px, py, r * (bright ? 7 : 5), '190,210,255', bright ? .3 : .18);
+    if (bright) { x.strokeStyle = 'rgba(225,235,255,.45)'; x.lineWidth = .8 * scale; x.beginPath(); x.moveTo(px - r * 4, py); x.lineTo(px + r * 4, py); x.moveTo(px, py - r * 4); x.lineTo(px, py + r * 4); x.stroke(); }      // the brightest few get a little cross
     x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
   }
   spaceCache.set(key, c); return c;
 }
 const mapEl = document.getElementById('map');
-mapEl.style.backgroundImage = `url(${spaceCanvas(1600, 1000, 5000).toDataURL('image/png')})`;
+mapEl.style.backgroundImage = `url(${spaceCanvas(1600, 1000, 1000).toDataURL('image/png')})`;
 mapEl.style.backgroundSize = 'cover'; mapEl.style.backgroundPosition = 'center'; mapEl.style.backgroundRepeat = 'no-repeat';
 const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom:17, maxNativeZoom:19, attribution:'© OpenStreetMap contributors'});
@@ -146,10 +179,26 @@ function aerialSlots(){          // slot -> year, whether the layer is on or not
   if (state.mode === 'single') return {T: state.one};
   const f = tlFrames(); return {T: f.length ? f[f.length - 1] : state.to};      // timelapse: the newest year of the range
 }
+/* SWISSIMAGE editions are mosaics: the edition year (the time dimension of the layer) is not the year the photographs were taken. swisstopo's metadata layer says which year was flown
+   at a place (edition 2025 here: flown 2023, 2022: 2020, 2019: 2017, 2016: 2014). It is asked once per glacier and edition, and the viewer names that year. */
+const aerialFlown = new Map();      // "<glacier>|<edition>" -> "2023" (empty while unknown)
+const flownYear = (g, ed) => (g && aerialFlown.get(g.id + '|' + ed)) || '';
+function ensureFlown(g, ed){
+  const key = g.id + '|' + ed; if (aerialFlown.has(key)) return; aerialFlown.set(key, '');
+  const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
+  fetch(`https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&layers=all:ch.swisstopo.swissimage-product.metadata&mapExtent=${lon - .01},${lat - .01},${lon + .01},${lat + .01}&imageDisplay=500,500,96&tolerance=1&sr=4326&timeInstant=${ed}&returnGeometry=false`)
+    .then(r => r.json()).then(j => {
+      const ys = [...new Set((j.results || []).map(r => r.attributes && r.attributes.flightyear).filter(Boolean))].sort();
+      if (!ys.length) return; aerialFlown.set(key, ys.join(' / '));
+      updateAerial(); updateTags(); if (tlLayers.length) showFrame(state.frame);
+    }).catch(() => {});
+}
 const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 function updateAerial(){
-  const ys = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort();      // the menu item names the year(s) it shows (or would show)
-  document.getElementById('aerialLabel').textContent = 'swisstopo aerial' + (ys.length ? ' ' + ys.join(' / ') : '');
+  const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
+  if (cg) eds.forEach(ed => ensureFlown(cg, ed));
+  const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
+  document.getElementById('aerialLabel').textContent = 'swisstopo aerial' + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
   const want = aerialWanted(), boxes = GLACIERS.map(g => L.latLngBounds(imageFootprint(g).bounds));
   ['A', 'B', 'T'].forEach(k => {
     const yr = want[k] || null;
@@ -168,7 +217,8 @@ const satShown = () => glacierPicked && satOn();
 const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 picture layer in the layer menu.';
 function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
-  return `<span class="nw">SWISSIMAGE ${siYear(yr)}</span> · <span class="nw">swisstopo aerial image</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
+  const ed = siYear(yr), fy = flownYear(glacierPicked ? currentGlacier() : null, ed);      // the year the photographs were taken, then the edition of the layer
+  return `<span class="nw">Aerial image ${fy || ed}</span> · <span class="nw">swisstopo SWISSIMAGE ${ed}</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
 }
 function applySatVisibility(){          // the Sentinel-2 pictures can be switched off, so the aerial images or a base map show alone
   const on = document.getElementById('satToggle').checked;
@@ -278,19 +328,20 @@ function showFrame(i){
   else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`);
   /* the timeline as in the Timelapse download: first and last year above a line, a tick for every year, the line filled up to the year on show, a round marker */
   const nTl = tlLayers.length, pct = k => nTl > 1 ? k / (nTl - 1) * 100 : 0;
-  document.getElementById('tlDots').innerHTML = state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div>`;
+  const tlHtml = state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl-row"><button type="button" class="tl-play" aria-label="${state.playing ? 'Pause' : 'Play'}">${state.playing ? FULL_ICONS.pause : FULL_ICONS.play}</button><div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div></div>`;
+  document.getElementById('tlDots').innerHTML = tlHtml; document.getElementById('v3dTlLine').innerHTML = tlHtml;      // the same timeline on the map and in the 3D view; in full screen its play button is the way to start and stop
   document.getElementById('frameSlider').value = i;
   updateCredits();
   if (viewMode === '3d' && v3dCtx && v3dCtx.follow && v3dCtx.years.includes(tlLayers[i].yr)) v3dCtx.follow(tlLayers[i].yr);      // the 3D view shows the frame too
   syncPane();
   const cb = document.querySelector('.cb-links');
-  if (cb) cb.innerHTML = cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join('');
+  if (cb) cb.innerHTML = cbButtonsHtml();
 }
 const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Play';
 const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg>Pause';
 document.getElementById('playBtn').innerHTML = PLAY_ICON;
 const SPEED_MS = [2200, 1200, 600, 300, 150], SPEED_FPS = ['0.5', '1', '2', '4', '8'];      // the slider steps: delay per frame, and the label
-const speedMs = () => SPEED_MS[+document.getElementById('speedSel').value];
+const speedMs = () => typeof vPrev !== 'undefined' && vPrev.on && vstate.type !== 'swipe' ? perSec(tlLayers.length) * 1000 : SPEED_MS[+document.getElementById('speedSel').value];      // the preview in the animation pane runs at the pane's "Seconds per year"
 function updateSpeedIcon(){                 // the needle of the little gauge and the label follow the chosen speed
   const i = +document.getElementById('speedSel').value;
   document.getElementById('speedNeedle').setAttribute('transform', `rotate(${-60 + i * 30} 12 18)`);
@@ -299,9 +350,7 @@ function updateSpeedIcon(){                 // the needle of the little gauge an
 document.getElementById('speedSel').oninput = updateSpeedIcon; updateSpeedIcon();
 const FULL_ICONS = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.500v14H7zM13.500 5H17v14h-3.500z"/></svg>'};
 function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
-  const b = document.getElementById('fullPlay'); if (!b) return;
-  b.innerHTML = state.playing ? FULL_ICONS.pause : FULL_ICONS.play;
-  b.setAttribute('aria-label', state.playing ? 'Pause' : 'Play'); b.disabled = tlLayers.length < 2;
+  document.querySelectorAll('.tl-play').forEach(b => { b.innerHTML = state.playing ? FULL_ICONS.pause : FULL_ICONS.play; b.setAttribute('aria-label', state.playing ? 'Pause' : 'Play'); });
 }
 function play(){
   if (tlLayers.length < 2) return;
@@ -341,7 +390,8 @@ function stopPlay(){
   clearTimeout(state.timer); state.playing = false;
   document.getElementById('playBtn').innerHTML = PLAY_ICON; syncFullPlay();
 }
-document.getElementById('playBtn').onclick = document.getElementById('fullPlay').onclick = () => state.playing ? stopPlay() : play();
+document.getElementById('playBtn').onclick = () => state.playing ? stopPlay() : play();
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.tl-play')) state.playing ? stopPlay() : play(); });      // the play button beside the timeline (the timeline is drawn again at every frame: one listener for all)
 document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
 
 /* ---------- outlines ---------- */
@@ -544,6 +594,7 @@ const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (highe
    The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
    so the tip sits near the middle of the screen with room around it, whatever the window size. */
 const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way from the tip to the middle of that stretch
+const TONGUE_VIEW = {aletsch: {reach: 3000}, gorner: {west: -800}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2; the Gorner view is moved 0.8 km to the east (west: metres, negative = east)
 const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
 function tongueBounds(g){
   const geom = g.inv && g.inv.outline, T = g.inv && g.inv.terminus;
@@ -551,12 +602,13 @@ function tongueBounds(g){
   const ring = geom.coordinates.map(poly => poly[0]).sort((a, b) => b.length - a.length)[0];    // the main body
   if (!ring) return null;
   const tip = L.latLng(T.tip), gb = L.latLngBounds(g.bounds), size = Math.max(gb.getSouthWest().distanceTo(gb.getSouthEast()), gb.getSouthWest().distanceTo(gb.getNorthWest())),
-    reach = Math.min(TONGUE_REACH, size * 0.35), near = ring.map(([x, y]) => L.latLng(y, x)).filter(p => p.distanceTo(tip) <= reach);   // a small glacier gets a smaller window
+    ov = TONGUE_VIEW[g.id] || {}, reach = Math.min(ov.reach || TONGUE_REACH, size * 0.35), near = ring.map(([x, y]) => L.latLng(y, x)).filter(p => p.distanceTo(tip) <= reach);   // a small glacier gets a smaller window
   if (near.length < 3) return null;
   const mid = L.latLngBounds(near).getCenter();
   const c = L.latLng(tip.lat + (mid.lat - tip.lat) * TONGUE_SHIFT, tip.lng + (mid.lng - tip.lng) * TONGUE_SHIFT);
   const dLat = Math.max(...near.map(p => Math.abs(p.lat - c.lat))), dLng = Math.max(...near.map(p => Math.abs(p.lng - c.lng)));
-  return L.latLngBounds([c.lat - dLat, c.lng - dLng], [c.lat + dLat, c.lng + dLng]);    // symmetric around c
+  const dW = ov.west ? ov.west / (111320 * Math.cos(c.lat * Math.PI / 180)) : 0;      // moved west as it is: the same window, not a bigger one
+  return L.latLngBounds([c.lat - dLat, c.lng - dLng - dW], [c.lat + dLat, c.lng + dLng - dW]);    // symmetric around c
 }
 /* Tongue indication: a ring with a label at the tip (lowest point of the outline), switched on in the layer box */
 let tonguePin = null;

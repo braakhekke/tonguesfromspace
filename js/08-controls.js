@@ -53,17 +53,18 @@ function drawBoxes(){
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
   GLACIERS.forEach((g, i) => {
     const sel = picked && g.id === state.glacier, fp = imageFootprint(g).bounds, geom = outlineGeom(g);
-    if (sel) {            // the picture of the chosen glacier: a thin white frame, with a small label written along its top edge
+    if (sel) {            // the picture area of the chosen glacier: a thin white frame, always (also in the download panes), with a small label written along its top edge
       frameLayer.addLayer(L.polygon(roundedBox(fp), {color: '#fff', weight: 1.5, opacity: .95, fill: false, interactive: false, className: 'gframe'}));
       frameLayer.addLayer(L.marker([fp[1][0], fp[0][1]], {interactive: false, keyboard: false, icon: L.divIcon({className: 'frame-label', html: `<span>Current selection: ${g.name}</span>`, iconSize: [220, 12], iconAnchor: [-15, 13]})}));
     }
-    const style = {color: getVar('--accent'), weight: sel ? 2.5 : 2, fillColor: getVar('--accent'), fillOpacity: sel ? 0.2 : 0.12, className: 'gbox'};
-    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : L.polygon(roundedBox(fp), {...style, fillOpacity: sel ? 0.05 : 0.1});
+    const style = {color: getVar('--accent'), weight: sel ? 2.5 : 2, fillColor: getVar('--accent'), fillOpacity: 0, className: 'gbox'};      // clear until the pointer is over it
+    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : L.polygon(roundedBox(fp), {...style});
     const tip = `${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²`;
-    shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => chooseGlacier(g.id));
+    const light = on => shape.setStyle ? shape.setStyle({fillOpacity: on ? 0.38 : 0, weight: on ? 3 : (sel ? 2.5 : 2)}) : shape.eachLayer(l => l.setStyle({fillOpacity: on ? 0.38 : 0, weight: on ? 3 : (sel ? 2.5 : 2)}));      // the polygon lights up under the pointer, also when the pointer is on its number
+    shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false));
     const num = L.marker(geom ? badgeLatLng(g) : [fp[1][0], (fp[0][1] + fp[1][1]) / 2], {
       icon: L.divIcon({className: '', html: `<div class="gbox-num${sel ? ' sel' : ''}">${i + 1}</div>`, iconSize: [24, 24], iconAnchor: [12, 12]}),
-      keyboard: true, title: tip}).on('click', () => chooseGlacier(g.id));
+      keyboard: true}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false)).bindTooltip(tip, {direction: 'top', offset: [0, -12], className: 'gbox-tip'});      // the same tooltip over the number
     boxLayer.addLayer(shape).addLayer(num);
   });
 }
@@ -72,7 +73,7 @@ function updateBoxes(){
   const show = document.getElementById('boxToggle').checked && map.getZoom() <= BOX_MAX_ZOOM && !$('app').classList.contains('is-framing');      // the layer switch decides: on at the start, off with the first choice. Not in a download frame
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
-  const frame = typeof glacierPicked !== 'undefined' && glacierPicked;      // the frame of the chosen glacier's picture is red at every zoom
+  const frame = typeof glacierPicked !== 'undefined' && glacierPicked;      // the frame of the chosen glacier's picture shows at every zoom
   if (frame && !map.hasLayer(frameLayer)) frameLayer.addTo(map);
   if (!frame && map.hasLayer(frameLayer)) map.removeLayer(frameLayer);
 }
@@ -103,7 +104,7 @@ drawBoxes(); drawTonguePin();
 
 /* Map layer box: minimize, mosaic background, OpenStreetMap */
 const lb = document.getElementById('layerbox');
-if (prefs.lbMin !== false) { lb.classList.add('min'); document.getElementById('lbToggle').setAttribute('aria-expanded', 'false'); }
+lb.classList.add('min'); document.getElementById('lbToggle').setAttribute('aria-expanded', 'false');      // the layer menu starts closed at every visit; opening it is not remembered
 document.getElementById('lbToggle').onclick = () => {
   const min = lb.classList.toggle('min'); prefs.lbMin = min; savePrefs();
   document.getElementById('lbToggle').setAttribute('aria-expanded', !min);
@@ -147,9 +148,12 @@ applySatVisibility(); updateAerial();
 
 /* Controls that need a picture of the glacier (colours, brightness, downloads...) are greyed out while none is on show: no glacier chosen, or the Sentinel-2 picture
    switched off in the layer menu. Pressing one says why instead of doing it. Before a glacier is chosen, all of steps 2 and 3 do the same (they are greyed by .no-glacier). */
-function syncSatUi(){ document.getElementById('app').classList.toggle('sat-off', !satShown()); }
+function syncSatUi(){
+  document.getElementById('app').classList.toggle('sat-off', !satShown());
+  if (satShown()) { const n = document.getElementById('notice'); if (n.textContent === SAT_MSG) { n.classList.remove('show'); clearTimeout(showNotice.t); } }      // the message is gone as soon as it no longer applies: the picture is on, or a glacier is picked
+}
 document.addEventListener('click', e => {
-  const noGlacier = !glacierPicked, t = e.target.closest ? e.target.closest(noGlacier ? '#vizGroup > :not(.step-h), #shareGroup > :not(.step-h):not(.act-link):not(.fyi)' : '.sat-need') : null;
+  const noGlacier = !glacierPicked, t = e.target.closest ? e.target.closest(noGlacier ? '#vizGroup > :not(.step-h), #shareGroup > :not(.step-h):not(.act-link):not(.fyi):not(.fyi-by)' : '.sat-need') : null;
   if (!t || (!noGlacier && satShown())) return;
   e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); showNotice(SAT_MSG);
 }, true);

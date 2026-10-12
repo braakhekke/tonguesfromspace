@@ -141,7 +141,7 @@ function trailMaps(g, kind){       // the SchweizMobil map around the tongue, wi
 function trailsHtml(g, key){
   const t = TRAILS[key]; if (!t) return '';
   const row = (label, r, kindFallback) => r
-    ? `<div class="tr-row"><b>${label}</b> ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>` : r.title}<span class="tr-t">${r.text}</span>${trailMaps(g, r.kind)}</div>`
+    ? `<div class="tr-row"><b>${label}</b> ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>` : r.title}${typeof gfn === 'function' ? (r.url ? gfn(`${label} route: <a href="${r.url}" target="_blank" rel="noopener">${new URL(r.url).hostname.replace(/^www\./, '')}</a> (${r.title}); route data of SchweizMobil / swisstopo`) : fn('routes')) : ''}<span class="tr-t">${r.text}</span>${trailMaps(g, r.kind)}</div>`
     : `<div class="tr-row"><b>${label}</b><span class="tr-t">No marked bike route within about 3 km of the tongue.</span>${trailMaps(g, kindFallback)}</div>`;
   return `${row('Hike', t.hike, 'wander')}${row('Bike', t.bike, 'velo')}`;
 }

@@ -15,7 +15,7 @@ html,body{height:100%;margin:0}
 body{background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:15px;line-height:1.45}
 button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
-.app{--lw:290px;--rw:380px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);height:100%}
+.app{--lw:290px;--rw:320px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);height:100%}
 
 /* ---------- left ---------- */
 .scroll-cue{position:sticky;bottom:-28px;height:0;margin-top:-24px;z-index:5;pointer-events:none}
@@ -36,13 +36,13 @@ button,select,input{font:inherit;color:inherit}
 .brand-logo{flex:none;width:56px;height:auto;margin-top:1px}
 .brand h1{font-size:22px;line-height:1.15;margin:0 0 8px;font-weight:800;letter-spacing:-.01em;color:var(--accent)}
 .brand h1::after{content:'';display:block;width:42px;height:4px;background:var(--accent);border-radius:2px;margin-top:10px}
-.brand p{margin:0;color:var(--moraine);font-size:13.5px}
+.brand p{margin:0;color:var(--moraine);font-size:12.5px;text-align:justify;text-align-last:left;hyphens:auto}      /* the blurb fills the width of the panel; the last line of each paragraph stays at the left */
 .brand .what{margin-top:2px;line-height:1.4}
 .step{display:flex;flex-direction:column;gap:10px}
 .step-h{display:flex;align-items:center;gap:8px;margin:0;font-size:12.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
 .step-lock{display:none;white-space:nowrap;margin-left:auto;font-size:10.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--moraine)}
 .app.no-glacier .step-lock{display:inline}
-.app.no-glacier #vizGroup > :not(.step-h),.app.no-glacier #shareGroup > :not(.step-h):not(.act-link):not(.fyi){opacity:.4;filter:none}      /* a click on them says why (js/08-controls.js), so no pointer-events:none on the box; the sliders inside let the click through */
+.app.no-glacier #vizGroup > :not(.step-h),.app.no-glacier #shareGroup > :not(.step-h):not(.act-link):not(.fyi):not(.fyi-by){opacity:.4;filter:none}      /* a click on them says why (js/08-controls.js), so no pointer-events:none on the box; the sliders inside let the click through */
 .app.no-glacier #vizGroup input,.app.no-glacier #shareGroup input,.app.sat-off .sat-need input{pointer-events:none}
 .app.sat-off .sat-need{opacity:.4;filter:none}
 .app.sat-off.no-glacier #vizGroup > * .sat-need{opacity:1}      /* inside a box that is already greyed */
@@ -158,8 +158,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .status.busy{display:flex;align-items:center;gap:8px}
 .status.busy::before{content:'';flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--rule);border-top-color:var(--accent);animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
-.brand .byline{margin-top:10px;font-size:12.5px;color:var(--rock)}
-.brand .byline a{color:var(--crevasse);font-weight:600}
+.byline{margin:10px 0 0;font-size:12.5px;line-height:1.4;color:var(--moraine);text-align:center}
+.byline a{color:var(--crevasse);font-weight:600}
 .step .fyi{margin-top:6px}
 .fyi{display:block;text-align:center;text-decoration:none;color:var(--rock);background:#FFF6DA;border:1px solid #F3DE94;border-radius:12px;padding:14px 14px 12px}
 .fyi:hover{border-color:#E2B93B}
@@ -175,13 +175,13 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .stage{position:relative;min-height:0;background:#070b14;overflow:hidden}   /* nothing on the map may widen the page */
 #map{position:absolute;inset:0;background:#070b14}
 .leaflet-container{font-family:var(--sans)}
-.year-tag{position:absolute;top:14px;z-index:650;color:#fff;font-weight:800;font-size:clamp(34px,5vw,64px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-shadow:0 1px 14px rgba(0,0,0,.55);pointer-events:none}
+.year-tag{position:absolute;top:12px;z-index:650;color:#fff;font-weight:800;font-size:clamp(30px,3.4vw,44px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-shadow:0 1px 14px rgba(0,0,0,.55);pointer-events:none}
 .year-tag small{display:block;font-size:12px;font-weight:500;letter-spacing:0;margin-top:6px;opacity:.85}
 .year-tag .nw{white-space:nowrap}
-#tagA,#tagT{left:18px}
-#tagB{right:18px;text-align:right}
+#tagA,#tagT{left:14px}
+#tagB{right:14px;text-align:right}
 .is-horiz .divider{top:0;bottom:auto;left:0;right:0;width:auto;height:2px;margin:-1px 0 0}
-.is-horiz #tagB{right:auto;left:18px;text-align:left}
+.is-horiz #tagB{right:auto;left:14px;text-align:left}
 .is-horiz .handle{cursor:ns-resize}
 .is-horiz .handle svg{transform:rotate(90deg)}
 @media (max-width:720px){.is-horiz #tagB{left:12px}}
@@ -197,13 +197,13 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 /* satellite scene: rounded corners and a soft shadow; the red glacier box is the frame (not while framing a video) */
 .scene-img{border-radius:14px;box-shadow:0 8px 28px rgba(0,0,0,.45)}
 .is-framing .scene-img{border-radius:0;box-shadow:none}
-.is-framing .gframe,.is-framing .frame-label{display:none}
+.is-framing .frame-label{display:none}      /* the outline stays in the download panes; only its label goes */
 .frame-label{pointer-events:none}
 .frame-label span{display:block;font:600 9.5px/12px var(--sans);letter-spacing:.09em;text-transform:uppercase;color:#fff;white-space:nowrap;text-shadow:0 0 3px rgba(0,0,0,.85),0 0 6px rgba(0,0,0,.6)}
 /* static Sentinel-2 background for all of Switzerland, a little darker than the scene */
 .leaflet-bgPane-pane{filter:brightness(1.12) saturate(1)}
-.is-timelapse .layerbox{top:14px}
-@media (min-width:721px){.is-horiz .layerbox{top:14px}}      /* stacked images, slider moving up and down: the year tags sit on the left, the top right corner is free */
+.is-timelapse .layerbox{top:12px}
+@media (min-width:721px){.is-horiz .layerbox{top:12px}}      /* stacked images, slider moving up and down: the year tags sit on the left, the top right corner is free */
 .is-timelapse #tagA,.is-timelapse #tagB,.is-timelapse .divider,.is-timelapse .handle{display:none}
 #tagT{display:none}
 #tagT{max-width:calc(100% - 24px)}
@@ -230,7 +230,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d{position:absolute;inset:0;z-index:700;background:#0b1220;color:#fff}
 .v3d[hidden]{display:none}
 .v3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
-.v3d-top{position:absolute;left:14px;right:14px;top:12px;pointer-events:none}
+.v3d-top{position:absolute;left:14px;right:14px;top:12px;pointer-events:none;z-index:2}
 .v3d .v3d-layers{top:12px;right:12px;z-index:5;color:var(--rock);max-height:calc(100% - 90px);overflow-y:auto}
 .v3d-over{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .layerbox .slider-row{margin:2px 0;font-size:12px}
@@ -243,19 +243,21 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .stage.is-full #v3dFs span.fs-out,.app.visual-only #v3dFs span.fs-out{display:inline}
 /* in the 3D view the way out of full screen is that same row of the tools card, not a button in the corner */
 .app.is-3d .full-exit{display:none!important}
-.app.is-3d.tl-play .stage.is-full .full-play,.app.is-3d.tl-play.visual-only .full-play{right:10px}
-.app.is-3d .stage.is-full .v3d-top,.app.is-3d.tl-play .stage.is-full .v3d-top,.app.is-3d.tl-play.visual-only .v3d-top{right:250px}
+.app.is-3d .stage.is-full .v3d-top,.app.is-3d.visual-only .v3d-top{right:250px}
 @media (min-width:721px){.v3d-top{right:250px}}
 @media (max-width:720px){.v3d .v3d-layers{top:64px;right:8px}}
-.v3d-top b{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
-.v3d-top span{display:block;margin-top:2px;font-size:11.5px;color:#aebccb}
+.v3d-top .v3d-year{position:static;z-index:auto}      /* the same year tag as on the map: one big year, one small line under it */
+.v3d-top > span{display:block;margin-top:5px;font-size:12px;font-weight:500;color:rgba(255,255,255,.78);text-shadow:0 1px 8px rgba(0,0,0,.6)}
 .v3d-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-size:14px;color:#cfd9e3;pointer-events:none}
 .v3d-bottom{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:1.4;color:#aebccb;pointer-events:none}
 .v3d-bottom a{color:#cfe3f1;pointer-events:auto}
 .n-short,.n-less,.v3d-top .h-short{display:none}
 .n-full{display:none}.n-short{display:inline}      /* the note of the 3D view: one short line, "Details" opens the rest (phone and desktop) */
 #v3dNote.open .n-full{display:inline}#v3dNote.open .n-short{display:none}#v3dNote.open .n-less{display:inline}
-.v3d-measure{position:absolute;left:12px;top:78px;z-index:6;display:flex;flex-direction:column;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.stage::before{content:"";position:absolute;left:0;right:0;top:0;height:170px;z-index:640;pointer-events:none;background:linear-gradient(to bottom,rgba(8,14,18,.5),rgba(8,14,18,.22) 55%,rgba(8,14,18,0))}      /* one soft dark gradient along the top edge keeps white text readable over bright snow (no boxes) */
+.is-framing .stage::before{display:none}
+.v3d::before{content:"";position:absolute;left:0;right:0;top:0;height:170px;z-index:1;pointer-events:none;background:linear-gradient(to bottom,rgba(8,14,18,.5),rgba(8,14,18,.22) 55%,rgba(8,14,18,0))}
+.v3d-measure{position:absolute;left:12px;top:106px;z-index:6;display:flex;flex-direction:column;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.35)}
 .v3d-measure > button,.v3d-photos .ph-toggle,.v3d-photos .ph-cams,.v3d-photos .ph-btns button{min-height:36px;border:0;background:none;border-radius:6px;color:var(--rock);cursor:pointer;display:flex;align-items:center;gap:9px;padding:0 12px 0 8px;font:600 12.5px/1.2 var(--sans);text-align:left;white-space:nowrap}
 .v3d-measure > button:hover,.v3d-photos .ph-cams:hover,.v3d-photos .ph-toggle:hover,.v3d-photos .ph-btns button:hover,.v3d-photos .ph-toggle:focus-visible,.v3d-photos .ph-btns button:focus-visible{background:var(--firn)}
 .v3d-measure > button svg,.v3d-photos .ph-cams > svg,.v3d-photos .ph-toggle > svg:first-child{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
@@ -264,7 +266,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-measure > button:disabled{color:#A9B1B5;cursor:not-allowed}
 .v3d-mhint{top:14px;z-index:7}
 .v3d.measuring #v3dCanvas{cursor:crosshair}
-@media (max-width:720px){.v3d-mhint{top:56px;font-size:12.5px;max-width:calc(100% - 16px);flex-wrap:nowrap;padding:4px 5px 4px 10px;gap:6px}.v3d-mhint #v3dMText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v3d-mhint button{min-height:30px;flex:none}.v3d-measure{top:70px}}
+@media (max-width:720px){.v3d-mhint{top:86px;font-size:12.5px;max-width:calc(100% - 16px);flex-wrap:nowrap;padding:4px 5px 4px 10px;gap:6px}.v3d-mhint #v3dMText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v3d-mhint button{min-height:30px;flex:none}.v3d-measure{top:70px}}
 .n-more{pointer-events:auto;border:0;background:none;color:#cfe3f1;text-decoration:underline;font:inherit;padding:0 2px;cursor:pointer}
 .is-3d .leaflet-control-scale{display:none}      /* a map scale means little in perspective */
 @media (max-width:720px){
@@ -285,7 +287,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-div.used .v3d-handle,.v3d-div:focus-visible .v3d-handle{animation:none}
 .v3d-div:focus-visible .v3d-handle{outline:3px solid var(--crevasse,#2D6E8E)}
 @keyframes v3dPulse{0%,100%{box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 0 rgba(255,255,255,.6)}50%{box-shadow:0 2px 10px rgba(0,0,0,.5),0 0 0 12px rgba(255,255,255,0)}}
-.v3d-lab{position:absolute;z-index:3;pointer-events:none;background:rgba(0,0,0,.58);color:#fff;font:800 14px/1 var(--sans);padding:6px 10px;border-radius:6px;white-space:nowrap}
+.v3d-lab{position:absolute;z-index:3;pointer-events:none;color:#fff;font-weight:800;font-size:clamp(26px,2.6vw,34px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;padding:0;white-space:nowrap;text-shadow:0 1px 14px rgba(0,0,0,.65),0 0 3px rgba(0,0,0,.55)}      /* the year tag again, a little smaller, no box */
 .v3d.cmp-v .v3d-lab{top:64px}
 .v3d.cmp-v #v3dLabA{right:calc((1 - var(--s, .5)) * 100% + 30px)}
 .v3d.cmp-v #v3dLabB{left:calc(var(--s, .5) * 100% + 30px)}
@@ -305,7 +307,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 /* "Then and now": a small pill that opens the thumbnails of the old photographs */
 .v3d-photos .ph-toggle{position:relative}
 .v3d-photos .ph-cams{justify-content:flex-start;align-self:stretch}
-.v3d-photos .ph-note{align-self:stretch;margin:2px 4px 4px;font-size:11px;line-height:1.35;color:var(--moraine);max-width:176px}
+.v3d-photos .ph-note{align-self:stretch;margin:2px 4px 4px;font-size:11px;line-height:1.35;color:var(--moraine);max-width:176px;text-align:center;align-self:center}
 .v3d-photos:not(.open) .ph-cams,.v3d-photos:not(.open) .ph-note{display:none}
 .v3d-photos .ph-cams .sw-track{margin-left:auto;width:28px;height:16px;border-radius:999px;background:#B9C2C6;position:relative;flex:none;transition:background .15s}
 .v3d-photos .ph-cams .sw-track i{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.35);transition:transform .15s}
@@ -332,7 +334,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-photocap .pc-full{display:none;flex:1 1 100%;margin-top:3px}.v3d-photocap.open .pc-full{display:block}.v3d-photocap.open .pc-short{display:none}
 .v3d-photocap .n-more{background:none;margin:0;padding:0 2px;font:inherit;color:#cfe3f1}
 .v3d-photocap button{border:0;border-radius:6px;background:rgba(255,255,255,.18);color:#fff;font:600 12px var(--sans);padding:5px 10px;cursor:pointer}
-@media (max-width:720px){.v3d.photo-on .v3d-measure{top:58px;left:8px;right:8px;flex-direction:row;flex-wrap:wrap;align-items:center}.v3d.photo-on .v3d-measure > #v3dFs{margin-bottom:0;border-bottom:0;border-radius:6px}.v3d.photo-on .v3d-photos{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}.v3d-photos .ph-btns{flex-direction:row;flex-wrap:wrap}.v3d-photos .ph-list{flex-direction:row;max-height:none;width:100%;overflow-x:auto;overflow-y:hidden}.v3d-photocap{left:8px;right:8px;bottom:46px;padding:5px 8px}.v3d-photocap .pc-t{display:none}}
+@media (max-width:720px){.v3d.photo-on .v3d-measure{top:84px;left:8px;right:8px;flex-direction:row;flex-wrap:wrap;align-items:center}.v3d.photo-on .v3d-measure > #v3dFs{margin-bottom:0;border-bottom:0;border-radius:6px}.v3d.photo-on .v3d-photos{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}.v3d-photos .ph-btns{flex-direction:row;flex-wrap:wrap}.v3d-photos .ph-list{flex-direction:row;max-height:none;width:100%;overflow-x:auto;overflow-y:hidden}.v3d-photocap{left:8px;right:8px;bottom:100px;padding:5px 8px}      /* above the Height slider and the note */.v3d-photocap .pc-t{display:none}}
 .v3d-tip{position:absolute;z-index:6;pointer-events:none;max-width:220px;background:rgba(255,255,255,.97);color:#1d2a30;border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.4;box-shadow:0 3px 14px rgba(0,0,0,.4)}
 .v3d-tip[hidden]{display:none}
 .v3d-camtip{width:176px;padding:6px 8px 7px;font-size:12px}
@@ -378,8 +380,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .gbox-num.sel{background:#fff;color:var(--accent);border-color:var(--accent)}
 .pick-hint{position:absolute;inset:0;z-index:664;pointer-events:none;opacity:0;visibility:hidden;transition:opacity .3s,visibility .3s}
 .pick-hint.show{opacity:1;visibility:visible}
-.pick-note{position:absolute;left:50%;top:14px;transform:translateX(-50%);max-width:calc(100% - 32px);box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 12px;background:rgba(255,255,255,.96);color:#1f2a33;border-radius:12px;border-left:4px solid var(--accent);box-shadow:0 4px 18px rgba(0,0,0,.35);font:600 14px/1.3 var(--sans)}
-.pick-note::before{content:"";flex:none;width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 0 4px rgba(200,50,42,.22)}
+.pick-note{position:absolute;left:50%;top:60px;transform:translateX(-50%);max-width:calc(100% - 32px);box-sizing:border-box;display:flex;align-items:center;gap:10px;padding:10px 16px 10px 12px;background:rgba(255,255,255,.96);color:#1f2a33;border-radius:12px;box-shadow:0 4px 18px rgba(0,0,0,.35);font:600 14px/1.3 var(--sans)}
+.pick-note .pn-num{flex:none;width:20px;height:20px;border-radius:50%;background:var(--accent);color:#fff;display:inline-flex;align-items:center;justify-content:center;font:700 11.5px/1 var(--sans)}      /* the same red dot as the "1" of step 1 in the left panel */
 .pick-note b{font-weight:800;color:var(--accent)}
 .is-framing .pick-hint{display:none}
 .gbox-tip{font-family:var(--sans);font-weight:600;font-size:12.5px}
@@ -398,7 +400,13 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .credits.open{height:auto;white-space:normal;padding:4px 10px}
 .credits a{color:var(--crevasse)}
 .leaflet-control-scale{margin-bottom:84px!important;margin-right:12px!important}
-.leaflet-control-scale-line{background:rgba(255,255,255,.9);border-color:var(--rock);color:var(--rock);font-family:var(--sans);font-weight:500}
+/* the scale bar: white quarters alternating with dark ones, labels above, no box; a soft shadow keeps it readable on snow and on dark rock */
+.tfs-scale{pointer-events:none;color:#fff;font:600 11.5px/1 var(--sans);text-shadow:0 1px 5px rgba(0,0,0,.75),0 0 2px rgba(0,0,0,.6);margin-right:14px!important}
+.tfs-scale .ts-labels{position:relative;height:15px;margin-left:auto}
+.tfs-scale .ts-labels span{position:absolute;bottom:2px;transform:translateX(-50%)}
+.tfs-scale .ts-l0{left:0}.tfs-scale .ts-lm{left:50%}.tfs-scale .ts-l1{left:100%}
+.tfs-scale .ts-bar{display:flex;height:6px;margin-left:auto;border-radius:1px;box-shadow:0 0 0 1px rgba(255,255,255,.9),0 1px 6px rgba(0,0,0,.6);background:#fff}
+.tfs-scale .ts-bar i{flex:1}.tfs-scale .ts-bar i:nth-child(even){background:#1b2a33}
 .m-label{background:var(--rock);color:#fff;border:0;border-radius:5px;font-family:var(--sans);font-size:12.5px;font-weight:600;padding:3px 7px;box-shadow:none}
 .m-label::before{display:none}
 .leaflet-popup-content{font-family:var(--sans);font-size:13.5px;margin:10px 14px}
@@ -413,7 +421,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .story.empty > .story-empty h2{display:block}
 .story::before{content:'';display:block;flex:none;height:24px}      /* the top space is inside the scroll, so a sticky card header sits flush with the top edge */
 .story > *{flex:none}
-.story h2{font-size:25px;line-height:1.05;margin:0 0 4px;font-weight:800;letter-spacing:-.02em}
+.story h2{font-size:22px;line-height:1.15;margin:0 0 4px;font-weight:800;letter-spacing:-.01em}      /* the size of the title in the left panel */
 .story .sub{color:var(--moraine);font-size:12.5px;margin:0 0 16px}
 .story .lede{font-family:var(--serif);font-size:15px;line-height:1.55;margin:0 0 18px}
 .story h2::before{content:'';display:block;width:36px;height:4px;background:var(--accent);border-radius:2px;margin-bottom:12px}
@@ -435,6 +443,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .gh-invite span{font-size:12px;line-height:1.45;color:var(--moraine)}
 .gh-invite b{display:block;font-size:12.5px;color:var(--rock)}
 .gh-invite em a{color:var(--crevasse);text-decoration:none}
+.gh-invite span a{color:var(--crevasse);font-weight:600}
 .gh-invite .gh-contact{display:block;margin-top:8px;padding-top:8px;border-top:1px solid var(--rule)}
 .gh-invite .gh-contact a{color:var(--crevasse);font-weight:600}
 .gh-invite em{display:block;font-style:normal;color:var(--crevasse);margin-top:2px;font-weight:600}
@@ -662,7 +671,7 @@ sup.fn a:hover{text-decoration:underline}
   .m-select{display:block!important}
 
 
-  .year-tag{font-size:34px;top:10px;max-width:calc(50% - 16px)}
+  .year-tag{font-size:30px;top:10px;max-width:calc(50% - 16px)}
   .year-tag small{font-size:11px;line-height:1.25}
   #tagA{left:12px} #tagB{right:12px}
   .app.more-open .leaflet-control-scale{margin-bottom:138px!important}
@@ -715,7 +724,7 @@ sup.fn a:hover{text-decoration:underline}
   .controls .brand,#glacierList,#rankNote{display:none}
   .m-select{display:block!important}
   .story,.controls{height:auto;border:0;border-top:1px solid var(--rule)}
-  .year-tag{font-size:30px}
+  .year-tag{font-size:28px}
   .mapbar{bottom:28px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px)}
   .mapbar .sep,.mapbar .lbl{display:none}
   .mapbar button{min-width:40px;min-height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
@@ -793,7 +802,7 @@ details.coll > summary{list-style:none;cursor:pointer;display:flex;flex-wrap:wra
 details.coll > summary::-webkit-details-marker{display:none}
 details.coll > summary::after{content:'';order:1;flex:none;width:7px;height:7px;margin:-3px 4px 0 10px;border-right:2px solid var(--moraine);border-bottom:2px solid var(--moraine);transform:rotate(45deg);transition:transform .15s}      /* part of the title row, so it is always centred with the title */
 details.coll[open] > summary::after{transform:rotate(-135deg);margin-top:3px}
-details.coll > summary h4,details.coll > summary .card-h{margin:0;flex:1 1 auto}
+details.coll > summary h4,details.coll > summary .card-h{margin:0;flex:1 1 0;min-width:0;flex-wrap:nowrap}      /* the title may shrink and wrap inside its own box, so the chevron stays on the title row */
 details.coll > summary .sum-v{order:2;flex-basis:100%;margin:8px 0 0 32px;font-size:17px;font-weight:700;color:var(--accent);line-height:1.2}
 details.coll > summary .sum-v small{display:block;font-size:11.5px;font-weight:500;color:var(--moraine)}
 details.coll > summary .sum-v small:not(.sum-k){display:inline;font-size:12px;font-weight:600}
@@ -831,14 +840,10 @@ body.has-full{overflow:hidden}
 /* play / pause in the full screen, timelapse mode only: left of the exit button */
 .full-play{display:none}
 .full-play svg{width:18px;height:18px;fill:currentColor;stroke:none}
-.app.tl-play .stage.is-full .full-play,.app.tl-play.visual-only .full-play{display:flex;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:58px;z-index:700;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:50%;padding:0;background:var(--sheet);color:var(--rock);box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
-.app.tl-play.visual-only .full-play{top:14px;right:62px}
 .full-play:disabled{opacity:.4;cursor:default}
-.app.tl-play .stage.is-full .v3d-top,.app.tl-play.visual-only .v3d-top{right:108px}
 .stage.is-full .v3d-top{right:60px}      /* the exit button of full screen sits top right: the hint text stops before it */
 @media (min-width:721px){
   .app.visual-only .full-exit{display:flex;position:absolute;top:14px;right:14px;z-index:700;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:50%;padding:0;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
-  .app.visual-only .layerbox{top:60px}
 }
 @media (max-width:720px) and (orientation:portrait){
   .stage-slot{display:block;order:1;height:60vh;height:60dvh;min-height:330px}
@@ -912,3 +917,240 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 :root{--glass:rgba(255,255,255,.7)}
 .layerbox:not(.in-flow),.mapbar,.v3d-measure{background:var(--glass)}
 .stage.is-full .full-exit,.app.visual-only .full-exit,.app .full-play{background:var(--glass)}
+
+/* "Then and now" and its camera symbols belong to One year: not in Compare and Timelapse */
+.app:not(.photos-ok) .v3d-photos{display:none!important}
+
+/* pose tuning of a photograph (tune=1 in the address, see js/11-view3d.js) */
+.v3d-tune{position:absolute;top:12px;right:12px;z-index:7;width:268px;background:var(--glass);border-radius:8px;padding:10px 12px 11px;font-size:12px;color:var(--rock);box-shadow:0 2px 12px rgba(0,0,0,.35)}
+.v3d-tune[hidden]{display:none}
+.v3d-tune b{display:block;font-size:12.5px;margin-bottom:4px}
+.tn-row{display:grid;grid-template-columns:58px 1fr 62px;gap:6px;align-items:center;margin:2px 0}
+.tn-row input{width:100%;margin:0}.tn-row output{text-align:right;font-variant-numeric:tabular-nums}
+.tn-ov{display:block;margin:6px 0 4px;line-height:1.3}
+.tn-final{font-variant-numeric:tabular-nums;font-size:11.5px;color:var(--moraine);margin:2px 0 6px;line-height:1.4}
+.tn-bar{display:flex;gap:6px}.tn-bar button{flex:1;border:1px solid var(--rock);border-radius:6px;background:var(--sheet);padding:6px 8px;font:600 12px var(--sans);cursor:pointer}
+
+/* the arrows that hide the side panels stay in front of the 3D view */
+.is-3d .panel-toggle{z-index:710}
+
+/* in full screen (visual only) the arrows of the side panels are not shown */
+.app.visual-only .panel-toggle,.stage.is-full .panel-toggle,body.has-full .panel-toggle{display:none!important}
+
+/* the map toolbar's full screen button turns into "leave full screen" while in full screen; the separate corner button is not shown */
+.mapbar #fsBtn svg.fs-out{display:none}
+.stage.is-full .mapbar #fsBtn svg.fs-in,.app.visual-only .mapbar #fsBtn svg.fs-in{display:none}
+.stage.is-full .mapbar #fsBtn svg.fs-out,.app.visual-only .mapbar #fsBtn svg.fs-out{display:block}
+.stage .full-exit,.app.visual-only .full-exit{display:none!important}
+
+/* ---------- the 3D tools as a bar at the bottom, like the map toolbar (these rules replace the card at the top left above) ----------
+   Full screen, Measure length, Measure area, Then and now. "Then and now" drops up: a strip of thumbnails above the bar, with the camera switch and the footnote. With a photograph open the measuring tools
+   give way to "Hide ice level" and "Back to 3D". */
+.v3d-measure{left:50%;right:auto;top:auto;bottom:62px;transform:translateX(-50%);flex-direction:row;align-items:center;gap:2px;max-width:calc(100% - 20px)}
+.v3d-measure > button{padding:0 12px 0 8px}
+.v3d-measure > #v3dFs{margin:0 4px 0 0;border-bottom:0;border-radius:6px;border-right:1px solid var(--rule);padding-right:14px}
+.v3d-photos{position:relative;flex-direction:row;align-items:center;margin:0 0 0 4px;padding:0 0 0 6px;border-top:0;border-left:1px solid var(--rule)}
+.v3d.photo-on .v3d-photos{margin:0;padding:0;border-left:0}
+.v3d.photo-on .v3d-measure > #v3dFs{border-right:1px solid var(--rule)}
+.v3d-photos .ph-toggle .ph-chev{margin-left:2px;transform:rotate(180deg)}      /* the arrow points up: it opens upwards */
+.v3d-photos.open .ph-toggle .ph-chev{transform:none}
+.v3d-photos .ph-btns{flex-direction:row;align-items:center;gap:2px}
+.v3d-photos .ph-btns button{padding:0 12px}
+.v3d-photos .ph-drop{display:none;position:absolute;left:50%;bottom:calc(100% + 14px);transform:translateX(-50%);flex-direction:column;align-items:center;gap:4px;padding:8px 10px 6px;background:var(--glass);border-radius:10px;box-shadow:0 2px 14px rgba(0,0,0,.4);width:max-content;max-width:calc(100vw - 24px)}
+.v3d-photos.open .ph-drop{display:flex}
+.v3d-photos .ph-row{display:flex;flex-direction:row;align-items:center;gap:10px;max-width:100%}
+.v3d-photos .ph-cams{flex:none;align-self:center;padding:0 10px 0 6px;border-right:1px solid var(--rule);border-radius:6px 0 0 6px;white-space:normal;max-width:132px;line-height:1.2}
+.v3d-photos .ph-list{display:flex;flex:1 1 auto;min-width:0;flex-direction:row;align-items:center;gap:8px;margin:0;padding:2px;max-height:none;overflow-x:auto;overflow-y:hidden}
+.v3d-photos .ph-note{margin:0;max-width:none;text-align:center;align-self:center;white-space:normal}
+.v3d-photos:not(.open) .ph-drop{display:none}
+.v3d-photocap{left:14px;right:14px;bottom:118px}
+.v3d .v3d-layers{max-height:calc(100% - 200px)}
+@media (max-width:720px){
+  .v3d-measure{bottom:100px;flex-wrap:wrap;justify-content:center;width:max-content}
+  .v3d.photo-on .v3d-measure{top:auto;left:50%;right:auto;bottom:100px;flex-direction:row;flex-wrap:wrap;align-items:center}
+  .v3d.photo-on .v3d-photos{width:auto;flex-wrap:wrap}
+  .v3d-photos{border-left:0;margin:0;padding:0}
+  .v3d-photos .ph-drop{left:50%;max-width:calc(100vw - 16px)}
+  .v3d-photos .ph-row{flex-direction:column;gap:4px}
+  .v3d-photos .ph-cams{border-right:0;border-radius:6px;max-width:none}
+  .v3d-photos .ph-list{max-width:calc(100vw - 40px)}
+  .v3d-photocap{left:8px;right:8px;bottom:206px}
+}
+
+/* order in the 3D bar, left to right: Then and now, Measure length, Measure area, Full screen */
+.v3d-photos{margin:0 4px 0 0;padding:0 6px 0 0;border-left:0;border-right:1px solid var(--rule)}
+.v3d.photo-on .v3d-photos{margin:0;padding:0;border-right:0}
+.v3d-measure > #v3dFs{margin:0 0 0 4px;padding:0 12px 0 14px;border-right:0;border-left:1px solid var(--rule)}
+.v3d.photo-on .v3d-measure > #v3dFs{border-left:1px solid var(--rule)}
+.v3d-photos:empty,.v3d-photos[hidden]{display:none}
+@media (max-width:720px){.v3d-photos{border-right:0;margin:0;padding:0}.v3d-measure > #v3dFs{margin:0;padding:0 12px 0 8px;border-left:0}}
+.tfs-scale .ts-labels span{white-space:nowrap}
+
+/* the play button beside the timeline, in the map and in the 3D view */
+.tl-row{display:flex;align-items:center;gap:10px}
+.tl-play{display:none;flex:none;width:34px;height:34px;padding:0;border:0;border-radius:50%;background:var(--glass);color:var(--rock);cursor:pointer;place-items:center;box-shadow:0 2px 10px rgba(0,0,0,.35);pointer-events:auto}
+.tl-play svg{width:16px;height:16px;fill:currentColor;stroke:none}
+.tl-play{display:grid}      /* in the normal view too, not only in full screen */
+.v3d-tl{margin-top:10px}
+.v3d-tl:empty{display:none}
+.v3d-top .tl2{width:min(300px,50vw)}
+
+.gh-invite{overflow-wrap:break-word}      /* the long repository address wraps inside the narrower right panel */
+
+.tfs-scale.at-layers{position:absolute;z-index:666;margin:0!important;float:none}      /* beside the LAYERS button */
+
+/* ---------- the LAYERS button and menu in the style of the bottom bars: glass, an icon, a semibold label in dark text (desktop; phones keep their own layer sheet) ---------- */
+.lb-head .lb-ico{display:none}
+@media (min-width:721px) and (min-height:521px){
+  .layerbox:not(.in-flow){padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.35);max-width:232px}
+  .layerbox:not(.in-flow) .lb-head{min-height:36px;padding:0 10px 0 8px;gap:9px;justify-content:flex-start;border-radius:6px;font:600 12.5px/1.2 var(--sans);letter-spacing:0;text-transform:none;color:var(--rock)}
+  .layerbox:not(.in-flow) .lb-head:hover{background:var(--firn)}
+  .layerbox:not(.in-flow) .lb-head .lb-ico{display:block;width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;transition:none;transform:none}
+  .layerbox:not(.in-flow) .lb-head span{flex:1 1 auto;text-align:left}
+  .layerbox:not(.in-flow) .lb-head svg:last-child{width:14px;height:14px;stroke-width:2;margin-left:4px}
+  .layerbox:not(.in-flow) .lb-body{padding:2px 8px 4px;border-top:1px solid var(--rule);margin-top:2px}
+  .layerbox.min:not(.in-flow) .lb-head{padding:0 10px 0 8px}
+}
+
+/* the play button sits level with the line of the timeline (not with the year labels above it), with some room before the line starts */
+.tl-row{align-items:flex-start;gap:20px}
+.tl2-ends{line-height:13px}      /* the same height in the map and in the 3D view, so the button can be placed against the line */
+.tl-play{margin-top:6px}      /* labels 13 + gap 2 + half the track 8 = 23 down to the line, minus half the button (17) */
+
+/* full screen: icon only in the bars (the words stay in the tooltip) */
+#v3dFs span{display:none!important}
+.v3d-measure > #v3dFs{padding:0 10px!important}
+@media (max-width:720px){.v3d-measure > #v3dFs{padding:0 10px!important}}
+
+/* the 3D view names its sources in the same bar as the map (js/11-view3d.js, updateCredits3D); the old note under the view is not shown */
+.is-3d .credits{z-index:720}
+#v3dNote{display:none!important}
+.v3d-bottom{bottom:30px}
+@media (max-width:720px){.v3d-bottom{bottom:32px}}
+
+/* without the height slider and the old note, the bottom bar comes down to just above the sources line */
+.v3d-measure{bottom:34px}
+.v3d-photocap{bottom:92px}
+@media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:36px}.v3d-photocap{bottom:138px}}
+
+/* the measuring tools show only their symbols, everywhere (the words are in the tooltips and the labels for screen readers) */
+.mapbar .mtool .lbl,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span{display:none!important}
+.mapbar .mtool{padding-left:10px;padding-right:10px}
+.v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear{padding:0 10px!important}
+.mapbar .mtool svg{display:block}      /* on desktop the measuring buttons are now symbols only */
+
+@media (max-width:720px){.tl-row{gap:12px}.tl-row .tl2,.v3d-top .tl2{width:min(210px,36vw)}.tl-play{width:30px;height:30px;margin-top:8px}}
+
+/* no separator line before the full screen button of the 3D bar */
+.v3d-measure > #v3dFs,.v3d.photo-on .v3d-measure > #v3dFs{border-left:0!important;margin-left:0!important}
+
+/* the 3D bar has the size and the place of the map toolbar: 40 px high, 32 px above the sources line */
+.v3d-measure{bottom:32px}
+.v3d-measure > button,.v3d-photos .ph-toggle,.v3d-photos .ph-btns button{min-height:32px}
+@media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:32px}}
+
+body.pane-open .tfs-scale{display:none!important}      /* no scale bar while a download pane is open: it is not part of the picture */
+
+body.pane-open .mapbar{display:none!important}      /* no toolbar under the picture while a download pane is open (zoom with the wheel or two fingers) */
+
+/* the preview play button under the frame of the animation pane; while it plays the outside of the frame gets darker */
+.vf-play{position:absolute;left:50%;bottom:-52px;transform:translateX(-50%);width:40px;height:40px;border:0;border-radius:50%;padding:0;display:none;place-items:center;background:rgba(150,156,160,.92);color:#fff;cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.vf-play svg{width:18px;height:18px;fill:currentColor;stroke:none}
+.vf-play:hover{background:rgba(120,126,130,.96)}
+body.pane-open .video-frame .vf-play{display:grid}
+.video-frame{transition:box-shadow .3s}
+.video-frame.playing{box-shadow:0 0 0 9999px rgba(6,10,13,.88)}
+
+/* 3D view with a download pane open: the titles, labels and menus on the picture go, only the picture and the frame stay (the frame draws its own labels) */
+body.pane-open .v3d-top,body.pane-open .v3d-lab,body.pane-open .v3d-layers,body.pane-open .v3d-bottom,body.pane-open .v3d-tune,body.pane-open .v3d-camtip,body.pane-open .v3d-tl{display:none!important}
+body.pane-open .v3d-year{display:none!important}
+body.pane-open .app.is-3d .v3d-hint,body.pane-open .app.is-3d #videoFrameNote{display:none!important}      /* no 'zoom out' note or slider hint outside the frame in 3D */
+
+/* the first and last year are centred over their ticks */
+.tl2-ends{position:relative;display:block;height:13px}
+.tl2-ends b{position:absolute;top:0;white-space:nowrap;transform:translateX(-50%)}
+.tl2-ends b:first-child{left:0}.tl2-ends b:last-child{left:100%}
+.tl-row{padding-left:0}
+.tl2{margin-right:16px}
+
+/* before a glacier is chosen the layer menu shows only what applies to the overview */
+.app.no-glacier .layerbox .gl-only{display:none!important}
+
+/* the figure tiles of the stat cards: one short line for the label, the number, and the period (and the uncertainty) in a small chip that appears when the tile is hovered or focused (also its tooltip) */
+.stat{position:relative}
+.stat:not(.wide) .k:not(.note){display:block;white-space:normal;overflow:visible}      /* a long label wraps in its tile instead of being cut off */
+.stat:not(.hero) .v{font-size:15px}
+.stat.has-per .per,.wbox.has-per .per,.w-box.has-per .per{position:absolute;top:-9px;right:8px;z-index:3;margin:0;padding:2px 8px;border-radius:999px;background:var(--rock);color:#fff;font-size:10.5px;font-weight:600;line-height:1.3;white-space:nowrap;opacity:0;pointer-events:none;transform:translateY(3px);transition:opacity .15s,transform .15s;box-shadow:0 2px 8px rgba(0,0,0,.25)}
+.stat.has-per:hover .per,.stat.has-per:focus-visible .per,.wbox.has-per:hover .per,.wbox.has-per:focus-visible .per,.w-box.has-per:hover .per,.w-box.has-per:focus-visible .per{opacity:1;transform:none;pointer-events:auto}      /* hover or keyboard focus only: a click does not leave the chip standing */
+.stat.has-per{cursor:default;outline:none}
+.stat.has-per::after{content:"";position:absolute;right:8px;bottom:8px;width:5px;height:5px;border-radius:50%;background:var(--moraine);opacity:.35}      /* a small dot: there is more to see on hover */
+
+/* the water boxes fit their tile: a smaller icon, the unit small beside the number, a chip on hover with what it means */
+.wbox{position:relative;gap:8px;padding:9px 10px}
+.wbox .wi,.wbox .wi svg{width:28px}
+.wbox > div{min-width:0}
+.wbox .v{font-size:18px}
+.wbox .v small{font-size:12px;font-weight:700}
+.wbox .k{font-size:11.5px}
+.wbox.has-per{outline:none;cursor:default}
+.wbox.has-per .per{white-space:normal;width:max-content;max-width:210px;right:6px;top:-12px}
+
+/* the chip is centred over its tile and wraps, so a long text never leaves the panel */
+.stat.has-per .per,.wbox.has-per .per,.w-box.has-per .per{left:50%;right:auto;width:max-content;max-width:188px;white-space:normal;text-align:center;border-radius:10px;transform:translate(-50%,3px)}
+.stat.has-per:hover .per,.stat.has-per:focus-visible .per,.wbox.has-per:hover .per,.wbox.has-per:focus-visible .per,.w-box.has-per:hover .per,.w-box.has-per:focus-visible .per{transform:translate(-50%,0);pointer-events:auto}
+
+/* the little dot lights up (red, with a soft glow) while its tile is hovered or focused */
+.stat.has-per::after{transition:opacity .15s,background .15s,box-shadow .15s,transform .15s}
+.stat.has-per:hover::after,.stat.has-per:focus-visible::after{background:var(--accent);opacity:1;box-shadow:0 0 0 3px rgba(200,50,42,.22);transform:scale(1.25)}
+.wbox.has-per::after{content:"";position:absolute;right:8px;bottom:8px;width:5px;height:5px;border-radius:50%;background:var(--moraine);opacity:.35;transition:opacity .15s,background .15s,box-shadow .15s,transform .15s}
+.wbox.has-per:hover::after,.wbox.has-per:focus-visible::after{background:var(--accent);opacity:1;box-shadow:0 0 0 3px rgba(200,50,42,.22);transform:scale(1.25)}
+
+/* smaller type in the stat cards of the narrower right panel, so numbers and labels fit their boxes */
+.sym-row{gap:10px}
+.sym-pitch,.sym-bus{width:76px}.sym-pool{width:72px}.sym-tower{width:56px}
+.sym-txt b{font-size:19px}
+.sym-txt small{font-size:11px}
+.stat.hero .v{font-size:26px}
+.stat.hero .k{font-size:11px}
+.stat.hero .k.note{font-size:10px}
+.wbox .v{font-size:16px}
+.wbox .v small{font-size:11px}
+.wbox .k{font-size:10.5px;line-height:1.25}
+.wbox .wi,.wbox .wi svg{width:24px}
+.wbox{gap:7px;padding:8px 9px}
+
+/* only the words of the link are underlined, not the little footnote number after them */
+.tile-link{text-decoration:none}
+.tile-link .tl-t{text-decoration:underline}
+.tile-link.dh-reset{text-decoration:underline}
+
+/* the right panel: sentences are justified; buttons centre their text */
+.story p,.story .dbody p,.story .about-sec p,.story .gh-invite span{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto}
+.story .sub{text-align:left}
+.story .lede{text-align:justify;hyphens:auto}
+.story .stat .k,.story .stat .v,.story .tr-row,.story .src-list li,.story small.src{text-align:left}
+.story p.sub{text-align:left}
+.cb{text-align:center;display:flex;align-items:center;justify-content:center}
+.story .tile-link{text-align:left}
+
+/* Switzerland tab: the same tiles as under Stats (same sizes and colours), the long texts in the hover chip, the dot that lights up */
+.stat.hero.wide.has-per .per{max-width:230px}
+.stat.has-per.hero::after,.w-box.has-per::after,.stat.wide.has-per::after{content:"";position:absolute;right:9px;bottom:9px;width:5px;height:5px;border-radius:50%;background:var(--moraine);opacity:.35;transition:opacity .15s,background .15s,box-shadow .15s,transform .15s}
+.stat.has-per.hero:hover::after,.stat.has-per.hero:focus-visible::after,.w-box.has-per:hover::after,.w-box.has-per:focus-visible::after,.stat.wide.has-per:hover::after,.stat.wide.has-per:focus-visible::after{background:var(--accent);opacity:1;box-shadow:0 0 0 3px rgba(200,50,42,.22);transform:scale(1.25)}
+.stat.wide.has-per{outline:none;cursor:default}
+.w-box{position:relative;background:var(--firn);border-radius:8px;padding:9px 10px;outline:none;cursor:default}
+.water .w-big{font-size:15px;font-weight:600;color:var(--rock);line-height:1.25}
+.water .w-key{font-size:10.5px;color:var(--moraine)}
+.water .w-hero-tile .v{font-size:26px;font-weight:800;color:var(--crevasse)}
+.water .w-hero-tile .k{font-size:11px;font-weight:600;color:var(--moraine)}
+.water .w-icons svg{width:20px;height:20px}.water .w-icons svg.lake{width:30px;height:20px}
+
+/* a chip never opens upwards where the tile is the first of its card (the card above would cut it off): it opens over the lower edge instead */
+.stat-row > .stat:first-child.has-per .per{top:calc(100% - 6px);bottom:auto}
+.water .stat.w-hero-tile.has-per .per{top:calc(100% - 6px)}
+.stat.has-per .per,.wbox.has-per .per,.w-box.has-per .per{z-index:9}
+
+.has-per .per sup.fn a,.has-per .per a{color:#9fd0f0}      /* source numbers in the dark chip stay readable */
+
+/* the four comparison choices are centred */
+.water .w-chips{justify-content:center}

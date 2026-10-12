@@ -88,7 +88,7 @@ function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?
 function renderMode(){
   const tl = state.mode !== 'compare';          // timelapse and one year both show on the single image pane
   document.getElementById('app').classList.toggle('is-timelapse', tl);
-  document.getElementById('app').classList.toggle('tl-play', state.mode === 'timelapse'); syncFullPlay();
+  document.getElementById('app').classList.toggle('photos-ok', state.mode === 'single'); syncFullPlay();      // the old photographs are for one year only
   document.getElementById('modeCompare').setAttribute('aria-pressed', state.mode === 'compare');
   document.getElementById('modeTimelapse').setAttribute('aria-pressed', state.mode === 'timelapse');
   document.getElementById('modeSingle').setAttribute('aria-pressed', state.mode === 'single');
@@ -241,11 +241,11 @@ function shareBody(g){
   const areaPct = inv && area ? area / inv.area_km2 * 100 : null;
   const place = rank === 1 ? 'the largest' : rank ? `no. ${rank} by area` : '';
   return `<div class="stat-row" id="shareRow">
-      <div class="stat hero wide"><span class="v" id="shIce">…</span><span class="k" id="shLab">of all Swiss glacier ice</span><span class="k" id="shNote"></span></div>
-      ${areaPct !== null ? `<div class="stat"><span class="v">${areaPct < 10 ? areaPct.toFixed(1) : Math.round(areaPct)} %</span><span class="k">of the total glaciated area</span></div>` : ''}
-      ${count ? `<div class="stat"><span class="v">1 of ${count.toLocaleString('en')}</span><span class="k">Swiss glaciers${place ? `, ${place}` : ''}</span></div>` : ''}
+      <div class="stat hero wide has-per" tabindex="0"><span class="v" id="shIce">…</span><span class="k" id="shLab">of all Swiss glacier ice</span><span class="per" id="shNote"></span></div>
+      ${areaPct !== null ? `<div class="stat has-per" tabindex="0"><span class="v">${areaPct < 10 ? areaPct.toFixed(1) : Math.round(areaPct)} %</span><span class="k">of glacier area</span><span class="per">${areaPct < 10 ? areaPct.toFixed(1) : Math.round(areaPct)} % of the total glaciated area of Switzerland${fn('sgi')}</span></div>` : ''}
+      ${count ? `<div class="stat has-per" tabindex="0"><span class="v">1 of ${count.toLocaleString('en')}</span><span class="k">${place ? place.charAt(0).toUpperCase() + place.slice(1) : 'Swiss glaciers'}</span><span class="per">Of ${count.toLocaleString('en')} Swiss glaciers${place ? `, ${place}` : ''}${fn('sgi')}${inv.n_under_0_5km2 ? `. ${inv.n_under_0_5km2.toLocaleString('en')} of them are smaller than 0.5 km²` : ''}</span></div>` : ''}
     </div>
-    <p class="sub-note">${count ? `Number of glaciers${fn('sgi')}${inv.n_under_0_5km2 ? `: ${inv.n_under_0_5km2.toLocaleString('en')} of them are smaller than 0.5 km²` : ''}. ` : ''}</p>`;
+`;
 }
 /* The cards of the Discover tab lie in a stack, each over the foot of the one before, so only the titles show. A click opens one card (name= makes them exclusive). */
 const dcard = (icon, title, html) => `<details class="card dcard coll" name="discover"><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div></summary><div class="dbody">${html}</div></details>`;
@@ -265,6 +265,7 @@ function renderStory(){
     (inRange.length ? '' : '') +
     '';
 
+  dynSources = [];
   const statsHtml = renderStats(g, lo, hi);
 
   const info = GLACIER_INFO[g.id] || GLACIER_INFO[shortSlug(g.name)];
@@ -287,11 +288,12 @@ function renderStory(){
     <div class="tab-panel" data-panel="look" ${storyTab === 'look' ? '' : 'hidden'}>
       ${[
         g.look ? dcard('eye', 'What to look for', `<p>${g.look}</p>`) : '',
-        g.note ? dcard('news', 'In the news', `<p>${g.note}</p>`) : '',
-        info && info.fact ? dcard('bulb', 'Did you know?', `<p>${info.fact}</p>${info.factSrc ? `<small class="src">Source: ${info.factSrc}</small>` : ''}`) : '',
-        info && info.name ? dcard('tag', 'The name', `<p>${info.name}</p>${info.src ? `<small class="src">Source: ${info.src}</small>` : ''}`) : '',
-        trailsHtml(g, TRAILS[g.id] ? g.id : shortSlug(g.name)) ? dcard('route', 'Hike and bike', trailsHtml(g, TRAILS[g.id] ? g.id : shortSlug(g.name))) : '',
-        cbYears().length ? dcard('scene', 'Copernicus Browser', `<p>These are the satellite scenes on the map. Open one in the Copernicus Browser, the free viewer of the Copernicus Data Space Ecosystem, to zoom in, try other band combinations or look at neighbouring dates.</p><div class="cb-links">${cbYears().map(y => `<button type="button" class="cb" data-year="${y}">${fmtDate(state.available[y].date)}</button>`).join('')}</div>`) : ''
+        g.note ? dcard('news', 'In the news', `<p>${g.note.replace(/<small class="srcline">Source:\s*(.*?)<\/small>/, (m, src) => gfn(src))}</p>`) : '',      // a "Source:" line in the note becomes a numbered source like the others
+        info && info.fact ? dcard('bulb', 'Did you know?', `<p>${info.fact}${info.factSrc ? gfn(info.factSrc) : ''}</p>`) : '',
+        info && info.name ? dcard('tag', 'The name', `<p>${info.name}${info.src ? gfn(info.src) : ''}</p>`) : '',
+        (() => { const h = trailsHtml(g, TRAILS[g.id] ? g.id : shortSlug(g.name)); return h ? dcard('route', 'Hike and bike', h) : ''; })(),      // made once: it adds its sources to the list
+
+        cbYears().length ? dcard('scene', 'Copernicus Browser', `<p>These are the satellite scenes on the map${fn('s2')}. Open one in the Copernicus Browser, the free viewer of the Copernicus Data Space Ecosystem, to zoom in, try other band combinations or look at neighbouring dates.</p><div class="cb-links">${cbButtonsHtml()}</div>`) : ''
       ].join('')}
     </div>
 
@@ -311,14 +313,14 @@ function renderStory(){
           </div>`).join('')}
       </div>
       <p class="span-note">${spanText}</p>`)}
-      ${scard('sw-water', 'drop', 'How much water is that?', waterSection(lo, hi))}
-      ${scard('sw-left', 'area', 'Ice left in all Swiss glaciers', cumulativeChart(lo, hi))}
+      ${scard('sw-water', 'drop', 'How much water?', waterSection(lo, hi))}
+      ${scard('sw-left', 'area', 'How much is left?', cumulativeChart(lo, hi))}
     </div>
 
     <div class="about-wrap">
-      <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Want to see more tongues? Help build this!</b> The code is open. Join in, or make a dashboard like this for glaciers in your own region.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/tonguesfromspace</a></em><span class="gh-contact">Want a specific glacier, have a question, or need your own text and layout on a downloaded visual? <a href="https://github.com/braakhekke/tonguesfromspace/issues/new" target="_blank" rel="noopener">Open an issue on GitHub</a>.</span></span></div>
+      <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Support the tongues!</b> The code is open: join in, build a dashboard for your own region, or <a href="https://github.com/braakhekke/tonguesfromspace/issues/new" target="_blank" rel="noopener">open an issue</a> to ask for a glacier, a question or your own text on a visual.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/<wbr>tonguesfromspace</a></em></span></div>
     <details class="about">
-      <summary><span class="info-btn" aria-hidden="true">i</span> About TfS, the data, and more</summary>
+      <summary><span class="info-btn" aria-hidden="true">i</span> About Tongues from Space</summary>
       <details class="about-ch" name="aboutch" id="ch-1"><summary>Why Tongues from Space</summary><div class="about-sec">
         <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
         <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
@@ -352,13 +354,26 @@ function renderStory(){
       <details class="about-ch" name="aboutch" id="ch-7"><summary>Ice and water</summary><div class="about-sec">
         <p>Swiss glaciers held about 45.1 km³ of ice at the end of 2025 (GLAMOS, Swiss-wide series, which gives the volume of every year since 1915); the dashboard uses the years from 2016. 1 km³ of ice gives about 0.9 trillion litres of water. For one glacier, Grab et al.${fn('grab')} measured the ice around 2016. From there the dashboard uses what GLAMOS measured for this glacier: its volume survey (how much ice it lost between two elevation models) says how much ice one metre of yearly mass balance is worth for it, and the yearly balance (this glacier's own where it is measured, else the balance of all Swiss glaciers) spreads the loss over the years. Only the newest autumn follows the Swiss average. Big glaciers lose a smaller share than the Swiss average, which is dominated by small glaciers, so this gives more ice than a plain national percentage. That is a best estimate and not a measurement. Comparisons: Eiffel Tower 330 m high (with antennas, toureiffel.paris); football pitch 105 × 68 m = 7,140 m² (usual international size); city bus about 12 m long (standard bus, an articulated one is 18 m); Olympic swimming pool 50 × 25 × 2 m = 2.5 million litres; Lake Zurich 3.9 km³; Swiss water supply about 930 million m³ a year (SVGW).</p>
       </div></details>
-      <details class="about-ch" name="aboutch" id="ch-8"><summary>Ice thickness and volume</summary><div class="about-sec">
+      <details class="about-ch" name="aboutch" id="ch-8"><summary>Thickness and volume</summary><div class="about-sec">
         <p><em>Mean ice thickness change</em>, <em>volume change</em> and <em>mass balance</em> come from the GLAMOS volume-change survey of this glacier: aerial surveys give elevation models of the glacier surface, and the difference between two of them shows how much ice was lost in between. The period is the newest survey that starts closest to 2016; it is not your selected years. Mass balance is the volume change turned into metres of water per year with a density of 850 kg/m³; the ± is the uncertainty GLAMOS gives. Only surveys that cover at least 90 % of the glacier are used.</p>
         <p><em>Radar ice thickness</em> are single measurements from ground-penetrating radar, taken from the surface along lines, between 1958 and 2017 depending on the glacier. The map shows the mean of every 50 m cell. They tell how thick the ice was when it was measured; today it is thinner. <em>Latest thickest ice number, modelled around 2016</em> is the maximum of the ice thickness map of Grab et al.${fn('grab')} for this glacier, read from swisstopo. It is a model result and not a measurement: the radar lines are used to calibrate an ice-flow model that fills the gaps. The radar maximum is older and only a point on a line, so it stays in the note. The map layer "Ice thickness 2016 (modelled)" shows the whole map. The radar data are only a part of what is needed for the glacier ice volume of Grab et al.${fn('grab')}, which also uses models.</p>
         <p>The chart <em>Ice thickness change per year</em> shows the yearly mass balance from GLAMOS for the years of the images, as metres of ice (the balance in water divided by 0.85). Aletsch, Rhone, Corbassière and Findel are measured directly every year; for the other six glaciers the line of all Swiss glaciers is shown. The years you select in step 2 are marked and averaged. A mass balance is not the same measurement as a change of the surface height, but over decades the two add up to nearly the same. The tiles above the chart come from the elevation-model surveys, which cover several years each.</p>
       </div></details>
+      <details class="about-ch" name="aboutch" id="ch-10"><summary>The 3D view</summary><div class="about-sec">
+        <p>A strip along the glacier, from 1 km below the tongue tip up to about 6.5 km up the glacier and 4 km wide, with the satellite picture of the chosen year draped over the terrain. The heights are the newest edition of swisstopo's swissALTI3D elevation model (served as tiles by Mapterhorn and stored with the page on a 14 m grid). Drag to turn and tilt, scroll or pinch to zoom; the layers menu, the measuring tools and the downloads work here as on the map.</p>
+        <p><em>Ice surface of each year.</em> The elevation model shows the ice as it was when it was flown. For the years between and around the two editions swisstopo made of each area, the surface is an estimate: the change between the older edition (2019) and the newest one (2023 for the Valais, 2024 for the southern Bernese Alps) is shared over the years by the yearly mass balance of GLAMOS, and extended in the same way before and after. It is an estimate, not a measurement, and the page says so under the picture.</p>
+        <p><em>Lakes.</em> In front of the Rhone, Findel and Zmutt glaciers a lake can have grown over ground that the model holds as a slope. Where the picture of a year shows water (found from its colour), the terrain there is set to the level of the lake that the model already holds, so the water lies flat. A lake without such a level in the model is left as it is.</p>
+      </div></details>
+      <details class="about-ch" name="aboutch" id="ch-11"><summary>Old photographs</summary><div class="about-sec">
+        <p>"Then and now" (3D view, one year) shows historic photographs of the lower tongue for eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel and Fee. They come from the ETH Library's Bildarchiv; where the camera stood and looked was worked out by volunteers on Smapshot (HEIG-VD). Click a photograph, or a camera symbol on the terrain (switch it on in the dropdown), and the 3D view flies to that spot and looks the same way, with the same field of view. Drag the line to compare the photograph with the terrain of today.</p>
+        <p>Only photographs whose date is known to about a year, and where the tongue is in the picture, were kept. Each photograph shows its own licence. A rod on the ice of today marks the estimated height of the ice surface then: from the thinning of the whole glacier in the GLAMOS volume surveys, and before the first survey from the 1850 area with area-volume scaling (Bahr et al. 1997). The range is wide and the figure is an estimate.</p>
+      </div></details>
+      <details class="about-ch" name="aboutch" id="ch-12"><summary>Aerial images and hiking trails</summary><div class="about-sec">
+        <p><em>swisstopo aerial</em> (SWISSIMAGE) can be switched on in the layers menu; it shows only inside the image boxes of the ten glaciers, in the year you picked. The layer is a series of editions; the year it names is the year the photographs were taken, which can be earlier than the edition (the 2025 edition shows photographs from 2023 at Aletsch). Switch the Sentinel-2 picture off to see it alone.</p>
+        <p><em>Hiking trails</em> come from swisstopo. The violet band marks where a person 1.7 m tall can see the glacier tongue from the trail (our own calculation from the elevation model; trees and buildings are not counted).</p>
+      </div></details>
       <details class="about-ch" name="aboutch" id="ch-9"><summary>Sources</summary><div class="about-sec">
-        <ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}</ol>
+        <ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}${dynSources.map((h, i) => `<li id="fn-g${i + 1}" title="Click to go back to the text">${h}</li>`).join('')}</ol>
       </div></details>
     </details>
     <!-- TODO: replace the placeholder profile URLs -->
@@ -395,6 +410,8 @@ function copernicusBrowserUrl(year){
   });
   return 'https://browser.dataspace.copernicus.eu/?' + q.toString();
 }
+/* the buttons of the Copernicus Browser card: one per scene on show */
+function cbButtonsHtml(){ return cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join(''); }
 document.getElementById('story').addEventListener('click', e => {
   const b = e.target.closest('.cb');
   if (b) window.open(copernicusBrowserUrl(+b.dataset.year), '_blank', 'noopener');
@@ -437,7 +454,7 @@ const SOURCES = {
   s2:     () => `Copernicus Sentinel-2, Level-1C (pictures) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the ${lnk('https://dataspace.copernicus.eu', 'Copernicus Data Space Ecosystem')}.`,
   terrain:() => `swissALTI3D © ${lnk('https://www.swisstopo.admin.ch', 'swisstopo')} (open government data), served as terrain tiles by ${lnk('https://mapterhorn.com/attribution', 'Mapterhorn')}. Peak names: swissNAMES3D © swisstopo.`,
   routes: () => `SchweizMobil route data of the Federal Roads Office (ASTRA), via ${lnk('https://map.geo.admin.ch', 'swisstopo geo.admin.ch')}; hiking trails: swissTLM3D © swisstopo.`,
-  photos: () => `Historic photographs in the 3D view (Aletsch so far): ETH Library, Bildarchiv (${lnk('https://ba.e-pics.ethz.ch', 'e-pics')}), CC BY-SA 4.0 (each photo shows its own licence), the place and angles of the camera by volunteers on ${lnk('https://smapshot.heig-vd.ch', 'Smapshot')} (HEIG-VD).`,
+  photos: () => `Historic photographs in the 3D view (eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel, Fee): ETH Library, Bildarchiv (${lnk('https://ba.e-pics.ethz.ch', 'e-pics')}), CC BY-SA 4.0 (each photo shows its own licence), the place and angles of the camera by volunteers on ${lnk('https://smapshot.heig-vd.ch', 'Smapshot')} (HEIG-VD).`,
   bg:     () => `Background maps: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX; colour topographic map and swissALTI3D hillshade © swisstopo.`,
   water:  () => `Swiss water supply of about 930 million m³ a year: SVGW (Swiss Gas and Water Industry Association). Other comparisons: Eiffel Tower 330 m with antennas (${lnk('https://www.toureiffel.paris', 'toureiffel.paris')}), football pitch 105 × 68 m, city bus about 12 m, Olympic pool 50 × 25 × 2 m, Lake Zurich 3.9 km³.`,
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`
@@ -445,6 +462,9 @@ const SOURCES = {
 const SOURCE_LIST = Object.keys(SOURCES);
 /* a small raised number in the text; the click opens About, the chapter Sources and shows the entry (a back-link returns to the text) */
 let fnSeq = 0;
+/* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
+let dynSources = [];
+const gfn = html => { dynSources.push(html); const n = SOURCE_LIST.length + dynSources.length; return `<sup class="fn"><a href="#fn-g${dynSources.length}" id="fnr-g${dynSources.length}-${++fnSeq}" data-fn="g${dynSources.length}" aria-label="Source ${n}">${n}</a></sup>`; };
 const fn = k => `<sup class="fn"><a href="#fn-${k}" id="fnr-${k}-${++fnSeq}" data-fn="${k}" aria-label="Source ${SOURCE_LIST.indexOf(k) + 1}">${SOURCE_LIST.indexOf(k) + 1}</a></sup>`;
 document.addEventListener('click', e => {
   const a = e.target.closest && e.target.closest('a[data-fn]'); if (!a) return;
@@ -502,25 +522,25 @@ function stats(g, lo, hi){
     volume: [
       ...(all ? [{hero:true, ico:'down', k:`Ice thickness lost since ${all[0]}`, fn:'vc', loss:true, wide:true, v:`${all[3] < 0 ? '−' : '+'}${Math.round(Math.abs(all[3]))} m`,
         sym:{kind:'tower', frac: Math.abs(all[3]) / EIFFEL_M, big:'', small:`${Math.round(Math.abs(all[3]) / EIFFEL_M * 100)} % of the height of the Eiffel Tower`}}] : []),
-      {ico:'down', k:'Thickness change', per, fn:'vc', loss:true, v: V ? `${m1(V.dh_m)} m` : null, hint:volHint},
-      {ico:'sum',  k:'Volume change', per, fn:'vc', loss:true, v: V ? `${V.dV_km3 < 0 ? '−' : '+'}${Math.abs(V.dV_km3).toFixed(Math.abs(V.dV_km3) < 0.1 ? 3 : 2)} km³` : null, hint:volHint},
-      {ico:'drop', k:'Mass balance a year', per, fn:'vc', loss:true, v: V ? `${V.bal_mwe_a < 0 ? '−' : '+'}${Math.abs(V.bal_mwe_a).toFixed(2)} m w.e.` : null, sub: V ? `± ${V.sigma.toFixed(2)}` : '', hint:volHint},
+      {ico:'down', k:'Thickness', kk:'Thickness change', per, fn:'vc', loss:true, v: V ? `${m1(V.dh_m)} m` : null, hint:volHint},
+      {ico:'sum',  k:'Volume', kk:'Volume change', per, fn:'vc', loss:true, v: V ? `${V.dV_km3 < 0 ? '−' : '+'}${Math.abs(V.dV_km3).toFixed(Math.abs(V.dV_km3) < 0.1 ? 3 : 2)} km³` : null, hint:volHint},
+      {ico:'drop', k:'Balance', kk:'Mass balance per year', per, fn:'vc', loss:true, v: V ? `${V.bal_mwe_a < 0 ? '−' : '+'}${Math.abs(V.bal_mwe_a).toFixed(2)} m w.e.` : null, sub: V ? `± ${V.sigma.toFixed(2)}` : '', hint:volHint},
       {ico:'flag', k:'Thickest ice', per:'around 2016', v: R ? `${R.max_m} m` : null, hint:'not measured directly by radar', slot:'thick', wide:true, act: R && R.max_at ? 'radar-max' : '', actText: R && R.max_at ? `${R.max_m} m in ${R.max_year || 'the survey'} (radar)` : ''}
     ],
     area: [
       ...(lostArea ? [{hero:true, ico:'down', k:'Area lost since 1850', fn:'sgi', loss:true, wide:true, v:`${(aRef - a1850).toFixed(1).replace('-', '−')} km²`,
         sub:`${((aRef - a1850) / a1850 * 100).toFixed(0).replace('-', '−')} %`, sym:{kind:'pitch', big:`× ${fmtCount(lostArea * 1e6 / PITCH_M2)}`, small:'football pitches'}}]
         : [{hero:true, ico:'down', k:'Area change since 1850', loss:true, wide:true, v:null, hint:'glacier data not loaded yet'}]),
-      {ico:'past', k:'About 1850', fn:'sgi', v:km2(a1850)},
-      {ico:'now',  k:`${refY}`,    v:km2(aRef)}
+      {ico:'past', k:'About 1850', tip:'Area around 1850, Swiss Glacier Inventory', fn:'sgi', v:km2(a1850)},
+      {ico:'now',  k:`${refY}`, tip:`Area in ${refY}, Swiss Glacier Inventory`, v:km2(aRef)}
     ],
     length: [
       ...(L ? [{hero:true, ico:'sum', k:`Length lost since ${L.first_year}`, fn:'lc', loss:true, wide:true, v: fmtM(L.total_m),
         sym: L.total_m < 0 ? {kind:'bus', big:`× ${fmtCount(-L.total_m / BUS_M)}`, small:'city buses, end to end'} : null}]
         : [{hero:true, ico:'sum', k:'Length change', loss:true, wide:true, v:null, hint:lcHint}]),
       ...(nowKm != null && firstKm != null ? [
-        {ico:'flag', k:`Length in ${L.first_year}`, v:`${exact ? '' : '≈ '}${firstKm.toFixed(1)} km`, hint:lcHint},
-        {ico:'now',  k:`Length in ${nowYear}`, v:`${nowKm.toFixed(1)} km`, hint:lcHint}
+        {ico:'flag', k:`Length in ${L.first_year}`, tip: exact ? 'Derived from the GLAMOS length changes' : 'Approximate: derived from the GLAMOS length changes', v:`${exact ? '' : '≈ '}${firstKm.toFixed(1)} km`, hint:lcHint},
+        {ico:'now',  k:`Length in ${nowYear}`, tip:'Latest length, read from a GLAMOS overview figure', v:`${nowKm.toFixed(1)} km`, hint:lcHint}
       ] : []),
       {ico:'now',  k: lo && hi && hi > lo ? `Change ${lo}–${hi} (your selection)` : 'Change in your selection', loss:true, wide:true,
        v: range !== null ? fmtM(Math.round(range)) : null, hint:rangeHint, cover}
@@ -681,19 +701,19 @@ function renderStats(g, lo, hi){
     <details class="stat-group dcard coll" name="stats" data-card="${key}"${cardOpen(key) ? ' open' : ''}>
       <summary><h4><span class="ico">${ICONS[key]}</span>${title}</h4></summary><div class="dbody">
       <div class="stat-row ${key}">${S[key].map(t => `
-        <div class="stat${t.hero ? ' hero' : ''}${t.loss && t.v ? ' loss' : ''}${t.wide ? ' wide' : ''}"${t.slot ? ` data-slot="${t.slot}"` : ''}>
-          <span class="v">${t.v ?? '—'}${t.v && t.sub ? ` <small>${t.sub}</small>` : ''}</span>
+        <div class="stat${t.hero ? ' hero' : ''}${t.loss && t.v ? ' loss' : ''}${t.wide ? ' wide' : ''}${(t.per || t.tip) && !t.hero && !t.wide ? ' has-per' : ''}"${t.slot ? ` data-slot="${t.slot}"` : ''}${(t.per || t.tip) && !t.hero && !t.wide ? ' tabindex="0"' : ''}>
+          <span class="v">${t.v ?? '—'}${t.v && t.sub && (!t.per || t.wide) ? ` <small>${t.sub}</small>` : ''}</span>
           <span class="k"><i class="mini">${ICONS[t.ico]}</i>${t.k}${t.fn ? fn(t.fn) : ''}</span>
-          ${t.per ? `<span class="per">${t.per}</span>` : ''}
+          ${t.per ? `<span class="per">${t.per}${t.v && t.sub && !t.wide ? ` · ${t.sub}` : ''}</span>` : t.tip && !t.wide ? `<span class="per">${t.tip}</span>` : ''}
           ${t.v && t.sym ? symHtml(t.sym) : ''}
           ${!t.v && t.hint ? `<span class="k note">${t.hint}</span>` : ''}
           ${t.v && t.cover ? `<span class="k note">${t.cover}</span>` : ''}
-          ${t.v && t.act ? `<button type="button" class="tile-link" data-act="${t.act}" data-text="${t.actText}">${maxLinkText(t.actText)}${fn('radar')}</button>` : ''}
+          ${t.v && t.act ? `<button type="button" class="tile-link" data-act="${t.act}" data-text="${t.actText}"><span class="tl-t">${maxLinkText(t.actText)}</span>${fn('radar')}</button>` : ''}
         </div>`).join('')}
       </div>
       ${key === 'volume' ? thinningChart(g, lo, hi) : ''}
     </div></details>`; };
-  return `<div class="stats">${group('area','Area')}${group('length','Length')}${group('volume','Ice thickness and volume')}</div>`;
+  return `<div class="stats">${group('area','Area')}${group('length','Length')}${group('volume','Thickness and volume')}</div>`;
 }
 /* ---------- ice volume of the selected glacier: Grab et al. (2021), from the swisstopo map service ----------
    map.geo.admin.ch shows area, volume and maximum / mean ice thickness per glacier for the thickness layer.
@@ -787,7 +807,7 @@ function fillThickness(){
     tile.querySelector('.k').innerHTML = `<i class="mini">${ICONS.flag}</i>Thickest ice`;
     tile.querySelectorAll('.note, .per').forEach(n => n.remove());
     tile.querySelector('.k').insertAdjacentHTML('afterend', `<span class="per">Model result${fn('grab')}</span>`);
-    if (R && R.max_at && !tile.querySelector('.tile-link')) tile.insertAdjacentHTML('beforeend', `<button type="button" class="tile-link" data-act="radar-max" data-text="${R.max_m} m in ${R.max_year || 'the survey'} (radar)">${maxLinkText(`${R.max_m} m in ${R.max_year || 'the survey'} (radar)`)}${fn('radar')}</button>`);
+    if (R && R.max_at && !tile.querySelector('.tile-link')) tile.insertAdjacentHTML('beforeend', `<button type="button" class="tile-link" data-act="radar-max" data-text="${R.max_m} m in ${R.max_year || 'the survey'} (radar)"><span class="tl-t">${maxLinkText(`${R.max_m} m in ${R.max_year || 'the survey'} (radar)`)}</span>${fn('radar')}</button>`);
   }).catch(() => {});
 }
 function renderShare(){
@@ -798,7 +818,7 @@ function renderShare(){
     const total = iceVolume(v.yr || 2016);
     document.getElementById('shIce').textContent = shareText(v.km3 / total);
     document.getElementById('shLab').textContent = `of all Swiss glacier ice in ${v.yr || 2016}`;
-    document.getElementById('shNote').innerHTML = `${v.km3.toFixed(1)} of ${total.toFixed(1)} km³${fn('grab')}, Swiss total${fn('swiss')}`;
+    document.getElementById('shNote').innerHTML = `${v.km3.toFixed(1)} of ${total.toFixed(1)} km³${fn('grab')} (Swiss total${fn('swiss')})`;
   }).catch(() => {});
 }
 function renderGlacierWater(){
@@ -817,14 +837,14 @@ function renderGlacierWater(){
           ${symHtml({kind:'pool', big:`× ${N.poolsLong}`, small:'Olympic swimming pools'})}
           <span class="k note">Estimate, not a measurement.</span>
         </div>
-        <div class="wbox"><i class="wi">${W_ICONS.lake}</i><div><span class="v">${N.lakes.toFixed(1)} ×</span><span class="k">Lake Zurich</span></div></div>
-        <div class="wbox"><i class="wi">${W_ICONS.tap}</i><div><span class="v">${N.tap.toFixed(1)} years</span><span class="k">of Swiss tap water</span></div></div>
+        <div class="wbox has-per" tabindex="0"><i class="wi">${W_ICONS.lake}</i><div><span class="v">${N.lakes.toFixed(1)} <small>×</small></span><span class="k">Lake Zurich</span></div><span class="per">The water of this glacier as a number of Lake Zurichs</span></div>
+        <div class="wbox has-per" tabindex="0"><i class="wi">${W_ICONS.tap}</i><div><span class="v">${N.tap.toFixed(1)} <small>years</small></span><span class="k">of Swiss tap water</span></div><span class="per">How long all of Switzerland\u2019s tap water use would take to use this much water</span></div>
       </div>
     </div></details>`;
   });
 }
 
-/* ---------- "How much water is that?" ---------- */
+/* ---------- "How much water?" ---------- */
 const W_ICONS = {
   pool: '<svg viewBox="0 0 24 24"><rect x="2" y="7" width="20" height="11" rx="2" fill="#5FB8D9"/><path d="M4 12c2-1.5 4 1.5 6 0s4 1.5 6 0 4 1.5 4 0" stroke="#fff" stroke-width="1.4" fill="none"/></svg>',
   lake: '<svg class="lake" viewBox="0 0 33 20"><path d="M3 11.5c0-3.6 3.4-6.2 7.6-6.4 2.6-.1 3.8 1.2 6.2 1 3-.2 4.4-2.1 7.5-1.6 3.4.5 5.7 2.6 5.7 5.6 0 3.5-3 5.4-6.6 5.8-2.6.3-3.9-.9-6.5-.6-2.8.3-4.4 2-7.5 1.6C5.4 16.6 3 14.6 3 11.5z" fill="#2D6E8E"/><path d="M9 11.5c2-1 3.5 1 5.5 0s3.5 1 5.5 0" stroke="#9CD3E6" stroke-width="1.2" fill="none" stroke-linecap="round"/></svg>',
@@ -923,14 +943,16 @@ function waterCompare(kind, litres){
   const each = litres / SWISS_POP, yrs = each / (HOUSEHOLD_L_DAY * 365);
   return `<div class="w-big">${fmtN(each, 2)} litres per resident</div><p class="w-text">Shared among Switzerland's 9 million residents, each person's share would cover their household water use (142 litres a day) for about <b>${Math.round(yrs)} years</b>.</p>${icons('person', Math.min(40, yrs), '1 icon = one year of one person\'s household water')}`;
 }
+const waterCompareRaw = waterCompare;
+function waterCompareChip(kind, litres){ return waterCompareRaw(kind, litres).replace(/<p class="w-text">([\s\S]*?)<\/p>/, (m, t) => `<span class="per">${t}</span>`); }      // the explaining sentence goes into the hover chip
 let waterKind = 'pool';
 function waterSection(lo, hi){
   const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last);
   if (!(lo && hi && hi > lo) || to <= lo) return '<p class="sub-note">Choose two different years in step 2 to see how much water melted from all Swiss glaciers in between.</p>';
   const litres = (iceVolume(lo) - iceVolume(to)) * 0.9 * 1e12;
   return `<div class="water" id="waterBox" data-litres="${litres}">
-    <div class="stat wide w-hero-tile"><span class="v"><span id="wCount">0</span> litres</span><span class="k">of fresh water melted from Swiss glaciers, from autumn ${lo} to autumn ${to}</span></div>
-    <div id="wCompare" class="w-box">${waterCompare(waterKind, litres)}</div>
+    <div class="stat wide w-hero-tile has-per" tabindex="0"><span class="v"><span id="wCount">0</span> litres</span><span class="k">melted from Swiss glaciers</span><span class="per">Fresh water, from autumn ${lo} to autumn ${to}</span></div>
+    <div id="wCompare" class="w-box has-per" tabindex="0">${waterCompareChip(waterKind, litres)}</div>
     <div class="w-chips" role="group" aria-label="Compare with">
       ${[['pool', 'Swimming pools'], ['lake', 'Lake Zurich'], ['tap', 'Swiss tap water'], ['person', 'Per resident']].map(([k, t]) =>
         `<button type="button" data-kind="${k}" aria-pressed="${k === waterKind}">${t}</button>`).join('')}
@@ -953,7 +975,7 @@ function wireWater(){
   box.querySelectorAll('.w-chips button').forEach(b => b.onclick = () => {
     waterKind = b.dataset.kind;
     box.querySelectorAll('.w-chips button').forEach(x => x.setAttribute('aria-pressed', x === b));
-    document.getElementById('wCompare').innerHTML = waterCompare(waterKind, litres);
+    document.getElementById('wCompare').innerHTML = waterCompareChip(waterKind, litres);
   });
   // live counter: average melt rate of the latest year, spread over the whole year
   const lastY = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, perYear = (iceVolume(lastY - 1) - iceVolume(lastY)) * 0.9 * 1e12;
