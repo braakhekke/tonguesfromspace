@@ -17,3 +17,6 @@ function boot(){
 }
 const bootGlacier = OPEN_ON_GLACIER ? currentGlacier() : null;
 if (needsOutline(bootGlacier)) loadOutline(bootGlacier).then(boot); else boot();      // a link to a glacier waits for the file of its 2023 outline (about 20 to 200 kB)
+/* A link pasted into a tab where the page is already open changes only the part after the #: the browser does not reload, so the page starts again from the new link itself.
+   (The page's own updates of the address use history.replaceState, which raises no such event.) */
+addEventListener('hashchange', () => location.reload());

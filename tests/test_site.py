@@ -214,6 +214,22 @@ class TestFunctions(SiteCase):
         self.assertEqual((a["low"], a["mid"], a["high"]), (52.0, 52.0, 52.0))      # without a measured tongue the range closes: the glacier-wide value
         self.assertGreater(level(1930)["low"], level(1990)["low"])      # the older, the more ice
 
+    def test_lakes_are_set_to_the_flat_level_the_model_already_has(self):      # the 3D terrain: a lake that grew over lower ground is levelled, a lake without a flat level and a stream are left alone
+        r = self.page.evaluate("""() => {
+          const nA = 30, nB = 30, n = nB + 1, H = new Float32Array((nA + 1) * n).fill(120), M = new Uint8Array((nA + 1) * n);
+          for (let j = 5; j <= 14; j++) for (let i = 5; i <= 14; i++) { M[j * n + i] = 1; H[j * n + i] = i <= 9 ? 100 : 90; }      // the old lake: flat at 100 m (half of it); the new part: a bowl at 90 m
+          for (let j = 22; j <= 26; j++) for (let i = 4; i <= 24; i++) { M[j * n + i] = 1; H[j * n + i] = 60 + (i - 4) * 1.5; }      // a lake on a slope: no flat level
+          for (let j = 2; j <= 28; j++) { M[j * n + 28] = 1; H[j * n + 28] = 70; }      // a one-vertex stream
+          const out = flattenLakes(H, M, nA, nB), at = (j, i) => out[j * n + i];
+          return {bowl: at(10, 12), plateau: at(10, 7), slope: [at(24, 4), at(24, 24)], stream: at(10, 28), land: at(0, 0), same: flattenLakes(new Float32Array(H.length).fill(5), new Uint8Array(H.length), nA, nB)[3],
+                  rgb: [isWaterRGB(106, 141, 134), isWaterRGB(153, 176, 172), isWaterRGB(21, 37, 53), isWaterRGB(141, 131, 121), isWaterRGB(230, 226, 225)]};
+        }""")
+        self.assertAlmostEqual(r["bowl"], 100, places=3)      # the new part is raised to the level of the old lake
+        self.assertAlmostEqual(r["plateau"], 100, places=3)
+        self.assertEqual(r["slope"], [60, 60 + 20 * 1.5])      # no flat level: untouched
+        self.assertEqual(r["stream"], 70); self.assertEqual(r["land"], 120)
+        self.assertEqual(r["rgb"], [True, True, False, False, False])      # the Rhone lake and the pale Zmutt lake are water; shade, rock and snow are not
+
     def test_mp4_packer_makes_well_formed_boxes(self):
         data = self.page.evaluate("""() => {
           const samples = [0, 1, 2].map(i => ({pts: i * 33333, key: i === 0, data: new Uint8Array([1, 2, 3, 4, 5 + i])}));

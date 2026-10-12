@@ -250,7 +250,11 @@
    "original": "http://doi.org/10.3932/ethz-a-001411840",
    "share": 0.35,
    "dist_m": 2598,
-   "pixels": 21890000
+   "pixels": 21890000,
+   "rod": {
+    "a": 540,
+    "b": 340
+   }
   },
   {
    "id": 248251,
@@ -688,33 +692,6 @@
    "share": 0.66,
    "dist_m": 3333,
    "pixels": 18207384
-  }
- ],
- "A54e-24": [
-  {
-   "id": 266199,
-   "title": "Triftgletscher",
-   "date": "1969-07-17",
-   "year": 1969,
-   "view": "terrestrial",
-   "lat": 46.68243899560673,
-   "lon": 8.361634554155184,
-   "alt": 2009.4,
-   "az": 165.71,
-   "tilt": 6.07,
-   "roll": 355.87,
-   "focal": 4710.6,
-   "w": 5500,
-   "h": 5417,
-   "src": "https://iiif.library.ethz.ch/iiif/2/e-pics!bildarchiv!kampagnen!gletscher-3!Hs_1458-GK-B055-1969-0022-F.jpg/full/1600,/0/default.jpg",
-   "thumb": "https://iiif.library.ethz.ch/iiif/2/e-pics!bildarchiv!kampagnen!gletscher-3!Hs_1458-GK-B055-1969-0022-F.jpg/full/320,/0/default.jpg",
-   "licence": "ETH-Bibliothek Zürich, Bildarchiv / Fotograf:  / Hs_1458-GK-B055-1969-0022-F / CC BY-SA 4.0",
-   "owner": "ETH Library",
-   "link": "https://smapshot.heig-vd.ch/visit/266199",
-   "original": "http://doi.org/10.3932/ethz-a-001416277",
-   "share": 0.66,
-   "dist_m": 2709,
-   "pixels": 29793500
   }
  ]
 }

@@ -15,10 +15,13 @@ function updatePickHint(){
   $('downHint').hidden = !glacierPicked;
   if (wasLocked && glacierPicked) {          // step 2 pops up as soon as a glacier is chosen
     const v = $('vizGroup'); v.classList.add('pop'); setTimeout(() => v.classList.remove('pop'), 1000);
-    if (!PHONE.matches) $('vizGroup').scrollIntoView({behavior: 'smooth', block: 'nearest'});
+    if (!PHONE.matches) {            // the left panel scrolls until "2 Compare" is its first line
+      const box = document.querySelector('.controls'), top = box.scrollTop + v.getBoundingClientRect().top - box.getBoundingClientRect().top - 14;
+      box.scrollTo({top: Math.max(0, top), behavior: 'smooth'});
+    }
   }
   if (!show) return;
-  $('pickNote').innerHTML = far ? 'Too far out. Zoom in on a <b>red glacier</b>.' : '<span><b>1.</b> Choose any red outlined glacier on the map</span>';
+  $('pickNote').innerHTML = far ? '<span class="pn-num">1</span><span>Too far out. Zoom in on a <b>red glacier</b>.</span>' : '<span class="pn-num">1</span><span>Choose a red outlined glacier on the map</span>';
 }
 map.on('zoomend moveend resize', updatePickHint);
 
@@ -28,6 +31,7 @@ function setPanel(side, hidden, save = true){
   $(side === 'left' ? 'toggleLeft' : 'toggleRight').setAttribute('aria-expanded', !hidden);
   if (save) { prefs[side === 'left' ? 'hideL' : 'hideR'] = hidden; savePrefs(); }
   map.invalidateSize({pan:false});
+  setTimeout(() => { if (typeof v3d !== 'undefined' && v3d && v3d.resize) try { v3d.resize(); } catch {} }, 380);      // the 3D view follows the new width once the panel has slid
 }
 $('toggleLeft').onclick = () => setPanel('left', !$('app').classList.contains('no-left'));
 $('toggleRight').onclick = () => setPanel('right', !$('app').classList.contains('no-right'));
@@ -53,6 +57,7 @@ function setFull(on){
     else if (fullState.saved) { setPanel('left', fullState.saved.l, false); setPanel('right', fullState.saved.r, false); fullState.saved = null; }
     app.classList.toggle('visual-only', on);
   }
+  ['fsBtn', 'v3dFs'].forEach(id => { const b = $(id); if (b) { const t = on ? 'Exit full screen (Esc)' : 'Full screen, visual only'; b.setAttribute('aria-label', t); b.title = t; } });      // the buttons show only an icon: the words are in the tooltip and for screen readers
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof v3d !== 'undefined' && v3d && v3d.resize) try { v3d.resize(); } catch {} }, 380);
 }
 const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
@@ -63,7 +68,7 @@ document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click',
 $('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
 $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) setFull(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) { setFull(false); e.preventDefault(); } });      // the key press is used up: leaving full screen is all it does (the 3D view's own Esc handler checks defaultPrevented)
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && $('stage').classList.contains('is-full')) setFull(false); });
 /* the left panel scrolls: a cue at its bottom points to "Create and share" until that step is in view (not on phones, where the page scrolls) */
 (function(){
@@ -163,7 +168,8 @@ addEventListener('resize', updateLayerMore);
 if (window.ResizeObserver) new ResizeObserver(updateLayerMore).observe(document.querySelector('#layerbox .lb-body'));
 /* On phones the For Your Ice box sits at the very bottom of the page; elsewhere it stays in the settings panel */
 const FYI = document.querySelector('a.fyi'), FYI_HOME = FYI.parentNode, FYI_PHONE = matchMedia('(max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px)');
-function placeFyi(){ if (FYI_PHONE.matches) $('fyiSlot').appendChild(FYI); else FYI_HOME.appendChild(FYI); }
+const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under the box, wherever the box is
+function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); home.appendChild(FYI_BY); }
 FYI_PHONE.addEventListener('change', placeFyi); placeFyi();
 
 /* phones in portrait: the map's layer box moves out of the visual, to a bar and panel below it */
