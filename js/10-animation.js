@@ -58,8 +58,10 @@ function frameGroundRes(){            // metres of terrain per video pixel
 }
 /* The text on the map frame: drawn with the same functions as the finished picture or video (timelapse, slider or single picture), over the live map.
    The end card is left out. */
+let logoAsked = false;
 function drawPreview(){
   if (viewMode === '3d') return drawPreview3D();
+  if (!logoImg && !logoAsked) { logoAsked = true; loadLogo().then(() => drawPreview()); }      // the logo is part of every picture: the preview shows it as soon as it is decoded
   const cv = $('vfPreview'), F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = 0.5, ys = videoYears();
   cv.width = Math.round(W * q); cv.height = Math.round(H * q);
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
@@ -318,7 +320,7 @@ const FACT_BLUE = '#8FDDF3', FACT_RED = '#FF7A6E', MINUS_SIGN = '−';
 const easeIO = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
 const placeOf = (g, ...first) => [...first, g.canton, g.range].filter(Boolean).join(' · ');
 /* The credit line on pictures and videos: short, the full list of sources is in About on the site */
-const shortCredit = (years, extras = []) => `Modified Copernicus Sentinel data ${years} · ${[...new Set(extras.filter(Boolean))].map(x => x + ' · ').join('')}Sources: ${SITE_NAME}`;
+const shortCredit = (years, extras = []) => `Modified Copernicus Sentinel data ${years} · ${[...new Set(extras.filter(Boolean))].map(x => x + ' · ').join('')}Created on ${SITE_NAME}`;
 const creditYears = info => info.compare ? `${info.years[0]} and ${info.years[1]}` : info.years[0] === info.years[info.years.length - 1] ? String(info.years[0]) : `${info.years[0]}–${info.years[info.years.length - 1]}`;
 /* One brand corner: the logo and the red label on one line (22 px, nothing smaller than 22 px anywhere: it must stay readable on a phone) */
 function brandCorner(ctx, x, y){
@@ -339,8 +341,9 @@ function mapKey(ctx, res, rightX, top){
 /* The top block: brand, glacier name (fitted to leave the map key free), place and the legend of the outlines. hA: opacity (the header fades in at the start of a video). */
 function drawTop(ctx, W, S, name, place, hA, legend, keyW){
   const x = S.left, nameW = W - S.left - S.right - (keyW ? keyW + 36 : 0);
-  ctx.save(); ctx.globalAlpha *= hA; ctx.textBaseline = 'alphabetic';
-  brandCorner(ctx, x, S.top + 24);
+  ctx.save(); ctx.textBaseline = 'alphabetic';
+  brandCorner(ctx, x, S.top + 24);      // the logo is there from the first frame: only the rest of the header fades in
+  ctx.globalAlpha *= hA;
   const ns = fitText(ctx, name, 800, 56, nameW), ny = S.top + 44 + ns;
   shadowText(ctx, name, x, ny);
   ctx.font = `500 26px ${FONT}`; shadowText(ctx, place, x, ny + 38, {blur:8});
@@ -384,7 +387,6 @@ function drawBottom(ctx, W, H, S, o){
   ctx.textBaseline = 'alphabetic'; ctx.font = `500 22px ${FONT}`;
   const lines = wrap(ctx, o.credit, 0, 0, maxW, lh).map(l => l.t), base0 = H - S.bottom - (lines.length - 1) * lh;
   lines.forEach((t, i) => shadowText(ctx, t, x, base0 + i * lh, {blur:6, color:'rgba(255,255,255,.78)'}));
-  if (o.site && lines.length === 1) { ctx.font = `600 24px ${FONT}`; const sw = ctx.measureText(SITE_NAME).width; ctx.font = `500 22px ${FONT}`; if (ctx.measureText(lines[0]).width + 40 + sw <= maxW) { ctx.font = `600 24px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base0, {align:'right', blur:8}); } }
   let yb = base0;
   if (o.date) {
     ctx.font = `600 24px ${FONT}`; const dw = ctx.measureText(o.date[0]).width; ctx.font = `500 24px ${FONT}`;
@@ -430,7 +432,6 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
   }
   ctx.font = `500 24px ${FONT}`; shadowText(ctx, styleLine(info.style), S.left, base - 34, {blur:8, color:'rgba(255,255,255,.9)'});
   ctx.font = `500 22px ${FONT}`; shadowText(ctx, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && 'GLAMOS']), S.left, base, {blur:6, color:'rgba(255,255,255,.78)'});
-  if (W > H) { ctx.font = `600 24px ${FONT}`; shadowText(ctx, SITE_NAME, W - S.right, base, {align:'right', blur:8}); }
 }
 /* The frame of a single year (a picture, or one frame of a timelapse): top block, map key, bottom block with facts and timeline */
 function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){

@@ -96,6 +96,14 @@ button,select,input{font:inherit;color:inherit}
 .modes.views button svg{width:20px;height:20px}
 .is-3d .map-only{display:none!important}
 .modes button:hover{border-color:var(--crevasse)}
+.orient-sub{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:-1.5px}
+.orient-sub[hidden]{display:none}
+.orient-pad{grid-column:2;display:flex;justify-content:center;gap:3px;padding:3px 4px 4px;border:1.5px solid var(--accent);border-top:0;border-radius:0 0 10px 10px;background:var(--sheet);box-shadow:1px 0 0 0 var(--accent),-1px 0 0 0 var(--accent),0 1px 0 0 var(--accent)}      /* hangs from the Compare button: same width, same red edge */
+.orient-pad button{display:inline-flex;align-items:center;justify-content:center;width:27px;height:22px;padding:0;border:1px solid var(--rule);border-radius:6px;background:var(--sheet);color:var(--moraine);cursor:pointer}
+.orient-pad button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.orient-pad button:hover{border-color:var(--crevasse)}
+.orient-pad button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);background:rgba(200,50,42,.07)}
+#modeGroup.has-sub #modeCompare{border-bottom-left-radius:0;border-bottom-right-radius:0}
 .modes button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent);color:var(--accent)}
 .segment button:disabled{color:#A9B1B5;cursor:not-allowed}
 .segment button{border:0;background:none;padding:8px 0;white-space:nowrap;border-radius:6px;cursor:pointer;font-weight:500}
@@ -172,11 +180,6 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .year-tag .nw{white-space:nowrap}
 #tagA,#tagT{left:18px}
 #tagB{right:18px;text-align:right}
-.orient{display:flex;align-items:center;gap:6px;margin-bottom:-8px}
-.orient .side-label{margin:0 4px 0 0}
-.orient button{display:inline-flex;align-items:center;justify-content:center;width:46px;height:38px;padding:0;border:1.5px solid var(--rule);border-radius:10px;background:var(--sheet);color:var(--moraine);cursor:pointer}
-.orient button svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-.orient button[aria-pressed="true"]{border-color:var(--accent);color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
 .is-horiz .divider{top:0;bottom:auto;left:0;right:0;width:auto;height:2px;margin:-1px 0 0}
 .is-horiz #tagB{right:auto;left:18px;text-align:left}
 .is-horiz .handle{cursor:ns-resize}
@@ -232,6 +235,16 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-over{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;z-index:2}
 .layerbox .slider-row{margin:2px 0;font-size:12px}
 .layerbox input[type=range]{width:100%;margin:0}
+/* full screen from the 3D view (the map's toolbar is under it): the top row of the tools card; in full screen the exit button takes over */
+.v3d-measure > #v3dFs{margin-bottom:4px;border-bottom:1px solid var(--rule);border-radius:6px 6px 0 0}
+.v3d-measure > #v3dFs .fs-out{display:none}
+.stage.is-full #v3dFs .fs-in,.app.visual-only #v3dFs .fs-in{display:none}
+.stage.is-full #v3dFs svg.fs-out,.app.visual-only #v3dFs svg.fs-out{display:block}
+.stage.is-full #v3dFs span.fs-out,.app.visual-only #v3dFs span.fs-out{display:inline}
+/* in the 3D view the way out of full screen is that same row of the tools card, not a button in the corner */
+.app.is-3d .full-exit{display:none!important}
+.app.is-3d.tl-play .stage.is-full .full-play,.app.is-3d.tl-play.visual-only .full-play{right:10px}
+.app.is-3d .stage.is-full .v3d-top,.app.is-3d.tl-play .stage.is-full .v3d-top,.app.is-3d.tl-play.visual-only .v3d-top{right:250px}
 @media (min-width:721px){.v3d-top{right:250px}}
 @media (max-width:720px){.v3d .v3d-layers{top:64px;right:8px}}
 .v3d-top b{font-size:12.5px;font-weight:800;letter-spacing:.05em;text-transform:uppercase}
@@ -243,10 +256,12 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .n-full{display:none}.n-short{display:inline}      /* the note of the 3D view: one short line, "Details" opens the rest (phone and desktop) */
 #v3dNote.open .n-full{display:inline}#v3dNote.open .n-short{display:none}#v3dNote.open .n-less{display:inline}
 .v3d-measure{position:absolute;left:12px;top:78px;z-index:6;display:flex;flex-direction:column;gap:2px;background:var(--sheet);border-radius:8px;padding:4px;box-shadow:0 2px 12px rgba(0,0,0,.35)}
-.v3d-measure button{width:38px;height:38px;border:0;background:none;border-radius:6px;color:var(--rock);cursor:pointer;display:grid;place-items:center;padding:0}
-.v3d-measure button svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
-.v3d-measure button[aria-pressed="true"]{background:var(--rock);color:#fff}
-.v3d-measure button:disabled{color:#A9B1B5;cursor:not-allowed}
+.v3d-measure > button,.v3d-photos .ph-toggle,.v3d-photos .ph-cams,.v3d-photos .ph-btns button{min-height:36px;border:0;background:none;border-radius:6px;color:var(--rock);cursor:pointer;display:flex;align-items:center;gap:9px;padding:0 12px 0 8px;font:600 12.5px/1.2 var(--sans);text-align:left;white-space:nowrap}
+.v3d-measure > button:hover,.v3d-photos .ph-cams:hover,.v3d-photos .ph-toggle:hover,.v3d-photos .ph-btns button:hover,.v3d-photos .ph-toggle:focus-visible,.v3d-photos .ph-btns button:focus-visible{background:var(--firn)}
+.v3d-measure > button svg,.v3d-photos .ph-cams > svg,.v3d-photos .ph-toggle > svg:first-child{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.v3d-photos .ph-toggle > svg:first-child{stroke:var(--accent)}
+.v3d-measure > button[aria-pressed="true"]{background:var(--rock);color:#fff}
+.v3d-measure > button:disabled{color:#A9B1B5;cursor:not-allowed}
 .v3d-mhint{top:14px;z-index:7}
 .v3d.measuring #v3dCanvas{cursor:crosshair}
 @media (max-width:720px){.v3d-mhint{top:56px;font-size:12.5px;max-width:calc(100% - 16px);flex-wrap:nowrap;padding:4px 5px 4px 10px;gap:6px}.v3d-mhint #v3dMText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.v3d-mhint button{min-height:30px;flex:none}.v3d-measure{top:70px}}
@@ -274,20 +289,41 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d.cmp-v .v3d-lab{top:64px}
 .v3d.cmp-v #v3dLabA{right:calc((1 - var(--s, .5)) * 100% + 30px)}
 .v3d.cmp-v #v3dLabB{left:calc(var(--s, .5) * 100% + 30px)}
-.v3d.cmp-h .v3d-lab{left:14px}
-.v3d.cmp-h #v3dLabA{top:calc(var(--s, .5) * 100% - 40px)}
-.v3d.cmp-h #v3dLabB{top:calc(var(--s, .5) * 100% + 12px)}
+.v3d.cmp-h .v3d-lab{right:14px}      /* the horizontal slider: the years sit on the right of the view, above and below the line (clear of the full screen button, and of the Layers menu while it is open) */
+.v3d.cmp-h:has(.v3d-layers:not(.min)) .v3d-lab{right:190px}
+.v3d.cmp-h #v3dLabA{top:max(58px, calc(var(--s, .5) * 100% - 40px))}
+.v3d.cmp-h #v3dLabB{top:max(98px, calc(var(--s, .5) * 100% + 12px))}
 /* Historic photographs (3D view): a rail of thumbnails, the chosen photo over the picture, the credit under it */
 .v3d-photo{position:absolute;z-index:2;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.55),0 8px 30px rgba(0,0,0,.5);background:#000}
 .v3d-photo[hidden]{display:none}
 .v3d.photo-on .v3d-over{z-index:3}
 .v3d.photo-on .v3d-layers{display:none}
-.v3d-photos{position:absolute;z-index:5;left:12px;top:204px;width:66px;max-height:calc(100% - 330px);overflow-y:auto;display:flex;flex-direction:column;gap:6px;padding:2px;scrollbar-width:thin}
+.v3d.photo-on #v3mDist,.v3d.photo-on #v3mArea,.v3d.photo-on #v3mClear,.v3d.photo-on .v3d-mhint{display:none}      /* the measuring tools need the 3D picture itself, not the photograph over it: the card then holds only the photo buttons */
+.v3d-photos{display:flex;flex-direction:column;align-items:stretch;margin-top:3px;padding-top:3px;border-top:1px solid var(--rule)}
+.v3d.photo-on .v3d-photos{margin-top:0;padding-top:0;border-top:0}
 .v3d-photos[hidden]{display:none}
-.v3d-photos .ph-head{font:800 10px/1.25 var(--sans);letter-spacing:.05em;text-transform:uppercase;color:#cfe3f1;text-shadow:0 1px 4px rgba(0,0,0,.7)}
-.v3d-photos .ph{position:relative;width:62px;height:46px;flex:none;padding:0;border:2px solid transparent;border-radius:6px;overflow:hidden;background:#000;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.5)}
+/* "Then and now": a small pill that opens the thumbnails of the old photographs */
+.v3d-photos .ph-toggle{position:relative}
+.v3d-photos .ph-cams{justify-content:flex-start;align-self:stretch}
+.v3d-photos .ph-note{align-self:stretch;margin:2px 4px 4px;font-size:11px;line-height:1.35;color:var(--moraine);max-width:176px}
+.v3d-photos:not(.open) .ph-cams,.v3d-photos:not(.open) .ph-note{display:none}
+.v3d-photos .ph-cams .sw-track{margin-left:auto;width:28px;height:16px;border-radius:999px;background:#B9C2C6;position:relative;flex:none;transition:background .15s}
+.v3d-photos .ph-cams .sw-track i{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.35);transition:transform .15s}
+.v3d-photos .ph-cams[aria-pressed="true"] .sw-track{background:var(--accent)}
+.v3d-photos .ph-cams[aria-pressed="true"] .sw-track i{transform:translateX(12px)}
+.v3d.photo-on .v3d-photos .ph-cams{display:none}      /* the symbols rest while a photograph is open */
+.v3d-photos .ph-toggle .ph-chev{width:14px;height:14px;margin-left:auto;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
+.v3d-photos.open .ph-toggle .ph-chev{transform:rotate(180deg)}
+.v3d-photos .ph-toggle.fresh{animation:phInvite 2.4s ease-in-out infinite}
+@keyframes phInvite{0%,100%{box-shadow:0 0 0 0 rgba(200,50,42,.5)}50%{box-shadow:0 0 0 6px rgba(200,50,42,0)}}
+@media (prefers-reduced-motion:reduce){.v3d-photos .ph-toggle.fresh{animation:none}}
+.v3d-photos .ph-list{display:none;flex-direction:column;align-items:center;gap:6px;margin-top:4px;padding:2px;max-height:min(380px,calc(100vh - 420px));overflow-y:auto;scrollbar-width:thin}
+.v3d-photos.open .ph-list{display:flex}
+.v3d-photos .ph-btns{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+.v3d-photos .ph-btns:empty{display:none}
+.v3d-photos .ph{position:relative;width:96px;height:70px;flex:none;padding:0;border:2px solid transparent;border-radius:6px;overflow:hidden;background:#000;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.5)}
 .v3d-photos .ph img{width:100%;height:100%;object-fit:cover;display:block;opacity:.88}
-.v3d-photos .ph span{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.66);color:#fff;font:700 10.5px/1.35 var(--sans);text-align:center}
+.v3d-photos .ph span{position:absolute;left:0;right:0;bottom:0;background:rgba(0,0,0,.66);color:#fff;font:700 12px/1.4 var(--sans);text-align:center}
 .v3d-photos .ph:hover img,.v3d-photos .ph:focus-visible img{opacity:1}
 .v3d-photos .ph.on{border-color:#fff}
 .v3d-photocap{position:absolute;z-index:5;left:96px;right:14px;bottom:50px;display:flex;flex-wrap:wrap;align-items:center;gap:4px 12px;background:rgba(8,14,18,.66);color:#fff;border-radius:8px;padding:6px 10px;font-size:11.5px;line-height:1.4}
@@ -295,11 +331,13 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-photocap a{color:#cfe3f1}
 .v3d-photocap .pc-full{display:none;flex:1 1 100%;margin-top:3px}.v3d-photocap.open .pc-full{display:block}.v3d-photocap.open .pc-short{display:none}
 .v3d-photocap .n-more{background:none;margin:0;padding:0 2px;font:inherit;color:#cfe3f1}
-.v3d-photocap .pc-btns{margin-left:auto;display:flex;gap:6px}
 .v3d-photocap button{border:0;border-radius:6px;background:rgba(255,255,255,.18);color:#fff;font:600 12px var(--sans);padding:5px 10px;cursor:pointer}
-@media (max-width:720px){.v3d-photos{top:58px;bottom:auto;left:64px;right:8px;width:auto;max-height:none;flex-direction:row;overflow-x:auto;overflow-y:hidden}.v3d-photos .ph-head{display:none}.v3d-photocap{left:8px;right:8px;bottom:46px;padding:5px 8px}.v3d-photocap .pc-t{display:none}}
+@media (max-width:720px){.v3d.photo-on .v3d-measure{top:58px;left:8px;right:8px;flex-direction:row;flex-wrap:wrap;align-items:center}.v3d.photo-on .v3d-measure > #v3dFs{margin-bottom:0;border-bottom:0;border-radius:6px}.v3d.photo-on .v3d-photos{flex-direction:row;flex-wrap:wrap;align-items:center;width:100%}.v3d-photos .ph-btns{flex-direction:row;flex-wrap:wrap}.v3d-photos .ph-list{flex-direction:row;max-height:none;width:100%;overflow-x:auto;overflow-y:hidden}.v3d-photocap{left:8px;right:8px;bottom:46px;padding:5px 8px}.v3d-photocap .pc-t{display:none}}
 .v3d-tip{position:absolute;z-index:6;pointer-events:none;max-width:220px;background:rgba(255,255,255,.97);color:#1d2a30;border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.4;box-shadow:0 3px 14px rgba(0,0,0,.4)}
 .v3d-tip[hidden]{display:none}
+.v3d-camtip{width:176px;padding:6px 8px 7px;font-size:12px}
+.v3d-camtip img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:5px;margin-bottom:5px;background:#000}
+.v3d-camtip small{display:block;margin-top:3px;font-size:10.5px;color:var(--moraine);line-height:1.35}
 .v3d-bottom label{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#fff;pointer-events:auto}
 .v3d-bottom input{width:130px}
 .measure-hint{position:absolute;top:96px;left:50%;transform:translateX(-50%);z-index:670;background:var(--rock);color:#fff;border-radius:8px;padding:8px 8px 8px 14px;font-size:13.5px;display:none;align-items:center;gap:10px;box-shadow:0 2px 12px rgba(0,0,0,.3);max-width:calc(100% - 24px)}
@@ -788,11 +826,18 @@ details.coll > summary:focus-visible{outline:2px solid var(--crevasse);outline-o
 .mini-ctl,.full-exit{display:none}
 .full-exit svg,.mini-ctl svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
 .stage.is-full{position:fixed;inset:0;z-index:2000;height:auto!important;width:auto!important}
-.stage.is-full .full-exit{display:flex;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:700;align-items:center;gap:6px;border:0;border-radius:18px;padding:8px 12px;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
+.stage.is-full .full-exit{display:flex;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:10px;z-index:700;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:50%;padding:0;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
 body.has-full{overflow:hidden}
-.stage.is-full .v3d-top{right:112px}      /* the Close button of full screen sits top right: the hint text stops before it */
+/* play / pause in the full screen, timelapse mode only: left of the exit button */
+.full-play{display:none}
+.full-play svg{width:18px;height:18px;fill:currentColor;stroke:none}
+.app.tl-play .stage.is-full .full-play,.app.tl-play.visual-only .full-play{display:flex;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:58px;z-index:700;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:50%;padding:0;background:var(--sheet);color:var(--rock);box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
+.app.tl-play.visual-only .full-play{top:14px;right:62px}
+.full-play:disabled{opacity:.4;cursor:default}
+.app.tl-play .stage.is-full .v3d-top,.app.tl-play.visual-only .v3d-top{right:108px}
+.stage.is-full .v3d-top{right:60px}      /* the exit button of full screen sits top right: the hint text stops before it */
 @media (min-width:721px){
-  .app.visual-only .full-exit{display:flex;position:absolute;top:14px;right:14px;z-index:700;align-items:center;gap:6px;border:0;border-radius:18px;padding:8px 12px;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
+  .app.visual-only .full-exit{display:flex;position:absolute;top:14px;right:14px;z-index:700;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:50%;padding:0;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
   .app.visual-only .layerbox{top:60px}
 }
 @media (max-width:720px) and (orientation:portrait){
@@ -862,3 +907,8 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 
 /* Sentinel-2 pictures switched off in the layers menu */
 #map.sat-off .leaflet-paneA-pane, #map.sat-off .leaflet-paneB-pane, #map.sat-off .leaflet-paneT-pane { display: none !important; }
+
+/* the menu blocks on the pictures let the picture show through a little (clear enough to read, no filters: Safari on iPhone ignores them) */
+:root{--glass:rgba(255,255,255,.7)}
+.layerbox:not(.in-flow),.mapbar,.v3d-measure{background:var(--glass)}
+.stage.is-full .full-exit,.app.visual-only .full-exit,.app .full-play{background:var(--glass)}

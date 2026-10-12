@@ -88,10 +88,12 @@ function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?
 function renderMode(){
   const tl = state.mode !== 'compare';          // timelapse and one year both show on the single image pane
   document.getElementById('app').classList.toggle('is-timelapse', tl);
+  document.getElementById('app').classList.toggle('tl-play', state.mode === 'timelapse'); syncFullPlay();
   document.getElementById('modeCompare').setAttribute('aria-pressed', state.mode === 'compare');
   document.getElementById('modeTimelapse').setAttribute('aria-pressed', state.mode === 'timelapse');
   document.getElementById('modeSingle').setAttribute('aria-pressed', state.mode === 'single');
   document.getElementById('compareControls').hidden = state.mode !== 'compare';
+  document.getElementById('orientSub').hidden = state.mode !== 'compare'; document.getElementById('modeGroup').classList.toggle('has-sub', state.mode === 'compare');      // the slider direction hangs under the Compare button
   document.getElementById('singleControls').hidden = state.mode !== 'single';
   document.getElementById('timelapseControls').hidden = state.mode !== 'timelapse';
   ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl ? 'none' : '');
