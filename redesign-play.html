@@ -1,0 +1,609 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tongues from Space – playground</title>
+<!--
+  Playable design study. NOT wired to the site.
+  The satellite pictures are FAKE: generated in the browser (terrain noise, hillshade, a glacier along a curved path).
+  Real: the tongue retreat since 2016 per glacier (GLAMOS length change in glaciers.js), areas, tongue heights, Swiss volume loss.
+  The split of the retreat over the years is a stand-in: it follows the Swiss-wide yearly volume loss.
+-->
+<style>
+:root{
+  --paper:#F3EEE1; --paper-2:#E7E0CE; --ink:#1A1814; --soft:#625C50; --hair:rgba(26,24,20,.2);
+  --flag:#F0561F; --flag-text:#B93A0C; --ice:#1F5C63; --sun:#FFD23F; --frost:#9FE2E4; --night:#0F1B1A;
+  --serif:"Iowan Old Style","Charter","Palatino Linotype",Georgia,serif;
+  --mono:ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --w:1280px;
+}
+*{box-sizing:border-box;margin:0}
+html{background:var(--paper);color:var(--ink);font:17px/1.55 var(--serif);-webkit-text-size-adjust:100%}
+a{color:inherit}
+.wrap{max-width:var(--w);margin:0 auto;padding:0 28px}
+button{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--flag);outline-offset:3px}
+
+/* top */
+.top{border-bottom:2.5px solid var(--ink);background:var(--paper);position:sticky;top:0;z-index:9}
+.top .wrap{display:flex;align-items:center;gap:26px;height:56px}
+.mark{display:flex;align-items:center;gap:10px;text-decoration:none;font-weight:700;font-size:19px;letter-spacing:-.01em}
+.mark img{width:32px;transition:transform .3s}
+.mark:hover img{transform:rotate(-12deg) scale(1.1)}
+.mark i{font-weight:400;color:var(--soft)}
+.top nav{margin-left:auto;display:flex;gap:22px}
+.top nav a{font:13px var(--mono);text-decoration:none;padding:3px 6px;margin:0 -6px}
+.top nav a:hover{background:var(--sun)}
+
+/* hero text */
+.hero{position:relative;padding:56px 0 34px;overflow:hidden}
+.hero svg.topo{position:absolute;right:-120px;top:-60px;width:900px;height:560px;opacity:.55;pointer-events:none}
+.hero .wrap{position:relative}
+h1{font-weight:700;font-size:clamp(42px,6.4vw,96px);line-height:.96;letter-spacing:-.035em;max-width:11.5em}
+h1 mark{background:linear-gradient(transparent 58%,var(--sun) 58% 92%,transparent 92%);color:inherit;padding:0 .06em;margin:0 -.06em}
+h1 em{font-style:italic;font-weight:400;color:var(--flag-text)}
+.sub{font-size:20px;max-width:34em;margin-top:22px;color:#3d392f}
+.sticker{position:absolute;right:max(28px,calc((100vw - var(--w))/2 + 40px));top:34px;transform:rotate(7deg);background:var(--sun);border:2.5px solid var(--ink);box-shadow:5px 5px 0 var(--ink);padding:12px 16px 11px;font:700 13px/1.3 var(--mono);text-align:center;border-radius:50% / 46%;width:150px;animation:wob 4s ease-in-out infinite}
+.sticker b{display:block;font:700 30px/1 var(--serif);letter-spacing:-.03em}
+@keyframes wob{50%{transform:rotate(3deg) scale(1.04)}}
+
+/* chips: glaciers */
+.chips{display:flex;flex-wrap:wrap;gap:10px 12px;margin:26px 0 0}
+.chip{background:var(--paper);border:2.5px solid var(--ink);padding:7px 13px 6px;cursor:pointer;font:700 15px var(--serif);box-shadow:3px 3px 0 var(--ink);transition:transform .12s,box-shadow .12s,background .12s;line-height:1.15;text-align:left}
+.chip small{display:block;font:11.5px var(--mono);font-weight:400;color:var(--soft)}
+.chip:hover{transform:translate(-1px,-2px) rotate(-1.2deg);box-shadow:5px 5px 0 var(--ink)}
+.chip[aria-pressed="true"]{background:var(--sun);transform:translate(3px,3px);box-shadow:0 0 0 var(--ink)}
+.chip[aria-pressed="true"] small{color:var(--ink)}
+
+/* stage */
+.app{display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:26px;margin-top:22px;align-items:start}
+.stagebox{border:3px solid var(--ink);background:var(--night);box-shadow:10px 10px 0 var(--ink);position:relative}
+#stage{display:block;width:100%;height:auto;aspect-ratio:16/9;cursor:ew-resize;touch-action:pan-y;background:#222}
+#stage.measure{cursor:crosshair}
+.bar{display:flex;flex-wrap:wrap;gap:14px 26px;padding:16px 4px 4px;align-items:flex-end}
+.seg{display:flex;flex-direction:column;gap:6px}
+.seg > span{font:12px var(--mono);color:var(--soft)}
+.seg div{display:flex;border:2.5px solid var(--ink);background:var(--paper)}
+.seg button{background:none;border:0;border-right:2.5px solid var(--ink);padding:7px 13px;cursor:pointer;font:13px var(--mono);transition:background .1s}
+.seg button:last-child{border:0}
+.seg button:hover{background:var(--paper-2)}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.tog button{display:flex;align-items:center;gap:7px}
+.tog button i{width:10px;height:10px;border:2px solid currentColor;display:inline-block}
+.tog button[aria-pressed="true"] i{background:var(--sun);border-color:var(--sun)}
+.sp{flex:1}
+.act{font:700 13px var(--mono);padding:10px 15px;border:2.5px solid var(--ink);background:var(--flag);color:#1a0d06;cursor:pointer;box-shadow:4px 4px 0 var(--ink);transition:transform .1s,box-shadow .1s}
+.act:hover{transform:translate(2px,2px);box-shadow:2px 2px 0 var(--ink)}
+.act.alt{background:var(--paper)}
+.act.rec{background:#E8332A;color:#fff}
+.act[hidden]{display:none}
+.years{display:flex;border:2.5px solid var(--ink);margin-top:16px;background:var(--paper);height:62px;position:relative}
+.years button{flex:1;min-width:0;background:none;border:0;border-right:1.5px solid var(--hair);cursor:pointer;font:12.5px var(--mono);display:flex;align-items:flex-end;justify-content:center;padding-bottom:7px;position:relative;transition:background .1s}
+.years button:last-child{border-right:0}
+.years button:hover{background:var(--paper-2)}
+.years button.mid{background:repeating-linear-gradient(135deg,rgba(240,86,31,.3) 0 2px,transparent 2px 6px)}
+.years button.on{background:var(--flag);color:#1a0d06;font-weight:700}
+.years button.play{background:var(--sun);font-weight:700}
+.hint{font:12px var(--mono);color:var(--soft);margin-top:10px}
+
+/* readout */
+.read{border:2.5px solid var(--ink);background:var(--paper);padding:0}
+.read .big{padding:18px 20px 16px;border-bottom:2.5px solid var(--ink);background:var(--sun)}
+.read .big span{font:12.5px var(--mono)}
+.read .big b{display:block;font:700 72px/1 var(--serif);letter-spacing:-.04em;margin:4px 0 2px}
+.read .big small{font:12.5px/1.4 var(--mono);display:block}
+.read dl div{display:flex;align-items:baseline;gap:8px;padding:11px 20px;border-bottom:1px solid var(--hair)}
+.read dt{font:12.5px var(--mono);color:var(--soft)}
+.read dd{margin-left:auto;font:700 22px var(--serif);letter-spacing:-.01em}
+.read dd small{font:12px var(--mono);font-weight:400;color:var(--soft);margin-left:4px}
+.read .ch{padding:14px 20px 16px}
+.read .ch p{font:12.5px var(--mono);color:var(--soft);margin-bottom:10px}
+.bars{display:flex;align-items:flex-end;gap:5px;height:76px}
+.bars div{flex:1;background:var(--hair);position:relative;min-height:3px;transition:height .25s,background .15s}
+.bars div.in{background:var(--flag)}
+.bars div span{position:absolute;left:0;right:0;bottom:-18px;text-align:center;font:10.5px var(--mono);color:var(--soft)}
+.bars{margin-bottom:22px}
+.note{font:11.5px/1.5 var(--mono);color:var(--soft);padding:0 20px 16px}
+
+/* ticker */
+.ticker{margin-top:68px;background:var(--ink);color:var(--paper);overflow:hidden;border-block:2.5px solid var(--ink);white-space:nowrap}
+.ticker div{display:inline-block;padding:13px 0;font:14px var(--mono);animation:tick 60s linear infinite}
+.ticker span{margin:0 26px}
+.ticker span:after{content:"✦";margin-left:52px;color:var(--sun)}
+.ticker b{color:var(--sun);font-weight:400}
+@keyframes tick{to{transform:translateX(-50%)}}
+.ticker:hover div{animation-play-state:paused}
+
+/* register + sheet */
+section.sec{padding:76px 0 10px}
+.grid{display:grid;grid-template-columns:170px minmax(0,1fr);gap:0 36px}
+.mlabel{font:12.5px/1.5 var(--mono);color:var(--soft);padding-top:12px;border-top:2.5px solid var(--ink)}
+.mlabel b{display:block;color:var(--ink);font-weight:400}
+h2{font-size:clamp(30px,3.6vw,50px);line-height:1.04;letter-spacing:-.03em;font-weight:700;padding-top:8px;border-top:2.5px solid var(--ink);max-width:19em}
+.intro{font-size:18px;color:var(--soft);max-width:36em;margin:16px 0 0}
+.reg{margin-top:30px}
+.reg-head,.row{display:grid;grid-template-columns:34px minmax(150px,1.1fr) minmax(0,3fr) 86px 78px;gap:0 18px;align-items:center}
+.reg-head{font:12px var(--mono);color:var(--soft);padding:0 0 8px;border-bottom:1.5px solid var(--ink)}
+.reg-head .r{text-align:right}
+.row{width:100%;text-align:left;background:none;border:0;border-bottom:1px solid var(--hair);padding:14px 0 13px;cursor:pointer;position:relative;transition:padding .15s}
+.row:hover{background:var(--paper-2)}
+.row[aria-pressed="true"]{background:var(--ink);color:var(--paper);margin:0 -14px;padding-left:14px;padding-right:14px;width:calc(100% + 28px)}
+.row .n{font:12.5px var(--mono);opacity:.65}
+.row .nm{font-weight:700;font-size:19px;letter-spacing:-.01em;line-height:1.15}
+.row .nm small{display:block;font:12px var(--mono);font-weight:400;opacity:.65;margin-top:3px;letter-spacing:0}
+.row .v,.row .p{font:14px var(--mono);text-align:right}
+.row .p{color:var(--flag-text);font-weight:700}
+.row[aria-pressed="true"] .p{color:var(--flag)}
+.abar{display:block;height:14px;position:relative;background:repeating-linear-gradient(135deg,var(--flag) 0 2px,transparent 2px 5px);outline:1px solid var(--flag);outline-offset:-1px}
+.abar i{position:absolute;left:0;top:0;bottom:0;background:var(--ice);transition:width .5s}
+.row[aria-pressed="true"] .abar i{background:var(--frost)}
+.legend{display:flex;gap:26px;flex-wrap:wrap;margin-top:14px;font:12px var(--mono);color:var(--soft)}
+.legend span:before{content:"";display:inline-block;width:20px;height:9px;margin-right:8px;background:var(--ice)}
+.legend span.l:before{background:repeating-linear-gradient(135deg,var(--flag) 0 2px,transparent 2px 5px);outline:1px solid var(--flag);outline-offset:-1px}
+.sheet{margin-top:64px;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:0 64px}
+.sheet h3{font-size:clamp(40px,5vw,72px);line-height:1;letter-spacing:-.03em;font-weight:700}
+.sheet .where{font:13px var(--mono);color:var(--soft);margin:16px 0 26px}
+.story{font-size:19px;max-width:30em}
+.story + .story{margin-top:1.1em}
+.dl div{display:flex;align-items:baseline;gap:10px;padding:11px 0;border-bottom:1px solid var(--hair)}
+.dl dt{font:13px var(--mono);color:var(--soft);white-space:nowrap}
+.dl .dots{flex:1;border-bottom:1px dotted var(--soft);transform:translateY(-4px);min-width:20px}
+.dl dd{font:700 25px/1 var(--serif);letter-spacing:-.01em;white-space:nowrap}
+.dl dd small{font:12.5px var(--mono);font-weight:400;color:var(--soft);margin-left:6px}
+.dl .hl dd{color:var(--flag-text)}
+.notes{margin-top:60px;border-top:2.5px solid var(--ink);display:grid;gap:0 36px}
+.notes > div{padding:18px 0 0}
+.notes h4{font:12.5px var(--mono);font-weight:400;color:var(--soft);margin-bottom:10px}
+.notes h4 b{color:var(--flag-text);font-weight:400;margin-right:8px}
+.notes p{font-size:16.5px;line-height:1.5}
+.notes small{display:block;font:11.5px/1.5 var(--mono);color:var(--soft);margin-top:10px}
+
+/* make */
+.make{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,4fr);gap:64px;align-items:center;margin-top:30px}
+.make h2{border:0;padding:0}
+.formats{margin:26px 0 0;border-top:1.5px solid var(--ink)}
+.formats li{list-style:none;display:grid;grid-template-columns:70px 1fr;gap:14px;padding:12px 0;border-bottom:1px solid var(--hair);font-size:16.5px}
+.formats li b{font:700 13px var(--mono);color:var(--flag-text);padding-top:3px}
+#phone{justify-self:center;width:min(300px,100%);aspect-ratio:9/16;display:block;border:3px solid var(--ink);box-shadow:10px 10px 0 var(--ink);transform:rotate(2deg);transition:transform .3s;background:#222}
+#phone:hover{transform:rotate(-1deg) scale(1.02)}
+
+footer{margin-top:90px;background:var(--ink);color:var(--paper)}
+footer .wrap{display:grid;grid-template-columns:170px minmax(0,1fr) minmax(0,1fr);gap:0 36px;padding-top:42px;padding-bottom:48px;font:13px/1.6 var(--mono)}
+footer b{font-weight:400;color:#A9A398}
+
+@media (max-width:980px){
+  .wrap{padding:0 16px}
+  .app{grid-template-columns:minmax(0,1fr)}
+  .sticker{display:none}
+  .top nav{display:none}
+  .grid{grid-template-columns:minmax(0,1fr);gap:12px}
+  .mlabel{border-top:0;padding-top:0}
+  .reg-head{display:none}
+  .row{grid-template-columns:24px minmax(0,1fr) 70px;gap:4px 12px}
+  .row .abar-w{grid-column:2/4;grid-row:2}
+  .row .v{display:none}
+  .sheet,.make,footer .wrap{grid-template-columns:minmax(0,1fr)!important;gap:36px}
+  .notes{grid-template-columns:minmax(0,1fr)!important}
+  .stagebox{box-shadow:6px 6px 0 var(--ink)}
+  .years button{font-size:10.5px}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="wrap">
+    <a class="mark" href="#"><img src="logo/tongues-from-space-logo-plain.svg" alt=""><span>Tongues from Space <i>Switzerland</i></span></a>
+    <nav aria-label="Sections"><a href="#play">Play</a><a href="#tongues">The ten tongues</a><a href="#make">Share</a></nav>
+  </div>
+</header>
+
+<main>
+<section class="hero">
+  <svg class="topo" id="topo" viewBox="0 0 900 560" aria-hidden="true"></svg>
+  <div class="sticker">pixels<b>10 m</b>zoom in on the ice</div>
+  <div class="wrap">
+    <h1>Glaciers stick their tongues out. <mark>Watch them pull back.</mark></h1>
+    <p class="sub">Ten Swiss giants, one satellite picture per summer since 2016. Drag the line, play the years, measure the gap. Then save your own.</p>
+    <div class="chips" id="chips" role="group" aria-label="Glacier"></div>
+  </div>
+</section>
+
+<section class="wrap" id="play">
+  <div class="app">
+    <div>
+      <div class="stagebox"><canvas id="stage" width="1120" height="630" tabindex="0" aria-label="Satellite picture of the glacier. Arrow keys move the comparison line."></canvas></div>
+
+      <div class="bar">
+        <div class="seg" data-k="view"><span>How</span><div><button data-v="compare" aria-pressed="true">Compare</button><button data-v="single" aria-pressed="false">One year</button><button data-v="time" aria-pressed="false">Timelapse</button></div></div>
+        <div class="seg" data-k="col"><span>Colours</span><div><button data-v="nat" aria-pressed="true">Natural</button><button data-v="ir" aria-pressed="false">Infrared</button><button data-v="swir" aria-pressed="false">Shortwave</button></div></div>
+        <div class="seg tog" data-k="ov"><span>Draw on it</span><div><button data-v="tips" aria-pressed="true"><i></i>Tongue tip</button><button data-v="o1850" aria-pressed="false"><i></i>1850 outline</button><button data-v="measure" aria-pressed="false"><i></i>Measure</button></div></div>
+        <span class="sp"></span>
+        <button class="act alt" id="save">Save picture</button>
+        <button class="act rec" id="rec">Record film</button>
+      </div>
+
+      <div class="years" id="years" role="group" aria-label="Years"></div>
+      <p class="hint" id="hint"></p>
+    </div>
+
+    <aside class="read" aria-live="polite">
+      <div class="big"><span id="rLab">tongue pulled back</span><b id="rBig">0 m</b><small id="rSub"></small></div>
+      <dl>
+        <div><dt>Area in 1850</dt><dd id="rA50">–<small>km²</small></dd></div>
+        <div><dt>Area in 2023</dt><dd id="rA23">–<small>km²</small></dd></div>
+        <div><dt>Still there</dt><dd id="rKeep">–<small>%</small></dd></div>
+        <div><dt>Tongue height</dt><dd id="rTip">–<small>m</small></dd></div>
+      </dl>
+      <div class="ch"><p>Retreat per year, metres</p><div class="bars" id="bars"></div></div>
+      <p class="note">Demo: the pictures here are generated. The retreat 2016 to 2024 is each glacier's real GLAMOS value; its split over the years follows the Swiss-wide volume loss.</p>
+    </aside>
+  </div>
+</section>
+
+<div class="ticker" aria-hidden="true"><div id="tick"></div></div>
+
+<section class="sec" id="tongues">
+  <div class="wrap">
+    <div class="grid">
+      <div class="mlabel"><b>§ 1</b>The ten</div>
+      <div>
+        <h2>Ten tongues, ranked by what is left of them.</h2>
+        <p class="intro">Each bar is the area a glacier covered in 1850. Teal is what it covers today; the hatching is what it lost. Pick one and the picture above follows.</p>
+        <div class="reg" id="reg" role="group" aria-label="Glaciers"><div class="reg-head"><span>№</span><span>Glacier</span><span>Area 1850 → 2023</span><span class="r">km² now</span><span class="r">Lost</span></div></div>
+        <div class="legend"><span>area today (SGI 2023)</span><span class="l">area lost since 1850 (SGI 1850)</span></div>
+        <div class="sheet">
+          <div><h3 id="sName"></h3><p class="where" id="sWhere"></p><p class="story" id="sLede"></p><p class="story" id="sLook"></p></div>
+          <div><dl class="dl" id="dl"></dl></div>
+        </div>
+        <div class="notes" id="notes"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="sec" id="make">
+  <div class="wrap">
+    <div class="grid">
+      <div class="mlabel"><b>§ 2</b>Share</div>
+      <div class="make">
+        <div>
+          <h2>Take it with you.</h2>
+          <p class="intro">Save a picture, or record a film of the years. The year, the glacier and the facts are on every frame, so it still makes sense once it leaves this page. The phone on the right is live: it shows what your current picture would look like as a 9:16 story.</p>
+          <ul class="formats">
+            <li><b>9:16</b><span>Reels, TikTok, Stories.</span></li>
+            <li><b>4:5</b><span>Instagram feed.</span></li>
+            <li><b>16:9</b><span>Slides, classrooms, screens.</span></li>
+          </ul>
+        </div>
+        <canvas id="phone" width="360" height="640" aria-label="Preview of a 9:16 story"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+  <div class="wrap">
+    <b>Sources</b>
+    <p>Real (in the production site): Copernicus Sentinel-2, GLAMOS glacier inventories and length change, swisstopo. In this playground the pictures are simulated.</p>
+    <p>Non-commercial project by J. Braakhekke. Code MIT, own texts CC BY 4.0.</p>
+  </div>
+</footer>
+
+<script>
+/* ================= data (real values from glaciers.js; texts from index.html) ================= */
+const G=[
+ {n:'Grosser Aletsch',loc:'Valais · Bernese Alps',a50:105.62,a73:86.63,a23:75.79,tip:1640,tot:3387,y0:1870,rec:269,
+  lede:'The largest glacier in the Alps. Several firn streams meet at Konkordiaplatz before the tongue curves south-west towards the Massa gorge above Brig.',
+  look:'Follow the tongue south of the bend at Märjelen and compare where clean ice gives way to grey rock. The dark medial moraines running down the middle are easy to follow from year to year.',
+  note:['In summer 2026 almost six metres of ice disappeared at one measuring point at Konkordiaplatz, about as much as in the extreme year 2022. This is a single point, not an average of the whole glacier.','GLAMOS, via wetter.net, September 2026'],
+  go:['Aletsch Panoramaweg (route 39)','Belalp to Riederalp, high above the glacier with several viewpoints. Passes 1.3 km from the tongue.']},
+ {n:'Gorner',loc:'Valais · Pennine Alps',a50:65.55,a73:59.53,a23:35.37,tip:2199,tot:3094,y0:1882,rec:416,
+  lede:'The second-largest glacier in Switzerland by area, flowing west from Monte Rosa towards Zermatt. Its main tributary is the Grenzgletscher.',
+  look:'Look at the confluence with the Grenzgletscher, where the ice-marginal Gornersee forms.',
+  go:['Gornergrat to Riffelberg','From the Gornergrat down past the Riffelsee: 4.7 km, about 1 h 25 min, T2.']},
+ {n:'Fiescher',loc:'Valais · Bernese Alps',a50:37.37,a73:32.65,a23:28.51,tip:1677,tot:1740,y0:1891,rec:262,
+  lede:'The second-longest glacier in the Alps, draining south from the Finsteraarhorn and Gross Fiescherhorn towards the village of Fiesch in the Goms valley.',
+  look:'Follow the narrow lower tongue towards Fiesch and watch the bare rock along its flanks.',
+  go:['Märjelensee to Bellwald (route 39)','Passes 0.7 km from the tongue; the Burghütte stands at the foot of the glacier.']},
+ {n:'Unteraar',loc:'Bern · Bernese Alps',a50:33.41,a73:27.15,a23:20.36,tip:1938,tot:3006,y0:1871,rec:210,debris:1,
+  lede:'Formed where the Finsteraar and Lauteraar glaciers merge, the Unteraar flows east into the Grimselsee, the reservoir behind the Grimsel hydropower dams.',
+  look:'Debris covers nearly the whole tongue, so it looks grey rather than white. Watch the front near the lake and the dark central moraine where the two source glaciers join.',
+  note:['The debris cover is typically 5 to 15 cm thick and acts like an insulating layer, so mass loss is somewhat slowed.','Wikipedia, Unteraargletscher'],
+  go:['Grimsel Hospiz to the Lauteraarhütte','Along the Grimselsee to the hut above the glacier: 10.2 km, about 4 h.']},
+ {n:'Corbassière',loc:'Valais · Pennine Alps',a50:20.71,a73:17.79,a23:14.08,tip:2327,tot:1438,y0:1889,rec:270,
+  lede:'A long valley glacier flowing north from the Grand Combin above the Val de Bagnes, 9.8 km long.',
+  look:'Follow the narrow lower tongue and the moraine walls it has left along its sides.',
+  go:['Cabane de Panossière via the Col des Otanes','Circular tour from Mauvoisin with views of the glacier from the pass: 12.9 km, about 6 h 15 min.']},
+ {n:'Zmutt',loc:'Valais · Pennine Alps',a50:20.09,a73:16.95,a23:13.70,tip:2243,tot:1556,y0:1892,rec:238,debris:1,
+  lede:'Flowing east below the north face of the Matterhorn towards Zermatt, fed by the Tiefmatten and Stockji glaciers.',
+  look:'Most of the lower tongue is covered in debris and looks like a rocky valley floor. Use the bright ice upstream and the reservoir at Zmutt as reference points.',
+  go:['Zermatt to the Schönbielhütte','Over the moraine above the glacier, the Matterhorn north face alongside: 11 km, about 4 h.']},
+ {n:'Rhone',loc:'Valais · Urner Alps',a50:20.0,a73:17.44,a23:13.58,tip:2209,tot:1845,y0:1879,rec:406,lake:1,
+  lede:'The source of the river Rhône, flowing south from the Dammastock towards Gletsch at the Furka and Grimsel passes.',
+  look:'A lake has formed where the tongue used to lie on the rock step above Gletsch. Compare its size and the bare rock around it from year to year.',
+  note:['In summer 2026 the Rhône glacier lost more than four metres of ice in a single month. Meltwater has carved cavities under the tongue that collapse into pits.','Euronews, 7 August 2026 (Matthias Huss, GLAMOS)']},
+ {n:'Findel',loc:'Valais · Pennine Alps',a50:21.86,a73:18.62,a23:13.17,tip:2552,tot:3060,y0:1885,rec:532},
+ {n:'Fee',loc:'Valais · Pennine Alps',a50:19.89,a73:17.06,a23:13.07,tip:2290,tot:1564,y0:1883,rec:446},
+ {n:'Trift',loc:'Bern · Urner Alps',a50:19.56,a73:17.18,a23:12.88,tip:2115,tot:4392,y0:1891,rec:19,lake:1,
+  lede:'A glacier above the Gadmen valley whose tongue sank into a growing lake in the early 2000s, leaving the Triftsee, spanned by a suspension bridge.',
+  look:'The lake below the steep ice fall is the best marker for how far the tongue has retreated.'}
+];
+/* Swiss-wide yearly volume loss, % (glaciers.js swiss_volume) */
+const PCT={2017:2.93,2018:2.62,2019:1.92,2020:1.67,2021:1.01,2022:5.89,2023:4.35,2024:2.43,2025:3.0};
+const Y0=2016,Y1=2025,YEARS=Array.from({length:10},(_,i)=>Y0+i);
+let acc=0,CUM={2016:0};for(let y=2017;y<=2025;y++){acc+=PCT[y];CUM[y]=acc}
+const share=y=>CUM[y]/CUM[2024];                      /* 0 in 2016, 1 in 2024 */
+const retreatM=(g,y)=>g.rec*share(y);
+const $=id=>document.getElementById(id), fm=x=>Math.round(x).toLocaleString('en-US'), f1=x=>x.toFixed(1);
+const sat=x=>x<0?0:x>1?1:x;
+
+/* ================= fake imagery ================= */
+const RW=560,RH=315,CW=1120,CH=630,K=CW/RW,MPP=10;     /* render px = 10 m, like Sentinel-2 */
+function rng(a){return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
+function mkNoise(seed){const r=rng(seed),P=new Uint8Array(512),V=new Float32Array(256),a=[...Array(256).keys()];
+  for(let i=255;i>0;i--){const j=Math.floor(r()*(i+1));[a[i],a[j]]=[a[j],a[i]]}
+  for(let i=0;i<512;i++)P[i]=a[i&255];for(let i=0;i<256;i++)V[i]=r();
+  const f=t=>t*t*(3-2*t);
+  const n=(x,y)=>{const xi=Math.floor(x),yi=Math.floor(y),xf=x-xi,yf=y-yi,X=xi&255,Y=yi&255,
+    a=V[P[P[X]+Y]],b=V[P[P[X+1]+Y]],c=V[P[P[X]+Y+1]],d=V[P[P[X+1]+Y+1]],u=f(xf),v=f(yf);return a+(b-a)*u+(c-a)*v+(a-b-c+d)*u*v};
+  n.fbm=(x,y,o=4)=>{let s=0,m=.5,fr=1,t=0;for(let i=0;i<o;i++){s+=n(x*fr,y*fr)*m;t+=m;m*=.5;fr*=2}return s/t};return n}
+const yrand=(gi,y)=>{const x=Math.sin(gi*91.7+y*12.9898)*43758.5453;return x-Math.floor(x)};
+
+const scenes=[];
+function scene(gi){
+  if(scenes[gi])return scenes[gi];
+  const g=G[gi],r=rng(gi*7919+5),N=mkNoise(gi*131+7),N2=mkNoise(gi*313+11),flip=gi%2===1;
+  let P=[[.93,-.2],[1.02,.2],[.5+r()*.22,.3+r()*.14],[.34+r()*.08,.6]].map(p=>[p[0]*RW,p[1]*RH]);
+  if(flip)P=P.map(p=>[RW-p[0],p[1]]);
+  const px=[],py=[];
+  for(let i=0;i<=240;i++){const t=i/240,u=1-t;
+    px.push(u*u*u*P[0][0]+3*u*u*t*P[1][0]+3*u*t*t*P[2][0]+t*t*t*P[3][0]);
+    py.push(u*u*u*P[0][1]+3*u*u*t*P[1][1]+3*u*t*t*P[2][1]+t*t*t*P[3][1])}
+  let ang=Math.atan2(py[240]-py[236],px[240]-px[236]);
+  for(let i=0;i<220;i++){ang+=(Math.PI/2-ang)*.004+(r()-.5)*.03;px.push(px[px.length-1]+Math.cos(ang)*2);py.push(py[py.length-1]+Math.sin(ang)*2)}
+  const n=px.length,PS=new Float32Array(n);for(let i=1;i<n;i++)PS[i]=PS[i-1]+Math.hypot(px[i]-px[i-1],py[i]-py[i-1]);
+  const s16=PS[240], wt=3*Math.sqrt(g.a23), rise=900+r()*400, maxRel=rise+700;
+  const wFull=s=>(wt*(.85+1.3*Math.pow(Math.max(0,1-s/s16),.8)))*1.28+5;
+  const hp=s=>s<s16?g.tip+rise*(1-s/s16):g.tip-(s-s16)*1.3;
+  const T=RW*RH,S=new Float32Array(T),D=new Float32Array(T),H=new Float32Array(T);
+  for(let y=0;y<RH;y++)for(let x=0;x<RW;x++){
+    let best=1e9,bi=0;for(let k=0;k<n;k+=4){const d=(x-px[k])**2+(y-py[k])**2;if(d<best){best=d;bi=k}}
+    for(let k=Math.max(0,bi-4);k<Math.min(n,bi+5);k++){const d=(x-px[k])**2+(y-py[k])**2;if(d<best){best=d;bi=k}}
+    const i=y*RW+x,d=Math.sqrt(best),a0=Math.max(0,bi-1),a1=Math.min(n-1,bi+1),tl=Math.hypot(px[a1]-px[a0],py[a1]-py[a0])||1,s=PS[bi]+((x-px[bi])*(px[a1]-px[a0])+(y-py[bi])*(py[a1]-py[a0]))/tl;S[i]=s;D[i]=d;
+    const out=Math.max(0,d-wFull(s)-26*(N.fbm(x/26,y/26)-.5)),w=sat(out/40),rg=1-Math.abs(2*N.fbm(x/52+7,y/52,4)-1);
+    H[i]=hp(s)+Math.min(out,150)*4+N.fbm(x/38,y/38)*420*w+rg*620*sat(out/60)+N.fbm(x/9,y/9)*34*sat(out/6)+Math.pow(sat(out/110),2)*200}
+  const sh=new Float32Array(T),n1=new Float32Array(T),n2=new Float32Array(T),st=new Float32Array(T),cr=new Float32Array(T),rel=new Float32Array(T);
+  const zen=50*Math.PI/180,az=315*Math.PI/180;
+  for(let y=0;y<RH;y++)for(let x=0;x<RW;x++){const i=y*RW+x;
+    const xl=H[y*RW+Math.max(0,x-1)],xr=H[y*RW+Math.min(RW-1,x+1)],yu=H[Math.max(0,y-1)*RW+x],yd=H[Math.min(RH-1,y+1)*RW+x];
+    const dzx=(xr-xl)/(2*MPP),dzy=(yd-yu)/(2*MPP),slope=Math.atan(Math.hypot(dzx,dzy)),asp=Math.atan2(dzy,-dzx);
+    sh[i]=Math.max(0,Math.cos(zen)*Math.cos(slope)+Math.sin(zen)*Math.sin(slope)*Math.cos(az-asp));
+    rel[i]=(H[i]-g.tip)/maxRel;
+    n1[i]=N2.fbm(x/22,y/22);n2[i]=N2.fbm(x/5+50,y/5);
+    st[i]=N2(D[i]*.3+9,S[i]*.02);cr[i]=N2(D[i]*.6+40,S[i]*.13)}
+  /* outline of the valley the glacier filled in 1850 (ribbon along the path, scaled to the canvas) */
+  const left=[],right=[];
+  for(let k=0;k<n;k+=3){const a=Math.atan2(py[Math.min(n-1,k+1)]-py[Math.max(0,k-1)],px[Math.min(n-1,k+1)]-px[Math.max(0,k-1)]),w=(wFull(PS[k])-5)/1.28*1.12;
+    left.push([(px[k]+Math.sin(a)*w)*K,(py[k]-Math.cos(a)*w)*K]);right.push([(px[k]-Math.sin(a)*w)*K,(py[k]+Math.cos(a)*w)*K])}
+  return scenes[gi]={px,py,PS,s16,wt,wFull,maxRel,S,D,rel,sh,n1,n2,st,cr,left,right,n};
+}
+function pathAt(sc,s){let lo=0,hi=sc.n-1;while(hi-lo>1){const m=(lo+hi)>>1;if(sc.PS[m]<s)lo=m;else hi=m}return[sc.px[hi]*K,sc.py[hi]*K]}
+
+const PAL={
+ nat :{rock:[122,108,94],veg:[78,96,56],snow:[244,246,248],ice:[176,205,220],iced:[128,160,180],deb:[98,92,86],water:[38,84,96],fresh:[166,156,142]},
+ ir  :{rock:[112,114,126],veg:[208,48,58],snow:[226,244,252],ice:[150,222,238],iced:[100,170,200],deb:[66,82,90],water:[8,20,36],fresh:[158,160,172]},
+ swir:{rock:[196,146,112],veg:[64,166,78],snow:[70,160,255],ice:[40,120,235],iced:[24,84,200],deb:[176,124,98],water:[8,8,26],fresh:[216,172,138]}};
+const COLNAME={nat:'Natural colour',ir:'Infrared',swir:'Shortwave infrared'};
+const cache=new Map();
+function frame(gi,year,col){
+  const key=gi+'|'+year+'|'+col;if(cache.has(key))return cache.get(key);
+  const sc=scene(gi),g=G[gi],pal=PAL[col],sh=share(year),sTip=sc.s16-g.rec/MPP*sh,yv=yrand(gi,year);
+  const snowRel=.82+(yv-.5)*.1,sFirn0=sc.s16*(.4+(yv-.5)*.05)-3.5*(year-Y0),vegLim=Math.max(.02,Math.min(.3,(2350-g.tip)/sc.maxRel));
+  const lakeS0=sTip,lakeS1=sc.s16+30,hazeK=.95+.1*yv;
+  const cv=document.createElement('canvas');cv.width=RW;cv.height=RH;const ctx=cv.getContext('2d'),id=ctx.createImageData(RW,RH),o=id.data;
+  let r,gg,b;const mix=(c,a)=>{r+=(c[0]-r)*a;gg+=(c[1]-gg)*a;b+=(c[2]-b)*a};
+  for(let i=0;i<RW*RH;i++){
+    const s=sc.S[i],D=sc.D[i],rel=sc.rel[i],shd=sc.sh[i],n1=sc.n1[i],n2=sc.n2[i],wF=sc.wFull(s);
+    r=pal.rock[0]*(.88+.24*n2);gg=pal.rock[1]*(.88+.24*n2);b=pal.rock[2]*(.88+.24*n2);
+    if(rel<vegLim)mix(pal.veg,sat((vegLim-rel)/.07)*(.55+.7*n2)*sat((D-wF)/6)*.95);
+    mix(pal.snow,sat((rel-(snowRel+(n1-.5)*.2))/.04)*.95);
+    if(s>sTip&&s<=sc.s16+2&&D<wF)mix(pal.fresh,sat((wF-D)/3)*sat((s-sTip)/2));
+    if(g.lake&&s>lakeS0&&s<lakeS1){const lw=wF*.9*Math.sqrt(Math.max(0,1-(s-lakeS0)/(lakeS1-lakeS0)));mix(pal.water,sat((lw-D)/1.5)*.95)}
+    const f=.25+1.2*shd;r*=f;gg*=f;b*=f;
+    if(s<=sTip){
+      const taper=Math.sqrt(sat((sTip-s)/16)),hw=(wF-5)/1.28*(1-.1*sh)*(1+.35*(n2-.5))*taper,iw=sat((hw-D)/1.6);
+      if(iw>0){
+        let c0,c1,c2;
+        if(s<sFirn0+(n1-.5)*70){c0=pal.snow[0];c1=pal.snow[1];c2=pal.snow[2]}
+        else{const k=sat(sc.st[i]*1.7-.55)*.75+(sc.cr[i]>.76?.35:0);
+          c0=pal.ice[0]+(pal.iced[0]-pal.ice[0])*k;c1=pal.ice[1]+(pal.iced[1]-pal.ice[1])*k;c2=pal.ice[2]+(pal.iced[2]-pal.ice[2])*k;
+          if(g.debris){const dd=sat((s/sc.s16-.5)/.35)*(.5+.6*n2);c0+=(pal.deb[0]-c0)*dd;c1+=(pal.deb[1]-c1)*dd;c2+=(pal.deb[2]-c2)*dd}}
+        const fi=.88+.16*shd;r+=(c0*fi-r)*iw;gg+=(c1*fi-gg)*iw;b+=(c2*fi-b)*iw}}
+    const j=i*4;o[j]=Math.min(255,r*hazeK);o[j+1]=Math.min(255,gg*hazeK);o[j+2]=Math.min(255,b*hazeK+(col==='nat'?4:0));o[j+3]=255}
+  ctx.putImageData(id,0,0);cache.set(key,cv);return cv}
+
+/* ================= state ================= */
+const S={gi:0,view:'compare',yA:2016,yB:2024,y1:2024,col:'nat',split:.5,tips:true,o1850:false,measure:false,t:8,playing:false,touched:false,rec:false};
+const cv=$('stage'),ctx=cv.getContext('2d');
+const SERIF='"Iowan Old Style",Charter,Georgia,serif',MONO='ui-monospace,"SF Mono",Menlo,monospace';
+
+/* ================= drawing ================= */
+function txt(c,t,x,y,font,fill,align='left',sh=14){c.save();c.font=font;c.fillStyle=fill;c.textAlign=align;c.textBaseline='alphabetic';c.shadowColor='rgba(0,0,0,.6)';c.shadowBlur=sh;c.fillText(t,x,y);c.restore()}
+function pin(c,x,y,label,dx){
+  c.save();c.lineWidth=5;c.strokeStyle='#fff';c.fillStyle='#F0561F';c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=8;
+  c.beginPath();c.arc(x,y,9,0,7);c.fill();c.stroke();c.restore();
+  c.save();c.font='700 15px '+MONO;const w=c.measureText(label).width+18,bx=x+dx-(dx<0?w:0);
+  c.fillStyle='#fff';c.fillRect(bx,y-34,w,24);c.fillStyle='#1A1814';c.textBaseline='middle';c.fillText(label,bx+9,y-21);c.restore()}
+function tipYear(y){const sc=scene(S.gi);return pathAt(sc,sc.s16-G[S.gi].rec/MPP*share(y))}
+function frameYears(){return S.view==='compare'?[S.yA,S.yB]:S.view==='single'?[S.y1]:[Math.round(S.t)+Y0]}
+function drawStage(now){
+  const g=G[S.gi],sc=scene(S.gi),c=ctx;
+  c.clearRect(0,0,CW,CH);
+  let left,right;
+  if(S.view==='compare'){
+    c.drawImage(frame(S.gi,S.yA,S.col),0,0,CW,CH);
+    const x=S.split*CW;c.save();c.beginPath();c.rect(x,0,CW-x,CH);c.clip();c.drawImage(frame(S.gi,S.yB,S.col),0,0,CW,CH);c.restore();
+  }else if(S.view==='single'){c.drawImage(frame(S.gi,S.y1,S.col),0,0,CW,CH)}
+  else{const a=Math.floor(S.t),f=S.t-a;c.drawImage(frame(S.gi,Y0+a,S.col),0,0,CW,CH);if(f>.001&&a<9){c.globalAlpha=f;c.drawImage(frame(S.gi,Y0+a+1,S.col),0,0,CW,CH);c.globalAlpha=1}}
+  /* 1850 outline */
+  if(S.o1850){c.save();c.setLineDash([14,10]);c.lineDashOffset=-now/40;c.lineWidth=3;c.strokeStyle='#FFD23F';c.shadowColor='rgba(0,0,0,.6)';c.shadowBlur=6;
+    c.beginPath();sc.left.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();
+    c.beginPath();sc.right.forEach((p,i)=>i?c.lineTo(p[0],p[1]):c.moveTo(p[0],p[1]));c.stroke();c.restore();
+    txt(c,'valley filled by ice in 1850',CW-34,CH-150,'700 15px '+MONO,'#FFD23F','right')}
+  /* tongue tips */
+  if(S.tips){
+    if(S.view==='compare'){const a=tipYear(S.yA),b=tipYear(S.yB),m=retreatM(g,S.yB)-retreatM(g,S.yA);
+      if(S.yA!==S.yB){c.save();c.strokeStyle='#fff';c.lineWidth=3;c.setLineDash([6,6]);c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();c.restore()}
+      pin(c,a[0],a[1],'tip '+S.yA,-14);if(S.yA!==S.yB)pin(c,b[0],b[1],'tip '+S.yB+'  −'+fm(Math.abs(m))+' m',14)}
+    else{const y=S.view==='single'?S.y1:Y0+Math.round(S.t),p=tipYear(y);pin(c,p[0],p[1],'tip '+y,14)}}
+  /* labels: one design for map, picture and film */
+  const ys=frameYears();
+  txt(c,'TONGUES FROM SPACE',36,50,'700 15px '+MONO,'#fff');
+  txt(c,g.n+(S.gi===9?'':''),36,106,'700 54px '+SERIF,'#fff');
+  txt(c,g.loc+' · '+COLNAME[S.col],36,136,'15px '+MONO,'rgba(255,255,255,.9)');
+  if(S.view==='compare'){txt(c,S.yA,30,CH-34,'700 128px '+SERIF,'#fff');txt(c,S.yB,CW-30,CH-34,'700 128px '+SERIF,'#fff','right')}
+  else txt(c,ys[0],30,CH-34,'700 128px '+SERIF,'#fff');
+  txt(c,'DEMO IMAGERY',CW-34,48,'700 13px '+MONO,'#FFD23F','right');
+  /* scale bar and north */
+  c.save();c.strokeStyle='#fff';c.lineWidth=3;c.shadowColor='rgba(0,0,0,.6)';c.shadowBlur=8;const bx=CW-34-100,by=CH-170;
+  c.beginPath();c.moveTo(bx,by-8);c.lineTo(bx,by);c.lineTo(bx+100,by);c.lineTo(bx+100,by-8);c.stroke();c.restore();
+  txt(c,'500 m',bx+100,by-16,'700 15px '+MONO,'#fff','right');
+  /* compare line */
+  if(S.view==='compare'){const x=S.split*CW,pulse=S.touched?1:1+.07*Math.sin(now/260);
+    c.save();c.fillStyle='#fff';c.shadowColor='rgba(0,0,0,.5)';c.shadowBlur=10;c.fillRect(x-1.5,0,3,CH);
+    c.beginPath();c.arc(x,CH/2,27*pulse,0,7);c.fill();c.shadowBlur=0;c.lineWidth=3;c.strokeStyle='#1A1814';c.stroke();
+    c.fillStyle='#1A1814';c.beginPath();c.moveTo(x-8,CH/2-8);c.lineTo(x-16,CH/2);c.lineTo(x-8,CH/2+8);c.fill();c.beginPath();c.moveTo(x+8,CH/2-8);c.lineTo(x+16,CH/2);c.lineTo(x+8,CH/2+8);c.fill();c.restore()}
+  /* measure */
+  if(S.m){const{a,b}=S.m;c.save();c.strokeStyle='#FFD23F';c.fillStyle='#FFD23F';c.lineWidth=3.5;c.shadowColor='rgba(0,0,0,.6)';c.shadowBlur=6;
+    c.beginPath();c.moveTo(a[0],a[1]);c.lineTo(b[0],b[1]);c.stroke();[a,b].forEach(p=>{c.beginPath();c.arc(p[0],p[1],7,0,7);c.fill()});c.restore();
+    const m=Math.hypot(b[0]-a[0],b[1]-a[1])/K*MPP;if(m>5){const lab=fm(m)+' m',mx=(a[0]+b[0])/2,my=(a[1]+b[1])/2;
+      c.save();c.font='700 20px '+MONO;const w=c.measureText(lab).width+20;c.fillStyle='#FFD23F';c.fillRect(mx-w/2,my-40,w,30);c.fillStyle='#1A1814';c.textAlign='center';c.textBaseline='middle';c.fillText(lab,mx,my-25);c.restore()}}
+  if(S.rec){c.fillStyle='#E8332A';c.beginPath();c.arc(CW-150,44,7,0,7);c.fill()}
+}
+
+/* 9:16 live preview, cropped around the tongue tip */
+function drawPhone(){
+  const pc=$('phone'),c=pc.getContext('2d'),W=pc.width,H=pc.height,g=G[S.gi];
+  const ys=frameYears(),y=ys[ys.length-1],tp=tipYear(y),sw=CH*9/16;let sx=Math.max(0,Math.min(CW-sw,tp[0]-sw/2));
+  c.drawImage(cv,sx,0,sw,CH,0,0,W,H);
+  const gr=c.createLinearGradient(0,0,0,H);gr.addColorStop(0,'rgba(0,0,0,.6)');gr.addColorStop(.3,'rgba(0,0,0,0)');gr.addColorStop(.58,'rgba(0,0,0,0)');gr.addColorStop(1,'rgba(0,0,0,.82)');c.fillStyle=gr;c.fillRect(0,0,W,H);
+  /* clean the stage labels away by redrawing the layout on top is not needed: the crop already carries them, so only add the facts */
+  const lost=Math.round((1-g.a23/g.a50)*100);
+  txt(c,'−'+lost+' %',22,H-58,'700 34px '+SERIF,'#FF8A5E','left',8);
+  txt(c,'of its 1850 ice area is gone',22+c.measureText('−'+lost+' %').width+40,H-58,'13px '+MONO,'#fff','left',8);
+  txt(c,fm(g.tot)+' m',22,H-22,'700 28px '+SERIF,'#fff','left',8);
+  txt(c,'shorter than in '+g.y0,22+c.measureText(fm(g.tot)+' m').width+30,H-22,'13px '+MONO,'#fff','left',8);
+}
+
+/* ================= UI ================= */
+const chips=$('chips');
+G.forEach((g,i)=>{const b=document.createElement('button');b.className='chip';b.type='button';b.setAttribute('aria-pressed',i===0);b.innerHTML=`${g.n}<small>${f1(g.a23)} km²</small>`;b.onclick=()=>pick(i);chips.appendChild(b)});
+
+const reg=$('reg'),maxA=Math.max(...G.map(g=>g.a50));
+G.forEach((g,i)=>{const lost=Math.round((1-g.a23/g.a50)*100),b=document.createElement('button');b.className='row';b.type='button';b.setAttribute('aria-pressed','false');
+  b.innerHTML=`<span class="n">${String(i+1).padStart(2,'0')}</span><span class="nm">${g.n}<small>${g.loc}</small></span><span class="abar-w"><span class="abar" style="width:${g.a50/maxA*100}%"><i style="width:${g.a23/g.a50*100}%"></i></span></span><span class="v">${f1(g.a23)}</span><span class="p">−${lost} %</span>`;
+  b.onclick=()=>{pick(i);$('play').scrollIntoView({behavior:'smooth'})};reg.appendChild(b)});
+
+function pick(i){
+  S.gi=i;S.m=null;
+  [...chips.children].forEach((b,k)=>b.setAttribute('aria-pressed',k===i));
+  [...reg.querySelectorAll('.row')].forEach((r,k)=>r.setAttribute('aria-pressed',k===i));
+  const g=G[i],lost=Math.round((1-g.a23/g.a50)*100);
+  $('sName').textContent=g.n;$('sWhere').textContent=`${g.loc} · tongue at ${fm(g.tip)} m above sea level`;
+  $('sLede').textContent=g.lede||`With ${f1(g.a23)} km² it is number ${i+1} in Switzerland. In 1850 it covered ${f1(g.a50)} km².`;
+  $('sLook').innerHTML=g.look?`<b>Where to look.</b> ${g.look}`:'';
+  const rows=[['Area in 1850',f1(g.a50),'km²'],['Area in 1973',f1(g.a73),'km²'],['Area in 2023',f1(g.a23),'km²'],['Still there from 1850',100-lost,'%'],[`Shorter since ${g.y0}`,fm(g.tot),'m']];
+  $('dl').innerHTML=rows.map((r,k)=>`<div${k===3?' class="hl"':''}><dt>${r[0]}</dt><span class="dots"></span><dd>${r[1]}<small>${r[2]}</small></dd></div>`).join('');
+  const n=[];if(g.note)n.push(['Aside',g.note[0],'Source: '+g.note[1]]);
+  if(g.go)n.push(['Go and see it',`<b>${g.go[0]}.</b> ${g.go[1]}`,'SchweizMobil / ASTRA']);
+  n.push(['How we know','Lengths and areas come from GLAMOS surveys and the Swiss glacier inventories; the pictures are Sentinel-2 scenes of late summer, chosen scene by scene for the least cloud and snow.','GLAMOS · Copernicus']);
+  $('notes').innerHTML=n.map((x,k)=>`<div><h4><b>${k+1}</b>${x[0]}</h4><p>${x[1]}</p><small>${x[2]}</small></div>`).join('');
+  $('notes').style.gridTemplateColumns=`repeat(${Math.min(n.length,3)},minmax(0,1fr))`;
+  $('rA50').innerHTML=f1(g.a50)+'<small>km²</small>';$('rA23').innerHTML=f1(g.a23)+'<small>km²</small>';$('rKeep').innerHTML=(100-lost)+'<small>%</small>';$('rTip').innerHTML=fm(g.tip)+'<small>m</small>';
+  syncRead();
+}
+
+/* seg controls */
+document.querySelectorAll('.seg[data-k]').forEach(sg=>sg.querySelectorAll('button').forEach(b=>b.onclick=()=>{
+  const k=sg.dataset.k,v=b.dataset.v;
+  if(k==='ov'){S[v]=!S[v];b.setAttribute('aria-pressed',S[v]);if(v==='measure'){cv.classList.toggle('measure',S.measure);S.m=null}return}
+  S[k]=v;sg.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b));
+  if(k==='view'){S.playing=v==='time';if(v==='time'&&S.t>=9)S.t=0;if(v!=='compare'&&S.measure===false)cv.style.cursor='default';cv.style.cursor=S.measure?'crosshair':v==='compare'?'ew-resize':'default';drawYearsBar();hint()}
+  syncRead()}));
+
+function hint(){$('hint').textContent=S.view==='compare'?'Drag the line across the picture. Click a year to change the nearer side.':S.view==='single'?'Click a year.':'Space plays and pauses. Click a year to jump.'}
+function drawYearsBar(){
+  const el=$('years');el.innerHTML='';
+  YEARS.forEach((y,i)=>{const b=document.createElement('button');b.textContent=y;b.type='button';
+    if(S.view==='compare'){b.className=y===S.yA||y===S.yB?'on':(y>S.yA&&y<S.yB?'mid':'')}
+    else if(S.view==='single'){b.className=y===S.y1?'on':''}
+    else{b.className=i===Math.round(S.t)?'on':''}
+    b.onclick=()=>{
+      if(S.view==='compare'){if(Math.abs(y-S.yA)<=Math.abs(y-S.yB))S.yA=Math.min(y,S.yB);else S.yB=Math.max(y,S.yA);if(y<S.yA)S.yA=y}
+      else if(S.view==='single')S.y1=y;else{S.t=i;S.playing=false}
+      drawYearsBar();syncRead()};el.appendChild(b)})}
+
+/* readout */
+let shown=0,target=0;
+function syncRead(){
+  const g=G[S.gi];let a,b;
+  if(S.view==='compare'){a=S.yA;b=S.yB;$('rLab').textContent=`tongue pulled back ${a}–${b}`}
+  else{b=S.view==='single'?S.y1:Y0+Math.round(S.t);a=Y0;$('rLab').textContent=`tongue pulled back since 2016`}
+  target=retreatM(g,b)-retreatM(g,a);
+  $('rSub').textContent=target<.5?'Pick two different years.':`About ${f1(target/105)} football pitches, end to end.`;
+  const bars=$('bars');bars.innerHTML='';const mx=Math.max(...YEARS.slice(1).map(y=>retreatM(g,y)-retreatM(g,y-1)))||1;
+  YEARS.slice(1).forEach(y=>{const v=retreatM(g,y)-retreatM(g,y-1),d=document.createElement('div');d.style.height=Math.max(3,v/mx*100)+'%';d.className=y>a&&y<=b?'in':'';d.title=y+': '+f1(v)+' m';d.innerHTML=`<span>${String(y).slice(2)}</span>`;bars.appendChild(d)});
+}
+
+/* pointer */
+function pt(e){const r=cv.getBoundingClientRect();return[(e.clientX-r.left)*CW/r.width,(e.clientY-r.top)*CH/r.height]}
+let drag=false;
+cv.addEventListener('pointerdown',e=>{cv.setPointerCapture(e.pointerId);const p=pt(e);S.touched=true;
+  if(S.measure){S.m={a:p,b:p};drag='m'}else if(S.view==='compare'){drag='s';S.split=sat(p[0]/CW)}});
+cv.addEventListener('pointermove',e=>{if(!drag)return;const p=pt(e);if(drag==='m')S.m.b=p;else S.split=sat(p[0]/CW)});
+cv.addEventListener('pointerup',()=>drag=false);
+cv.addEventListener('keydown',e=>{
+  if(e.key==='ArrowLeft'||e.key==='ArrowRight'){S.touched=true;S.split=sat(S.split+(e.key==='ArrowLeft'?-.03:.03));e.preventDefault()}});
+addEventListener('keydown',e=>{if(e.code==='Space'&&S.view==='time'&&!/BUTTON|INPUT/.test(document.activeElement.tagName)){S.playing=!S.playing;if(S.t>=9)S.t=0;e.preventDefault()}});
+
+/* save + record */
+$('save').onclick=()=>{drawStage(performance.now());cv.toBlob(bl=>{const a=document.createElement('a');a.href=URL.createObjectURL(bl);a.download=`tongues-${G[S.gi].n.toLowerCase().replace(/\W+/g,'-')}-${frameYears().join('-')}.png`;a.click()})};
+if(!window.MediaRecorder||!cv.captureStream)$('rec').hidden=true;
+$('rec').onclick=()=>{
+  const mime=['video/mp4','video/webm;codecs=vp9','video/webm'].find(t=>MediaRecorder.isTypeSupported(t));
+  const mr=new MediaRecorder(cv.captureStream(30),{mimeType:mime,videoBitsPerSecond:6e6}),ch=[];
+  mr.ondataavailable=e=>ch.push(e.data);
+  mr.onstop=()=>{S.rec=false;S.playing=false;$('rec').textContent='Record film';const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(ch,{type:mime}));a.download=`tongues-${G[S.gi].n.toLowerCase().replace(/\W+/g,'-')}.${mime.includes('mp4')?'mp4':'webm'}`;a.click()};
+  document.querySelector('[data-k=view] [data-v=time]').click();S.t=0;S.playing=true;S.rec=true;S.recStop=mr;$('rec').textContent='Recording…';mr.start()};
+
+/* loop */
+let last=performance.now();
+function loop(now){
+  const dt=Math.min(.1,(now-last)/1000);last=now;
+  if(S.view==='time'&&S.playing){S.t+=dt/.9;if(S.t>=9){S.t=9;if(S.rec){S.playing=false;setTimeout(()=>S.recStop.stop(),700)}else{S.t=0}}
+    const i=Math.round(S.t);[...$('years').children].forEach((b,k)=>b.className=k===i?'on':'');syncReadThrottle()}
+  shown+=(target-shown)*Math.min(1,dt*9);$('rBig').textContent='−'+fm(Math.abs(shown))+' m';
+  drawStage(now);drawPhone();requestAnimationFrame(loop)}
+let rt=0;function syncReadThrottle(){const n=performance.now();if(n-rt>150){rt=n;syncRead()}}
+
+/* ticker + topo */
+const FACTS=['Swiss glacier volume: <b>64.7 km³</b> in 2010 → <b>45.1 km³</b> in 2025','2022: <b>−5.9 %</b> of all Swiss ice in a single summer','Aletsch is <b>3,387 m</b> shorter than in 1870','Trift: <b>4,392 m</b> shorter since 1891','Fee pulled back <b>475 m</b> between 2020 and 2023','Sentinel-2 sees the ground at <b>10 m</b> per pixel','Gorner lost <b>46 %</b> of its 1850 area'];
+$('tick').innerHTML=[...FACTS,...FACTS].map(f=>`<span>${f}</span>`).join('');
+(function(){let d='';const cx=620,cy=250;for(let k=1;k<=26;k++){const rr=k*19,p=[];for(let a=0;a<=360;a+=4){const t=a*Math.PI/180,w=1+.16*Math.sin(3*t+k*.13)+.09*Math.sin(5*t-k*.07)+.05*Math.sin(9*t+k*.3);p.push([cx+Math.cos(t)*rr*w*1.4,cy+Math.sin(t)*rr*w*.8])}
+  d+=`<path d="M${p.map(q=>q[0].toFixed(1)+' '+q[1].toFixed(1)).join('L')}Z" fill="none" stroke="#1A1814" stroke-opacity="${k%5===0?.3:.12}" stroke-width="${k%5===0?1.4:.8}"/>`}
+  $('topo').innerHTML=d})();
+
+/* test/share hash: #g=3&col=ir&view=time&a=2016&b=2024&o=1 */
+(function(){const h=new URLSearchParams(location.hash.slice(1));
+  const clickSeg=(k,v)=>{const b=document.querySelector(`[data-k=${k}] [data-v=${v}]`);b&&b.click()};
+  if(h.get('col'))clickSeg('col',h.get('col'));if(h.get('view'))clickSeg('view',h.get('view'));
+  if(h.get('a'))S.yA=+h.get('a');if(h.get('b'))S.yB=+h.get('b');if(h.get('y'))S.y1=+h.get('y');if(h.get('s'))S.split=+h.get('s');
+  if(h.get('t'))S.t=+h.get('t');if(h.get('o')){clickSeg('ov','o1850')}S.touched=!!h.get('s');
+  drawYearsBar();hint();pick(h.get('g')?+h.get('g'):0);})();
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
