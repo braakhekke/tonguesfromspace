@@ -21,8 +21,9 @@ button,select,input{font:inherit;color:inherit}
 .scroll-cue{position:sticky;bottom:-28px;height:0;margin-top:-24px;z-index:5;pointer-events:none}
 .scroll-cue[hidden]{display:none}
 .scroll-cue::before{content:"";position:absolute;left:-20px;right:-20px;bottom:-28px;height:96px;background:linear-gradient(to bottom,rgba(255,255,255,0),var(--sheet) 80%)}
-.scroll-cue button{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:6px;padding:7px 14px 7px 16px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:700 12.5px/1 var(--sans);box-shadow:0 3px 12px rgba(0,0,0,.3);cursor:pointer;white-space:nowrap}
-.scroll-cue svg{width:16px;height:16px;fill:none;stroke:#fff;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;animation:cueBob 1.6s ease-in-out infinite}
+.scroll-cue button{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--rule);border-radius:999px;background:#fff;color:var(--moraine);font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;white-space:nowrap}      /* the look of the step labels: grey capitals, the step number in red */
+.scroll-cue button .num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+.scroll-cue svg{width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;animation:cueBob 1.6s ease-in-out infinite}
 @keyframes cueBob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
 @media (prefers-reduced-motion:reduce){.scroll-cue svg{animation:none}}
 .controls{--pad:20px;background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
@@ -118,7 +119,10 @@ button,select,input{font:inherit;color:inherit}
 .years button.in-range{background:var(--firn);border-color:var(--rule)}
 .years button:disabled{color:#B6BEC2;background:var(--firn);border-color:var(--firn);cursor:not-allowed;pointer-events:none}
 .years button:disabled.missing{text-decoration:line-through}
-.years .latest-chip{font-weight:700;color:var(--accent)}
+.spec-row{display:flex;align-items:center;gap:10px}
+.spec-row .side-label{margin:0;flex:none}
+.years.specials{flex:1;grid-template-columns:repeat(2,1fr)}
+.years.specials button{padding:5px 0}
 .stack{display:flex;flex-direction:column;gap:18px}
 .row{display:flex;gap:8px;align-items:center}
 .spin-s{display:inline-block;width:12px;height:12px;margin-right:6px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spinS .8s linear infinite}
@@ -176,6 +180,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 #map{position:absolute;inset:0;background:#070b14}
 .leaflet-container{font-family:var(--sans)}
 .year-tag{position:absolute;top:12px;z-index:650;color:#fff;font-weight:800;font-size:clamp(30px,3.4vw,44px);line-height:1;letter-spacing:-.03em;font-variant-numeric:tabular-nums;text-shadow:0 1px 14px rgba(0,0,0,.55);pointer-events:none}
+.year-tag small.v3d-special{margin-top:2px}
 .year-tag small{display:block;font-size:12px;font-weight:500;letter-spacing:0;margin-top:6px;opacity:.85}
 .year-tag .nw{white-space:nowrap}
 #tagA,#tagT{left:14px}
@@ -870,7 +875,7 @@ body.has-full{overflow:hidden}
 /* ---------- collapsible side panels (desktop and tablet) ---------- */
 .panel-toggle{display:none}
 @media (min-width:721px) and (min-height:521px){
-  .panel-toggle{position:absolute;top:40%;z-index:672;width:22px;height:56px;margin-top:-28px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--rule);background:var(--sheet);color:var(--moraine);cursor:pointer;box-shadow:none}
+  .panel-toggle{position:absolute;top:50%;z-index:672;width:22px;height:56px;margin-top:-28px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--rule);background:var(--sheet);color:var(--moraine);cursor:pointer;box-shadow:none}
   .panel-toggle svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
   #toggleLeft{left:0;border-left:0;border-radius:0}
   #toggleRight{right:0;border-right:0;border-radius:0}
@@ -882,6 +887,12 @@ body.has-full{overflow:hidden}
   .app.no-right{--rw:0px}
   .app.no-right .story{visibility:hidden;border:0;overflow:hidden;transition:visibility 0s .35s}
   .app.no-right #toggleRight svg{transform:rotate(180deg)}
+  /* collapsed, the right panel is an inviting tab on the edge: red, the text written downwards, a soft glow like the "Then and now" pill */
+  .pt-label{display:none}
+  .app.no-right #toggleRight{z-index:664;top:50%;margin-top:0;transform:translateY(-50%);width:38px;height:auto;max-height:86%;padding:12px 0;flex-direction:column;gap:10px;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:10px 0 0 10px;animation:tabGlow 2.6s ease-in-out infinite;transition:width .15s,background .15s}
+  .app.no-right #toggleRight:hover{width:44px;background:#B22C25}
+  .app.no-right #toggleRight .pt-label{display:block;writing-mode:vertical-rl;font:600 13.5px/1.5 var(--sans);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:0}      /* line height 1.5: with 1 the descender of g and y was cut off by the overflow */
+  @keyframes tabGlow{0%,100%{box-shadow:0 0 0 0 rgba(200,50,42,.55),-2px 2px 10px rgba(0,0,0,.25)}50%{box-shadow:0 0 0 7px rgba(200,50,42,0),-2px 2px 10px rgba(0,0,0,.25)}}
 }
 @media (min-width:721px) and (max-width:1100px){#toggleRight{display:none}}
 
@@ -942,6 +953,8 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 
 /* the arrows that hide the side panels stay in front of the 3D view */
 .is-3d .panel-toggle{z-index:710}
+.is-3d.no-right #toggleRight{z-index:710}
+.is-3d.no-right:has(.v3d-layers:not(.min)) #toggleRight{z-index:699}      /* the open layer menu of the 3D view covers the red tab */
 
 /* in full screen (visual only) the arrows of the side panels are not shown */
 .app.visual-only .panel-toggle,.stage.is-full .panel-toggle,body.has-full .panel-toggle{display:none!important}

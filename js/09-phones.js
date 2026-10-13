@@ -33,10 +33,19 @@ function setPanel(side, hidden, save = true){
   map.invalidateSize({pan:false});
   setTimeout(() => { if (typeof v3d !== 'undefined' && v3d && v3d.resize) try { v3d.resize(); } catch {} }, 380);      // the 3D view follows the new width once the panel has slid
 }
+/* The panels slide for 0.35 s, so the map's box changes size over several frames. Leaflet only learns of it when told: follow every change of the box, keeping the centre in the middle of
+   the visible map (the glacier stays centred while a panel closes or opens), and load the tiles of the area that comes into view. */
+if (window.ResizeObserver) new ResizeObserver(() => map.invalidateSize({animate: false})).observe($('map'));
 $('toggleLeft').onclick = () => setPanel('left', !$('app').classList.contains('no-left'));
 $('toggleRight').onclick = () => setPanel('right', !$('app').classList.contains('no-right'));
 if (prefs.hideL) setPanel('left', true, false);
-if (prefs.hideR) setPanel('right', true, false);
+if (prefs.hideR === undefined ? matchMedia('(min-width:1101px) and (min-height:521px)').matches : prefs.hideR) setPanel('right', true, false);      // collapsed at the first visit (wide screens): the tab on the edge invites to open it
+/* the tab of the collapsed right panel names the glacier in full */
+function updateRightTab(){
+  const l = $('toggleRightLabel'); if (!l) return;
+  const t = typeof glacierPicked !== 'undefined' && glacierPicked ? `Discover ${currentGlacier().name} facts and figures` : 'Discover glacier facts and figures';
+  l.textContent = t; $('toggleRight').title = t;
+}
 
 
 /* ---------- Full screen (visual only) and the small floating window (phones) ---------- */
@@ -97,7 +106,9 @@ function evalMini(){            // the small window shows while the visual is sc
   setMini(PHONE.matches && below && !miniClosed && glacierPicked && $('videoSheet').hidden && !$('stage').classList.contains('is-full'));
 }
 if ('IntersectionObserver' in window) new IntersectionObserver(evalMini).observe($('stageSlot'));
-$('miniBig').onclick = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
+const miniBack = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
+$('miniBig').onclick = miniBack;
+$('stage').addEventListener('click', e => { if ($('stage').classList.contains('mini') && !e.target.closest('.mini-ctl')) miniBack(); });      // a tap on the small window itself goes back to the big visual
 $('miniFull').onclick = () => setFull(true);
 $('miniClose').onclick = () => { miniClosed = true; setMini(false); };
 
@@ -186,6 +197,12 @@ layersBar.onclick = () => { const open = !layerBoxNow().classList.contains('open
 $('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
+/* A press on the viewer (map or 3D picture) closes an open layer menu; presses inside the menus and on their buttons do not */
+document.addEventListener('pointerdown', e => {
+  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn, #layersBar')) return;
+  if ($('layerbox').classList.contains('in-flow')) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
+  [[$('layerbox'), $('lbToggle')], [$('v3dLayers'), $('v3dLbToggle')]].forEach(([box, btn]) => { if (!box.classList.contains('min')) btn.click(); });
+}, true);
 $('moreBtn').onclick = () => { const open = !document.querySelector('.mapbar').classList.contains('more-open'); setMore(open); if (open) setLayers(false); };
 
 /* Two fingers move the map on touch screens; one finger scrolls the page.
