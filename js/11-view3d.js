@@ -205,7 +205,7 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
   const setTexture = (c, unit = 0) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texs[unit]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.generateMipmap(gl.TEXTURE_2D); redraw(); };
   const setSplit = (f, horizontal) => { split = f; hz = horizontal ? 1 : 0; redraw(); };
   const setHeights = (h1, h2 = h1) => { fill(h1, h2); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw(); };      // another year's ice surface
-  return {setPose, hasPose: () => !!pose, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
+  return {setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
     gl.deleteBuffer(vb); gl.deleteBuffer(ib); texs.forEach(t => gl.deleteTexture(t)); gl.deleteProgram(pr); const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }};
 }
 let v3dCtx = null, v3dBusy = false;      // v3dCtx: what the download buttons need from the open 3D view
@@ -1071,6 +1071,8 @@ function finish3Measure(){
   M3.shapes.push({mode, pts}); M3.pts = []; update3Measure(); pinLoop();      // stay in the tool for the next shape
 }
 function clear3Measure(){ M3.mode = null; M3.pts = []; M3.shapes = []; update3Measure(); }
+$('v3mOut').onclick = () => { if (v3d) v3d.zoomBy(1.3); };      // the same steps as the minus and plus of the map
+$('v3mIn').onclick = () => { if (v3d) v3d.zoomBy(1 / 1.3); };
 $('v3mDist').onclick = () => M3.mode === 'dist' ? cancel3Measure() : start3Measure('dist');
 $('v3mArea').onclick = () => M3.mode === 'area' ? cancel3Measure() : start3Measure('area');
 $('v3mClear').onclick = clear3Measure; $('v3mFinish').onclick = finish3Measure; $('v3mCancel').onclick = cancel3Measure;
