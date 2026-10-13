@@ -1052,7 +1052,7 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 .v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear{padding:0 10px!important}
 .mapbar .mtool svg{display:block}      /* on desktop the measuring buttons are now symbols only */
 
-@media (max-width:720px){.tl-row{gap:12px}.tl-row .tl2,.v3d-top .tl2{width:min(210px,36vw)}.tl-play{width:30px;height:30px;margin-top:8px}}
+@media (max-width:720px){.tl-row{gap:12px}.tl-row .tl2,.v3d-top .tl2{width:min(300px,calc(100vw - 130px))}.tl-play{width:30px;height:30px;margin-top:8px}}
 
 /* no separator line before the full screen button of the 3D bar */
 .v3d-measure > #v3dFs,.v3d.photo-on .v3d-measure > #v3dFs{border-left:0!important;margin-left:0!important}
@@ -1346,3 +1346,12 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .pick-note .pn-num{width:auto;height:auto;border-radius:0;background:none;color:#FF8A82;font:700 11px/1.3 var(--sans);letter-spacing:.09em;font-variant-numeric:tabular-nums}
 
 .gframe.far{cursor:pointer}      /* zoomed out: the white square of the current selection can be clicked to fly back to the tongue */
+
+/* on phones the dock is taller while it holds a timeline: the scale bar sits above it */
+@media (max-width:720px){.is-timelapse .leaflet-control-scale{margin-bottom:140px!important}.app.more-open.is-timelapse .leaflet-control-scale{margin-bottom:190px!important}}
+
+/* a tile's figure may wrap ("1.68 million litres" per resident) instead of running out of its box */
+.water .stat:not(.hero) .v{white-space:normal}
+.story .water .stat-row > .stat.hero.wide:last-child{margin-top:22px}      /* air between the tiles and the melted figure */
+.story .water .stat-row > .stat.hero.wide:last-child{padding-bottom:0}      /* the counter box follows closely */
+.story .water .w-live{margin-top:14px}

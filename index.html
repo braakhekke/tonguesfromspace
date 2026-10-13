@@ -105,7 +105,7 @@
         <div class="row sat-need">
           <button type="button" class="play" id="playBtn"></button>
           <label class="speed" title="Speed in frames (years) per second"><svg class="speed-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0"/><path id="speedNeedle" d="M12 18V9"/><circle cx="12" cy="18" r="1.4"/></svg>
-          <input type="range" class="speed-range" id="speedSel" min="0" max="4" step="1" value="1" aria-label="Speed"><output class="speed-out" id="speedOut" for="speedSel">1 fps</output></label>
+          <input type="range" class="speed-range" id="speedSel" min="0" max="4" step="1" value="2" aria-label="Speed"><output class="speed-out" id="speedOut" for="speedSel">2 fps</output></label>
         </div>
         <div class="frame-row sat-need">
           <input type="range" class="frame" id="frameSlider" min="0" max="0" value="0" aria-label="Timelapse frame">
@@ -310,7 +310,7 @@
       <input type="range" class="frame" id="vOutside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline"></div>
     <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">Last year (loops)</option></select></label>
     <label class="speed speed-row vo-video" title="Speed in frames (years) per second: the same setting as in the left panel"><svg class="speed-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0"/><path id="vSpeedNeedle" d="M12 18V9"/><circle cx="12" cy="18" r="1.4"/></svg>
-      <input type="range" class="speed-range" id="vSpeed" min="0" max="4" step="1" value="1" aria-label="Speed"><output class="speed-out" id="vSpeedOut" for="vSpeed">1 fps</output></label>
+      <input type="range" class="speed-range" id="vSpeed" min="0" max="4" step="1" value="2" aria-label="Speed"><output class="speed-out" id="vSpeedOut" for="vSpeed">2 fps</output></label>
     <label class="toggle speed-row vo-video vo-tl vo-loops"><span>Loops</span> <select class="small" id="vLoops"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
     <label class="toggle vo-video vo-tl vo-loops"><input type="checkbox" id="vBounce"> <span>Go back in time between loops</span></label>
   </div>

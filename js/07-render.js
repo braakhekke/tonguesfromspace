@@ -299,7 +299,7 @@ function renderStory(){
     <div class="tab-panel" data-panel="swiss" ${storyTab === 'swiss' ? '' : 'hidden'}>
       ${scard('sw-share', 'flag', `${g.name} in perspective`, shareBody(g), '<span class="sum-v" id="shSum"></span>')}
       ${scard('sw-left', 'area', 'How much ice is left?', cumulativeChart(lo, hi), `<span class="sum-v">${Math.round(iceShareLeft() * 100)} %<small>left</small></span>`)}
-      ${scard('sw-water', 'drop', 'How much water is that?', waterSection(lo, hi), (() => { const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last); return lo && hi && to >= lo ? sumValue(fmtN((iceVolume(lo - 1) - iceVolume(to)) * 0.9 * 1e12, 1) + ' L') : ''; })())}
+      ${scard('sw-water', 'drop', 'How much water is that?', waterSection(lo, hi), (() => { const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last); return lo && hi && to >= lo ? sumValue(fmtN(iceVolume(to) * 0.9 * 1e12, 1) + ' L') : ''; })())}
     </div>
 
     <div class="about-wrap">
@@ -850,14 +850,16 @@ function waterSection(lo, hi){
   const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last);
   if (!(lo && hi) || to < lo) return '<p class="sub-note">Choose a year or two in step 2 to see how much water melted from all Swiss glaciers.</p>';
   const litres = (iceVolume(lo - 1) - iceVolume(to)) * 0.9 * 1e12, km3 = litres / 1e12;
-  const pools = litres / POOL_L, lakes = km3 / LAKE_ZURICH_KM3, tap = km3 / SWISS_SUPPLY_KM3, each = litres / SWISS_POP, yrs = each / (HOUSEHOLD_L_DAY * 365);
+  const leftL = iceVolume(to) * 0.9 * 1e12;
+  const leftKm3 = leftL / 1e12, pools = leftL / POOL_L, lakes = leftKm3 / LAKE_ZURICH_KM3, tap = leftKm3 / SWISS_SUPPLY_KM3, each = leftL / SWISS_POP, yrs = each / (HOUSEHOLD_L_DAY * 365);
   const tile = (k, v, small, d) => `<div class="stat"><span class="v">${v}${small ? ` <small>${small}</small>` : ''}</span><span class="k">${k}</span><span class="d">${d}</span></div>`;
   return `<div class="water" id="waterBox" data-litres="${litres}"><div class="stat-row">
-    <div class="stat hero wide"><span class="v"><span id="wCount">0</span> litres</span><span class="k">melted from Swiss glaciers</span><span class="d">between autumn ${lo - 1} and autumn ${to}</span></div>
+    <div class="stat hero wide"><span class="v">${fmtN(leftL, 1)} litres</span><span class="k">of water still stored as ice in autumn ${to}</span></div>
     ${tile('Olympic pools', fmtN(pools), '', `Lined up, these 50-metre pools would stretch ${fmtN(pools * 50 / 1000, 0)} km, ${(pools * 50 / 1000 / 40075).toFixed(1)} times around the Earth.`)}
-    ${tile('Lake Zurich', lakes.toFixed(1), '×', `Lake Zurich holds about ${LAKE_ZURICH_KM3} km³ of water. The melted ice would fill it ${lakes >= 1 ? `${lakes.toFixed(1)} times` : `to ${Math.round(lakes * 100)} %`}.`)}
+    ${tile('Lake Zurich', lakes.toFixed(1), '×', `Lake Zurich holds about ${LAKE_ZURICH_KM3} km³ of water. The ice still left would fill it ${lakes >= 1 ? `${lakes.toFixed(1)} times` : `to ${Math.round(lakes * 100)} %`}.`)}
     ${tile('Swiss tap water', tap.toFixed(1), 'years', `How long all Swiss homes, businesses and industry would take to use this much, at about ${Math.round(SWISS_SUPPLY_KM3 * 1000)} million m³ a year.`)}
-    ${tile('Per resident', fmtN(each, 2), 'litres', `Shared among Switzerland's ${SWISS_POP / 1e6} million residents: each person's household water use (${HOUSEHOLD_L_DAY} litres a day) for about ${Math.round(yrs)} years.`)}
+    ${tile('Litres per resident', fmtN(each, 2), '', `Shared among Switzerland's ${SWISS_POP / 1e6} million residents: each person's household water use (${HOUSEHOLD_L_DAY} litres a day) for about ${Math.round(yrs)} years.`)}
+    <div class="stat hero wide"><span class="v"><span id="wCount">0</span> litres</span><span class="k">melted from Swiss glaciers</span><span class="d">between autumn ${lo - 1} and autumn ${to}</span></div>
   </div>
   <div class="w-live" id="wLive"></div></div>`;
 }
