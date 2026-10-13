@@ -8,13 +8,13 @@ const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8
 });
 map.getPane('bgPane').style.filter = 'brightness(1.12) saturate(1)';   // background a little brighter than the plain tiles
 map.getPane('labels').style.pointerEvents = 'none';
-/* The scale bar: a slim bar of alternating dark and white quarters with its length written above (0, half, full), in the style of the map key on the downloads. It sits where Leaflet's own scale sat (same class, so the
+/* The scale bar: a white bar with a tick at each end and its length written centred above, the same as the scale bar of the map key on the downloads. It sits where Leaflet's own scale sat (same class, so the
    margins of the toolbar rules still apply). */
 const NiceScale = L.Control.extend({
   options: {position: 'bottomright', maxPx: 150},
   onAdd(map){
     const el = L.DomUtil.create('div', 'leaflet-control-scale tfs-scale'); this._el = el;
-    el.innerHTML = '<div class="ts-labels"><span class="ts-l0">0</span><span class="ts-lm"></span><span class="ts-l1"></span></div><div class="ts-bar"><i></i><i></i><i></i><i></i></div>';
+    el.innerHTML = '<div class="ts-labels"><span class="ts-l1"></span></div><div class="ts-bar"></div>';
     L.DomEvent.disableClickPropagation(el); this._map = map; map.on('move zoom resize', this._update, this); map.whenReady(this._update, this); return el;      // the map has no view yet while the page loads
   },
   onRemove(map){ map.off('move zoom resize', this._update, this); },
@@ -25,7 +25,7 @@ const NiceScale = L.Control.extend({
     const pow = 10 ** Math.floor(Math.log10(maxM)), r = maxM / pow, m = (r >= 5 ? 5 : r >= 2 ? 2 : 1) * pow, px = Math.round(m / maxM * this.options.maxPx);      // 1, 2 or 5 times a power of ten
     const fmt = v => v >= 1000 ? `${+(v / 1000).toFixed(2)} km` : `${Math.round(v)} m`, el = this._el;
     el.querySelector('.ts-bar').style.width = px + 'px'; el.querySelector('.ts-labels').style.width = px + 'px';
-    el.querySelector('.ts-lm').textContent = fmt(m / 2).replace(/ (km|m)$/, ''); el.querySelector('.ts-l1').textContent = fmt(m);
+    el.querySelector('.ts-l1').textContent = fmt(m);
   }
 });
 const scaleCtl = new NiceScale().addTo(map);

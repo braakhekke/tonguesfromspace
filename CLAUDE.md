@@ -91,6 +91,7 @@ browser ── /cdse/statistics, /cdse/process ──> relay ──> Copernicus 
 - **The user edits files himself between sessions.** Always work from the current file, never from an older copy.
 - **No CSS or SVG filters on page elements for image effects:** Safari on iPhone ignores them. Process pixels in a canvas.
 - **Edit whole CSS rules or functions;** partial find/replace has broken selectors before. Check the result.
+- **Glaciological years:** a yearly value (mass balance, length change, national loss) is named after the year in which it ends in September: 2017 = October 2016 to September 2017, which is what the summer picture of 2017 shows. Selected years count with both ends: a sum over 2017–2019 adds the values of 2017, 2018 and 2019 (`r_in`, `selRows`, `inRange`), the ice at the start of it is `iceVolume(lo - 1)`. Charts show every year and highlight the selected ones.
 - **Async searches (`checkYears`) use a generation counter;** keep stale results from overwriting newer ones.
 
 ## Style

@@ -1,8 +1,8 @@
 /* Schibsted Grotesk (SIL Open Font Licence 1.1, see fonts/OFL.txt), served from this site: no request to Google */
 @font-face{font-family:"Schibsted Grotesk";src:url(../fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
 :root{
-  --firn:#F1F5F6; --sheet:#FFFFFF; --rock:#22313A; --moraine:#6B7378;
-  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#D9E1E4;
+  --firn:#F4F6F7; --sheet:#FFFFFF; --rock:#1C2A33; --moraine:#66757E; --faint:#93A0A7; --ink:#0E1A22; --rule-2:#EDF0F2;
+  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6;
   --accent:#C8322A;
   --old:#F2A93B; --new:#E5443B; --measure:#FFD84D;
   --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
@@ -12,7 +12,7 @@
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
-body{background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:15px;line-height:1.45}
+body{background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
 .app{--lw:290px;--rw:320px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);height:100%}
@@ -410,13 +410,14 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .credits.open{height:auto;white-space:normal;padding:4px 10px}
 .credits a{color:var(--crevasse)}
 .leaflet-control-scale{margin-bottom:84px!important;margin-right:12px!important}
-/* the scale bar: white quarters alternating with dark ones, labels above, no box; a soft shadow keeps it readable on snow and on dark rock */
+/* the scale bar: a white bar with end ticks and its length above, no box; a soft shadow keeps it readable on snow and on dark rock */
 .tfs-scale{pointer-events:none;color:#fff;font:600 11.5px/1 var(--sans);text-shadow:0 1px 5px rgba(0,0,0,.75),0 0 2px rgba(0,0,0,.6);margin-right:14px!important}
-.tfs-scale .ts-labels{position:relative;height:15px;margin-left:auto}
-.tfs-scale .ts-labels span{position:absolute;bottom:2px;transform:translateX(-50%)}
-.tfs-scale .ts-l0{left:0}.tfs-scale .ts-lm{left:50%}.tfs-scale .ts-l1{left:100%}
-.tfs-scale .ts-bar{display:flex;height:6px;margin-left:auto;border-radius:1px;box-shadow:0 0 0 1px rgba(255,255,255,.9),0 1px 6px rgba(0,0,0,.6);background:#fff}
-.tfs-scale .ts-bar i{flex:1}.tfs-scale .ts-bar i:nth-child(even){background:#1b2a33}
+.tfs-scale .ts-labels{position:relative;height:19px;margin-left:auto}
+.tfs-scale .ts-labels span{position:absolute;bottom:6px;transform:translateX(-50%)}
+.tfs-scale .ts-l1{left:50%}
+.tfs-scale .ts-bar{position:relative;height:3px;margin-left:auto;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.5)}      /* as mapKey on the downloads: bar with a tick at each end */
+.tfs-scale .ts-bar::before,.tfs-scale .ts-bar::after{content:'';position:absolute;bottom:0;width:2px;height:7px;background:#fff;box-shadow:0 1px 5px rgba(0,0,0,.5)}
+.tfs-scale .ts-bar::before{left:0}.tfs-scale .ts-bar::after{right:0}
 .m-label{background:var(--rock);color:#fff;border:0;border-radius:5px;font-family:var(--sans);font-size:12.5px;font-weight:600;padding:3px 7px;box-shadow:none}
 .m-label::before{display:none}
 .leaflet-popup-content{font-family:var(--sans);font-size:13.5px;margin:10px 14px}
@@ -459,8 +460,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 details.about{margin-top:0}
 details.about{margin:0 calc(-1 * var(--pad));padding:0 var(--pad);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}      /* full-width lines, one above and one below, nothing doubled */
 .tab-panel > .dcard:last-child,.tab-panel > #gWater > .dcard{border-bottom:0}
-details.about>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--moraine);display:flex;align-items:center;justify-content:space-between;gap:8px;list-style:none;padding:18px 0}      /* a chapter row like the others: grey title, chevron at the right */
-details.about>summary .info-btn{display:none}
+details.about>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--moraine);display:flex;align-items:center;justify-content:center;gap:10px;list-style:none;padding:18px 0}      /* centred, with the round i and no chevron */
+details.about>summary .info-btn{display:inline-flex;flex:none}
 details.about>summary::after{content:'';flex:none;width:7px;height:7px;border:solid var(--moraine);border-width:0 2px 2px 0;transform:rotate(45deg);margin:-3px 4px 0 8px;transition:transform .15s}
 details.about[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
 details.about>summary::-webkit-details-marker{display:none}
@@ -1217,3 +1218,108 @@ a,a:hover,a:focus,.tile-link,.tile-link *,.down-hint,.n-more{text-decoration:non
 .mapbar .tl-play:hover{background:rgba(255,255,255,.3)}
 .mapbar,.v3d-measure{width:max-content}      /* as wide as its content: a box placed at left:50% would otherwise be limited to half the stage and wrap its tools */
 @media (max-width:720px){.mapbar-row{flex-wrap:wrap}}
+
+/* ---------- right panel: figures, tiles and text as in the redesign (design/redesign-pro.html) ---------- */
+.story .dcard p,.story .fact{font-size:13.5px;line-height:1.6;color:var(--rock)}
+.story .dcard small.src,.story .dcard .srcline,.story small.src{font-size:11px;line-height:1.5;color:var(--faint)}
+.story .dcard .srcline a,.story .src a{color:var(--moraine)}
+.story .src-list{font-size:11px;line-height:1.5;color:var(--faint)}
+.story .src-list a{color:var(--moraine)}
+/* tiles: a thin grid, small caps label, then the figure */
+.story .stat-row{gap:0;padding:1px 0 0 1px}
+.story .stat{background:none;border-radius:0;padding:10px 12px 11px;gap:0}
+.story .stat:not(.hero){border:1px solid var(--rule);margin:-1px 0 0 -1px}
+.story .stat .mini{display:none}
+.story .stat .k:not(.note){font-size:10px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine);line-height:1.3;margin-bottom:0}
+.story .stat .k.note{font-size:11px;font-style:normal;color:var(--moraine);line-height:1.35;margin-top:2px}
+.story .stat:not(.hero) .v,.story .stat.wide:not(.hero) .v{font-size:19px;font-weight:600;letter-spacing:-.015em;color:var(--ink);margin-top:4px;line-height:1.15}
+.story .stat.loss:not(.hero) .v{color:var(--accent)}
+.story .stat .v small,.story .stat.wide .v small{font-size:12px;font-weight:500;color:var(--moraine);letter-spacing:0;margin-left:3px}
+.story .stat.wide.loss{background:none;padding:10px 12px 11px}
+.story .stat.wide.loss .k,.story .stat.wide.loss .k:not(.note){color:var(--moraine);font-size:10px}
+.story .stat.hero{padding:0 0 14px;border:0;margin:0}
+.story .stat.hero .v{font-size:30px;font-weight:700;letter-spacing:-.025em;line-height:1.1}
+.story .stat.hero .v small{font-size:14px}
+.story .stat.hero .k:not(.note){order:1;margin-top:4px;font-size:12.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--moraine);line-height:1.45}
+.story .stat.hero .k.note{font-size:11px}
+.story .sym-row{margin-top:8px}
+.story .sym-txt b{font-size:19px;font-weight:700;color:var(--ink)}
+.story .sym-txt small,.story .sym-txt small:only-child{font-size:12px;font-weight:400;color:var(--moraine)}
+/* water boxes */
+.story .water{background:none;border:0;padding:0;margin:0}
+.story .wbox,.story .w-box,.story .w-live,.story .cum-read{background:none;border:1px solid var(--rule);border-radius:0;padding:10px 12px}
+.story .wbox .v{font-size:19px;font-weight:600;letter-spacing:-.015em;color:var(--ink)}
+.story .wbox .v small{font-size:12px;font-weight:500;color:var(--moraine)}
+.story .wbox .k{font-size:11px;color:var(--moraine)}
+.story .water .w-big{font-size:15px;font-weight:600;color:var(--ink)}
+.story .water .w-text,.story .w-live,.story .cum-read{font-size:12px;line-height:1.5;color:var(--moraine)}
+.story .water .w-chips button{font-size:12px;font-weight:600;color:var(--ink)}
+.story .water .w-chips button[aria-pressed="true"]{color:#fff}
+.story .water .w-hero-tile .v{color:var(--ink)}
+/* loss per year */
+.story .bars{gap:5px;margin:0}
+.story .bar{grid-template-columns:34px 1fr 40px;gap:8px;font-size:12px;color:var(--moraine)}
+.story .bar .track{height:7px;background:var(--rule-2)}
+.story .bar .fill{background:#C9D2D7}
+.story .bar.in-range .fill{background:var(--accent)}
+.story .bar.in-range span:first-child,.story .bar.in-range .v{color:var(--ink);font-weight:600}
+.story .span-note,.story .dcard .span-note{background:none;padding:0;margin:11px 0 0;font-size:12px;line-height:1.5;color:var(--moraine)}
+/* ice left chart */
+.story .cum2 .cum-n b{font-size:24px;font-weight:700;letter-spacing:-.02em;color:var(--ink);line-height:1.1}
+.story .cum2 .cum-loss b{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1.1}
+.story .cum2 .cum-n small,.story .cum2 .cum-loss small,.story .cum figcaption{font-size:11px;color:var(--moraine)}
+.story .cum svg{font-size:10.5px;fill:var(--faint)}
+/* hike and bike, links */
+.story .tr-row{margin:0;padding:10px 0;border-top:1px solid var(--rule-2);font-size:13.5px;line-height:1.5}
+.story .tr-row:first-of-type{border-top:0;padding-top:0}
+.story .tr-row b{min-width:42px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
+.story .tr-row a{color:var(--crevasse);font-weight:600}
+.story .tr-maps{font-size:12.5px;color:var(--moraine)}
+.story .cb{font-size:12.5px;font-weight:600;color:var(--ink);padding:7px 11px}
+
+/* ---------- stat cards exactly as in the redesign: headline figure, text chip, tiles with a description, bars ---------- */
+.story .stat .d{display:block;order:3;font-size:11px;line-height:1.35;color:var(--moraine);margin-top:2px;text-align:left}
+.story .stat .d sup.fn{position:static;vertical-align:super}
+.story .stat.hero .k:not(.note){order:1}
+.story .stat.hero .d{order:2;font-size:12.5px;line-height:1.45;margin-top:4px}
+.story .stat .tile-link{order:4}
+.story .sym-chip{order:5;align-self:flex-start;display:inline-block;margin-top:8px;font-size:12px;line-height:1.4;color:var(--rock);background:var(--firn);border-radius:4px;padding:4px 9px}
+.story .stat.hero{display:flex;flex-direction:column}
+.story .stat .k:not(.note){text-transform:uppercase}
+.story .area{display:flex;flex-direction:column;gap:7px;margin-top:2px}
+.story .area div{display:grid;grid-template-columns:54px 1fr 78px;align-items:center;gap:8px;font-size:12px;color:var(--moraine)}
+.story .area i{display:block;height:9px;background:var(--crevasse);border-radius:1px}
+.story .area i.a0{background:#B9CDD6}.story .area i.a1{background:#7DA6BA}
+.story .area b{color:var(--ink);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
+.story .chart-t{display:flex;justify-content:space-between;align-items:baseline;margin:16px 0 8px}
+.story .chart-t .ct{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
+.story .chart-t em{font-style:normal;font-size:11.5px;color:var(--faint)}
+.story svg.ch{display:block;width:100%;height:auto;max-height:170px}
+.story svg.ch text{font:10.5px var(--sans);fill:var(--faint)}
+.story .gwater .stat.hero .v,.story .gwater .stat.hero.wide .v{color:var(--ink)}      /* the water figure is not a loss: dark, as in its closed row */
+.story .stat.hero{align-items:center;text-align:center}      /* the headline figure, its text and the comparison chip are centred in every card */
+.story .stat.hero .v,.story .stat.hero .k,.story .stat.hero .d{text-align:center}
+.story .stat.hero .sym-chip{align-self:center}
+.story .rb{cursor:default}.story .rb-read{margin-top:6px;min-height:2.9em;font-size:12px;line-height:1.45;color:var(--moraine)}      /* the readout of the hovered bar has its own line under the chart: it is too long for the title row */
+.story svg.ch:has(.rb.on) .rb:not(.on) .bar-r{opacity:.45}
+.story .stat.hero .k:not(.note),.story .stat.hero.wide.loss .k:not(.note),.story .stat.hero.wide .k:not(.note){font-size:12.5px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--moraine);line-height:1.45;margin:4px 0 0}
+.story .stat.hero,.story .stat.hero.wide,.story .stat.hero.wide.loss{padding:6px 0 14px;gap:0;background:none}
+.story .stat.hero .sym-chip{margin-top:8px}
+.story .ch-mode{display:flex;gap:16px;margin:-2px 0 8px}
+.story .ch-mode button{border:0;background:none;padding:0 0 3px;font:600 12px var(--sans);color:var(--moraine);cursor:pointer}
+.story .ch-mode button[aria-pressed="true"]{color:var(--ink);box-shadow:inset 0 -2px 0 var(--accent)}
+.story .dh-chart{margin:16px 0 0}
+.story .dh-chart figcaption{font-size:11px;line-height:1.5;color:var(--faint);margin-top:8px;display:block}
+.story .stat.hero:not(.loss) .v{color:var(--ink)}      /* only losses are red: shares and the water stored are dark */
+.story svg.ch text.sel{fill:var(--ink);font-weight:600}
+.story .water .w-live{margin-top:12px}
+.story .stat.hero .v,.story .stat.hero.wide .v{display:block;white-space:normal;text-wrap:balance;text-align:center}      /* the headline is one line of text, not flex items that break between number and unit */
+.story .stat.hero .v small{display:inline}
+.story .water .stat.hero .v,.story .gwater .stat.hero .v{font-size:26px;white-space:nowrap}      /* "4.6 trillion litres" stays on one line in the narrow panel */
+.story .ice-left{margin:0}
+.story .ice-left figcaption{font-size:11px;line-height:1.5;color:var(--faint);margin-top:8px}
+.story .ice-left svg.ch text{fill:var(--faint)}
+.story .chart-note{margin:6px 0 0;font-size:11px;line-height:1.45;color:var(--faint)}
+details.about>summary::after,details.about[open]>summary::after{display:none}
+.story .gh-invite,.story .gh-invite span{text-align:center}
+.story .dcard p.chart-note{margin:6px 0 0;font-size:11px;line-height:1.45;color:var(--faint);text-align:left}
