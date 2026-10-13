@@ -1323,3 +1323,10 @@ a,a:hover,a:focus,.tile-link,.tile-link *,.down-hint,.n-more{text-decoration:non
 details.about>summary::after,details.about[open]>summary::after{display:none}
 .story .gh-invite,.story .gh-invite span{text-align:center}
 .story .dcard p.chart-note{margin:6px 0 0;font-size:11px;line-height:1.45;color:var(--faint);text-align:left}
+details.about>summary .info-btn{width:15px;height:15px;border-width:1.2px;font-size:9.5px}      /* a small i */
+
+/* the timeline can be dragged to scrub through the years */
+.tl2{cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none}
+
+/* the timeline in the 3D dock is as long as in the map dock (300 px) and the dock is just wide enough for it: play button 34 + gap 20 + line 300 + margin 16 + paddings */
+@media (min-width:721px){.v3d-measure{min-width:min(400px,calc(100% - 20px))}.v3d-tl .tl2{flex:none;width:min(300px,56vw);margin-right:16px}}

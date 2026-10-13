@@ -392,6 +392,23 @@ function stopPlay(){
 }
 document.getElementById('playBtn').onclick = () => state.playing ? stopPlay() : play();
 document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.tl-play')) state.playing ? stopPlay() : play(); });      // the play button beside the timeline (the timeline is drawn again at every frame: one listener for all)
+/* drag on the timeline (map dock and 3D dock) to scrub through the years; the timeline is drawn again at every frame, so the box is kept and its track looked up at each move */
+(() => {
+  let box = null;
+  const scrub = e => {
+    const tr = box && box.querySelector('.tl2-track'); if (!tr || tlLayers.length < 2) return;
+    const r = tr.getBoundingClientRect(), k = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * (tlLayers.length - 1));
+    if (k !== state.frame) showFrame(k);
+  };
+  document.addEventListener('pointerdown', e => {
+    const tl = e.target.closest && e.target.closest('.tl2'); if (!tl || e.button > 0) return;
+    box = tl.closest('#tlDots, #v3dTlLine'); if (!box) return;
+    stopPlay(); scrub(e); e.preventDefault();
+  });
+  document.addEventListener('pointermove', e => { if (box) scrub(e); });
+  const end = () => { box = null; };
+  document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
+})();
 document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
 
 /* ---------- outlines ---------- */
