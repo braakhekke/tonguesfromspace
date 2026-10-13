@@ -32,6 +32,7 @@ async function checkYears(){
   if (state.a === state.b && ok.length > 1) { state.a = ok[0]; state.b = ok[ok.length - 1]; }
   setStatus(statusLine());
   refreshAll();
+  if (AUTOPLAY) { AUTOPLAY = false; if (state.mode === 'timelapse' && !state.playing && !teaserOpen) play(); }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
 }
 function statusLine(){
   const ok = okYears(), missing = YEARS.filter(y => !state.available[y] && summerStarted(y));       // the current year is not reported as missing before its summer

@@ -306,7 +306,7 @@ const tlFrames = () => state.mode === 'single' ? okYears().filter(y => y === sta
 function buildTimelapse(){
   stopPlay(); updateAerial();
   tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
-  if (state.mode === 'compare' || !glacierPicked) return;      // before a glacier is chosen no picture is drawn
+  if (state.mode === 'compare' || !glacierPicked) { document.getElementById('tlDots').innerHTML = ''; document.getElementById('v3dTlLine').innerHTML = ''; return; }      // no timeline left over on the map or in the 3D view when the mode leaves Timelapse      // before a glacier is chosen no picture is drawn
   // every frame stays loaded at opacity 0 so switching is instant
   tlLayers = tlFrames().map(yr => ({yr, layer: imageryLayer(yr, 'paneT', 0).addTo(map)}));
   state.frame = Math.min(state.frame, Math.max(0, tlLayers.length - 1));

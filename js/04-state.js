@@ -11,12 +11,14 @@ const state = {
 };
 let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
 let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
+let AUTOPLAY = false;           // the plain address opens on a timelapse that starts by itself, once the scenes are found
 let OPEN_3D = false;            // a shared link asks for the 3D view
 let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
-  if (['compare', 'timelapse', 'single'].includes(p.get('m'))) state.mode = p.get('m');
+  if (!OPEN_ON_GLACIER) { OPEN_ON_GLACIER = true; state.mode = 'timelapse'; AUTOPLAY = !matchMedia('(prefers-reduced-motion: reduce)').matches; }      // no glacier in the link: open on the biggest one as a timelapse, the Switzerland button leads to the overview
+  if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
   if (['natural', 'false1', 'false2'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
   if (p.get('ol') === '1') prefs.old = true;                                                      // ol=1: show the 1850 outline

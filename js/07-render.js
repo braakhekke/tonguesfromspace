@@ -22,8 +22,7 @@ function renderYearRange(){
     <div class="yr-track"><div class="yr-fill" id="yrFill"></div>
       <input type="range" id="yrA" min="0" max="${n}" step="1" value="${i(lo)}" aria-label="First year">
       <input type="range" id="yrB" min="0" max="${n}" step="1" value="${i(hi)}" aria-label="Last year"></div>
-    <div class="yr-ticks">${YEARS.map(y => `<i class="${state.available[y] ? '' : 'off'}" title="${y}${state.available[y] ? '' : ': no picture'}"></i>`).join('')}</div>
-    <div class="yr-ends"><span>${YEARS[0]}</span><span>${YEARS[n]}</span></div>`;
+    <div class="yr-ticks">${YEARS.map(y => `<i class="${state.available[y] ? '' : 'off'}" title="${y}${state.available[y] ? '' : ': no picture'}"></i>`).join('')}</div>`;
   const A = box.querySelector('#yrA'), B = box.querySelector('#yrB'), fill = box.querySelector('#yrFill');
   const paint = () => { const a = +A.value, b = +B.value; fill.style.left = (Math.min(a, b) / n * 100) + '%'; fill.style.width = (Math.abs(b - a) / n * 100) + '%'; box.querySelector('#yrLo').textContent = YEARS[Math.min(a, b)]; box.querySelector('#yrHi').textContent = YEARS[Math.max(a, b)]; };
   const snap = (inp, other) => {            // the nearest year with a picture, in the direction the handle moved
@@ -234,7 +233,7 @@ document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 
 let storyTab = HASH_TAB || 'figures';     // tab in the right panel: Stats on start, then kept when switching glacier
 /* The cards of the Switzerland tab: the same stack as in Discover; one open at a time, the choice remembered */
-const scard = (key, icon, title, html) => `<details class="card dcard coll" name="swiss" data-card="${key}"${cardOpen(key) ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div></summary><div class="dbody">${html}</div></details>`;
+const scard = (key, icon, title, html, sum = '') => `<details class="card dcard coll" name="swiss" data-card="${key}"${cardOpen(key) ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div>${sum}</summary><div class="dbody">${html}</div></details>`;
 /* The selected glacier against all of Switzerland: its share of the ice (filled in when the volume is known), of the area, and its place among the glaciers of the inventory */
 function shareBody(g){
   const inv = DATA && DATA.inventory, count = inv && inv.count, area = g.inv ? g.inv.area_km2 : null, rank = g.inv ? g.inv.rank : null;
@@ -275,7 +274,7 @@ function renderStory(){
   const openCards = sameGlacier ? [...storyEl.querySelectorAll('details.coll[open]')].map(d => d.firstElementChild.textContent.trim()) : [];      // the cards you had open stay open when the panel is redrawn
   storyEl.innerHTML = `
     <div class="story-empty"><h2>Nothing selected yet</h2><p>Click a glacier on the map, or pick one from the list. Its story, figures and sources show up here.</p></div>
-    <h2>${g.name} Glacier</h2>
+    <h2>${g.name}</h2>
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede.replace('by area,', `by area${fn('sgi')},`)}</p>
 
@@ -303,7 +302,7 @@ function renderStory(){
     </div>
 
     <div class="tab-panel" data-panel="swiss" ${storyTab === 'swiss' ? '' : 'hidden'}>
-      ${scard('sw-share', 'flag', `${g.name} in perspective`, shareBody(g))}
+      ${scard('sw-share', 'flag', `${g.name} in perspective`, shareBody(g), '<span class="sum-v" id="shSum"></span>')}
       ${scard('sw-loss', 'change', 'Ice lost per year', `<div class="bars">
         ${VOLUME_LOSS.map(n => `
           <div class="bar ${n.y > lo && n.y <= hi ? 'in-range' : ''}">
@@ -312,13 +311,12 @@ function renderStory(){
             <span class="v">${n.approx ? '≈' : ''}${n.v.toFixed(1)} %</span>
           </div>`).join('')}
       </div>
-      <p class="span-note">${spanText}</p>`)}
-      ${scard('sw-water', 'drop', 'How much water?', waterSection(lo, hi))}
-      ${scard('sw-left', 'area', 'How much is left?', cumulativeChart(lo, hi))}
+      <p class="span-note">${spanText}</p>`, `${(VOLUME_LOSS[VOLUME_LOSS.length - 1].approx ? '≈' : '') + VOLUME_LOSS[VOLUME_LOSS.length - 1].v.toFixed(1)} %<small>in ${VOLUME_LOSS[VOLUME_LOSS.length - 1].y}</small>`.replace(/^(.*)$/, m => `<span class="sum-v loss">${m}</span>`))}
+      ${scard('sw-water', 'drop', 'How much water?', waterSection(lo, hi), (() => { const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last); return lo && hi && hi > lo && to > lo ? sumValue(fmtN((iceVolume(lo) - iceVolume(to)) * 0.9 * 1e12, 1) + ' L') : ''; })())}
+      ${scard('sw-left', 'area', 'How much is left?', cumulativeChart(lo, hi), `<span class="sum-v">${Math.round(iceShareLeft() * 100)} %<small>left</small></span>`)}
     </div>
 
     <div class="about-wrap">
-      <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Support the tongues!</b> The code is open: join in, build a dashboard for your own region, or <a href="https://github.com/braakhekke/tonguesfromspace/issues/new" target="_blank" rel="noopener">open an issue</a> to ask for a glacier, a question or your own text on a visual.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/<wbr>tonguesfromspace</a></em></span></div>
     <details class="about">
       <summary><span class="info-btn" aria-hidden="true">i</span> About Tongues from Space</summary>
       <details class="about-ch" name="aboutch" id="ch-1"><summary>Why Tongues from Space</summary><div class="about-sec">
@@ -378,6 +376,7 @@ function renderStory(){
     </details>
     <!-- TODO: replace the placeholder profile URLs -->
     <div class="social" aria-label="Follow Tongues from Space"><a href="https://x.com/" target="_blank" rel="noopener" aria-label="X" title="X"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932ZM17.61 20.644h2.039L6.486 3.24H4.298Z"/></svg></a><a href="https://www.facebook.com/" target="_blank" rel="noopener" aria-label="Facebook" title="Facebook"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 21v-8h2.6l.4-3H14V8.3c0-.9.3-1.5 1.6-1.5H17V4.1C16.7 4.1 15.8 4 14.8 4 12.6 4 11 5.3 11 7.8V10H8.5v3H11v8z"/></svg></a><a href="https://www.instagram.com/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.8" cy="7.2" r="1.2"/></svg></a><a href="https://www.tiktok.com/" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.5a3 3 0 1 1-3-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4c.4 2.4 1.8 3.8 4.2 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></a></div>
+      <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Support the tongues!</b> The code is open: join in, build a dashboard for your own region, or <a href="https://github.com/braakhekke/tonguesfromspace/issues/new" target="_blank" rel="noopener">open an issue</a> to ask for a glacier, a question or your own text on a visual.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/<wbr>tonguesfromspace</a></em></span></div>
     </div>`;
   document.querySelectorAll('#story .tabs button').forEach(bt => bt.onclick = () => {
     storyTab = bt.dataset.tab;
@@ -695,11 +694,14 @@ document.addEventListener('toggle', e => {
   if (!d.matches || !d.matches('details.coll[data-card]')) return;
   prefs.cards = {...(prefs.cards || {}), [d.dataset.card]: d.open}; savePrefs();
 }, true);
+/* The headline figure of a closed chapter: the number big, its unit small (-40 %, -3060 m, -0.15 km³). */
+const sumInner = text => { const m = String(text).match(/^([−+≈\s]*[\d.,\u202f]*\d(?:\s*%)?)\s*(.*)$/); return m ? `${m[1].trim()}${m[2] ? `<small>${m[2]}</small>` : ''}` : ''; };
+const sumValue = (text, cls, id) => { const h = sumInner(text); return h ? `<span class="sum-v ${cls || ''}"${id ? ` id="${id}"` : ''}>${h}</span>` : ''; };
 function renderStats(g, lo, hi){
   const S = stats(g, lo, hi);
   const group = (key, title) => { return `
     <details class="stat-group dcard coll" name="stats" data-card="${key}"${cardOpen(key) ? ' open' : ''}>
-      <summary><h4><span class="ico">${ICONS[key]}</span>${title}</h4></summary><div class="dbody">
+      <summary><h4><span class="ico">${ICONS[key]}</span>${title}</h4>${(() => { const hero = S[key].find(t => t.hero && t.v), vol = key === 'volume' && S.volume.find(t => t.k === 'Volume' && t.v); const sv = key === 'area' ? hero && hero.sub : key === 'volume' ? vol && vol.v : hero && hero.v; return sv ? sumValue(sv, 'loss') : ''; })()}</summary><div class="dbody">
       <div class="stat-row ${key}">${S[key].map(t => `
         <div class="stat${t.hero ? ' hero' : ''}${t.loss && t.v ? ' loss' : ''}${t.wide ? ' wide' : ''}${(t.per || t.tip) && !t.hero && !t.wide ? ' has-per' : ''}"${t.slot ? ` data-slot="${t.slot}"` : ''}${(t.per || t.tip) && !t.hero && !t.wide ? ' tabindex="0"' : ''}>
           <span class="v">${t.v ?? '—'}${t.v && t.sub && (!t.per || t.wide) ? ` <small>${t.sub}</small>` : ''}</span>
@@ -817,6 +819,7 @@ function renderShare(){
     if (!v || currentGlacier() !== g || !document.getElementById('shIce')) return;
     const total = iceVolume(v.yr || 2016);
     document.getElementById('shIce').textContent = shareText(v.km3 / total);
+    const shSum = document.getElementById('shSum'); if (shSum) shSum.innerHTML = sumInner(shareText(v.km3 / total));
     document.getElementById('shLab').textContent = `of all Swiss glacier ice in ${v.yr || 2016}`;
     document.getElementById('shNote').innerHTML = `${v.km3.toFixed(1)} of ${total.toFixed(1)} km³${fn('grab')} (Swiss total${fn('swiss')})`;
   }).catch(() => {});
@@ -829,7 +832,7 @@ function renderGlacierWater(){
     const lastY = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, estKm3 = glacierIceAt(g, v, lastY), litres = estKm3 * 0.9 * 1e12;
     const N = waterNumbers(estKm3), V = volumeSurvey(g), M = balanceModel(g), R0 = v.yr || 2016;
     const nationalLossPct = Math.round((1 - iceShareLeft()) * 100);
-    slot.innerHTML = `<details class="card gwater dcard coll" name="stats" data-card="water"${cardOpen('water') ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS.drop}</span>Water storage</div></summary><div class="dbody">
+    slot.innerHTML = `<details class="card gwater dcard coll" name="stats" data-card="water"${cardOpen('water') ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS.drop}</span>Water storage</div>${sumValue(N.litresText + ' L')}</summary><div class="dbody">
       <div class="stat-row">
         <div class="stat hero wide">
           <span class="v">${N.litresText} litres</span>
