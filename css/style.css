@@ -1183,7 +1183,7 @@ body.pane-open .app.is-3d .v3d-hint,body.pane-open .app.is-3d #videoFrameNote{di
 body.teaser-on{overflow:hidden}
 @media (min-width:900px) and (hover:hover){
   .teaser{background:rgba(10,19,34,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
-  .teaser video{width:calc(100% - 160px);height:calc(100% - 120px);border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.5)}
+  .teaser video{width:min(960px,calc(100% - 160px),calc((100vh - 120px) * 16 / 9));height:auto;aspect-ratio:16/9;border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.5)}      /* at most 960 px wide: the film is 1920 px, so it stays sharp on a 2x screen and is not blown up on a large one */
 }
 /* phone in portrait: the 16:9 film in the middle of the screen, just under full width (Skip sits above it, the progress bar under it) */
 @media (orientation:portrait) and (max-width:720px){
@@ -1324,7 +1324,6 @@ a,a:hover,a:focus,.tile-link,.tile-link *,.down-hint,.n-more{text-decoration:non
 details.about>summary::after,details.about[open]>summary::after{display:none}
 .story .gh-invite,.story .gh-invite span{text-align:center}
 .story .dcard p.chart-note{margin:6px 0 0;font-size:11px;line-height:1.45;color:var(--faint);text-align:left}
-details.about>summary .info-btn{width:15px;height:15px;border-width:1.2px;font-size:9.5px}      /* a small i */
 
 /* the timeline can be dragged to scrub through the years */
 .tl2{cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none}
@@ -1341,3 +1340,9 @@ details.about>summary .info-btn{width:15px;height:15px;border-width:1.2px;font-s
 .tl-dots{align-self:stretch}
 .tl-row{justify-content:center}
 @media (min-width:721px){.mapbar:has(.tl-dots:not(:empty)){min-width:min(400px,calc(100% - 24px))}}
+
+/* the pick-a-glacier message in the style of the left panel (small capitals, the step number in red) on the dark glass of the docks, at the top edge of the map */
+.pick-note{top:12px;padding:11px 16px;gap:10px;border-radius:8px;box-shadow:0 2px 12px rgba(0,0,0,.35);font:600 11px/1.3 var(--sans);letter-spacing:.09em;text-transform:uppercase}
+.pick-note .pn-num{width:auto;height:auto;border-radius:0;background:none;color:#FF8A82;font:700 11px/1.3 var(--sans);letter-spacing:.09em;font-variant-numeric:tabular-nums}
+
+.gframe.far{cursor:pointer}      /* zoomed out: the white square of the current selection can be clicked to fly back to the tongue */
