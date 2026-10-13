@@ -55,7 +55,6 @@ Everything the page does runs in the visitor's browser. There is no database and
 | `scripts/tools/` | Local helpers: `pick-scenes.html` (choose scenes), `warm-up.html` (fill the relay cache after a deploy), `gallery-admin.html` (moderation). Run with `python3 -m http.server 8000`; they spend Copernicus requests |
 | `.github/workflows/deploy.yml` | Builds the data and publishes the site on GitHub Pages |
 | `fonts/`, `images/` | Self-hosted font (SIL OFL) and the pictures used by the page |
-| `experiments/` | Parked work with notes (an ice thickness map layer, least-snow scene choice); not part of the site |
 | `CLAUDE.md` | Notes on the code for developers and AI assistants |
 
 ## Run it on your computer
