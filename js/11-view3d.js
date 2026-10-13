@@ -1220,7 +1220,7 @@ function drawPreview3D(){            // placeholder labels over the frame, drawn
   ctx.save(); ctx.scale(q, q); brandMotion = vstate.kind !== 'image' ? {cam: vPrev.on && vPrev.cam ? vPrev.cam : {az: 0, el: 0}, cam0: vPrev.on && vPrev.cam0 ? vPrev.cam0 : {az: 0, el: 0}} : null; try { draw3DLabels(ctx, W, H, S, labels3D(c, facts)); } finally { brandMotion = null; } ctx.restore();
 }
 const info3D = (c, ys, outline) => {            // the facts the fact card of the map videos needs
-  const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
+  const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
   return {glacier: c.g, years: ys, scenes: ys.map(y => state.available[y]), outline, res: 10, style: state.style, compare: !!c.cmp, horiz: c.hz,
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0, site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '')};
 };

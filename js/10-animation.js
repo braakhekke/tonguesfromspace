@@ -610,7 +610,7 @@ async function frameBases(ys, W, H){
     bases.push(await buildBase(bmp, crop, W, H, outline, outlineGeom(g), outsideAlpha())); bmp.close();
     progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
   }
-  const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y > lo && n.y <= hi);
+  const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
   const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(), style: state.style,
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
     site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
@@ -711,9 +711,9 @@ async function makeImage(){
   } finally { vstate.busy = false; $('vsGo').disabled = false; }
 }
 async function endInfo(g, info, lo, hi){            // the facts for the end card: what melted in the chosen period, all of Switzerland and this glacier (estimate) if its ice is known; false when there is no loss data for it
-  const to = Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y), melt = iceVolume(lo) - iceVolume(to);
-  if (!(to > lo && melt > 0)) return false;
-  const gv = await glacierVolume(g).catch(() => null), ice0 = gv ? glacierIceAt(g, gv, lo) : 0, gMelt = gv ? ice0 - glacierIceAt(g, gv, to) : 0;
+  const to = Math.min(hi, VOLUME_LOSS[VOLUME_LOSS.length - 1].y), melt = iceVolume(lo - 1) - iceVolume(to);      // the year of the first picture counts too (a glaciological year ends in September)
+  if (!(to >= lo && melt > 0)) return false;
+  const gv = await glacierVolume(g).catch(() => null), ice0 = gv ? glacierIceAt(g, gv, lo - 1) : 0, gMelt = gv ? ice0 - glacierIceAt(g, gv, to) : 0;
   info.end = { from: lo, to, swiss: { N: waterNumbers(melt), pct: info.lost },
     glacier: gv && gMelt > 0 && ice0 > 0 ? { N: waterNumbers(gMelt), pct: 100 * gMelt / ice0 } : null };
   return true;
