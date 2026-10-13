@@ -21,7 +21,7 @@ function updatePickHint(){
     }
   }
   if (!show) return;
-  $('pickNote').innerHTML = far ? '<span class="pn-num">1</span><span>Too far out. Zoom in on a <b>red glacier</b>.</span>' : '<span class="pn-num">1</span><span>Choose a red outlined glacier on the map</span>';
+  $('pickNote').innerHTML = far ? '<span>Zoom in to see the glacier tongues</span>' : '<span>Choose a red outlined glacier on the map</span>';
 }
 map.on('zoomend moveend resize', updatePickHint);
 

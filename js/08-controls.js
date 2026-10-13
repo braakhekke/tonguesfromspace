@@ -54,7 +54,8 @@ function drawBoxes(){
   GLACIERS.forEach((g, i) => {
     const sel = picked && g.id === state.glacier, fp = imageFootprint(g).bounds, geom = outlineGeom(g);
     if (sel) {            // the picture area of the chosen glacier: a thin white frame, always (also in the download panes), with a small label written along its top edge
-      frameLayer.addLayer(L.polygon(roundedBox(fp), {color: '#fff', weight: 1.5, opacity: .95, fill: false, interactive: false, className: 'gframe'}));
+      const far = map.getZoom() < wholeGlacierZoom(g);      // zoomed out beyond the glacier: a click inside the square flies back to the tongue
+      frameLayer.addLayer(L.polygon(roundedBox(fp), {color: '#fff', weight: 1.5, opacity: .95, fill: far, fillOpacity: 0, interactive: far, className: far ? 'gframe far' : 'gframe'}).on('click', () => focusTongue()));
       frameLayer.addLayer(L.marker([fp[1][0], fp[0][1]], {interactive: false, keyboard: false, icon: L.divIcon({className: 'frame-label', html: `<span>Current selection: ${g.name}</span>`, iconSize: [220, 12], iconAnchor: [-15, 13]})}));
     }
     const W = sel ? 1.6 : 1.1, F = geom ? 0.16 : 0, style = {color: getVar('--accent'), weight: W, opacity: .9, fillColor: getVar('--accent'), fillOpacity: F, className: 'gbox'};      // thin line and a faint fill so the ice stays visible; stronger under the pointer
