@@ -10,7 +10,7 @@ What it does, besides copying:
    renames only the files that changed. The map from the plain name to the hashed name goes into config.js
    (window.TFS_CONFIG.assets); index.html asks for it with asset('<plain name>') and the <script src> and <link href>
    in the HTML files are rewritten here. Without the map (local use with serve.py) the plain names work as before.
-   Hashed: style.css, js/*.js (the page's code, one file per section), data/glaciers.js, thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json, teaser/*.mp4|webm|jpg (the film of the first visit, made by scripts/make_teaser.py).
+   Hashed: css/style.css, js/*.js (the page's code, one file per section), data/glaciers.js, thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json, teaser/*.mp4|webm|jpg (the film of the first visit, made by scripts/make_teaser.py).
    A one-line change in the code therefore renames, and re-downloads, only the file it is in.
    Not hashed: index.html, gallery.html, config.js, data/terrain/manifest.json (the entry points that name the hashed files;
    the terrain files themselves are hashed by build_terrain_bundle.py).
@@ -29,9 +29,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
 HTML_FILES = ["index.html", "gallery.html"]
-PLAIN_FILES = ["pages.css", "preview.jpg"]                 # copied as they are (missing ones are skipped)
+PLAIN_FILES = ["css/pages.css", "preview.jpg"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg"]
-HASHED_FILES = ["style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
