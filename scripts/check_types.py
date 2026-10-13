@@ -4,7 +4,7 @@
     python3 scripts/check_types.py
 
 Needs Node (the GitHub runners have it; npx fetches TypeScript 5.9.3, nothing is installed in the project). Without Node the check is skipped.
-The scripts are checked as one program (tsconfig.check.json); the names the page does not declare itself are in types/globals.d.ts.
+The scripts are checked as one program (scripts/tsconfig.check.json); the names the page does not declare itself are in scripts/types/globals.d.ts.
 
 What fails the check: a name that does not exist (a typo or a function that was renamed), a property that does not exist on one of our own objects,
 or a call with the wrong number of arguments. These are the mistakes a visitor meets as "x is not defined" / "x is not a function".
@@ -34,7 +34,7 @@ def main():
     if not shutil.which("npx"):
         print("types: skipped (no Node/npx here; the workflows run this check)")
         return
-    r = subprocess.run(["npx", "--yes", "-p", TYPESCRIPT, "tsc", "-p", "tsconfig.check.json", "--pretty", "false"], cwd=ROOT, capture_output=True, text=True)
+    r = subprocess.run(["npx", "--yes", "-p", TYPESCRIPT, "tsc", "-p", "scripts/tsconfig.check.json", "--pretty", "false"], cwd=ROOT, capture_output=True, text=True)
     lines = [l for l in (r.stdout + r.stderr).splitlines() if l.strip()]
     findings = [l for l in lines if re.search(r"error TS\d+", l)]
     other = [l for l in lines if not re.search(r"error TS\d+", l) and not l.startswith(" ")]
