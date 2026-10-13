@@ -68,7 +68,9 @@ class TestLoading(SiteCase):
     def test_overview_loads_without_errors(self):
         page = self.open()
         self.assertEqual(page.evaluate("GLACIERS.length"), 10)
-        self.assertEqual(page.locator(".gbox-num").count(), 10)      # the overview: ten numbered glaciers
+        self.assertTrue(page.evaluate("glacierPicked"), "without a glacier in the link the page opens on the biggest one")
+        self.assertEqual(page.evaluate("state.glacier"), page.evaluate("GLACIERS[0].id"))
+        self.assertEqual(page.evaluate("state.mode"), "timelapse")
         self.assertClean()
 
     def test_every_glacier_can_be_chosen(self):
@@ -111,11 +113,12 @@ class TestLoading(SiteCase):
         page = self.open()
         if not page.evaluate("GLACIERS.some(g => g.inv.outline_file)"):
             self.skipTest("the page holds the outlines itself (not the built site)")
-        self.assertFalse(page.evaluate("GLACIERS.some(g => g.inv.outline)"), "no 2023 outline should be loaded before a glacier is chosen")
+        page.wait_for_function("currentGlacier().inv.outline", timeout=15000)      # the page opens on the biggest glacier: only its outline is loaded
+        self.assertEqual(page.evaluate("GLACIERS.filter(g => g.inv.outline).length"), 1, "only the opening glacier's 2023 outline should be loaded")
         self.assertTrue(page.evaluate("GLACIERS.every(g => g.inv.oldest && g.inv.oldest.outline)"), "the overview needs the 1850 outlines of all ten")
         page.evaluate("chooseGlacier(GLACIERS[4].id)")
         page.wait_for_function("GLACIERS[4].inv.outline", timeout=15000)
-        self.assertEqual(page.evaluate("GLACIERS.filter(g => g.inv.outline).length"), 1)
+        self.assertEqual(page.evaluate("GLACIERS.filter(g => g.inv.outline).length"), 2)
         self.assertClean()
 
 
@@ -134,7 +137,9 @@ class TestLoading(SiteCase):
 class TestRelayCalls(SiteCase):
     def test_a_busy_relay_is_retried_and_the_visitor_is_told(self):
         page = self.open()
+        page.wait_for_timeout(1500)      # the page starts its own scene search at once (no relay here); let its failure message come first
         r = page.evaluate("""async () => {
+          document.getElementById('notice').textContent = '';
           relayCheck = Promise.resolve({relay: true});      // as if the relay had answered its ping
           let n = 0;
           const real = window.fetch;
