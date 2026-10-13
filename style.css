@@ -300,6 +300,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-photo[hidden]{display:none}
 .v3d.photo-on .v3d-over{z-index:3}
 .v3d.photo-on .v3d-layers{display:none}
+.v3d.photo-on .v3d-top,.v3d.photo-on .v3d-bottom{display:none!important}      /* the hints (drag, pinch), the year line and the picture note belong to the 3D picture, not to the photograph; its own credit sits under it */
 .v3d.photo-on #v3mDist,.v3d.photo-on #v3mArea,.v3d.photo-on #v3mClear,.v3d.photo-on .v3d-mhint{display:none}      /* the measuring tools need the 3D picture itself, not the photograph over it: the card then holds only the photo buttons */
 .v3d-photos{display:flex;flex-direction:column;align-items:stretch;margin-top:3px;padding-top:3px;border-top:1px solid var(--rule)}
 .v3d.photo-on .v3d-photos{margin-top:0;padding-top:0;border-top:0}
@@ -338,6 +339,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d-tip{position:absolute;z-index:6;pointer-events:none;max-width:220px;background:rgba(255,255,255,.97);color:#1d2a30;border-radius:8px;padding:7px 10px;font-size:12.5px;line-height:1.4;box-shadow:0 3px 14px rgba(0,0,0,.4)}
 .v3d-tip[hidden]{display:none}
 .v3d-camtip{width:176px;padding:6px 8px 7px;font-size:12px}
+.v3d-camtip{cursor:pointer}
+@media (pointer:coarse){.v3d-camtip{pointer-events:auto}}
 .v3d-camtip img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:5px;margin-bottom:5px;background:#000}
 .v3d-camtip small{display:block;margin-top:3px;font-size:10.5px;color:var(--moraine);line-height:1.35}
 .v3d-bottom label{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#fff;pointer-events:auto}
@@ -756,14 +759,16 @@ sup.fn a:hover{text-decoration:underline}
 }
 
 /* Phones in portrait: the layer menu opens as a panel directly under the visual (thumb reach, the visual stays where it is), in two columns */
-.layers-bar,.lb-close-bottom{display:none}
+.layers-bar{display:none}
 @media (max-width:720px) and (orientation:portrait){
   .layers-bar{order:1;display:flex;align-items:center;justify-content:space-between;width:100%;border:0;border-bottom:1px solid var(--rule);background:var(--sheet);padding:10px 16px;font:700 14px var(--sans);color:var(--rock);cursor:pointer}
-  .layers-bar svg,.lb-close-bottom svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-  .layers-bar[aria-expanded="true"]{display:none}
+  .layers-bar svg{transition:transform .2s;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+  .layers-bar[aria-expanded="true"] svg{transform:rotate(180deg)}
+  body.has-full .layers-bar[aria-expanded="true"]{display:none}
   .layerbox.in-flow{position:static;order:1;max-width:none;width:auto;margin:0;border-radius:0;box-shadow:none;background:var(--sheet);border-bottom:1px solid var(--rule);padding:0 16px 10px;max-height:none;overflow:visible;display:none}
   .layerbox.in-flow.open{display:block}
-  .layerbox.in-flow .lb-head{position:static;background:transparent;padding:10px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
+  .layerbox.in-flow .lb-head{display:none}      /* the bar above the panel closes it, its chevron turned up */
+  body.has-full .layerbox.in-flow .lb-head{display:flex;position:static;background:transparent;padding:10px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
   .layerbox.in-flow.min .lb-body,.layerbox.in-flow .lb-body{display:block;column-count:2;column-gap:18px;padding-top:6px}
   .layerbox.in-flow .lb-body > *{break-inside:avoid}
   .layerbox.in-flow .lb-group{break-after:avoid;break-after:avoid-column;-webkit-column-break-after:avoid;margin-top:8px}
@@ -774,9 +779,7 @@ sup.fn a:hover{text-decoration:underline}
   /* full screen: the layer menu rises from the bottom edge of the screen, with a clear way out at the top and bottom */
   body.has-full .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:2100;max-height:58dvh;overflow-y:auto;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
   body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet)}
-  body.has-full .layerbox.in-flow .lb-close-bottom{display:none}
   body.has-full .layerbox.in-flow .lb-head span::after{content:' · tap to close';font-weight:500;color:var(--moraine);font-size:12.5px}
-  .lb-close-bottom{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin-top:10px;padding:9px;border:1.5px solid var(--rule);border-radius:8px;background:var(--sheet);font:700 13.5px var(--sans);color:var(--rock);cursor:pointer;column-span:all}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 
@@ -1154,3 +1157,25 @@ body.pane-open .app.is-3d .v3d-hint,body.pane-open .app.is-3d #videoFrameNote{di
 
 /* the four comparison choices are centred */
 .water .w-chips{justify-content:center}
+
+/* ---------- teaser film (js/13-teaser.js) ---------- */
+.teaser-btn{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 11px 5px 9px;border:1px solid var(--rule);border-radius:99px;background:var(--sheet);color:var(--accent);font-size:12.5px;font-weight:700;cursor:pointer}
+.teaser-btn svg{width:13px;height:13px;fill:currentColor}
+.teaser-btn:hover{border-color:var(--accent)}
+.teaser{position:fixed;inset:0;z-index:5000;display:flex;align-items:center;justify-content:center;background:#0A1322;opacity:0;transition:opacity .5s}
+.teaser.on{opacity:1}
+.teaser video{display:block;width:100%;height:100%;object-fit:contain;cursor:pointer}
+.teaser-skip{position:absolute;top:calc(14px + env(safe-area-inset-top,0px));right:14px;padding:7px 16px;border:1px solid rgba(255,255,255,.4);border-radius:99px;background:rgba(10,19,34,.55);color:#fff;font-size:13.5px;font-weight:700;cursor:pointer;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.teaser-skip:hover{background:rgba(10,19,34,.8)}
+.teaser-bar{position:absolute;left:0;right:0;bottom:0;height:4px;background:rgba(255,255,255,.16)}
+.teaser-bar i{display:block;height:100%;width:0;background:var(--accent)}
+.teaser-end{position:absolute;left:0;right:0;bottom:calc(9% + env(safe-area-inset-bottom,0px));display:flex;flex-wrap:wrap;gap:12px;justify-content:center;padding:0 16px}
+.teaser-go,.teaser-again{padding:11px 24px;border-radius:99px;font-size:15px;font-weight:800;cursor:pointer}
+.teaser-go{border:0;background:var(--accent);color:#fff;box-shadow:0 8px 28px rgba(200,50,42,.5)}
+.teaser-again{border:1px solid rgba(255,255,255,.5);background:rgba(10,19,34,.55);color:#fff}
+body.teaser-on{overflow:hidden}
+@media (min-width:900px) and (hover:hover){
+  .teaser{background:rgba(10,19,34,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
+  .teaser video{width:calc(100% - 160px);height:calc(100% - 120px);border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.5)}
+}
+@media (prefers-reduced-motion:reduce){.teaser{transition:none}}

@@ -182,9 +182,7 @@ function placeLayers(){
   if (inflow) $('stageSlot').after(layersBar, lbx, l3); else { $('stage').appendChild(lbx); $('v3d').appendChild(l3); layersBar.remove(); }
 }
 PHONE.addEventListener('change', placeLayers); placeLayers();
-layersBar.onclick = () => { setLayers(true); setMore(false); };
-$('lbCloseBottom').onclick = () => setLayers(false);
-$('l3CloseBottom').onclick = () => setLayers(false);
+layersBar.onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };
 $('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time

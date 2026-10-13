@@ -95,11 +95,16 @@ function stopPreview(){
 }
 function startPreview3D(){            // the camera swings as in the video, the years change (timelapse) or the line moves (slider); everything is put back when it stops
   const c = v3dCtx, viewer = v3d; if (!c || !viewer) return;
-  vPrev.cam0 = viewer.getCam(); vPrev.year0 = c.cmp ? null : c.current(); vPrev.split0 = v3dSplit; vPrev.cam = vPrev.cam0;
+  vPrev.applied = null; vPrev.off = {az: 0, el: 0, k: 1}; vPrev.cam0 = viewer.getCam(); vPrev.year0 = c.cmp ? null : c.current(); vPrev.split0 = v3dSplit; vPrev.cam = vPrev.cam0;
   const t0 = performance.now(), swing = $('vSwing') && $('vSwing').checked, ys = !c.cmp && c.years && c.years.length > 1 ? c.years : null;
   const tick = now => {
-    if (!vPrev.on) return; const t = (now - t0) / 1000, u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2, cam0 = vPrev.cam0;
-    if (swing) { vPrev.cam = {az: cam0.az + 0.5 * sw, el: cam0.el + 0.07 * bob, dist: cam0.dist * (1 - 0.1 * bob)}; viewer.setCam(vPrev.cam); } else vPrev.cam = cam0;
+    if (!vPrev.on) return; const t = (now - t0) / 1000, u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2;
+    const cur = viewer.getCam(), ap = vPrev.applied;
+    if (ap && (Math.abs(cur.az - ap.az) > 1e-4 || Math.abs(cur.el - ap.el) > 1e-4 || Math.abs(cur.dist - ap.dist) > 1e-4 * ap.dist)) {      // the visitor turned, tilted or zoomed: the swing goes on around the new view, which is also what comes back when the preview stops
+      const o = vPrev.off; vPrev.cam0 = {...vPrev.cam0, az: cur.az - o.az, el: cur.el - o.el, dist: cur.dist / o.k};
+    }
+    const cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
+    vPrev.off = off; vPrev.cam = {az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
     if (c.cmp) setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * t / 6));
     else if (ys && c.follow) { const y = ys[Math.floor(t / 1.2) % ys.length]; if (y !== c.current()) c.follow(y); }
     drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
@@ -218,12 +223,16 @@ const videoDuration = n => (vstate.type === 'swipe'
   ? swipeLength(perSec(0) / 1.2) + tailLength()
   : n * perSec(n) + VIDEO.hold + tailLength());
 map.on('move zoom resize', updateFrame);
+/* Phones: opening a pane scrolls the visual into view after the frame was placed, and the page can be scrolled while it is open: the frame follows what is visible */
+let frameScrollRaf = 0;
+addEventListener('scroll', () => { if ($('videoSheet').hidden || frameScrollRaf) return; frameScrollRaf = requestAnimationFrame(() => { frameScrollRaf = 0; updateFrame(); }); }, {passive: true});
 Promise.all(['700 24px', '800 120px', '600 28px', '500 20px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))).then(updateFrame);   // the preview uses the real font
 
 function openVideo(kind = 'video', stay = false){            // stay: the pane changes where it is, the page does not scroll
   if (kind === 'video' && typeof VideoEncoder === 'undefined') {
     return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
   }
+  stopPreview();      // switching between image and animation ends a running preview
   vstate.kind = kind; $('vfPlay').style.display = kind === 'image' ? 'none' : '';
   document.body.classList.add('pane-open'); setLayers(false); if (typeof cancelMeasure === 'function') cancelMeasure(); map.removeLayer(M.group);      // no layer menu (it would open out of sight, behind the pane) and no measurements: neither is part of a download
   const image = kind === 'image', in3D = viewMode === '3d';
@@ -271,7 +280,14 @@ function closeVideo(){
 $('vkImage').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('video'); };      // switch between the two panes without closing
 $('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide' };
-const setFmt = f => { stopPreview(); vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f)); updateFrame(); };
+const setFmt = f => {
+  stopPreview();
+  if (viewMode !== '3d' && !$('videoSheet').hidden) checkAreaSel();
+  const keep = viewMode !== '3d' && areaSel ? areaSel.which : null;      // Tongue or Whole glacier was pressed and the map not moved since: fit it again to the new frame
+  vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f));
+  updateFrame();
+  if (keep) { frameTo(keep === 'whole'); updateFrame(); }
+};
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
 /* the speed setter of the animation pane and the one under Compare / Timelapse are one setting */
 function syncSpeed(from){ const v = +$(from).value; ['speedSel', 'vSpeed'].forEach(id => { $(id).value = v; }); updateSpeedIcon(); const o = $('vSpeedOut'); if (o) o.textContent = `${SPEED_FPS[v]} fps`; const nd = $('vSpeedNeedle'); if (nd) nd.setAttribute('transform', `rotate(${-60 + v * 30} 12 18)`); }
