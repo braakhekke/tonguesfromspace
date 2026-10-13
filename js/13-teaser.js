@@ -8,14 +8,15 @@ const TEASER_KEY = 'tfs-teaser-seen';
 const teaserSeen = () => { try { return !!localStorage.getItem(TEASER_KEY); } catch { return false; } };
 const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } catch {} };
 function teaserWanted(){
-  const c = navigator.connection || {};
+  /** @type {any} */
+  const c = /** @type {any} */ (navigator).connection || {};
   if (location.hash === '#teaser') return true;
   return !location.hash && !teaserSeen() && !matchMedia('(prefers-reduced-motion: reduce)').matches && !c.saveData && !/(^|-)2g$/.test(c.effectiveType || '');
 }
 let teaserOpen = false;
 function openTeaser(auto){
   if (teaserOpen) return;
-  const base = 'teaser/teaser-wide', before = document.activeElement;
+  const base = 'teaser/teaser-wide', before = /** @type {any} */ (document.activeElement);
   teaserOpen = true;
   const box = document.createElement('div'); box.className = 'teaser'; box.id = 'teaser'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Teaser film: Tongues from Space');
   box.innerHTML = `<video muted playsinline preload="auto" poster="${asset(base + '-poster.jpg')}" aria-label="Satellite timelapses, a before and after slider, 3D terrain, historic photographs, downloads and glacier figures of the ten largest Swiss glaciers">
