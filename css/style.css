@@ -210,6 +210,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .is-timelapse #tagT{display:block}
 .tl-dots{display:none;align-self:center;padding:6px 8px 5px;margin-bottom:4px;border-bottom:1px solid rgba(255,255,255,.2);color:#fff;font-size:12px;font-weight:500}      /* the timelapse timeline and play button sit in the black dock, above its buttons */
 .is-timelapse .tl-dots{display:block}
+.tl-dots:empty{display:none!important}      /* One year has no timeline: no empty row with a line above the buttons */
 .mapbar-row{display:flex;align-items:center;justify-content:center;flex-wrap:nowrap;gap:2px}      /* the tools stay on one line; only phones let them wrap */
 .tl2{width:min(300px,56vw)}
 .tl2-ends{display:flex;justify-content:space-between;font-size:11px;font-weight:500;letter-spacing:0;opacity:.85;text-shadow:0 0 6px rgba(0,0,0,.6)}
@@ -1329,4 +1330,14 @@ details.about>summary .info-btn{width:15px;height:15px;border-width:1.2px;font-s
 .tl2{cursor:ew-resize;touch-action:none;user-select:none;-webkit-user-select:none}
 
 /* the timeline in the 3D dock is as long as in the map dock (300 px) and the dock is just wide enough for it: play button 34 + gap 20 + line 300 + margin 16 + paddings */
-@media (min-width:721px){.v3d-measure{min-width:min(400px,calc(100% - 20px))}.v3d-tl .tl2{flex:none;width:min(300px,56vw);margin-right:16px}}
+@media (min-width:721px){.v3d-measure:has(.v3d-tl:not(:empty)){min-width:min(400px,calc(100% - 20px))}.v3d-tl .tl2{flex:none;width:min(300px,56vw);margin-right:16px}}
+
+/* the map dock's buttons are as high as the 3D dock's (32 px), so the dock keeps its height and place when the view switches */
+@media (min-width:721px){.mapbar button{min-height:32px;box-sizing:border-box}.mapbar .tl-play{min-height:0}}
+.v3d-measure{row-gap:0}      /* the 3D dock wraps its timeline row above the buttons; the 2 px gap between rows made it higher than the map dock */
+
+/* the timeline sits in the middle of its row of the dock, horizontally and vertically, in the map and in the 3D view */
+.tl-dots,.v3d-tl{padding-top:6px;padding-bottom:6px}
+.tl-dots{align-self:stretch}
+.tl-row{justify-content:center}
+@media (min-width:721px){.mapbar:has(.tl-dots:not(:empty)){min-width:min(400px,calc(100% - 24px))}}
