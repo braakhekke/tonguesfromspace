@@ -1,6 +1,6 @@
 # CLAUDE.md: Swiss Glacier Tongues from Space
 
-Public dashboard of the tongues of the ten largest Swiss glaciers in Sentinel-2 imagery, one clear late-summer scene per year since 2016, with GLAMOS statistics, a single-image export and an animation (video) export. Site: https://braakhekke.github.io/tonguesfromspace/. Non-commercial (see Licences).
+Public dashboard of the tongues of the ten largest Swiss glaciers in Sentinel-2 imagery, one clear late-summer scene per year since 2016, with GLAMOS statistics, a single-image export and an animation (video) export. Site: https://tonguesfromspace.org/. Non-commercial (see Licences).
 
 ## Files
 

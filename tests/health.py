@@ -2,7 +2,7 @@
 """Health check of the PUBLIC site and its relay. Run weekly by .github/workflows/health.yml, or by hand:
 
     pip install -r tests/requirements.txt && python3 -m playwright install chromium
-    python3 tests/health.py                                  # https://braakhekke.github.io/tonguesfromspace/
+    python3 tests/health.py                                  # https://tonguesfromspace.org/
     TFS_LIVE_URL=http://localhost:8000/ python3 tests/health.py
 
 It looks at the site the way a visitor's browser does and stops with exit code 1 (the workflow then opens an issue) if something is broken:
@@ -18,7 +18,7 @@ Needs only the standard library for 1 to 4; Playwright for 5 (skipped with a war
 """
 import json, os, re, sys, time, urllib.error, urllib.request
 
-SITE = os.environ.get("TFS_LIVE_URL", "https://braakhekke.github.io/tonguesfromspace/").rstrip("/") + "/"
+SITE = os.environ.get("TFS_LIVE_URL", "https://tonguesfromspace.org/").rstrip("/") + "/"
 YEAR = int(os.environ.get("TFS_LIVE_YEAR", "2023"))
 results = []
 

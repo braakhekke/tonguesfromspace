@@ -17,7 +17,7 @@
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
  *   CDSE_CLIENT_SECRET  secret   OAuth client secret
  *   CDSE_CLIENT_ID_2 / CDSE_CLIENT_SECRET_2   optional second account (and _3, _4, _5): used when the first has no processing units left
- *   ALLOWED_ORIGINS     text     e.g. "https://braakhekke.github.io,http://localhost:8000"
+ *   ALLOWED_ORIGINS     text     e.g. "https://tonguesfromspace.org,https://www.tonguesfromspace.org,https://braakhekke.github.io,http://localhost:8000"
  *   CACHE               KV namespace binding (optional but recommended): image cache
  *   Gallery (all optional; without them the gallery stays closed for uploads):
  *   GALLERY             R2 bucket binding: the shared pictures and videos (pending/ and approved/)
@@ -259,7 +259,7 @@ const cacheUrl = key => `https://tonguesfromspace-cache.internal/${encodeURIComp
 /* ---------- helpers ---------- */
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
-  const allowed = (env.ALLOWED_ORIGINS || 'https://braakhekke.github.io,http://localhost:8000')
+  const allowed = (env.ALLOWED_ORIGINS || 'https://tonguesfromspace.org,https://www.tonguesfromspace.org,https://braakhekke.github.io,http://localhost:8000')
     .split(',').map(s => s.trim().replace(/\/+$/, '')).filter(Boolean);
   const h = { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
               'Access-Control-Max-Age': '86400', 'Vary': 'Origin' };
