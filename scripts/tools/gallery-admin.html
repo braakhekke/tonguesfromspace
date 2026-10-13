@@ -24,12 +24,12 @@ button.no{background:var(--accent);border-color:var(--accent);color:#fff}
 </head>
 <body>
 <h1>Gallery moderation</h1>
-<p>Local use: <code>python3 -m http.server 8000</code> in the project folder, then open this page at http://localhost:8000/tools/gallery-admin.html. The relay address comes from <code>config.js</code>.</p>
+<p>Local use: <code>python3 -m http.server 8000</code> in the project folder, then open this page at http://localhost:8000/scripts/tools/gallery-admin.html. The relay address comes from <code>config.js</code>.</p>
 <form id="login"><input type="password" id="token" placeholder="Admin token" autocomplete="off"> <button type="submit">Load</button></form>
 <div id="msg" role="status"></div>
 <h2>Waiting for approval</h2><div class="grid" id="pending"></div>
 <h2>Published</h2><div class="grid" id="approved"></div>
-<script src="../config.js"></script>
+<script src="../../config.js"></script>
 <script>
 const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
 const $ = id => document.getElementById(id);

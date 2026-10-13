@@ -73,8 +73,8 @@ tr.orb{cursor:pointer} tr.orb:hover{background:#222} tr.orb.on{background:#2a241
     <p class="key">Large picture = the pick. Small pictures = the next best scenes of the same orbit: click one to use it instead. ⚠ = the picture differs from the other pictures of this orbit more than usual (haze, shadow, snow on the rock). ★ = your earlier hand pick from <code>experiments/late-season/picks/</code>.</p></div>
 </div>
 
-<script src="../glaciers.js"></script>
-<script src="../config.js"></script>
+<script src="../../data/glaciers.js"></script>
+<script src="../../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -369,7 +369,7 @@ function render(){ orbitTable(); sheet(); show(); }
 const STORE = 'scenesJson';
 /* The repository's scenes.json is the base: glaciers saved earlier (maybe from another browser) are kept. A glacier saved in this browser replaces the file's entry if it is newer. */
 let FILE_STORE = null;
-const FILE_READY = fetch('../scenes.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { FILE_STORE = j; }).catch(() => {});
+const FILE_READY = fetch('../../data/scenes.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { FILE_STORE = j; }).catch(() => {});
 const readLocal = () => { try { return JSON.parse(localStorage.getItem(STORE) || 'null') || { version: 1, glaciers: {} }; } catch { return { version: 1, glaciers: {} }; } };
 function readStore(){
   const local = readLocal(), out = { version: 1, glaciers: { ...((FILE_STORE && FILE_STORE.glaciers) || {}) } };
@@ -384,7 +384,7 @@ async function saveChoice(){
   const s = readLocal(); s.generated = new Date().toISOString();
   s.glaciers[G.g.id] = { name: G.g.name, orbit: G.orbit, window: { radiusKm: G.km, from: START, to: G.endDay }, savedAt: s.generated, picks };
   try { localStorage.setItem(STORE, JSON.stringify(s)); } catch {}
-  $('status').textContent = `Saved ${Object.keys(picks).length} years for ${G.g.name}. Download scenes.json and put it in the repository root.`;
+  $('status').textContent = `Saved ${Object.keys(picks).length} years for ${G.g.name}. Download scenes.json and put it in the data/ folder.`;
 }
 $('save').onclick = saveChoice;
 $('download').onclick = async () => {
@@ -405,7 +405,7 @@ $('dateW').oninput = () => { $('dateOut').textContent = DATE_NAME[+$('dateW').va
 $('run').onclick = search;
 ['ruleOn', 'ruleCloud', 'ruleDark', 'ruleImg'].forEach(id => $(id).onchange = () => { if (G && G.all && G.all.length) { stopPlay(); $('run').disabled = true; rebuild(++gen); } });
 (async () => {              // earlier hand picks, for comparison
-  for (const g of DATA.glaciers) { try { const r = await fetch(`../experiments/late-season/picks/picks-${g.id}.json`, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); PICKS[g.id] = new Set((j.cand || []).map(c => c.date + '|' + c.orbit)); } } catch {} }
+  for (const g of DATA.glaciers) { try { const r = await fetch(`../../experiments/late-season/picks/picks-${g.id}.json`, { cache: 'no-store' }); if (r.ok) { const j = await r.json(); PICKS[g.id] = new Set((j.cand || []).map(c => c.date + '|' + c.orbit)); } } catch {} }
 })();
 render();
 if (location.hash.startsWith('#auto')) search().then(() => { const o = location.hash.split('=')[1]; if (o && G.paths && G.paths[o]) { setPicks(o); render(); } });      // for testing: starts the search by itself (#auto=R108 also shows that orbit)

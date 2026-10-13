@@ -5,7 +5,7 @@ build_outlines.py  -  GLAMOS glacier data for Swiss Glacier Tongues from Space (
 Downloads the Swiss Glacier Inventories 1850, 1973 and 2023 (CC BY 4.0) and the GLAMOS
 length-change series from GLAMOS, ranks glaciers by area in the newest inventory, matches
 each to its 1850 outline and 1973 area, adds its length-change figures, and writes
-glaciers.js to the repository root, next to index.html. The dashboard picks it up automatically.
+glaciers.js to data/ in the repository. The dashboard picks it up automatically.
 It also adds the GLAMOS volume-change survey of each glacier, the Swiss-wide glacier volume per
 year, and the radar ice thickness (thinned to one mean per 50 m cell, written to thickness.js).
 
@@ -542,7 +542,7 @@ def main():
     ap.add_argument("--simplify", type=float, default=8, help="outline simplification tolerance in metres")
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(here) if os.path.basename(here) == "scripts" else here
-    ap.add_argument("--out", default=os.path.join(root, "glaciers.js"), help="output file (default: repository root)")
+    ap.add_argument("--out", default=os.path.join(root, "data", "glaciers.js"), help="output file (default: data/glaciers.js)")
     a = ap.parse_args()
 
     print("Reading newest inventory")

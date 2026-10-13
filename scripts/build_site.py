@@ -6,13 +6,13 @@
 What it does, besides copying:
 
 1. Content hashes. The data files get the first 10 characters of their SHA-256 in the name
-   (glaciers.js -> glaciers.3fa9c1d07b.js), so a browser can keep a file as long as its name is the same and a data update
+   (data/glaciers.js -> data/glaciers.3fa9c1d07b.js; the site keeps the folder data/ of the repository), so a browser can keep a file as long as its name is the same and a data update
    renames only the files that changed. The map from the plain name to the hashed name goes into config.js
    (window.TFS_CONFIG.assets); index.html asks for it with asset('<plain name>') and the <script src> and <link href>
    in the HTML files are rewritten here. Without the map (local use with serve.py) the plain names work as before.
-   Hashed: glaciers.js, style.css, js/*.js (the page's code, one file per section), thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json, teaser/*.mp4|webm|jpg (the film of the first visit, made by scripts/make_teaser.py).
+   Hashed: style.css, js/*.js (the page's code, one file per section), data/glaciers.js, thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json, teaser/*.mp4|webm|jpg (the film of the first visit, made by scripts/make_teaser.py).
    A one-line change in the code therefore renames, and re-downloads, only the file it is in.
-   Not hashed: index.html, gallery.html, config.js, terrain/manifest.json (the entry points that name the hashed files;
+   Not hashed: index.html, gallery.html, config.js, data/terrain/manifest.json (the entry points that name the hashed files;
    the terrain files themselves are hashed by build_terrain_bundle.py).
 2. glaciers.js is split. The repository keeps the complete file (the build scripts for terrain, ice change and cloud masks read
    it), the site gets a core file (statistics, 1850 outlines for the overview, a pointer to each glacier's 2023 outline)
@@ -31,7 +31,7 @@ HASH_LEN = 10
 HTML_FILES = ["index.html", "gallery.html"]
 PLAIN_FILES = ["pages.css", "preview.jpg"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg"]
-HASHED_FILES = ["style.css", "thickness.js", "sightline.js", "scenes.json", "cloudmasks.json", "photos.json"]      # plus js/*.js, demchange/*.json and glaciers.js (split)
+HASHED_FILES = ["style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -61,10 +61,10 @@ def exists(rel):
 
 def split_glaciers(out, assets):
     """glaciers.js -> core file + one 2023 outline file per glacier. Returns False if there is no glaciers.js."""
-    if not exists("glaciers.js"):
-        print("glaciers.js not available yet: the page uses its built-in list")
+    if not exists("data/glaciers.js"):
+        print("data/glaciers.js not available yet: the page uses its built-in list")
         return False
-    text = read("glaciers.js").decode("utf-8")
+    text = read("data/glaciers.js").decode("utf-8")
     start, end = text.index("{"), text.rindex("}") + 1
     head, data = text[:start], json.loads(text[start:end])
     for g in data["glaciers"]:
@@ -74,13 +74,13 @@ def split_glaciers(out, assets):
         body = json.dumps(outline, separators=(",", ":"), ensure_ascii=False)
         gid = g["id"]
         payload = f'(window.GLACIER_OUTLINES=window.GLACIER_OUTLINES||{{}})[{json.dumps(gid)}]={body};\n'.encode("utf-8")
-        rel = hashed_name(f"outlines/{gid}.js", payload)
+        rel = hashed_name(f"data/outlines/{gid}.js", payload)
         write(out, rel, payload)
         g["outline_file"] = rel
     core = (head + json.dumps(data, separators=(",", ":"), ensure_ascii=False) + ";\n").encode("utf-8")
-    rel = hashed_name("glaciers.js", core)
+    rel = hashed_name("data/glaciers.js", core)
     write(out, rel, core)
-    assets["glaciers.js"] = rel
+    assets["data/glaciers.js"] = rel
     print(f"glaciers.js: {len(text) / 1024:.0f} kB -> core {len(core) / 1024:.0f} kB + {sum(1 for g in data['glaciers'] if 'outline_file' in g)} outline files")
     return True
 
@@ -101,8 +101,8 @@ def rewrite_html(out, assets, relay):
                 sys.exit("index.html lost the marker <!--relay-preconnect-->")
             tag = f'<link rel="preconnect" href="{relay}" crossorigin>' if relay.startswith("http") else ""
             html = html.replace(marker, tag)
-            if "glaciers.js" in assets and assets["glaciers.js"] not in html:
-                sys.exit("index.html does not load glaciers.js any more: nothing was rewritten")
+            if "data/glaciers.js" in assets and assets["data/glaciers.js"] not in html:
+                sys.exit("index.html does not load data/glaciers.js any more: nothing was rewritten")
         write(out, name, html.encode("utf-8"))
 
 
@@ -141,14 +141,14 @@ def main():
             rel = hashed_name(f"js/{f}", data)
             write(out, rel, data)
             assets[f"js/{f}"] = rel
-    dem = os.path.join(ROOT, "demchange")
+    dem = os.path.join(ROOT, "data", "demchange")
     if os.path.isdir(dem):
         for f in sorted(os.listdir(dem)):
             if f.endswith(".json"):
-                data = read(f"demchange/{f}")
-                rel = hashed_name(f"demchange/{f}", data)
+                data = read(f"data/demchange/{f}")
+                rel = hashed_name(f"data/demchange/{f}", data)
                 write(out, rel, data)
-                assets[f"demchange/{f}"] = rel
+                assets[f"data/demchange/{f}"] = rel
     else:
         print("no demchange folder: the 3D view keeps the ice surface of the terrain tiles for every year")
     film = os.path.join(ROOT, "teaser")      # the teaser film and its posters (not teaser/work, the recording's scratch folder)
@@ -161,9 +161,9 @@ def main():
                 assets[f"teaser/{f}"] = rel
     else:
         print("no teaser folder: the first visit starts without the film")
-    terrain = os.path.join(ROOT, "terrain")
+    terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
-        shutil.copytree(terrain, os.path.join(out, "terrain"))
+        shutil.copytree(terrain, os.path.join(out, "data", "terrain"))
     else:
         print("no terrain folder: the 3D view builds the terrain from the terrain tiles, which is slower")
 

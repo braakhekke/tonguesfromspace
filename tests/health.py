@@ -80,13 +80,13 @@ def _():
         except Exception:
             missing.append(hashed)
     assert not missing, "missing: " + ", ".join(missing)
-    assert state["cfg"]["assets"]["glaciers.js"] in state["html"], "index.html does not load the glaciers.js named in config.js (a stale page against a new config?)"
+    assert state["cfg"]["assets"]["data/glaciers.js"] in state["html"], "index.html does not load the glaciers.js named in config.js (a stale page against a new config?)"
     return f"{len(state['cfg']['assets'])} files"
 
 
 @check("glaciers.js holds ten glaciers with their outline files", needs=["cfg"])
 def _():
-    text = get(SITE + state["cfg"]["assets"]["glaciers.js"])[1].decode("utf-8")
+    text = get(SITE + state["cfg"]["assets"]["data/glaciers.js"])[1].decode("utf-8")
     data = json.loads(text[text.index("{"):text.rindex("}") + 1])
     assert len(data["glaciers"]) == 10, f"{len(data['glaciers'])} glaciers"
     for g in data["glaciers"]:
@@ -98,7 +98,7 @@ def _():
 
 @check("scenes.json has scenes for every glacier", needs=["cfg", "ids"])
 def _():
-    scenes = json.loads(get(SITE + state["cfg"]["assets"]["scenes.json"])[1])
+    scenes = json.loads(get(SITE + state["cfg"]["assets"]["data/scenes.json"])[1])
     for gid in state["ids"]:
         picks = scenes["glaciers"].get(gid, {}).get("picks", {})
         assert picks, f"{gid}: no chosen scenes"
@@ -107,10 +107,10 @@ def _():
 
 @check("terrain files of the 3D view exist", needs=["ids"])
 def _():
-    manifest = json.loads(get(SITE + "terrain/manifest.json")[1])
+    manifest = json.loads(get(SITE + "data/terrain/manifest.json")[1])
     for gid in state["ids"]:
         assert gid in manifest, f"{gid}: not in the terrain manifest"
-        assert get(SITE + "terrain/" + manifest[gid])[0] == 200, f"{gid}: terrain file missing"
+        assert get(SITE + "data/terrain/" + manifest[gid])[0] == 200, f"{gid}: terrain file missing"
     return f"{len(manifest)} files"
 
 

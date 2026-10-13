@@ -3,10 +3,10 @@
 
     python3 scripts/check_syntax.py
 
-- the inline <script> blocks of every HTML file (gallery.html, tools/*.html, ...; index.html has none since the split)
-- the JavaScript files: js/*.js (the page), the generated data files (sightline.js, thickness.js, glaciers.js, ...) and worker/worker.js as a module
+- the inline <script> blocks of every HTML file (gallery.html, scripts/tools/*.html, ...; index.html has none since the split)
+- the JavaScript files: js/*.js (the page), the generated data files (data/*.js: sightline.js, thickness.js, glaciers.js, ...) and worker/worker.js as a module
 - the Python scripts (compiled, not run)
-- the JSON files (scenes.json, cloudmasks.json, terrain/manifest.json, demchange/*.json)
+- the JSON files (data/: scenes.json, cloudmasks.json, terrain/manifest.json, demchange/*.json)
 
 JavaScript is checked with `node --check` (the GitHub runners have Node). Without Node (a Mac that has none) the JavaScript engine that ships with macOS is used,
 `jsc`; it cannot check the Worker (ES module). Exit code 1 if anything is wrong. Standard library only.
@@ -53,7 +53,7 @@ def main():
         print("note: neither node nor jsc found, JavaScript not checked")
     tmpdir = tempfile.mkdtemp()
 
-    for html in sorted(glob.glob(os.path.join(ROOT, "*.html")) + glob.glob(os.path.join(ROOT, "tools", "*.html"))):
+    for html in sorted(glob.glob(os.path.join(ROOT, "*.html")) + glob.glob(os.path.join(ROOT, "scripts", "tools", "*.html"))):
         text = open(html, encoding="utf-8").read()
         for i, m in enumerate(SCRIPT.finditer(text)):
             attrs, body = m.group("attrs"), m.group("body")
@@ -67,7 +67,7 @@ def main():
                 if err: problems.append(f"{label}: {err}")
             checked += 1
 
-    for js in sorted(glob.glob(os.path.join(ROOT, "*.js")) + glob.glob(os.path.join(ROOT, "js", "*.js")) + glob.glob(os.path.join(ROOT, "worker", "*.js"))):
+    for js in sorted(glob.glob(os.path.join(ROOT, "data", "*.js")) + glob.glob(os.path.join(ROOT, "js", "*.js")) + glob.glob(os.path.join(ROOT, "worker", "*.js"))):
         rel = os.path.relpath(js, ROOT)
         if engine:
             err = check_js(engine, js, rel, module=rel.startswith("worker"))
@@ -81,7 +81,7 @@ def main():
             problems.append(f"{os.path.relpath(py, ROOT)}: {e.msg.strip()}")
         checked += 1
 
-    for pattern in ("scenes.json", "cloudmasks.json", "terrain/manifest.json", "demchange/*.json"):
+    for pattern in ("data/scenes.json", "data/cloudmasks.json", "data/terrain/manifest.json", "data/demchange/*.json"):
         for path in sorted(glob.glob(os.path.join(ROOT, pattern))):
             try:
                 json.load(open(path, encoding="utf-8"))

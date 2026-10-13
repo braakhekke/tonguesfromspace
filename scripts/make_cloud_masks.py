@@ -3,7 +3,7 @@
 "Latest" option of the site sends to the Copernicus Statistical API to count cloud:
 
   outline  the 1850 outline (largest extent), outer rings only, simplified
-  tongue   a circle of 3 km radius around the tongue tip (the bottom 3 km window of tools/pick-scenes.html)
+  tongue   a circle of 3 km radius around the tongue tip (the bottom 3 km window of scripts/tools/pick-scenes.html)
 
 The relay accepts at most 20,000 characters per request and Copernicus refuses polygons whose rings cross, so the outline is
 thinned by removing the least important vertex one at a time, and a vertex is only removed if the new segment crosses or touches
@@ -179,7 +179,7 @@ def tongue_circle(lat, lon, km=3, steps=48):
 
 
 def main():
-    src = open(os.path.join(ROOT, 'glaciers.js'), encoding='utf-8').read()
+    src = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
     data = json.loads(src[src.index('{'):src.rindex('}') + 1])
     out = {'version': 1, 'crs': 'EPSG:3857', 'note': 'made by scripts/make_cloud_masks.py', 'glaciers': {}}
     for g in data['glaciers']:
@@ -191,7 +191,7 @@ def main():
         out['glaciers'][g['id']] = {'name': g['name'], 'outline': mask, 'tongue': tongue_circle(tip[0], tip[1])}
         n = sum(len(p[0]) for p in mask)
         print(f"{g['id']:8} {g['name']:28} {n:4} vertices, area {a_simple:7.2f} km2 of {a_full:7.2f} km2 (outer rings), {len(json.dumps(mask))} characters")
-    with open(os.path.join(ROOT, 'cloudmasks.json'), 'w', encoding='utf-8') as f:
+    with open(os.path.join(ROOT, 'data', 'cloudmasks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, separators=(',', ':'))
     print('wrote cloudmasks.json')
 

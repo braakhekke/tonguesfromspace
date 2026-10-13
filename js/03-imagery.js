@@ -221,9 +221,9 @@ function pickScene(days){
     .sort((a, b) => (a.cloud - b.cloud) || b.date.localeCompare(a.date));
   return rest.length ? {...rest[0], clear:false} : null;
 }
-/* Scenes chosen with tools/pick-scenes.html: scenes.json in the repository root holds, per glacier (inventory id) and year, the day and orbit. They replace the automatic choice;
+/* Scenes chosen with scripts/tools/pick-scenes.html: data/scenes.json holds, per glacier (inventory id) and year, the day and orbit. They replace the automatic choice;
    years that are not in the file still use it. A missing or broken file means the automatic choice everywhere. */
-const SCENES_FILE = fetch(asset('scenes.json'), ASSETS['scenes.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null);
+const SCENES_FILE = fetch(asset('data/scenes.json'), ASSETS['data/scenes.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null);
 async function curatedScene(g, yr){
   const file = await SCENES_FILE, entry = file && file.glaciers && g.inv && file.glaciers[g.inv.id], p = entry && entry.picks && entry.picks[yr];
   return p && /^\d{4}-\d{2}-\d{2}$/.test(p.date) && /^R\d{3}$/.test(p.orbit || '') ? {date: p.date, orbit: p.orbit, cloud: 0, snow: 0, clear: true, curated: true} : null;
@@ -267,7 +267,7 @@ async function findScene(g, yr){
    the One year mode or changes glacier; so everything that works with years (download, glacier facts, credits) keeps working. */
 const LATEST = { days: 60, maxCloudOutline: 0.30, maxCloudTongue: 0.01, minCover: 0.97 };
 let masksFile = null;
-const MASKS = () => masksFile || (masksFile = fetch(asset('cloudmasks.json'), ASSETS['cloudmasks.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null));      // 120 kB, fetched when "Latest" is first used
+const MASKS = () => masksFile || (masksFile = fetch(asset('data/cloudmasks.json'), ASSETS['data/cloudmasks.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null));      // 120 kB, fetched when "Latest" is first used
 async function cloudByDay(area, from, to, label){
   const pts = area.flat(2), xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
   const j = await (await cdse('statistics', {
