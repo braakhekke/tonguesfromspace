@@ -32,7 +32,12 @@ async function checkYears(){
   if (state.a === state.b && ok.length > 1) { state.a = ok[0]; state.b = ok[ok.length - 1]; }
   setStatus(statusLine());
   refreshAll();
-  if (AUTOPLAY) { AUTOPLAY = false; if (state.mode === 'timelapse' && !state.playing && !teaserOpen) play(); }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
+  if (AUTOPLAY) { AUTOPLAY = false; if (state.mode === 'timelapse' && !state.playing && !teaserOpen) {
+    if (viewMode === '3d' && !(v3dCtx && v3dCtx.S)) {      // the 3D view is still being built: its strip pictures are what plays, so wait until it is there
+      const t0 = Date.now(), start = () => { if (state.playing || viewMode !== '3d') return; if (v3dCtx && v3dCtx.S) play(); else if (Date.now() - t0 < 60000) setTimeout(start, 300); };
+      start();
+    } else play();
+  } }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
 }
 function statusLine(){
   const oa = state.oldestAerial && oldestAerial.get(state.glacier);

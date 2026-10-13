@@ -13,6 +13,7 @@ function boot(){
   updateCredits();
   checkYears();
   updatePickHint();
+  if (PLAIN_START) document.getElementById('loopToggle').checked = true;      // the landing timelapse repeats
   if (OPEN_3D) setView('3d');      // a shared link to the 3D view
 }
 const bootGlacier = OPEN_ON_GLACIER ? currentGlacier() : null;
