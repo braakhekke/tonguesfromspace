@@ -3,14 +3,14 @@
    ===================================================================== */
 /* A film of about a minute (teaser/, made by scripts/make_teaser.py from the page itself): timelapse, compare, 3D, old photographs, the downloads and the figures.
    It plays once, on the first visit to the plain address (no link to a glacier, no hash), muted, over the page while the page loads behind it. Skip, Esc or the end leave it.
-   Not for people who asked for less motion or less data, and not on portrait screens (the film is 16:9; the button still plays it there). "Watch the teaser" in the left panel and the link #teaser play it again. */
+   Not for people who asked for less motion or less data, On portrait screens the film is shown in the middle, just under full width. "Watch the teaser" in the left panel and the link #teaser play it again. */
 const TEASER_KEY = 'tfs-teaser-seen';
 const teaserSeen = () => { try { return !!localStorage.getItem(TEASER_KEY); } catch { return false; } };
 const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } catch {} };
 function teaserWanted(){
   const c = navigator.connection || {};
   if (location.hash === '#teaser') return true;
-  return !location.hash && !teaserSeen() && !matchMedia('(prefers-reduced-motion: reduce)').matches && !c.saveData && !matchMedia('(max-aspect-ratio: 1/1)').matches && !/(^|-)2g$/.test(c.effectiveType || '');
+  return !location.hash && !teaserSeen() && !matchMedia('(prefers-reduced-motion: reduce)').matches && !c.saveData && !/(^|-)2g$/.test(c.effectiveType || '');
 }
 let teaserOpen = false;
 function openTeaser(auto){

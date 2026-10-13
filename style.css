@@ -718,7 +718,7 @@ sup.fn a:hover{text-decoration:underline}
   .app{display:flex;flex-direction:column;height:auto}
   .stage{position:fixed;left:0;top:0;bottom:0;width:58vw;height:auto;min-height:0;z-index:1}
   .mhead{order:0} .controls{order:2} .story{order:3}
-  .mhead,.story,.controls{margin-left:58vw}
+  .mhead,.story,.controls,.fyi-slot{margin-left:58vw}
   .stage-slot{display:contents}
   .mhead{display:block;padding:8px 14px;text-align:center}
   .mhead-logo{height:20px;vertical-align:-4px;margin-right:6px}
@@ -1177,5 +1177,19 @@ body.teaser-on{overflow:hidden}
 @media (min-width:900px) and (hover:hover){
   .teaser{background:rgba(10,19,34,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
   .teaser video{width:calc(100% - 160px);height:calc(100% - 120px);border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.5)}
+}
+/* phone in portrait: the 16:9 film in the middle of the screen, just under full width (Skip sits above it, the progress bar under it) */
+@media (orientation:portrait) and (max-width:720px){
+  .teaser video{width:calc(100% - 16px);height:auto;max-height:100%;aspect-ratio:16/9;border-radius:8px}
+  .teaser-bar{top:calc(50% + (100vw - 16px) * 9 / 32 + 10px);bottom:auto;left:8px;right:8px;border-radius:2px;overflow:hidden}
+  .teaser-end{bottom:auto;top:calc(50% + (100vw - 16px) * 9 / 32 + 24px)}
+}
+/* phone in landscape: leave room above and below the film (browser bars, notch, Skip button) so its top is not cut off */
+@media (orientation:landscape) and (max-height:520px){
+  .teaser{height:100dvh;bottom:auto;padding:calc(44px + env(safe-area-inset-top,0px)) calc(16px + env(safe-area-inset-right,0px)) calc(20px + env(safe-area-inset-bottom,0px)) calc(16px + env(safe-area-inset-left,0px));box-sizing:border-box}
+  .teaser video{width:100%;height:100%;border-radius:8px}
+  .teaser-skip{top:calc(6px + env(safe-area-inset-top,0px));padding:5px 14px;font-size:12.5px}
+  .teaser-bar{bottom:calc(8px + env(safe-area-inset-bottom,0px));left:16px;right:16px;border-radius:2px;overflow:hidden}
+  .teaser-end{bottom:calc(14% + env(safe-area-inset-bottom,0px))}
 }
 @media (prefers-reduced-motion:reduce){.teaser{transition:none}}
