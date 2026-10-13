@@ -52,7 +52,7 @@ def main():
     ap.add_argument('--dump', help='write the pairs as JSON to this file')
     a = ap.parse_args()
     rows = [r for r in table(urllib.request.urlopen(URL, timeout=90).read().decode('utf-8', 'replace')) if f'({a.id})' in r['glaciers']]
-    s = open(os.path.join(bp.ROOT, 'glaciers.js'), encoding='utf-8').read()
+    s = open(os.path.join(bp.ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
     g = next(g for g in json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers'] if g['id'] == a.id)
     lat, lon = g['terminus']['tip']; te, tn = bp.lv95(lat, lon); R = bp.GROUND_R
     e0, n0 = int((te - R) // bp.CELL * bp.CELL), int((tn - R) // bp.CELL * bp.CELL); w = h = int(2 * R // bp.CELL) + 1

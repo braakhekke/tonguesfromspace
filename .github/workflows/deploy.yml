@@ -31,12 +31,12 @@ jobs:
       - name: Download GLAMOS data and build glaciers.js and thickness.js
         id: data
         continue-on-error: true      # if GLAMOS is unreachable, publish with the last committed data
-        run: python scripts/build_outlines.py --out glaciers.js
+        run: python scripts/build_outlines.py --out data/glaciers.js
 
       - name: Commit glaciers.js and thickness.js if they changed
         if: steps.data.outcome == 'success' && github.event_name != 'pull_request'
         run: |
-          git add glaciers.js thickness.js
+          git add data/glaciers.js data/thickness.js
           if git diff --cached --quiet; then
             echo "glaciers.js unchanged"
           else

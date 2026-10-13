@@ -23,7 +23,7 @@ import argparse, array, json, math, os, sys, time, urllib.error, urllib.parse, u
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, 'scripts', '.dem-cache')
-OUT = os.path.join(ROOT, 'sightline.js')
+OUT = os.path.join(ROOT, 'data', 'sightline.js')
 EYE = 1.7            # metres: eye height of the person
 TONGUE_M = 1500      # the tongue: glacier surface within this distance of the tongue tip
 SAMPLE = 150         # metres between the target points
@@ -181,7 +181,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*')      # without --id: every glacier in glaciers.js that is not in sightline.js yet
     ap.add_argument('--redo', action='store_true', help='make the listed (or all) glaciers again even if they are in sightline.js')
     a = ap.parse_args()
-    s = open(os.path.join(ROOT, 'glaciers.js'), encoding='utf-8').read()
+    s = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
     out = {}
     if os.path.exists(OUT):                    # what was made before is kept
         t = open(OUT, encoding='utf-8').read(); out = json.loads(t[t.index('{'):t.rindex('}') + 1])

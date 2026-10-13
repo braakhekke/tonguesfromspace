@@ -131,7 +131,7 @@ let sightTried = false;
 const ensureSight = () => new Promise(res => {      // sightline.js (all glaciers, 135 kB) is fetched when the hiking trails are on, not at the start
   if (window.GLACIER_SIGHT || sightTried) return res();
   sightTried = true;
-  const sc = document.createElement('script'); sc.src = asset('sightline.js'); sc.onload = sc.onerror = () => res(); document.head.appendChild(sc);
+  const sc = document.createElement('script'); sc.src = asset('data/sightline.js'); sc.onload = sc.onerror = () => res(); document.head.appendChild(sc);
 });
 const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && g.inv && g.inv.id]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
 let sightLayer = null;
@@ -416,7 +416,7 @@ function drawOutlines(){
   const g = currentGlacier();
   if (!g.inv) {
     if (document.getElementById('oldToggle').checked || document.getElementById('newToggle').checked)
-      showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need glaciers.js next to this page. See the note under "On the map".');
+      showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need data/glaciers.js. See the note under "On the map".');
     return;
   }
   if (document.getElementById('oldToggle').checked && !g.inv.oldest)
@@ -475,7 +475,7 @@ const radarRenderer = L.canvas({pane:'outlines', padding:0.3});
 function loadRadar(){
   if (window.GLACIER_THICKNESS) return Promise.resolve();
   return radarLoad || (radarLoad = new Promise((ok, fail) => {
-    const sc = document.createElement('script'); sc.src = asset('thickness.js') + (!ASSETS['thickness.js'] && DATA && DATA.thickness_id ? `?v=${DATA.thickness_id}` : '');
+    const sc = document.createElement('script'); sc.src = asset('data/thickness.js') + (!ASSETS['data/thickness.js'] && DATA && DATA.thickness_id ? `?v=${DATA.thickness_id}` : '');
     sc.onload = ok; sc.onerror = () => { radarLoad = null; fail(new Error('thickness.js')); };
     document.head.appendChild(sc);
   }));

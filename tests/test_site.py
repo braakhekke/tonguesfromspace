@@ -126,7 +126,7 @@ class TestLoading(SiteCase):
         page.wait_for_function("glacierPicked")
         page.evaluate("() => { const t = document.getElementById('trailsToggle'); t.checked = true; t.dispatchEvent(new Event('change')); }")
         page.wait_for_function("sightTried", timeout=15000)
-        if any(f.startswith("sightline") for f in os.listdir(SITE)):
+        if any(f.startswith("sightline") for f in os.listdir(os.path.join(SITE, "data"))):
             page.wait_for_function("!!window.GLACIER_SIGHT", timeout=15000)
         self.assertClean()
 
@@ -287,7 +287,9 @@ class TestPhotoData(unittest.TestCase):
     """photos.json (scripts/build_photos.py): every photograph has what the 3D view needs to place it."""
     def test_photos_have_pose_image_and_licence(self):
         import json
-        path = os.path.join(SITE, "photos.json") if os.path.exists(os.path.join(SITE, "photos.json")) else os.path.join(ROOT, "photos.json")
+        path = os.path.join(SITE, "data", "photos.json")
+        if not os.path.exists(path):
+            path = os.path.join(ROOT, "data", "photos.json")
         if not os.path.exists(path):
             self.skipTest("no photos.json")
         data = json.load(open(path, encoding="utf-8"))

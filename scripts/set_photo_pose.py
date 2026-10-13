@@ -12,7 +12,7 @@ Standard library only. --dry-run shows what would change.
 import argparse, json, os, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-PATH = os.path.join(ROOT, 'photos.json')
+PATH = os.path.join(ROOT, 'data', 'photos.json')
 FIELDS = {'lat': 6, 'lon': 6, 'alt': 1, 'az': 2, 'tilt': 2, 'roll': 2, 'focal': 1}
 
 

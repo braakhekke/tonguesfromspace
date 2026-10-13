@@ -341,7 +341,7 @@ async function strip3DTexture(g, S, yr, nA, nB){            // the satellite pic
    The surface of a year is the newer edition (what the terrain tiles show) minus that change times a share f: 0 at the survey year of the newer edition, 1 at that of the
    older one, in between and beyond following the yearly mass balance (own series where GLAMOS measures it, else the Swiss-wide one). The survey years are assumptions, stored in the file. */
 let v3dDem = null; const demFiles = new Map();
-const loadDemChange = id => { if (!demFiles.has(id)) demFiles.set(id, fetch(asset(`demchange/${id}.json`)).then(r => r.ok ? r.json() : null).catch(() => null)); return demFiles.get(id); };      // one small file per glacier, if there is one
+const loadDemChange = id => { if (!demFiles.has(id)) demFiles.set(id, fetch(asset(`data/demchange/${id}.json`)).then(r => r.ok ? r.json() : null).catch(() => null)); return demFiles.get(id); };      // one small file per glacier, if there is one
 async function iceChangeGrid(g, S, nA, nB){            // the change (m) at every vertex of the strip, or null when this glacier has no data
   const d = g.inv && g.inv.id ? await loadDemChange(g.inv.id) : null; if (!d) return null;
   if (!v3dDem || v3dDem.id !== g.inv.id) {
@@ -410,11 +410,11 @@ function flattenLakes(heights, mask, nA, nB, base){            // a copy of the 
 }
 const lakeFlat = (g, heights, y, nA, nB, base) => { const mk = LAKE_GLACIERS.has(g.id) && lakeMasks.get(g.id + '|' + y); return mk ? flattenLakes(heights, mk, nA, nB, base) : heights; };
 const surfaceFor = (g, heights, dem, y) => { const f = dem && iceShare(g, dem, y); if (!f && f !== 0) return heights; const h = new Float32Array(heights.length); for (let k = 0; k < h.length; k++) h[k] = heights[k] - dem.delta[k] * f; return h; };
-/* The baked file of a glacier (terrain/<id>.<hash>.bin, made by scripts/build_terrain_bundle.py): the heights, the ice change, the peak names and the radar pins of the strip in one small
+/* The baked file of a glacier (data/terrain/<id>.<hash>.bin, made by scripts/build_terrain_bundle.py): the heights, the ice change, the peak names and the radar pins of the strip in one small
    file, instead of nine or so terrain tiles, a change file and two more requests for every visitor. The manifest says which file is current (asked for fresh, it is tiny); the file
    itself stays in the browser until the manifest names another. Without a file the page builds all of it from the terrain tiles, as before. */
 let terrainManifest = null; const bundles = new Map();
-const loadManifest = () => terrainManifest || (terrainManifest = fetch('terrain/manifest.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : {}).catch(() => ({})));
+const loadManifest = () => terrainManifest || (terrainManifest = fetch('data/terrain/manifest.json', {cache: 'no-cache'}).then(r => r.ok ? r.json() : {}).catch(() => ({})));
 async function parseBundle(buf){
   const dv = new DataView(buf); if (dv.getUint32(0, false) !== 0x54465331) throw new Error('not a terrain file');      // "TFS1"
   const hl = dv.getUint32(4, true), head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl)));
@@ -429,7 +429,7 @@ function loadBundle(id){            // the parsed file of a glacier, or null (no
     const name = (await loadManifest())[id]; if (!name) return null;
     const rec = await idb.get('terrain|' + id);
     if (rec && rec.name === name && rec.buf) { try { return await parseBundle(rec.buf); } catch (e) { console.error('terrain file in the cache is broken, loading it again', e); } }
-    const r = await fetch('terrain/' + name); if (!r.ok) return null;
+    const r = await fetch('data/terrain/' + name); if (!r.ok) return null;
     const buf = await r.arrayBuffer(), b = await parseBundle(buf); idb.set('terrain|' + id, {name, buf}); return b;
   })().catch(e => { console.error('terrain file', e); bundles.delete(id); return null; }));
   return bundles.get(id);
@@ -503,7 +503,7 @@ async function open3D(){
    a click flies the 3D camera to the photographer's place and looks the way the photograph looks, with the same field of view. The photograph lies over the picture, a line to drag
    shows it on one side and the 3D view on the other, so the change of the ice is seen from exactly the same spot. The ice surface of the 3D side is the estimate for the year of the photograph. */
 let photosFile = null, photoOn = null, photoRun = 0;      // photoOn: the photograph on show
-const loadPhotos = () => photosFile || (photosFile = fetch(asset('photos.json')).then(r => r.ok ? r.json() : {}).catch(() => ({})));
+const loadPhotos = () => photosFile || (photosFile = fetch(asset('data/photos.json')).then(r => r.ok ? r.json() : {}).catch(() => ({})));
 /* The ice level of an old photograph is not reconstructed as a surface (the interpolation did not fit): the terrain stays the latest measured one, and a rod on the glacier 1.6 km above the tip marks how much higher the ice stood then, as an estimate with a range.
    Years inside the measured period (2016 on): the change between the two swissALTI3D surfaces on the glacier 1.6 km above the tip, by the yearly mass balance (middle) and by time (the other end of the range).
    Years before 2016: the thinning of the whole glacier since then from the GLAMOS volume surveys (the low end; from 1927 for Aletsch); before the first survey from the area of the SGI1850 outline against today's with the usual area-volume scaling

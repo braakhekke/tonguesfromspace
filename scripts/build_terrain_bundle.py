@@ -1,20 +1,20 @@
 #!/usr/bin/env python3
 """One small file per glacier with everything the 3D view needs, made once here instead of in every visitor's browser.
 
-terrain/<SGI id>.<hash>.bin holds, for the strip the 3D view shows (a few km up the glacier from the tongue tip, 4 km wide, see V3D in index.html):
+data/terrain/<SGI id>.<hash>.bin holds, for the strip the 3D view shows (a few km up the glacier from the tongue tip, 4 km wide, see V3D in index.html):
   - the heights of the newest swissALTI3D edition on a grid of about 14 m (the same data the Mapterhorn tiles carry, which the page used before),
-  - the change of the ice surface between the 2019 edition and the newest one (from demchange/<id>.json, resampled to the same grid), if there is one,
+  - the change of the ice surface between the 2019 edition and the newest one (from data/demchange/<id>.json, resampled to the same grid), if there is one,
   - the peak names to show (swisstopo swissNAMES3D, chosen as the page used to do it),
   - the radar pins to show (about ten, the thickest of each stretch of the strip),
   - the geometry of the strip itself (position of the tip, direction up the glacier, lengths), so the page and the file cannot disagree.
-terrain/manifest.json maps each id to its current file; the page asks for the manifest fresh and keeps the files in the browser (a new hash = a new file).
+data/terrain/manifest.json maps each id to its current file; the page asks for the manifest fresh and keeps the files in the browser (a new hash = a new file).
 
 File format: 'TFS1', uint32 length of the header, the header (JSON, utf-8), then a zlib stream with two int16 arrays (little endian) of (nA+1) x (nB+1)
 values, rows from far up the glacier to below the tip, left to right: heights in decimetres above the tip, then the ice change in centimetres
 (newest minus 2019 edition). Both are stored as differences along each row (cumulative sums undo it). nA and nB are even and nB is a multiple of 4, so
 every second point makes the coarser 28 m grid that devices without 32-bit indices use.
 
-Needs: glaciers.js (build_outlines.py), thickness.js, demchange/ (build_dem_change.py) and the swissALTI3D tiles in scripts/.dem-cache (it downloads
+Needs: glaciers.js (build_outlines.py), thickness.js, demchange/ (build_dem_change.py), all in data/ and the swissALTI3D tiles in scripts/.dem-cache (it downloads
 what is missing: the strip reaches beyond the tiles of the ice-change work). Internet for swisstopo's names. Standard library only.
 Usage: python3 scripts/build_terrain_bundle.py [--id B36-26 ...]
 """
@@ -23,7 +23,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_dem_change as bd
 
 ROOT = bd.ROOT
-OUT = os.path.join(ROOT, 'terrain')
+OUT = os.path.join(ROOT, 'data', 'terrain')
 HALF = 2000                 # half width of the strip (m): V3D.HALF in index.html
 BACK = {'A54e-24': 2000}    # metres of strip below the tongue tip (V3D.BACK = 1000; Trift: V3D_VIEW)
 UP = (2500, 6500)           # shortest and longest strip up the glacier (V3D.UP)
@@ -125,7 +125,7 @@ def names_for(st, h, nA, h0, avoid):       # the peak names of the strip: swisst
 
 
 def delta_grid(g, st, nA, nB):             # the ice change (cm) at every grid point, resampled from demchange/<id>.json as iceChangeGrid() in index.html
-    path = os.path.join(ROOT, 'demchange', g['id'] + '.json')
+    path = os.path.join(ROOT, 'data', 'demchange', g['id'] + '.json')
     if not os.path.exists(path): return None, None
     d = json.load(open(path)); z = struct.unpack('<%dh' % (d['w'] * d['h']), zlib.decompress(base64.b64decode(d['z'])))
     at = lambda ci, cj: 0 if ci < 0 or cj < 0 or ci >= d['w'] or cj >= d['h'] else z[cj * d['w'] + ci]
@@ -160,7 +160,7 @@ def build(g, tiles):
     q = [[int(round((v - h0) * 10)) for v in row] for row in hts]
     delta, dem = delta_grid(g, st, nA, nB)
     # radar pins in the strip
-    th = open(os.path.join(ROOT, 'thickness.js'), encoding='utf-8').read(); tj = json.loads(th[th.index('{'):th.rindex('}') + 1]); pins = []
+    th = open(os.path.join(ROOT, 'data', 'thickness.js'), encoding='utf-8').read(); tj = json.loads(th[th.index('{'):th.rindex('}') + 1]); pins = []
     for lat, lng, m, y, *rest in tj.get(gid, []):
         mx, my = merc(lat, lng); dx, dy = (mx - px) / k, (my - py) / k; a, b = dx * ue + dy * un, dx * un - dy * ue
         if abs(b) <= HALF and -back <= a <= up: pins.append({'x': round(b, 1), 'z': round(-a, 1), 'm': m, 'y': y, **({'all': rest[0]} if rest and rest[0] else {})})
@@ -189,7 +189,7 @@ def build(g, tiles):
 
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*'); a = ap.parse_args(); tiles = Tiles()
-    s = open(os.path.join(ROOT, 'glaciers.js'), encoding='utf-8').read()
+    s = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
     for g in json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers']:
         if not a.id or g['id'] in a.id: build(g, tiles); tiles.t.clear()      # tiles of one glacier at a time: memory
     if tiles.missing: print('tiles without swissALTI3D:', sorted(tiles.missing), file=sys.stderr)

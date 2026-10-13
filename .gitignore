@@ -10,3 +10,9 @@ README.private.md
 logo/
 scripts/.dem-cache/
 teaser/work/
+
+# local only: design studies and parked work
+design/
+lab/
+backup/
+experiments/

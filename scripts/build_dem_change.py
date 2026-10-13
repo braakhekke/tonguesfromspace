@@ -4,7 +4,7 @@
 For each glacier it takes the 2 m swissALTI3D tiles (swisstopo, data.geo.admin.ch) of the 2019 edition and of the newest edition on every tile,
 for the glacier within RADIUS metres of its tongue tip, averages both to 20 m cells, subtracts (new - old) and keeps the difference only inside
 the glacier's area: the 2023 outline plus the connected ground where the surface dropped by more than 2.5 m (up to 500 m away, where the tongue stood
-in earlier years), fading to zero over 160 m so that there is no wall where it ends. The result goes to demchange/<SGI id>.json, which the page loads when the 3D view opens.
+in earlier years), fading to zero over 160 m so that there is no wall where it ends. The result goes to data/demchange/<SGI id>.json, which the page loads when the 3D view opens.
 
 The edition year is not the survey year. The years the two surfaces stand for (balance years, autumn to autumn) come from documents:
   old surface = 2019 edition: the GLAMOS volume change table (doi:10.18750/volumechange.2025.r2025) names the swissALTI3D edition it used and the
@@ -29,7 +29,7 @@ import argparse, base64, collections, json, math, os, struct, sys, urllib.error,
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, 'scripts', '.dem-cache')
-OUT = os.path.join(ROOT, 'demchange')
+OUT = os.path.join(ROOT, 'data', 'demchange')
 CELL = 20           # metres per output cell (10 x 10 cells of the 2 m model)
 RADIUS = 8000       # metres around the tongue tip
 BUFFER = 3          # cells added around the outline
@@ -203,7 +203,7 @@ def build(g):
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*')
     a = ap.parse_args()
-    s = open(os.path.join(ROOT, 'glaciers.js'), encoding='utf-8').read()
+    s = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
     for g in json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers']:
         if not a.id or g['id'] in a.id: build(g)
 

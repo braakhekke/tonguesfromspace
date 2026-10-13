@@ -24,7 +24,7 @@ import argparse, array, collections, concurrent.futures, json, math, os, sys, ur
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 CACHE = os.path.join(ROOT, 'scripts', '.dem-cache')
-OUT = os.path.join(ROOT, 'photos.json')
+OUT = os.path.join(ROOT, 'data', 'photos.json')
 API = 'https://smapshot.heig-vd.ch/api/v1/'
 RADIUS = 5000        # metres: cameras within this distance of the tongue tip
 TONGUE_M = 3000      # the tongue for the photos: today's glacier within this distance of the tip
@@ -96,7 +96,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*', default=['B36-26']); ap.add_argument('--n', type=int, default=10)
     ap.add_argument('--min-share', type=float, default=MIN_SHARE, help='share of the tongue that must count'); ap.add_argument('--los-from', type=int, default=0, help='the free line of sight counts only for photos of this year on (older ones: the ice stood higher than today)'); ap.add_argument('--max-dist', type=int, default=4500, help='metres: mean distance to the tongue points that are in view'); ap.add_argument('--min-px', type=int, default=3000, help='width of the photo in pixels'); ap.add_argument('--no-los', action='store_true', help='count a target when it is inside the frame, without the free line of sight (old photos: the ice then stood higher than today)'); ap.add_argument('--dump', help='write every photo that shows the tongue (not only the pick) to this file'); ap.add_argument('--keep', type=int, nargs='*', default=[], help='photo ids that are always taken (a hand choice)')
     a = ap.parse_args()
-    s = open(os.path.join(ROOT, 'glaciers.js'), encoding='utf-8').read()
+    s = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
     glaciers = json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers']
     out = json.load(open(OUT, encoding='utf-8')) if os.path.exists(OUT) else {}
     for g in glaciers:
