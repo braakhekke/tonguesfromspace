@@ -66,8 +66,8 @@ button,select,input{font:inherit;color:inherit}
 .yr-track input{position:absolute;left:-8px;width:calc(100% + 16px);top:0;height:30px;margin:0;background:none;pointer-events:none;-webkit-appearance:none;appearance:none}
 .yr-track input::-webkit-slider-runnable-track{background:none;height:30px}
 .yr-track input::-moz-range-track{background:none}
-.yr-track input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:22px;height:22px;margin-top:4px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.3)}
-.yr-track input::-moz-range-thumb{pointer-events:auto;width:16px;height:16px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:grab}
+.yr-track input::-webkit-slider-thumb{-webkit-appearance:none;pointer-events:auto;width:16px;height:16px;margin-top:7px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:grab;box-shadow:0 1px 4px rgba(0,0,0,.3)}
+.yr-track input::-moz-range-thumb{pointer-events:auto;width:14px;height:14px;border-radius:50%;background:#fff;border:3px solid var(--accent);cursor:grab}
 .yr-ticks{display:flex;justify-content:space-between;margin:-2px 0 0;padding:0 2px}
 .yr-ticks i{width:2px;height:5px;background:var(--moraine);opacity:.6}
 .yr-ticks i.off{opacity:.2}
