@@ -57,6 +57,7 @@
       </div>
       <p>Discover the ten largest Swiss glaciers, from space to tongue.</p>
       <p class="what">Compare, create and share your visuals.</p>
+      <button type="button" class="teaser-btn" id="teaserBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the teaser</button>
     </div>
 
     <section class="step" id="glacierGroup">
@@ -198,7 +199,6 @@
       <label class="toggle" title="The ten glaciers as red outlines you can click. Switched off when you choose a glacier."><input type="checkbox" id="boxToggle" checked> <span><svg class="gl-icon" viewBox="0 0 20 14" aria-hidden="true"><path d="M2 3c3-2 6-1 8 0s5 0 7 1c1 2 0 4-2 6-2 2-3 3-5 3s-3-2-5-3S1 8 1 6c0-1 0-2 1-3z" fill="rgba(200,50,42,.15)" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/></svg> Selectable glaciers</span></label>
       <p class="hint" id="outlineNote"></p>
       </div>
-      <button type="button" class="lb-close-bottom" id="lbCloseBottom"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>Close layers</button>
       <div class="lb-more" id="lbMore" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
     </div>
     <div class="mapbar" role="toolbar" aria-label="Map tools">
@@ -244,7 +244,6 @@
           <label class="toggle" title="Hiking trails"><input type="checkbox" id="l3Trails"> <span>Hiking trails</span></label>
           <div class="trail-legend" id="l3TrailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="l3SightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
           <label class="toggle" title="Names of peaks and passes"><input type="checkbox" id="l3Names"> <span>Peak names</span></label>
-          <button type="button" class="lb-close-bottom" id="l3CloseBottom"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>Close layers</button>
         </div>
       </div>
       <div class="v3d-measure" id="v3dMeasure" role="toolbar" aria-label="Measuring tools and old photographs">
@@ -346,6 +345,7 @@
 <script defer src="js/10-animation.js"></script>
 <script defer src="js/11-view3d.js"></script>
 <script defer src="js/12-boot.js"></script>
+<script defer src="js/13-teaser.js"></script>
 
 </body>
 </html>

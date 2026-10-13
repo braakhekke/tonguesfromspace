@@ -602,7 +602,7 @@ async function setupPhotos(g, ctx){            // the rail of thumbnails, when t
   box.hidden = false; syncPhotoToggle(); pinLoop();
 }
 function photoLayout(ph){            // where the photograph sits on the screen, and the matching camera: the same field of view as the photograph, its centre where the photograph's centre is
-  const cv = $('v3dCanvas'), cw = cv.clientWidth, ch = cv.clientHeight, phone = cw <= 720, left = phone ? 8 : 14, top = phone ? 118 : 56, bottom = phone ? 205 : 150, aw = cw - left - (phone ? 8 : 14), ah = ch - top - bottom;
+  const cv = $('v3dCanvas'), cw = cv.clientWidth, ch = cv.clientHeight, phone = cw <= 720, left = phone ? 8 : 14, top = phone ? 10 : 56, bottom = phone ? 165 : 150, aw = cw - left - (phone ? 8 : 14), ah = ch - top - bottom;
   const hr = Math.max(60, Math.min(ah, aw / (ph.w / ph.h))), wr = hr * ph.w / ph.h, x = left + (aw - wr) / 2, y = top + (ah - hr) / 2;
   const fpx = hr * ph.focal / ph.h, fovY = 2 * Math.atan((ch / 2) / fpx), cx = (x + wr / 2 - cw / 2) / (cw / 2), cy = -((y + hr / 2) - ch / 2) / (ch / 2);
   return {x, y, w: wr, h: hr, fovY, view: {cx: -cx, cy: -cy}};
@@ -1010,7 +1010,7 @@ function placeCamTip(dpr){            // the card with the photograph of the sym
   if (!hit || !c || !c.photos || !c.photos[i] || photoOn) { tip.hidden = true; return; }
   const ph = c.photos[i];
   if (tip.dataset.i !== String(i)) { tip.dataset.i = i; tip.textContent = ''; const im = document.createElement('img'); im.src = ph.thumb; im.alt = ''; const b = document.createElement('b'); b.textContent = ph.date.slice(0, 4);
-    const t = document.createElement('span'); t.textContent = ' · ' + (ph.title || '').slice(0, 48); const s = document.createElement('small'); s.textContent = 'The orange area is what this photograph shows. Click to open it in 3D.'; tip.append(im, b, t, s); }
+    const t = document.createElement('span'); t.textContent = ' · ' + (ph.title || '').slice(0, 48); const s = document.createElement('small'); s.textContent = 'The orange area is what this photograph shows. ' + (COARSE ? 'Tap here to fly to it in 3D.' : 'Click to open it in 3D.'); tip.append(im, b, t, s); }
   tip.hidden = false;
   /* The card stays inside what the visitor can see: the canvas, cut to the browser window (on a phone the 3D view may be partly scrolled out of sight). Beside the symbol on the right, on the left when there is no room,
      and moved up or down until it fits. */
@@ -1021,6 +1021,7 @@ function placeCamTip(dpr){            // the card with the photograph of the sym
   const y = Math.max(top, Math.min(hy - 20, bottom - h));
   tip.style.left = x + 'px'; tip.style.top = y + 'px';
 }
+$('v3dCamTip').addEventListener('click', () => { const i = Number($('v3dCamTip').dataset.i); if (i >= 0 && v3dCtx && v3dCtx.photos && v3dCtx.photos[i]) { camSel = camHover = -1; $('v3dCamTip').dataset.i = ''; enterPhoto(i); } });      // on a touch screen the card itself is tapped (it takes taps only there, see style.css)
 function bindCamPicking(cv){            // hovering, clicking and tapping on the camera symbols; a drag still turns the camera
   let down = null; const near = e => {
     const r = cv.getBoundingClientRect(), x = e.clientX - r.left, y = e.clientY - r.top, dpr = Math.min(2, devicePixelRatio || 1), reach = e.pointerType === 'touch' ? 26 : 16; let best = -1, bd = reach * reach;
@@ -1166,8 +1167,8 @@ function draw3DLabels(ctx, W, H, S, L){
   ctx.textBaseline = 'alphabetic';
   const legend = [[L.outline, '#F2A93B', [14, 9], 'Glacier outline about 1850'], [L.outlineNew, getVar('--new'), [], 'Glacier outline 2023']].filter(r => r[0]).map(r => r.slice(1));      // the legend of the outlines, as in the map downloads
   const sa = L.cmp && state.available[L.cmp[0]], sb = L.cmp && state.available[L.cmp[1]], sc = !L.cmp && state.available[L.year];
-  drawHeader(ctx, W, S, {year: L.cmp ? `${L.cmp[0]} – ${L.cmp[1]}` : String(L.year), name: stillName(g), place: placeOf(g, '3D view'), hA: L.hA ?? 1, legend, keyW: 0,
-    date: L.cmp ? [`${fmtDM(sa.date)}  ·  ${fmtDM(sb.date)}`, ` · ${L.hz ? 'top' : 'left'} ${L.cmp[0]}, ${L.hz ? 'bottom' : 'right'} ${L.cmp[1]}`, ''] : [fmtDM(sc.date), ` · ${styleLine(state.style)}`, ` · Sentinel-2 · ${STYLE_NAME[state.style] || STYLE_NAME.natural}`]});
+  drawHeader(ctx, W, S, {year: L.cmp ? `${L.cmp[0]} – ${L.cmp[1]}` : String(L.year), name: stillName(g), place: placeOf(g), hA: L.hA ?? 1, legend, keyW: 0,
+    date: L.cmp ? [`${fmtDM(sa.date)}  ·  ${fmtDM(sb.date)}`, ` · ${L.hz ? 'top' : 'left'} ${L.cmp[0]}, ${L.hz ? 'bottom' : 'right'} ${L.cmp[1]} · 3D view`, ' · 3D view'] : [fmtDM(sc.date), ` · ${styleLine(state.style)} · 3D view`, ` · Sentinel-2 · ${STYLE_NAME[state.style] || STYLE_NAME.natural} · 3D view`]});
   drawBottom(ctx, W, H, S, {
     credit: L.credit,
     tiles: L.facts && !L.cmp ? factTiles(g, L.year, L.facts.set, L.facts.base) : [],

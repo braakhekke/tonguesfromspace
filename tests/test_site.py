@@ -46,10 +46,12 @@ class SiteCase(unittest.TestCase):
         cls.pw.stop()
         cls.srv.shutdown()
 
-    def open(self, hash="", viewport=None):
-        ctx = self.browser.new_context(viewport=viewport or {"width": 1280, "height": 860})
+    def open(self, hash="", viewport=None, fresh=False, **ctx_args):      # fresh: a first visit (the film plays); otherwise the film counts as seen
+        ctx = self.browser.new_context(viewport=viewport or {"width": 1280, "height": 860}, **ctx_args)
         self.addCleanup(ctx.close)
         ctx.route("**/*", lambda route: route.continue_() if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
+        if not fresh:
+            ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")      # the film of the first visit would cover the page
         page = ctx.new_page()
         self.errors = []
         page.on("pageerror", lambda e: self.errors.append(f"pageerror: {e}"))
@@ -244,6 +246,37 @@ class TestFunctions(SiteCase):
         self.assertEqual(pos, len(b), "box sizes must add up to the file")
         self.assertEqual(top, ["ftyp", "moov", "mdat"])
         self.assertTrue(b.endswith(bytes([1, 2, 3, 4, 5, 1, 2, 3, 4, 6, 1, 2, 3, 4, 7])))
+
+
+class TestTeaser(SiteCase):
+    """The film of the first visit (js/13-teaser.js): plays on the plain address once, never for links, never for people who asked for less motion."""
+    def test_first_visit_shows_film_and_skip_ends_it(self):
+        page = self.open(fresh=True)
+        page.wait_for_selector("#teaser .teaser-skip", timeout=5000)
+        self.assertTrue(page.evaluate("document.querySelectorAll('#teaser video source').length >= 1"))
+        page.click("#teaser .teaser-skip")
+        page.wait_for_selector("#teaser", state="detached", timeout=5000)
+        self.assertEqual(page.evaluate("localStorage.getItem('tfs-teaser-seen')"), "1")
+        self.assertClean()
+
+    def test_escape_leaves_the_film(self):
+        page = self.open(fresh=True)
+        page.wait_for_selector("#teaser", timeout=5000)
+        page.keyboard.press("Escape")
+        page.wait_for_selector("#teaser", state="detached", timeout=5000)
+
+    def test_seen_a_link_or_reduced_motion_show_no_film(self):
+        self.assertEqual(self.open().locator("#teaser").count(), 0)      # seen
+        self.assertEqual(self.open("#g=aletsch&m=single", fresh=True).locator("#teaser").count(), 0)      # a link to a glacier
+        self.assertEqual(self.open(fresh=True, reduced_motion="reduce").locator("#teaser").count(), 0)
+
+    def test_replay_button_and_link(self):
+        page = self.open()
+        page.click("#teaserBtn")
+        page.wait_for_selector("#teaser", timeout=5000)
+        page.keyboard.press("Escape")
+        page.wait_for_selector("#teaser", state="detached", timeout=5000)
+        self.assertEqual(self.open("#teaser").locator("#teaser").count(), 1)      # the link plays it even when seen
 
 
 if __name__ == "__main__":

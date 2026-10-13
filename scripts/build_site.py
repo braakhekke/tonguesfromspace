@@ -10,7 +10,7 @@ What it does, besides copying:
    renames only the files that changed. The map from the plain name to the hashed name goes into config.js
    (window.TFS_CONFIG.assets); index.html asks for it with asset('<plain name>') and the <script src> and <link href>
    in the HTML files are rewritten here. Without the map (local use with serve.py) the plain names work as before.
-   Hashed: glaciers.js, style.css, js/*.js (the page's code, one file per section), thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json.
+   Hashed: glaciers.js, style.css, js/*.js (the page's code, one file per section), thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json, teaser/*.mp4|webm|jpg (the film of the first visit, made by scripts/make_teaser.py).
    A one-line change in the code therefore renames, and re-downloads, only the file it is in.
    Not hashed: index.html, gallery.html, config.js, terrain/manifest.json (the entry points that name the hashed files;
    the terrain files themselves are hashed by build_terrain_bundle.py).
@@ -151,6 +151,16 @@ def main():
                 assets[f"demchange/{f}"] = rel
     else:
         print("no demchange folder: the 3D view keeps the ice surface of the terrain tiles for every year")
+    film = os.path.join(ROOT, "teaser")      # the teaser film and its posters (not teaser/work, the recording's scratch folder)
+    if os.path.isdir(film):
+        for f in sorted(os.listdir(film)):
+            if f.endswith((".mp4", ".webm", ".jpg")):
+                data = read(f"teaser/{f}")
+                rel = hashed_name(f"teaser/{f}", data)
+                write(out, rel, data)
+                assets[f"teaser/{f}"] = rel
+    else:
+        print("no teaser folder: the first visit starts without the film")
     terrain = os.path.join(ROOT, "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "terrain"))
