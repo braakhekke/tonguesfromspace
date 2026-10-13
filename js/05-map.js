@@ -149,7 +149,35 @@ function updateTrailClip(){          // the selected glacier's image area; befor
   trails.setClip(list.map(g => L.latLngBounds(imageFootprint(g).bounds)));
 }
 if (prefs.trails === true) trails.addTo(map);
-const labels = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
+/* The map's place labels are raster tiles, so one label cannot be switched off. The blue glacier names that EOX writes along the Aletsch glacier lie over its tongue: inside the Aletsch picture
+   box, the tiles are redrawn with the area of every blue (glacier name) label wiped. Other tiles are plain. If the tile cannot be read pixel by pixel (no CORS), it is shown as it is. */
+const HIDE_LABELS = ['B36-26', 'aletsch'];
+const LabelsLayer = L.TileLayer.extend({
+  createTile(coords, done){
+    const size = this.getTileSize(), origin = coords.scaleBy(size), boxes = GLACIERS.filter(g => HIDE_LABELS.includes(g.id)).map(g => L.latLngBounds(imageFootprint(g).bounds));
+    const rects = boxes.map(b => { const a = this._map.project(b.getNorthWest(), coords.z).subtract(origin), c = this._map.project(b.getSouthEast(), coords.z).subtract(origin);
+      return {x0: Math.max(0, a.x), y0: Math.max(0, a.y), x1: Math.min(size.x, c.x), y1: Math.min(size.y, c.y)}; }).filter(r => r.x1 > r.x0 && r.y1 > r.y0);
+    if (!rects.length) return L.TileLayer.prototype.createTile.call(this, coords, done);
+    const tile = document.createElement('canvas'), k = 256 / size.x, img = new Image(); tile.width = tile.height = 256; tile.style.width = size.x + 'px'; tile.style.height = size.y + 'px';
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      const ctx = tile.getContext('2d'); ctx.drawImage(img, 0, 0, 256, 256);
+      try {
+        rects.forEach(r => {
+          const x = Math.floor(r.x0 * k), y = Math.floor(r.y0 * k), w = Math.ceil((r.x1 - r.x0) * k), h = Math.ceil((r.y1 - r.y0) * k), d = ctx.getImageData(x, y, w, h).data;
+          let x0 = w, y0 = h, x1 = -1, y1 = -1;
+          for (let i = 0; i < d.length; i += 4) if (d[i + 3] > 60 && d[i + 2] > d[i] + 50 && d[i + 2] > d[i + 1] + 10) { const px = (i / 4) % w, py = Math.floor(i / 4 / w); if (px < x0) x0 = px; if (px > x1) x1 = px; if (py < y0) y0 = py; if (py > y1) y1 = py; }
+          if (x1 >= 0) ctx.clearRect(x + x0 - 4, y + y0 - 4, x1 - x0 + 9, y1 - y0 + 9);
+        });
+      } catch {}      // a tile that cannot be read stays as it is
+      done(null, tile);
+    };
+    img.onerror = () => { const plain = new Image(); plain.onload = () => { tile.getContext('2d').drawImage(plain, 0, 0, 256, 256); done(null, tile); }; plain.onerror = () => done(null, tile); plain.src = this.getTileUrl(coords); };      // no CORS: the plain picture
+    img.src = this.getTileUrl(coords);
+    return tile;
+  }
+});
+const labels = new LabelsLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
   {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
 
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
@@ -176,7 +204,7 @@ function aerialWanted(){          // slot -> year
 }
 function aerialSlots(){          // slot -> year, whether the layer is on or not
   if (state.mode === 'compare') return {A: state.a, B: state.b};
-  if (state.mode === 'single') return {T: state.one};
+  if (state.mode === 'single') return {T: state.oldestAerial || state.one};
   const f = tlFrames(); return {T: f.length ? f[f.length - 1] : state.to};      // timelapse: the newest year of the range
 }
 /* SWISSIMAGE editions are mosaics: the edition year (the time dimension of the layer) is not the year the photographs were taken. swisstopo's metadata layer says which year was flown
@@ -193,13 +221,42 @@ function ensureFlown(g, ed){
       updateAerial(); updateTags(); if (tlLayers.length) showFrame(state.frame);
     }).catch(() => {});
 }
+/* "Oldest" in the specials row: the oldest SWISSIMAGE edition that covers the glacier's image box. The identify service lists, without a time, every aerial survey at a place
+   (flightyear = the year flown, bgdi_flugjahr = the edition that first shows it); the oldest edition is asked once per glacier, at the middle of the box. */
+const oldestAerial = new Map();      // glacier id -> {ed, flown} | null (none) ; absent while not asked
+function ensureOldest(g){
+  if (!g || oldestAerial.has(g.id)) return; oldestAerial.set(g.id, undefined);
+  const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
+  fetch(`https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&layers=all:ch.swisstopo.swissimage-product.metadata&mapExtent=${lon - .01},${lat - .01},${lon + .01},${lat + .01}&imageDisplay=500,500,96&tolerance=1&sr=4326&returnGeometry=false`)
+    .then(r => r.json()).then(j => {
+      const rows = (j.results || []).map(r => r.attributes).filter(a => a && a.bgdi_flugjahr && a.flightyear);
+      if (!rows.length) { oldestAerial.set(g.id, null); return; }
+      const first = rows.reduce((a, b) => (b.bgdi_flugjahr < a.bgdi_flugjahr ? b : a));
+      oldestAerial.set(g.id, {ed: +first.bgdi_flugjahr, flown: +first.flightyear});
+    }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); });
+}
+function showOldest(){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being
+  const o = oldestAerial.get(state.glacier); if (!o) return;
+  restoreLatest();
+  if (!state.oldestAerial) state.oldestSaved = {sat: $('satToggle').checked, aerial: $('aerialToggle').checked};
+  state.oldestAerial = o.ed;
+  if (!state.available[state.one]) { const ys = YEARS.filter(y => state.available[y]); if (ys.length) state.one = ys[ys.length - 1]; }      // the 3D view needs a year with a scene under it
+  $('satToggle').checked = false; applySatVisibility(); updateCredits();      // not through the checkbox's handler: that would be remembered as a choice
+  $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change'));
+  refreshAll(); setStatus(statusLine());
+}
+function restoreOldest(){
+  if (!state.oldestAerial) return;
+  const s = state.oldestSaved || {sat: true, aerial: false}; state.oldestAerial = null; state.oldestSaved = null;
+  $('satToggle').checked = s.sat; $('aerialToggle').checked = s.aerial; applySatVisibility(); $('aerialToggle').dispatchEvent(new Event('change')); updateCredits(); setStatus(statusLine());
+}
 const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 function updateAerial(){
   const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
   if (cg) eds.forEach(ed => ensureFlown(cg, ed));
   const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
   document.getElementById('aerialLabel').textContent = 'swisstopo aerial' + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
-  const want = aerialWanted(), boxes = GLACIERS.map(g => L.latLngBounds(imageFootprint(g).bounds));
+  const want = aerialWanted(), boxes = (state.oldestAerial && cg ? [cg] : GLACIERS).map(g => L.latLngBounds(imageFootprint(g).bounds));      // Oldest: only the box of the chosen glacier
   ['A', 'B', 'T'].forEach(k => {
     const yr = want[k] || null;
     if (aerial[k] && aerial[k].yr !== yr) { map.removeLayer(aerial[k].layer); aerial[k] = null; }
@@ -208,6 +265,7 @@ function updateAerial(){
         {pane: 'si' + k, maxZoom: 17, maxNativeZoom: 18, attribution: '© swisstopo (SWISSIMAGE)'});
       layer._clip = boxes; layer.addTo(map); aerial[k] = {yr, layer};
     }
+    else if (yr && aerial[k].layer._clip.length !== boxes.length) aerial[k].layer.setClip(boxes);      // entering or leaving Oldest with the same edition
   });
   clip(); updateCredits();
 }
@@ -215,6 +273,8 @@ const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
 const satShown = () => glacierPicked && satOn();
 const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 picture layer in the layer menu.';
+const OLDEST_MSG = 'The oldest aerial image has no Sentinel-2 picture, so this is not available. Pick a year to go back to the satellite pictures.';
+const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : SAT_MSG;
 function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
   const ed = siYear(yr), fy = flownYear(glacierPicked ? currentGlacier() : null, ed);      // the year the photographs were taken, then the edition of the layer
@@ -321,7 +381,7 @@ function showFrame(i){
   if (!tlLayers.length) { setTag('tagT', '–'); return; }
   state.frame = i;
   tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0));
-  const off = !satOn(), yShown = off && state.mode === 'timelapse' && aerialWanted().T ? aerialWanted().T : tlLayers[i].yr;      // no Sentinel-2 picture: a timelapse shows its newest aerial year, not the frames
+  const off = !satOn(), yShown = off && (state.mode === 'timelapse' || state.oldestAerial) && aerialWanted().T ? aerialWanted().T : tlLayers[i].yr;      // no Sentinel-2 picture: a timelapse shows its newest aerial year, not the frames
   setTag('tagT', yShown);
   const sc = state.available[tlLayers[i].yr];
   if (off) document.getElementById('tagTsub').innerHTML = aerialDesc(yShown);
@@ -611,7 +671,7 @@ const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (highe
    The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
    so the tip sits near the middle of the screen with room around it, whatever the window size. */
 const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way from the tip to the middle of that stretch
-const TONGUE_VIEW = {aletsch: {reach: 3000}, gorner: {west: -800}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2; the Gorner view is moved 0.8 km to the east (west: metres, negative = east)
+const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: 200}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.2 km west; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
 const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
 function tongueBounds(g){
   const geom = g.inv && g.inv.outline, T = g.inv && g.inv.terminus;
@@ -625,7 +685,8 @@ function tongueBounds(g){
   const c = L.latLng(tip.lat + (mid.lat - tip.lat) * TONGUE_SHIFT, tip.lng + (mid.lng - tip.lng) * TONGUE_SHIFT);
   const dLat = Math.max(...near.map(p => Math.abs(p.lat - c.lat))), dLng = Math.max(...near.map(p => Math.abs(p.lng - c.lng)));
   const dW = ov.west ? ov.west / (111320 * Math.cos(c.lat * Math.PI / 180)) : 0;      // moved west as it is: the same window, not a bigger one
-  return L.latLngBounds([c.lat - dLat, c.lng - dLng - dW], [c.lat + dLat, c.lng + dLng - dW]);    // symmetric around c
+  const dN = (ov.north || 0) / 111320;      // moved north in the same way
+  return L.latLngBounds([c.lat - dLat + dN, c.lng - dLng - dW], [c.lat + dLat + dN, c.lng + dLng - dW]);    // symmetric around c
 }
 /* Tongue indication: a ring with a label at the tip (lowest point of the outline), switched on in the layer box */
 let tonguePin = null;
@@ -644,7 +705,7 @@ function focusTongue(animate = true){
   if (b) {
     const tl = L.point(small ? 24 : 40, small ? 64 : 80), br = L.point(small ? 24 : 40, small ? 100 : 110);
     const fit = map.getBoundsZoom(b, false, tl.add(br));
-    const zoom = Math.min(map.getMaxZoom(), Math.max(Math.min(15, fit - TONGUE_ZOOM_OUT), wholeGlacierZoom(g) + TONGUE_CLOSER));
+    const zoom = Math.min(map.getMaxZoom(), Math.max(Math.min(15, fit - TONGUE_ZOOM_OUT), wholeGlacierZoom(g) + TONGUE_CLOSER)) - ((TONGUE_VIEW[g.id] || {}).out || 0);
     // centre like fitBounds with padding, at that zoom
     const mid = map.project(b.getSouthWest(), zoom).add(map.project(b.getNorthEast(), zoom)).divideBy(2).add(br.subtract(tl).divideBy(2));
     map.setView(map.unproject(mid, zoom), zoom, {animate});

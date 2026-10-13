@@ -6,7 +6,7 @@ let checkGen = 0;              // a newer search (e.g. another glacier) makes ol
 async function checkYears(){
   const gen = ++checkGen, g = currentGlacier();
   if (g && g.inv && g.inv.id) setTimeout(() => loadBundle(g.inv.id), 1500);      // the terrain of this glacier comes along while the scenes are searched
-  state.checked = false; state.available = {}; state.latest = null;
+  state.checked = false; state.available = {}; state.latest = null; restoreOldest();
   if (viewMode === '3d') open3D();      // the 3D view of the old glacier goes and waits for the search
   [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
   renderYears(); updateTags();
@@ -35,6 +35,8 @@ async function checkYears(){
   if (AUTOPLAY) { AUTOPLAY = false; if (state.mode === 'timelapse' && !state.playing && !teaserOpen) play(); }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
 }
 function statusLine(){
+  const oa = state.oldestAerial && oldestAerial.get(state.glacier);
+  if (oa) return `Oldest aerial image: swisstopo SWISSIMAGE edition ${oa.ed}, flown ${oa.flown}. No Sentinel-2 picture.`;
   const ok = okYears(), missing = YEARS.filter(y => !state.available[y] && summerStarted(y));       // the current year is not reported as missing before its summer
   if (!ok.length) return 'No satellite images available.';
   const cloudy = ok.filter(y => !state.available[y].clear);

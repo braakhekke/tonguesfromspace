@@ -5,7 +5,7 @@ let viewMode = 'map';      // 'map' or '3d': what the stage shows. The panel (mo
 const state = {
   glacier: GLACIERS[0].id, mode: 'single',          // new visitors start with one image, the newest year
   a: null, b: null, from: null, to: null, one: null,
-  split: 0.5, available: {}, latest: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
+  split: 0.5, available: {}, latest: null, oldestAerial: null, oldestSaved: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,
   style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
 };

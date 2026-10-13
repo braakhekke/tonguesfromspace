@@ -99,6 +99,7 @@
       </div>
       <div class="stack" id="singleControls" hidden>
         <div><div class="side-label">Year</div><div class="years" id="yearsOne" role="group" aria-label="Year to show"></div></div>
+        <div class="spec-row"><div class="side-label">Specials</div><div class="years specials" id="yearsSpecial" role="group" aria-label="Special scenes"></div></div>
       </div>
       <div class="stack" id="timelapseControls" hidden>
         <div><div class="side-label">Years</div><div class="yr-range" id="yearsRange" role="group" aria-label="First and last year of the timelapse"></div></div>
@@ -149,7 +150,7 @@
       <p class="byline fyi-by">Designed to increase public glacial awareness - by J. Braakhekke.</p>
     </section>
 
-    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn"><span>Create and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn"><span class="num">03</span><span>Create and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
   </aside>
 
   <!-- ================= CENTRE ================= -->
@@ -272,7 +273,7 @@
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
     <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
-    <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button>
+    <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span class="pt-label" id="toggleRightLabel">Discover facts and figures</span></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
     <div class="mini-ctl" id="miniCtl">
       <button type="button" id="miniBig" aria-label="Back to the full visual" title="Enlarge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15V5h10M5 5l7 7M19 9v10H9"/></svg></button>

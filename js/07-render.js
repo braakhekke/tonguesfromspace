@@ -45,25 +45,31 @@ function yearChips(boxId, key, opts = {}){
     b.disabled = !ok;                                       // not clickable until confirmed available
     if (state.checked && !ok) { b.classList.add('missing'); b.title = `No ${y} imagery from this source`; }
     if (!state.checked) b.title = 'Checking…';
-    b.setAttribute('aria-pressed', state[key] === y && !(key === 'one' && state.latest));
+    b.setAttribute('aria-pressed', state[key] === y && !(key === 'one' && (state.latest || state.oldestAerial)));
     if (opts.range && ok && y > Math.min(state.from, state.to) && y < Math.max(state.from, state.to)) b.classList.add('in-range');
     b.onclick = () => {
-      if (key === 'one') restoreLatest();
+      if (key === 'one') { restoreLatest(); restoreOldest(); }
       state[key] = y;
       if (opts.range && state.from > state.to) [state.from, state.to] = [state.to, state.from];
       refreshAll();
     };
     box.appendChild(b);
   });
-  if (opts.latest) {          // the newest clear scene of the last weeks, in any month
+}
+/* The specials row of One year: the oldest aerial image of the glacier's box, the newest scene of the last weeks */
+function specialChips(){
+  const box = document.getElementById('yearsSpecial'); box.innerHTML = '';
+  const og = currentGlacier(); ensureOldest(og); const oldest = oldestAerial.get(og.id);      // {ed, flown}, null: no aerial image, undefined: still asked
+  const chip = (text, title, on, disabled, click, cls) => {
     const b = document.createElement('button');
-    b.type = 'button'; b.textContent = 'Latest'; b.className = 'latest-chip';
-    b.disabled = !state.checked || latestBusy;
-    b.title = `The newest clear-ish scene of the last ${LATEST.days} days, with at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue`;
-    b.classList.add('sat-need'); b.setAttribute('aria-pressed', !!state.latest);
-    b.onclick = () => { if (state.latest) { restoreLatest(); refreshAll(); } else showLatest(); };
-    box.appendChild(b);
-  }
+    b.type = 'button'; b.textContent = text; b.title = title; b.disabled = disabled; b.setAttribute('aria-pressed', on); if (cls) b.className = cls;
+    b.onclick = click; box.appendChild(b); return b;
+  };
+  chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest swisstopo aerial image of this area: flown ${oldest.flown}, SWISSIMAGE edition ${oldest.ed}`,
+    !!state.oldestAerial, !oldest, () => { if (state.oldestAerial) { restoreOldest(); refreshAll(); } else showOldest(); });
+  const l = chip('Latest', `The newest clear-ish scene of the last ${LATEST.days} days, with at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue`,
+    !!state.latest, !state.checked || latestBusy, () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
+  if (!state.oldestAerial) l.classList.add('sat-need');      // Oldest runs without the Sentinel-2 picture: the chips must stay usable then, to leave it
 }
 /* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
 function syncPane(){
@@ -78,7 +84,7 @@ function syncPane(){
 }
 function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
-  renderYearRange(); yearChips('yearsOne', 'one', {latest:true});
+  renderYearRange(); yearChips('yearsOne', 'one'); specialChips();
   if (typeof renderMobileBar === 'function') renderMobileBar();
   syncPane();
 }
@@ -88,6 +94,7 @@ function renderMode(){
   const tl = state.mode !== 'compare';          // timelapse and one year both show on the single image pane
   document.getElementById('app').classList.toggle('is-timelapse', tl);
   document.getElementById('app').classList.toggle('photos-ok', state.mode === 'single'); syncFullPlay();      // the old photographs are for one year only
+  document.getElementById('modeCompare').classList.toggle('sat-need', !!state.oldestAerial);      // Oldest has one picture only: the slider is greyed out like the timelapse, a click says why
   document.getElementById('modeCompare').setAttribute('aria-pressed', state.mode === 'compare');
   document.getElementById('modeTimelapse').setAttribute('aria-pressed', state.mode === 'timelapse');
   document.getElementById('modeSingle').setAttribute('aria-pressed', state.mode === 'single');
@@ -241,8 +248,8 @@ function shareBody(g){
   const place = rank === 1 ? 'the largest' : rank ? `no. ${rank} by area` : '';
   return `<div class="stat-row" id="shareRow">
       <div class="stat hero wide"><span class="v" id="shIce">…</span><span class="k" id="shLab">of all Swiss glacier ice</span><span class="d" id="shNote"></span></div>
-      ${areaPct !== null ? `<div class="stat"><span class="v">${areaPct < 10 ? areaPct.toFixed(1) : Math.round(areaPct)} %</span><span class="k">of glacier area</span><span class="d">${areaPct < 10 ? areaPct.toFixed(1) : Math.round(areaPct)} % of the total glaciated area of Switzerland${fn('sgi')}</span></div>` : ''}
-      ${count && rank ? `<div class="stat"><span class="v">${rank} <small>of ${count.toLocaleString('en')}</small></span><span class="k">Rank by area</span><span class="d">Of ${count.toLocaleString('en')} Swiss glaciers${place ? `, ${place}` : ''}${fn('sgi')}${inv.n_under_0_5km2 ? `. ${inv.n_under_0_5km2.toLocaleString('en')} of them are smaller than 0.5 km²` : ''}</span></div>` : ''}
+      ${areaPct !== null ? `<div class="stat"><span class="v">${areaPct < 10 ? areaPct.toFixed(1) : Math.round(areaPct)} %</span><span class="k">Area</span><span class="d">of the total glaciated area of Switzerland${fn('sgi')}</span></div>` : ''}
+      ${count && rank ? `<div class="stat"><span class="v">${rank} <small>of all ${count.toLocaleString('en')}</small></span><span class="k">Rank by area</span><span class="d">Swiss glaciers${fn('sgi')}</span></div>` : ''}
     </div>
 `;
 }
@@ -251,7 +258,7 @@ const dcard = (icon, title, html) => `<details class="card dcard coll" name="dis
 /* The identity of a chapter across redraws: its title, not the whole summary (that also holds the headline figure, which changes with the years) */
 const cardKey = d => { const t = d.querySelector('summary h4, summary .card-h'); return (t || d.firstElementChild).textContent.trim(); };
 function renderStory(){
-  const g = currentGlacier();
+  const g = currentGlacier(); if (typeof updateRightTab === 'function') updateRightTab();
   const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
     : state.mode === 'timelapse' ? [Math.min(state.from, state.to), Math.max(state.from, state.to)]
     : [Math.min(state.a, state.b), Math.max(state.a, state.b)];
@@ -337,6 +344,7 @@ function renderStory(){
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-13"><summary>Years and periods</summary><div class="about-sec">
         <p>Swiss glacier monitoring counts in glaciological years, from 1 October to 30 September. A yearly value is named after the year in which it ends: the year ending in September 2026 is the 2026 value (the 2025/2026 measurement period), and 2017 is October 2016 to September 2017. That is the melt season whose end the satellite picture of summer 2017 shows, so a picture and the value of its year belong together.</p>
+        <p>Each bar is a glaciological year (October to September), named after the year it ends in, with the ice at its end shown in the satellite picture of that summer.</p>
         <p>Years you select in step 2 count with both ends. A sum over 2017–2019 adds the values of 2017, 2018 and 2019, which is the change from autumn 2016 to autumn 2019; one picture of 2017 gives the values of 2017 alone. The charts always show all years and mark the chosen ones with a red line under their label; the sums are given under the chart and in the tiles. Ice volumes (the Swiss ice, the ice of a glacier) are stocks at the end of a year, so they are read at the end of September.</p>
         <p>Everything that is derived from yearly values for a chosen period (thickness, volume and balance of a glacier, the Swiss loss, the water that melted) is an estimate from the yearly mass balance of GLAMOS, calibrated on the measured volume surveys. It is not a new measurement of the period.</p>
       </div></details>
@@ -586,7 +594,7 @@ function thinningChart(g, lo, hi){
   const selTot = selRows.reduce((t, r) => t + r.ice, 0), selLab = selRows.length ? (selRows.length === 1 ? `${selRows[0].y}` : `${selRows[0].y}–${selRows[selRows.length - 1].y}`) : '';
   const mode = `<div class="ch-mode" role="group" aria-label="Chart type"><button type="button" data-mode="year" aria-pressed="${thinMode === 'year'}">Per year</button><button type="button" data-mode="cum" aria-pressed="${thinMode === 'cum'}">Cumulative</button></div>`;
   return `<figure class="cum dh-chart">${barChart('Ice thickness change', 'm of ice', items, `Ice thickness change of ${g.local || g.name}, ${thinMode === 'cum' ? 'added up' : 'per year'}, ${yrs[0].y} to ${yrs[yrs.length - 1].y}: ${items.map(r => `${r.lab} ${r.v.toFixed(2)} m`).join(', ')}`, mode)}
-    <figcaption>${selRows.length ? `Selected ${selLab}${selRows.length > 1 ? ` (${selRows.length} years)` : ''}: <b>${fmtRate(selTot)} m</b> of ice. ` : ''}${thinMode === 'cum' ? `The bars add up from autumn ${start}. ` : ''}Each bar is a glaciological year, October to September, named after the year it ends in: 2017 is October 2016 to September 2017, the ice that the satellite picture of summer 2017 shows. Values are the mass balance (GLAMOS)${fn('mb')} as metres of ice, balance ÷ 0.85; not the same measurement as a height change, but they add up to nearly the same over decades.${own ? '' : ' This glacier is not measured directly, so the line of all Swiss glaciers is shown instead.'}</figcaption>
+    <figcaption>${selRows.length ? `Selected ${selLab}${selRows.length > 1 ? ` (${selRows.length} years)` : ''}: <b>${fmtRate(selTot)} m</b> of ice. ` : ''}${thinMode === 'cum' ? `The bars add up from autumn ${start}. ` : ''}Values are the mass balance (GLAMOS)${fn('mb')} as metres of ice, balance ÷ 0.85; not the same measurement as a height change, but they add up to nearly the same over decades.${own ? '' : ' This glacier is not measured directly, so the line of all Swiss glaciers is shown instead.'}</figcaption>
   </figure>`;
 }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.ch-mode button[data-mode]'); if (!b || b.dataset.mode === thinMode) return; thinMode = b.dataset.mode; renderStory(); });
@@ -788,7 +796,7 @@ function renderShare(){
     document.getElementById('shIce').textContent = shareText(v.km3 / total);
     const shSum = document.getElementById('shSum'); if (shSum) shSum.innerHTML = sumInner(shareText(v.km3 / total));
     document.getElementById('shLab').textContent = `of all Swiss glacier ice in ${v.yr || 2016}`;
-    document.getElementById('shNote').innerHTML = `${v.km3.toFixed(1)} of ${total.toFixed(1)} km³${fn('grab')} (Swiss total${fn('swiss')})`;
+    document.getElementById('shNote').innerHTML = `${v.km3.toFixed(1)} of ${total.toFixed(1)} km³${fn('grab')}${fn('swiss')}`;
   }).catch(() => {});
 }
 function renderGlacierWater(){
@@ -843,7 +851,7 @@ function cumulativeChart(lo, hi){
       <div class="stat wide loss"><span class="v">−${lostKm3.toFixed(1)} <small>km³ gone</small></span><span class="k">Lost since ${CUM_BASE_YEAR}</span><span class="d">${lostPct} % of the ice of ${CUM_BASE_YEAR}</span></div>
     </div>
     ${barChart(leftMode === 'lost' ? 'Ice lost per year' : 'Ice left per year', leftMode === 'lost' ? '%' : 'km³', items, leftMode === 'lost' ? `Share of the Swiss glacier ice lost per year, ${CUM_BASE_YEAR} to ${last}` : `Ice in all Swiss glaciers per year, ${CUM_BASE_YEAR} to ${last}, in km³: ${items.map(r => `${r.lab} ${r.v.toFixed(1)}`).join(', ')}`, mode)}
-    <figcaption>${selYears.length ? `Selected ${selLab}: Swiss glaciers lost <b>${selPct.toFixed(1)} %</b> of their ice, <b>${selLost.toFixed(1)} km³</b>, from autumn ${selYears[0] - 1} to autumn ${selYears[selYears.length - 1]}. ` : ''}Each bar is a glaciological year (October to September), named after the year it ends in, with the ice at its end shown in the satellite picture of that summer.</figcaption>
+    <figcaption>${selYears.length ? `Selected ${selLab}: Swiss glaciers lost <b>${selPct.toFixed(1)} %</b> of their ice, <b>${selLost.toFixed(1)} km³</b>, from autumn ${selYears[0] - 1} to autumn ${selYears[selYears.length - 1]}. ` : ''}</figcaption>
   </figure>`;
 }
 function waterSection(lo, hi){
@@ -855,10 +863,10 @@ function waterSection(lo, hi){
   const tile = (k, v, small, d) => `<div class="stat"><span class="v">${v}${small ? ` <small>${small}</small>` : ''}</span><span class="k">${k}</span><span class="d">${d}</span></div>`;
   return `<div class="water" id="waterBox" data-litres="${litres}"><div class="stat-row">
     <div class="stat hero wide"><span class="v">${fmtN(leftL, 1)} litres</span><span class="k">of water still stored as ice in autumn ${to}</span></div>
-    ${tile('Olympic pools', fmtN(pools), '', `Lined up, these 50-metre pools would stretch ${fmtN(pools * 50 / 1000, 0)} km, ${(pools * 50 / 1000 / 40075).toFixed(1)} times around the Earth.`)}
-    ${tile('Lake Zurich', lakes.toFixed(1), '×', `Lake Zurich holds about ${LAKE_ZURICH_KM3} km³ of water. The ice still left would fill it ${lakes >= 1 ? `${lakes.toFixed(1)} times` : `to ${Math.round(lakes * 100)} %`}.`)}
-    ${tile('Swiss tap water', tap.toFixed(1), 'years', `How long all Swiss homes, businesses and industry would take to use this much, at about ${Math.round(SWISS_SUPPLY_KM3 * 1000)} million m³ a year.`)}
-    ${tile('Litres per resident', fmtN(each, 2), '', `Shared among Switzerland's ${SWISS_POP / 1e6} million residents: each person's household water use (${HOUSEHOLD_L_DAY} litres a day) for about ${Math.round(yrs)} years.`)}
+    ${tile('Olympic pools', fmtN(pools), '', `Lined up, these 50-metre pools would stretch ${fmtN(pools * 50 / 1000, 0)} km, or ${(pools * 50 / 1000 / 40075).toFixed(1)} times around the Earth.`)}
+    ${tile('Lake Zurich', lakes.toFixed(1), '×', `Lake Zurich holds about ${LAKE_ZURICH_KM3} km³ of water, so the ice still left would fill it ${lakes >= 1 ? `${lakes.toFixed(1)} times` : `to ${Math.round(lakes * 100)} %`}.`)}
+    ${tile('Swiss tap water', tap.toFixed(1), 'years', `At about ${Math.round(SWISS_SUPPLY_KM3 * 1000)} million m³ a year, all Swiss homes, businesses and industry together would need ${tap.toFixed(1)} years to use this much water.`)}
+    ${tile('Litres per resident', fmtN(each, 2), '', `Shared among ${SWISS_POP / 1e6} million Swiss residents, this would cover each person's household water use for about ${Math.round(yrs)} years (${HOUSEHOLD_L_DAY} L/day).`)}
     <div class="stat hero wide"><span class="v"><span id="wCount">0</span> litres</span><span class="k">melted from Swiss glaciers</span><span class="d">between autumn ${lo - 1} and autumn ${to}</span></div>
   </div>
   <div class="w-live" id="wLive"></div></div>`;
@@ -879,7 +887,7 @@ function wireWater(){
   const lastY = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, perYear = (iceVolume(lastY - 1) - iceVolume(lastY)) * 0.9 * 1e12;
   const perSec = perYear / (365.25 * 86400), live = document.getElementById('wLive');
   const tick = () => { const sec = (Date.now() - liveStart) / 1000;
-    live.innerHTML = `While you have been on this page, Swiss glaciers lost about <b>${Math.round(sec * perSec).toLocaleString('en')} litres</b>. In ${lastY} they lost on average ${Math.round(perSec).toLocaleString('en')} litres every second, one Olympic pool every ${Math.round(POOL_L / perSec)} seconds.`; };
+    live.innerHTML = `While you have been on this page, Swiss glaciers lost about <b>${Math.round(sec * perSec).toLocaleString('en')} litres</b>. In ${lastY} they lost on average ${Math.round(perSec).toLocaleString('en')} litres every second, or one Olympic pool every ${Math.round(POOL_L / perSec)} seconds.`; };
   tick(); liveTimer = setInterval(tick, 1000);
 }
 
@@ -894,11 +902,13 @@ function renderOutlineControls(){
 }
 
 function refreshAll(){
+  if (state.oldestAerial && state.mode !== 'single') restoreOldest();
   if (state.latest && state.mode !== 'single') restoreLatest();        // the latest image belongs to the One year mode
   renderMode(); renderYears();
   setTag('tagA', state.a); setTag('tagB', state.b);
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
   renderStory(); writeHash(); sync3D();
+  if (state.checked && !latestBusy) setStatus(statusLine());      // the status box follows the choice: a year after Latest drops its "Latest clear-ish scene" line
 }
 
 
