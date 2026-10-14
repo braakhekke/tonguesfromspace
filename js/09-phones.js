@@ -168,11 +168,13 @@ function setGlacierSheet(open){
 }
 function renderMobileBar(){                 // phones: the glacier list becomes one card, and a tap opens the sheet with the glaciers
   const btn = $('mGlacier'), g = glacierPicked ? currentGlacier() : null;      // before the first choice nothing is selected: the card asks for one
-  btn.innerHTML = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${rankArea(g).toFixed(1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
+  const card = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${rankArea(g).toFixed(1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
+  if (btn._card !== card) { btn._card = card; btn.innerHTML = card; }
   btn.classList.toggle('placeholder', !g);
   btn.onclick = () => setGlacierSheet(true);
-  const max = Math.max(...GLACIERS.map(rankArea));
-  glacierSheet().querySelector('.g-list').innerHTML = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${rankArea(x).toFixed(2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>`).join('');
+  const max = Math.max(...GLACIERS.map(rankArea)), list = glacierSheet().querySelector('.g-list');
+  const html = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${rankArea(x).toFixed(2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>`).join('');
+  if (list._html !== html) { list._html = html; list.innerHTML = html; }      // this runs with every redraw of the page: the rows must stay put under a finger that is about to tap one
 }
 
 /* Map tools on phones: layers and measuring live behind two small buttons */
