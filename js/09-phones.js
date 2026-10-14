@@ -141,19 +141,38 @@ function chooseGlacier(id){
   const sat = $('satToggle'); if (!sat.checked) { sat.checked = true; sat.dispatchEvent(new Event('change')); }      // choosing a glacier switches the Sentinel-2 picture on (it may have been switched off in the layer menu)
   if (first) { const bt = $('boxToggle'); if (bt.checked) { bt.checked = false; bt.dispatchEvent(new Event('change')); } }      // the selectable-glacier layer goes off with the first choice
   if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines
-    stopPlay(); if (first) { if (state.checked) { setCompareLayers(); buildTimelapse(); } drawOutlines(); writeHash(); updateTrailClip(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
+    stopPlay(); if (first) { if (state.checked) { setCompareLayers(); buildTimelapse(); } drawOutlines(); writeHash(); updateTrailClip(); updateAerial(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
     return focusTongue();
   }
   stopPlay();
-  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); updateTrailClip(); updateSight(); drawTonguePin(); focusTongue(); writeHash();
+  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); updateTrailClip(); updateAerial(); updateSight(); drawTonguePin(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
-function renderMobileBar(){                 // phones: the glacier list becomes a dropdown
-  const gs = $('mGlacier');
-  const none = !glacierPicked;      // before the first choice nothing is selected: the box asks for one
-  gs.innerHTML = (none ? '<option value="" disabled selected>Tap to choose a glacier</option>' : '') + GLACIERS.map((g, i) => `<option value="${g.id}" ${!none && g.id === state.glacier ? 'selected' : ''}>${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²</option>`).join('');
-  gs.classList.toggle('placeholder', none);
-  gs.onchange = () => chooseGlacier(gs.value);
+const MP_CHEV = '<svg class="mp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+let gSheet = null;
+function glacierSheet(){                 // the sheet with the ten glaciers, made the first time it is needed
+  if (gSheet) return gSheet;
+  gSheet = document.createElement('div'); gSheet.className = 'g-sheet'; gSheet.setAttribute('role', 'dialog'); gSheet.setAttribute('aria-modal', 'true'); gSheet.setAttribute('aria-label', 'Choose a glacier');
+  gSheet.innerHTML = '<div class="g-back"></div><div class="g-panel"><div class="g-head"><h2 class="step-h"><span class="num">01</span>Choose a glacier</h2><button type="button" class="g-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><ul class="g-list"></ul></div>';
+  document.body.appendChild(gSheet);
+  gSheet.querySelector('.g-back').onclick = gSheet.querySelector('.g-close').onclick = () => setGlacierSheet(false);
+  gSheet.querySelector('.g-list').onclick = e => { const b = e.target.closest('button[data-id]'); if (b) { setGlacierSheet(false); chooseGlacier(b.dataset.id); } };
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && gSheet.classList.contains('open')) setGlacierSheet(false); });
+  return gSheet;
+}
+function setGlacierSheet(open){
+  const s = glacierSheet(), btn = $('mGlacier');
+  s.classList.toggle('open', open); btn.setAttribute('aria-expanded', open); document.body.classList.toggle('sheet-open', open);
+  if (open) { const cur = s.querySelector('button[aria-pressed="true"]') || s.querySelector('.g-list button'); cur.focus(); cur.scrollIntoView({block: 'center'}); }
+  else btn.focus({preventScroll: true});
+}
+function renderMobileBar(){                 // phones: the glacier list becomes one card, and a tap opens the sheet with the glaciers
+  const btn = $('mGlacier'), g = glacierPicked ? currentGlacier() : null;      // before the first choice nothing is selected: the card asks for one
+  btn.innerHTML = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${rankArea(g).toFixed(1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
+  btn.classList.toggle('placeholder', !g);
+  btn.onclick = () => setGlacierSheet(true);
+  const max = Math.max(...GLACIERS.map(rankArea));
+  glacierSheet().querySelector('.g-list').innerHTML = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${rankArea(x).toFixed(2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>`).join('');
 }
 
 /* Map tools on phones: layers and measuring live behind two small buttons */

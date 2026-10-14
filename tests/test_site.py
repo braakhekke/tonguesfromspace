@@ -110,6 +110,16 @@ class TestLoading(SiteCase):
         self.assertEqual(page.locator("#mGlacier").count(), 1)
         self.assertClean()
 
+    def test_phone_glacier_card_opens_a_sheet_with_the_ten_glaciers(self):
+        page = self.open(viewport={"width": 390, "height": 844})
+        page.click("#mGlacier")
+        self.assertEqual(page.locator(".g-sheet.open .g-list button").count(), 10)
+        page.locator(".g-sheet.open .g-list button").nth(3).click()
+        page.wait_for_function("state.glacier === GLACIERS[3].id", timeout=15000)
+        self.assertEqual(page.locator(".g-sheet.open").count(), 0, "the sheet closes with the choice")
+        page.wait_for_function("document.getElementById('mGlacier').textContent.includes(GLACIERS[3].name)")
+        self.assertClean()
+
     def test_outline_is_loaded_when_the_glacier_is_chosen(self):      # only in the built site, where glaciers.js leaves the 2023 outlines out
         page = self.open()
         if not page.evaluate("GLACIERS.some(g => g.inv.outline_file)"):
