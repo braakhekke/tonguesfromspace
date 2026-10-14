@@ -23,7 +23,7 @@ function drawStreetView(){
 function openStreetView(i){
   const p = svList[i]; if (!p || !SV_KEY) return;
   svIndex = i;
-  $('svNum').textContent = i + 1; $('svTitle').textContent = p.title;
+  $('svTitle').textContent = p.title;
   $('svMeta').textContent = `Street View · ${p.date ? fmtMonth(p.date) : ''}${p.credit ? ' · photo ' + p.credit : ''} · Google`;
   $('svOpen').href = svMapsUrl(p);
   const f = $('svFrame'), url = svEmbedUrl(p); if (f.getAttribute('src') !== url) f.src = url;

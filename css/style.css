@@ -427,7 +427,6 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .sv-panel{position:absolute;left:12px;bottom:76px;z-index:667;width:min(600px,calc(100% - 24px));height:min(420px,calc(100% - 190px));display:flex;flex-direction:column;background:var(--glass);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:8px;box-shadow:0 2px 14px rgba(0,0,0,.4);color:#fff;overflow:hidden}
 .sv-panel[hidden]{display:none}
 .sv-head{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 8px;font-size:12.5px}
-.sv-num{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#F5A623;color:#1c1300;font-weight:800;font-size:12px}
 .sv-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
 .sv-title b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sv-title small{font-size:11px;color:rgba(255,255,255,.74)}
