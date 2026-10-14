@@ -2,6 +2,8 @@
 config.js
 # Copernicus credentials for scripts/serve.py
 scripts/.cdse-credentials
+# Google API key for the Street View candidate scripts
+scripts/.google-key
 .DS_Store
 __pycache__/
 # my own notes: the original README, kept for myself
@@ -18,3 +20,7 @@ backup/
 experiments/
 # my own ideas, kept local
 IDEAS.md
+
+# Street View scan results stay local (Google forbids storing its content)
+scripts/.streetview-scan.json
+scripts/.streetview-ranked.json

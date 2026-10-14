@@ -13,6 +13,7 @@ function renderGlacierList(){
   });
   document.getElementById('rankNote').innerHTML = `Ranked by area${fn('sgi')}`;
   renderLayerTitles();
+  if (typeof refreshStreetView === 'function') refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
 }
 /* the title of the layer segment that belongs to the chosen glacier, in the map menu and in the 3D menu */
 function renderLayerTitles(){
@@ -506,6 +507,7 @@ const SOURCES = {
   terrain:() => `swissALTI3D © ${lnk('https://www.swisstopo.admin.ch', 'swisstopo')} (open government data), served as terrain tiles by ${lnk('https://mapterhorn.com/attribution', 'Mapterhorn')}. Peak names: swissNAMES3D © swisstopo.`,
   routes: () => `SchweizMobil route data of the Federal Roads Office (ASTRA), via ${lnk('https://map.geo.admin.ch', 'swisstopo geo.admin.ch')}; hiking trails: swissTLM3D © swisstopo.`,
   photos: () => `Historic photographs in the 3D view (eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel, Fee): ETH Library, Bildarchiv (${lnk('https://ba.e-pics.ethz.ch', 'e-pics')}), CC BY-SA 4.0 (each photo shows its own licence), the place and angles of the camera by volunteers on ${lnk('https://smapshot.heig-vd.ch', 'Smapshot')} (HEIG-VD).`,
+  streetview: () => `Street View panoramas (Aletsch, map layer "Street View"): © ${lnk('https://www.google.com/maps', 'Google')}, shown in Google's own viewer (Maps Embed API), photographed by the contributor named in each panel. Nothing of them is stored here but the panorama ids. Google's ${lnk('https://policies.google.com/terms', 'terms')} and ${lnk('https://policies.google.com/privacy', 'privacy policy')} apply when a panorama is opened.`,
   bg:     () => `Background maps: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX; colour topographic map and swissALTI3D hillshade © swisstopo.`,
   water:  () => `Swiss water supply of about 930 million m³ a year: SVGW (Swiss Gas and Water Industry Association). Other comparisons: Eiffel Tower 330 m with antennas (${lnk('https://www.toureiffel.paris', 'toureiffel.paris')}), football pitch 105 × 68 m, city bus about 12 m, Olympic pool 50 × 25 × 2 m, Lake Zurich 3.9 km³.`,
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`

@@ -196,6 +196,7 @@
       <div class="trail-legend radar-legend gl-only" id="radarLegend" hidden><i class="ramp" id="radarRamp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="radarNote"></small><span class="multi-row"><b class="multi-dot"></b>Measured in several years; click to see all</span><small>Each dot is the mean of the radar points in a 50 m cell.</small></div>
       <label class="toggle gl-only" title="Hiking trails"><input type="checkbox" id="trailsToggle"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
       <div class="trail-legend gl-only" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="sightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
+      <label class="toggle gl-only" id="svRow" title="The best Street View panoramas of this glacier (Google)" hidden><input type="checkbox" id="svToggle"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Street View</span></label>
       <div class="lb-group">Background</div>
       <label class="toggle" title="The ten glaciers as red outlines you can click. Switched off when you choose a glacier."><input type="checkbox" id="boxToggle" checked> <span><span class="sym"><svg class="gl-icon" viewBox="0 0 20 14" aria-hidden="true"><path d="M2 3c3-2 6-1 8 0s5 0 7 1c1 2 0 4-2 6-2 2-3 3-5 3s-3-2-5-3S1 8 1 6c0-1 0-2 1-3z" fill="rgba(200,50,42,.15)" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/></svg></span>Selectable glaciers</span></label>
       <label class="toggle" title="Cloudless Sentinel-2 mosaic of Europe"><input type="checkbox" id="mosaicToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-mosaic"/></svg></span>Sentinel-2 cloudless</span></label>
@@ -225,6 +226,17 @@
       </div>
     </div>
     <div class="pick-hint" id="pickHint" aria-live="polite"><div class="pick-note" id="pickNote"></div></div>
+    <div class="sv-panel" id="svPanel" hidden role="dialog" aria-label="Street View panorama">
+      <div class="sv-head">
+        <span class="sv-num" id="svNum"></span>
+        <span class="sv-title"><b id="svTitle"></b><small id="svMeta"></small></span>
+        <button type="button" class="sv-btn" id="svPrev" aria-label="Previous panorama">‹</button>
+        <button type="button" class="sv-btn" id="svNext" aria-label="Next panorama">›</button>
+        <a class="sv-open" id="svOpen" target="_blank" rel="noopener">Google Maps ↗</a>
+        <button type="button" class="sv-btn" id="svClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <iframe id="svFrame" title="Street View panorama" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
     <div class="v3d" id="v3d" hidden role="dialog" aria-label="3D view of the tongue">
       <canvas id="v3dCanvas"></canvas>
       <canvas class="v3d-over" id="v3dOver"></canvas>
@@ -236,6 +248,7 @@
           <label class="toggle" title="The Sentinel-2 image of the chosen year on the terrain"><input type="checkbox" id="l3Sat"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-s2"/></svg></span>Sentinel-2 image</span></label>
           <label class="slider-row" for="l3Op" title="How opaque the Sentinel-2 image is: lower values let the background show through"><span>Image opacity</span><output id="l3OpOut">100 %</output></label>
           <input type="range" class="frame" id="l3Op" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite image">
+          <label class="toggle" title="swisstopo aerial photographs (SWISSIMAGE) of the year you picked on the left, under the Sentinel-2 image: lower its opacity to see them"><input type="checkbox" id="l3Aerial"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-air"/></svg></span><span id="l3AerialLabel">swisstopo aerial</span></span></label>
           <label class="toggle"><input type="checkbox" id="l3Old"> <span><span class="sym"><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i></span><span id="l3OldLabel">Outline 1850</span></span></label>
           <label class="toggle"><input type="checkbox" id="l3New"> <span><span class="sym"><i class="swatch" style="border-color:var(--new)"></i></span><span id="l3NewLabel">Outline 2023</span></span></label>
           <label class="toggle" title="The lowest point of the 2023 outline"><input type="checkbox" id="l3Pin"> <span><span class="sym"><i class="pin-sw"></i></span><span id="l3PinLabel">Tongue tip 2023</span></span></label>
@@ -356,6 +369,7 @@
 <script defer src="js/11-view3d.js"></script>
 <script defer src="js/12-boot.js"></script>
 <script defer src="js/13-teaser.js"></script>
+<script defer src="js/14-streetview.js"></script>
 
 </body>
 </html>

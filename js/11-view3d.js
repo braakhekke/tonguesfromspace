@@ -247,18 +247,19 @@ const tileBitmap = url => {
   return tileCache.get(url);
 };
 const V3D_BASES = {
-  aerialToggle: {max: 18, credit: '© swisstopo (SWISSIMAGE)', url: (z, x, y) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${state.oldestAerial}/3857/${z}/${x}/${y}.jpeg`},      // only for the specials row's "Oldest"
+  aerialToggle: {max: 18, credit: '© swisstopo (SWISSIMAGE)', url: (z, x, y, yr) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(state.oldestAerial || yr)}/3857/${z}/${x}/${y}.jpeg`},      // the edition of the year the picture is made for, or the oldest one in the specials row's "Oldest"
   osmToggle: {max: 19, credit: '© OpenStreetMap contributors', url: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`},
   topoToggle: {max: 18, credit: '© swisstopo', url: (z, x, y) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/${z}/${x}/${y}.jpeg`},
   altiToggle: {max: 18, credit: '© swisstopo (swissALTI3D)', url: (z, x, y) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/${z}/${x}/${y}.png`}
 };
 const V3D_TRAILS = {max: 17, url: (z, x, y) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/${z}/${x}/${y}.png`};
-const baseKey = () => state.oldestAerial ? 'aerialToggle' : Object.keys(V3D_BASES).find(k => k !== 'aerialToggle' && $(k).checked);
-async function drawTiles(ctx, S, toTexM, def, wantZ){
+/* what lies under the satellite picture, bottom first: one base map, then the aerial images (as on the map, where the aerial layer can be on beside a base map); "Oldest" shows the aerial image alone */
+const baseKeys = () => state.oldestAerial ? ['aerialToggle'] : [Object.keys(V3D_BASES).find(k => k !== 'aerialToggle' && $(k).checked), $('aerialToggle').checked && 'aerialToggle'].filter(Boolean);
+async function drawTiles(ctx, S, toTexM, def, wantZ, yr){
   const {WM, HALF} = V3D, corners = [[-S.back, -HALF], [-S.back, HALF], [S.up, -HALF], [S.up, HALF]].map(([a, b]) => S.merc(a, b));
   const range = z => { const T = 2 * WM / 2 ** z, xs = corners.map(c => (c[0] + WM) / T), ys = corners.map(c => (WM - c[1]) / T); return {z, T, x0: Math.floor(Math.min(...xs)), x1: Math.floor(Math.max(...xs)), y0: Math.floor(Math.min(...ys)), y1: Math.floor(Math.max(...ys))}; };
   let R = range(Math.min(def.max, wantZ)); if ((R.x1 - R.x0 + 1) * (R.y1 - R.y0 + 1) > 90 && R.z > 13) R = range(R.z - 1);      // not too many tiles
-  const jobs = []; for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) jobs.push(tileBitmap(def.url(R.z, x, y)).then(bmp => ({x, y, bmp})));
+  const jobs = []; for (let y = R.y0; y <= R.y1; y++) for (let x = R.x0; x <= R.x1; x++) jobs.push(tileBitmap(def.url(R.z, x, y, yr)).then(bmp => ({x, y, bmp})));
   const tiles = await Promise.all(jobs);
   ctx.save(); ctx.imageSmoothingQuality = 'high';
   tiles.forEach(({x, y, bmp}) => {
@@ -281,7 +282,7 @@ async function detectTrails(c){            // is any hiking trail inside the str
 const outline3D = g => !!(g.inv && g.inv.oldest) && $('oldToggle').checked;      // the layers of the map, drawn on the picture of the 3D view
 const outlineNew3D = g => !!(g.inv && g.inv.outline) && $('newToggle').checked;
 const radar3D = g => !!(g.inv && g.inv.radar) && $('radarToggle').checked;
-const layerCreditNames = g => [baseKey() && ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', altiToggle: 'swisstopo', aerialToggle: 'swisstopo'}[baseKey()] || null), $('trailsToggle').checked && 'swisstopo', (outline3D(g) || outlineNew3D(g) || radar3D(g)) && 'GLAMOS', $('l3Names').checked && 'swisstopo'].filter(Boolean);
+const layerCreditNames = g => [...baseKeys().map(k => ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', altiToggle: 'swisstopo', aerialToggle: 'swisstopo'}[k] || null)), $('trailsToggle').checked && 'swisstopo', (outline3D(g) || outlineNew3D(g) || radar3D(g)) && 'GLAMOS', $('l3Names').checked && 'swisstopo'].filter(Boolean);
 const layersCredit = g => layerCreditNames(g).join(' · ');
 const layersCreditText = g => { const t = layersCredit(g); return t ? ` Layers: ${t}.` : ''; };      // the sentence in the full note under the 3D view
 /* The 3D view needs only the strip, which is a small part of the glacier area (Aletsch: about a twelfth): it asks the relay for a picture of just the box around the strip, at the same 10 m pixels.
@@ -309,7 +310,7 @@ async function strip3DTexture(g, S, yr, nA, nB){            // the satellite pic
   const toTex = (ix, iy) => toTexM(bb[0] + ix / kx, bb[3] - iy / ky);
   const p0 = toTex(0, 0), p1 = toTex(1, 0), p2 = toTex(0, 1);
   ctx.fillStyle = '#0b1220'; ctx.fillRect(0, 0, TEX[0], TEX[1]); ctx.imageSmoothingQuality = 'high';
-  if (baseKey()) await drawTiles(ctx, S, toTexM, V3D_BASES[baseKey()], 15);      // under the satellite picture, which shows it through where it is not opaque
+  for (const k of baseKeys()) await drawTiles(ctx, S, toTexM, V3D_BASES[k], k === 'aerialToggle' ? 16 : 15, yr);      // under the satellite picture, which shows it through where it is not opaque
   const imgM = [p1[0] - p0[0], p1[1] - p0[1], p2[0] - p0[0], p2[1] - p0[1], p0[0], p0[1]], oa = outsideAlpha(), ia = noSat ? 0 : imgOpacity(), og = outlineGeom(g);
   if (LAKE_GLACIERS.has(g.id) && !noSat && state.style === 'natural' && !lakeMasks.has(g.id + '|' + yr)) {      // the water of this year, from the plain picture (before layers and opacity change its colours)
     const mw = TEX[0] / 2, mh = TEX[1] / 2, mc = document.createElement('canvas'); mc.width = mw; mc.height = mh; const mx = mc.getContext('2d', {willReadFrequently: true});
@@ -755,11 +756,11 @@ function setView(v){            // the stage shows the map or the 3D view; the p
 }
 $('viewMap').onclick = () => setView('map'); $('view3dBtn').onclick = () => setView('3d');
 /* The layer menu of the 3D view: the same switches as on the map (an outline or the radar dots), drawn on the picture that covers the terrain */
-const L3 = [['l3Osm', 'osmToggle'], ['l3Topo', 'topoToggle'], ['l3Alti', 'altiToggle'], ['l3Sat', 'satToggle'], ['l3Trails', 'trailsToggle'], ['l3Old', 'oldToggle'], ['l3New', 'newToggle'], ['l3Radar', 'radarToggle'], ['l3Pin', 'pinToggle'], ['l3Max', 'maxToggle']];
+const L3 = [['l3Osm', 'osmToggle'], ['l3Topo', 'topoToggle'], ['l3Alti', 'altiToggle'], ['l3Aerial', 'aerialToggle'], ['l3Sat', 'satToggle'], ['l3Trails', 'trailsToggle'], ['l3Old', 'oldToggle'], ['l3New', 'newToggle'], ['l3Radar', 'radarToggle'], ['l3Pin', 'pinToggle'], ['l3Max', 'maxToggle']];
 function sync3DMenu(){
   const g = currentGlacier(), R = g && g.inv && g.inv.radar;
   L3.forEach(([a, b]) => { $(a).checked = $(b).checked; $(a).disabled = b === 'radarToggle' ? !R : b === 'maxToggle' ? !(R && R.max_at) : $(b).disabled; });
-  $('l3OldLabel').textContent = $('oldLabel').textContent; $('l3NewLabel').textContent = $('newLabel').textContent; $('l3PinLabel').textContent = $('pinLabel').textContent; renderLayerTitles();
+  $('l3OldLabel').textContent = $('oldLabel').textContent; $('l3NewLabel').textContent = $('newLabel').textContent; $('l3PinLabel').textContent = $('pinLabel').textContent; $('l3AerialLabel').textContent = $('aerialLabel').textContent; renderLayerTitles();
   $('l3TrailLegend').hidden = !$('trailsToggle').checked; $('l3SightLegend').hidden = !sightFor(g);
   $('l3RadarLegend').hidden = !$('radarToggle').checked;
   $('l3RadarNote').textContent = !R ? 'No radar measurements for this glacier.' : `Surveys ${R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join(' and ')) : ''}. The ice has thinned since. The 3D view shows only about ten pins, the thickest of each stretch of the glacier, to keep loading and moving fast. Hover a pin for the thickness, click to keep it.`;
@@ -1200,11 +1201,12 @@ function updateCredits3D(){            // the sources of the 3D view, in the cre
   const c = v3dCtx, g = c && c.g, parts = [], yrs = c ? (c.cmp ? c.cmp : [c.current()]).filter(Boolean) : [];
   if (satOn() && yrs.length) parts.push(`Contains modified Copernicus Sentinel data ${[...new Set(yrs)].join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`);
   parts.push(`Terrain: swissALTI3D © ${A_SWT} via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>` + (c && c.usesDem ? ' (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)' : ''));
-  const bk = baseKey();
-  if (bk === 'osmToggle') parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
-  else if (bk === 'topoToggle') parts.push(`Map © ${A_SWT}`);
-  else if (bk === 'altiToggle') parts.push(`Hillshade: swissALTI3D © ${A_SWT}`);
-  else if (bk === 'aerialToggle') parts.push(`Aerial images: SWISSIMAGE ${state.oldestAerial} © ${A_SWT}`);
+  for (const bk of baseKeys()) {
+    if (bk === 'osmToggle') parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
+    else if (bk === 'topoToggle') parts.push(`Map © ${A_SWT}`);
+    else if (bk === 'altiToggle') parts.push(`Hillshade: swissALTI3D © ${A_SWT}`);
+    else if (bk === 'aerialToggle') parts.push(`Aerial images: SWISSIMAGE ${state.oldestAerial || [...new Set(yrs.map(siYear))].join(' and ')} © ${A_SWT}`);
+  }
   if ($('trailsToggle').checked && (!c || c.hasTrails !== false)) parts.push(`Hiking trails © ${A_SWT}` + (g && sightFor(g) ? ' (line of sight: own calculation from swissALTI3D)' : ''));
   if (g && (outline3D(g) || outlineNew3D(g))) parts.push('Outlines GLAMOS (CC BY 4.0)');
   if (g && radar3D(g)) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');

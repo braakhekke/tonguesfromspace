@@ -59,6 +59,7 @@ function updateCredits(){
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
+  if (typeof svActive === 'function' && svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
   document.getElementById('credits').innerHTML = parts.join(' · ');
 }
 (function(){ const c = document.getElementById('credits');
