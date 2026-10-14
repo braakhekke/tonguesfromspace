@@ -120,6 +120,15 @@ class TestLoading(SiteCase):
         page.wait_for_function("document.getElementById('mGlacier').textContent.includes(GLACIERS[3].name)")
         self.assertClean()
 
+    def test_street_view_layer_is_hidden_without_a_key_and_builds_embed_links(self):
+        page = self.open()
+        self.assertTrue(page.evaluate("$('svRow').hidden"), "without a key (config.js) the Street View layer must not be offered")
+        url = page.evaluate("svEmbedUrl({pano: 'abc', heading: 10, fov: 80})")
+        for part in ("maps/embed/v1/streetview", "pano=abc", "heading=10", "fov=80"):
+            self.assertIn(part, url)
+        self.assertIn("map_action=pano", page.evaluate("svMapsUrl({pano: 'abc'})"))
+        self.assertClean()
+
     def test_outline_is_loaded_when_the_glacier_is_chosen(self):      # only in the built site, where glaciers.js leaves the 2023 outlines out
         page = self.open()
         if not page.evaluate("GLACIERS.some(g => g.inv.outline_file)"):
@@ -187,6 +196,14 @@ class TestFunctions(SiteCase):
         r = self.page.evaluate("unionBbox([[46, 8], [47, 9]], {coordinates: [[[[7.5, 45.5], [9.5, 47.5], [8, 46]]]]})")
         self.assertEqual(r, [[45.5, 7.5], [47.5, 9.5]])
         self.assertEqual(self.page.evaluate("unionBbox([[46, 8], [47, 9]], null)"), [[46, 8], [47, 9]])
+
+    def test_3d_layers_under_the_satellite_picture(self):      # one base map, then the aerial images; "Oldest" shows the aerial image alone
+        js = "() => { const set = (id, on) => { $(id).checked = on; }; ['osmToggle','topoToggle','altiToggle','aerialToggle'].forEach(id => set(id, false)); %s; const r = baseKeys(); state.oldestAerial = null; return r; }"
+        self.assertEqual(self.page.evaluate(js % ""), [])
+        self.assertEqual(self.page.evaluate(js % "set('aerialToggle', true)"), ["aerialToggle"])
+        self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); set('aerialToggle', true)"), ["osmToggle", "aerialToggle"])
+        self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); state.oldestAerial = 2017"), ["aerialToggle"])
+        self.assertIn("/swissimage-product/default/2023/", self.page.evaluate("V3D_BASES.aerialToggle.url(15, 1, 2, 2023)"))
 
     def test_scene_choice_prefers_september_then_august_then_cloudy(self):
         day = lambda d, cloud, snow=0: {"date": d, "orbit": "R108", "cloud": cloud, "snow": snow}
@@ -321,3 +338,23 @@ class TestPhotoData(unittest.TestCase):
                 self.assertTrue(p["src"].startswith("https://") and p["thumb"].startswith("https://"), p["id"])
                 self.assertTrue(p["link"].startswith("https://smapshot.heig-vd.ch/visit/"), p["id"])
                 self.assertTrue(p.get("licence") or p.get("owner"), f"photo {p['id']} has no licence or owner: it cannot be credited")
+
+
+class TestStreetViewData(unittest.TestCase):
+    """streetview.json (scripts/build_streetview.py): only ids and the view to open, never pictures; every entry can be opened and credited."""
+    def test_panoramas_have_what_the_viewer_needs(self):
+        import json
+        path = os.path.join(ROOT, "data", "streetview.json")
+        if not os.path.exists(path):
+            self.skipTest("no streetview.json")
+        data = json.load(open(path, encoding="utf-8"))
+        self.assertEqual(len(data["B36-26"]), 7)
+        for gid, items in data.items():
+            ids = [p["pano"] for p in items]
+            self.assertEqual(len(ids), len(set(ids)), gid)
+            for p in items:
+                self.assertTrue(p["pano"] and p["title"] and p["credit"], p)
+                self.assertRegex(p["date"], r"^\d{4}-\d{2}$")
+                self.assertTrue(45 < p["lat"] < 48 and 5 < p["lng"] < 11, p["pano"])
+                self.assertTrue(0 <= p["heading"] < 360 and -90 <= p["pitch"] <= 90 and 10 <= p["fov"] <= 100, p["pano"])
+                self.assertFalse({"url", "src", "image", "thumb"} & set(p), "Google's pictures must not be stored")

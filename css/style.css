@@ -419,6 +419,24 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .tongue-pin.max-pin{background:rgba(45,110,142,.25);box-shadow:0 0 0 2px var(--crevasse),0 2px 8px rgba(0,0,0,.5)}
 .tongue-pin.max-pin span{background:var(--crevasse);text-transform:none;letter-spacing:0;font-size:12.5px}
 .pin-sw.blue{background:rgba(45,110,142,.25);box-shadow:0 0 0 1.5px var(--crevasse)}
+.pin-sw.amber{background:rgba(245,166,35,.3);box-shadow:0 0 0 1.5px #F5A623}
+.layerbox .toggle[hidden]{display:none}
+.sv-pin{width:12px;height:12px;box-sizing:border-box;border-radius:50%;background:radial-gradient(circle at 35% 30%,rgba(255,255,255,.75) 0,rgba(255,255,255,0) 38%),radial-gradient(circle at 50% 50%,#5B9CF5 0,#1A73E8 100%);border:0;box-shadow:0 1px 4px rgba(0,0,0,.5),inset 0 -2px 3px rgba(0,40,120,.35);cursor:pointer}
+.sv-pin.sv-sw{display:inline-block;margin:0 3px;cursor:inherit;vertical-align:-1px}      /* the same dot as the legend symbol in the Layers menu */
+.sv-pin.sel{width:15px;height:15px;margin:-1.5px 0 0 -1.5px;box-shadow:0 0 0 3px rgba(26,115,232,.35),0 1px 4px rgba(0,0,0,.5),inset 0 -2px 3px rgba(0,40,120,.35)}
+.sv-panel{position:absolute;left:12px;bottom:76px;z-index:667;width:min(600px,calc(100% - 24px));height:min(420px,calc(100% - 190px));display:flex;flex-direction:column;background:var(--glass);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);border-radius:8px;box-shadow:0 2px 14px rgba(0,0,0,.4);color:#fff;overflow:hidden}
+.sv-panel[hidden]{display:none}
+.sv-head{display:flex;align-items:center;gap:8px;padding:6px 6px 6px 8px;font-size:12.5px}
+.sv-num{flex:none;display:grid;place-items:center;width:22px;height:22px;border-radius:50%;background:#F5A623;color:#1c1300;font-weight:800;font-size:12px}
+.sv-title{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.sv-title b{font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sv-title small{font-size:11px;color:rgba(255,255,255,.74)}
+.sv-btn{flex:none;display:grid;place-items:center;width:30px;height:30px;border:0;border-radius:6px;background:rgba(255,255,255,.12);color:#fff;font-size:20px;line-height:1;cursor:pointer}
+.sv-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.sv-open{flex:none;font-size:11.5px;color:#8CC4E0;white-space:nowrap}
+.sv-panel iframe{flex:1;width:100%;min-height:0;border:0;background:#111}
+.is-3d .sv-panel,.is-framing .sv-panel{display:none}
+@media (max-width:720px){.sv-panel{left:8px;right:8px;width:auto;bottom:auto;top:54px;height:min(340px,calc(100% - 150px))}}
 .tile-link{margin-top:5px;font:inherit;font-size:11.5px;color:var(--crevasse);background:none;border:0;padding:0;text-align:left;cursor:pointer}
 .radar-legend img{display:block;max-width:105px;height:auto;box-sizing:content-box;background:rgba(255,255,255,.94);border-radius:6px;padding:4px 6px}      /* the picture from swisstopo has dark text: it needs a light plate on the dark menus */
 .trail-legend span{display:flex;align-items:center;gap:7px}

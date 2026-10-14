@@ -49,6 +49,7 @@ jobs:
       - name: Collect site files (split glaciers.js, content hashes, config.js)
         env:
           CDSE_RELAY_URL: ${{ vars.CDSE_RELAY_URL }}   # Settings -> Secrets and variables -> Actions -> Variables
+          STREETVIEW_EMBED_KEY: ${{ vars.STREETVIEW_EMBED_KEY }}   # the public Maps Embed API key (restricted to the site's address); without it the Street View layer stays hidden
         run: |
           python scripts/build_site.py _site
           cat _site/config.js | head -c 400; echo

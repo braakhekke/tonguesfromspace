@@ -31,7 +31,7 @@ HASH_LEN = 10
 HTML_FILES = ["index.html", "gallery.html"]
 PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg"]
-HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json", "data/streetview.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -168,7 +168,7 @@ def main():
         print("no terrain folder: the 3D view builds the terrain from the terrain tiles, which is slower")
 
     rewrite_html(out, assets, relay)
-    config = "window.TFS_CONFIG = " + json.dumps({"relay": relay, "assets": assets}, separators=(",", ":")) + ";\n"
+    config = "window.TFS_CONFIG = " + json.dumps({"relay": relay, "streetViewKey": os.environ.get("STREETVIEW_EMBED_KEY", "").strip(), "assets": assets}, separators=(",", ":")) + ";\n"
     write(out, "config.js", config.encode("utf-8"))
     write(out, ".nojekyll", b"")
     print(f"{len(assets)} hashed files; relay: {relay or '(none)'}")

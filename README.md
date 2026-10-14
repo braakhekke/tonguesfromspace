@@ -91,6 +91,16 @@ Use `http://localhost:8000` and not another address if you want to use a deploye
 
 For a strict limit against misuse, add a Cloudflare rate-limiting rule for the path `/cdse/`. Please check that the [Copernicus terms](https://dataspace.copernicus.eu) allow serving a public website from one account before you launch.
 
+## Street View panoramas (optional)
+
+The map layer *Street View* shows seven panoramas of the Aletsch Glacier (`data/streetview.json`) in Google's own viewer. It needs a public **Maps Embed API** key (the API is free and unlimited):
+
+1. In the [Google Cloud console](https://console.cloud.google.com) create a project with billing enabled, and enable **Maps Embed API**.
+2. Create an API key, restrict it to the website addresses `https://<your site>/*` and `http://localhost:8000/*`, and to the API *Maps Embed API* only.
+3. Add the key as the repository variable `STREETVIEW_EMBED_KEY` and run the workflow again. Locally, add `streetViewKey: "…"` to `config.js`. Without the key the layer is not offered.
+
+To choose other panoramas, put a separate key (restricted to your IP address and to *Street View Static API*; its metadata requests are free) in `scripts/.google-key` and run `python3 scripts/build_streetview.py scan`, then `rank --visitors`, then `review` (see the docstring). Google forbids storing Street View content except panorama ids, so the scan results stay local (git-ignored).
+
 ## Gallery (optional)
 
 Visitors can share a finished picture or animation (button *Share it in the gallery* after a download). Uploads wait in a queue until you approve them; `gallery.html` shows only approved items, filterable by glacier, year, type and band combination.
@@ -138,6 +148,7 @@ Things that would help: more glaciers and regions, translations, verified glacie
 - **Yearly mass balance:** GLAMOS (2025), Swiss Glacier Mass Balance, release 2025, doi:10.18750/massbalance.2025.r2025. Direct glacier-wide balance of about 40 glaciers (four of the ten: Aletsch, Rhone, Corbassière, Findel); the file says non-commercial use.
 - **Swiss-wide volume:** GLAMOS (2025), Swisswide Glacier Mass Balance, release 2025, doi:10.18750/massbalance.swisswide.2025.r2025. Yearly volume of all Swiss glaciers; the same non-commercial wording in the file.
 - **Radar ice thickness:** GLAMOS (2020), Swiss Glacier Ice Thickness, release 2020, doi:10.18750/icethickness.2020.r2020 (CC BY 4.0). Ground-penetrating radar points, thinned to one mean per 50 m cell.
+- **Street View panoramas (Aletsch):** © Google, photographed by Google or by visitors (the contributor is named in the panel). They are shown in Google's own viewer (Maps Embed API, free); only the panorama ids are stored (`data/streetview.json`), which Google allows. Without the key `STREETVIEW_EMBED_KEY` (see below) the layer is not offered.
 - **Yearly volume loss:** GLAMOS and the Swiss Academy of Sciences (SCNAT) annual glacier reports.
 - **Ice thickness and volume per glacier:** Grab et al. (2021), Journal of Glaciology 67(266), via the swisstopo map service.
 - **Water use:** SVGW water statistics.
