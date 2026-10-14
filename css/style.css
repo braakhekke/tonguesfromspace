@@ -1368,3 +1368,19 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .story .water .stat-row > .stat.hero.wide:last-child{margin-top:22px}      /* air between the tiles and the melted figure */
 .story .water .stat-row > .stat.hero.wide:last-child{padding-bottom:0}      /* the counter box follows closely */
 .story .water .w-live{margin-top:14px}
+
+/* phones: while the timelapse plays the dock shrinks to the timeline and the play button; the "…" button in the timeline shows the tools again */
+.mapbar .tl-tools,.v3d-measure .tl-tools{display:none;place-items:center;flex:none;width:30px;height:30px;min-width:0;min-height:0;padding:0;margin-top:8px;border:0;border-radius:50%;background:rgba(255,255,255,.12);color:#fff;cursor:pointer}
+.tl-tools svg{display:block;width:18px;height:18px;fill:currentColor;stroke:none}
+.tools-open .tl-tools{background:rgba(255,255,255,.3)}
+@media (max-width:720px){
+  .tl-live .tl-tools,.mapbar.tl-live .tl-tools,.v3d-measure.tl-live .tl-tools{display:grid}
+  .mapbar.tl-live:not(.tools-open) .mapbar-row{display:none}
+  .mapbar.tl-live:not(.tools-open) .tl-dots{border-bottom:0;margin-bottom:0}
+  .v3d-measure.tl-live:not(.tools-open) > :not(.v3d-tl){display:none!important}
+  .v3d-measure.tl-live:not(.tools-open) .v3d-tl{border-bottom:0;margin-bottom:0}
+}
+@media (max-width:720px){      /* the shrunken dock has no row of buttons to give the timeline its width */
+  .mapbar.tl-live:not(.tools-open) .tl-dots,.v3d-measure.tl-live:not(.tools-open) .v3d-tl{min-width:min(340px,calc(100vw - 40px))}
+  .tl-live .tl-row .tl2{flex:none;width:min(220px,calc(100vw - 190px))}
+}

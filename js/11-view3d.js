@@ -6,6 +6,7 @@
    Local frame of the strip: a = metres up the glacier from the tip (negative = below it), b = metres to the right when looking up the glacier; in the 3D scene x = b, z = -a.
    ===================================================================== */
 const V3D = {HALF: 2000, BACK: 1000, UP: [2500, 6500], CELL: [14, 28], TEX: [1024, 2048], Z: 13, EL: [0.12, 1.35], DIST: [600, 7500], AZ: 1.3, WM: 20037508.342789244};      // HALF: half width (m); BACK: strip below the tip (m); UP: shortest and longest strip up the glacier (m); CELL: grid spacing (m), the fine one needs 32-bit indices (about 150,000 points), the coarse one is the fallback; TEX: texture width and height; Z: tile zoom; EL / DIST / AZ: tilt, distance and turn limits
+const LANDING_CAM = {az: 0.1565, el: 0.3228, dist: 3880};      // the camera of the landing page (plain address, first glacier): azimuth and elevation in radians, distance in metres; read it from a view you like with v3d.getCam() in the console
 const V3D_VIEW = {'A54e-24': {back: 2000, dist: 1.3}};      // Trift: the strip reaches further below the tongue tip and the camera starts further back, away from the glacier (back: metres below the tip; dist: times the usual distance)
 const terrainTile = (z, x, y) => `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`;
 function stripFor(g, at){            // direction up the glacier and length of the strip
@@ -472,7 +473,7 @@ async function open3D(){
       bb ? (bb.delta && bb.dem ? {delta: bb.delta, old: bb.dem.old, new: bb.dem.new} : null) : iceChangeGrid(g, S, nA, nB).catch(() => null)]);
     if (run !== v3dRun) return;
     v3d = startViewer($('v3dCanvas'), heights, tc, nA, nB, S.up, S.back, S.dist);
-    v3d.setExag(+$('v3dExag').value); msg.hidden = true; if (keepCam) v3d.setCam(keepCam);
+    v3d.setExag(+$('v3dExag').value); msg.hidden = true; if (keepCam) v3d.setCam(keepCam); else if (PLAIN_START && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
     v3d.setOnCam(() => { if (!$('videoSheet').hidden) hint3D(); });      // the sharpness hint follows the zoom
     bindRadarPicking($('v3dCanvas')); bindCamPicking($('v3dCanvas'));
     const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null, surfYear = y => !dem ? y : special === 'latest' ? dem.new.year : special === 'oldest' ? dem.old.year : y;      // the specials use the newest / the oldest elevation model as it is
