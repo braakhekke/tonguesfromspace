@@ -12,6 +12,7 @@ const state = {
 let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
 let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
 let AUTOPLAY = false;           // the plain address opens on a timelapse that starts by itself, once the scenes are found
+const HASH_AT_LOAD = location.hash;      // the address as the visitor opened it: the landing page writes its own state into the hash while it boots
 let PLAIN_START = false;        // the plain address: the landing page is the 3D timelapse of the biggest glacier
 let OPEN_3D = false;            // a shared link asks for the 3D view
 let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen

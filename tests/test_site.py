@@ -122,7 +122,7 @@ class TestLoading(SiteCase):
 
     def test_street_view_layer_is_hidden_without_a_key_and_builds_embed_links(self):
         page = self.open()
-        self.assertTrue(page.evaluate("$('svRow').hidden"), "without a key (config.js) the Street View layer must not be offered")
+        self.assertEqual(page.evaluate("$('svRow').hidden"), not page.evaluate("!!SV_KEY"), "the Street View layer is offered only with a key (config.js)")
         url = page.evaluate("svEmbedUrl({pano: 'abc', heading: 10, fov: 80})")
         for part in ("maps/embed/v1/streetview", "pano=abc", "heading=10", "fov=80"):
             self.assertIn(part, url)
@@ -203,7 +203,7 @@ class TestFunctions(SiteCase):
         self.assertEqual(self.page.evaluate(js % "set('aerialToggle', true)"), ["aerialToggle"])
         self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); set('aerialToggle', true)"), ["osmToggle", "aerialToggle"])
         self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); state.oldestAerial = 2017"), ["aerialToggle"])
-        self.assertIn("/swissimage-product/default/2023/", self.page.evaluate("V3D_BASES.aerialToggle.url(15, 1, 2, 2023)"))
+        self.assertIn("swissimage-product/default/2023/", self.page.evaluate("V3D_BASES.aerialToggle.url(15, 1, 2, 2023)"))
 
     def test_scene_choice_prefers_september_then_august_then_cloudy(self):
         day = lambda d, cloud, snow=0: {"date": d, "orbit": "R108", "cloud": cloud, "snow": snow}

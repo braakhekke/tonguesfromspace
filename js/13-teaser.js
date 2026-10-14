@@ -10,8 +10,8 @@ const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } ca
 function teaserWanted(){
   /** @type {any} */
   const c = /** @type {any} */ (navigator).connection || {};
-  if (location.hash === '#teaser') return true;
-  return !location.hash && !teaserSeen() && !matchMedia('(prefers-reduced-motion: reduce)').matches && !c.saveData && !/(^|-)2g$/.test(c.effectiveType || '');
+  if (HASH_AT_LOAD === '#teaser') return true;
+  return !HASH_AT_LOAD && !teaserSeen() && !matchMedia('(prefers-reduced-motion: reduce)').matches && !c.saveData && !/(^|-)2g$/.test(c.effectiveType || '');
 }
 let teaserOpen = false;
 function openTeaser(auto){
@@ -46,4 +46,4 @@ function openTeaser(auto){
   if (auto) stall = setTimeout(() => { if (v.paused || v.readyState < 3) abort(); }, 6000);      // a slow connection: no film is better than a wait
 }
 const teaserBtn = $('teaserBtn'); if (teaserBtn) teaserBtn.onclick = () => openTeaser(false);
-if (teaserWanted()) openTeaser(location.hash !== '#teaser');
+if (teaserWanted()) openTeaser(HASH_AT_LOAD !== '#teaser');
