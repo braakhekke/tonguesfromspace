@@ -193,7 +193,7 @@ function setBackground(){
   updateCredits();
 }
 /* ---------- swisstopo aerial images (SWISSIMAGE), by year ----------
-   Shown only inside the ten image boxes (the TrailsLayer clip), under the Sentinel-2 pictures. One layer per picture slot: compare uses the years of the left and right
+   Shown only inside the image box of the chosen glacier (the TrailsLayer clip), under the Sentinel-2 pictures. One layer per picture slot: compare uses the years of the left and right
    side (panes siA and siB, clipped by the slider like the satellite panes), a timelapse the newest year of its range, one year its year. The time dimension of
    ch.swisstopo.swissimage-product is the edition year; 2025 is the newest, later years show 2025. */
 const SI_LAST = 2025;
@@ -256,23 +256,23 @@ function updateAerial(){
   if (cg) eds.forEach(ed => ensureFlown(cg, ed));
   const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
   document.getElementById('aerialLabel').textContent = 'swisstopo aerial' + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
-  const want = aerialWanted(), boxes = (state.oldestAerial && cg ? [cg] : GLACIERS).map(g => L.latLngBounds(imageFootprint(g).bounds));      // Oldest: only the box of the chosen glacier
+  const want = aerialWanted(), boxes = (cg ? [cg] : GLACIERS).map(g => L.latLngBounds(imageFootprint(g).bounds)), key = cg ? cg.id : '*';      // only the box of the chosen glacier
   ['A', 'B', 'T'].forEach(k => {
     const yr = want[k] || null;
     if (aerial[k] && aerial[k].yr !== yr) { map.removeLayer(aerial[k].layer); aerial[k] = null; }
     if (yr && !aerial[k]) {
       const layer = new TrailsLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(yr)}/3857/{z}/{x}/{y}.jpeg`,
         {pane: 'si' + k, maxZoom: 17, maxNativeZoom: 18, attribution: '© swisstopo (SWISSIMAGE)'});
-      layer._clip = boxes; layer.addTo(map); aerial[k] = {yr, layer};
+      layer._clip = boxes; layer._key = key; layer.addTo(map); aerial[k] = {yr, layer};
     }
-    else if (yr && aerial[k].layer._clip.length !== boxes.length) aerial[k].layer.setClip(boxes);      // entering or leaving Oldest with the same edition
+    else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(boxes); }      // another glacier was chosen
   });
   clip(); updateCredits();
 }
 const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
 const satShown = () => glacierPicked && satOn();
-const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 picture layer in the layer menu.';
+const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 image layer in the layer menu.';
 const OLDEST_MSG = 'The oldest aerial image has no Sentinel-2 picture, so this is not available. Pick a year to go back to the satellite pictures.';
 const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : SAT_MSG;
 function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows

@@ -52,8 +52,33 @@ button,select,input{font:inherit;color:inherit}
 .down-hint{display:none;border:0;background:none;padding:2px 0;color:var(--crevasse);font:600 13px var(--sans);text-align:left;cursor:pointer}
 @media (max-width:720px){.down-hint:not([hidden]){display:block}}
 .step-h .num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
-.m-select.placeholder{color:var(--moraine);font-style:italic}
-.m-select{display:none;width:100%;min-height:42px;font-size:16px;border:1px solid var(--rule);border-radius:0;padding:8px 10px;background:var(--sheet)}
+/* Phones: the glacier list is one card showing the chosen glacier; a tap opens a sheet with the ten glaciers (js/09-phones.js) */
+.m-pick{display:none;align-items:center;gap:10px;width:100%;min-height:52px;padding:8px 12px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:var(--rock);font:inherit;font-size:16px;text-align:left;cursor:pointer;box-shadow:inset 3px 0 0 var(--accent)}
+.m-pick .mp-rank{flex:none;width:22px;color:var(--moraine);font-size:13px;font-variant-numeric:tabular-nums}
+.m-pick .mp-name{flex:1;min-width:0;font-weight:700}
+.m-pick .mp-area{flex:none;color:var(--moraine);font-size:14px}
+.m-pick .mp-chev{flex:none;width:18px;height:18px;fill:none;stroke:var(--moraine);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.m-pick.placeholder .mp-name{font-weight:500;color:var(--moraine)}
+.g-sheet{position:fixed;inset:0;z-index:3000;display:none}
+.g-sheet.open{display:block}
+.g-back{position:absolute;inset:0;background:rgba(10,20,28,.5)}
+.g-panel{position:absolute;left:0;right:0;bottom:0;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--sheet);border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35);padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));animation:gsUp .22s ease-out}
+@keyframes gsUp{from{transform:translateY(28px);opacity:0}}
+.g-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:16px 8px 12px 18px;background:var(--sheet);border-bottom:1px solid var(--rule)}
+.g-close{display:grid;place-items:center;width:40px;height:40px;border:0;background:none;color:var(--moraine);cursor:pointer}
+.g-close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
+.g-list{list-style:none;margin:0;padding:0}
+.g-list li{border-bottom:1px solid var(--rule-2)}
+.g-list button{width:100%;display:grid;grid-template-columns:28px 1fr auto;align-items:baseline;column-gap:8px;row-gap:7px;min-height:58px;padding:11px 18px 10px;border:0;background:none;text-align:left;font:inherit;color:var(--rock);cursor:pointer}
+.g-list .rank{color:var(--moraine);font-size:13px;font-variant-numeric:tabular-nums}
+.g-list .name{font-size:17px;font-weight:600}
+.g-list .area{color:var(--moraine);font-size:14px;font-variant-numeric:tabular-nums}
+.g-list .g-bar{grid-column:2 / 4;display:block;height:3px;background:var(--rule-2)}
+.g-list .g-bar b{display:block;height:100%;background:var(--ice)}
+.g-list button[aria-pressed="true"]{background:#E9EFF2;box-shadow:inset 3px 0 0 var(--accent)}
+.g-list button[aria-pressed="true"] .name{font-weight:800}
+.g-list button[aria-pressed="true"] .g-bar b{background:var(--crevasse)}
+body.sheet-open{overflow:hidden}
 .note{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0}
 .note:empty{display:none}
 .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
@@ -364,7 +389,27 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .lb-head svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;transition:transform .2s}
 .trail-legend{margin:0 0 6px 26px;font-size:11.5px;color:var(--moraine);display:flex;flex-direction:column;gap:1px}
 .trail-legend[hidden]{display:none}
-.radar-sw{border:0;background:linear-gradient(90deg,#bfe3f2,#3f9bc4 45%,#2a2a6b 80%,#5a1f63);height:8px}
+.layerbox .sym{display:inline-flex;align-items:center;justify-content:center;width:26px;margin-right:10px;vertical-align:middle}      /* every layer row has its symbol in a column of this width: line = outline or trail, ring = point mark, dots = measurements, small picture = image or map */
+.layerbox .sym .pin-sw{margin:0;vertical-align:baseline}
+.layerbox .toggle input{flex:none}
+.layerbox .toggle > span{display:flex;align-items:center;min-width:0}      /* a label that wraps keeps its second line beside the text, not under the symbol */
+.layerbox .sym{flex:none}
+.layerbox .label-sw{width:14px;height:16px;fill:currentColor}      /* a map pin for the place labels: not a letter, so it cannot be mistaken for the text next to it */
+.layerbox .map-sw{display:block;width:26px;height:16px;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.7),0 0 0 1.5px rgba(0,0,0,.25)}      /* small pictures of the map layers, drawn in the sprite at the top of the page */
+.dots-sw{display:inline-flex;gap:2px}
+.dots-sw b{width:6px;height:6px;border-radius:50%;box-shadow:0 0 0 1px rgba(255,255,255,.85),0 0 0 1.5px rgba(0,0,0,.3)}
+.radar-legend .multi-row{display:flex;align-items:center;gap:7px}
+.radar-legend .multi-dot{flex:none;box-sizing:border-box;width:9px;height:9px;margin:0 1px;border-radius:50%;background:#3f9bc4;border:1.5px solid #C8322A}      /* a radar dot with the red ring of the map */
+.dots-sw b:nth-child(1){background:#bfe3f2}
+.dots-sw b:nth-child(2){background:#3f9bc4}
+.dots-sw b:nth-child(3){background:#5a1f63}
+.area-sw{display:block;width:18px;height:12px;border-radius:3px;box-shadow:0 0 0 1px rgba(255,255,255,.7),0 0 0 1.5px rgba(0,0,0,.25)}
+.area-sw.thick{background:linear-gradient(90deg,#c6e0ff,#4fa3d9 50%,#0b3d86)}
+.trail-sw{display:inline-flex;gap:2px}
+.trail-sw::before,.trail-sw::after,.trail-sw i{content:'';display:block;width:6px;height:0;border-top:3px solid #FDC200;border-radius:1px}
+.trail-sw i{border-top-color:#FF0000}
+.trail-sw::after{border-top-color:#0000FF}
+.peak-sw{width:16px;height:12px;fill:currentColor}
 .radar-legend{gap:3px}
 .radar-legend .ramp{display:block;width:100%;max-width:180px;height:8px;border:0;border-radius:4px;background:linear-gradient(90deg,#bfe3f2,#3f9bc4 33%,#2a2a6b 66%,#5a1f63)}
 .radar-legend .ticks{display:flex;justify-content:space-between;max-width:180px;font-size:10.5px}
@@ -375,8 +420,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .tongue-pin.max-pin span{background:var(--crevasse);text-transform:none;letter-spacing:0;font-size:12.5px}
 .pin-sw.blue{background:rgba(45,110,142,.25);box-shadow:0 0 0 1.5px var(--crevasse)}
 .tile-link{margin-top:5px;font:inherit;font-size:11.5px;color:var(--crevasse);background:none;border:0;padding:0;text-align:left;cursor:pointer}
-.thick-sw{background:linear-gradient(90deg,#c6e0ff,#4fa3d9 50%,#0b3d86)}
-.radar-legend img{display:block;max-width:105px;height:auto}
+.radar-legend img{display:block;max-width:105px;height:auto;box-sizing:content-box;background:rgba(255,255,255,.94);border-radius:6px;padding:4px 6px}      /* the picture from swisstopo has dark text: it needs a light plate on the dark menus */
 .trail-legend span{display:flex;align-items:center;gap:7px}
 .trail-legend i{display:inline-block;width:22px;height:0;border-top:2px dashed var(--c)}
 .trail-legend i.sight-sw{border-top:6px solid #7B2CFF;border-radius:3px;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.18)}
@@ -401,7 +445,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .pick-note b{font-weight:800;color:var(--accent)}
 .is-framing .pick-hint{display:none}
 .gbox-tip{font-family:var(--sans);font-weight:600;font-size:12.5px}
-.pin-sw{display:inline-block;width:14px;height:14px;margin:0 2px;border-radius:50%;border:2px solid #fff;background:rgba(200,50,42,.25);box-shadow:0 0 0 1.5px var(--accent);vertical-align:-3px}
+.pin-sw{position:relative;display:inline-block;width:14px;height:14px;margin:0 2px;border-radius:50%;border:2px solid #fff;background:rgba(200,50,42,.25);box-shadow:0 0 0 1.5px var(--accent);vertical-align:-3px}
+.pin-sw::after{content:'';position:absolute;left:50%;top:50%;width:4px;height:4px;margin:-2px 0 0 -2px;border-radius:50%;background:#fff}      /* the white centre dot of the pin on the map */
 .tongue-pin{position:relative;width:30px;height:30px;border-radius:50%;border:3px solid #fff;background:rgba(200,50,42,.25);box-shadow:0 0 0 2px var(--accent),0 2px 8px rgba(0,0,0,.5)}
 .tongue-pin::after{content:'';position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff}
 .tongue-pin span{position:absolute;left:38px;top:50%;transform:translateY(-50%);white-space:nowrap;background:var(--accent);color:#fff;font:700 11.5px/1 var(--sans);letter-spacing:.04em;text-transform:uppercase;padding:4px 7px;border-radius:5px;box-shadow:0 1px 6px rgba(0,0,0,.4)}
@@ -681,7 +726,7 @@ sup.fn a:hover{opacity:.7}
   .story{--pad:18px;order:3;padding:0 18px 32px}
   .story::before{height:20px}
   .controls .brand,#glacierList,#rankNote{display:none}
-  .m-select{display:block!important}
+  .m-pick{display:flex!important}
 
 
   .year-tag{font-size:30px;top:10px;max-width:calc(50% - 16px)}
@@ -735,7 +780,7 @@ sup.fn a:hover{opacity:.7}
   .mhead strong{display:block;font-size:15px;font-weight:800}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
   .controls .brand,#glacierList,#rankNote{display:none}
-  .m-select{display:block!important}
+  .m-pick{display:flex!important}
   .story,.controls{height:auto;border:0;border-top:1px solid var(--rule)}
   .year-tag{font-size:28px}
   .mapbar{bottom:28px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px)}
@@ -1220,6 +1265,15 @@ a,a:hover,a:focus,.tile-link,.tile-link *,.down-hint,.n-more{text-decoration:non
 /* ---------- viewer menus and boxes: slightly translucent black with white text ---------- */
 .layerbox:not(.in-flow),.mapbar,.v3d-measure,.v3d-tune,.v3d-tip,.notice,.pick-note,.v3d-photos .ph-drop{--rock:#fff;--moraine:rgba(255,255,255,.74);--rule:rgba(255,255,255,.2);--firn:rgba(255,255,255,.12);--sheet:transparent;--crevasse:#8CC4E0;color:#fff}
 .layerbox:not(.in-flow),.mapbar,.v3d-measure,.v3d-tune,.v3d-tip,.notice,.pick-note,.v3d-photos .ph-drop{background:var(--glass);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+/* the layer panel on phones: the same black as the menus on the map (solid in the panel under the picture, so the sticky title bar can cover what scrolls under it) */
+.layerbox{--panel:rgba(14,23,29,.97)}
+.layerbox:not(.min):not(.in-flow){width:min(236px,calc(100vw - 16px))}      /* the open panel keeps its width whatever a legend inside it needs */
+.layerbox.in-flow{--rock:#fff;--moraine:rgba(255,255,255,.74);--rule:rgba(255,255,255,.2);--firn:rgba(255,255,255,.12);--sheet:#0e171d;--crevasse:#8CC4E0;color:#fff;background:var(--sheet)}
+.layers-bar[aria-expanded="true"]{background:#0e171d;color:#fff;border-bottom-color:rgba(255,255,255,.2)}
+@media (max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .layerbox .lb-head{background:var(--panel)}
+  .lb-more{background:linear-gradient(to bottom,rgba(14,23,29,0),var(--panel) 70%)}
+}
 .mapbar button[aria-pressed="true"],.v3d-measure > button[aria-pressed="true"]{background:rgba(255,255,255,.24);color:#fff}
 .tl-play,.stage.is-full .full-exit,.app.visual-only .full-exit,.app .full-play{color:#fff}
 .mapbar .tl-play{background:rgba(255,255,255,.18)}

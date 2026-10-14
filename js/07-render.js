@@ -12,6 +12,12 @@ function renderGlacierList(){
     li.appendChild(b); ul.appendChild(li);
   });
   document.getElementById('rankNote').innerHTML = `Ranked by area${fn('sgi')}`;
+  renderLayerTitles();
+}
+/* the title of the layer segment that belongs to the chosen glacier, in the map menu and in the 3D menu */
+function renderLayerTitles(){
+  const g = glacierPicked ? currentGlacier() : null, t = g ? `For ${g.name}` : 'For this glacier';
+  ['lbTitle', 'l3Title'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t; });
 }
 
 /* Timelapse: one slider with two handles, the chosen first and last year at its ends. A handle only stops on years that have a picture. */
@@ -171,16 +177,63 @@ function showImage(ov, orig){
     const done = () => { const el = ov.getElement && ov.getElement(); (el && el.decode ? el.decode() : Promise.resolve()).catch(() => {}).then(() => { ov._ready = true; ov.fire('tfsready'); }); };
     if (ov._url === u && ov.getElement && ov.getElement() && ov.getElement().complete) done(); else { ov.once('load', done); ov.setUrl(u); }
   };
-  adjustedUrl(orig, b, o, ov._g).then(u => { if (ov._orig === orig && stampOf(brightness(), outsideAlpha()) === stamp) put(u); }).catch(() => put(orig));
+  adjustedUrl(orig, b, o, ov._g).then(u => { if (ov._orig === orig && stampOf(brightness(), outsideAlpha()) === stamp) { ov._hiStamp = stamp; put(u); } }).catch(() => put(orig));
 }
-let brightTimer = null;
-function refreshImages(){            // after a change of brightness or of the outside opacity: drop old results, redo the pictures on the map
+let brightTimer = null, refreshGen = 0;
+const visibleOv = ov => ov.options.opacity > 0 && ov.getPane && ov.getPane().style.display !== 'none';
+function refreshImages(){            // after a change of brightness or of the outside opacity: drop old results, redo the pictures on the map (the ones on show first)
   clearTimeout(brightTimer);
   brightTimer = setTimeout(() => {
-    const keep = '|' + stampOf(brightness(), outsideAlpha());
+    const gen = ++refreshGen, keep = '|' + stampOf(brightness(), outsideAlpha());
     for (const [k, p] of adjCache) if (!k.endsWith(keep)) { adjCache.delete(k); p.then(u => setTimeout(() => URL.revokeObjectURL(u), 5000)).catch(() => {}); }
-    liveImages.forEach(ov => { if (!map.hasLayer(ov)) { liveImages.delete(ov); return; } if (ov._orig) showImage(ov, ov._orig); });
-  }, 120);
+    const list = [...liveImages].filter(ov => { if (!map.hasLayer(ov)) { liveImages.delete(ov); return false; } return !!ov._orig; });
+    list.sort((a, b) => visibleOv(b) - visibleOv(a));
+    list.forEach((ov, i) => i === 0 ? showImage(ov, ov._orig) : setTimeout(() => { if (gen === refreshGen && map.hasLayer(ov) && ov._orig) showImage(ov, ov._orig); }, 60 * i));      // one after the other: the pictures not on show must not hold up the one that is
+  }, 220);
+}
+/* While the brightness slider moves, the full pictures (up to 2,500 px, a timelapse holds a dozen) are far too much work for every step: each step is shown on small copies of
+   the pictures (one pass per screen frame, every frame of a timelapse too), and the full pictures follow when the slider rests (refreshImages). */
+const PREVIEW_PX = 640, smallCache = new Map();      // original url -> small canvas
+function smallOf(orig){
+  if (!smallCache.has(orig)) {
+    if (smallCache.size >= 40) smallCache.delete(smallCache.keys().next().value);
+    smallCache.set(orig, (async () => {
+      const bmp = await createImageBitmap(await (await fetch(orig)).blob());
+      const k = Math.min(1, PREVIEW_PX / Math.max(bmp.width, bmp.height)), c = document.createElement('canvas');
+      c.width = Math.max(1, Math.round(bmp.width * k)); c.height = Math.max(1, Math.round(bmp.height * k));
+      c.getContext('2d').drawImage(bmp, 0, 0, c.width, c.height); if (bmp.close) bmp.close();
+      return c;
+    })().catch(() => { smallCache.delete(orig); return null; }));
+  }
+  return smallCache.get(orig);
+}
+let previewQueued = false;
+function previewBrightness(){
+  if (previewQueued) return;
+  previewQueued = true;
+  requestAnimationFrame(() => {
+    previewQueued = false;
+    if (outsideAlpha() < 0.99) return;      // the pictures are cut at the 1850 outline then: only the full pictures show that
+    const stamp = stampOf(brightness(), outsideAlpha());
+    liveImages.forEach(ov => {
+      if (!ov._orig || !map.hasLayer(ov)) return;
+      const stale = () => stampOf(brightness(), outsideAlpha()) !== stamp || ov._hiStamp === stamp;
+      smallOf(ov._orig).then(c => {
+        if (!c || stale()) return;
+        const b = brightness(), w = document.createElement('canvas'); w.width = c.width; w.height = c.height;
+        const ctx = w.getContext('2d'); ctx.drawImage(c, 0, 0);
+        const d = ctx.getImageData(0, 0, w.width, w.height), px = d.data, lut = new Uint8ClampedArray(256);
+        for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+        for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
+        ctx.putImageData(d, 0, 0);
+        w.toBlob(blob => {
+          if (!blob || stale()) return;
+          const u = URL.createObjectURL(blob), old = ov._previewUrl; ov._previewUrl = u; ov._hiStamp = null; ov.setUrl(u);
+          if (old) setTimeout(() => URL.revokeObjectURL(old), 3000);
+        }, 'image/jpeg', 0.85);
+      });
+    });
+  });
 }
 function applyBrightness(){
   const b = brightness();
@@ -232,7 +285,7 @@ const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refre
 ['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
 syncOutsideUi();
 document.getElementById('brightness').oninput = e => {
-  prefs.bright = +e.target.value; savePrefs(); applyBrightness();
+  prefs.bright = +e.target.value; savePrefs(); applyBrightness(); previewBrightness();
 };
 document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
@@ -366,7 +419,7 @@ function renderStory(){
         <p>Only photographs whose date is known to about a year, and where the tongue is in the picture, were kept. Each photograph shows its own licence. A rod on the ice of today marks the estimated height of the ice surface then: from the thinning of the whole glacier in the GLAMOS volume surveys, and before the first survey from the 1850 area with area-volume scaling (Bahr et al. 1997). The range is wide and the figure is an estimate.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-12"><summary>Aerial images and hiking trails</summary><div class="about-sec">
-        <p><em>swisstopo aerial</em> (SWISSIMAGE) can be switched on in the layers menu; it shows only inside the image boxes of the ten glaciers, in the year you picked. The layer is a series of editions; the year it names is the year the photographs were taken, which can be earlier than the edition (the 2025 edition shows photographs from 2023 at Aletsch). Switch the Sentinel-2 picture off to see it alone.</p>
+        <p><em>swisstopo aerial</em> (SWISSIMAGE) can be switched on in the layers menu; it shows only inside the image box of the chosen glacier, in the year you picked. The layer is a series of editions; the year it names is the year the photographs were taken, which can be earlier than the edition (the 2025 edition shows photographs from 2023 at Aletsch). Switch the Sentinel-2 image off to see it alone.</p>
         <p><em>Hiking trails</em> come from swisstopo. The violet band marks where a person 1.7 m tall can see the glacier tongue from the trail (our own calculation from the elevation model; trees and buildings are not counted).</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-9"><summary>Sources</summary><div class="about-sec">
@@ -897,7 +950,7 @@ function renderOutlineControls(){
   ['oldToggle','newToggle'].forEach(id => document.getElementById(id).disabled = !has);
   document.getElementById('oldLabel').textContent = `Outline ${has ? yr(DATA.oldest_label) : '1850'}`;
   document.getElementById('newLabel').textContent = `Outline ${has ? yr(DATA.latest_label) : '2023'}`;
-  document.getElementById('pinLabel').textContent = 'Tongue tip';
+  document.getElementById('pinLabel').textContent = `Tongue tip ${has ? yr(DATA.latest_label) : '2023'}`;
   document.getElementById('outlineNote').textContent = has ? '' : 'Outlines appear once the glacier data (glaciers.js) has been built.';
 }
 
