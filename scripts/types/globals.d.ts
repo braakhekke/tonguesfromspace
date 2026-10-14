@@ -6,7 +6,7 @@ interface Window {
   GLACIER_OUTLINES: any;      // the 2023 outline files of the public site (scripts/build_site.py)
   GLACIER_SIGHT: any;         // sightline.js (scripts/build_sightline.py)
   GLACIER_THICKNESS: any;     // thickness.js
-  TFS_CONFIG: { relay?: string; assets?: Record<string, string> };      // config.js, written by the deploy workflow
+  TFS_CONFIG: { relay?: string; assets?: Record<string, string>; streetViewKey?: string };      // config.js, written by the deploy workflow
 }
 
 // DOM lookups return `any` here. The page reads `.checked`, `.value`, `.dataset` ... of elements it knows by id; typing each of those lookups would add
