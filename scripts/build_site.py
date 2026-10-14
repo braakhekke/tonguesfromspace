@@ -29,7 +29,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
 HTML_FILES = ["index.html", "gallery.html"]
-PLAIN_FILES = ["css/pages.css", "preview.jpg"]                 # copied as they are (missing ones are skipped)
+PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg"]
 HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
