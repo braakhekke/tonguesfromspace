@@ -189,7 +189,6 @@ function setLayers(open){
   [$('layerbox'), $('v3dLayers')].forEach(x => x.classList.toggle('open', x === box && open));
   updateLayerMore();
   $('layersBtn').setAttribute('aria-expanded', open); $('layersBtn').setAttribute('aria-pressed', open);
-  layersBar.setAttribute('aria-expanded', open);
 }
 /* Layer box on phones: show the fade and chevron at the bottom while more items can be scrolled to */
 function updateLayerMore(){
@@ -204,23 +203,19 @@ const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under
 function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); home.appendChild(FYI_BY); }
 FYI_PHONE.addEventListener('change', placeFyi); placeFyi();
 
-/* phones in portrait: the map's layer box moves out of the visual, to a bar and panel below it */
-const layersBar = document.createElement('button');
-layersBar.type = 'button'; layersBar.id = 'layersBar'; layersBar.className = 'layers-bar'; layersBar.setAttribute('aria-expanded', 'false');
-layersBar.innerHTML = '<span>Layers</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+/* phones in portrait: the map's layer box moves out of the visual, to a panel below it; the dock button opens it */
 function placeLayers(){
   const lbx = $('layerbox'), l3 = $('v3dLayers'), inflow = PHONE.matches;
   [lbx, l3].forEach(x => x.classList.toggle('in-flow', inflow));
-  if (inflow) $('stageSlot').after(layersBar, lbx, l3); else { $('stage').appendChild(lbx); $('v3d').appendChild(l3); layersBar.remove(); }
+  if (inflow) $('stageSlot').after(lbx, l3); else { $('stage').appendChild(lbx); $('v3d').appendChild(l3); }
 }
 PHONE.addEventListener('change', placeLayers); placeLayers();
-layersBar.onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };
 $('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
 /* A press on the viewer (map or 3D picture) closes an open layer menu; presses inside the menus and on their buttons do not */
 document.addEventListener('pointerdown', e => {
-  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn, #layersBar')) return;
+  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn')) return;
   if ($('layerbox').classList.contains('in-flow')) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
   [[$('layerbox'), $('lbToggle')], [$('v3dLayers'), $('v3dLbToggle')]].forEach(([box, btn]) => { if (!box.classList.contains('min')) btn.click(); });
 }, true);

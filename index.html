@@ -196,7 +196,7 @@
       <div class="trail-legend radar-legend gl-only" id="radarLegend" hidden><i class="ramp" id="radarRamp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="radarNote"></small><span class="multi-row"><b class="multi-dot"></b>Measured in several years; click to see all</span><small>Each dot is the mean of the radar points in a 50 m cell.</small></div>
       <label class="toggle gl-only" title="Hiking trails"><input type="checkbox" id="trailsToggle"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
       <div class="trail-legend gl-only" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="sightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
-      <label class="toggle gl-only" id="svRow" title="Glacier View: the best Street View panoramas of this glacier (Google)" hidden><input type="checkbox" id="svToggle"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Glacier View</span></label>
+      <label class="toggle gl-only" id="svRow" title="Panoramas: the best Street View panoramas of this glacier (Google)" hidden><input type="checkbox" id="svToggle"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Panoramas</span></label>
       <div class="lb-group">Background</div>
       <label class="toggle" title="The ten glaciers as red outlines you can click. Switched off when you choose a glacier."><input type="checkbox" id="boxToggle" checked> <span><span class="sym"><svg class="gl-icon" viewBox="0 0 20 14" aria-hidden="true"><path d="M2 3c3-2 6-1 8 0s5 0 7 1c1 2 0 4-2 6-2 2-3 3-5 3s-3-2-5-3S1 8 1 6c0-1 0-2 1-3z" fill="rgba(200,50,42,.15)" stroke="var(--accent)" stroke-width="1.6" stroke-linejoin="round"/></svg></span>Selectable glaciers</span></label>
       <label class="toggle" title="Cloudless Sentinel-2 mosaic of Europe"><input type="checkbox" id="mosaicToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-mosaic"/></svg></span>Sentinel-2 cloudless</span></label>
@@ -232,6 +232,7 @@
         <button type="button" class="sv-btn" id="svPrev" aria-label="Previous panorama">‹</button>
         <button type="button" class="sv-btn" id="svNext" aria-label="Next panorama">›</button>
         <a class="sv-open" id="svOpen" target="_blank" rel="noopener">Google Maps ↗</a>
+        <button type="button" class="sv-btn" id="svFull" aria-label="Full screen" aria-pressed="false"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
         <button type="button" class="sv-btn" id="svClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
       </div>
       <iframe id="svFrame" title="Street View panorama" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
