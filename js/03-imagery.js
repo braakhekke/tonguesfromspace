@@ -20,7 +20,7 @@ const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v6'         // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v7'         // bump when scoring or rendering changes, to invalidate cached results
 };
 /* latest allowed day per year (MM-DD); default 20 September. 2024: heavy snowfall on 15 September. */
 const LAST_DAY = { default: '09-20', 2024: '09-14' };
@@ -186,11 +186,12 @@ const idb = (() => {
 })();
 
 /* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
-const IMAGE_MARGIN = 0.33;      // share of the 1850 extent added on every side (this gives Aletsch about 24 x 35 km, which looked right)
+const IMAGE_MARGIN = 0.33;      // share of the 1850 extent added on every side (Aletsch has its own margins below)
 /* Glaciers with their own margins along the length of the picture, as a share of the picture height: Aletsch is long and its image needs little space beyond the 1850 outline at both ends */
 const NS_MARGIN = [['aletsch', 0.08, 0.07]];      // [name part, north, south]; 8 % + 7 % keeps the picture under 2500 px, i.e. 10 m pixels
 const EXTRA_NORTH = [['findel', 0.15]];        // glaciers whose image reaches further north (share of the image height)
 const EXTRA_EW = [['rhone', 2000]];            // glaciers whose image is wider on both the west and the east side (metres)
+const EXTRA_EAST = [['aletsch', 3000]];        // glaciers whose image is wider on the east side only (metres); Aletsch: 20.4 -> 23.4 km = 2,340 px, still 10 m pixels
 function imageFootprint(g){
   const b = g.extent ? padBounds(g.extent, IMAGE_MARGIN) : padBounds(g.bounds, 0.35);   // margin around the 1850 extent, for panning and video crops
   const ns = g.extent && NS_MARGIN.find(([k]) => norm(g.local || g.name).includes(k));
@@ -202,6 +203,8 @@ function imageFootprint(g){
   if (extra) b[1][0] += (b[1][0] - b[0][0]) * extra[1];
   const ew = EXTRA_EW.find(([k]) => norm(g.local || g.name).includes(k));
   if (ew) { const d = ew[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180)); b[0][1] -= d; b[1][1] += d; }
+  const ee = EXTRA_EAST.find(([k]) => norm(g.local || g.name).includes(k));
+  if (ee) b[1][1] += ee[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180));
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
   const lat = (b[0][0] + b[1][0]) / 2, scale = 1 / Math.cos(lat * Math.PI / 180);   // Mercator metres per ground metre
   let w = Math.round((ne.x - sw.x) / (CDSE.groundRes * scale)), h = Math.round((ne.y - sw.y) / (CDSE.groundRes * scale));

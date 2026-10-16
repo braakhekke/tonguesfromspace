@@ -156,6 +156,7 @@ function siteFootprint(g){               // the same rules as imageFootprint() i
   const dy = (n - s) * 0.33, dx = (e - w) * 0.33; let S = s - dy, W = w - dx, N = n + dy, E = e + dx;       // IMAGE_MARGIN 0.33
   if (norm(g.name).includes('aletsch')) { const H = (n - s) / (1 - 0.08 - 0.07); S = s - 0.07 * H; N = n + 0.08 * H; }     // NS_MARGIN
   if (norm(g.name).includes('findel')) N += (N - S) * 0.15;                                                              // EXTRA_NORTH
+  if (norm(g.name).includes('aletsch')) E += 3000 / (111320 * Math.cos((S + N) / 2 * Math.PI / 180));                          // EXTRA_EAST
   if (norm(g.name).includes('rhone')) { const d = 2000 / (111320 * Math.cos((S + N) / 2 * Math.PI / 180)); W -= d; E += d; }      // EXTRA_EW
   const a = merc(W, S), b = merc(E, N);
   return [a[0], a[1], b[0], b[1]].map(Math.round);
