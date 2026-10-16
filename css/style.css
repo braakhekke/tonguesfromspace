@@ -930,9 +930,10 @@ body.has-full{overflow:hidden}
   .stage-slot{display:block;order:1;height:60vh;height:60dvh;min-height:330px}
   .stage-slot .stage{height:100%}
   .stage.mini{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(72vw,320px);height:195px!important;min-height:0;z-index:900;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.5);border:2px solid #fff}
-  .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d){display:none!important}
+  .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d):not(.notice){display:none!important}
   .stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
   .stage.mini .leaflet-control-scale{display:none}
+  .stage.mini .notice{width:calc(100% - 16px);padding:8px 10px;font-size:12px;line-height:1.3;text-align:center;z-index:710}      /* a message from the controls below ("turn on the Sentinel-2 layer") shows in the small window too */
   .stage.mini .v3d{pointer-events:none}      /* a touch on the small window scrolls the page, it does not turn the terrain */
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
