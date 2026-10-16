@@ -231,8 +231,8 @@ function hideDivider3D(){ clearPhotoLabels(); $('v3dDiv').hidden = $('v3dLabA').
   d.addEventListener('keydown', e => { const k = {ArrowLeft: -.03, ArrowUp: -.03, ArrowRight: .03, ArrowDown: .03}[e.key]; if (k) { setSplit3D(v3dSplit + k); d.classList.add('used'); sliderHintDone = true; $('handle').classList.add('used'); e.preventDefault(); } });
 })();
 let v3dRun = 0, v3dTerrain = null, v3dCamId = null;      // v3dTerrain: heights of the last glacier, kept so that switching mode or year does not fetch them again
-function setTitle3D(g, yearText, extra){            // the year tag of the 3D view, as on the map: the year(s) big, the glacier and "3D view" small under it (extra: what a special is, from the specials row)
-  const t = $('v3dTitle'), sm = document.createElement('small'); t.textContent = yearText; sm.textContent = `${g.name} · 3D view`; t.appendChild(sm);
+function setTitle3D(g, yearText, extra){            // the year tag of the 3D view, as on the map: the year(s) big, the glacier small under it (extra: what a special is, from the specials row)
+  const t = $('v3dTitle'), sm = document.createElement('small'); t.textContent = yearText; sm.textContent = g.name; t.appendChild(sm);
   if (extra) { const ex = document.createElement('small'); ex.className = 'v3d-special'; ex.textContent = extra; t.appendChild(ex); }
 }
 function sync3D(){            // the 3D view follows the left panel: another mode, year or colour style opens it again with the new choice

@@ -75,13 +75,13 @@ function drawBoxes(){
     }
     const [shape, num] = boxParts(g, i, sel, false);
     boxLayer.addLayer(shape).addLayer(num);
-    if (picked && !sel) { const [s2, n2] = boxParts(g, i, false, true); otherLayer.addLayer(s2).addLayer(n2); }      // the same, without fill, for the zoomed-out look at a chosen glacier
+    if (picked) { const [s2, n2] = boxParts(g, i, sel, true); otherLayer.addLayer(s2).addLayer(n2); }      // the same, without fill, for the zoomed-out look at a chosen glacier (the chosen one included)
   });
 }
 function updateBoxes(){
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
   const sel = picked && GLACIERS.find(g => g.id === state.glacier), fpb = sel && imageFootprint(sel).bounds;
-  const small = !!fpb && map.getZoom() !== undefined && (map.project(L.latLng(fpb[0][0], fpb[0][1])).y - map.project(L.latLng(fpb[1][0], fpb[1][1])).y) < map.getSize().y;      // the picture area of the chosen glacier is lower than the map
+  const small = !!fpb && map.getZoom() !== undefined && (map.project(L.latLng(fpb[0][0], fpb[0][1])).y - map.project(L.latLng(fpb[1][0], fpb[1][1])).y) * 2 <= map.getSize().y;      // the map is at least twice as high as the picture area of the chosen glacier
   const show = document.getElementById('boxToggle').checked && (fpb ? small : map.getZoom() <= BOX_MAX_ZOOM) && !$('app').classList.contains('is-framing');      // the layer switch decides: on at the start, off with the first choice. Not in a download frame
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
