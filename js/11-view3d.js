@@ -749,7 +749,8 @@ function setView(v){            // the stage shows the map or the 3D view; the p
   if (v === '3d' && !currentGlacier()) return showNotice('Choose a glacier first.');
   if (vstate.busy || v3dBusy) return;
   if (!$('videoSheet').hidden) closeVideo();
-  viewMode = v; $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); writeHash(); updateCredits();
+  if (v === '3d' && (state.oldestAerial || state.latest)) { restoreOldest(); restoreLatest(); refreshAll(); }      // the specials are for the map: 3D shows the normal year
+  viewMode = v; $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); if (state.checked && !latestBusy) setStatus(statusLine()); writeHash(); updateCredits();
   $('viewMap').setAttribute('aria-pressed', v === 'map'); $('view3dBtn').setAttribute('aria-pressed', v === '3d');
   setLayers(false); if (v === '3d') cancelMeasure(); else cancel3Measure();      // one measuring tool at a time
   if (v === '3d') { stopPlay(); open3D(); } else { close3D(); drawRadar(); loadDeferred(); }      // back on the map: its radar layer, if it was switched on or off meanwhile

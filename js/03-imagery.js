@@ -315,6 +315,8 @@ function restoreLatest(){            // back to the normal scene of that year
   const l = state.latest; if (!l) return;
   state.latest = null;
   if (l.saved) state.available[l.year] = l.saved; else delete state.available[l.year];
+  const ys = YEARS.filter(y => state.available[y]);      // a side that showed the latest scene goes to the newest year left
+  if (ys.length) ['a', 'b', 'one'].forEach(k => { if (!state.available[state[k]]) state[k] = ys[ys.length - 1]; });
 }
 let latestBusy = false;
 async function showLatest(){
@@ -333,7 +335,8 @@ async function showLatest(){
   restoreLatest();
   const year = +sc.date.slice(0, 4);
   state.latest = {year, saved: state.available[year] || null};
-  state.available[year] = sc; state.one = year; state.mode = 'single'; state.frame = 0;
+  state.available[year] = sc; state.frame = 0;
+  if (state.mode === 'compare') state.b = year; else { state.one = year; state.mode = 'single'; }      // in the slider the latest scene is the right side
   setStatus(statusLine()); refreshAll();
 }
 
@@ -370,6 +373,30 @@ function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip p
 function setLoading(){
   if (!state.checked) return;
   setStatus(pending ? `Loading ${pending} satellite image${pending > 1 ? 's' : ''} from Copernicus…` : statusLine());
+}
+/* The products behind a scene (image id, satellite, tile, time, sun): the public Copernicus STAC catalogue, open to browsers, no relay and no login.
+   The picture is made from the products of one orbit that touch its footprint (more than one when the area spans two tiles). Past days never change. */
+const STAC_URL = 'https://stac.dataspace.copernicus.eu/v1/search';
+const stacDone = new Map();      // key -> products, [] when none, null when the catalogue failed (retried the next time)
+function sceneProducts(g, sc){
+  const key = `stac|${g.id}|${sc.date}|${sc.orbit || ''}`;
+  if (stacDone.has(key)) return stacDone.get(key);
+  if (!memCache.has(key)) {
+    const p = (async () => {
+      const hit = await idb.get(key); if (hit && hit.products && hit.products.length) return hit.products;
+      const [[s, w], [n, e]] = imageFootprint(g).bounds, orbit = sc.orbit ? +sc.orbit.slice(1) : null;
+      const r = await fetch(STAC_URL, {method: 'POST', headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify({collections: ['sentinel-2-l1c'], bbox: [w, s, e, n], datetime: `${sc.date}T00:00:00Z/${sc.date}T23:59:59Z`, limit: 20})});
+      if (!r.ok) throw new Error('STAC ' + r.status);
+      const products = ((await r.json()).features || []).filter(f => orbit == null || f.properties['sat:relative_orbit'] === orbit).map(f => { const q = f.properties;
+        return {id: f.id, time: (q.datetime || '').slice(11, 16), sat: (q.platform || '').replace('sentinel-', 'S').toUpperCase(), tile: (q['grid:code'] || '').replace('MGRS-', ''), sun: q['view:sun_elevation']}; });
+      if (products.length) idb.set(key, {products, savedAt: Date.now()});
+      return products;
+    })();
+    memCache.set(key, p);
+    p.then(v => stacDone.set(key, v), () => { stacDone.set(key, null); memCache.delete(key); setTimeout(() => stacDone.delete(key), 30000); }).then(() => { if (typeof renderMeta === 'function') renderMeta(); });
+  }
+  return undefined;      // still on its way: renderMeta draws again when it arrives
 }
 const fmtDM = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day:'numeric', month:'long', timeZone:'UTC'});      // the day and month: the year is already shown big next to it
 const fmtDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric', timeZone:'UTC'});

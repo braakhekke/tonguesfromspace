@@ -131,7 +131,7 @@ def browser_check():
         page.goto(SITE, wait_until="load")
         gid = page.evaluate("GLACIERS[0].id")      # the id used in links (not the inventory id)
         page.goto(f"{SITE}#g={gid}&m=single&one={YEAR}", wait_until="load")
-        page.reload(wait_until="load")      # a change of the hash alone does not start the page again
+        page.wait_for_load_state("load")      # the page restarts itself when the hash changes (hashchange in 12-boot.js)
         page.wait_for_function("typeof state !== 'undefined' && state.checked === true", timeout=90000)      # the scene search is done
         found = page.evaluate("y => !!(state.available && state.available[y])", YEAR)
         assert found, f"the scene search found no scene for {YEAR}: " + page.inner_text("#status")

@@ -52,10 +52,13 @@ function yearChips(boxId, key, opts = {}){
     b.disabled = !ok;                                       // not clickable until confirmed available
     if (state.checked && !ok) { b.classList.add('missing'); b.title = `No ${y} imagery from this source`; }
     if (!state.checked) b.title = 'Checking…';
-    b.setAttribute('aria-pressed', state[key] === y && !(key === 'one' && (state.latest || state.oldestAerial)));
+    const sc = state.available[y];
+    if (sc) { b.title = `${fmtDate(sc.date)}${sc.orbit ? ', orbit ' + sc.orbit : ''}${sc.clear ? '' : ' (some clouds)'}`; if (!sc.clear) b.classList.add('some'); }      // hover: the day and the orbit of the scene; a year with some clouds has a dashed border
+    b.setAttribute('aria-pressed', state[key] === y && !(key === 'one' && (state.latest || state.oldestAerial)) && !(key === 'b' && state.latest && state.latest.year === y) && !(key === 'a' && oldestPair()));
     if (opts.range && ok && y > Math.min(state.from, state.to) && y < Math.max(state.from, state.to)) b.classList.add('in-range');
     b.onclick = () => {
-      if (key === 'one') { restoreLatest(); restoreOldest(); }
+      if (key === 'one' || key === 'b') restoreLatest();      // the slider: Latest belongs to the second side, Oldest to the first
+      if (key === 'one' || key === 'a') restoreOldest();
       state[key] = y;
       if (opts.range && state.from > state.to) [state.from, state.to] = [state.to, state.from];
       refreshAll();
@@ -65,18 +68,22 @@ function yearChips(boxId, key, opts = {}){
 }
 /* The specials row of One year: the oldest aerial image of the glacier's box, the newest scene of the last weeks */
 function specialChips(){
-  const box = document.getElementById('yearsSpecial'); box.innerHTML = '';
+  const box = document.getElementById('yearsSpecial'), boxC = document.getElementById('yearsSpecialC'); box.innerHTML = ''; boxC.innerHTML = '';      // One year: Oldest and Latest; Slider: Latest on the right side (Oldest is one picture, no pair)
   const og = currentGlacier(); ensureOldest(og); const oldest = oldestAerial.get(og.id);      // {ed, flown}, null: no aerial image, undefined: still asked
-  const chip = (text, title, on, disabled, click, cls) => {
+  const chip = (text, title, on, disabled, click, cls, into = box) => {
     const b = document.createElement('button');
     b.type = 'button'; b.textContent = text; b.title = title; b.disabled = disabled; b.setAttribute('aria-pressed', on); if (cls) b.className = cls;
-    b.onclick = click; box.appendChild(b); return b;
+    b.onclick = click; into.appendChild(b); return b;
   };
   chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest swisstopo aerial image of this area: flown ${oldest.flown}, SWISSIMAGE edition ${oldest.ed}`,
     !!state.oldestAerial, !oldest, () => { if (state.oldestAerial) { restoreOldest(); refreshAll(); } else showOldest(); });
   const l = chip('Latest', `The newest clear-ish scene of the last ${LATEST.days} days, with at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue`,
     !!state.latest, !state.checked || latestBusy, () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
-  if (!state.oldestAerial) l.classList.add('sat-need');      // Oldest runs without the Sentinel-2 picture: the chips must stay usable then, to leave it
+  const firstYear = () => { const ys = YEARS.filter(y => state.available[y]); if (ys.length) { state.a = ys[0]; if (state.b === state.a) state.b = ys[ys.length - 1]; } };      // leaving Oldest in the slider: the first side goes back to the first year (2016)
+  chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest swisstopo aerial image of this area (flown ${oldest.flown}) as the first picture of the slider`,
+    oldestPair(), !oldest, () => { if (oldestPair()) { restoreOldest(); firstYear(); refreshAll(); } else showOldest(); }, '', boxC);
+  const lc = chip('Latest', l.title, !!state.latest && state.latest.year === state.b, l.disabled, () => { if (state.latest) { restoreLatest(); refreshAll(); } else showLatest(); }, 'latest-chip', boxC);
+  if (!state.oldestAerial) { l.classList.add('sat-need'); lc.classList.add('sat-need'); }      // Oldest runs without the Sentinel-2 picture: the chips must stay usable then, to leave it
 }
 /* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
 function syncPane(){
@@ -89,9 +96,43 @@ function syncPane(){
     updateFrame();
   } catch {}
 }
+/* Image metadata (dropdown under Image settings): the scene behind every year, the pictures on show marked, and what the pictures are made of */
+function renderMeta(){
+  const box = document.getElementById('metaBody'); if (!box) return;
+  const g = currentGlacier(), ys = okYears();
+  if (!g || !state.checked || !ys.length) { box.innerHTML = '<p class="meta-note">Shown when the scenes have been found.</p>'; return; }
+  const shown = state.mode === 'compare' ? [state.a, state.b] : tlFrames();
+  const open = !!(box.closest('details') && box.closest('details').open);      // the catalogue is asked only while the table is on show
+  metaCsv = [['year', 'date', 'orbit', 'selection', 'satellite', 'tile', 'time_utc', 'sun_elevation_deg', 'product_ids']];
+  let lastPs;
+  const prod = sc => { const ps = lastPs = open && sc ? sceneProducts(g, sc) : undefined;      // image id: satellite and tile, the whole id on hover and copied by a click
+    if (ps === undefined) return ['…', '…']; if (!ps || !ps.length) return ['–', '–'];
+    return [`<span class="copy" title="${ps.map(p => p.id).join('\n')} (click to copy)" data-copy="${ps.map(p => p.id).join(' ')}">${ps.map(p => `${p.sat} ${p.tile}`).join(', ')}</span>`,
+      `${ps[0].time} UTC · sun ${Math.round(ps[0].sun)}°`]; };
+  const lt = state.latest, row = (label, sc, on) => { const [id, when] = prod(sc), ps = lastPs || []; 
+    if (sc) metaCsv.push([label === 'Latest' ? 'latest' : label, sc.date, sc.orbit || '', sc.latest ? 'latest' : sc.curated ? 'hand-picked' : 'automatic', [...new Set(ps.map(p => p.sat))].join(' '), ps.map(p => p.tile).join(' '), ps.length ? ps[0].time : '', ps.length ? Math.round(ps[0].sun * 10) / 10 : '', ps.map(p => p.id).join(' ')]);
+    return `<tr${on ? ' class="on"' : ''}><th scope="row">${label}</th><td>${sc ? fmtDM(sc.date) : ''}</td><td>${(sc && sc.orbit) || '–'}</td><td>${id}</td><td>${when}</td></tr>`; };
+  const oa = oldestAerial.get(g.id), top = oa ? `<tr${state.oldestAerial ? ' class="on"' : ''}><th scope="row">${oa.flown}</th><td>Aerial, edition ${oa.ed}</td><td>–</td><td>–</td><td>–</td></tr>` : '';      // before 2016: the oldest swisstopo aerial image
+  const rows = ys.map(y => { const sc = lt && lt.year === y ? lt.saved : state.available[y]; return sc ? row(y, sc, shown.includes(y) && !(lt && lt.year === y)) : ''; }).join('');
+  const bottom = lt && state.available[lt.year] ? row('Latest', state.available[lt.year], shown.includes(lt.year)) : '<tr><th scope="row">Latest</th><td colspan="4">Press Latest to look for it</td></tr>';      // after the last year: the latest scene, once it has been picked
+  const bands = (STYLE_BANDS[state.style] || []).join(' · '), old = oldestAerial.get(g.id);
+  box.innerHTML = `<div class="meta-scroll"><table class="meta-table"><thead><tr><th>Year</th><th>Date</th><th>Orbit</th><th>Image</th><th>Time and sun</th></tr></thead><tbody>${top}${rows}${bottom}</tbody></table></div>
+    <p class="meta-note">Sentinel-2 L1C, bands ${bands}, ${state.style === 'false2' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
+    <button type="button" class="meta-dl" id="metaDl">Download as CSV</button>`;
+}
+let metaCsv = [];      // the rows of the table as shown, with the figures and whole ids the table leaves out
+function downloadMetaCsv(){
+  const g = currentGlacier(); if (!g || metaCsv.length < 2) return;
+  const q = v => /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v);
+  const a = document.createElement('a'), url = URL.createObjectURL(new Blob([metaCsv.map(r => r.map(q).join(',')).join('\n') + '\n'], {type: 'text/csv'}));
+  a.href = url; a.download = `tonguesfromspace-${g.id}-image-metadata.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
+}
+document.getElementById('metaBox').addEventListener('toggle', renderMeta);      // the catalogue is asked when the table opens
+document.getElementById('metaBody').addEventListener('click', e => { if (e.target.id === 'metaDl') return downloadMetaCsv(); const c = e.target.closest('.copy'); if (!c || !navigator.clipboard) return;
+  navigator.clipboard.writeText(c.dataset.copy.replace(/ /g, '\n')).then(() => { const t = c.textContent; c.textContent = 'Copied'; setTimeout(() => { c.textContent = t; }, 1200); }, () => {}); });
 function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
-  renderYearRange(); yearChips('yearsOne', 'one'); specialChips();
+  renderYearRange(); yearChips('yearsOne', 'one'); specialChips(); renderMeta();
   if (typeof renderMobileBar === 'function') renderMobileBar();
   syncPane();
 }
@@ -101,7 +142,7 @@ function renderMode(){
   const tl = state.mode !== 'compare';          // timelapse and one year both show on the single image pane
   document.getElementById('app').classList.toggle('is-timelapse', tl);
   document.getElementById('app').classList.toggle('photos-ok', state.mode === 'single'); syncFullPlay();      // the old photographs are for one year only
-  document.getElementById('modeCompare').classList.toggle('sat-need', !!state.oldestAerial);      // Oldest has one picture only: the slider is greyed out like the timelapse, a click says why
+  document.getElementById('modeCompare').classList.remove('sat-need');      // Oldest has one picture only: the slider is greyed out like the timelapse, a click says why
   document.getElementById('modeCompare').setAttribute('aria-pressed', state.mode === 'compare');
   document.getElementById('modeTimelapse').setAttribute('aria-pressed', state.mode === 'timelapse');
   document.getElementById('modeSingle').setAttribute('aria-pressed', state.mode === 'single');
@@ -109,9 +150,9 @@ function renderMode(){
   document.getElementById('orientSub').hidden = state.mode !== 'compare'; document.getElementById('modeGroup').classList.toggle('has-sub', state.mode === 'compare');      // the slider direction hangs under the Compare button
   document.getElementById('singleControls').hidden = state.mode !== 'single';
   document.getElementById('timelapseControls').hidden = state.mode !== 'timelapse';
-  ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl ? 'none' : '');
+  ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl || (p === 'paneA' && oldestPair()) ? 'none' : '');
   map.getPane('paneT').style.display = tl ? '' : 'none';
-  updateTags();
+  updateTags(); syncSatUi();
   document.getElementById('styleNatural').setAttribute('aria-pressed', state.style === 'natural');
   document.getElementById('styleFalse1').setAttribute('aria-pressed', state.style === 'false1');
   document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
@@ -124,7 +165,7 @@ function renderMode(){
 }
 function setStyle(st){
   state.style = prefs.style = st; savePrefs();
-  renderMode();
+  renderMode(); renderMeta();      // the image metadata names the bands and pixel size of the style
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
   renderStory(); sync3D();
 }
@@ -503,7 +544,7 @@ const SOURCES = {
   mb:     () => `GLAMOS: Glaciological mass balance of single glaciers (Aletsch, Rhone, Corbassière, Findel), release 2025. ${lnk('https://doi.org/10.18750/massbalance.2025.r2025', 'doi:10.18750/massbalance.2025.r2025')}. Non-commercial use.`,
   radar:  () => `GLAMOS: Glacier ice thickness from ground-penetrating radar, release 2020. ${lnk('https://doi.org/10.18750/icethickness.2020.r2020', 'doi:10.18750/icethickness.2020.r2020')}. CC BY 4.0. Measured between 1958 and 2017, depending on the glacier.`,
   grab:   () => `Grab, M. et al. (2021), ${lnk('https://www.cambridge.org/core/journals/journal-of-glaciology/article/ice-thickness-distribution-of-all-swiss-glaciers-based-on-extended-groundpenetrating-radar-data-and-glaciological-modeling/CB6685222A664FD3FCE1367E2B5245D8', 'Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling')}, Journal of Glaciology 67(266). Modelled ice thickness and ice volume of Swiss glaciers around 2016, read from the ice thickness layer of ${lnk('https://map.geo.admin.ch', 'swisstopo')}. A model result, not a measurement.`,
-  s2:     () => `Copernicus Sentinel-2, Level-1C (pictures) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the ${lnk('https://dataspace.copernicus.eu', 'Copernicus Data Space Ecosystem')}.`,
+  s2:     () => `Copernicus Sentinel-2, Level-1C (pictures) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the ${lnk('https://dataspace.copernicus.eu', 'Copernicus Data Space Ecosystem')}. Product ids, tiles, times and sun elevation in the image metadata: its ${lnk('https://stac.dataspace.copernicus.eu/v1', 'STAC catalogue')}.`,
   terrain:() => `swissALTI3D © ${lnk('https://www.swisstopo.admin.ch', 'swisstopo')} (open government data), served as terrain tiles by ${lnk('https://mapterhorn.com/attribution', 'Mapterhorn')}. Peak names: swissNAMES3D © swisstopo.`,
   routes: () => `SchweizMobil route data of the Federal Roads Office (ASTRA), via ${lnk('https://map.geo.admin.ch', 'swisstopo geo.admin.ch')}; hiking trails: swissTLM3D © swisstopo.`,
   photos: () => `Historic photographs in the 3D view (eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel, Fee): ETH Library, Bildarchiv (${lnk('https://ba.e-pics.ethz.ch', 'e-pics')}), CC BY-SA 4.0 (each photo shows its own licence), the place and angles of the camera by volunteers on ${lnk('https://smapshot.heig-vd.ch', 'Smapshot')} (HEIG-VD).`,
@@ -957,10 +998,11 @@ function renderOutlineControls(){
 }
 
 function refreshAll(){
-  if (state.oldestAerial && state.mode !== 'single') restoreOldest();
-  if (state.latest && state.mode !== 'single') restoreLatest();        // the latest image belongs to the One year mode
+  if (state.oldestAerial && state.oldestMode !== state.mode) {      // Oldest was picked in another mode: the pictures differ (one aerial image alone, or the slider's first side)
+    if (state.mode === 'timelapse') restoreOldest(); else { restoreOldest(); if (state.mode === 'compare') { const ys = YEARS.filter(y => state.available[y]); if (ys.length && state.b === ys[0]) state.b = ys[ys.length - 1]; } return showOldest(); }
+  }
+  if (state.latest && (state.mode === 'timelapse' || (state.mode === 'compare' && state.a !== state.latest.year && state.b !== state.latest.year))) restoreLatest();        // the latest image belongs to One year, or to a side of the slider
   renderMode(); renderYears();
-  setTag('tagA', state.a); setTag('tagB', state.b);
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
   renderStory(); writeHash(); sync3D();
   if (state.checked && !latestBusy) setStatus(statusLine());      // the status box follows the choice: a year after Latest drops its "Latest clear-ish scene" line
