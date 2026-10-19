@@ -3,16 +3,17 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Tongues from Space | Interactive Swiss Glaciers</title>
-<meta name="description" content="Explore Switzerland’s ten largest glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change. Compare, create and share your visuals.">
-<meta property="og:title" content="Tongues from Space - Switzerland">
-<meta property="og:description" content="Watch the tongues of the ten largest Swiss glaciers retreat: satellite images since 2016, aerial photos, 3D terrain and historic photographs.">
+<title>Tongues from Space | Interactive Glaciers</title>
+<meta name="description" content="Explore glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change: the ten largest Swiss glaciers and Iceland’s Vatnajökull. Compare, create and share your visuals.">
+<meta property="og:title" content="Tongues from Space - Interactive Glaciers">
+<meta property="og:description" content="Watch glacier tongues retreat: Sentinel-2 satellite images since 2016 and 3D terrain for the ten largest Swiss glaciers and Iceland’s Vatnajökull.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="589">
-<meta property="og:image:alt" content="Tongues from Space - Switzerland: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2024, and glacier figures">
+<meta property="og:image:alt" content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2024, and glacier figures">
 <meta property="og:url" content="https://tonguesfromspace.org/">
+<link rel="canonical" href="https://tonguesfromspace.org/">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 200%27%3E%3Cdefs%3E%3Cmask id=%27ringcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Ccircle cx=%27164%27 cy=%2736%27 r=%2727%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%275%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Ccircle cx=%27100%27 cy=%27100%27 r=%2790%27 fill=%27none%27 stroke=%27%230A1B33%27 stroke-width=%2710%27 mask=%27url(%23ringcut)%27/%3E%3Cg transform=%27translate(100 100) scale(0.78) translate(-96 -101)%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url(%23mouthcut)%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url(%23groovecut)%27/%3E%3C/g%3E%3Cpath transform=%27translate(164 36) scale(1.65) translate(-164 -36)%27 d=%27M164 24 Q165 35 176 36 Q165 37 164 48 Q163 37 152 36 Q163 35 164 24 Z%27/%3E%3C/g%3E%3C/svg%3E">
@@ -21,7 +22,7 @@
 <link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
 <link rel="preconnect" href="https://tiles.maps.eox.at">
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" as="script" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous">
-<link rel="preload" href="data/glaciers.js" as="script">
+<script src="js/00-regions.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <!--
   Swiss glacier comparison dashboard
@@ -37,6 +38,18 @@
   Base map: OpenStreetMap (can be switched off on the map).
 -->
 <link rel="stylesheet" href="css/style.css">
+<style>
+/* region menu: a country with several areas is a heading with its areas below it (css/style.css is shared with the sister sites, so this rule lives here) */
+.region-menu li[aria-disabled="true"]{font-weight:600}      /* the countries without data ("soon") keep the weight of the others: only their colour is lighter */
+.region-menu li.group{cursor:default}      /* a country with areas: same font and size as the other countries, not a choice itself */
+.region-menu li.group:hover{background:none}
+.region-menu li.sub{padding-left:24px}      /* its areas: the same font and size, indented */
+/* the link from the Area card to the size comparison (size.html) */
+.size-link{display:block;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--crevasse)}
+  .landsat-opt{align-items:flex-start;margin:8px 0 4px}
+  .landsat-opt input{margin-top:3px}
+  .landsat-note{display:block;font-size:11px;line-height:1.35;color:var(--moraine);margin-top:1px}
+</style>
 </head>
 <body>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
@@ -124,6 +137,7 @@
           <label class="toggle loop"><input type="checkbox" id="loopToggle"> <span>Loop</span></label>
         </div>
       </div>
+      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat 5 and 7 pictures (30 m) for the years before Sentinel-2. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Also show Landsat pictures</span><small class="landsat-note">30 m pixels instead of the 10 m of Sentinel-2, so less detail. The stats in the right panel and the figures on exports stay limited to 2016 until today, for now.</small></span></label>
       <p class="status busy" id="status">Looking for the clearest scene of each year…</p>
 
       <details class="tune sat-need">
@@ -156,6 +170,7 @@
       </div>
       <button type="button" class="act sat-need" id="shareBtn">Share this view</button>
       <a class="act act-link" href="gallery.html">Gallery</a>
+      <a class="act act-link" href="size.html" id="sizeLink" title="Drag the outline of a glacier onto a city and see how big it is">Size comparison with your city</a>
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
         <img class="fyi-img" src="images/foryourice.jpg" alt="A framed glacier art print by For Your Ice" width="420" height="517" loading="lazy">
         <span class="fyi-ask">Glacier art for your wall</span>
@@ -331,7 +346,7 @@
   <div class="vs-opts">
     <label class="toggle speed-row" id="vFactsRow" title="Three facts about the glacier on the picture or video: Ice (volume, estimate), Retreat (length, area, thickness) or Size (area, thickness, tongue height)"><span class="fk"><input type="checkbox" id="vFacts"> <span>Glacier facts</span></span> <select class="small" id="vFactSet" aria-label="Which facts"><option value="ice">Ice</option><option value="retreat">Retreat</option><option value="size">Size</option></select></label>
     <label class="toggle vo-video vo-3d"><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
-    <label class="toggle vo-outline"><input type="checkbox" id="vOutline"> <span>Show 1850 outline</span></label>
+    <label class="toggle vo-outline"><input type="checkbox" id="vOutline"> <span id="vOutlineLabel">Show 1850 outline</span></label>
     <div class="vo-outside"><label class="slider-row" for="vOutside"><span>Surroundings opacity</span><output id="vOutsideOut">100 %</output></label>
       <input type="range" class="frame" id="vOutside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline"></div>
     <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">Last year (loops)</option></select></label>
@@ -359,8 +374,6 @@
 </section>
 
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
-<!-- optional: generated by build_outlines.py. Missing file = built-in list, no outlines. -->
-<script defer src="data/glaciers.js"></script>
 <!-- optional: written by the deploy workflow; sets the address of the Copernicus relay (Cloudflare Worker) -->
 <script defer src="config.js"></script>
 <script defer src="js/01-data.js"></script>
@@ -370,6 +383,7 @@
 <script defer src="js/05-map.js"></script>
 <script defer src="js/06-scene-search.js"></script>
 <script defer src="js/07-render.js"></script>
+<script defer src="js/07a-region-vatnajokull.js"></script>
 <script defer src="js/08-controls.js"></script>
 <script defer src="js/09-phones.js"></script>
 <script defer src="js/10-animation.js"></script>

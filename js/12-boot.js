@@ -7,11 +7,11 @@ function boot(){
   renderOutlineControls();
   drawOutlines();
   renderMode(); renderYears();
-  if (OPEN_ON_GLACIER) focusTongue(false); else showSwitzerland(false);
+  if (OPEN_ON_GLACIER) focusTongue(false); else showOverview(false);
   updateBoxes(); updateTrailClip(); updateSight();
   renderStory();
   updateCredits();
-  checkYears();
+  if (glacierPicked || REGION.landing !== 'overview') checkYears(); else setStatus('Choose an outlet to compare years.');      // a region that opens on its overview searches scenes only for the outlet that is chosen
   updatePickHint();
   if (PLAIN_START) document.getElementById('loopToggle').checked = true;      // the landing timelapse repeats
   if (OPEN_3D) setView('3d');      // a shared link to the 3D view

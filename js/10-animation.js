@@ -74,7 +74,7 @@ function drawPreview(){
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!ys.length) return;
   const g = currentGlacier(), S = marginsFor(vstate.kind, vstate.fmt), swipe = vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe', image = vstate.kind === 'image';
-  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && g.inv && g.inv.oldest), res: frameGroundRes(), style: state.style, compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && hasOldOutline(g)), res: frameGroundRes(), style: state.style, compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
     tlYears: image ? [] : ys };      // a single picture has no timeline bar
   if (!swipe && $('vFacts').checked) { loadFacts(g); info.factSet = $('vFactSet').value; info.factBase = image ? FIRST_YEAR : ys[0]; }
   ctx.save(); ctx.scale(q, q);
@@ -205,7 +205,7 @@ function updateFrame(){
   placeFrame(); $('vfPlay').style.display = vstate.kind === 'image' ? 'none' : '';      // the preview is for animations
   $('vsGuide').textContent = guideText();
   drawPreview();
-  $('vFactsRow').style.display = (vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe') ? 'none' : '';      // the facts belong to a single year
+  $('vFactsRow').style.display = !FEATURES.facts || (vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe') ? 'none' : '';      // the facts belong to a single year
   $('app').classList.toggle('is-cmp-image', imgCompare());
 }
 const endLen = fmt => fmt === 'wide' ? 5 : 3.5;            // seconds of the fact card at the end of a video
@@ -246,7 +246,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
     $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
     lastExport = null; $('vsShareBox').hidden = true; $('vsShareForm').hidden = true; offerShare();
     if (image && state.mode === 'timelapse') { const y = stillYear(); if (state.available[y]) state.one = y; $('modeSingle').click(); }      // a picture is of one year: the panel goes to One year, at the year on screen, as in Map view
-    const g3 = currentGlacier(), has3 = !!(g3.inv && g3.inv.oldest); $('vOutline').disabled = !has3;      // a download shows the 1850 outline when the glacier has one
+    const g3 = currentGlacier(), has3 = hasOldOutline(g3); $('vOutline').disabled = !has3;      // a download shows the 1850 outline when the glacier has one
     if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); sync3DMenu(); refresh3D(); }      // the 1850 outline starts off in a download pane (tick it to add it)
     $('vOutline').checked = has3 && $('oldToggle').checked;
     bringVisualIntoView(stay);
@@ -254,7 +254,7 @@ function openVideo(kind = 'video', stay = false){            // stay: the pane c
   }
   setType(!image && state.mode === 'compare' ? 'swipe' : 'timelapse');
   stopPlay();
-  const g = currentGlacier(), hasOld = !!(g.inv && g.inv.oldest);
+  const g = currentGlacier(), hasOld = hasOldOutline(g);
   if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); }      // the 1850 outline starts off in a download pane (tick it to add it)
   $('vOutline').disabled = !hasOld; $('vOutline').checked = hasOld && $('oldToggle').checked;   // the same switch as the layer on the map
   $('videoSheet').hidden = false; $('videoFrame').hidden = false;
@@ -353,9 +353,9 @@ async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1){
     ctx.save();
     ctx.lineWidth = 5; ctx.strokeStyle = '#F2A93B'; ctx.setLineDash([22, 14]); ctx.lineJoin = 'round';
     ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
-    outline.coordinates.forEach(poly => poly.forEach(ring => {
-      ctx.beginPath(); ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); ctx.stroke();
-    }));
+    eachPiece(outline, (ring, closed) => {
+      ctx.beginPath(); ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); if (closed) ctx.closePath(); ctx.stroke();
+    });
     ctx.restore();
   }
   return c;
@@ -381,7 +381,11 @@ const FACT_BLUE = '#8FDDF3', FACT_RED = '#FF7A6E', MINUS_SIGN = '−';
 const easeIO = x => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
 const placeOf = (g, ...first) => [...first, g.canton, g.range].filter(Boolean).join(' · ');
 /* The credit line on pictures and videos: short, the full list of sources is in About on the site */
-const shortCredit = (years, extras = []) => `Modified Copernicus Sentinel data ${years}${[...new Set(extras.filter(Boolean))].map(x => ' · ' + x).join('')}`;      // the data credit; "Created on <site>" is its own line in the bottom right corner (siteLine)
+const shortCredit = (years, extras = []) => {
+  const ys = String(years).match(/\d{4}/g) || [], ls = ys.filter(y => isLandsat(state.available[+y])), s2 = ys.filter(y => !ls.includes(y));      // Landsat years (Iceland, before 2016) are credited to the USGS, the others to Copernicus
+  const sat = [s2.length || !ls.length ? `Modified Copernicus Sentinel data ${s2.length ? [...new Set(s2)].join(' and ') : years}` : '', ls.length ? `Landsat ${[...new Set(ls)].join(' and ')} courtesy of the U.S. Geological Survey` : ''].filter(Boolean).join(' · ');
+  return `${sat}${[...new Set(extras.filter(Boolean))].map(x => ' · ' + x).join('')}`;      // the data credit; "Created on <site>" is its own line in the bottom right corner (siteLine)
+};
 const SITE_LOGO_H = 30, siteLogoW = () => SITE_LOGO_H * 200 / 190 + 12;
 const siteLine = (ctx, xRight, y) => {            // "Created on tonguesfromspace.org" with the small logo behind it, right aligned; in 3D videos the logo turns with the camera
   const lw = logoImg ? siteLogoW() : 0;
@@ -490,10 +494,10 @@ function drawBottom(ctx, W, H, S, o){
 function drawSwipeLabels(ctx, W, H, S, info, split){
   shade(ctx, W, H, S, 300);
   const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
-  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(info.style)}`, ` · Sentinel-2 · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`] : null;
+  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${isLandsat(sc[k]) ? 'natural color' : STYLE_NAME[info.style] || STYLE_NAME.natural}`] : null;
   const al = Math.min(1, split / (W * 0.25)), ar = Math.min(1, (W - split) / (W * 0.25));      // a year fades when its image is almost hidden
   drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
-    yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], 'Glacier outline about 1850']] : []});
+    yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   // divider with a round handle
   const along = hz ? H : W;
@@ -518,18 +522,18 @@ function drawSwipeLabels(ctx, W, H, S, info, split){
     ctx.save(); ctx.globalAlpha = ar; const y = heroBase(S);
     shadowText(ctx, String(info.years[1]), W - S.right, y, {blur:14, align:'right'}); dateLine(W - S.right, y + 46, 'right'); ctx.restore();
   }
-  ctx.font = `500 22px ${FONT}`; shadowText(ctx, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && 'GLAMOS']), S.left, base, {blur:6, color:'rgba(255,255,255,.78)'});
+  ctx.font = `500 22px ${FONT}`; shadowText(ctx, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), S.left, base, {blur:6, color:'rgba(255,255,255,.78)'});
   siteLine(ctx, W - S.right, base);
 }
 /* The frame of a single year (a picture, or one frame of a timelapse): top block, map key, bottom block with facts and timeline */
 function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){
   const g = info.glacier, hA = info.hA ?? 1;
   shade(ctx, W, H, S);
-  drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: info.outline ? [['#F2A93B', [14, 9], 'Glacier outline about 1850']] : [],
-    date: [fmtDM(scene.date), ` · ${styleLine(info.style)}`, ` · Sentinel-2 · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`]});
+  drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : [],
+    date: [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${isLandsat(scene) ? 'natural color' : STYLE_NAME[info.style] || STYLE_NAME.natural}`]});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawBottom(ctx, W, H, S, {
-    credit: shortCredit(creditYears(info), [info.outline && 'GLAMOS']),
+    credit: shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]),
     tiles: info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : [],
     tl: tlYears.length > 1 ? { years: tlYears, pos: Math.max(0, tlYears.indexOf(yr)) } : null
   });
@@ -598,7 +602,7 @@ async function frameBases(ys, W, H){
   const nw = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x, r.y]));
   const se = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x + r.w, r.y + r.h]));
   const crop = { x0: nw.x, x1: se.x, y1: nw.y, fp };
-  const outline = $('vOutline').checked && g.inv && g.inv.oldest ? g.inv.oldest.outline : null;
+  const outline = $('vOutline').checked && hasOldOutline(g) ? oldOutlineGeom(g) : null;
   await Promise.all([loadLogo(), ...['600 30px', '800 120px', '500 30px', '700 40px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))]);
 
   // images of all years (most are cached already), decoded one after the other with createImageBitmap: robust also on phones
@@ -633,7 +637,7 @@ function loadFacts(g){
   let c = factCache[g.id];
   if (!c) {
     c = factCache[g.id] = { done: false, v: null };
-    c.p = glacierVolume(g).catch(() => null).then(v => { c.v = v; c.done = true; if (!$('videoSheet').hidden) { if (viewMode === '3d') update3DInfo(); else drawPreview(); } return c; });
+    c.p = (g.rgi ? loadBundle(bundleId(g)).then(b => { if (b && b.change) IS_CHANGE[g.id] = b.change; return null; }) : glacierVolume(g)).catch(() => null).then(v => { c.v = v; c.done = true; if (!$('videoSheet').hidden) { if (viewMode === '3d') update3DInfo(); else drawPreview(); } return c; });
   }
   return c.p || Promise.resolve(c);
 }
@@ -647,7 +651,23 @@ function thinning(g){            // the ice thickness lost since the first GLAMO
   const endS = Math.max(...okS.map(r => r[1])), r = okS.filter(q => q[1] === endS).sort((a, b) => a[0] - b[0])[0];
   return r[3] < 0 ? { from: r[0], dh: r[3] } : null;
 }
+/* Iceland: documented values only. Retreat: the front since about 1890 (Guðmundsson et al. 2017), the area of the 2025 outline against the RGI of about 2000, and the surface change since the first year,
+   measured from the ArcticDEM strips (it follows the year). Size: the area of 2025, the length and the highest point. */
+function factTilesIs(g, year, set, base){
+  const t = [], W3 = '#fff', ch = IS_CHANGE[g.id], a25 = g.outlines && g.outlines.latest ? g.outlines.latest.areaInBasinKm2 : null, a00 = g.rgi.areaKm2;
+  if (set === 'retreat') {
+    t.push({ label: 'FRONT SINCE ~1890', value: MINUS_SIGN + '4–7', unit: 'km', color: FACT_RED });
+    if (ch && ch.byYear && ch.byYear[year] !== undefined && ch.byYear[base] !== undefined) { const d = ch.byYear[year] - ch.byYear[base]; t.push({ label: `SURFACE SINCE ${base}`, value: d === 0 ? '0' : (d < 0 ? MINUS_SIGN : '+') + Math.abs(d).toFixed(1), unit: 'm', color: d < 0 ? FACT_RED : W3 }); }
+    if (ok(a25) && ok(a00)) t.push({ label: 'AREA VS 2000', value: MINUS_SIGN + Math.abs(Math.round(100 * (a00 - a25) / a00)), unit: '%', color: FACT_RED });
+  } else if (set === 'size') {
+    if (ok(a25)) t.push({ label: 'AREA 2025', value: Math.round(a25).toLocaleString('en').replace(/,/g, ' '), unit: 'km²', color: FACT_BLUE });
+    t.push({ label: 'LENGTH · ~2000', value: g.rgi.lengthKm.toFixed(1), unit: 'km', color: W3 });
+    t.push({ label: 'HIGHEST POINT', value: Math.round(g.rgi.zmax).toLocaleString('en').replace(/,/g, ' '), unit: 'm a.s.l.', color: W3 });
+  }
+  return t;
+}
 function factTiles(g, year, set, base){
+  if (g.rgi) return factTilesIs(g, year, set, base);
   const c = factCache[g.id], v = c && c.v, inv = g.inv, t = [], later = year > base, W3 = '#fff';
   if (set === 'ice') {
     if (!v) return t;

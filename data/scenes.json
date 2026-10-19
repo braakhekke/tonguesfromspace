@@ -621,6 +621,16 @@
      "relaxed": true
     }
    }
+  },
+  "breidamerkurjokull": {
+   "name": "Breiðamerkurjökull",
+   "note": "2023: the automatic pick (13 Oct) was mostly snow; the 12 Sep and 7 Oct R052 scenes do not cover the whole box.",
+   "picks": {
+    "2023": {
+     "date": "2023-09-15",
+     "orbit": "R095"
+    }
+   }
   }
  },
  "generated": "2026-10-10T09:54:32.000Z"

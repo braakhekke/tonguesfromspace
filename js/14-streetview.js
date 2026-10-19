@@ -37,7 +37,7 @@ function closeStreetView(){
 async function refreshStreetView(){          // a glacier was chosen: its panoramas, if it has any
   const gen = ++svGen, g = glacierPicked ? currentGlacier() : null;
   closeStreetView(); svList = [];
-  if (SV_KEY && g && g.inv) { const f = await loadStreetViewFile(); if (gen !== svGen) return; svList = (f && f[g.inv.id]) || []; }
+  if (SV_KEY && g && FEATURES.streetview) { const f = await loadStreetViewFile(); if (gen !== svGen) return; svList = (f && f[bundleId(g)]) || []; }
   $('svRow').hidden = !svList.length;
   drawStreetView(); updateCredits();
 }

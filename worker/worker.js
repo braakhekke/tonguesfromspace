@@ -5,13 +5,12 @@
  * Worker logs in to the Copernicus Data Space Ecosystem with YOUR credentials (stored as
  * encrypted Worker secrets), forwards the dashboard's requests and caches the answers.
  *
- * Only the two requests this dashboard makes are accepted, so the relay cannot be used to spend
- * your quota on anything else:
- *   statistics  scoring of all Sentinel-2 L2A scenes of one summer (July 1 - October 1) over a
- *               Swiss glacier, daily, at coarse resolution; or of the last 75 days at most
- *               (the "Latest" image), optionally over a polygon that lies inside the checked box
- *   process     the image of one chosen day between July and September (or in the last 130 days),
- *               over a Swiss glacier, or the July-September quarterly mosaic around it (background)
+ * It serves two regions (see REGIONS-style constants below): Switzerland, and the Vatnajökull ice cap in Iceland. Only the two requests the dashboard makes are accepted, so the
+ * relay cannot be used to spend your quota on anything else:
+ *   statistics  scoring of all Sentinel-2 L2A scenes of one season over a glacier, daily, at coarse resolution: Switzerland 1 July to 1 October-ish (see checkStatistics),
+ *               Iceland 1 August to 15 October; or of the last 75 days at most (the "Latest" image, Switzerland), optionally over a polygon that lies inside the checked box
+ *   process     the image of one chosen day between July and October (or in the last 130 days), over a glacier, or (Switzerland) the July-September quarterly
+ *               mosaic around it (background)
  *
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
@@ -37,7 +36,13 @@
 const COLLECTION = 'sentinel-2-l2a';                              // scene scoring (scene classification)
 const IMAGES = 'sentinel-2-l1c';                                  // the images themselves (no shadow infill)
 const MOSAIC = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';     // Sentinel-2 quarterly cloudless mosaics (background)
+/* The regions this relay serves (js/00-regions.js of the page names the same ones). A request must lie inside one of them:
+   ch               Switzerland, a box with a margin; scene search from 1 July (see checkStatistics)
+   is-vatnajokull   Iceland, Vatnajökull: the picture of the outlet Breiðamerkurjökull (a square of 24 km around its centre), within ICELAND_KM of the centre;
+                    scene search from 1 August to 15 October of a year. Add an outlet: its centre goes into CENTRES. */
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin
+const CENTRES = [[-16.305, 64.095]];                                // [lon, lat] of the picture boxes of the outlets of Vatnajökull: Breiðamerkurjökull
+const ICELAND_KM = 25;                                              // a picture box must have its centre this close to an outlet centre (the box is 24 km a side)
 const MAX_PX = 2500;
 const MAX_BODY = 20000;                                             // characters; the dashboard's own requests are under 5,000
 const FIRST_YEAR = 2016, lastYear = () => new Date().getUTCFullYear();   // Sentinel-2 images in the dashboard start in 2016
@@ -163,6 +168,22 @@ function insideSwitzerland([w, s, e, n]) {
   return [w, s, e, n].every(Number.isFinite) && w < e && s < n &&
     w >= SWISS.west && e <= SWISS.east && s >= SWISS.south && n <= SWISS.north;
 }
+function km(lon1, lat1, lon2, lat2) {                                // distance on the globe (haversine)
+  const r = Math.PI / 180, dLat = (lat2 - lat1) * r, dLon = (lon2 - lon1) * r;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) ** 2;
+  return 12742 * Math.asin(Math.sqrt(a));
+}
+function nearOutlet([w, s, e, n]) {
+  if (![w, s, e, n].every(Number.isFinite) || !(w < e && s < n) || e - w > 1 || n - s > 1) return false;   // under about 110 km across
+  const lon = (w + e) / 2, lat = (s + n) / 2;
+  return CENTRES.some(([x, y]) => km(lon, lat, x, y) <= ICELAND_KM);
+}
+const regionOf = bb => insideSwitzerland(bb) ? 'ch' : nearOutlet(bb) ? 'is-vatnajokull' : null;
+const regionOfInput = inp => {      // the region of a request's box (checkBounds has already accepted it)
+  let bb = inp.bounds.bbox.map(Number);
+  if (/3857/.test((inp.bounds.properties && inp.bounds.properties.crs) || '')) { const [w, s] = mercToLonLat(bb[0], bb[1]), [e, n] = mercToLonLat(bb[2], bb[3]); bb = [w, s, e, n]; }
+  return regionOf(bb);
+};
 function mercToLonLat(x, y) {
   const R = 6378137;
   return [x / R * 180 / Math.PI, (2 * Math.atan(Math.exp(y / R)) - Math.PI / 2) * 180 / Math.PI];
@@ -173,7 +194,7 @@ function checkBounds(inp, collections = [COLLECTION]) {
   let bb = inp.bounds.bbox.map(Number);
   if (/3857/.test(crs)) { const [w, s] = mercToLonLat(bb[0], bb[1]), [e, n] = mercToLonLat(bb[2], bb[3]); bb = [w, s, e, n]; }
   else if (crs && !/4326|CRS84/.test(crs)) return 'coordinate system';
-  if (!insideSwitzerland(bb)) return 'area outside Switzerland';
+  if (!regionOf(bb)) return 'area outside Switzerland and the outlets of Vatnajökull';
   if (!geometryInside(inp.bounds.geometry, inp.bounds.bbox.map(Number))) return 'polygon outside its box';
   if (!Array.isArray(inp.data) || inp.data.length !== 1 || !collections.includes(inp.data[0].type)) return 'data collection';
   return null;
@@ -200,7 +221,7 @@ function checkProcess(b) {
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
   if (!tr || typeof tr.from !== 'string' || !(summerDay(tr.from.slice(0, 10)) || recentDay(tr.from.slice(0, 10))) || tr.from.slice(10) !== 'T00:00:00Z' ||
       tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and October, or in the last 130 days)';
-  if (inp.data[0].type === MOSAIC && tr.from.slice(4, 10) !== '-07-01') return 'mosaic date (the July to September quarter)';
+  if (inp.data[0].type === MOSAIC && (tr.from.slice(4, 10) !== '-07-01' || regionOfInput(inp) !== 'ch')) return 'mosaic date (the July to September quarter, Switzerland)';
   if (!out || !(out.width > 0 && out.width <= MAX_PX) || !(out.height > 0 && out.height <= MAX_PX)) return 'image size';
   if (!Array.isArray(out.responses) || out.responses.length !== 1 ||
       !['image/jpeg', 'image/png'].includes(out.responses[0].format && out.responses[0].format.type)) return 'output format';
@@ -210,9 +231,21 @@ function checkProcess(b) {
 function checkStatistics(b) {
   const bad = checkBounds(b && b.input); if (bad) return bad;
   const ag = b.aggregation;
+  if (regionOfInput(b.input) === 'is-vatnajokull') {      // the season of a year, 1 August to 15 October (a season that is still running ends today)
+    const tr = ag && ag.timeRange, re = /^\d{4}-\d{2}-\d{2}T00:00:00Z$/;
+    if (!tr || !re.test(tr.from) || !re.test(tr.to) || !yearOk(tr.from.slice(0, 4)) || tr.from.slice(4) !== '-08-01T00:00:00Z' || tr.to.slice(0, 4) !== tr.from.slice(0, 4) ||
+        tr.to <= tr.from || tr.to > tr.from.slice(0, 4) + '-10-16T00:00:00Z' || Date.parse(tr.to) > Date.now() + 2 * DAY_MS) {
+      if (!rollingWindow(tr)) return 'period (1 August to 15 October of a year, or the last 75 days)';      // the "Latest" image: the last weeks, any month
+    }
+    return statisticsRest(b);
+  }
   const summer = ag && ag.timeRange && /^\d{4}-07-01T00:00:00Z$/.test(ag.timeRange.from) && yearOk(ag.timeRange.from.slice(0, 4)) &&
     [ '-09-21T00:00:00Z', '-10-01T00:00:00Z', '-10-11T00:00:00Z', '-11-01T00:00:00Z' ].map(e => ag.timeRange.from.slice(0, 4) + e).includes(ag.timeRange.to);
   if (!ag || !ag.timeRange || !(summer || rollingWindow(ag.timeRange))) return 'period (July 1 to the end of October of one year, or the last 75 days)';
+  return statisticsRest(b);
+}
+function statisticsRest(b) {      // the checks of a scene search that do not depend on the region
+  const ag = b.aggregation;
   if (!ag.aggregationInterval || ag.aggregationInterval.of !== 'P1D') return 'interval';
   if (!(ag.resx >= MIN_STATS_RES && ag.resy >= MIN_STATS_RES)) return 'resolution';
   if (typeof ag.evalscript !== 'string' || ag.evalscript.length > 2000) return 'evalscript';
@@ -225,7 +258,7 @@ function checkStatistics(b) {
 function ttlFor(route, body) {
   if (route === 'process') return 180 * DAY;
   const tr = body.aggregation.timeRange;
-  if (!/^\d{4}-07-01T00:00:00Z$/.test(tr.from)) return DAY;       // a rolling window ("latest image") changes every day
+  if (!/^\d{4}-0[78]-01T00:00:00Z$/.test(tr.from)) return DAY;       // a rolling window ("latest image") changes every day
   const year = +tr.from.slice(0, 4);
   return year < new Date().getUTCFullYear() ? 180 * DAY : DAY;
 }

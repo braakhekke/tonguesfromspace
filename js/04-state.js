@@ -19,20 +19,21 @@ let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is re
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
-  if (!OPEN_ON_GLACIER) { OPEN_ON_GLACIER = true; state.mode = 'timelapse'; AUTOPLAY = !matchMedia('(prefers-reduced-motion: reduce)').matches; PLAIN_START = true;
-    prefs.mosaic = false; prefs.alti = true;      // the landing view: swisstopo hillshade as the base map (the base maps start afresh at every visit) ...
-    if (typeof prefs.imgOpacity !== 'number') prefs.imgOpacity = 0.85;      // ... showing through the satellite picture a little, and the peak names on, unless the visitor chose otherwise before
+  if (!OPEN_ON_GLACIER && REGION.landing === 'glacier3d') { OPEN_ON_GLACIER = true; state.mode = 'timelapse'; AUTOPLAY = !matchMedia('(prefers-reduced-motion: reduce)').matches; PLAIN_START = true;
+    if (FEATURES.swissBase) { prefs.mosaic = false; prefs.alti = true; }      // the landing view: swisstopo hillshade as the base map (the base maps start afresh at every visit) ...
+    if (typeof prefs.imgOpacity !== 'number' && FEATURES.swissBase) prefs.imgOpacity = 0.85;      // ... showing through the satellite picture a little, and the peak names on, unless the visitor chose otherwise before
     if (typeof prefs.names3d !== 'boolean') prefs.names3d = true;
   }      // no glacier in the link: open on the biggest one as a 3D timelapse that loops, the Switzerland button leads to the overview
   if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
   if (['natural', 'false1', 'false2'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
   if (p.get('ol') === '1') prefs.old = true;                                                      // ol=1: show the 1850 outline
-  glacierPicked = OPEN_ON_GLACIER; OPEN_3D = OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));
+  if (REGION.landsat && (prefs.landsat || ['a', 'b', 'from', 'to', 'one'].some(k => +p.get(k) && +p.get(k) < FIRST_YEAR))) { YEARS.unshift(...LANDSAT_YEARS); prefs.landsat = true; }      // Landsat on: saved in an earlier visit, or the link names a year before Sentinel-2
+  glacierPicked = OPEN_ON_GLACIER; OPEN_3D = FEATURES.view3d && OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));
   HASH_TAB = { discover: 'look', fun: 'look', stats: 'figures', switzerland: 'swiss' }[p.get('t')] || null;
 })();
-const writeHash = () => history.replaceState(null, '',
-  `#${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}${typeof viewMode !== 'undefined' && viewMode === '3d' ? '&v=3d' : ''}`);      // v=3d: the link opens the 3D view
+const writeHash = () => history.replaceState(null, '', 
+  `#${REGION.id === 'ch' || PATH_REGION ? '' : `r=${REGION.id}&`}${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}${typeof viewMode !== 'undefined' && viewMode === '3d' ? '&v=3d' : ''}`);      // v=3d: the link opens the 3D view
 const okYears = () => YEARS.filter(y => state.available[y]);
 const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 

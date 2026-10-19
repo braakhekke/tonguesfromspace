@@ -48,17 +48,18 @@ function roundedBox(b, maxR = 14){
 }
 /* The overview: every glacier as its 1850 outline, clickable, with its number. Once a glacier is chosen, the outline of its satellite picture shows in red. */
 const glacierBounds = g => g.extent || g.bounds;
+const hasOutline = g => !!(outlineGeom(g) || g.rgi);      // the glacier has an outline to draw in the overview (Swiss: the 1850 outline, Iceland: the RGI outline)
 const badgeLatLng = g => g.center ? L.latLng(g.center) : L.latLngBounds(glacierBounds(g)).getCenter();
 /* One glacier of the overview: its outline (or box) and its numbered label. flat: no fill, for the other glaciers seen from a zoomed-out chosen glacier. */
 function boxParts(g, i, sel, flat){
-  const fp = imageFootprint(g).bounds, geom = outlineGeom(g);
-    const W = sel ? 1.6 : 1.1, F = geom && !flat ? 0.16 : 0, style = {color: getVar('--accent'), weight: W, opacity: .9, fillColor: getVar('--accent'), fillOpacity: F, className: 'gbox'};      // thin line and a faint fill so the ice stays visible; stronger under the pointer
-    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : L.polygon(roundedBox(fp), {...style});
-    const tip = `${i + 1}. ${g.name}, ${rankArea(g).toFixed(1)} km²`;
+  const fp = imageFootprint(g).bounds, geom = outlineGeom(g), has = hasOutline(g);
+    const W = sel ? 1.6 : 1.1, F = has && !flat ? 0.16 : 0, style = {color: getVar('--accent'), weight: W, opacity: .9, fillColor: getVar('--accent'), fillOpacity: F, className: 'gbox'};      // thin line and a faint fill so the ice stays visible; stronger under the pointer
+    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : g.rgi ? L.polygon(g.rgi.outline, {...style}) : L.polygon(roundedBox(fp), {...style});
+    const tip = `${i + 1}. ${g.name}, ${areaText(g, 1)} km²`;
     const light = on => { const st = {fillOpacity: flat ? 0 : on ? 0.4 : F, weight: on ? 2.2 : W}; shape.setStyle ? shape.setStyle(st) : shape.eachLayer(l => l.setStyle(st)); };      // the polygon lights up under the pointer, also when the pointer is on its number
     shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false));
     const tip0 = g.inv && g.inv.terminus && g.inv.terminus.tip || g.tongue;      // the badge sits at the tongue tip, off the ice, with the name beside it
-    const num = L.marker(tip0 ? L.latLng(tip0) : geom ? badgeLatLng(g) : [fp[1][0], (fp[0][1] + fp[1][1]) / 2], {
+    const num = L.marker(tip0 ? L.latLng(tip0) : has ? badgeLatLng(g) : [fp[1][0], (fp[0][1] + fp[1][1]) / 2], {
       icon: L.divIcon({className: '', html: `<div class="gbox-num${sel ? ' sel' : ''}"><span class="lab"><i>${i + 1}</i>${g.name}</span></div>`, iconSize: [10, 10], iconAnchor: [5, 5]}),
       keyboard: true}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false)).bindTooltip(tip, {direction: 'top', offset: [0, -12], className: 'gbox-tip'});      // the same tooltip over the number
     return [shape, num];
@@ -83,6 +84,8 @@ function updateBoxes(){
   const sel = picked && GLACIERS.find(g => g.id === state.glacier), fpb = sel && imageFootprint(sel).bounds;
   const small = !!fpb && map.getZoom() !== undefined && (map.project(L.latLng(fpb[0][0], fpb[0][1])).y - map.project(L.latLng(fpb[1][0], fpb[1][1])).y) * 2 <= map.getSize().y;      // the map is at least twice as high as the picture area of the chosen glacier
   const show = document.getElementById('boxToggle').checked && (fpb ? small : map.getZoom() <= BOX_MAX_ZOOM) && !$('app').classList.contains('is-framing');      // the layer switch decides: on at the start, off with the first choice. Not in a download frame
+  if (show && !map.hasLayer(basinLayer)) basinLayer.addTo(map);
+  if (!show && map.hasLayer(basinLayer)) map.removeLayer(basinLayer);
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
   $('app').classList.toggle('overview', show);      // the overview look: dimmed background, no tongue or whole-glacier buttons
@@ -93,11 +96,21 @@ function updateBoxes(){
   if (frame && !map.hasLayer(frameLayer)) frameLayer.addTo(map);
   if (!frame && map.hasLayer(frameLayer)) map.removeLayer(frameLayer);
 }
+/* Iceland: the drainage basins of the whole ice cap (RGI 6.0) lie under the outlets that can be chosen, as thin white outlines with their name and area on hover */
+const basinLayer = L.layerGroup();
+if (REGION.id === 'is-vatnajokull' && ICECAP) ICECAP.basins.forEach(b => {
+  const poly = L.polygon(b.outline, {color: '#fff', weight: 1.1, opacity: .8, fillColor: '#fff', fillOpacity: .04, className: 'basin'}).addTo(basinLayer);
+  poly.bindTooltip(`${b.name || 'Unnamed outlet'}, ${b.areaKm2.toLocaleString('en')} km²`, {direction: 'top', sticky: true, className: 'gbox-tip'});
+  poly.on('mouseover', () => poly.setStyle({fillOpacity: .18})).on('mouseout', () => poly.setStyle({fillOpacity: .04}));
+});
+const iceCapBounds = () => L.latLngBounds(ICECAP.basins.concat(ICECAP.outlets).flatMap(b => b.outline[0] || []));
 function glaciersExtent(){
+  if (REGION.id === 'is-vatnajokull' && ICECAP) { const b = iceCapBounds(); return [[b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()]]; }      // the whole ice cap
   const b = GLACIERS.map(g => imageFootprint(g).bounds);
   return [[Math.min(...b.map(x => x[0][0])), Math.min(...b.map(x => x[0][1]))], [Math.max(...b.map(x => x[1][0])), Math.max(...b.map(x => x[1][1]))]];
 }
-function showSwitzerland(animate = true){ stopPlay(); map.fitBounds(glaciersExtent(), {animate, padding: [40, 40]}); }
+/* the overview of the region: the ten Swiss glaciers, or the whole Vatnajökull ice cap */
+function showOverview(animate = true){ stopPlay(); map.fitBounds(glaciersExtent(), {animate, padding: [40, 40]}); }
 map.on('zoomend', () => { drawBoxes(); updateBoxes(); });
 map.on('resize', updateBoxes);   // the rounded corners are a fixed number of pixels
 document.getElementById('pinToggle').checked = prefs.pin === true;
@@ -148,7 +161,8 @@ document.getElementById('altiToggle').checked = prefs.alti === true;
 document.getElementById('altiToggle').onchange = e => {
   if (e.target.checked) onlyBase('altiToggle');
   prefs.alti = e.target.checked; savePrefs();
-  e.target.checked ? alti.addTo(map) : map.removeLayer(alti); updateCredits();
+  if (REGION.id === 'ch') e.target.checked ? alti.addTo(map) : map.removeLayer(alti);      // elsewhere the hillshade is drawn in 3D from the heights (the switch is the 3D menu's)
+  updateCredits();
 };
 /* swisstopo aerial images of the picked year(s): a background that, unlike the other base maps, can be on beside them (it only shows inside the ten image boxes, over the base map) */
 document.getElementById('aerialToggle').checked = false;      // always off at the start: the choice is not remembered
@@ -171,32 +185,79 @@ document.addEventListener('click', e => {
 syncSatUi();
 
 /* ---------- region picker: the second line of the title ---------- */
-/* Only Switzerland has data so far; the others are listed as "soon" so the menu shows where the site is going. A region with data gets `ready: true`, its glaciers and its texts. */
-const REGIONS = [
-  {id: 'ch', name: 'Switzerland', adj: 'Swiss', ready: true},
-  {id: 'is', name: 'Iceland', adj: 'Icelandic'},
-  {id: 'no', name: 'Norway', adj: 'Norwegian'},
-  {id: 'cl', name: 'Chile', adj: 'Chilean'},
-  {id: 'np', name: 'Nepal', adj: 'Nepalese'}
-];
-let regionId = 'ch';
-function setRegion(id){
-  const r = REGIONS.find(x => x.id === id && x.ready); if (!r) return;
-  regionId = r.id;
-  document.querySelectorAll('.region-name').forEach(e => { e.textContent = r.name; });
-  document.getElementById('regionBtn').setAttribute('aria-label', `Region: ${r.name}. Change region`);
-  document.getElementById('brandLede').textContent = `Discover the ten largest ${r.adj} glaciers. Compare, create and share your visuals.`;
-  document.title = `Tongues from Space | Interactive ${r.adj} Glaciers`;
-  renderRegionMenu(); toggleRegionMenu(false);
+/* The regions are listed in js/00-regions.js. A country with several areas (Iceland) is a heading with its areas below it; a region without data is listed as "soon" so the menu shows where the
+   site is going. Choosing one opens its link (#r=...) and reloads: every region starts clean and loads only its own data. */
+function applyRegionUi(){
+  document.querySelectorAll('.region-name').forEach(e => { e.textContent = REGION.name; });
+  document.getElementById('regionBtn').setAttribute('aria-label', `Region: ${REGION.name}. Change region`);
+  document.getElementById('brandLede').textContent = REGION.brandLede;
+  document.querySelectorAll('#mhead > span').forEach(e => { e.textContent = REGION.brandLede; });
+  document.title = REGION.docTitle;
+  /* what the region has no data for is taken off the page: each switch of `features` hides its controls */
+  const off = (feature, ...ids) => { if (!FEATURES[feature]) ids.forEach(id => { const el = document.getElementById(id), box = el && (el.closest('label') || el); if (box) box.style.display = 'none'; }); };
+  off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swissBase', 'topoToggle', 'altiToggle', 'l3Topo'); if (!FEATURES.swissBase) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
+  off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('teaser', 'teaserBtn'); off('sizeTool', 'sizeLink');
+  if (!FEATURES.glamos && !GLACIERS[0].tongue) off('glamos', 'tongueBtn');      // the Tongue button needs a tongue tip (Iceland has one from the outlet data)
+  if (!FEATURES.oldest && !FEATURES.latest) document.querySelectorAll('.spec-row').forEach(e => { e.style.display = 'none'; });
+  if (!FEATURES.glamos) document.querySelectorAll('label[for="outside"]').forEach(e => { e.style.display = 'none'; });
+  if (REGION.id !== 'ch' && FEATURES.trails) {      // the legend of the paths: footpaths and tracks, and the stretches from where the ice front is in view
+    const sight = id => `<span id="${id}" hidden title="Where the line of sight from eye height 1.7 m to the ice front is free (trees and buildings not counted)"><i class="sight-sw"></i>Ice front in view (1.7 m)</span>`;
+    document.getElementById('trailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('sightLegend')}`;
+    document.getElementById('l3TrailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('l3SightLegend')}`;
+    document.querySelectorAll('#trailsToggle, #l3Trails').forEach(el => { const lab = el.closest('label'); lab.title = 'Footpaths and tracks (OpenStreetMap)'; lab.lastElementChild.lastChild.textContent = 'Footpaths and tracks'; });
+  }
+  if (!FEATURES.glamos) {      // the download panes: no tongue tip, no 1850 outline, no glacier facts and no fact card (their figures are GLAMOS's)
+    if (!GLACIERS[0].tongue) document.getElementById('vaTongue').style.display = 'none';
+    document.querySelectorAll('.vo-outside').forEach(e => { e.style.display = 'none'; }); if (!GLACIERS[0].outlines) document.querySelectorAll('.vo-outline').forEach(e => { e.style.display = 'none'; });
+    if (GLACIERS[0].rgi) { const ice = document.querySelector('#vFactSet option[value="ice"]'); if (ice) ice.remove(); document.getElementById('vFactSet').value = 'retreat'; }      // Iceland: facts of Retreat and Size (no ice volume)
+    else document.getElementById('vFacts').checked = false;
+    const end = document.getElementById('vEnd'); end.value = 'loop'; end.closest('label').style.display = 'none';
+  }
+  if (!FEATURES.swissBase) { prefs.topo = prefs.alti = false; }
+  if (REGION.id !== 'ch') {
+    if (GLACIERS[0].half) { document.getElementById('tongueBtn').title = 'Zoom to the picture area (the tongue)'; document.getElementById('fitBtn').title = 'Fit the whole glacier'; }
+    document.getElementById('boxToggle').closest('label').title = 'The outlets you can choose, as red outlines you can click. Switched off when you choose one.';
+    document.getElementById('boxToggle').parentElement.lastElementChild.lastChild.textContent = 'Selectable outlets';
+  }
 }
+function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
 function renderRegionMenu(){
-  document.getElementById('regionMenu').innerHTML = REGIONS.map(r => `<li role="option" data-id="${r.id}" aria-selected="${r.id === regionId}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`).join('');
+  document.getElementById('regionMenu').innerHTML = REGIONS.map(r => r.children
+    ? `<li class="group" role="presentation">${r.name}</li>` + r.children.map(c => regionItem(c, true)).join('') : regionItem(r)).join('');
 }
 function toggleRegionMenu(open = document.getElementById('regionMenu').hidden){
   document.getElementById('regionMenu').hidden = !open; document.getElementById('regionBtn').setAttribute('aria-expanded', open);
 }
 document.getElementById('regionBtn').onclick = e => { e.stopPropagation(); toggleRegionMenu(); };
-document.getElementById('regionMenu').onclick = e => { const li = e.target.closest('li'); if (li && li.getAttribute('aria-disabled') !== 'true') setRegion(li.dataset.id); };
+document.getElementById('regionMenu').onclick = e => {
+  const li = e.target.closest('li'); if (!li || li.classList.contains('group') || li.getAttribute('aria-disabled') === 'true') return;
+  if (li.dataset.id === REGION.id) return toggleRegionMenu(false);
+  history.replaceState(null, '', regionLink(li.dataset.id)); location.reload();
+};
 document.addEventListener('click', e => { if (!e.target.closest('#regionMenu')) toggleRegionMenu(false); });
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('regionMenu').hidden) { toggleRegionMenu(false); document.getElementById('regionBtn').focus(); } });
-renderRegionMenu();
+renderRegionMenu(); applyRegionUi();
+
+/* Landsat years (Iceland): the switch under the years puts the Landsat years in front of the Sentinel-2 years and takes them out again; it stays on across views, modes and glaciers (prefs.landsat) */
+async function setLandsat(on){
+  if (!REGION.landsat || on === YEARS[0] < FIRST_YEAR) return;
+  prefs.landsat = on; savePrefs();
+  if (on) YEARS.unshift(...LANDSAT_YEARS); else YEARS.splice(0, LANDSAT_YEARS.length);
+  if (!state.checked) { checkYears(); return; }      // a search is running: it starts again with the years now wanted (its answers are kept)
+  const g = currentGlacier(), gen = checkGen;
+  if (on) {
+    const found = await Promise.all(LANDSAT_YEARS.map(y => landsatScene(g, y)));
+    if (gen !== checkGen || g.id !== state.glacier || YEARS[0] >= FIRST_YEAR) return;
+    LANDSAT_YEARS.forEach((y, i) => { state.available[y] = found[i]; });
+  } else {
+    restoreLatestIfOld();
+    LANDSAT_YEARS.forEach(y => { delete state.available[y]; });
+    const ok = okYears(), last = ok[ok.length - 1];      // a side that showed a Landsat year goes back to the Sentinel-2 years
+    if (state.a < FIRST_YEAR) state.a = ok[0]; if (state.b < FIRST_YEAR) state.b = last; if (state.from < FIRST_YEAR) state.from = ok[0]; if (state.to < FIRST_YEAR) state.to = last; if (state.one < FIRST_YEAR) state.one = last;
+    if (state.a === state.b && ok.length > 1) { state.a = ok[0]; state.b = last; }
+  }
+  state.frame = 0; setStatus(statusLine()); refreshAll();
+}
+const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
+{ const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');
+  if (REGION.landsat) { row.style.display = ''; document.getElementById('landsatText').textContent = `Also show Landsat pictures, back to ${REGION.landsat.first}`; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); } }

@@ -1,0 +1,18 @@
+{
+ "years": [
+  1980,
+  1982
+ ],
+ "label": "1980/82",
+ "bbox": [
+  -1843447,
+  9345603,
+  -1786681,
+  9402369
+ ],
+ "w": 2480,
+ "h": 2480,
+ "share": 0.949,
+ "source": "N\u00e1tt\u00farufr\u00e6\u00f0istofnun \u00cdslands and Landm\u00e6lingar \u00cdslands, historical aerial image orthomosaics (CC BY 4.0)",
+ "wms": "https://gis.lmi.is/mapcache/loftmyndasafn/isn93/wms"
+}

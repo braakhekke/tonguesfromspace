@@ -33,10 +33,15 @@ jobs:
         continue-on-error: true      # if GLAMOS is unreachable, publish with the last committed data
         run: python scripts/build_outlines.py --out data/glaciers.js
 
-      - name: Commit glaciers.js and thickness.js if they changed
-        if: steps.data.outcome == 'success' && github.event_name != 'pull_request'
+      - name: Download the RGI outlines of Vatnajökull and build vatnajokull.js
+        id: iceland
+        continue-on-error: true      # if GLIMS is unreachable, publish with the last committed data
+        run: python scripts/build_vatnajokull.py
+
+      - name: Commit the generated data files if they changed
+        if: (steps.data.outcome == 'success' || steps.iceland.outcome == 'success') && github.event_name != 'pull_request'
         run: |
-          git add data/glaciers.js data/thickness.js
+          git add data/glaciers.js data/thickness.js data/vatnajokull.js
           if git diff --cached --quiet; then
             echo "glaciers.js unchanged"
           else
@@ -50,6 +55,7 @@ jobs:
         env:
           CDSE_RELAY_URL: ${{ vars.CDSE_RELAY_URL }}   # Settings -> Secrets and variables -> Actions -> Variables
           STREETVIEW_EMBED_KEY: ${{ vars.STREETVIEW_EMBED_KEY }}   # the public Maps Embed API key (restricted to the site's address); without it the Street View layer stays hidden
+          PUBLISH_ICELAND: ${{ vars.PUBLISH_ICELAND }}   # set to 1 to show Iceland (menu entry, /iceland/ addresses, sitemap) on the public site; empty = hidden
         run: |
           python scripts/build_site.py _site
           cat _site/config.js | head -c 400; echo

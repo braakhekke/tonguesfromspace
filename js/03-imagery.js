@@ -11,19 +11,20 @@ const prefs = (() => { try { return JSON.parse(localStorage.getItem('glacierPref
 prefs.mosaic = true; prefs.osm = prefs.topo = prefs.alti = false;      // every visit starts on Sentinel-2 cloudless as the one base map
 const savePrefs = () => { try { localStorage.setItem('glacierPrefs', JSON.stringify(prefs)); } catch {} };
 
+const SEASON = REGION.season;      // the scene season of the region (js/00-regions.js)
 const CDSE = {
   collection: 'sentinel-2-l2a',
-  months:     [9, 8, 7],       // September (until the 20th) first, then August, then July
+  months:     SEASON.months || [],   // Switzerland: September (until the 20th) first, then August, then July
   maxCloud:   0.05,            // a scene counts as clear when at most 5 % of the area is cloud or cloud shadow
-  minCover:   0.95,            // the scene must cover at least 95 % of the image area
+  minCover:   SEASON.minCover, // the scene must cover at least this share of the image area (Switzerland 95 %, Iceland the whole picture)
   fallbackCloud: 0.30,         // if no month has a clear scene: least cloudy one up to 30 %
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
   version:    'l1c-v7'         // bump when scoring or rendering changes, to invalidate cached results
 };
-/* latest allowed day per year (MM-DD); default 20 September. 2024: heavy snowfall on 15 September. */
-const LAST_DAY = { default: '09-20', 2024: '09-14' };
+/* latest allowed day per year (MM-DD); default the end of the season (Switzerland 20 September). 2024: heavy snowfall on 15 September. */
+const LAST_DAY = { default: SEASON.find[1], ...SEASON.lastDay };
 const lastDay = yr => LAST_DAY[yr] || LAST_DAY.default;
 
 /* Scene scoring: SCL 3 = cloud shadow, 8/9 = cloud, 10 = thin cirrus, 11 = snow or ice. */
@@ -57,7 +58,12 @@ const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray:
 /* band combinations as red, green, blue */
 const STYLE_BANDS = { natural: ['B04','B03','B02'], false1: ['B08','B04','B03'], false2: ['B8A','B11','B12'] };
 const STYLE_NAME = { natural: 'natural color', false1: 'false color 1', false2: 'false color 2' };
-const styleLine = style => { const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
+/* Landsat years (Iceland, before Sentinel-2): a scene of data/landsat/<outlet>.json, {sensor: 'landsat', sat: 'landsat-5', path, row, id, ...}. One picture per year in natural colour only, whatever colour style is chosen. */
+const isLandsat = sc => !!(sc && sc.sensor === 'landsat');
+const landsatName = sc => 'Landsat ' + String(sc.sat || '').replace(/\D/g, '');
+const LANDSAT_CREDIT = 'Landsat data courtesy of the <a href="https://www.usgs.gov/landsat-missions" target="_blank" rel="noopener">U.S. Geological Survey</a> (public domain), via the Microsoft Planetary Computer';
+const sensorName = sc => isLandsat(sc) ? landsatName(sc) : 'Sentinel-2';
+const styleLine = (style, sc) => { if (isLandsat(sc)) return `${landsatName(sc)} · natural color · 30 m pixels`; const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style, orbit){
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
@@ -86,7 +92,7 @@ function evaluatePixel(ss){
 const RELAY_BASE = ((window.TFS_CONFIG && window.TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
 /* Data files on the public site have a hash in their name (scripts/build_site.py): config.js maps the plain name to it. Locally the plain name is used. */
 const ASSETS = (window.TFS_CONFIG && window.TFS_CONFIG.assets) || {};
-const asset = name => ASSETS[name] || name;
+const asset = name => siteFile(ASSETS[name] || name);
 const relayRoot = () => RELAY_BASE ? RELAY_BASE + '/cdse' : '/cdse';
 let relayCheck = null;
 const relayInfo = () => relayCheck || (relayCheck = (RELAY_BASE || location.protocol.startsWith('http'))
@@ -193,6 +199,9 @@ const EXTRA_NORTH = [['findel', 0.15]];        // glaciers whose image reaches f
 const EXTRA_EW = [['rhone', 2000]];            // glaciers whose image is wider on both the west and the east side (metres)
 const EXTRA_EAST = [['aletsch', 3000]];        // glaciers whose image is wider on the east side only (metres); Aletsch: 20.4 -> 23.4 km = 2,340 px, still 10 m pixels
 function imageFootprint(g){
+  return imageBox(g.half ? g.box : imageMargins(g));      // Iceland: a square of fixed size around the centre, no margins to add
+}
+function imageMargins(g){
   const b = g.extent ? padBounds(g.extent, IMAGE_MARGIN) : padBounds(g.bounds, 0.35);   // margin around the 1850 extent, for panning and video crops
   const ns = g.extent && NS_MARGIN.find(([k]) => norm(g.local || g.name).includes(k));
   if (ns) {                                          // north and south margins as a share of the finished picture height
@@ -205,6 +214,9 @@ function imageFootprint(g){
   if (ew) { const d = ew[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180)); b[0][1] -= d; b[1][1] += d; }
   const ee = EXTRA_EAST.find(([k]) => norm(g.local || g.name).includes(k));
   if (ee) b[1][1] += ee[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180));
+  return b;
+}
+function imageBox(b){
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));
   const lat = (b[0][0] + b[1][0]) / 2, scale = 1 / Math.cos(lat * Math.PI / 180);   // Mercator metres per ground metre
   let w = Math.round((ne.x - sw.x) / (CDSE.groundRes * scale)), h = Math.round((ne.y - sw.y) / (CDSE.groundRes * scale));
@@ -214,7 +226,14 @@ function imageFootprint(g){
 const CRS3857 = 'http://www.opengis.net/def/crs/EPSG/0/3857';
 
 /* ---------- scene choice ---------- */
-function pickScene(days){
+function pickScene(days, yr){
+  if (SEASON.pick === 'target') {      // the clear scene closest to the target day (Iceland: 30 September, the end of the melt season), else the least cloudy one
+    const target = Date.parse(`${yr}-${SEASON.target}`), away = d => Math.abs(Date.parse(d.date) - target);
+    const clear = days.filter(d => d.cloud <= CDSE.maxCloud).sort((a, b) => away(a) - away(b));
+    if (clear.length) return {...clear[0], clear:true};
+    const rest = days.filter(d => d.cloud <= CDSE.fallbackCloud).sort((a, b) => (a.cloud - b.cloud) || (away(a) - away(b)));
+    return rest.length ? {...rest[0], clear:false} : null;
+  }
   const best = list => list.slice().sort((a, b) => (a.snow - b.snow) || (a.cloud - b.cloud) || b.date.localeCompare(a.date))[0];
   for (const m of CDSE.months) {
     const clear = days.filter(d => +d.date.slice(5, 7) === m && d.cloud <= CDSE.maxCloud);
@@ -224,27 +243,50 @@ function pickScene(days){
     .sort((a, b) => (a.cloud - b.cloud) || b.date.localeCompare(a.date));
   return rest.length ? {...rest[0], clear:false} : null;
 }
+/* One orbit for all years (regions with season.oneOrbit, Iceland): the same orbit sees the glacier under the same angle and at the same time of day, so years compare cleanly.
+   The orbit that gives a usable scene (clear, or the least cloudy up to 30 %) in most years wins, ties go to the lower cloud cover; each year then takes its best scene of that
+   orbit, and a year without one keeps its own best scene. A scene pinned in scenes.json counts for its orbit only. avail: {year: scene}; returns the years that keep another orbit. */
+function unifyOrbit(g, avail){
+  const results = YEARS.map(y => ({y, scene: avail[y], days: sceneDays.get(g.id + '|' + y) || []})).filter(r => (r.scene || r.days.length) && !isLandsat(r.scene));      // the Landsat years have no orbit
+  const orbits = [...new Set(results.flatMap(r => r.days.map(d => d.orbit)))];
+  const pick = (r, orb) => r.scene && r.scene.curated ? (r.scene.orbit === orb ? r.scene : null) : pickScene(r.days.filter(d => d.orbit === orb), r.y);
+  const score = orb => { const got = results.map(r => pick(r, orb)).filter(Boolean); return {orb, n: got.length, cloud: got.reduce((a, d) => a + d.cloud, 0)}; };
+  const best = orbits.map(score).sort((a, b) => (b.n - a.n) || (a.cloud - b.cloud))[0], off = [];
+  results.forEach(r => { const sc = best && pick(r, best.orb) || r.scene; avail[r.y] = sc; if (sc && best && sc.orbit !== best.orb) off.push(r.y); });
+  return {orbit: best ? best.orb : null, off};
+}
 /* Scenes chosen with scripts/tools/pick-scenes.html: data/scenes.json holds, per glacier (inventory id) and year, the day and orbit. They replace the automatic choice;
    years that are not in the file still use it. A missing or broken file means the automatic choice everywhere. */
+const sceneDays = new Map();      // "<glacier>|<year>" -> the usable days found (only where one orbit is chosen for all years: unifyOrbit)
 const SCENES_FILE = fetch(asset('data/scenes.json'), ASSETS['data/scenes.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null);
 async function curatedScene(g, yr){
-  const file = await SCENES_FILE, entry = file && file.glaciers && g.inv && file.glaciers[g.inv.id], p = entry && entry.picks && entry.picks[yr];
+  const file = await SCENES_FILE, entry = file && file.glaciers && file.glaciers[g.inv ? g.inv.id : g.id], p = entry && entry.picks && entry.picks[yr];
   return p && /^\d{4}-\d{2}-\d{2}$/.test(p.date) && /^R\d{3}$/.test(p.orbit || '') ? {date: p.date, orbit: p.orbit, cloud: 0, snow: 0, clear: true, curated: true} : null;
 }
-const summerStarted = yr => yr < CURRENT_YEAR || new Date() >= new Date(`${yr}-07-01T00:00:00Z`);      // the search window of a year opens on 1 July
+const summerStarted = yr => yr < CURRENT_YEAR || new Date() >= new Date(`${yr}-${SEASON.find[0]}T00:00:00Z`);      // the search window of a year opens on 1 July (Iceland 1 August)
+/* Landsat years: the scenes were chosen when the pictures were made (scripts/build_landsat_iceland.py: the same rules as the Sentinel-2 season), one per year in data/landsat/<outlet>.json */
+const landsatFiles = new Map();      // glacier id -> promise of its file, null where there is none
+const landsatFile = g => { if (!landsatFiles.has(g.id)) landsatFiles.set(g.id, fetch(asset(`data/landsat/${g.id}.json`), ASSETS[`data/landsat/${g.id}.json`] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null)); return landsatFiles.get(g.id); };
+async function landsatScene(g, yr){
+  const f = await landsatFile(g), s = f && f.scenes && f.scenes[yr]; if (!s) return null;
+  return {...s, sensor: 'landsat', cover: s.cover == null ? 1 : s.cover, file: asset(`data/landsat/${g.id}/${yr}.jpg`), bbox: f.bbox};
+}
 async function findScene(g, yr){
-  if (!summerStarted(yr)) return null;   // no search for the current year before 1 July
-  const chosen = await curatedScene(g, yr); if (chosen) return chosen;
-  const fp = imageFootprint(g), key = `${CDSE.version}|scene|${g.id}|${yr}|${fp.bbox.join(',')}`;
+  if (yr < FIRST_YEAR) return REGION.landsat ? landsatScene(g, yr) : null;
+  if (!summerStarted(yr)) return null;   // no search for the current year before its window opens
+  const dk = g.id + '|' + yr, chosen = await curatedScene(g, yr); if (chosen) { sceneDays.set(dk, [chosen]); return chosen; }
+  const day = (s, n = 0) => new Date(Date.parse(s + 'T12:00:00Z') + n * 864e5).toISOString().slice(0, 10), today = day(new Date().toISOString().slice(0, 10));
+  const from = `${yr}-${SEASON.find[0]}`, end = `${yr}-${SEASON.find[1]}`, to = end < today ? end : today;      // a season that is still running ends today
+  const fp = imageFootprint(g), key = `${CDSE.version}|scene|${g.id}|${yr}|${fp.bbox.join(',')}${SEASON.oneOrbit ? `|${from}|${to}` : ''}`;
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
     // past summers never change; the current summer is re-checked twice a day
-    if (hit && (yr < CURRENT_YEAR || Date.now() - hit.savedAt < 12 * 3600e3)) return hit.scene;
+    if (hit && (yr < CURRENT_YEAR || Date.now() - hit.savedAt < 12 * 3600e3) && (!SEASON.oneOrbit || hit.days)) { sceneDays.set(dk, hit.days || []); return hit.scene; }
     const j = await (await cdse('statistics', {
       input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
                data: [{ type: CDSE.collection, dataFilter: { mosaickingOrder: 'leastCC' } }] },
-      aggregation: { timeRange: { from: `${yr}-07-01T00:00:00Z`, to: `${yr}-09-21T00:00:00Z` },   // up to and including 20 September
+      aggregation: { timeRange: { from: `${from}T00:00:00Z`, to: `${day(to, 1)}T00:00:00Z` },   // up to and including the last day of the season (Switzerland 20 September)
                      aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: fp.statsRes, resy: fp.statsRes }
     }, 'application/json', `${g.name}, summer ${yr}`)).json();
     const days = (j.data || []).flatMap(d => {          // per day up to two scenes, one for each orbit, each scored over the whole image area
@@ -254,8 +296,9 @@ async function findScene(g, yr){
           return valid > 0 && orb ? { date, orbit: 'R' + String(orb).padStart(3, '0'), cloud: m('cloud' + k) / valid, snow: m('snow' + k) / valid, cover: valid } : null; }).filter(Boolean);
       } catch { return []; }
     }).filter(d => d.date.slice(5) <= lastDay(yr) && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
-    const scene = pickScene(days);
-    idb.set(key, {scene, savedAt: Date.now()});
+    const scene = pickScene(days, yr);
+    sceneDays.set(dk, days);
+    idb.set(key, SEASON.oneOrbit ? {scene, days, savedAt: Date.now()} : {scene, savedAt: Date.now()});
     return scene;
   })();
   memCache.set(key, p);
@@ -289,7 +332,7 @@ async function cloudByDay(area, from, to, label){
   return rows.map(r => ({...r, cover: full ? r.cover / full : 0}));
 }
 async function findLatest(g){
-  const masks = await MASKS(), m = masks && masks.glaciers && g.inv && masks.glaciers[g.inv.id];
+  const masks = await MASKS(), m = masks && masks.glaciers && masks.glaciers[bundleId(g)];
   if (!m) throw new Error('The areas for the latest image (cloudmasks.json) are not available.');
   const now = new Date(), end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   const iso = t => new Date(t).toISOString().slice(0, 10) + 'T00:00:00Z', from = iso(end - LATEST.days * 864e5), to = iso(end);
@@ -341,21 +384,23 @@ async function showLatest(){
 }
 
 /* ---------- images ---------- */
-let pending = 0, active = 0; const queue = [];
+let pending = 0, pendingLs = 0, active = 0; const queue = [];      // pictures on their way: from Copernicus, and Landsat files of this site
 const runQueue = () => { while (active < 3 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
 const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
-const imageKey = (g, yr, fp, strip) => { const sc = state.available[yr]; return `${CDSE.version}|img|${(STYLE_BANDS[state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}`; };
+const imageKey = (g, yr, fp, strip) => { const sc = state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${g.id}|${sc.date}|${sc.id}` : `${CDSE.version}|img|${(STYLE_BANDS[state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}`; };      // a Landsat picture is one file whatever the colour style or the strip
 const footprintRes = g => { const fp = imageFootprint(g), bb = fp.bbox; return Math.max((bb[2] - bb[0]), (bb[3] - bb[1]) * fp.w / fp.h) / fp.w * Math.cos(Math.atan(Math.sinh((bb[1] + bb[3]) / 2 / 6378137))); };      // ground metres per pixel of the picture of the whole glacier area (10 unless it was cut down to the 2,500 px limit)
-const imageHere = (g, yr) => footprintRes(g) <= CDSE.groundRes * 1.02 && memCache.has(imageKey(g, yr, imageFootprint(g), false));      // the whole picture is already on its way or here, and has the full resolution
+const imageHere = (g, yr) => isLandsat(state.available[yr]) || (footprintRes(g) <= CDSE.groundRes * 1.02 && memCache.has(imageKey(g, yr, imageFootprint(g), false)));      // a Landsat picture is the whole picture box in one file: the 3D view cuts its strip out of it      // the whole picture is already on its way or here, and has the full resolution
 function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip picture for the 3D view (stripImageSpec); without it the picture of the whole glacier area, as the map shows it
-  const sc = state.available[yr], style = state.style, fp = strip || imageFootprint(g);
+  const sc = state.available[yr], style = state.style, fp = isLandsat(sc) ? imageFootprint(g) : strip || imageFootprint(g);      // Landsat: always the whole picture box, drawn in the same Mercator box as the Sentinel-2 pictures
+  strip = isLandsat(sc) ? null : strip;
   const key = imageKey(g, yr, fp, !!strip);
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
     if (hit instanceof Blob) return URL.createObjectURL(hit);
-    pending++; setLoading();
+    const ls = isLandsat(sc); if (ls) pendingLs++; else pending++; setLoading();
     try {
+      if (isLandsat(sc)) { const blob = await queued(() => fetch(sc.file).then(r => { if (!r.ok) throw new Error(`The Landsat picture of ${yr} could not be loaded (HTTP ${r.status}).`); return r.blob(); })); idb.set(key, blob); return URL.createObjectURL(blob); }
       const blob = await queued(() => cdse('process', {
         input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
                  data: [{ type: IMAGE_COLLECTION, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }] },   // bilinear: smooth 20 and 60 m bands
@@ -364,7 +409,7 @@ function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip p
       }, 'image/jpeg', `${g.name}${strip ? ' (3D strip)' : ''}, ${fmtDate(sc.date)}`).then(r => r.blob()));
       idb.set(key, blob);
       return URL.createObjectURL(blob);
-    } finally { pending--; setLoading(); }
+    } finally { if (ls) pendingLs--; else pending--; setLoading(); }
   })();
   memCache.set(key, p);
   p.catch(() => memCache.delete(key));
@@ -372,13 +417,15 @@ function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip p
 }
 function setLoading(){
   if (!state.checked) return;
-  setStatus(pending ? `Loading ${pending} satellite image${pending > 1 ? 's' : ''} from Copernicus…` : statusLine());
+  const parts = [pending && `${pending} satellite image${pending > 1 ? 's' : ''} from Copernicus`, pendingLs && `${pendingLs} Landsat image${pendingLs > 1 ? 's' : ''}`].filter(Boolean);
+  setStatus(parts.length ? `Loading ${parts.join(' and ')}…` : statusLine());
 }
 /* The products behind a scene (image id, satellite, tile, time, sun): the public Copernicus STAC catalogue, open to browsers, no relay and no login.
    The picture is made from the products of one orbit that touch its footprint (more than one when the area spans two tiles). Past days never change. */
 const STAC_URL = 'https://stac.dataspace.copernicus.eu/v1/search';
 const stacDone = new Map();      // key -> products, [] when none, null when the catalogue failed (retried the next time)
 function sceneProducts(g, sc){
+  if (isLandsat(sc)) return [{id: sc.id, time: sc.time || '', sat: 'L' + String(sc.sat).replace(/\D/g, ''), tile: `P${sc.path}R${sc.row}`, sun: sc.sun || 0}];      // Landsat: the scene is in the file of the picture, no catalogue to ask
   const key = `stac|${g.id}|${sc.date}|${sc.orbit || ''}`;
   if (stacDone.has(key)) return stacDone.get(key);
   if (!memCache.has(key)) {
