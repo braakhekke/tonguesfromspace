@@ -708,7 +708,7 @@ function drawTonguePin(){
 /* The tongue view is always closer than the whole-glacier view: at least TONGUE_CLOSER zoom levels more. */
 const TONGUE_CLOSER = 1;
 function wholeGlacierZoom(g){ return map.getBoundsZoom(g.bounds, false, L.point(40, 40)); }
-function focusTongue(animate = true){
+function tongueView(){          // {center, zoom} the Tongue button goes to, or null
   const g = currentGlacier(), b = tongueBounds(g), small = matchMedia('(max-width:720px)').matches;
   if (b) {
     const tl = L.point(small ? 24 : 40, small ? 64 : 80), br = L.point(small ? 24 : 40, small ? 100 : 110);
@@ -716,10 +716,24 @@ function focusTongue(animate = true){
     const zoom = Math.min(map.getMaxZoom(), Math.max(Math.min(15, fit - TONGUE_ZOOM_OUT), wholeGlacierZoom(g) + TONGUE_CLOSER)) - ((TONGUE_VIEW[g.id] || {}).out || 0);
     // centre like fitBounds with padding, at that zoom
     const mid = map.project(b.getSouthWest(), zoom).add(map.project(b.getNorthEast(), zoom)).divideBy(2).add(br.subtract(tl).divideBy(2));
-    map.setView(map.unproject(mid, zoom), zoom, {animate});
+    return {center: map.unproject(mid, zoom), zoom};
   }
-  else if (g.tongue) map.setView(g.tongue, g.tz || TONGUE_ZOOM, {animate});
+  return g.tongue ? {center: L.latLng(g.tongue), zoom: g.tz || TONGUE_ZOOM} : null;
+}
+function focusTongue(animate = true){
+  const v = tongueView();
+  if (v) map.setView(v.center, v.zoom, {animate});
   else fitGlacier(animate);
 }
+function wholeView(){ return map._getBoundsCenterZoom(currentGlacier().bounds, {padding: [20, 20]}); }
+/* the Tongue and Whole glacier buttons grey out while the map already shows their view (within 3 px) */
+function syncViewButtons(){
+  if (!map || !currentGlacier()) return;
+  const here = (v) => v && Math.abs(map.getZoom() - v.zoom) < 0.02 && map.project(map.getCenter(), v.zoom).distanceTo(map.project(v.center, v.zoom)) < 3;
+  const t = document.getElementById('tongueBtn'), f = document.getElementById('fitBtn');
+  t.disabled = !!here(tongueView());
+  f.disabled = !!here(wholeView());
+}
+map.on('moveend zoomend resize', syncViewButtons);
 document.getElementById('tongueBtn').onclick = () => focusTongue();
 
