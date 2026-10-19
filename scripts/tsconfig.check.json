@@ -7,7 +7,7 @@
   },
   "files": [
     "types/globals.d.ts",
-    "../js/01-data.js", "../js/02-glaciers.js", "../js/03-imagery.js", "../js/04-state.js", "../js/05-map.js", "../js/06-scene-search.js",
-    "../js/07-render.js", "../js/08-controls.js", "../js/09-phones.js", "../js/10-animation.js", "../js/11-view3d.js", "../js/12-boot.js", "../js/13-teaser.js", "../js/14-streetview.js"
+    "../js/00-regions.js", "../js/01-data.js", "../js/02-glaciers.js", "../js/03-imagery.js", "../js/04-state.js", "../js/05-map.js", "../js/06-scene-search.js",
+    "../js/07-render.js", "../js/07a-region-vatnajokull.js", "../js/08-controls.js", "../js/09-phones.js", "../js/10-animation.js", "../js/11-view3d.js", "../js/12-boot.js", "../js/13-teaser.js", "../js/14-streetview.js"
   ]
 }
