@@ -204,7 +204,7 @@ function aerialWanted(){          // slot -> year
   return document.getElementById('aerialToggle').checked ? aerialSlots() : {};
 }
 function aerialSlots(){          // slot -> year, whether the layer is on or not
-  if (state.mode === 'compare') return {A: state.a, B: state.b};
+  if (state.mode === 'compare') return state.oldestAerial ? {A: state.oldestAerial} : {A: state.a, B: state.b};
   if (state.mode === 'single') return {T: state.oldestAerial || state.one};
   const f = tlFrames(); return {T: f.length ? f[f.length - 1] : state.to};      // timelapse: the newest year of the range
 }
@@ -234,13 +234,14 @@ function ensureOldest(g){
       if (!rows.length) { oldestAerial.set(g.id, null); return; }
       const first = rows.reduce((a, b) => (b.bgdi_flugjahr < a.bgdi_flugjahr ? b : a));
       oldestAerial.set(g.id, {ed: +first.bgdi_flugjahr, flown: +first.flightyear});
-    }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); });
+    }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof statusLine === 'function') setStatus(statusLine()); });
 }
 function showOldest(){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being
   const o = oldestAerial.get(state.glacier); if (!o) return;
   restoreLatest();
   if (!state.oldestAerial) state.oldestSaved = {sat: $('satToggle').checked, aerial: $('aerialToggle').checked};
-  state.oldestAerial = o.ed;
+  state.oldestAerial = o.ed; state.oldestMode = state.mode;
+  if (state.mode === 'compare') { $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change')); refreshAll(); setStatus(statusLine()); return; }      // the slider keeps the Sentinel-2 picture for its other side
   if (!state.available[state.one]) { const ys = YEARS.filter(y => state.available[y]); if (ys.length) state.one = ys[ys.length - 1]; }      // the 3D view needs a year with a scene under it
   $('satToggle').checked = false; applySatVisibility(); updateCredits();      // not through the checkbox's handler: that would be remembered as a choice
   $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change'));
@@ -272,7 +273,8 @@ function updateAerial(){
 }
 const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
-const satShown = () => glacierPicked && satOn();
+const oldestPair = () => !!state.oldestAerial && state.mode === 'compare';      // the slider with the oldest aerial image as its first picture and a Sentinel-2 year as the other
+const satShown = () => glacierPicked && satOn() && !oldestPair();
 const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 image layer in the layer menu.';
 const OLDEST_MSG = 'The oldest aerial image has no Sentinel-2 picture, so this is not available. Pick a year to go back to the satellite pictures.';
 const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : SAT_MSG;
@@ -304,8 +306,8 @@ function setCompareLayers(){
   [layerA, layerB].forEach(l => l && map.removeLayer(l));
   layerA = layerB = null;
   if (!glacierPicked) return;      // the start shows only the background, no glacier picture yet
-  if (state.mode !== 'compare' || !state.available[state.a] || !state.available[state.b]) return;
-  layerA = imageryLayer(state.a, 'paneA').addTo(map);
+  if (state.mode !== 'compare' || !state.available[state.b] || (!oldestPair() && !state.available[state.a])) return;
+  if (!oldestPair()) layerA = imageryLayer(state.a, 'paneA').addTo(map);      // no Sentinel-2 picture on that side with the oldest aerial image
   layerB = imageryLayer(state.b, 'paneB').addTo(map);
   clip(); updateCredits();
 }

@@ -169,3 +169,34 @@ document.addEventListener('click', e => {
   e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); showNotice(satMsg());
 }, true);
 syncSatUi();
+
+/* ---------- region picker: the second line of the title ---------- */
+/* Only Switzerland has data so far; the others are listed as "soon" so the menu shows where the site is going. A region with data gets `ready: true`, its glaciers and its texts. */
+const REGIONS = [
+  {id: 'ch', name: 'Switzerland', adj: 'Swiss', ready: true},
+  {id: 'is', name: 'Iceland', adj: 'Icelandic'},
+  {id: 'no', name: 'Norway', adj: 'Norwegian'},
+  {id: 'cl', name: 'Chile', adj: 'Chilean'},
+  {id: 'np', name: 'Nepal', adj: 'Nepalese'}
+];
+let regionId = 'ch';
+function setRegion(id){
+  const r = REGIONS.find(x => x.id === id && x.ready); if (!r) return;
+  regionId = r.id;
+  document.querySelectorAll('.region-name').forEach(e => { e.textContent = r.name; });
+  document.getElementById('regionBtn').setAttribute('aria-label', `Region: ${r.name}. Change region`);
+  document.getElementById('brandLede').textContent = `Discover the ten largest ${r.adj} glaciers. Compare, create and share your visuals.`;
+  document.title = `Tongues from Space | Interactive ${r.adj} Glaciers`;
+  renderRegionMenu(); toggleRegionMenu(false);
+}
+function renderRegionMenu(){
+  document.getElementById('regionMenu').innerHTML = REGIONS.map(r => `<li role="option" data-id="${r.id}" aria-selected="${r.id === regionId}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`).join('');
+}
+function toggleRegionMenu(open = document.getElementById('regionMenu').hidden){
+  document.getElementById('regionMenu').hidden = !open; document.getElementById('regionBtn').setAttribute('aria-expanded', open);
+}
+document.getElementById('regionBtn').onclick = e => { e.stopPropagation(); toggleRegionMenu(); };
+document.getElementById('regionMenu').onclick = e => { const li = e.target.closest('li'); if (li && li.getAttribute('aria-disabled') !== 'true') setRegion(li.dataset.id); };
+document.addEventListener('click', e => { if (!e.target.closest('#regionMenu')) toggleRegionMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('regionMenu').hidden) { toggleRegionMenu(false); document.getElementById('regionBtn').focus(); } });
+renderRegionMenu();

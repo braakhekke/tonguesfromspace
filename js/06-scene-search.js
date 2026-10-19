@@ -40,15 +40,21 @@ async function checkYears(){
   } }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
 }
 function statusLine(){
+  const lt = state.latest, latestLine = lt && state.available[lt.year] && state.mode !== 'timelapse' && viewMode !== '3d' ? `Latest clear-ish scene: ${fmtDate(state.available[lt.year].date)}.` : '';      // the chosen Latest is named, except in a timelapse and in 3D (neither has it)
   const oa = state.oldestAerial && oldestAerial.get(state.glacier);
+  if (oa && state.mode === 'compare') return `First image: the oldest aerial image, swisstopo SWISSIMAGE edition ${oa.ed}, flown ${oa.flown}. No Sentinel-2 picture on that side.` + (latestLine ? ' ' + latestLine : '');
   if (oa) return `Oldest aerial image: swisstopo SWISSIMAGE edition ${oa.ed}, flown ${oa.flown}. No Sentinel-2 picture.`;
-  const ok = okYears(), missing = YEARS.filter(y => !state.available[y] && summerStarted(y));       // the current year is not reported as missing before its summer
+  const normal = y => lt && lt.year === y ? lt.saved : state.available[y];      // the Latest scene stands in for its year's scene: the counts below use the year's own
+  const ok = okYears().filter(normal), expected = YEARS.filter(summerStarted), missing = expected.filter(y => !normal(y));       // the current year is not counted before its summer
   if (!ok.length) return 'No satellite images available.';
-  const cloudy = ok.filter(y => !state.available[y].clear);
-  const parts = [];            // nothing to report when every year has a clear scene
+  const cloudy = ok.filter(y => !normal(y).clear), parts = [];
+  parts.push(`Scenes found for ${ok.length} of ${expected.length} years${cloudy.length ? `, ${cloudy.length} with some clouds (dashed)` : ''}.`);
   if (missing.length) parts.push(`No usable scene for ${missing.join(', ')}.`);
-  if (cloudy.length) parts.push(`No fully clear scene in ${cloudy.join(', ')}: the least cloudy one is shown.`);
-  if (state.latest && state.available[state.latest.year]) parts.push(`Latest clear-ish scene: ${fmtDate(state.available[state.latest.year].date)}.`);
+  const byOrbit = {}; ok.forEach(y => { const o = normal(y).orbit; if (o) (byOrbit[o] = byOrbit[o] || []).push(y); });
+  const orbits = Object.keys(byOrbit).sort();
+  if (orbits.length === 1 && byOrbit[orbits[0]].length === ok.length) parts.push(`Orbit ${orbits[0]} for all years.`);
+  else if (orbits.length) parts.push('Orbits: ' + orbits.map(o => `${o} (${byOrbit[o].join(', ')})`).join('; ') + '.');
+  if (latestLine) parts.push(latestLine);
   const g = currentGlacier(); if (g && g.sceneNote) parts.push(g.sceneNote);
   return parts.join(' ');
 }
@@ -58,5 +64,6 @@ function updateTags(){
   setTag('tagA', state.a); setTag('tagB', state.b);
   if (!satOn()) { document.querySelector('#tagA small').innerHTML = aerialDesc(state.a); document.querySelector('#tagB small').innerHTML = aerialDesc(state.b); return; }
   tagLine(document.querySelector('#tagA small'), sub(state.a)); tagLine(document.querySelector('#tagB small'), sub(state.b));
+  if (oldestPair()) { setTag('tagA', flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#tagA small').innerHTML = aerialDesc(state.oldestAerial); }
 }
 

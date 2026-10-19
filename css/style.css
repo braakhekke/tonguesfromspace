@@ -33,6 +33,19 @@ button,select,input{font:inherit;color:inherit}
 .home-link:hover .t1,.home-link:hover{opacity:.85}
 .brand h1 .t1{display:block;white-space:nowrap;color:#0A1B33}
 .brand h1 .t2{display:block;color:var(--accent)}
+.brand{position:relative}
+.brand h1 .region-btn{display:flex;align-items:center;gap:3px;margin:0;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;letter-spacing:inherit}      /* the second title line is the region picker: the region name with a small chevron */
+.brand h1 .region-btn svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.brand h1 .region-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.brand h1 .region-btn:hover .region-name{text-decoration:underline;text-underline-offset:3px}
+.brand h1 .region-btn:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px;border-radius:3px}
+.region-menu{position:absolute;z-index:30;left:58px;top:50px;margin:0;padding:4px;list-style:none;min-width:190px;background:#fff;border:1px solid var(--rule);border-radius:8px;box-shadow:0 6px 20px rgba(10,27,51,.16)}
+.region-menu[hidden]{display:none}
+.region-menu li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:5px;font-size:13.5px;font-weight:600;color:#0A1B33;cursor:pointer}
+.region-menu li:hover:not([aria-disabled="true"]){background:var(--firn)}
+.region-menu li[aria-selected="true"]{color:var(--accent)}
+.region-menu li[aria-disabled="true"]{color:#A9B1B5;cursor:default;font-weight:500}
+.region-menu li small{font-size:11px;font-weight:500;color:#A9B1B5}
 .brand-logo{flex:none;width:46px;height:auto;margin-top:1px}
 .brand h1{font-size:20px;line-height:1.15;margin:0 0 8px;font-weight:700;letter-spacing:-.018em;color:var(--accent)}
 .brand p{margin:0;color:var(--moraine);font-size:12.5px;text-align:justify;text-align-last:left;hyphens:auto}      /* the blurb fills the width of the panel; the last line of each paragraph stays at the left */
@@ -144,11 +157,12 @@ body.sheet-open{overflow:hidden}
 .years button.in-range{background:var(--firn);border-color:var(--rule)}
 .years button:disabled{color:#B6BEC2;background:var(--firn);border-color:var(--firn);cursor:not-allowed;pointer-events:none}
 .years button:disabled.missing{text-decoration:line-through}
-.spec-row{display:flex;align-items:center;gap:10px}
-.spec-row .side-label{margin:0;flex:none}
+.years button.some:not([aria-pressed="true"]){border-style:dashed}      /* the best scene of this year still has some clouds */
+.spec-row{display:flex;align-items:center;gap:10px;margin-top:-4px}
+.spec-row .side-label{margin:0;flex:none;font-size:11.5px;font-weight:500;font-style:italic;text-transform:none;letter-spacing:0}      /* a sub-choice of the years: not a capital label of its own */
 .years.specials{flex:1;grid-template-columns:repeat(2,1fr)}
 .years.specials button{padding:5px 0}
-.stack{display:flex;flex-direction:column;gap:18px}
+.stack{display:flex;flex-direction:column;gap:12px}
 .row{display:flex;gap:8px;align-items:center}
 .spin-s{display:inline-block;width:12px;height:12px;margin-right:6px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spinS .8s linear infinite}
 @keyframes spinS{to{transform:rotate(360deg)}}
@@ -172,7 +186,24 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .frame{width:100%;accent-color:var(--rock)}
 .slider-row{display:flex;justify-content:space-between;font-size:13.5px;margin:4px 0 2px}
 /* brightness and the two opacities are secondary: label and slider share one line */
-.tune{display:flex;flex-direction:column;gap:2px;margin-top:-2px}
+.tune{margin-top:6px}
+.tune > summary{display:flex;align-items:center;gap:6px;margin:0;cursor:pointer;list-style:none;user-select:none}      /* a drop-open menu: the settings are used rarely */
+.tune > summary::-webkit-details-marker{display:none}
+.tune > summary::after{content:'';width:6px;height:6px;border:solid currentColor;border-width:0 1.6px 1.6px 0;transform:rotate(45deg);margin:-3px 0 0 2px;transition:transform .15s}
+.tune[open] > summary::after{transform:rotate(225deg);margin-top:3px}
+.tune[open] > summary{margin-bottom:6px}
+.tune[open]{display:flex;flex-direction:column;gap:2px}
+.meta-body{min-width:0}
+.meta-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}      /* a wide table scrolls sideways inside the panel */
+.meta-dl{margin:6px 0 0;padding:3px 9px;font:inherit;font-size:11.5px;color:var(--moraine);background:none;border:1px solid var(--rule);border-radius:6px;cursor:pointer}
+.meta-dl:hover{border-color:var(--moraine)}
+.meta-table{width:100%;border-collapse:collapse;font-size:11.5px;color:var(--moraine);font-variant-numeric:tabular-nums}
+.meta-table th,.meta-table td{padding:2px 4px;text-align:left;font-weight:400;white-space:nowrap}
+.meta-table thead th{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;border-bottom:1px solid var(--rule)}
+.meta-table tbody th{font-weight:600}
+.meta-table .copy{cursor:copy;border-bottom:1px dotted currentColor}
+.meta-table tr.on{background:var(--firn);color:#0A1B33}
+.meta-note{margin:6px 0 0;font-size:11px;line-height:1.4;color:var(--moraine)}
 .tune-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:center;column-gap:12px}
 .tune .slider-row{margin:0;font-size:12.5px;gap:6px;color:var(--moraine)}
 .tune .slider-row output{white-space:nowrap;flex:none}
