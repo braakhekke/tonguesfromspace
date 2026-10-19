@@ -210,6 +210,9 @@ function placeLayers(){
   if (inflow) $('stageSlot').after(lbx, l3); else { $('stage').appendChild(lbx); $('v3d').appendChild(l3); }
 }
 PHONE.addEventListener('change', placeLayers); placeLayers();
+const LAND = matchMedia('(max-width:950px) and (orientation:landscape) and (max-height:520px)');      // phone held sideways: the menu slides in from the right edge of the map; its chevron (pointing right) and a press on the map close it
+$('lbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
+$('v3dLbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
@@ -217,6 +220,7 @@ $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains(
 document.addEventListener('pointerdown', e => {
   const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn')) return;
   if ($('layerbox').classList.contains('in-flow')) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
+  if (LAND.matches) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
   [[$('layerbox'), $('lbToggle')], [$('v3dLayers'), $('v3dLbToggle')]].forEach(([box, btn]) => { if (!box.classList.contains('min')) btn.click(); });
 }, true);
 $('moreBtn').onclick = () => { const open = !document.querySelector('.mapbar').classList.contains('more-open'); setMore(open); if (open) setLayers(false); };
