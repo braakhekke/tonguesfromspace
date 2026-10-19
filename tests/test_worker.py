@@ -136,6 +136,33 @@ class TestRelay(WorkerCase):
         self.assertEqual(r["origin"]["status"], 403)
         self.assertEqual(r["upstream"], 0)
 
+    def test_vatnajokull_season_and_area(self):
+        # Iceland: the picture box of Breidamerkurjokull (centre 64.13 N, 16.32 W; Mercator -1816735, 9382907), a season of 1 August to 15 October, nothing else
+        r = self.run_js("""
+          const box = [-1829000, 9370000, -1804000, 9395000];
+          const ice = (from, to, bbox = box) => JSON.stringify({
+            input: {bounds: {bbox, properties: {crs: 'http://www.opengis.net/def/crs/EPSG/0/3857'}}, data: [{type: 'sentinel-2-l2a'}]},
+            aggregation: {timeRange: {from, to}, aggregationInterval: {of: 'P1D'}, evalscript: 'x', resx: 60, resy: 60}});
+          const y = year - 1, ok = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-10-16T00:00:00Z`)));
+          const early = await info(await post(ice(`${y}-07-01T00:00:00Z`, `${y}-09-21T00:00:00Z`)));        // the Swiss window is not an Icelandic one
+          const late = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-11-01T00:00:00Z`)));
+          const away = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-10-16T00:00:00Z`, [-1729000, 9370000, -1704000, 9395000])));    // 90 km east of the outlet
+          const image = await info(await W.fetch(req('/cdse/process', 'POST', JSON.stringify({
+            input: {bounds: {bbox: box, properties: {crs: 'http://www.opengis.net/def/crs/EPSG/0/3857'}}, data: [{type: 'sentinel-2-l1c', dataFilter: {timeRange: {from: `${y}-09-15T00:00:00Z`, to: `${y}-09-15T23:59:59Z`}}}]},
+            output: {width: 2400, height: 2400, responses: [{identifier: 'default', format: {type: 'image/jpeg'}}]}, evalscript: 'x'}), 'http://t.test'), env, {}));
+          const day = d => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10) + 'T00:00:00Z';
+          const latest = await info(await post(ice(day(-60), day(1))));        // "Latest": the last 60 days, any month
+          const tooLong = await info(await post(ice(day(-90), day(1))));       // more than 75 days is refused
+          const swissOk = await info(await post(stats(year - 1)));      // Switzerland keeps its own rules
+          return {ok, early, late, away, image, swissOk, latest, tooLong};""")
+        self.assertEqual(r["ok"]["status"], 200)
+        for k in ("early", "late", "away"):
+            self.assertEqual(r[k]["status"], 400, k)
+        self.assertEqual(r["image"]["status"], 200)
+        self.assertEqual(r["swissOk"]["status"], 200)
+        self.assertEqual(r["latest"]["status"], 200, r["latest"]["text"])
+        self.assertEqual(r["tooLong"]["status"], 400)
+
     def test_ping(self):
         r = self.run_js("return await info(await W.fetch(req('/cdse/ping', 'GET', '', 'http://t.test'), env, {}));")
         self.assertEqual(r["status"], 200)

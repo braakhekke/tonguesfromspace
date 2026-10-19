@@ -47,15 +47,18 @@ function updateCredits(){
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
   const sat = document.getElementById('satToggle').checked;
-  const parts = yrs.length && sat ? [`Contains modified Copernicus Sentinel data ${yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
-  if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].map(ed => ed + (flownYear(glacierPicked ? currentGlacier() : null, ed) ? ` (flown ${flownYear(currentGlacier(), ed)})` : '')).join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
+  const s2Yrs = yrs.filter(y => !isLandsat(state.available[y])), lsYrs = yrs.filter(y => isLandsat(state.available[y]));      // Landsat years (Iceland, before 2016) are credited to the USGS
+  const parts = s2Yrs.length && sat ? [`Contains modified Copernicus Sentinel data ${s2Yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
+  if (lsYrs.length && sat) parts.push(`${lsYrs.join(' and ')}: ${LANDSAT_CREDIT}`);
+  if (REGION.id !== 'ch' && document.getElementById('aerialToggle').checked && state.oldestAerial) parts.push(`Aerial image ${flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial}: <a href="https://gatt.lmi.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0)`);
+  else if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].map(ed => ed + (flownYear(glacierPicked ? currentGlacier() : null, ed) ? ` (flown ${flownYear(currentGlacier(), ed)})` : '')).join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
-  if (document.getElementById('trailsToggle').checked) parts.push('Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' + (sightLayer ? ' (line of sight: own calculation from swissALTI3D)' : ''));
-  if (document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
+  if (document.getElementById('trailsToggle').checked) parts.push((REGION.id === 'ch' ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.id === 'ch' ? 'swissALTI3D' : 'ÍslandsDEM'})` : ''));
+  if (REGION.id === 'ch' && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
-  if (outlineLayers.old || outlineLayers.new) parts.push('Outlines GLAMOS (CC BY 4.0)');
+  if (outlineLayers.old || outlineLayers.new) parts.push(REGION.id === 'is-vatnajokull' ? `Outlines: <a href="https://doi.org/10.7265/N5-RGI-60" target="_blank" rel="noopener">Randolph Glacier Inventory 6.0</a> (RGI Consortium 2017, via GLIMS), about 2000` : 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
@@ -125,20 +128,32 @@ const TrailsLayer = L.TileLayer.extend({
     return tile;
   }
 });
-const trails = new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
-  {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'});
-/* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a wide violet band with a white edge under the trail lines */
-let sightTried = false;
-const ensureSight = () => new Promise(res => {      // sightline.js (all glaciers, 135 kB) is fetched when the hiking trails are on, not at the start
-  if (window.GLACIER_SIGHT || sightTried) return res();
-  sightTried = true;
-  const sc = document.createElement('script'); sc.src = asset('data/sightline.js'); sc.onload = sc.onerror = () => res(); document.head.appendChild(sc);
+/* Iceland has no trail tiles: its footpaths and tracks are lines (OpenStreetMap, data/trails-is.js), drawn by this layer with the same switch and legend: footpaths yellow, tracks red */
+const TrailsVector = L.LayerGroup.extend({
+  setClip(){ if (this._map) this.draw(); },            // the lines are cut to the picture area already; another glacier: its lines
+  onAdd(m){ L.LayerGroup.prototype.onAdd.call(this, m); this.draw(); },
+  draw(){
+    this.clearLayers(); if (!glacierPicked) return;
+    ensureSight().then(() => { const d = trailsFor(currentGlacier()); if (!d || !this._map) return; this.clearLayers();
+      const mk = (list, color, w) => list.forEach(l => L.polyline(l, {pane: 'labels', color, weight: w, opacity: .95, interactive: false, lineJoin: 'round'}).addTo(this));
+      mk(d.tracks, '#FF0000', 2); mk(d.paths, '#FDC200', 3); });
+  }
 });
-const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && g.inv && g.inv.id]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
+const trails = REGION.id === 'ch' ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
+  {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'}) : new TrailsVector();
+const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
+/* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a wide violet band with a white edge under the trail lines */
+let sightTried = false, sightLoad = null;
+const ensureSight = () => sightLoad || (sightLoad = new Promise(res => {      // the file (Switzerland: sightline.js, all glaciers, 135 kB; Iceland: trails-is.js) is fetched when the trails are on, not at the start; everyone who asks waits for the same load
+  if (window.GLACIER_SIGHT) { sightTried = true; return res(); }
+  sightTried = true;
+  const sc = document.createElement('script'); sc.src = asset(REGION.trailsFile); sc.onload = sc.onerror = () => res(); document.head.appendChild(sc);
+}));
+const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && bundleId(g)]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
 let sightLayer = null;
 function updateSight(){
   if (sightLayer) { map.removeLayer(sightLayer); sightLayer = null; }
-  if (!sightTried && document.getElementById('trailsToggle').checked) { ensureSight().then(() => { updateSight(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } }); return; }      // the file is on its way: the layer is drawn when it arrives
+  if (!window.GLACIER_SIGHT && document.getElementById('trailsToggle').checked) { ensureSight().then(() => { updateSight(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } }); return; }      // the file is on its way: the layer is drawn when it arrives
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, d = picked ? sightFor(currentGlacier()) : null, on = document.getElementById('trailsToggle').checked && !!d;
   document.getElementById('sightLegend').hidden = !on;
   if (on) sightLayer = L.layerGroup([['#fff', 12, .85], ['#7B2CFF', 7, .9]].flatMap(([color, weight, opacity]) => d.lines.map(l => L.polyline(l, {pane: 'sightPane', color, weight, opacity, lineCap: 'round', lineJoin: 'round', interactive: false})))).addTo(map);      // all the white edges first, then the violet cores
@@ -183,8 +198,8 @@ const labels = new LabelsLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bri
 
 const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
-/* ---------- background: one static Sentinel-2 mosaic for all of Switzerland (EOX Sentinel-2 cloudless 2024) ---------- */
-const BG_YEAR = 2024;
+/* ---------- background: one static Sentinel-2 mosaic for the whole region (EOX Sentinel-2 cloudless; Switzerland 2024) ---------- */
+const BG_YEAR = (REGION.background && REGION.background.mosaicYear) || 2024;      // the mosaic year of the region (Iceland: 2025)
 const bgTiles = L.tileLayer(`https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-${BG_YEAR}_3857/default/g/{z}/{y}/{x}.jpg`,
   {pane:'bgPane', maxNativeZoom:14, maxZoom:17, attribution:`Sentinel-2 cloudless ${BG_YEAR} by EOX`});
 function setBackground(){
@@ -225,8 +240,18 @@ function ensureFlown(g, ed){
 /* "Oldest" in the specials row: the oldest SWISSIMAGE edition that covers the glacier's image box. The identify service lists, without a time, every aerial survey at a place
    (flightyear = the year flown, bgdi_flugjahr = the edition that first shows it); the oldest edition is asked once per glacier, at the middle of the box. */
 const oldestAerial = new Map();      // glacier id -> {ed, flown} | null (none) ; absent while not asked
+/* Iceland: the oldest picture is one static file (data/oldest/<outlet>.webp, scripts/build_oldest_iceland.py): the historic aerial mosaics of 1980 and 1982 of Náttúrufræðistofnun Íslands, in Web Mercator over the picture box */
+function ensureOldestIs(g){
+  fetch(asset(`data/oldest/${g.id}.json`)).then(r => r.ok ? r.json() : null).then(m => {
+    if (!m) { oldestAerial.set(g.id, null); return; }
+    aerialFlown.set(`${g.id}|${m.years[0]}`, m.label);      // the name of the year in the tags and the menu: 1980/82
+    oldestAerial.set(g.id, {ed: m.years[0], flown: m.label, img: asset(`data/oldest/${g.id}.webp`), bbox: m.bbox, source: m.source});
+  }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof statusLine === 'function') setStatus(statusLine()); });
+}
+const oldestWhat = o => REGION.id === 'ch' ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
 function ensureOldest(g){
   if (!g || oldestAerial.has(g.id)) return; oldestAerial.set(g.id, undefined);
+  if (REGION.id !== 'ch') return ensureOldestIs(g);
   const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
   fetch(`https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&layers=all:ch.swisstopo.swissimage-product.metadata&mapExtent=${lon - .01},${lat - .01},${lon + .01},${lat + .01}&imageDisplay=500,500,96&tolerance=1&sr=4326&returnGeometry=false`)
     .then(r => r.json()).then(j => {
@@ -255,16 +280,19 @@ function restoreOldest(){
 const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 function updateAerial(){
   const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
-  if (cg) eds.forEach(ed => ensureFlown(cg, ed));
+  if (cg && REGION.id === 'ch') eds.forEach(ed => ensureFlown(cg, ed));
   const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
-  document.getElementById('aerialLabel').textContent = 'swisstopo aerial' + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
+  document.getElementById('aerialLabel').textContent = (REGION.id === 'ch' ? 'swisstopo aerial' : 'Historic aerial') + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
   const want = aerialWanted(), boxes = (cg ? [cg] : GLACIERS).map(g => L.latLngBounds(imageFootprint(g).bounds)), key = cg ? cg.id : '*';      // only the box of the chosen glacier
   ['A', 'B', 'T'].forEach(k => {
     const yr = want[k] || null;
     if (aerial[k] && aerial[k].yr !== yr) { map.removeLayer(aerial[k].layer); aerial[k] = null; }
     if (yr && !aerial[k]) {
-      const layer = new TrailsLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(yr)}/3857/{z}/{x}/{y}.jpeg`,
+      let layer;
+      if (REGION.id === 'ch') layer = new TrailsLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(yr)}/3857/{z}/{x}/{y}.jpeg`,
         {pane: 'si' + k, maxZoom: 17, maxNativeZoom: 18, attribution: '© swisstopo (SWISSIMAGE)'});
+      else { const o = cg && oldestAerial.get(cg.id); if (!o || !o.img) return; const [x0, y0, x1, y1] = o.bbox, sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1));
+        layer = L.imageOverlay(o.img, [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'si' + k, interactive: false, className: 'scene-img'}); layer._clip = boxes; layer._key = key; layer.setClip = () => {}; }
       layer._clip = boxes; layer._key = key; layer.addTo(map); aerial[k] = {yr, layer};
     }
     else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(boxes); }      // another glacier was chosen
@@ -281,6 +309,7 @@ const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : SAT_MSG;
 function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
   const ed = siYear(yr), fy = flownYear(glacierPicked ? currentGlacier() : null, ed);      // the year the photographs were taken, then the edition of the layer
+  if (REGION.id !== 'ch') return `<span class="nw">Aerial image ${fy || yr}</span> · <span class="nw">Náttúrufræðistofnun Íslands</span>`;
   return `<span class="nw">Aerial image ${fy || ed}</span> · <span class="nw">swisstopo SWISSIMAGE ${ed}</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
 }
 function applySatVisibility(){          // the Sentinel-2 pictures can be switched off, so the aerial images or a base map show alone
@@ -379,7 +408,7 @@ function buildTimelapse(){
   showFrame(state.frame);
 }
 /* the line under a year on the map: the date, then what the picture is, on one row; it only breaks between the two parts */
-function tagLine(el, first){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style)}</span>`; }
+function tagLine(el, first, sc){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style, sc)}</span>`; }
 function showFrame(i){
   if (!tlLayers.length) { setTag('tagT', '–'); return; }
   state.frame = i;
@@ -388,7 +417,7 @@ function showFrame(i){
   setTag('tagT', yShown);
   const sc = state.available[tlLayers[i].yr];
   if (off) document.getElementById('tagTsub').innerHTML = aerialDesc(yShown);
-  else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`);
+  else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`, sc);
   /* the timeline as in the Timelapse download: first and last year above a line, a tick for every year, the line filled up to the year on show, a round marker */
   const dockOpen = !!state.dockOpen, nTl = tlLayers.length, pct = k => nTl > 1 ? k / (nTl - 1) * 100 : 0;
   const tlHtml = state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl-row"><button type="button" class="tl-play" aria-label="${state.playing ? 'Pause' : 'Play'}">${state.playing ? FULL_ICONS.pause : FULL_ICONS.play}</button><div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div><button type="button" class="tl-tools" aria-label="Show tools" aria-expanded="${dockOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>`;
@@ -501,6 +530,12 @@ function drawOutlines(){
   syncOutsideUi();
   if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
   const g = currentGlacier();
+  if (g.rgi) {      // an outlet of the Vatnajökull ice cap: the Icelandic Met Office outlines (lines, cut to the outlet's region)
+    const O = REGION.outlines, line = (geom, color, dash, title) => L.geoJSON(geom, {pane:'outlines', style:{color, weight:2.5, dashArray:dash, fill:false}}).bindPopup(`<strong>${title}</strong>`);
+    if (document.getElementById('oldToggle').checked && hasOldOutline(g)) outlineLayers.old = line(oldOutlineGeom(g), getVar('--old'), '7 6', `${g.name}, outline ${g.outlines.lia.label}`).addTo(map);
+    if (document.getElementById('newToggle').checked && newOutlineGeom(g)) outlineLayers.new = line(newOutlineGeom(g), getVar('--new'), null, `${g.name}, outline ${g.outlines.latest.label}`).addTo(map);
+    return updateCredits();
+  }
   if (!g.inv) {
     if (document.getElementById('oldToggle').checked || document.getElementById('newToggle').checked)
       showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need data/glaciers.js. See the note under "On the map".');
@@ -684,6 +719,7 @@ const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way f
 const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: 200}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.2 km west; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
 const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
 function tongueBounds(g){
+  if (g.half) return L.latLngBounds(g.box);      // Iceland: the tongue view shows the picture box (the big glaciers are pictured only where the tongue is)
   const geom = g.inv && g.inv.outline, T = g.inv && g.inv.terminus;
   if (!geom || !T) return null;
   const ring = geom.coordinates.map(poly => poly[0]).sort((a, b) => b.length - a.length)[0];    // the main body
@@ -712,6 +748,7 @@ const TONGUE_CLOSER = 1;
 function wholeGlacierZoom(g){ return map.getBoundsZoom(g.bounds, false, L.point(40, 40)); }
 function tongueView(){          // {center, zoom} the Tongue button goes to, or null
   const g = currentGlacier(), b = tongueBounds(g), small = matchMedia('(max-width:720px)').matches;
+  if (g.half) { const pad = small ? [24, 64] : [40, 80]; return map._getBoundsCenterZoom(b, {paddingTopLeft: pad, paddingBottomRight: small ? [24, 100] : [40, 110]}); }      // exactly the picture box
   if (b) {
     const tl = L.point(small ? 24 : 40, small ? 64 : 80), br = L.point(small ? 24 : 40, small ? 100 : 110);
     const fit = map.getBoundsZoom(b, false, tl.add(br));

@@ -72,7 +72,7 @@ function setFull(on){
 const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
 document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click', e => {      // the title leads back to the start: no glacier chosen, the overview of Switzerland
   if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-  e.preventDefault(); history.replaceState(null, '', location.pathname + location.search); location.reload();
+  e.preventDefault(); history.replaceState(null, '', regionLink(REGION.id)); location.reload();
 }));
 $('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
 $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
@@ -142,6 +142,7 @@ function chooseGlacier(id){
   if (first) { const bt = $('boxToggle'); if (bt.checked) { bt.checked = false; bt.dispatchEvent(new Event('change')); } }      // the selectable-glacier layer goes off with the first choice
   if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines
     stopPlay(); if (first) { if (state.checked) { setCompareLayers(); buildTimelapse(); } drawOutlines(); writeHash(); updateTrailClip(); updateAerial(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
+    if (first && checkGen === 0) checkYears();      // a region that opens on its overview has not searched yet
     return focusTongue();
   }
   stopPlay();
@@ -168,12 +169,12 @@ function setGlacierSheet(open){
 }
 function renderMobileBar(){                 // phones: the glacier list becomes one card, and a tap opens the sheet with the glaciers
   const btn = $('mGlacier'), g = glacierPicked ? currentGlacier() : null;      // before the first choice nothing is selected: the card asks for one
-  const card = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${rankArea(g).toFixed(1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
+  const card = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${areaText(g, 1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
   if (btn._card !== card) { btn._card = card; btn.innerHTML = card; }
   btn.classList.toggle('placeholder', !g);
   btn.onclick = () => setGlacierSheet(true);
   const max = Math.max(...GLACIERS.map(rankArea)), list = glacierSheet().querySelector('.g-list');
-  const html = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${rankArea(x).toFixed(2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>`).join('');
+  const html = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${areaText(x, 2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>`).join('');
   if (list._html !== html) { list._html = html; list.innerHTML = html; }      // this runs with every redraw of the page: the rows must stay put under a finger that is about to tap one
 }
 
@@ -244,7 +245,7 @@ async function shareView(){
   const g = currentGlacier(), url = location.href;
   const text = state.mode === 'single' ? `${g.name}, ${state.one}` : state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
   if (navigator.share) {
-    try { await navigator.share({title:'Tongues from Space - Switzerland', text, url}); return; }
+    try { await navigator.share({title: REGION.shareTitle, text, url}); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
   try { await navigator.clipboard.writeText(url); showNotice('Link copied. Paste it anywhere to share this view.'); }

@@ -1,11 +1,127 @@
 {
   "B36-26": [
-    {"pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0VwUHVWVFE.", "lat": 46.53201, "lng": 8.07769, "date": "2016-08", "heading": 258, "pitch": -8, "fov": 90, "credit": "Alex Gross", "title": "Grosses Grünhorn, over the upper glacier"},
-    {"pano": "CAoSFkNJSE0wb2dLRUlDQWdJRHV2UDNZUkE.", "lat": 46.50031, "lng": 8.05286, "date": "2022-08", "heading": 256, "pitch": 5, "fov": 90, "credit": "Martin Gygax", "title": "Konkordiaplatz, where the ice streams meet"},
-    {"pano": "CAoSF0NJSE0wb2dLRUlDQWdJQzY0TjZMdUFF", "lat": 46.43166, "lng": 8.09346, "date": "2021-08", "heading": 315, "pitch": 5, "fov": 90, "credit": "d sdf", "title": "Eggishorn, looking down the glacier"},
-    {"pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0VrYnZJTlE.", "lat": 46.42094, "lng": 8.08337, "date": "2018-07", "heading": 333, "pitch": 5, "fov": 90, "credit": "Marek Skakuj", "title": "Bettmergrat, the lower glacier"},
-    {"pano": "CAoSF0NJSE0wb2dLRUlDQWdJREV1X0tDb2dF", "lat": 46.41558, "lng": 8.06376, "date": "2015-08", "heading": 328, "pitch": -4, "fov": 75, "credit": "Arun Sagar", "title": "Below the Bettmerhorn, the glacier's bend"},
-    {"pano": "CAoSFkNJSE0wb2dLRUlDQWdJQzQ1WjJJVUE.", "lat": 46.40329, "lng": 8.03859, "date": "2017-10", "heading": 30, "pitch": 0, "fov": 90, "credit": "Francois Panchard", "title": "Kalkofen, over the lower tongue"},
-    {"pano": "CAoSFkNJSE0wb2dLRUlDQWdJQzQ1WTMwUmc.", "lat": 46.39716, "lng": 8.03901, "date": "2017-10", "heading": 29, "pitch": 5, "fov": 90, "credit": "Francois Panchard", "title": "Alte Stafel, towards the tongue"}
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0VwUHVWVFE.",
+      "lat": 46.53201,
+      "lng": 8.07769,
+      "date": "2016-08",
+      "heading": 258,
+      "pitch": -8,
+      "fov": 90,
+      "credit": "Alex Gross",
+      "title": "Grosses Grünhorn, over the upper glacier"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJRHV2UDNZUkE.",
+      "lat": 46.50031,
+      "lng": 8.05286,
+      "date": "2022-08",
+      "heading": 256,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Martin Gygax",
+      "title": "Konkordiaplatz, where the ice streams meet"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQzY0TjZMdUFF",
+      "lat": 46.43166,
+      "lng": 8.09346,
+      "date": "2021-08",
+      "heading": 315,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "d sdf",
+      "title": "Eggishorn, looking down the glacier"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0VrYnZJTlE.",
+      "lat": 46.42094,
+      "lng": 8.08337,
+      "date": "2018-07",
+      "heading": 333,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Marek Skakuj",
+      "title": "Bettmergrat, the lower glacier"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJREV1X0tDb2dF",
+      "lat": 46.41558,
+      "lng": 8.06376,
+      "date": "2015-08",
+      "heading": 328,
+      "pitch": -4,
+      "fov": 75,
+      "credit": "Arun Sagar",
+      "title": "Below the Bettmerhorn, the glacier's bend"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQzQ1WjJJVUE.",
+      "lat": 46.40329,
+      "lng": 8.03859,
+      "date": "2017-10",
+      "heading": 30,
+      "pitch": 0,
+      "fov": 90,
+      "credit": "Francois Panchard",
+      "title": "Kalkofen, over the lower tongue"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQzQ1WTMwUmc.",
+      "lat": 46.39716,
+      "lng": 8.03901,
+      "date": "2017-10",
+      "heading": 29,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Francois Panchard",
+      "title": "Alte Stafel, towards the tongue"
+    }
+  ],
+  "breidamerkurjokull": [
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0UzX1dFSlE.",
+      "lat": 64.03702,
+      "lng": -16.35178,
+      "date": "2016-06",
+      "heading": 330,
+      "pitch": 8,
+      "fov": 90,
+      "credit": "Stefanie Robey",
+      "title": "Breiðárlón and the west lobe of the tongue"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJRHFwYkNQZmc.",
+      "lat": 64.0527,
+      "lng": -16.34388,
+      "date": "2017-07",
+      "heading": 325,
+      "pitch": 8,
+      "fov": 90,
+      "credit": "Jacob B",
+      "title": "Across the water towards the ice front"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQ3U1YnlxZ0FF",
+      "lat": 64.0442,
+      "lng": -16.19708,
+      "date": "2022-07",
+      "heading": 316,
+      "pitch": 8,
+      "fov": 90,
+      "credit": "Arthur Debelle",
+      "title": "Jökulsárlón looking north-west towards the ice"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJRHFvOWZXMkFF",
+      "lat": 64.04517,
+      "lng": -16.19317,
+      "date": "2018-08",
+      "heading": 322,
+      "pitch": 8,
+      "fov": 90,
+      "credit": "John Herb",
+      "title": "From the shore of Jökulsárlón towards the ice"
+    }
   ]
 }

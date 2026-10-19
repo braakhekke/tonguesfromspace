@@ -12,12 +12,17 @@ What it does, besides copying:
    in the HTML files are rewritten here. Without the map (local use with serve.py) the plain names work as before.
    Hashed: css/style.css, js/*.js (the page's code, one file per section), data/glaciers.js, thickness.js, sightline.js, scenes.json, cloudmasks.json, photos.json, demchange/*.json, teaser/*.mp4|webm|jpg (the film of the first visit, made by scripts/make_teaser.py).
    A one-line change in the code therefore renames, and re-downloads, only the file it is in.
-   Not hashed: index.html, gallery.html, config.js, data/terrain/manifest.json (the entry points that name the hashed files;
+   Not hashed: index.html, gallery.html, size.html, config.js, data/terrain/manifest.json (the entry points that name the hashed files;
    the terrain files themselves are hashed by build_terrain_bundle.py).
 2. glaciers.js is split. The repository keeps the complete file (the build scripts for terrain, ice change and cloud masks read
    it), the site gets a core file (statistics, 1850 outlines for the overview, a pointer to each glacier's 2023 outline)
    and one small file per glacier with its 2023 outline, which the page loads when that glacier is chosen (loadOutline in index.html).
-3. config.js with the relay address and the map of hashed names. <!--relay-preconnect--> in index.html becomes
+   The region data files (data/glaciers.js for Switzerland, data/vatnajokull.js for Iceland) are named in js/00-regions.js, which writes the tag of the chosen region's file into the
+   page; there the plain names (in quotes) are replaced by the hashed ones before that file is hashed itself.
+3. A page for each region that has an address of its own (js/00-regions.js, `path`): /iceland/vatnajokull/ and /iceland/ are copies of index.html with the title, description, link-preview
+   texts and image, address and canonical link of that region, and every relative file name made absolute (the copies sit two folders deeper; the code adds the same prefix to the
+   names it fetches, SITE_BASE in js/00-regions.js). Search engines and link previews do not see a #r= in a link, so this is what gives Iceland its own result and its own preview.
+4. config.js with the relay address and the map of hashed names. <!--relay-preconnect--> in index.html becomes
    a preconnect link to the relay (or nothing if no address is set).
 
 Standard library only. Every replacement in the HTML must find its target, otherwise the script stops: a deploy with
@@ -28,10 +33,11 @@ import hashlib, json, os, re, shutil, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
-HTML_FILES = ["index.html", "gallery.html"]
+HTML_FILES = ["index.html", "gallery.html", "size.html"]
+PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml"]                 # copied as they are (missing ones are skipped)
-PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg"]
-HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json", "data/streetview.json"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg"]
+HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/trails-is.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -85,6 +91,48 @@ def split_glaciers(out, assets):
     return True
 
 
+SITE = "https://tonguesfromspace.org"
+# What differs on the page of a region with its own address. Keys are the texts of index.html that are replaced (each must be found).
+REGION_PAGES = [
+    {"path": "iceland/vatnajokull", "canonical": "iceland/vatnajokull/",
+     "title": "Tongues from Space | Vatnajökull, Iceland",
+     "description": "Explore the outlet glaciers of Vatnajökull, Iceland’s largest ice cap, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Vatnajökull, Iceland",
+     "og_description": "Watch the outlet glaciers of Vatnajökull retreat: satellite images since 2016, 3D terrain from ArcticDEM strips and outlines from the Little Ice Age maximum to today.",
+     "image": "images/preview-iceland.jpg", "image_w": "1200", "image_h": "630",
+     "image_alt": "Tongues from Space - Vatnajökull: Breiðamerkurjökull and its lagoon Jökulsárlón in a Sentinel-2 satellite picture, with the glacier outline of about 1890"},
+    {"path": "iceland", "canonical": "iceland/vatnajokull/", "same_as": "iceland/vatnajokull"},      # /iceland/ shows the same page; search engines are told the long address is the real one
+]
+
+
+def region_page(html, page):
+    """index.html (already hashed) -> the page of one region: its own texts, and root-absolute file names."""
+    def swap(old, new):
+        nonlocal html
+        if html.count(old) != 1:
+            sys.exit(f"index.html: {old[:60]!r} found {html.count(old)} times, expected once (region page {page['path']})")
+        html = html.replace(old, new)
+    src = next(p for p in REGION_PAGES if p["path"] == page.get("same_as", page["path"]))
+    url = f"{SITE}/{page['canonical']}"
+    swap("<title>Tongues from Space | Interactive Glaciers</title>", f"<title>{src['title']}</title>")
+    swap('<meta name="description" content="Explore glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change: the ten largest Swiss glaciers and Iceland’s Vatnajökull. Compare, create and share your visuals.">',
+         f'<meta name="description" content="{src["description"]}">')
+    swap('<meta property="og:title" content="Tongues from Space - Interactive Glaciers">', f'<meta property="og:title" content="{src["og_title"]}">')
+    swap('<meta property="og:description" content="Watch glacier tongues retreat: Sentinel-2 satellite images since 2016 and 3D terrain for the ten largest Swiss glaciers and Iceland’s Vatnajökull.">',
+         f'<meta property="og:description" content="{src["og_description"]}">')
+    swap('<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="589">',
+         f'<meta property="og:image:width" content="{src["image_w"]}">\n<meta property="og:image:height" content="{src["image_h"]}">')
+    swap('content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2024, and glacier figures"', f'content="{src["image_alt"]}"')
+    swap('<meta property="og:url" content="https://tonguesfromspace.org/">', f'<meta property="og:url" content="{url}">')
+    swap('<link rel="canonical" href="https://tonguesfromspace.org/">', f'<link rel="canonical" href="{url}">')
+    swap('<meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg">', f'<meta property="og:image" content="{SITE}/{src["image"]}">')
+    swap('<meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg">', f'<meta name="twitter:image" content="{SITE}/{src["image"]}">')
+    # relative file names in attributes -> from the root (not #fragments, not full addresses, not data: URLs)
+    html, n = re.subn(r'((?:src|href)=")(?!https?:|data:|mailto:|#|/)([^"]+)(")', r"\g<1>/\g<2>\g<3>", html)
+    print(f"{page['path']}/index.html: {n} relative names made absolute")
+    return html
+
+
 def rewrite_html(out, assets, relay):
     for name in HTML_FILES:
         if not exists(name):
@@ -101,9 +149,10 @@ def rewrite_html(out, assets, relay):
                 sys.exit("index.html lost the marker <!--relay-preconnect-->")
             tag = f'<link rel="preconnect" href="{relay}" crossorigin>' if relay.startswith("http") else ""
             html = html.replace(marker, tag)
-            if "data/glaciers.js" in assets and assets["data/glaciers.js"] not in html:
-                sys.exit("index.html does not load data/glaciers.js any more: nothing was rewritten")
         write(out, name, html.encode("utf-8"))
+        if name == "index.html":
+            for page in (REGION_PAGES if PUBLISH_ICELAND else []):
+                write(out, f"{page['path']}/index.html", region_page(html, page).encode("utf-8"))
 
 
 def main():
@@ -118,7 +167,10 @@ def main():
 
     for name in PLAIN_FILES + PLAIN_IMAGES:
         if exists(name):
-            write(out, name, read(name))
+            data = read(name)
+            if name == "sitemap.xml" and not PUBLISH_ICELAND:
+                data = re.sub(rb"\s*<url>\s*<loc>[^<]*/iceland/[^<]*</loc>\s*</url>", b"", data)
+            write(out, name, data)
     fonts = os.path.join(ROOT, "fonts")
     for f in sorted(os.listdir(fonts)):
         if f.endswith(".woff2") or f == "OFL.txt":
@@ -138,6 +190,18 @@ def main():
     for f in sorted(os.listdir(code)):
         if f.endswith(".js"):
             data = read(f"js/{f}")
+            if f == "00-regions.js":      # the data files of the regions: their hashed names go into the file that loads them
+                text = data.decode("utf-8")
+                for plain in ("data/glaciers.js", "data/vatnajokull.js"):
+                    if plain in assets:
+                        if f"'{plain}'" not in text:
+                            sys.exit(f"js/00-regions.js does not name '{plain}' any more: nothing was rewritten")
+                        text = text.replace(f"'{plain}'", f"'{assets[plain]}'")
+                if not PUBLISH_ICELAND:      # Iceland stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+                    if "/*hidden-regions*/" not in text:
+                        sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
+                    text = text.replace("/*hidden-regions*/", "'is-vatnajokull'")
+                data = text.encode("utf-8")
             rel = hashed_name(f"js/{f}", data)
             write(out, rel, data)
             assets[f"js/{f}"] = rel
@@ -161,6 +225,23 @@ def main():
                 assets[f"teaser/{f}"] = rel
     else:
         print("no teaser folder: the first visit starts without the film")
+    old = os.path.join(ROOT, "data", "oldest")      # the oldest aerial pictures (Iceland): picture and meta file, hashed
+    if os.path.isdir(old):
+        for f in sorted(os.listdir(old)):
+            data = read(f"data/oldest/{f}")
+            rel = hashed_name(f"data/oldest/{f}", data)
+            write(out, rel, data)
+            assets[f"data/oldest/{f}"] = rel
+    ls = os.path.join(ROOT, "data", "landsat")      # Landsat pictures before 2016 (Iceland): one meta file per outlet and one folder of yearly pictures, hashed
+    if os.path.isdir(ls):
+        for dirpath, _, files in os.walk(ls):
+            for f in sorted(files):
+                if not f.endswith((".json", ".jpg")): continue
+                relp = os.path.relpath(os.path.join(dirpath, f), ROOT).replace(os.sep, "/")
+                data = read(relp)
+                rel = hashed_name(relp, data)
+                write(out, rel, data)
+                assets[relp] = rel
     terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "data", "terrain"))

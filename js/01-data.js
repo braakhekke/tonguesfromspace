@@ -3,7 +3,8 @@
    ===================================================================== */
 const FIRST_YEAR = 2016;
 const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({length: CURRENT_YEAR - FIRST_YEAR + 1}, (_, i) => FIRST_YEAR + i);
+const YEARS = Array.from({length: CURRENT_YEAR - FIRST_YEAR + 1}, (_, i) => FIRST_YEAR + i);      // the years with Sentinel-2 pictures; Iceland: the switch "Landsat" puts LANDSAT_YEARS in front of them (setLandsat, js/08-controls.js), the array is changed in place
+const LANDSAT_YEARS = REGION.landsat ? Array.from({length: FIRST_YEAR - REGION.landsat.from}, (_, i) => REGION.landsat.from + i) : [];
 
 /* Swiss-wide annual loss of glacier volume, hydrological years (Oct–Sep), GLAMOS / SCNAT annual reports.
    approx: the press release gave a rounded or "almost/over" figure. Add a row each autumn. */

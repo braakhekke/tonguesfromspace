@@ -254,4 +254,5 @@ def main():
     {'scan': scan, 'rank': rank, 'review': review}[a.step](a)
 
 
-main()
+if __name__ == '__main__':
+    main()

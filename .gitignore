@@ -11,6 +11,7 @@ README.private.md
 # logos: kept local, not published
 logo/
 scripts/.dem-cache/
+scripts/.landsat-cache/
 teaser/work/
 
 # local only: design studies and parked work
@@ -28,3 +29,4 @@ scripts/.streetview-ranked.json
 # Aletsch feature tracking of the ice speed: parked, kept local
 data/flow/
 scripts/build_flow.py
+scripts/.size-demo-cities.json

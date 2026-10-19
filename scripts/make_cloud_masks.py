@@ -191,6 +191,15 @@ def main():
         out['glaciers'][g['id']] = {'name': g['name'], 'outline': mask, 'tongue': tongue_circle(tip[0], tip[1])}
         n = sum(len(p[0]) for p in mask)
         print(f"{g['id']:8} {g['name']:28} {n:4} vertices, area {a_simple:7.2f} km2 of {a_full:7.2f} km2 (outer rings), {len(json.dumps(mask))} characters")
+    # Iceland (Vatnajökull): the outlet's picture box (a square of 2 x half km) stands for the outline, the circle is around the tongue tip; both from data/vatnajokull.js
+    vj = os.path.join(ROOT, 'data', 'vatnajokull.js')
+    if os.path.exists(vj):
+        s2 = open(vj, encoding='utf-8').read()
+        for o in json.loads(s2[s2.index('{'):s2.rindex('}') + 1])['outlets']:
+            dlat = o['half'] / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
+            ring = [list(merc(o['lon'] + sx * dlon, o['lat'] + sy * dlat)) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]; ring.append(ring[0])
+            out['glaciers'][o['id']] = {'name': o['name'], 'outline': [[ring]], 'tongue': tongue_circle(o['tip'][0], o['tip'][1])}
+            print(f"{o['id']:20} {o['name']:28} picture box and tongue circle (Iceland)")
     with open(os.path.join(ROOT, 'data', 'cloudmasks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, separators=(',', ':'))
     print('wrote cloudmasks.json')
