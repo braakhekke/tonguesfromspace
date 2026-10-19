@@ -539,6 +539,10 @@ details.about{margin:0 calc(-1 * var(--pad));padding:0 var(--pad);border-top:1px
 .tab-panel > .dcard:last-child,.tab-panel > #gWater > .dcard{border-bottom:0}
 details.about>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--moraine);display:flex;align-items:center;justify-content:center;gap:10px;list-style:none;padding:18px 0}      /* centred, with the round i and no chevron */
 details.about>summary .info-btn{display:inline-flex;flex:none}
+details.about>summary{color:var(--accent);font-weight:700}
+details.about>summary .about-ico{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
+details.about>summary .about-ico .dot{fill:currentColor;stroke:none}
+details.about>summary::after{border-color:var(--accent)}
 details.about>summary::after{content:'';flex:none;width:7px;height:7px;border:solid var(--moraine);border-width:0 2px 2px 0;transform:rotate(45deg);margin:-3px 4px 0 8px;transition:transform .15s}
 details.about[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
 details.about>summary::-webkit-details-marker{display:none}
@@ -745,6 +749,8 @@ sup.fn a:hover{opacity:.7}
   .mhead{display:block;order:0;background:var(--sheet);padding:10px 14px 8px;border-bottom:1px solid var(--rule);text-align:center}
   .mhead-logo{display:inline-block;vertical-align:-6px;height:26px;width:auto;margin-right:8px}
   .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:var(--accent)}
+  .mhead strong span{display:inline;font-size:inherit;margin:0;color:var(--accent)}
+  .mhead strong span.t1{color:#0A1B33}
   .mhead{border-top:4px solid var(--accent)}
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
   .stage{order:1;height:60vh;height:60dvh;min-height:330px}
@@ -804,6 +810,8 @@ sup.fn a:hover{opacity:.7}
   .mhead{display:block;padding:8px 14px;text-align:center}
   .mhead-logo{height:20px;vertical-align:-4px;margin-right:6px}
   .mhead strong{display:block;font-size:15px;font-weight:800}
+  .mhead strong span{display:inline;font-size:inherit;margin:0;color:var(--accent)}
+  .mhead strong span.t1{color:#0A1B33}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
   .controls .brand,#glacierList,#rankNote{display:none}
   .m-pick{display:flex!important}
@@ -1466,4 +1474,16 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
   .app.sv-on .mapbar:has(.tl-dots:not(:empty)) .mapbar-row{display:none}      /* a timelapse keeps only its timeline */
   .app.sv-on .mapbar .tl-dots{border-bottom:0;margin-bottom:0}
   .app.sv-on.is-timelapse .leaflet-control-scale,.app.sv-on.more-open.is-timelapse .leaflet-control-scale{margin-bottom:90px!important}
+}
+
+/* Phone held sideways: the layer menu opens sideways from the right edge of the map, in two columns with a white title; the chevron points right (slide it away). The bottom bar with the Layers button stays free. */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .layerbox.open:not(.in-flow){top:8px;bottom:76px;right:8px;max-height:none;width:min(440px,calc(100% - 16px));max-width:none;padding:0 12px 6px;overflow-y:auto}
+  .layerbox .lb-head{color:#fff;font-size:13px}
+  .layerbox.open .lb-head svg:last-child{transform:rotate(90deg)}
+  .layerbox.open .lb-body,.layerbox.open.min .lb-body{display:block;column-count:2;column-gap:18px;padding-top:6px}
+  .layerbox.open .lb-body > *{break-inside:avoid}
+  .layerbox.open .lb-group{break-after:avoid;break-after:avoid-column;-webkit-column-break-after:avoid;margin-top:8px}
+  .layerbox.open .lb-group:first-child{margin-top:0}
+  .layerbox .lb-more{display:none!important}
 }
