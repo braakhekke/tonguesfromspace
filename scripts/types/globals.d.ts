@@ -4,6 +4,8 @@ declare const turnstile: any;      // Cloudflare Turnstile widget, loaded on dem
 interface Window {
   GLACIER_DATA: any;          // glaciers.js (made by scripts/build_outlines.py)
   GLACIER_OUTLINES: any;      // the 2023 outline files of the public site (scripts/build_site.py)
+  VATNAJOKULL: any;           // vatnajokull.js (scripts/build_vatnajokull.py)
+  GLACIER_TRAILS: any;        // trails-is.js (scripts/build_trails_iceland.py)
   GLACIER_SIGHT: any;         // sightline.js (scripts/build_sightline.py)
   GLACIER_THICKNESS: any;     // thickness.js
   TFS_CONFIG: { relay?: string; assets?: Record<string, string>; streetViewKey?: string };      // config.js, written by the deploy workflow
