@@ -1,16 +1,33 @@
-# Optional: deploy with the Cloudflare CLI instead of pasting worker.js into the dashboard.
-#   npx wrangler deploy                       (from this folder)
-#   npx wrangler secret put CDSE_CLIENT_ID
-#   npx wrangler secret put CDSE_CLIENT_SECRET
+# The one Worker of tonguesfromspace.org: it serves the site (static files from ../_site, built by
+# scripts/build_site.py) and the relay (/cdse/*) and gallery (/gallery/*) back end of worker.js.
+# The deploy workflow (.github/workflows/deploy.yml) runs `wrangler deploy` from this folder after the
+# build; the KV namespace id and R2 bucket name come from the repository variables CF_KV_CACHE_ID and
+# CF_R2_GALLERY_BUCKET and CF_R2_LANDSAT_BUCKET (the workflow replaces the three __…__ words below).
+# The Landsat pictures (data/landsat/, 197 MB, not in the repository) live in the R2 bucket LANDSAT under the same paths; upload them from the working
+# copy with scripts/upload_landsat.sh whenever build_landsat.py has made new ones.
+# By hand:  npx wrangler deploy   (secrets: npx wrangler secret put CDSE_CLIENT_ID, CDSE_CLIENT_SECRET, …)
 name = "tonguesfromspace-relay"
 main = "worker.js"
 compatibility_date = "2024-09-23"
+keep_vars = true          # keep variables set in the dashboard (TURNSTILE_SITEKEY, …); ALLOWED_ORIGINS below wins
 
 [vars]
 ALLOWED_ORIGINS = "https://tonguesfromspace.org,https://www.tonguesfromspace.org,https://braakhekke.github.io,http://localhost:8000"
 
-# Image cache (recommended). Create it with:  npx wrangler kv namespace create CACHE
-# then paste the id it prints below and uncomment.
-# [[kv_namespaces]]
-# binding = "CACHE"
-# id = "paste-the-namespace-id-here"
+# Static site. Only the relay and gallery paths run the Worker first; everything else is a file.
+[assets]
+directory = "../_site"
+not_found_handling = "404-page"
+run_worker_first = ["/cdse/*", "/gallery/*", "/data/landsat/*"]
+
+[[kv_namespaces]]
+binding = "CACHE"
+id = "__KV_CACHE_ID__"
+
+[[r2_buckets]]
+binding = "GALLERY"
+bucket_name = "__R2_GALLERY_BUCKET__"
+
+[[r2_buckets]]
+binding = "LANDSAT"
+bucket_name = "__R2_LANDSAT_BUCKET__"

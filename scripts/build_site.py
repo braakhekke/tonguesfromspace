@@ -264,16 +264,8 @@ def main():
             rel = hashed_name(f"data/oldest/{f}", data)
             write(out, rel, data)
             assets[f"data/oldest/{f}"] = rel
-    ls = os.path.join(ROOT, "data", "landsat")      # Landsat pictures before 2016 (Iceland): one meta file per outlet and one folder of yearly pictures, hashed
-    if os.path.isdir(ls) and PUBLISH_LANDSAT:
-        for dirpath, _, files in os.walk(ls):
-            for f in sorted(files):
-                if not f.endswith((".json", ".jpg")): continue
-                relp = os.path.relpath(os.path.join(dirpath, f), ROOT).replace(os.sep, "/")
-                data = read(relp)
-                rel = hashed_name(relp, data)
-                write(out, rel, data)
-                assets[relp] = rel
+    # Landsat pictures before 2016 (Iceland): not in the site bundle. They live in the R2 bucket LANDSAT (scripts/upload_landsat.sh) and the Worker serves
+    # them at data/landsat/<outlet>.json and <outlet>/<year>.jpg (plain names, revalidated; `asset()` leaves unlisted names as they are).
     terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "data", "terrain"))

@@ -38,7 +38,7 @@ Everything the page does runs in the visitor's browser. There is no database and
 ## How it works
 
 ```
- visitor's browser ──► index.html + data/glaciers.js              (GitHub Pages)
+ visitor's browser ──► index.html + data/glaciers.js              (Cloudflare Worker, static assets)
         │
         └─ satellite requests ──► relay ──► Copernicus Data Space (Sentinel Hub APIs)
                                    │
@@ -63,7 +63,7 @@ Everything the page does runs in the visitor's browser. There is no database and
 | `scripts/serve.py` | Local web server plus Copernicus relay for development |
 | `worker/` | Cloudflare Worker (`worker.js`, optional `wrangler.toml`): the public relay and the gallery back end |
 | `scripts/tools/` | Local helpers: `pick-scenes.html` (choose scenes), `warm-up.html` (fill the relay cache after a deploy), `gallery-admin.html` (moderation). Run with `python3 -m http.server 8000`; they spend Copernicus requests |
-| `.github/workflows/deploy.yml` | Builds the data and publishes the site on GitHub Pages |
+| `.github/workflows/deploy.yml` | Builds the data, tests it and deploys the site and Worker to Cloudflare |
 | `fonts/`, `images/` | Self-hosted font (SIL OFL) and the pictures used by the page |
 | `CLAUDE.md` | Notes on the code for developers and AI assistants |
 
@@ -85,7 +85,7 @@ Use `http://localhost:8000` and not another address if you want to use a deploye
 
 ## Publish your own copy
 
-1. **GitHub Pages:** fork the repository, then *Settings → Pages → Source: GitHub Actions*, and run the workflow *Build data and deploy* from the Actions tab.
+1. **Cloudflare:** fork the repository; under *Settings → Secrets and variables → Actions* set the secrets `CLOUDFLARE_API_TOKEN` (Workers edit rights) and `CLOUDFLARE_ACCOUNT_ID` and the variables `CF_KV_CACHE_ID` and `CF_R2_GALLERY_BUCKET`, then run the workflow *Build data and deploy*. One Worker serves the site and the relay (`worker/wrangler.toml`).
 2. **Relay (free):** create a Cloudflare Worker from `worker/worker.js`; add your OAuth client as the secrets `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, a text variable `ALLOWED_ORIGINS` (your site address, plus `http://localhost:8000` for development), and optionally a KV namespace bound as `CACHE`. Check `…/cdse/ping`.
 3. **Connect:** in the GitHub repository add the variable `CDSE_RELAY_URL` (the Worker address) and run the workflow again. Optionally run `scripts/tools/warm-up.html` locally afterwards to fill the relay cache.
 
