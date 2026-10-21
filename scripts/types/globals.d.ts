@@ -7,6 +7,7 @@ interface Window {
   REGION_ICE: any;            // the data file of an ice-cap region (scripts/build_vatnajokull.py, scripts/build_regions.py)
   GLACIER_TRAILS: any;        // trails-is.js (scripts/build_trails_iceland.py)
   GLACIER_SIGHT: any;         // sightline.js (scripts/build_sightline.py)
+  GLACIER_BOXES: any;         // boxes.js (scripts/tools/box-editor.html)
   GLACIER_THICKNESS: any;     // thickness.js
   TFS_CONFIG: { relay?: string; assets?: Record<string, string>; streetViewKey?: string };      // config.js, written by the deploy workflow
 }
