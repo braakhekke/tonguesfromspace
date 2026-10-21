@@ -35,6 +35,7 @@ function showNotice(msg){
 const BOX_MAX_ZOOM = 11.25;                      // boxes show when zoomed out; at a glacier they would clutter the image
 const boxLayer = L.layerGroup();
 const otherLayer = L.layerGroup();               // a glacier is chosen and the map is zoomed out beyond its picture: the outlines of the others, clickable
+const subLayer = L.layerGroup();                // the outlets of the chosen ice cap (g.subs): a ring and the name at each tip, a click zooms to the outlet
 const frameLayer = L.layerGroup();               // zoomed in: the red line stays as the outline of the selected glacier's image
 /* The red boxes have exactly the size of the satellite image of each glacier, with the same rounded corners (14 px, as on .scene-img). */
 function roundedBox(b, maxR = 14){
@@ -54,7 +55,7 @@ const badgeLatLng = g => g.center ? L.latLng(g.center) : L.latLngBounds(glacierB
 function boxParts(g, i, sel, flat){
   const fp = imageFootprint(g).bounds, geom = outlineGeom(g), has = hasOutline(g);
     const W = sel ? 1.6 : 1.1, F = has && !flat ? 0.16 : 0, style = {color: getVar('--accent'), weight: W, opacity: .9, fillColor: getVar('--accent'), fillOpacity: F, className: 'gbox'};      // thin line and a faint fill so the ice stays visible; stronger under the pointer
-    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : g.rgi ? L.polygon(g.rgi.outline, {...style}) : L.polygon(roundedBox(fp), {...style});
+    const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : g.rgi ? L.polygon(g.rgi.outline.map(r => [r]), {...style}) : L.polygon(roundedBox(fp), {...style});
     const tip = `${i + 1}. ${g.name}, ${areaText(g, 1)} km²`;
     const light = on => { const st = {fillOpacity: flat ? 0 : on ? 0.4 : F, weight: on ? 2.2 : W}; shape.setStyle ? shape.setStyle(st) : shape.eachLayer(l => l.setStyle(st)); };      // the polygon lights up under the pointer, also when the pointer is on its number
     shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false));
@@ -65,8 +66,23 @@ function boxParts(g, i, sel, flat){
     return [shape, num];
 }
 function drawBoxes(){
-  boxLayer.clearLayers(); frameLayer.clearLayers(); otherLayer.clearLayers();
+  boxLayer.clearLayers(); frameLayer.clearLayers(); otherLayer.clearLayers(); subLayer.clearLayers();
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
+  const cur = picked && GLACIERS.find(x => x.id === state.glacier);
+  if (cur && cur.subs) cur.subs.forEach((sb, k) => {      // thin catchment borders (the RGI 6.0 basins in sb.outline) of every outlet, under the markers; a click zooms to the outlet
+    {
+      const poly = L.polygon(sb.outline.map(r => [r]), {color: '#fff', weight: 1, opacity: .75, dashArray: '4 3', fillColor: '#fff', fillOpacity: .03, className: 'basin sub-basin'}).addTo(subLayer);
+      poly.bindTooltip(`${sb.name}, ${sb.areaKm2.toLocaleString('en-US', {maximumFractionDigits: 1})} km²`, {direction: 'top', sticky: true, className: 'gbox-tip'});
+      poly.on('click', () => focusSub(cur, k)).on('mouseover', () => poly.setStyle({fillOpacity: .16})).on('mouseout', () => poly.setStyle({fillOpacity: .03}));
+    }
+  });
+  if (cur && cur.subs) cur.subs.forEach((sb, k) => {
+    const at = sb.tip || L.latLngBounds(sb.bounds).getCenter();
+    const esc = t => String(t).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;');
+    L.marker(at, {keyboard: true, title: `${sb.name}, ${sb.areaKm2.toLocaleString('en-US', {maximumFractionDigits: 1})} km²`, icon: L.divIcon({className: '', iconSize: [10, 10], iconAnchor: [5, 5],
+      html: `<div class="sub-pin"><span class="lab">${esc(sb.name)}${sb.approx ? '<sup>≈</sup>' : ''}</span></div>`})})
+      .on('click', () => focusSub(cur, k)).addTo(subLayer);
+  });
   GLACIERS.forEach((g, i) => {
     const sel = picked && g.id === state.glacier, fp = imageFootprint(g).bounds, geom = outlineGeom(g);
     if (sel) {            // the picture area of the chosen glacier: a thin white frame, always (also in the download panes), with a small label written along its top edge
@@ -92,20 +108,23 @@ function updateBoxes(){
   const others = small && !$('boxToggle').checked && !show && !$('app').classList.contains('is-framing');
   if (others && !map.hasLayer(otherLayer)) otherLayer.addTo(map);
   if (!others && map.hasLayer(otherLayer)) map.removeLayer(otherLayer);
+  const subs = picked && sel.subs && !$('app').classList.contains('is-framing');      // the outlets of an ice cap stay on the map at every zoom
+  if (subs && !map.hasLayer(subLayer)) subLayer.addTo(map);
+  if (!subs && map.hasLayer(subLayer)) map.removeLayer(subLayer);
   const frame = typeof glacierPicked !== 'undefined' && glacierPicked;      // the frame of the chosen glacier's picture shows at every zoom
   if (frame && !map.hasLayer(frameLayer)) frameLayer.addTo(map);
   if (!frame && map.hasLayer(frameLayer)) map.removeLayer(frameLayer);
 }
 /* Iceland: the drainage basins of the whole ice cap (RGI 6.0) lie under the outlets that can be chosen, as thin white outlines with their name and area on hover */
 const basinLayer = L.layerGroup();
-if (REGION.id === 'is-vatnajokull' && ICECAP) ICECAP.basins.forEach(b => {
-  const poly = L.polygon(b.outline, {color: '#fff', weight: 1.1, opacity: .8, fillColor: '#fff', fillOpacity: .04, className: 'basin'}).addTo(basinLayer);
-  poly.bindTooltip(`${b.name || 'Unnamed outlet'}, ${b.areaKm2.toLocaleString('en')} km²`, {direction: 'top', sticky: true, className: 'gbox-tip'});
+if (REGION.rgi && ICECAP) ICECAP.basins.forEach(b => {
+  const poly = L.polygon(b.outline.map(r => [r]), {color: '#fff', weight: 1.1, opacity: .8, fillColor: '#fff', fillOpacity: .04, className: 'basin'}).addTo(basinLayer);
+  poly.bindTooltip(`${b.name || REGION.unnamed}, ${b.areaKm2.toLocaleString('en')} km²`, {direction: 'top', sticky: true, className: 'gbox-tip'});
   poly.on('mouseover', () => poly.setStyle({fillOpacity: .18})).on('mouseout', () => poly.setStyle({fillOpacity: .04}));
 });
-const iceCapBounds = () => L.latLngBounds(ICECAP.basins.concat(ICECAP.outlets).flatMap(b => b.outline[0] || []));
+const iceCapBounds = () => L.latLngBounds(ICECAP.basins.concat(ICECAP.outlets).flatMap(b => b.outline.flat()));
 function glaciersExtent(){
-  if (REGION.id === 'is-vatnajokull' && ICECAP) { const b = iceCapBounds(); return [[b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()]]; }      // the whole ice cap
+  if (REGION.rgi && ICECAP) { const b = iceCapBounds(); return [[b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()]]; }      // the whole ice cap
   const b = GLACIERS.map(g => imageFootprint(g).bounds);
   return [[Math.min(...b.map(x => x[0][0])), Math.min(...b.map(x => x[0][1]))], [Math.max(...b.map(x => x[1][0])), Math.max(...b.map(x => x[1][1]))]];
 }
@@ -216,8 +235,8 @@ function applyRegionUi(){
   if (!FEATURES.swissBase) { prefs.topo = prefs.alti = false; }
   if (REGION.id !== 'ch') {
     if (GLACIERS[0].half) { document.getElementById('tongueBtn').title = 'Zoom to the picture area (the tongue)'; document.getElementById('fitBtn').title = 'Fit the whole glacier'; }
-    document.getElementById('boxToggle').closest('label').title = 'The outlets you can choose, as red outlines you can click. Switched off when you choose one.';
-    document.getElementById('boxToggle').parentElement.lastElementChild.lastChild.textContent = 'Selectable outlets';
+    document.getElementById('boxToggle').closest('label').title = `The ${REGION.units} you can choose, as red outlines you can click. Switched off when you choose one.`;
+    document.getElementById('boxToggle').parentElement.lastElementChild.lastChild.textContent = `Selectable ${REGION.units}`;
   }
 }
 function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
@@ -260,4 +279,21 @@ async function setLandsat(on){
 }
 const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
 { const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');
-  if (REGION.landsat) { row.style.display = ''; document.getElementById('landsatText').textContent = `Also show Landsat pictures, back to ${REGION.landsat.first}`; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); } }
+  if (REGION.landsat) { row.dataset.title = row.title; row.style.display = ''; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); updateLandsatRow(); } }
+/* The text of the Landsat switch; for a glacier whose picture is so small that 30 m pixels make it blurry (under 400 Landsat pixels across, a picture box under 12 km) it says "not recommended" */
+async function updateLandsatRow(){
+  const t = document.getElementById('landsatText'), row = document.getElementById('landsatRow'); if (!t || !REGION.landsat) return;
+  const g = glacierPicked ? currentGlacier() : null, fp = g ? imageFootprint(g) : null, px = fp ? Math.round(Math.max(fp.w, fp.h) * CDSE.groundRes / 30) : 1e9, small = px < 400;
+  const note = small ? ` · not recommended here: 30 m pixels, the picture is only ${px} pixels across` : '';
+  t.textContent = `Include older imagery${note}`;      // until the file of the glacier says which year is its first
+  row.classList.toggle('not-recommended', small); row.title = small ? 'Landsat pictures have 30 m pixels. This glacier is so small that they look very blurry.' : row.dataset.title;
+  if (!g) return;
+  const f = await landsatFile(g); if (g.id !== (glacierPicked ? currentGlacier().id : null)) return;      // another glacier was chosen meanwhile
+  const years = f && f.scenes ? Object.keys(f.scenes).map(Number).sort((x, y) => x - y) : [];
+  if (!small) { const sats = [...new Set(Object.values(f && f.scenes || {}).map(sc => String(sc.sat || '').replace(/\D/g, '')).filter(Boolean))].sort(), names = sats.length ? 'Landsat ' + (sats.length > 1 ? sats.slice(0, -1).join(', ') + ' and ' + sats[sats.length - 1] : sats[0]) : 'Landsat';
+    row.title = `${names} pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off.`; }
+  t.textContent = years.length ? `Include older imagery${note}` : `Include older imagery: none found for this glacier`;
+  const box = document.getElementById('landsatToggle'), none = !years.length && !box.checked;      // a glacier without Landsat pictures: the switch stays, greyed out and off (if it is on, it can still be switched off)
+  box.disabled = none; row.style.opacity = none ? '.5' : ''; row.style.cursor = none ? 'default' : '';
+  const ln = row.querySelector('.landsat-note'); if (ln) ln.style.display = none ? 'none' : '';      // the note on 30 m pixels is about pictures that are not there
+}

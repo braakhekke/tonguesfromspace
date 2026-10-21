@@ -3,7 +3,7 @@
    ===================================================================== */
 let viewMode = 'map';      // 'map' or '3d': what the stage shows. The panel (mode, years, colours) and the download pane serve both
 const state = {
-  glacier: GLACIERS[0].id, mode: 'single',          // new visitors start with one image, the newest year
+  glacier: (GLACIERS.find(g => g.id === REGION.landingGlacier) || GLACIERS[0]).id, mode: 'single',          // new visitors start with one image, the newest year
   a: null, b: null, from: null, to: null, one: null,
   split: 0.5, available: {}, latest: null, oldestAerial: null, oldestSaved: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,

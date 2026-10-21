@@ -10,10 +10,27 @@ function renderGlacierList(){
     b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${areaText(g, 2)} km²</span>`;
     b.onclick = () => chooseGlacier(g.id);
     li.appendChild(b); ul.appendChild(li);
+    if (g.subs && glacierPicked && g.id === state.glacier) g.subs.forEach((sb, k) => {      // the outlets of the chosen ice cap, as sub-items: a click zooms to the outlet
+      const sl = document.createElement('li'), sbtn = document.createElement('button');
+      sl.className = 'sub'; sbtn.type = 'button'; sbtn.setAttribute('aria-pressed', 'false'); sbtn.title = subTitle(sb);
+      sbtn.innerHTML = `<span class="rank"></span><span class="name">${sb.name}${sb.approx ? '<sup>≈</sup>' : ''}</span><span class="area">${sb.areaKm2.toLocaleString('en-US', {maximumFractionDigits: 1})} km²</span>`;
+      sbtn.onclick = () => focusSub(g, k);
+      sl.appendChild(sbtn); ul.appendChild(sl);
+    });
   });
-  document.getElementById('rankNote').innerHTML = REGION.id === 'ch' ? `Ranked by area${fn('sgi')}` : 'Drainage basins of the Randolph Glacier Inventory 6.0, about 2000.';
+  document.getElementById('rankNote').innerHTML = REGION.rgi ? REGION.rankNote : `Ranked by area${fn('sgi')}`;
   renderLayerTitles();
+  if (typeof updateLandsatRow === 'function') updateLandsatRow();
   if (typeof refreshStreetView === 'function') refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
+}
+/* The outlets of an ice cap (g.subs, scripts/build_cap_images.py): the name rests on the RGI 6.0 or on the sources in `basis`; a name marked approx is inferred, and said so */
+const subTitle = sb => `${sb.approx ? 'Name inferred, not certain. ' : ''}${sb.basis}`;
+let subFocus = null;      // {gid, k}: the outlet of the chosen ice cap that was clicked last; the 3D view then shows a strip along that outlet (v3dGlacier); the Tongue and Whole glacier buttons clear it
+function focusSub(g, k){
+  const sb = g.subs[k]; if (!sb) return;
+  subFocus = {gid: g.id, k};
+  if (viewMode === '3d' && typeof open3D === 'function') return open3D();      // the 3D view moves to the outlet's own strip
+  map.fitBounds(L.latLngBounds(sb.bounds), {paddingTopLeft: PHONE.matches ? [24, 64] : [40, 80], paddingBottomRight: PHONE.matches ? [24, 100] : [40, 110], maxZoom: 14});
 }
 /* the title of the layer segment that belongs to the chosen glacier, in the map menu and in the 3D menu */
 function renderLayerTitles(){
@@ -113,12 +130,13 @@ function renderMeta(){
   const lt = state.latest, row = (label, sc, on) => { const [id, when] = prod(sc), ps = lastPs || []; 
     if (sc) metaCsv.push([label === 'Latest' ? 'latest' : label, sc.date, sc.orbit || '', sc.latest ? 'latest' : sc.curated ? 'hand-picked' : 'automatic', [...new Set(ps.map(p => p.sat))].join(' '), ps.map(p => p.tile).join(' '), ps.length ? ps[0].time : '', ps.length ? Math.round(ps[0].sun * 10) / 10 : '', ps.map(p => p.id).join(' ')]);
     return `<tr${on ? ' class="on"' : ''}><th scope="row">${label}</th><td>${sc ? fmtDM(sc.date) : ''}</td><td>${(sc && sc.orbit) || '–'}</td><td>${id}</td><td>${when}</td></tr>`; };
-  const oa = oldestAerial.get(g.id), top = oa ? `<tr${state.oldestAerial ? ' class="on"' : ''}><th scope="row">${oa.flown}</th><td>${REGION.id === 'ch' ? `Aerial, edition ${oa.ed}` : 'Aerial mosaic'}</td><td>–</td><td>–</td><td>–</td></tr>` : '';      // before 2016: the oldest swisstopo aerial image
-  const rows = ys.map(y => { const sc = lt && lt.year === y ? lt.saved : state.available[y]; return sc ? row(y, sc, shown.includes(y) && !(lt && lt.year === y)) : ''; }).join('');
-  const bottom = lt && state.available[lt.year] ? row('Latest', state.available[lt.year], shown.includes(lt.year)) : '<tr><th scope="row">Latest</th><td colspan="4">Press Latest to look for it</td></tr>';      // after the last year: the latest scene, once it has been picked
+  const one = state.mode === 'single', onLatest = !!(lt && lt.year === state.one), onOldest = !!state.oldestAerial;      // One year: only the row of the picture on show
+  const oa = oldestAerial.get(g.id), top = oa && (!one || onOldest) ? `<tr${state.oldestAerial ? ' class="on"' : ''}><th scope="row">${oa.flown}</th><td>${REGION.id === 'ch' ? `Aerial, edition ${oa.ed}` : 'Aerial mosaic'}</td><td>–</td><td>–</td><td>–</td></tr>` : '';      // before 2016: the oldest swisstopo aerial image
+  const rows = ys.filter(y => !one || (!onOldest && !onLatest && y === state.one)).map(y => { const sc = lt && lt.year === y ? lt.saved : state.available[y]; return sc ? row(y, sc, shown.includes(y) && !(lt && lt.year === y)) : ''; }).join('');
+  const bottom = one && !onLatest ? '' : lt && state.available[lt.year] ? row('Latest', state.available[lt.year], shown.includes(lt.year)) : '<tr><th scope="row">Latest</th><td colspan="4">Press Latest to look for it</td></tr>';      // after the last year: the latest scene, once it has been picked
   const bands = (STYLE_BANDS[state.style] || []).join(' · '), old = oldestAerial.get(g.id);
   box.innerHTML = `<div class="meta-scroll"><table class="meta-table"><thead><tr><th>Year</th><th>Date</th><th>Orbit</th><th>Image</th><th>Time and sun</th></tr></thead><tbody>${top}${rows}${bottom}</tbody></table></div>
-    <p class="meta-note">${ys.some(y => isLandsat(state.available[y])) ? 'Years before 2016: Landsat Collection 2 Level-2 (surface reflectance), natural colour, 30 m pixels shown at 20 m; the scene is its path and row ("P216R015"); stripes of no data in Landsat 7 pictures (2003 to 2012) are filled along the direction of the ice flow. ' : ''}Sentinel-2 L1C, bands ${bands}, ${state.style === 'false2' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
+    <p class="meta-note">${ys.some(y => isLandsat(state.available[y])) ? 'Years before 2016: Landsat Collection 2 Level-2 (surface reflectance), ${STYLE_NAME[state.style] || STYLE_NAME.natural} (${LANDSAT_BANDS[state.style] || LANDSAT_BANDS.natural}), 30 m pixels, smoothed when enlarged; the scene is its path and row ("P216R015"); stripes of no data in Landsat 7 pictures (2003 to 2012) are filled along the direction of the ice flow. ' : ''}Sentinel-2 L1C, bands ${bands}, ${state.style === 'false2' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
     <button type="button" class="meta-dl" id="metaDl">Download as CSV</button>`;
 }
 let metaCsv = [];      // the rows of the table as shown, with the figures and whole ids the table leaves out
@@ -334,7 +352,7 @@ document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
 document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 
-let storyTab = HASH_TAB || (REGION.id === 'ch' ? 'figures' : 'look');     // tab in the right panel: Stats on start, then kept when switching glacier
+let storyTab = HASH_TAB || (REGION.rgi ? 'look' : 'figures');     // tab in the right panel: Stats on start, then kept when switching glacier
 /* The cards of the Switzerland tab: the same stack as in Discover; one open at a time, the choice remembered */
 const scard = (key, icon, title, html, sum = '') => `<details class="card dcard coll" name="swiss" data-card="${key}"${cardOpen(key) ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div>${sum}</summary><div class="dbody">${html}</div></details>`;
 /* The selected glacier against all of Switzerland: its share of the ice (filled in when the volume is known), of the area, and its place among the glaciers of the inventory */
@@ -354,7 +372,9 @@ const dcard = (icon, title, html) => `<details class="card dcard coll" name="dis
 /* The identity of a chapter across redraws: its title, not the whole summary (that also holds the headline figure, which changes with the years) */
 const cardKey = d => { const t = d.querySelector('summary h4, summary .card-h'); return (t || d.firstElementChild).textContent.trim(); };
 /* The About block at the foot of the right panel, the same for every region: its chapters (a list of <details>) between the heading and the social links with the invitation to GitHub.
-   Switzerland's chapters are aboutChaptersCh(), Iceland's aboutChaptersIs() (js/07a-region-vatnajokull.js). */
+   Switzerland's chapters are aboutChaptersCh(), Iceland's aboutChaptersIc() (js/07a-region-icecaps.js). */
+/* The paragraph on the Landsat pictures before 2016 that every region's chapter The satellite images has (the switch under the years): what they are and how they differ from Sentinel-2 */
+const landsatAbout = rule => `<p><em>Before 2016: Landsat.</em> Sentinel-2 starts in 2016. A switch under the years adds Landsat 5 and 7 pictures (Collection 2 Level-2, 30 m pixels instead of Sentinel-2's 10 m, so with less detail; USGS) for the years from ${REGION.landsat ? REGION.landsat.first : 1985} to 2013, chosen by the same rules: one scene per year, ${rule}, the whole picture covered where there is such a scene. Years without a usable scene have no picture. The three colour styles are available: natural colour (red, green, blue) and the false colour styles from the near infrared and the shortwave infrared bands that Landsat has too (false colour 1: near infrared, red, green; false colour 2: near infrared and the two shortwave infrared bands, the counterparts of Sentinel-2 B8A, B11 and B12). The colours of the years are matched to each other on a patch of ground without ice, so that sensors and seasons look alike, and every picture is shifted onto the Sentinel-2 mosaic where it lies off. Landsat 7 pictures after 2003 have stripes of missing data; these are filled by interpolating along the direction of the ice flow, which is read from the streaks in the picture itself (medial moraines, flow lines). That is a repair of the picture, not data. Landsat 8 (2013 to 2015) is not used: its surface reflectance is not usable over ice, shade and water. The pictures are kept at the real 30 m pixels of Landsat (one picture pixel = one Landsat pixel, cut with nearest neighbour) and shown without smoothing, so no detail is invented. Landsat pictures are not corrected for slope shading. In the 3D view they are draped over the ice surface of their year where the glacier has a terrain file with a surface for each year (before 2011 over the surface of 2011), otherwise over the one elevation model. For a glacier so small that its picture is under 400 Landsat pixels across, the switch says "not recommended".</p>`;
 const aboutFrame = chapters => `    <div class="about-wrap">
     <details class="about">
       <summary><svg class="about-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle class="dot" cx="12" cy="7.6" r="1"/></svg> About Tongues from Space</summary>
@@ -387,6 +407,7 @@ function aboutChaptersCh(){
         <p>One Sentinel-2 scene per glacier and year: the clearest view between 1 July and 20 September. Every acquisition is scored for cloud and snow cover; the best September scene wins, otherwise August, otherwise July. The pictures are rendered from Level-1C data with the Copernicus Browser true colour process, which keeps shaded slopes natural.</p>
         <p>For some glaciers the scene of each year was chosen with a separate picking tool instead (<code>scripts/tools/pick-scenes.html</code>). It scores every acquisition from 1 August to the middle of October for cloud, cloud shadow, mountain shadow, snow and haze, in the bottom 3 km of the tongue and over the whole image, prefers days near 30 September, and keeps one satellite orbit for all years. No cloud, cloud shadow or big mountain shadow is allowed in the bottom 3 km (the limits are loosened only for a year that would otherwise have no scene) and not more than 10 % cloud anywhere in the image.</p>
         <p>Why not after the 20th (for the automatic choice): Swiss glacier monitoring counts in glaciological years (1 October to 30 September) and GLAMOS measures at the end of the melt season, so September images match the annual figures: the picture of summer 2017 shows the ice at the end of the glaciological year 2017 (see Years and periods). After about 20 September fresh snow often hides the tongue; in 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
+        ${landsatAbout('1 July to 20 September, the clear scene closest to 1 September')}
       </div></details>
       ${aboutSentinel('Over Aletsch we counted about 3 acquisitions a week and up to 4 (32, 33 and 41 days between 1 July and 20 September in 2023 to 2025). Clouds, shadow and fresh snow remove many of them.')}
       ${aboutColours()}
@@ -431,7 +452,7 @@ function aboutChaptersCh(){
 `;
 }
 function renderStory(){
-  if (REGION.id === 'is-vatnajokull') return renderStoryVatnajokull();      // js/07a-region-vatnajokull.js
+  if (REGION.rgi) return renderStoryIcecap();      // js/07a-region-icecaps.js
   const g = currentGlacier(); if (typeof updateRightTab === 'function') updateRightTab();
   { const a = document.getElementById('sizeLink'); if (a) a.href = sizeHref(g); }      // the size comparison opens with this glacier picked
   const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
@@ -563,12 +584,12 @@ const SOURCES = {
   mb:     () => `GLAMOS: Glaciological mass balance of single glaciers (Aletsch, Rhone, Corbassière, Findel), release 2025. ${lnk('https://doi.org/10.18750/massbalance.2025.r2025', 'doi:10.18750/massbalance.2025.r2025')}. Non-commercial use.`,
   radar:  () => `GLAMOS: Glacier ice thickness from ground-penetrating radar, release 2020. ${lnk('https://doi.org/10.18750/icethickness.2020.r2020', 'doi:10.18750/icethickness.2020.r2020')}. CC BY 4.0. Measured between 1958 and 2017, depending on the glacier.`,
   grab:   () => `Grab, M. et al. (2021), ${lnk('https://www.cambridge.org/core/journals/journal-of-glaciology/article/ice-thickness-distribution-of-all-swiss-glaciers-based-on-extended-groundpenetrating-radar-data-and-glaciological-modeling/CB6685222A664FD3FCE1367E2B5245D8', 'Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling')}, Journal of Glaciology 67(266). Modelled ice thickness and ice volume of Swiss glaciers around 2016, read from the ice thickness layer of ${lnk('https://map.geo.admin.ch', 'swisstopo')}. A model result, not a measurement.`,
-  landsat:() => `Landsat 5 and 7, Collection 2 Level-2 surface reflectance (30 m), courtesy of the ${lnk('https://www.usgs.gov/landsat-missions', 'U.S. Geological Survey')} (public domain), read through the ${lnk('https://planetarycomputer.microsoft.com/dataset/landsat-c2-l2', 'Microsoft Planetary Computer')}. One scene per year before 2016, chosen by the Sentinel-2 rules (clear, closest to 30 September); stripes of no data in Landsat 7 are filled along the ice flow (own processing).`,
+  landsat:() => `Landsat 5 and 7, Collection 2 Level-2 surface reflectance (30 m), courtesy of the ${lnk('https://www.usgs.gov/landsat-missions', 'U.S. Geological Survey')} (public domain), read through the ${lnk('https://planetarycomputer.microsoft.com/dataset/landsat-c2-l2', 'Microsoft Planetary Computer')}. One scene per year before 2016, chosen by the Sentinel-2 rules of the region (clear, closest to its target day: the end of the melt season); natural colour and the two false colour styles, made from the red, green, blue, near infrared and two shortwave infrared bands; stripes of no data in Landsat 7 are filled along the ice flow (own processing).`,
   s2:     () => `Copernicus Sentinel-2, Level-1C (pictures) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the ${lnk('https://dataspace.copernicus.eu', 'Copernicus Data Space Ecosystem')}. Product ids, tiles, times and sun elevation in the image metadata: its ${lnk('https://stac.dataspace.copernicus.eu/v1', 'STAC catalogue')}.`,
   terrain:() => `swissALTI3D © ${lnk('https://www.swisstopo.admin.ch', 'swisstopo')} (open government data), served as terrain tiles by ${lnk('https://mapterhorn.com/attribution', 'Mapterhorn')}. Peak names: swissNAMES3D © swisstopo.`,
   routes: () => `SchweizMobil route data of the Federal Roads Office (ASTRA), via ${lnk('https://map.geo.admin.ch', 'swisstopo geo.admin.ch')}; hiking trails: swissTLM3D © swisstopo.`,
   photos: () => `Historic photographs in the 3D view (eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel, Fee): ETH Library, Bildarchiv (${lnk('https://ba.e-pics.ethz.ch', 'e-pics')}), CC BY-SA 4.0 (each photo shows its own licence), the place and angles of the camera by volunteers on ${lnk('https://smapshot.heig-vd.ch', 'Smapshot')} (HEIG-VD).`,
-  streetview: () => `Street View panoramas (${REGION.id === 'ch' ? 'Aletsch' : 'Breiðamerkurjökull'}, map layer "Panoramas"): © ${lnk('https://www.google.com/maps', 'Google')}, shown in Google's own viewer (Maps Embed API), photographed by the contributor named in each panel. Nothing of them is stored here but the panorama ids. Google's ${lnk('https://policies.google.com/terms', 'terms')} and ${lnk('https://policies.google.com/privacy', 'privacy policy')} apply when a panorama is opened.`,
+  streetview: () => `Street View panoramas (${REGION.id === 'ch' ? 'Aletsch' : REGION.id === 'is-vatnajokull' ? 'Breiðamerkurjökull' : REGION.name}, map layer "Panoramas"): © ${lnk('https://www.google.com/maps', 'Google')}, shown in Google's own viewer (Maps Embed API), photographed by the contributor named in each panel. Nothing of them is stored here but the panorama ids. Google's ${lnk('https://policies.google.com/terms', 'terms')} and ${lnk('https://policies.google.com/privacy', 'privacy policy')} apply when a panorama is opened.`,
   bg:     () => `Background maps: Sentinel-2 cloudless ${BG_YEAR} by EOX (CC BY-NC-SA 4.0); map and place labels © OpenStreetMap contributors, labels rendered by EOX${REGION.id === 'ch' ? '; colour topographic map and swissALTI3D hillshade © swisstopo' : ''}.`,
   /* Iceland (Vatnajökull): the sources of the right panel and the 3D view; the keys start with is_ */
   is_rgi:    () => `Randolph Glacier Inventory 6.0 (RGI Consortium 2017), region 06 Iceland, via GLIMS: the drainage basin of the outlet, its length and heights, outlines from about 2000. ${lnk('https://doi.org/10.7265/N5-RGI-60', 'doi:10.7265/N5-RGI-60')}. Terms to be checked for anything beyond non-commercial use.`,
@@ -578,10 +599,15 @@ const SOURCES = {
   is_dem:    () => `ÍslandsDEM v1.0 (10 m, composite of ArcticDEM and lidar), © Náttúrufræðistofnun Íslands and Landmælingar Íslands, CC BY 4.0: the ground the strips are fitted to. ${lnk('https://ftp.natt.is/gisdata/raster/', 'ftp.natt.is')}, catalogue ${lnk('https://gatt.lmi.is', 'gatt.lmi.is')}.`,
   is_osm:    () => `OpenStreetMap contributors (ODbL): footpaths and tracks, peak and place names, via the ${lnk('https://overpass-api.de', 'Overpass API')}. ${lnk('https://www.openstreetmap.org/copyright', 'openstreetmap.org/copyright')}.`,
   is_wiki:   () => `Wikipedia, ${lnk('https://en.wikipedia.org/wiki/Brei%C3%B0amerkurj%C3%B6kull', 'Breiðamerkurjökull')} and ${lnk('https://en.wikipedia.org/wiki/J%C3%B6kuls%C3%A1rl%C3%B3n', 'Jökulsárlón')} (CC BY-SA 4.0): the name, the lagoon, the history and the news item, with the sources named there (Iceland on the web, Guðmundsson et al., BBC, Vísir, RÚV).`,
+  /* Norway and Svalbard, and the terrain of the regions that have no terrain file of their own */
+  no_nve:    () => `NVE, the Norwegian Water Resources and Energy Directorate: glacier inventory of mainland Norway 2018–2019 (outlines made from Sentinel-2 images, areas, lengths and heights of the glacier units; a glacier is the units that hang together). Andreassen, L. M. (2022), Breer og fonner i Norge, NVE Rapport 3-2022; Andreassen, L. M. et al. (2022), An inventory of Norway's glaciers and ice-marginal lakes from 2018–19 Sentinel-2 data, Journal of Glaciology 68(272), 1085–1106, ${lnk('https://doi.org/10.1017/jog.2022.20', 'doi:10.1017/jog.2022.20')}. Data: the map service Bre of NVE (${lnk('https://www.nve.no/hydrology/glaciers/', 'nve.no/hydrology/glaciers')}); NVE asks to cite these two publications. Terms to be checked for anything beyond non-commercial use. The area of Norway, 2,328 km², and the list of the ten largest glaciers are from NVE's glacier page.`,
+  no_old:    () => `NVE, glacier inventory of 1947–1985 (outlines from topographic maps and aerial photographs; the year of the outline differs by glacier), the layer Breflate_Historisk of the same map service. Used for the older outline and area.`,
+  sj_npi:    () => `Norwegian Polar Institute: glacier outlines of Svalbard, 1936–1972 (aerial photographs, mainly 1936, 1966 and 1971), 1990, 2001–2010 (SPOT-5, Landsat and ASTER images) and 2020 (Sentinel-2 mosaic): one polygon per glacier unit with the same ident in every epoch, the map service Isbreer – overflatetyper og utstrekning of ${lnk('https://geodata.npolar.no', 'geodata.npolar.no')}. Length and heights are of the 2001–2010 outlines. Terms to be checked for anything beyond non-commercial use.`,
+  mapterhorn:() => `Terrain tiles by ${lnk('https://mapterhorn.com/attribution', 'Mapterhorn')}, made from open elevation data: ÍslandsDEM v1.0 (10 m; Náttúrufræðistofnun Íslands, CC BY 4.0) over Iceland, the terrain models (DTM, 1 m) of Kartverket (CC BY 4.0) over Norway, and the S0 terrain model of Svalbard (20 m; Norwegian Polar Institute, CC BY 4.0) over Svalbard. The elevation model is older than the pictures.`,
   water:  () => `Swiss water supply of about 930 million m³ a year: SVGW (Swiss Gas and Water Industry Association). Other comparisons: Eiffel Tower 330 m with antennas (${lnk('https://www.toureiffel.paris', 'toureiffel.paris')}), football pitch 105 × 68 m, city bus about 12 m, Olympic pool 50 × 25 × 2 m, Lake Zurich 3.9 km³.`,
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`
 };
-const SOURCE_LIST = REGION.id === 'ch' ? Object.keys(SOURCES).filter(k => !k.startsWith('is_')) : ['is_rgi', 'is_imo', 'is_gudm', 's2', 'landsat', 'is_arctic', 'is_dem', 'is_osm', 'is_wiki', 'streetview', 'bg', 'me'];      // the sources of the region, in the order of the list in About
+const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj)_/.test(k));      // the sources of the region, in the order of the list in About
 /* a small raised number in the text; the click opens About, the chapter Sources and shows the entry (a back-link returns to the text) */
 let fnSeq = 0;
 /* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
@@ -1019,7 +1045,7 @@ function wireWater(){
 
 
 function renderOutlineControls(){
-  if (REGION.id === 'is-vatnajokull') {      // the Icelandic Met Office outlines of the ice cap, cut to the outlet: about 1890 and the newest
+  if (REGION.rgi) {      // the outlines of the region's institute, cut to the glacier: the old one and the newest
     document.getElementById('oldLabel').textContent = `Outline ${REGION.outlines.old}`; document.getElementById('newLabel').textContent = `Outline ${REGION.outlines.new}`;
     document.getElementById('vOutlineLabel').textContent = `Show ${REGION.outlines.old} outline`;
     document.getElementById('outlineNote').textContent = '';      // the sources and limits of the outlines are in About, not in the menu

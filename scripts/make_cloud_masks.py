@@ -170,6 +170,34 @@ def outline_mask(multipoly):
     return [[ring] for ring in thin], sum(ring_area(r[:-1]) for r in thin) / 1e6, full
 
 
+def merge_overlapping(polys):
+    """polygons ([ring] each) that overlap become one: the convex hull of the group (a MultiPolygon with overlapping parts is refused by Copernicus: COMMON_BAD_PAYLOAD)"""
+    info = []
+    for pg in polys:
+        r = pg[0]; xs = [q[0] for q in r]; ys = [q[1] for q in r]; info.append(((max(xs) + min(xs)) / 2, (max(ys) + min(ys)) / 2, (max(xs) - min(xs)) / 2))
+    parent = list(range(len(polys)))
+    def find(i):
+        while parent[i] != i: parent[i] = parent[parent[i]]; i = parent[i]
+        return i
+    for i in range(len(polys)):
+        for j in range(i + 1, len(polys)):
+            if math.hypot(info[i][0] - info[j][0], info[i][1] - info[j][1]) < info[i][2] + info[j][2]: parent[find(i)] = find(j)
+    groups = {}
+    for i in range(len(polys)): groups.setdefault(find(i), []).append(i)
+    def hull(pts):
+        pts = sorted(set(map(tuple, pts)))
+        cross = lambda o, a, b: (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
+        lo, up = [], []
+        for q in pts:
+            while len(lo) >= 2 and cross(lo[-2], lo[-1], q) <= 0: lo.pop()
+            lo.append(q)
+        for q in reversed(pts):
+            while len(up) >= 2 and cross(up[-2], up[-1], q) <= 0: up.pop()
+            up.append(q)
+        h = lo[:-1] + up[:-1]; return [list(q) for q in h] + [list(h[0])]
+    return [polys[g[0]] if len(g) == 1 else [hull([q for i in g for q in polys[i][0]])] for g in groups.values()]
+
+
 def tongue_circle(lat, lon, km=3, steps=48):
     cx, cy = merc(lon, lat)
     rad = km * 1000 / math.cos(math.radians(lat))
@@ -191,15 +219,23 @@ def main():
         out['glaciers'][g['id']] = {'name': g['name'], 'outline': mask, 'tongue': tongue_circle(tip[0], tip[1])}
         n = sum(len(p[0]) for p in mask)
         print(f"{g['id']:8} {g['name']:28} {n:4} vertices, area {a_simple:7.2f} km2 of {a_full:7.2f} km2 (outer rings), {len(json.dumps(mask))} characters")
-    # Iceland (Vatnajökull): the outlet's picture box (a square of 2 x half km) stands for the outline, the circle is around the tongue tip; both from data/vatnajokull.js
-    vj = os.path.join(ROOT, 'data', 'vatnajokull.js')
-    if os.path.exists(vj):
+    # The regions of ice caps (Vatnajökull, the rest of Iceland, Svalbard, mainland Norway): the outlet's picture box (a square of 2 x half km) stands for the outline, the circle is around the
+    # tongue tip; both from the region's data file (made by build_vatnajokull.py / build_regions.py)
+    for fname in ('vatnajokull.js', 'iceland.js', 'svalbard.js', 'norway.js'):
+        vj = os.path.join(ROOT, 'data', fname)
+        if not os.path.exists(vj): continue
         s2 = open(vj, encoding='utf-8').read()
         for o in json.loads(s2[s2.index('{'):s2.rindex('}') + 1])['outlets']:
-            dlat = o['half'] / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
+            if o.get('image'):      # a whole ice cap (build_cap_images.py): its picture area is the outline, and the circles are around the tip of every outlet
+                (s0, w0), (n0, e0) = o['image']['bounds']
+                ring = [list(merc(lo, la)) for la, lo in ((s0, w0), (s0, e0), (n0, e0), (n0, w0))]; ring.append(ring[0])
+                out['glaciers'][o['id']] = {'name': o['name'], 'outline': [[ring]], 'tongue': merge_overlapping([c[0] for c in (tongue_circle(sb['tip'][0], sb['tip'][1], steps=24) for sb in o['subs'])])}
+                print(f"{o['id']:20} {o['name']:28} picture area and {len(o['subs'])} tongue circles ({fname})")
+                continue
+            dlat = (o.get('halfH') or o['half']) / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
             ring = [list(merc(o['lon'] + sx * dlon, o['lat'] + sy * dlat)) for sx, sy in ((-1, -1), (1, -1), (1, 1), (-1, 1))]; ring.append(ring[0])
             out['glaciers'][o['id']] = {'name': o['name'], 'outline': [[ring]], 'tongue': tongue_circle(o['tip'][0], o['tip'][1])}
-            print(f"{o['id']:20} {o['name']:28} picture box and tongue circle (Iceland)")
+            print(f"{o['id']:20} {o['name']:28} picture box and tongue circle ({fname})")
     with open(os.path.join(ROOT, 'data', 'cloudmasks.json'), 'w', encoding='utf-8') as f:
         json.dump(out, f, separators=(',', ':'))
     print('wrote cloudmasks.json')

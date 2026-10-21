@@ -30,3 +30,24 @@ scripts/.streetview-ranked.json
 data/flow/
 scripts/build_flow.py
 scripts/.size-demo-cities.json
+scripts/.rgi-cache/
+scripts/.footprints-ch.json
+scripts/.landsat-overview.html
+scripts/.board-cache/
+
+# Landsat pictures (2,600+ files, 200 MB) and the 3D terrain of regions other than Switzerland: kept local until those regions go live
+data/landsat/
+data/terrain/[a-z]*.bin
+
+# the glacier checklist board and the review walk-through: local tooling
+.claude/
+docs/ADD_A_GLACIER.md
+data/review-signoffs.json
+scripts/board_*.py
+scripts/board_app.html
+scripts/audit_glaciers.py
+scripts/review_lib.py
+scripts/tools/review.html
+tests/test_board.py
+data/audit-exceptions.json
+_site/

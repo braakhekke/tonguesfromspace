@@ -21,7 +21,7 @@ const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v7'         // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v8'         // bump when scoring or rendering changes, to invalidate cached results
 };
 /* latest allowed day per year (MM-DD); default the end of the season (Switzerland 20 September). 2024: heavy snowfall on 15 September. */
 const LAST_DAY = { default: SEASON.find[1], ...SEASON.lastDay };
@@ -63,7 +63,8 @@ const isLandsat = sc => !!(sc && sc.sensor === 'landsat');
 const landsatName = sc => 'Landsat ' + String(sc.sat || '').replace(/\D/g, '');
 const LANDSAT_CREDIT = 'Landsat data courtesy of the <a href="https://www.usgs.gov/landsat-missions" target="_blank" rel="noopener">U.S. Geological Survey</a> (public domain), via the Microsoft Planetary Computer';
 const sensorName = sc => isLandsat(sc) ? landsatName(sc) : 'Sentinel-2';
-const styleLine = (style, sc) => { if (isLandsat(sc)) return `${landsatName(sc)} · natural color · 30 m pixels`; const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
+const LANDSAT_BANDS = { natural: 'red, green and blue', false1: 'near infrared, red and green', false2: 'near infrared and the two shortwave infrared bands' };
+const styleLine = (style, sc) => { if (isLandsat(sc)) return `${landsatName(sc)} · ${STYLE_NAME[style] || STYLE_NAME.natural} · 30 m pixels`; const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
 const IMAGE_COLLECTION = 'sentinel-2-l1c';
 function evalscriptFor(style, orbit){
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
@@ -199,7 +200,14 @@ const EXTRA_NORTH = [['findel', 0.15]];        // glaciers whose image reaches f
 const EXTRA_EW = [['rhone', 2000]];            // glaciers whose image is wider on both the west and the east side (metres)
 const EXTRA_EAST = [['aletsch', 3000]];        // glaciers whose image is wider on the east side only (metres); Aletsch: 20.4 -> 23.4 km = 2,340 px, still 10 m pixels
 function imageFootprint(g){
+  if (g.cap) return capFootprint(g);
   return imageBox(g.half ? g.box : imageMargins(g));      // Iceland: a square of fixed size around the centre, no margins to add
+}
+/* A whole ice cap (data `image`, scripts/build_cap_images.py): one picture area of the old and the new outline plus a margin, in equal tiles of at most 2,490 px that are asked for one by
+   one and stitched (loadCapImage). The area is bigger than the Process API's 2,500 px: w x h is the full picture at 10 m, `tiles` the requests. */
+function capFootprint(g){
+  const c = g.cap, bb = c.bbox, scale = c.pix / CDSE.groundRes;      // pix = Mercator metres per 10 m pixel
+  return {bounds: c.bounds, bbox: bb, w: c.w, h: c.h, statsRes: Math.round(CDSE.statsRes * scale), tiles: c.tiles, pix: c.pix};
 }
 function imageMargins(g){
   const b = g.extent ? padBounds(g.extent, IMAGE_MARGIN) : padBounds(g.bounds, 0.35);   // margin around the 1850 extent, for panning and video crops
@@ -226,13 +234,20 @@ function imageBox(b){
 const CRS3857 = 'http://www.opengis.net/def/crs/EPSG/0/3857';
 
 /* ---------- scene choice ---------- */
-function pickScene(days, yr){
+const SNOW_TIE = 0.02;      // share of snow (SCL class 11) below which two scenes of a whole ice cap count as equally snowy
+const SNOW_SLACK = 0.05;      // every other glacier of a region that picks the scene nearest to a target day: a scene may have at most this much more snow (share of the picture) than the least snowy qualifying scene of its year
+function pickScene(days, yr, wholeCap){
   if (SEASON.pick === 'target') {      // the clear scene closest to the target day (Iceland: 30 September, the end of the melt season), else the least cloudy one
     const target = Date.parse(`${yr}-${SEASON.target}`), away = d => Math.abs(Date.parse(d.date) - target);
-    const clear = days.filter(d => d.cloud <= CDSE.maxCloud).sort((a, b) => away(a) - away(b));
+    let clear = days.filter(d => d.cloud <= CDSE.maxCloud).sort((a, b) => away(a) - away(b));
+    /* A whole ice cap is scored with its highlands: the clear scene nearest to the target day can come after the first autumn snow (Hofsjökull 2020, 2022). There the end of the melt
+       season is the clear scene with the least snow; scenes within 2 % of that snow share count as equal, and the one nearest to the target day wins. */
+    const lessSnow = list => { const low = Math.min(...list.map(d => d.snow)); return list.filter(d => d.snow <= low + (wholeCap ? SNOW_TIE : SNOW_SLACK)); };      // a late scene under the first autumn snow loses against an earlier bare one, though it lies nearer to the target day (Eyjafjallajökull 2020, 2022, 2026)
+    if (clear.length) clear = lessSnow(clear);
     if (clear.length) return {...clear[0], clear:true};
-    const rest = days.filter(d => d.cloud <= CDSE.fallbackCloud).sort((a, b) => (a.cloud - b.cloud) || (away(a) - away(b)));
-    return rest.length ? {...rest[0], clear:false} : null;
+    const rest = days.filter(d => d.cloud <= CDSE.fallbackCloud), restL = rest.length ? lessSnow(rest) : rest;
+    restL.sort((a, b) => (a.cloud - b.cloud) || (away(a) - away(b)));
+    return restL.length ? {...restL[0], clear:false} : null;
   }
   const best = list => list.slice().sort((a, b) => (a.snow - b.snow) || (a.cloud - b.cloud) || b.date.localeCompare(a.date))[0];
   for (const m of CDSE.months) {
@@ -249,7 +264,7 @@ function pickScene(days, yr){
 function unifyOrbit(g, avail){
   const results = YEARS.map(y => ({y, scene: avail[y], days: sceneDays.get(g.id + '|' + y) || []})).filter(r => (r.scene || r.days.length) && !isLandsat(r.scene));      // the Landsat years have no orbit
   const orbits = [...new Set(results.flatMap(r => r.days.map(d => d.orbit)))];
-  const pick = (r, orb) => r.scene && r.scene.curated ? (r.scene.orbit === orb ? r.scene : null) : pickScene(r.days.filter(d => d.orbit === orb), r.y);
+  const pick = (r, orb) => r.scene && r.scene.curated ? (r.scene.orbit === orb ? r.scene : null) : pickScene(r.days.filter(d => d.orbit === orb), r.y, !!g.cap);
   const score = orb => { const got = results.map(r => pick(r, orb)).filter(Boolean); return {orb, n: got.length, cloud: got.reduce((a, d) => a + d.cloud, 0)}; };
   const best = orbits.map(score).sort((a, b) => (b.n - a.n) || (a.cloud - b.cloud))[0], off = [];
   results.forEach(r => { const sc = best && pick(r, best.orb) || r.scene; avail[r.y] = sc; if (sc && best && sc.orbit !== best.orb) off.push(r.y); });
@@ -264,12 +279,12 @@ async function curatedScene(g, yr){
   return p && /^\d{4}-\d{2}-\d{2}$/.test(p.date) && /^R\d{3}$/.test(p.orbit || '') ? {date: p.date, orbit: p.orbit, cloud: 0, snow: 0, clear: true, curated: true} : null;
 }
 const summerStarted = yr => yr < CURRENT_YEAR || new Date() >= new Date(`${yr}-${SEASON.find[0]}T00:00:00Z`);      // the search window of a year opens on 1 July (Iceland 1 August)
-/* Landsat years: the scenes were chosen when the pictures were made (scripts/build_landsat_iceland.py: the same rules as the Sentinel-2 season), one per year in data/landsat/<outlet>.json */
+/* Landsat years: the scenes were chosen when the pictures were made (scripts/build_landsat.py: the same rules as the Sentinel-2 season), one per year in data/landsat/<outlet>.json */
 const landsatFiles = new Map();      // glacier id -> promise of its file, null where there is none
 const landsatFile = g => { if (!landsatFiles.has(g.id)) landsatFiles.set(g.id, fetch(asset(`data/landsat/${g.id}.json`), ASSETS[`data/landsat/${g.id}.json`] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null)); return landsatFiles.get(g.id); };
 async function landsatScene(g, yr){
   const f = await landsatFile(g), s = f && f.scenes && f.scenes[yr]; if (!s) return null;
-  return {...s, sensor: 'landsat', cover: s.cover == null ? 1 : s.cover, file: asset(`data/landsat/${g.id}/${yr}.jpg`), bbox: f.bbox};
+  return {...s, sensor: 'landsat', cover: s.cover == null ? 1 : s.cover, file: asset(`data/landsat/${g.id}/${yr}.jpg`), files: {natural: asset(`data/landsat/${g.id}/${yr}.jpg`), false1: asset(`data/landsat/${g.id}/${yr}.false1.jpg`), false2: asset(`data/landsat/${g.id}/${yr}.false2.jpg`)}, bbox: f.bbox};
 }
 async function findScene(g, yr){
   if (yr < FIRST_YEAR) return REGION.landsat ? landsatScene(g, yr) : null;
@@ -296,7 +311,7 @@ async function findScene(g, yr){
           return valid > 0 && orb ? { date, orbit: 'R' + String(orb).padStart(3, '0'), cloud: m('cloud' + k) / valid, snow: m('snow' + k) / valid, cover: valid } : null; }).filter(Boolean);
       } catch { return []; }
     }).filter(d => d.date.slice(5) <= lastDay(yr) && Number.isFinite(d.cloud) && Number.isFinite(d.snow) && d.cover >= CDSE.minCover);
-    const scene = pickScene(days, yr);
+    const scene = pickScene(days, yr, !!g.cap);
     sceneDays.set(dk, days);
     idb.set(key, SEASON.oneOrbit ? {scene, days, savedAt: Date.now()} : {scene, savedAt: Date.now()});
     return scene;
@@ -311,15 +326,16 @@ async function findScene(g, yr){
    (the bottom 3 km window, at most 1 %). Two statistics requests per glacier and day, which the relay keeps for one day. The two areas come from
    cloudmasks.json (made by scripts/make_cloud_masks.py). Chosen, the scene replaces the scene of its year until the visitor picks a year, leaves
    the One year mode or changes glacier; so everything that works with years (download, glacier facts, credits) keeps working. */
-const LATEST = { days: 60, maxCloudOutline: 0.30, maxCloudTongue: 0.01, minCover: 0.97 };
+const LATEST = { days: 60, maxCloudOutline: 0.30, maxCloudTongue: 0.01, maxCloudTongueCap: 0.03, minCover: 0.97 };      // a whole ice cap: the circles are around the tip of every outlet, 3 % of all of them
 let masksFile = null;
 const MASKS = () => masksFile || (masksFile = fetch(asset('data/cloudmasks.json'), ASSETS['data/cloudmasks.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null));      // 120 kB, fetched when "Latest" is first used
 async function cloudByDay(area, from, to, label){
   const pts = area.flat(2), xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  const res = Math.max(40, Math.ceil(Math.max(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / 2400));      // 40 m pixels, coarser where the area would exceed the Process API's 2,500 px (a big ice cap; far north a Mercator metre is long)
   const j = await (await cdse('statistics', {
     input: { bounds: { bbox: [Math.min(...xs), Math.min(...ys), Math.max(...xs), Math.max(...ys)], properties: { crs: CRS3857 }, geometry: { type: 'MultiPolygon', coordinates: area } },
              data: [{ type: CDSE.collection, dataFilter: { mosaickingOrder: 'leastCC' } }] },
-    aggregation: { timeRange: { from, to }, aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: 40, resy: 40 }
+    aggregation: { timeRange: { from, to }, aggregationInterval: { of: 'P1D' }, evalscript: SCENE_EVALSCRIPT, resx: res, resy: res }
   }, 'application/json', label)).json();
   const rows = (j.data || []).flatMap(d => {          // per day up to two scenes, one for each orbit; cover = the share of the area that this orbit's scene covers
     try {
@@ -344,7 +360,7 @@ async function findLatest(g){
     const [outline, tongue] = await Promise.all([cloudByDay(m.outline, from, to, `${g.name}, latest scene`), cloudByDay(m.tongue, from, to, `${g.name}, tongue`)]);
     const tg = new Map(tongue.map(c => [c.date + '|' + c.orbit, c]));
     const ok = outline.filter(o => { const c = tg.get(o.date + '|' + o.orbit);
-      return c && o.cover >= LATEST.minCover && o.cloud <= LATEST.maxCloudOutline && c.cover >= LATEST.minCover && c.cloud <= LATEST.maxCloudTongue; })
+      return c && o.cover >= LATEST.minCover && o.cloud <= LATEST.maxCloudOutline && c.cover >= LATEST.minCover && c.cloud <= (g.cap ? LATEST.maxCloudTongueCap : LATEST.maxCloudTongue); })
       .sort((a, b) => b.date.localeCompare(a.date) || a.cloud - b.cloud);
     const scene = ok.length ? { date: ok[0].date, orbit: ok[0].orbit, cloud: ok[0].cloud, snow: 0, clear: true, latest: true } : null;
     idb.set(key, {scene, savedAt: Date.now()});
@@ -387,12 +403,62 @@ async function showLatest(){
 let pending = 0, pendingLs = 0, active = 0; const queue = [];      // pictures on their way: from Copernicus, and Landsat files of this site
 const runQueue = () => { while (active < 3 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
 const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
-const imageKey = (g, yr, fp, strip) => { const sc = state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${g.id}|${sc.date}|${sc.id}` : `${CDSE.version}|img|${(STYLE_BANDS[state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}`; };      // a Landsat picture is one file whatever the colour style or the strip
+const imageKey = (g, yr, fp, strip, level) => { const sc = state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${state.style}|${g.id}|${sc.date}|${sc.id}` : `${CDSE.version}|img|${(STYLE_BANDS[state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}${level && level !== 1 ? '|L' + level : ''}`; };      // a Landsat picture is one file whatever the colour style or the strip
 const footprintRes = g => { const fp = imageFootprint(g), bb = fp.bbox; return Math.max((bb[2] - bb[0]), (bb[3] - bb[1]) * fp.w / fp.h) / fp.w * Math.cos(Math.atan(Math.sinh((bb[1] + bb[3]) / 2 / 6378137))); };      // ground metres per pixel of the picture of the whole glacier area (10 unless it was cut down to the 2,500 px limit)
 const imageHere = (g, yr) => isLandsat(state.available[yr]) || (footprintRes(g) <= CDSE.groundRes * 1.02 && memCache.has(imageKey(g, yr, imageFootprint(g), false)));      // a Landsat picture is the whole picture box in one file: the 3D view cuts its strip out of it      // the whole picture is already on its way or here, and has the full resolution
-function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip picture for the 3D view (stripImageSpec); without it the picture of the whole glacier area, as the map shows it
+/* The memory budget of a cap picture (a whole ice cap, 18 megapixels at 10 m for Hofsjökull = 70 MB decoded, and a phone's canvas holds 16.7 megapixels): a timelapse keeps one picture per
+   year, so it and every small device get half the resolution (20 m), a single year or a comparison on a computer the full 10 m. `level` is the share of the full resolution. */
+const smallDevice = () => matchMedia('(pointer: coarse)').matches || innerWidth < 800 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
+const capLevel = () => state.mode === 'timelapse' || smallDevice() ? 0.5 : 1;
+/* The picture of a whole ice cap: its tiles (g.cap.tiles, each at most 2,490 px, the same requests for every visitor so the relay's cache serves them) are asked for one by one at the
+   same scene and drawn side by side into one picture, so the rest of the page sees one image per year as everywhere else. */
+function loadCapImage(g, yr, fp, level){
+  const sc = state.available[yr], style = state.style, key = imageKey(g, yr, fp, false, level);
+  if (memCache.has(key)) return memCache.get(key);
+  const p = (async () => {
+    const hit = await idb.get(key);
+    if (hit instanceof Blob) return URL.createObjectURL(hit);
+    pending++; const prog = {level, done: 0, total: fp.tiles.length}; capLoads.add(prog); setLoading();
+    try {
+      const [x0, , , y1] = fp.bbox, t0 = fp.tiles[0], tw = Math.round(t0[4] * level), th = Math.round(t0[5] * level), twM = t0[2] - t0[0];
+      const nx = Math.round((fp.bbox[2] - x0) / twM), ny = fp.tiles.length / nx, cv = document.createElement('canvas'); cv.width = nx * tw; cv.height = ny * th;
+      const ctx = cv.getContext('2d');
+      await Promise.all(fp.tiles.map(t => queued(() => cdse('process', {
+        input: { bounds: { bbox: t.slice(0, 4), properties: { crs: CRS3857 } },
+                 data: [{ type: IMAGE_COLLECTION, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }] },
+        output: { width: tw, height: th, responses: [{ identifier:'default', format:{ type:'image/jpeg' } }] },
+        evalscript: evalscriptFor(style, sc.orbit)
+      }, 'image/jpeg', `${g.name}, ${fmtDate(sc.date)}`).then(r => r.blob()).then(b => createImageBitmap(b))).then(bmp => {
+        ctx.drawImage(bmp, Math.round((t[0] - x0) / twM) * tw, (ny - 1 - Math.round((t[1] - fp.bbox[1]) / (t[3] - t[1]))) * th, tw, th); if (bmp.close) bmp.close();
+        prog.done++; setLoading();
+      })));
+      const blob = await new Promise((res, rej) => cv.toBlob(b => b ? res(b) : rej(new Error('The picture of the ice cap could not be put together.')), 'image/jpeg', 0.92));
+      idb.set(key, blob);
+      return URL.createObjectURL(blob);
+    } finally { pending--; capLoads.delete(prog); setLoading(); }
+  })();
+  memCache.set(key, p);
+  p.catch(() => memCache.delete(key));
+  return p;
+}
+/* A cap's picture comes in two steps on a computer (single year, comparison): a 40 m copy at once, the 10 m picture when the map is zoomed in far enough for 40 m pixels to show
+   (CAP_FINE_MPP: ground metres per screen pixel below which the preview looks coarse) or straight away if it already is. capWaiting = the picture layers that still show the preview and
+   wait for zoom; capLoads = the tile loads on their way, for the status line. */
+const CAP_FINE_MPP = 30;
+const capWaiting = new Set(), capLoads = new Set();
+const capWantsFine = () => 156543.03 * Math.cos(map.getCenter().lat * Math.PI / 180) / 2 ** map.getZoom() / (devicePixelRatio || 1) < CAP_FINE_MPP;
+function capCheckFine(){          // after a zoom: the layers that were waiting get their 10 m picture now
+  let changed = false;
+  for (const ov of [...capWaiting]) {
+    if (!ov._map) { capWaiting.delete(ov); changed = true; }
+    else if (capWantsFine()) { capWaiting.delete(ov); ov._loadFine(); changed = true; }
+  }
+  if (changed) setLoading();
+}
+function loadImage(g, yr, strip, level){            // strip: {bbox, w, h} of a strip picture for the 3D view (stripImageSpec); without it the picture of the whole glacier area, as the map shows it; level: a cap's share of the full resolution
   const sc = state.available[yr], style = state.style, fp = isLandsat(sc) ? imageFootprint(g) : strip || imageFootprint(g);      // Landsat: always the whole picture box, drawn in the same Mercator box as the Sentinel-2 pictures
   strip = isLandsat(sc) ? null : strip;
+  if (fp.tiles && !strip && !isLandsat(sc)) return loadCapImage(g, yr, fp, level || capLevel());
   const key = imageKey(g, yr, fp, !!strip);
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
@@ -400,7 +466,7 @@ function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip p
     if (hit instanceof Blob) return URL.createObjectURL(hit);
     const ls = isLandsat(sc); if (ls) pendingLs++; else pending++; setLoading();
     try {
-      if (isLandsat(sc)) { const blob = await queued(() => fetch(sc.file).then(r => { if (!r.ok) throw new Error(`The Landsat picture of ${yr} could not be loaded (HTTP ${r.status}).`); return r.blob(); })); idb.set(key, blob); return URL.createObjectURL(blob); }
+      if (isLandsat(sc)) { const blob = await queued(() => fetch((sc.files && sc.files[style]) || sc.file).then(r => { if (!r.ok) throw new Error(`The Landsat picture of ${yr} could not be loaded (HTTP ${r.status}).`); return r.blob(); })); idb.set(key, blob); return URL.createObjectURL(blob); }
       const blob = await queued(() => cdse('process', {
         input: { bounds: { bbox: fp.bbox, properties: { crs: CRS3857 } },
                  data: [{ type: IMAGE_COLLECTION, dataFilter: { timeRange: { from:`${sc.date}T00:00:00Z`, to:`${sc.date}T23:59:59Z` }, mosaickingOrder: 'leastCC' }, processing: { upsampling: 'BILINEAR' } }] },   // bilinear: smooth 20 and 60 m bands
@@ -417,7 +483,8 @@ function loadImage(g, yr, strip){            // strip: {bbox, w, h} of a strip p
 }
 function setLoading(){
   if (!state.checked) return;
-  const parts = [pending && `${pending} satellite image${pending > 1 ? 's' : ''} from Copernicus`, pendingLs && `${pendingLs} Landsat image${pendingLs > 1 ? 's' : ''}`].filter(Boolean);
+  const caps = [...capLoads], fine = caps.filter(p => p.level === 1), plain = pending - fine.length;      // plain: Copernicus pictures other than the 10 m picture of an ice cap, which shows its tiles
+  const parts = [plain > 0 && `${plain} satellite image${plain > 1 ? 's' : ''} from Copernicus`, fine.length && `the 10 m picture of the ice cap (${fine.reduce((a, p) => a + p.done, 0)} of ${fine.reduce((a, p) => a + p.total, 0)} tiles)`, pendingLs && `${pendingLs} Landsat image${pendingLs > 1 ? 's' : ''}`].filter(Boolean);
   setStatus(parts.length ? `Loading ${parts.join(' and ')}…` : statusLine());
 }
 /* The products behind a scene (image id, satellite, tile, time, sun): the public Copernicus STAC catalogue, open to browsers, no relay and no login.

@@ -97,7 +97,7 @@ body.sheet-open{overflow:hidden}
 .swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .sw{border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:5px 5px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:12px;font-weight:600;color:var(--rock)}
 .yr-range{padding:2px 4px 0}
-.yr-vals{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--moraine)}
+.yr-vals{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--moraine);padding:0 14%}      /* the two years sit a little in from the ends, nearer the "to" in the middle */
 .yr-vals b{font-size:12px;font-weight:600;color:var(--rock);font-variant-numeric:tabular-nums}
 .yr-track{position:relative;height:30px}
 .yr-track::before{content:'';position:absolute;left:0;right:0;top:13px;height:4px;border-radius:2px;background:var(--rule)}
@@ -735,7 +735,8 @@ sup.fn a:hover{opacity:.7}
 .vs-opts .fk{display:flex;align-items:center;gap:8px}
 .vs-guide{font-size:11px!important;line-height:1.35!important;color:var(--moraine)}
 .is-framing:not(.is-cmp-image) .divider,.is-framing:not(.is-cmp-image) .handle,.is-framing .layerbox,.is-framing .year-tag,.is-framing .mapbar .mtool{visibility:hidden}
-.video-sheet{position:fixed;left:16px;bottom:16px;z-index:2000;width:min(300px,calc(100% - 32px));max-height:calc(100% - 32px);overflow-y:auto;background:var(--sheet);border-radius:12px;box-shadow:0 8px 32px rgba(0,0,0,.35);padding:12px 14px 14px;display:flex;flex-direction:column;gap:8px}
+.video-sheet{position:fixed;top:0;right:0;bottom:0;z-index:2000;width:340px;max-width:100%;overflow-y:auto;background:var(--sheet);border-left:1px solid var(--rule);box-shadow:-10px 0 32px rgba(0,0,0,.22);padding:16px 18px 18px;display:flex;flex-direction:column;gap:8px;animation:sheetIn .25s ease}      /* desktop: a fixed panel on the right edge, full height, over the story (or over the map where the story is folded away); the frame sits in the map between the left panel and this panel (visibleBox). Fades in, no slide: the frame is placed from its box */
+@keyframes sheetIn{from{opacity:0}to{opacity:1}}
 .video-sheet .hint{margin:0;font-size:11.5px;line-height:1.4}
 .video-sheet .segment button{padding:5px 2px;font-size:13px;line-height:1.2}
 .video-sheet .segment button{white-space:normal}
@@ -744,6 +745,7 @@ sup.fn a:hover{opacity:.7}
 .vs-note{margin:0}
 .video-sheet.is-swipe .vo-tl{display:none}
 .video-sheet.is-3d .vs-area{display:none}
+.video-sheet.is-3d #vfBox{display:none}
 .is-framing #map{background:radial-gradient(1.2px 1.2px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 47% 61%,#cfe3ff,transparent),radial-gradient(1.6px 1.6px at 78% 18%,#fff,transparent),radial-gradient(1px 1px at 31% 84%,#fff,transparent),radial-gradient(1.3px 1.3px at 90% 72%,#ffe9c4,transparent),radial-gradient(.9px .9px at 64% 40%,#fff,transparent),#070b14;background-size:230px 230px}
 .video-sheet:not(.is-3d) .vo-3d{display:none}
 .is-3d .video-frame{z-index:710}
@@ -822,7 +824,7 @@ sup.fn a:hover{opacity:.7}
   .measure-hint{top:56px;font-size:12.5px;padding:4px 5px 4px 10px;gap:6px;flex-wrap:nowrap;max-width:calc(100% - 16px)}
   .measure-hint #measureText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .measure-hint button{min-height:30px;padding:3px 10px;font-size:12.5px;flex:none}
-  .video-sheet{left:0;right:0;bottom:0;width:100%;max-height:44dvh;border-radius:14px 14px 0 0;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:6px}
+  .video-sheet{top:auto;left:0;right:0;bottom:0;width:100%;max-height:44dvh;border-left:0;border-radius:14px 14px 0 0;animation:none;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:6px}
   .video-sheet .vs-help{display:none}
   .vs-opts{grid-template-columns:1fr 1fr;column-gap:10px}
   .vs-opts .toggle{min-height:30px;font-size:13px}
@@ -865,7 +867,7 @@ sup.fn a:hover{opacity:.7}
   .app.more-open .leaflet-control-scale{margin-bottom:130px!important}
   .year-tag{max-width:calc(50% - 16px)}
   .year-tag small{font-size:10.5px;line-height:1.25}
-  .video-sheet{left:auto;right:0;bottom:0;width:42vw;border-radius:14px 0 0 0}
+  .video-sheet{top:auto;left:auto;right:0;bottom:0;width:42vw;max-height:100%;border-radius:14px 0 0 0}
 }
 
 /* Phones: the layer box scrolls, so its title and chevron stay pinned at the top, and a soft fade with a chevron at the bottom shows that more items follow */

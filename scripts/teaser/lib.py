@@ -43,6 +43,8 @@ class Rec:
     def save(self, outdir, fps=30):
         """Writes the frames and an ffmpeg concat list with their real durations; returns (frames, seconds)."""
         shutil.rmtree(outdir, ignore_errors=True); os.makedirs(outdir)
+        if len(self.frames) > 3:
+            self.frames = self.frames[1:]      # the first frame of a screencast is the last picture drawn before it started: it can be a stale state (other zoom, panel not scrolled yet)
         ts = [t for t, _ in self.frames]
         for i, (_, b) in enumerate(self.frames):
             with open(f"{outdir}/{i:05d}.jpg", "wb") as f:

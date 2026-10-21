@@ -38,11 +38,19 @@ const IMAGES = 'sentinel-2-l1c';                                  // the images 
 const MOSAIC = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';     // Sentinel-2 quarterly cloudless mosaics (background)
 /* The regions this relay serves (js/00-regions.js of the page names the same ones). A request must lie inside one of them:
    ch               Switzerland, a box with a margin; scene search from 1 July (see checkStatistics)
-   is-vatnajokull   Iceland, Vatnajökull: the picture of the outlet Breiðamerkurjökull (a square of 24 km around its centre), within ICELAND_KM of the centre;
-                    scene search from 1 August to 15 October of a year. Add an outlet: its centre goes into CENTRES. */
+   is               Iceland (Vatnajökull and the rest of Iceland): the pictures of the glaciers (a square of up to 25 km around the centre of each), within NEAR_KM of a centre in CENTRES.is;
+                    scene search from 1 August to 15 October of a year
+   no               mainland Norway, centres in CENTRES.no; scene search from 20 July to 30 September
+   sj               Svalbard, centres in CENTRES.sj; scene search from 20 July to 15 September
+   Add a glacier: its centre goes into CENTRES (scripts/sync_worker_centres.py rewrites the block from the data files of the regions). */
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin
-const CENTRES = [[-16.305, 64.095]];                                // [lon, lat] of the picture boxes of the outlets of Vatnajökull: Breiðamerkurjökull
-const ICELAND_KM = 25;                                              // a picture box must have its centre this close to an outlet centre (the box is 24 km a side)
+/*centres:begin*/
+const CENTRES = {is: [[-16.305, 64.095], [-17.2692, 64.04367], [-15.9551, 64.7174], [-16.7523, 64.7885], [-17.8352, 64.1189], [-17.8858, 64.5391], [-18.0847, 64.2824], [-15.7546, 64.286], [-15.5011, 64.4603], [-16.7927, 64.0086], [-17.9539, 64.4234], [-15.626, 64.3458], [-19.9665, 64.6602], [-18.8128, 64.8066], [-18.57765, 64.70779], [-19.16095, 64.78865], [-19.14791, 64.72088], [-18.68032, 64.6432], [-18.87029, 64.65479], [-19.00264, 64.9442], [-18.58177, 64.95442], [-18.5011, 64.91821], [-18.75551, 64.96806], [-19.2979, 63.5523], [-22.2284, 66.1443], [-19.6245, 63.6397], [-17.9255, 64.7576], [-20.7035, 64.548], [-20.384, 64.7838], [-14.922, 64.7058], [-19.5591, 63.7972]],
+  no: [[7.012, 61.6268], [13.8208, 66.6556], [6.3512, 60.0407], [14.1148, 66.5559], [16.0328, 67.2777], [7.3779, 60.5386], [6.6955, 61.6699], [14.2625, 66.013], [22.0389, 70.1838], [6.4638, 60.2009]],
+  sj: [[25.5039, 79.4026], [23.0066, 79.2887], [19.0331, 78.5869], [19.0797, 79.0808], [31.8117, 80.095], [22.0243, 79.7483], [24.0524, 77.7381], [20.2653, 78.9043], [24.9426, 80.2024], [12.5089, 79.4851]]};          // [lon, lat] of the picture boxes of the glaciers of each region (scripts/sync_worker_centres.py)
+/*centres:end*/
+const SEASONS = {is: {from: '-08-01', last: '-10-16'}, no: {from: '-07-20', last: '-10-01'}, sj: {from: '-07-20', last: '-09-16'}};      // the scene search of a year: its first day, and the day after its last (statistics requests end there)
+const NEAR_KM = 25;                                                 // a picture box must have its centre this close to a glacier's centre (the box is up to 25 km a side)
 const MAX_PX = 2500;
 const MAX_BODY = 20000;                                             // characters; the dashboard's own requests are under 5,000
 const FIRST_YEAR = 2016, lastYear = () => new Date().getUTCFullYear();   // Sentinel-2 images in the dashboard start in 2016
@@ -173,12 +181,13 @@ function km(lon1, lat1, lon2, lat2) {                                // distance
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(dLon / 2) ** 2;
   return 12742 * Math.asin(Math.sqrt(a));
 }
-function nearOutlet([w, s, e, n]) {
-  if (![w, s, e, n].every(Number.isFinite) || !(w < e && s < n) || e - w > 1 || n - s > 1) return false;   // under about 110 km across
+function nearOutlet([w, s, e, n]) {      // the region (is, no, sj) whose glacier centre lies near the box, or null
+  if (![w, s, e, n].every(Number.isFinite) || !(w < e && s < n)) return null;
   const lon = (w + e) / 2, lat = (s + n) / 2;
-  return CENTRES.some(([x, y]) => km(lon, lat, x, y) <= ICELAND_KM);
+  if ((e - w) * 111.32 * Math.cos(lat * Math.PI / 180) > 110 || (n - s) * 111.32 > 110) return null;   // under about 110 km across (a degree of longitude is short in Svalbard)
+  return Object.keys(CENTRES).find(r => CENTRES[r].some(([x, y]) => km(lon, lat, x, y) <= NEAR_KM)) || null;
 }
-const regionOf = bb => insideSwitzerland(bb) ? 'ch' : nearOutlet(bb) ? 'is-vatnajokull' : null;
+const regionOf = bb => insideSwitzerland(bb) ? 'ch' : nearOutlet(bb);
 const regionOfInput = inp => {      // the region of a request's box (checkBounds has already accepted it)
   let bb = inp.bounds.bbox.map(Number);
   if (/3857/.test((inp.bounds.properties && inp.bounds.properties.crs) || '')) { const [w, s] = mercToLonLat(bb[0], bb[1]), [e, n] = mercToLonLat(bb[2], bb[3]); bb = [w, s, e, n]; }
@@ -194,7 +203,7 @@ function checkBounds(inp, collections = [COLLECTION]) {
   let bb = inp.bounds.bbox.map(Number);
   if (/3857/.test(crs)) { const [w, s] = mercToLonLat(bb[0], bb[1]), [e, n] = mercToLonLat(bb[2], bb[3]); bb = [w, s, e, n]; }
   else if (crs && !/4326|CRS84/.test(crs)) return 'coordinate system';
-  if (!regionOf(bb)) return 'area outside Switzerland and the outlets of Vatnajökull';
+  if (!regionOf(bb)) return 'area outside Switzerland and the glaciers of the other regions';
   if (!geometryInside(inp.bounds.geometry, inp.bounds.bbox.map(Number))) return 'polygon outside its box';
   if (!Array.isArray(inp.data) || inp.data.length !== 1 || !collections.includes(inp.data[0].type)) return 'data collection';
   return null;
@@ -231,11 +240,12 @@ function checkProcess(b) {
 function checkStatistics(b) {
   const bad = checkBounds(b && b.input); if (bad) return bad;
   const ag = b.aggregation;
-  if (regionOfInput(b.input) === 'is-vatnajokull') {      // the season of a year, 1 August to 15 October (a season that is still running ends today)
-    const tr = ag && ag.timeRange, re = /^\d{4}-\d{2}-\d{2}T00:00:00Z$/;
-    if (!tr || !re.test(tr.from) || !re.test(tr.to) || !yearOk(tr.from.slice(0, 4)) || tr.from.slice(4) !== '-08-01T00:00:00Z' || tr.to.slice(0, 4) !== tr.from.slice(0, 4) ||
-        tr.to <= tr.from || tr.to > tr.from.slice(0, 4) + '-10-16T00:00:00Z' || Date.parse(tr.to) > Date.now() + 2 * DAY_MS) {
-      if (!rollingWindow(tr)) return 'period (1 August to 15 October of a year, or the last 75 days)';      // the "Latest" image: the last weeks, any month
+  const reg = regionOfInput(b.input);
+  if (reg !== 'ch') {      // the season of a year (Iceland 1 August to 15 October, Norway 20 July to 30 September, Svalbard 20 July to 15 September; a season that is still running ends today)
+    const S = SEASONS[reg], tr = ag && ag.timeRange, re = /^\d{4}-\d{2}-\d{2}T00:00:00Z$/;
+    if (!tr || !re.test(tr.from) || !re.test(tr.to) || !yearOk(tr.from.slice(0, 4)) || tr.from.slice(4) !== S.from + 'T00:00:00Z' || tr.to.slice(0, 4) !== tr.from.slice(0, 4) ||
+        tr.to <= tr.from || tr.to > tr.from.slice(0, 4) + S.last + 'T00:00:00Z' || Date.parse(tr.to) > Date.now() + 2 * DAY_MS) {
+      if (!rollingWindow(tr)) return 'period (the season of a year in this region, or the last 75 days)';      // the "Latest" image: the last weeks, any month
     }
     return statisticsRest(b);
   }
@@ -258,7 +268,7 @@ function statisticsRest(b) {      // the checks of a scene search that do not de
 function ttlFor(route, body) {
   if (route === 'process') return 180 * DAY;
   const tr = body.aggregation.timeRange;
-  if (!/^\d{4}-0[78]-01T00:00:00Z$/.test(tr.from)) return DAY;       // a rolling window ("latest image") changes every day
+  if (!/^\d{4}-(0[78]-01|07-20)T00:00:00Z$/.test(tr.from)) return DAY;       // a rolling window ("latest image") changes every day
   const year = +tr.from.slice(0, 4);
   return year < new Date().getUTCFullYear() ? 180 * DAY : DAY;
 }

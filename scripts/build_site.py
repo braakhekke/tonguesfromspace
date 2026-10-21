@@ -35,9 +35,12 @@ HASH_LEN = 10
 
 HTML_FILES = ["index.html", "gallery.html", "size.html"]
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
+PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for mainland Norway and Svalbard
+PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
+GROUP_ON = {"iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
 PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml"]                 # copied as they are (missing ones are skipped)
-PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg"]
-HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/trails-is.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
+HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -93,15 +96,38 @@ def split_glaciers(out, assets):
 
 SITE = "https://tonguesfromspace.org"
 # What differs on the page of a region with its own address. Keys are the texts of index.html that are replaced (each must be found).
+REGION_GROUP = {"is-vatnajokull": "iceland", "is-rest": "iceland", "no-mainland": "norway", "no-svalbard": "norway"}
 REGION_PAGES = [
-    {"path": "iceland/vatnajokull", "canonical": "iceland/vatnajokull/",
+    {"path": "iceland/vatnajokull", "canonical": "iceland/vatnajokull/", "group": "iceland",
      "title": "Tongues from Space | Vatnajökull, Iceland",
      "description": "Explore the outlet glaciers of Vatnajökull, Iceland’s largest ice cap, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
      "og_title": "Tongues from Space - Vatnajökull, Iceland",
-     "og_description": "Watch the outlet glaciers of Vatnajökull retreat: satellite images since 2016, 3D terrain from ArcticDEM strips and outlines from the Little Ice Age maximum to today.",
+     "og_description": "Watch the outlet glaciers of Vatnajökull retreat: satellite images since 2016, 3D terrain and outlines from the Little Ice Age maximum to today.",
      "image": "images/preview-iceland.jpg", "image_w": "1200", "image_h": "630",
      "image_alt": "Tongues from Space - Vatnajökull: Breiðamerkurjökull and its lagoon Jökulsárlón in a Sentinel-2 satellite picture, with the glacier outline of about 1890"},
-    {"path": "iceland", "canonical": "iceland/vatnajokull/", "same_as": "iceland/vatnajokull"},      # /iceland/ shows the same page; search engines are told the long address is the real one
+    {"path": "iceland", "canonical": "iceland/vatnajokull/", "same_as": "iceland/vatnajokull", "group": "iceland"},      # /iceland/ shows the same page; search engines are told the long address is the real one
+    {"path": "iceland/rest", "canonical": "iceland/rest/", "group": "iceland",
+     "title": "Tongues from Space | Iceland excl. Vatnajökull",
+     "description": "Explore the ten largest glaciers of Iceland outside Vatnajökull, among them Langjökull, Hofsjökull and Mýrdalsjökull, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Iceland excl. Vatnajökull",
+     "og_description": "Watch the ice caps of Iceland retreat: Langjökull, Hofsjökull, Mýrdalsjökull and seven more in satellite images since 2016, 3D terrain and outlines from the Little Ice Age maximum to today.",
+     "image": "images/preview-iceland-rest.jpg", "image_w": "1200", "image_h": "630",
+     "image_alt": "Tongues from Space - Iceland excl. Vatnajökull: a Sentinel-2 satellite picture of a glacier tongue with its outline of about 1890"},
+    {"path": "norway/mainland", "canonical": "norway/mainland/", "group": "norway",
+     "title": "Tongues from Space | Mainland Norway",
+     "description": "Explore the ten largest glaciers of mainland Norway, among them Jostedalsbreen, Svartisen and Folgefonna, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Mainland Norway",
+     "og_description": "Watch the glaciers of Norway retreat: Jostedalsbreen, Svartisen, Folgefonna and seven more in satellite images since 2016, 3D terrain and outlines from the 1947–1985 inventory to today.",
+     "image": "images/preview-norway.jpg", "image_w": "1200", "image_h": "630",
+     "image_alt": "Tongues from Space - Mainland Norway: a Sentinel-2 satellite picture of a Norwegian glacier tongue with its older outline"},
+    {"path": "norway", "canonical": "norway/mainland/", "same_as": "norway/mainland", "group": "norway"},      # /norway/ shows mainland Norway
+    {"path": "norway/svalbard", "canonical": "norway/svalbard/", "group": "norway",
+     "title": "Tongues from Space | Svalbard, Norway",
+     "description": "Explore ten of the largest glaciers of Svalbard, the archipelago around Spitsbergen, among them Negribreen, Bråsvellbreen and Monacobreen, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Svalbard",
+     "og_description": "Watch the glaciers of Svalbard surge and retreat: Negribreen, Bråsvellbreen, Monacobreen and seven more in satellite images since 2016, 3D terrain and outlines from 1936 to 2020.",
+     "image": "images/preview-svalbard.jpg", "image_w": "1200", "image_h": "630",
+     "image_alt": "Tongues from Space - Svalbard: a Sentinel-2 satellite picture of a calving glacier front with its older outline"},
 ]
 
 
@@ -112,7 +138,9 @@ def region_page(html, page):
         if html.count(old) != 1:
             sys.exit(f"index.html: {old[:60]!r} found {html.count(old)} times, expected once (region page {page['path']})")
         html = html.replace(old, new)
-    src = next(p for p in REGION_PAGES if p["path"] == page.get("same_as", page["path"]))
+    src = dict(next(p for p in REGION_PAGES if p["path"] == page.get("same_as", page["path"])))
+    if not exists(src["image"]):      # no preview picture made for this region yet: the general one
+        src.update(image="images/preview-social.jpg", image_w="1200", image_h="589")
     url = f"{SITE}/{page['canonical']}"
     swap("<title>Tongues from Space | Interactive Glaciers</title>", f"<title>{src['title']}</title>")
     swap('<meta name="description" content="Explore glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change: the ten largest Swiss glaciers and Iceland’s Vatnajökull. Compare, create and share your visuals.">',
@@ -151,7 +179,7 @@ def rewrite_html(out, assets, relay):
             html = html.replace(marker, tag)
         write(out, name, html.encode("utf-8"))
         if name == "index.html":
-            for page in (REGION_PAGES if PUBLISH_ICELAND else []):
+            for page in [p for p in REGION_PAGES if GROUP_ON[p["group"]]]:
                 write(out, f"{page['path']}/index.html", region_page(html, page).encode("utf-8"))
 
 
@@ -168,8 +196,10 @@ def main():
     for name in PLAIN_FILES + PLAIN_IMAGES:
         if exists(name):
             data = read(name)
-            if name == "sitemap.xml" and not PUBLISH_ICELAND:
-                data = re.sub(rb"\s*<url>\s*<loc>[^<]*/iceland/[^<]*</loc>\s*</url>", b"", data)
+            if name == "sitemap.xml":
+                for group, on in GROUP_ON.items():
+                    if not on:
+                        data = re.sub(rb"\s*<url>\s*<loc>[^<]*/" + group.encode() + rb"/[^<]*</loc>\s*</url>", b"", data)
             write(out, name, data)
     fonts = os.path.join(ROOT, "fonts")
     for f in sorted(os.listdir(fonts)):
@@ -192,15 +222,17 @@ def main():
             data = read(f"js/{f}")
             if f == "00-regions.js":      # the data files of the regions: their hashed names go into the file that loads them
                 text = data.decode("utf-8")
-                for plain in ("data/glaciers.js", "data/vatnajokull.js"):
+                for plain in ("data/glaciers.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"):
                     if plain in assets:
                         if f"'{plain}'" not in text:
                             sys.exit(f"js/00-regions.js does not name '{plain}' any more: nothing was rewritten")
                         text = text.replace(f"'{plain}'", f"'{assets[plain]}'")
-                if not PUBLISH_ICELAND:      # Iceland stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
-                    if "/*hidden-regions*/" not in text:
-                        sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
-                    text = text.replace("/*hidden-regions*/", "'is-vatnajokull'")
+                if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
+                    text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
+                hidden = [r for r in ("is-vatnajokull", "is-rest", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+                if "/*hidden-regions*/" not in text:
+                    sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
+                text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
                 data = text.encode("utf-8")
             rel = hashed_name(f"js/{f}", data)
             write(out, rel, data)
@@ -233,7 +265,7 @@ def main():
             write(out, rel, data)
             assets[f"data/oldest/{f}"] = rel
     ls = os.path.join(ROOT, "data", "landsat")      # Landsat pictures before 2016 (Iceland): one meta file per outlet and one folder of yearly pictures, hashed
-    if os.path.isdir(ls):
+    if os.path.isdir(ls) and PUBLISH_LANDSAT:
         for dirpath, _, files in os.walk(ls):
             for f in sorted(files):
                 if not f.endswith((".json", ".jpg")): continue
@@ -245,6 +277,9 @@ def main():
     terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "data", "terrain"))
+        mf = os.path.join(out, "data", "terrain", "manifest.json")      # the manifest of a working copy names files that are not in the repository: keep the ones that are here
+        names = json.load(open(mf))
+        json.dump({k: v for k, v in names.items() if os.path.exists(os.path.join(terrain, v))}, open(mf, "w"), indent=1)
     else:
         print("no terrain folder: the 3D view builds the terrain from the terrain tiles, which is slower")
 

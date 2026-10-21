@@ -50,16 +50,13 @@ function statusLine(){
   const ok = okYears().filter(normal), expected = YEARS.filter(summerStarted), missing = expected.filter(y => !normal(y));       // the current year is not counted before its summer
   if (!ok.length) return 'No satellite images available.';
   const cloudy = ok.filter(y => !normal(y).clear), parts = [];
-  parts.push(`Scenes found for ${ok.length} of ${expected.length} years${cloudy.length ? `, ${cloudy.length} with some clouds (dashed)` : ''}.`);
+  parts.push(`Scenes found for ${ok.length} of ${expected.length} years${cloudy.length ? `, ${cloudy.length} with some clouds${state.mode === 'timelapse' ? '' : ' (dashed)'}` : ''}.`);      // the year boxes the dashes belong to are not shown in a timelapse
   if (missing.length) parts.push(`No usable scene for ${missing.join(', ')}.`);
-  const ls = ok.filter(y => isLandsat(normal(y))), s2 = ok.filter(y => !isLandsat(normal(y)));      // Landsat years (Iceland, before 2016) have no orbit
+  const ls = ok.filter(y => isLandsat(normal(y)));
   if (ls.length) parts.push(`${ls.length} Landsat picture${ls.length > 1 ? 's' : ''} (${ls[0]}–${ls[ls.length - 1]}, 30 m).`);
-  const byOrbit = {}; s2.forEach(y => { const o = normal(y).orbit; if (o) (byOrbit[o] = byOrbit[o] || []).push(y); });
-  const orbits = Object.keys(byOrbit).sort();
-  if (orbits.length === 1 && byOrbit[orbits[0]].length === s2.length) parts.push(`Orbit ${orbits[0]} for all Sentinel-2 years.`);
-  else if (orbits.length) parts.push('Orbits: ' + orbits.map(o => `${o} (${byOrbit[o].join(', ')})`).join('; ') + '.');
   if (latestLine) parts.push(latestLine);
   const g = currentGlacier(); if (g && g.sceneNote) parts.push(g.sceneNote);
+  if ([...capWaiting].some(ov => ov._map)) parts.push('Showing a 40 m preview of the ice cap; zoom in for the 10 m picture.');      // a whole ice cap on a computer: the 10 m tiles load when the map is zoomed in (capCheckFine)
   return parts.join(' ');
 }
 /* Year labels on the map: year plus the date of the scene */

@@ -11,7 +11,7 @@ one closest to 30 September (at most 5 % cloud, cloud shadow or cirrus inside th
 without such a scene has no picture. The colours use the same curve as the Sentinel-2 natural colour pictures (TRUE_COLOR in js/03-imagery.js, without the Rayleigh term: surface reflectance is
 already corrected), after each picture is matched per channel (gain and offset) to the average Landsat 5/7 colours of a patch of rock east of the tongue (LAND), so that the years look alike. Landsat 1 to 3 (MSS, 1972 to 1983) have no blue band and are not used; Collection 2 Level-2 starts in 1982 for Landsat 4 and 1984 for Landsat 5 over Iceland.
 
-Usage: python3 scripts/build_landsat_iceland.py [--outlet breidamerkurjokull] [--from 1984] [--to 2015] [--list] [--years 1990 1991] [--width 1240]
+Usage: python3 scripts/build_landsat.py [--outlet breidamerkurjokull] [--from 1984] [--to 2015] [--list] [--years 1990 1991] [--res 30]
   --list   only the table of candidate scenes (date, satellite, cloud, snow, cover) and the pick of each year, no pictures
 The answers of the catalogue and the cut-outs are kept in scripts/.landsat-cache (git-ignored), so a second run needs no requests.
 """
@@ -27,9 +27,10 @@ STAC = 'https://planetarycomputer.microsoft.com/api/stac/v1/search'
 DATA = 'https://planetarycomputer.microsoft.com/api/data/v1/item/bbox'
 R = 6378137.0
 LEAVE_OUT_YEARS = (1986,)      # years with a picture that jumps against its neighbours (the scene lies badly on the others), left out by hand
+LEAVE_OUT_BY_OUTLET = {'aletsch': (1985,), 'breidamerkurjokull': (1997, 2001, 2009)}      # per glacier, with the reason: Aletsch 1985 (26 July, Landsat 5) lay 766 m off the Sentinel-2 mosaic and came out warped (owner's review note, 2026-10-20); Breiðamerkurjökull 1997 (cloud on the tongue), 2001 (position off), 2009 (cloud on the tongue): no better scene exists under the rules, dropped on the owner's decision 2026-10-21
 EXCLUDE = ('landsat-8',)      # Landsat 8 Level-2 surface reflectance is over-corrected over Iceland's ice, shade and water (values at or below zero: green ice, purple ground, black sea); no top-of-atmosphere product is on the catalogue, so 2013 to 2015 have no Landsat picture
-SEASON = ('08-01', '10-15', '09-30')      # find from, find to, target day: the Iceland season of js/00-regions.js
-MAX_CLOUD, FALLBACK_CLOUD, MIN_COVER, MIN_PARTIAL = 0.05, 0.30, 0.999, 0.85      # Landsat 7 after May 2003 has stripes of no data (scan line corrector failed): where no full scene exists, one with at least 85 % is taken
+SEASON = ('08-01', '10-15', '09-30')      # find from, find to, target day: set from the region in main() (SEASONS)
+MAX_CLOUD, FALLBACK_CLOUD, MIN_COVER, MIN_PARTIAL = 0.15, 0.40, 0.999, 0.75      # a scene counts as clear up to 15 % cloud by the stricter score above (the Sentinel-2 rule has 5 %, from a different mask), else the least cloudy up to 40 %      # Landsat 7 after May 2003 has stripes of no data (scan line corrector failed): where no full scene exists, one with at least 85 % is taken
 TC = dict(maxR=3.0, midR=0.13, sat=1.3, gamma=2.3, gOff=0.01)      # TRUE_COLOR of js/03-imagery.js
 
 
@@ -77,30 +78,61 @@ def candidates(bounds, year):
     return [f for f in json.loads(fetch(STAC, body))['features'] if f['properties']['platform'] not in EXCLUDE]
 
 
-def score(item, bbox):
-    """cloud (cloud, shadow, cirrus), snow and cover (valid pixels) of the picture box, from QA_PIXEL at 120 m"""
+def score(item, bbox, masks=None):
+    """cloud, tongue cloud (tcloud), snow and cover of the picture box, from QA_PIXEL at 120 m.
+    Only a flag with HIGH confidence counts (the confidence bits 8-9 cloud, 14-15 cirrus equal 3) and never on a pixel that is flagged snow or ice: the cloud mask of Landsat is known to take the
+    bright snow and ice of a glacier for cloud (over the Aletsch glacier it flagged 40 to 60 % of clear pictures as cloud). Cloud shadow is not counted (in the Alps the mask flags 20 to 30 % of a clear
+    picture as shadow, which is the shade of the mountains). masks = (glacier, tongue): the sets of pixels (of the 207 x 207 grid) inside the outlines of the glaciers and within 3 km of the tongue tip;
+    `cloud` is then the share over the glacier area and `tcloud` over the tongue: what matters for the picture. Without masks both are over the whole box."""
     n = 207      # about 120 m ground pixels
     shape, a = cut(item['id'], ['qa_pixel'], bbox, n, n, True)
-    px, valid, cloud, snow = n * n, 0, 0, 0
+    px, valid, cloud, snow = n * n, 0, 0, 0; gv = gc = tv = tc = 0; glac, tong = masks if masks else (None, None)
     for i in range(px):
         v = a[i]
         if a[px + i] == 0 or v & 1: continue      # outside the scene, or fill
         valid += 1
-        if v & 0b11100: cloud += 1                # bit 2 cirrus, 3 cloud, 4 cloud shadow
-        if v & 0b100000: snow += 1                # bit 5 snow / ice
-    return {'cover': valid / px, 'cloud': cloud / max(valid, 1), 'snow': snow / max(valid, 1)}
+        c = False
+        if v & 0b100000: snow += 1
+        elif ((v & 0b1000) and ((v >> 8) & 3) == 3) or ((v & 0b100) and ((v >> 14) & 3) == 3): c = True; cloud += 1      # bit 3 cloud, 2 cirrus, each with high confidence
+        if glac is not None:
+            if i in glac: gv += 1; gc += c
+            if i in tong: tv += 1; tc += c
+    return {'cover': valid / px, 'cloud': (gc / gv if gv > 20 else cloud / max(valid, 1)) if glac is not None else cloud / max(valid, 1), 'tcloud': (tc / tv if tv > 5 else cloud / max(valid, 1)) if glac is not None else cloud / max(valid, 1), 'snow': snow / max(valid, 1)}
+
+
+def masks_for(rings, tip, bbox, n=207, radius=3000.0):
+    """the pixels of the 207 x 207 grid of the picture box inside any of the outlines `rings` ([lat, lon]) and within `radius` metres of the tip"""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import icecap_lib as lib
+    x0, y0, x1, y1 = bbox; glac, tong = set(), set(); rr = [r for r in rings if len(r) > 3]
+    box = [(min(p[0] for p in r), max(p[0] for p in r), min(p[1] for p in r), max(p[1] for p in r)) for r in rr]; k = 111320.0 * math.cos(math.radians(tip[0]))
+    for j in range(n):
+        for i in range(n):
+            lat, lon = unmerc(x0 + (i + 0.5) / n * (x1 - x0), y1 - (j + 0.5) / n * (y1 - y0))
+            if math.hypot((lon - tip[1]) * k, (lat - tip[0]) * 111320.0) <= radius: tong.add(j * n + i)
+            if any(b[0] <= lat <= b[1] and b[2] <= lon <= b[3] and lib.inside(lon, lat, [(p[1], p[0]) for p in r]) for r, b in zip(rr, box)): glac.add(j * n + i)
+    return glac, tong
+
+
+REJECT = set()      # dates of scenes not to use for this glacier (scripts/landsat-rejects.json: chosen by looking at the pictures)
+
+
+def ranked(days, year):
+    """the usable scenes of a year, best first: a scene that covers the whole picture before one with gaps; clear (cloud over the glacier at most MAX_CLOUD and over the tongue at most 5 %) before the
+    rest (at most FALLBACK_CLOUD over the glacier and 20 % over the tongue), each nearest to the target day or least cloudy; scenes in REJECT are left out"""
+    target = time.mktime(time.strptime(f'{year}-{SEASON[2]}', '%Y-%m-%d'))
+    away = lambda d: abs(time.mktime(time.strptime(d['date'], '%Y-%m-%d')) - target)
+    out = []; days = [d for d in days if d['date'] not in REJECT]
+    for floor in (MIN_COVER, MIN_PARTIAL):
+        ok = [d for d in days if d['cover'] >= floor and d not in out]
+        clear = sorted([d for d in ok if d['cloud'] <= MAX_CLOUD and d.get('tcloud', d['cloud']) <= 0.05], key=away)
+        rest = sorted([d for d in ok if d not in clear and d['cloud'] <= FALLBACK_CLOUD and d.get('tcloud', d['cloud']) <= 0.20], key=lambda d: (d.get('tcloud', d['cloud']), d['cloud'], away(d)))
+        out += [dict(d, clear=True, partial=floor < MIN_COVER and d['cover'] < MIN_COVER) for d in clear] + [dict(d, clear=False, partial=floor < MIN_COVER and d['cover'] < MIN_COVER) for d in rest]
+    return out
 
 
 def pick(days, year):
-    target = time.mktime(time.strptime(f'{year}-{SEASON[2]}', '%Y-%m-%d'))
-    away = lambda d: abs(time.mktime(time.strptime(d['date'], '%Y-%m-%d')) - target)
-    for floor in (MIN_COVER, MIN_PARTIAL):      # a scene that covers the whole picture first; only where there is none, one with gaps
-        ok = [d for d in days if d['cover'] >= floor]
-        clear = sorted([d for d in ok if d['cloud'] <= MAX_CLOUD], key=away)
-        if clear: return dict(clear[0], clear=True, partial=floor < MIN_COVER and clear[0]['cover'] < MIN_COVER)
-        rest = sorted([d for d in ok if d['cloud'] <= FALLBACK_CLOUD], key=lambda d: (d['cloud'], away(d)))
-        if rest: return dict(rest[0], clear=False, partial=floor < MIN_COVER and rest[0]['cover'] < MIN_COVER)
-    return None
+    r = ranked(days, year); return r[0] if r else None
 
 
 def sadj(a):      # the Copernicus Browser true colour curve of the page (js/03-imagery.js evalscriptFor), per channel
@@ -113,18 +145,27 @@ def srgb(c): return 12.92 * c if c <= 0.0031308 else 1.055 * c ** 0.41666666666 
 
 
 LAND = (0.65, 0.30, 0.85, 0.50)      # a patch of rock and gravel east of the tongue, as shares of the picture (west, north, east, south): the same ground in every year, used to match the colours of the years
+NOMATCH = False      # set in main(): a picture without any ice-free land keeps the plain surface reflectance (no matching of the years)
 QUANT = (0.15, 0.70)                 # the two levels of that ground the colours are matched at
 
 
-def bands(item, bbox, w, h): return cut(item['id'], ['red', 'green', 'blue'], bbox, w, h, False)[1]
+ASSETS = ['red', 'green', 'blue', 'nir08', 'swir16', 'swir22']      # the six surface reflectance bands: planes 0 to 5 of a cut, the valid mask is plane 6 (MASK)
+MASK = len(ASSETS)
+# the three colour styles of the page (STYLE_BANDS in js/03-imagery.js) as Landsat 5 / 7 bands (plane numbers): natural B04 B03 B02 = red, green, blue; false 1 B08 B04 B03 = near infrared, red, green;
+# false 2 B8A B11 B12 = near infrared, shortwave infrared 1, shortwave infrared 2
+STYLES = {'natural': (0, 1, 2), 'false1': (3, 0, 1), 'false2': (3, 4, 5)}
+FILE_SUFFIX = {'natural': '', 'false1': '.false1', 'false2': '.false2'}
+
+
+def bands(item, bbox, w, h): return cut(item['id'], ASSETS, bbox, w, h, True)[1]      # nearest neighbour: the pixels of the picture are the 30 m pixels of Landsat, not smoothed
 
 
 def land_levels(a, w, h):
     """per channel the QUANT quantiles of the surface reflectance of the LAND patch (valid pixels only)"""
     px = w * h; x0, y0, x1, y1 = int(LAND[0] * w), int(LAND[1] * h), int(LAND[2] * w), int(LAND[3] * h); out = []
-    for c in range(3):
-        v = sorted(a[c * px + y * w + x] * 0.0000275 - 0.2 for y in range(y0, y1) for x in range(x0, x1) if a[3 * px + y * w + x] and a[c * px + y * w + x])
-        out.append([v[int(q * (len(v) - 1))] for q in QUANT])
+    for c in range(MASK):
+        v = sorted(a[c * px + y * w + x] * 0.0000275 - 0.2 for y in range(y0, y1) for x in range(x0, x1) if a[MASK * px + y * w + x] and a[c * px + y * w + x])
+        out.append([v[int(q * (len(v) - 1))] for q in QUANT] if v else [0.0, 0.1])
     return out
 
 
@@ -142,8 +183,8 @@ def sentinel_reference(bbox, w, h, z=12):
             mos.paste(Image.open(io.BytesIO(fetch(EOX.format(z=z, x=tx, y=ty)))).convert('RGB'), ((tx - tx0) * 256, (ty - ty0) * 256))
     k = 256 / span; l, t, r_, b_ = (x0 + org - tx0 * span) * k, (org - y1 - ty0 * span) * k, (x1 + org - tx0 * span) * k, (org - y0 - ty0 * span) * k
     red = mos.resize((w, h), Image.BILINEAR, box=(l, t, r_, b_)).getchannel('R'); px = w * h
-    a = array.array('H', bytes(8 * px))
-    for i, v in enumerate(red.getdata()): a[i] = int((((v / 255) ** 2.2) * 0.9 + 0.2) / 0.0000275); a[3 * px + i] = 1
+    a = array.array('H', bytes(2 * (MASK + 1) * px))
+    for i, v in enumerate(red.getdata()): a[i] = int((((v / 255) ** 2.2) * 0.9 + 0.2) / 0.0000275); a[MASK * px + i] = 1
     return a
 
 
@@ -156,7 +197,7 @@ def edge_image(a, w, h, f):
             for j in range(f):
                 row = (y * f + j) * w + x * f
                 for i in range(f):
-                    if a[3 * px + row + i] and a[row + i]: t += a[row + i]; n += 1
+                    if a[MASK * px + row + i] and a[row + i]: t += a[row + i]; n += 1
             r = t / n * 0.0000275 - 0.2 if n > f * f // 2 else 0.0
             v[y * w2 + x] = r if r < 0.40 else 0.0      # ice, snow and cloud are not ground that stays: only rock, gravel, water and shore
     g = [0.0] * (w2 * h2)
@@ -201,7 +242,7 @@ def register(refs, a, w, h):
 def shifted(a, w, h, sx, sy):
     """the bands with img[x + sx, y + sy] moved to [x, y] (what lies outside becomes no data)"""
     px = w * h; out = array.array('H', bytes(len(a) * 2))
-    for c in range(4):
+    for c in range(MASK + 1):
         for y in range(h):
             ys = y + sy
             if not 0 <= ys < h: continue
@@ -211,19 +252,22 @@ def shifted(a, w, h, sx, sy):
 
 
 def render(a, w, h, cal):
-    """cal: per channel the QUANT levels the picture is matched to (the average of Landsat 5 and 7): a gain and an offset per channel, so that the years look alike"""
+    """cal: per band the QUANT levels the picture is matched to (the average of Landsat 5 and 7): a gain and an offset per band, so that the years look alike. Returns the pictures of the three
+    colour styles (STYLES) and the share of the picture that was interpolated."""
     px = w * h; sat = TC['sat']; lev = land_levels(a, w, h)
-    gains = [((cal[c][1] - cal[c][0]) / (lev[c][1] - lev[c][0]), lev[c][0], cal[c][0]) for c in range(3)]
+    gains = [((cal[c][1] - cal[c][0]) / (lev[c][1] - lev[c][0]) if lev[c][1] - lev[c][0] > 1e-4 else 1.0, lev[c][0], cal[c][0]) for c in range(MASK)] if not NOMATCH else [(1.0, 0.0, 0.0)] * MASK
     lut = {}
     def ch(v, c):      # surface reflectance = DN * 0.0000275 - 0.2 (Collection 2 Level-2), matched to the reference ground
         if (v, c) not in lut: g, l0, r0 = gains[c]; lut[(v, c)] = sadj(max(r0 + (v * 0.0000275 - 0.2 - l0) * g, 0))
         return lut[(v, c)]
-    out = bytearray(px * 3); hole = bytearray(px)
+    bufs = {k: bytearray(px * 3) for k in STYLES}; out = bufs['natural']; hole = bytearray(px)
     for i in range(px):
-        if a[3 * px + i] == 0 or a[i] == 0:
+        if a[MASK * px + i] == 0 or a[i] == 0:
             hole[i] = 1; continue
-        r, g, b = ch(a[i], 0), ch(a[px + i], 1), ch(a[2 * px + i], 2); avg = (r + g + b) / 3 * (1 - sat)
-        out[3 * i:3 * i + 3] = bytes(int(round(255 * srgb(min(max(avg + c * sat, 0), 1)))) for c in (r, g, b))
+        lv = [ch(a[b * px + i], b) for b in range(MASK)]
+        for k, idx in STYLES.items():
+            r, g, b = (lv[j] for j in idx); avg = (r + g + b) / 3 * (1 - sat)
+            bufs[k][3 * i:3 * i + 3] = bytes(int(round(255 * srgb(min(max(avg + c * sat, 0), 1)))) for c in (r, g, b))
     # Landsat 7 after May 2003: diagonal stripes of no data inside the scene. The ice flows along its streaks (medial moraines, flow lines, crevasse trains), so a hole is first filled by
     # interpolating along the local direction of those streaks: the orientation comes from the structure tensor of the picture's brightness (gradients only where the picture is whole),
     # summed over blocks of BLK pixels and their neighbours; the streaks run at right angles to the dominant gradient. Where there is no clear direction (coherence under 0.3: rock, sea) or no picture
@@ -264,7 +308,8 @@ def render(a, w, h, cal):
                 if not src[Y * w + X]: found.append((t, Y * w + X)); break
         if len(found) == 2:
             (t1, p1), (t2, p2) = found; u = t1 / (t1 + t2)
-            for c in range(3): out[3 * i + c] = int(round(out[3 * p1 + c] * (1 - u) + out[3 * p2 + c] * u))
+            for ob in bufs.values():
+                for c in range(3): ob[3 * i + c] = int(round(ob[3 * p1 + c] * (1 - u) + ob[3 * p2 + c] * u))
             hole[i] = 0; fl += 1
     print(f'    gaps: {fl} pixels filled along the flow, {sum(1 for v in hole if v)} left for rows and columns')
     # Landsat 7 after May 2003: diagonal stripes of no data inside the scene. A hole with picture on both sides within REACH pixels (along its row, then along its column) is
@@ -284,69 +329,140 @@ def render(a, w, h, cal):
                     L, Rr = base + (k - 1) * step, base + j * step
                     for m in range(k, j):
                         t = (m - k + 1) / (j - k + 1); q = base + m * step
-                        for c in range(3): out[3 * q + c] = int(round(out[3 * L + c] * (1 - t) + out[3 * Rr + c] * t))
+                        for ob in bufs.values():
+                            for c in range(3): ob[3 * q + c] = int(round(ob[3 * L + c] * (1 - t) + ob[3 * Rr + c] * t))
                         hole[q] = 2; filled += 1
                 k = j
         for i in range(px):      # holes closed along the rows are picture now (2); the ones still open (1) get their chance along the columns
             if hole[i] == 2: hole[i] = 0
     for i in range(px):
-        if hole[i]: out[3 * i:3 * i + 3] = bytes((28, 41, 48))      # no data
-    return Image.frombytes('RGB', (w, h), bytes(out)), (filled + fl) / px
+        if hole[i]:
+            for ob in bufs.values(): ob[3 * i:3 * i + 3] = bytes((28, 41, 48))      # no data
+    return {k: Image.frombytes('RGB', (w, h), bytes(ob)) for k, ob in bufs.items()}, (filled + fl) / px
+
+
+def auto_land(rings, bounds, z, size=0.2, min_h=30):
+    """The patch of ground that matches the colours of the years: a square of 0.2 of the picture (west, north, east, south as shares) with no ice (not inside any of the outlines `rings`, [lat, lon] lists),
+    no water (above 30 m by the terrain tiles of Mapterhorn at zoom z) and the flattest ground of all such squares: the same bare ground in every year. (Breiðamerkurjökull has a hand-chosen one.)"""
+    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+    import icecap_lib as lib
+    s, w, n_, e = bounds; dem = lib.Dem(z); n = 40
+    rings = [r for r in rings if len(r) > 3]; box = [(min(p[0] for p in r), max(p[0] for p in r), min(p[1] for p in r), max(p[1] for p in r)) for r in rings]
+    ok = {}; hs = {}
+    for j in range(n):
+        for i in range(n):
+            la = n_ - (j + 0.5) / n * (n_ - s); lo = w + (i + 0.5) / n * (e - w)
+            ice = any(b[0] <= la <= b[1] and b[2] <= lo <= b[3] and lib.inside(lo, la, [(p[1], p[0]) for p in r]) for r, b in zip(rings, box))
+            h = dem.h(la, lo); hs[(i, j)] = h; ok[(i, j)] = (not ice) and h > min_h
+    m = int(size * n); best = None
+    for j in range(0, n - m + 1):
+        for i in range(0, n - m + 1):
+            cells = [(i + a, j + b) for a in range(m) for b in range(m)]
+            if not all(ok[c] for c in cells): continue
+            v = [hs[c] for c in cells]; mean = sum(v) / len(v); sd = (sum((x - mean) ** 2 for x in v) / len(v)) ** 0.5
+            if best is None or sd < best[0]: best = (sd, i, j)
+    if best is None: return None
+    return (best[1] / n, best[2] / n, (best[1] + m) / n, (best[2] + m) / n)
+
+
+# the scene season of each region (as in js/00-regions.js): find from, find to, target day
+SEASONS = {'iceland': ('08-01', '10-15', '09-30'), 'norway': ('07-20', '09-30', '09-01'), 'svalbard': ('07-20', '09-15', '08-25'), 'ch': ('07-01', '09-20', '09-01')}
+REGION_FILES = [('vatnajokull.js', 'iceland', 12), ('iceland.js', 'iceland', 12), ('norway.js', 'norway', 13), ('svalbard.js', 'svalbard', 12)]
+FOOTPRINTS = os.path.join(ROOT, 'scripts', '.footprints-ch.json')      # the picture boxes of the Swiss glaciers as the page makes them (scripts/dump_footprints.py): imageFootprint(g)
+
+
+def unmerc(x, y): return math.degrees(2 * math.atan(math.exp(y / R)) - math.pi / 2), math.degrees(x / R)
+
+
+def find_outlet(oid):
+    """(outlet record, region, rings of all the ice around it ([lat, lon]), terrain zoom, bbox in Web Mercator)"""
+    for fn, region, z in REGION_FILES:
+        t = open(os.path.join(ROOT, 'data', fn), encoding='utf-8').read(); d = json.loads(t[t.index('{'):t.rindex('}') + 1])
+        o = next((x for x in d['outlets'] if x['id'] == oid), None)
+        if o:
+            dlat = (o.get('halfH') or o['half']) / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
+            (x0, y0), (x1, y1) = merc(o['lat'] - dlat, o['lon'] - dlon), merc(o['lat'] + dlat, o['lon'] + dlon)
+            rings = [r for src in [o] + [x for x in d['outlets'] if x['id'] != oid] + d['basins'] for r in src['outline']]
+            return o, region, rings, z, [round(x0), round(y0), round(x1), round(y1)]
+    if os.path.exists(FOOTPRINTS):
+        fp = json.load(open(FOOTPRINTS)).get(oid)
+        if fp:
+            t = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read(); d = json.loads(t[t.index('{'):t.rindex('}') + 1])
+            rings = [[[lat, lon] for lon, lat in poly[0]] for g in d['glaciers'] for poly in ((g.get('oldest') or {}).get('outline') or {}).get('coordinates', [])]
+            return dict(id=oid, name=fp['name'], lat=fp['lat'], lon=fp['lon'], tip=fp.get('tip')), 'ch', rings, 13, fp['bbox']
+    sys.exit(f'{oid}: not in the data files of the regions, and not in {FOOTPRINTS} (python3 scripts/dump_footprints.py)')
 
 
 def main():
+    global SEASON, LAND, REG, EXCLUDE, NOMATCH
+    NOMATCH = False
     ap = argparse.ArgumentParser()
     ap.add_argument('--outlet', default='breidamerkurjokull'); ap.add_argument('--from', dest='y0', type=int, default=1984); ap.add_argument('--to', dest='y1', type=int, default=2015)
-    ap.add_argument('--years', nargs='*', type=int); ap.add_argument('--list', action='store_true'); ap.add_argument('--width', type=int, default=1240); a = ap.parse_args()
-    t = open(os.path.join(ROOT, 'data', 'vatnajokull.js'), encoding='utf-8').read()
-    o = next(x for x in json.loads(t[t.index('{'):t.rindex('}') + 1])['outlets'] if x['id'] == a.outlet)
-    dlat = o['half'] / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
-    s, w, n, e = o['lat'] - dlat, o['lon'] - dlon, o['lat'] + dlat, o['lon'] + dlon
-    (x0, y0), (x1, y1) = merc(s, w), merc(n, e); bbox = [round(x0), round(y0), round(x1), round(y1)]
-    W = H = a.width; out = os.path.join(ROOT, 'data', 'landsat'); os.makedirs(os.path.join(out, a.outlet), exist_ok=True)
-    scenes = {}; chosen = {}
-    for year in [y for y in (a.years or range(a.y0, a.y1 + 1)) if y not in LEAVE_OUT_YEARS]:
+    ap.add_argument('--years', nargs='*', type=int); ap.add_argument('--list', action='store_true'); ap.add_argument('--res', type=float, default=30.0, help='ground metres per picture pixel (30: the real pixels of Landsat)'); a = ap.parse_args()
+    o, region, rings, zdem, bbox = find_outlet(a.outlet); SEASON = SEASONS[region]
+    EXCLUDE = ('landsat-8',) if region in ('iceland', 'svalbard') else ()      # Landsat 8 surface reflectance is over-corrected over the ice and water of Iceland (and probably Svalbard); in the Alps and Norway it is used (2013 to 2015)
+    rj = os.path.join(ROOT, 'scripts', 'landsat-rejects.json')
+    if os.path.exists(rj): REJECT.update(json.load(open(rj)).get(a.outlet, []))
+    tip = o.get('tip') or [o['lat'], o['lon']]; masks = masks_for(rings, tip, bbox) if not a.list or True else None
+    s, w = unmerc(bbox[0], bbox[1]); n, e = unmerc(bbox[2], bbox[3])
+    k = math.cos(math.radians(o['lat'])); W, H = round((bbox[2] - bbox[0]) * k / a.res), round((bbox[3] - bbox[1]) * k / a.res)      # one picture pixel = one Landsat pixel (30 m on the ground)
+    print(f"{o['name']} ({region}): picture box {W} x {H} px, season {SEASON}")
+    if a.outlet == 'breidamerkurjokull': REG = (0.50, 0.20, 0.98, 0.95)      # hand-chosen ground to register on and to match the colours on (LAND)
+    else:
+        REG = (0.02, 0.02, 0.98, 0.98)      # the whole picture: only rock, gravel, water and shore count (edge_image leaves the bright ice, snow and cloud out)
+        NOMATCH = False
+        LAND = auto_land(rings, (s, w, n, e), zdem) or auto_land(rings, (s, w, n, e), zdem, size=0.1, min_h=5)      # a small patch of land if the picture has no big one (calving glaciers: the picture is ice and sea)
+        if LAND: print('colour reference patch (west, north, east, south):', [round(v, 2) for v in LAND])
+        else: NOMATCH = True; LAND = (0.0, 0.0, 0.1, 0.1); print('no ice-free land in the picture: the colours of the years are not matched to each other')
+    out = os.path.join(ROOT, 'data', 'landsat'); os.makedirs(os.path.join(out, a.outlet), exist_ok=True)
+    scenes = {}; chosen = {}; cands = {}
+    for year in [y for y in (a.years or range(a.y0, a.y1 + 1)) if y not in LEAVE_OUT_YEARS + LEAVE_OUT_BY_OUTLET.get(a.outlet, ())]:
         days = []
         for f in candidates((s, w, n, e), year):
             p = f['properties']
-            try: sc = score(f, bbox)
+            try: sc = score(f, bbox, masks)
             except Exception as ex: print(f'  {f["id"]}: {ex}'); continue
             days.append({**sc, 'date': p['datetime'][:10], 'id': f['id'], 'sat': p['platform'], 'path': p['landsat:wrs_path'], 'row': p['landsat:wrs_row'], 'time': p['datetime'][11:16], 'sun': round(p.get('view:sun_elevation', 0), 1), 'item': f})
-        best = pick(days, year)
-        print(year, f'{len(days)} scenes', '->', best and f'{best["date"]} {best["sat"]} cloud {best["cloud"]:.0%} snow {best["snow"]:.0%} cover {best["cover"]:.0%}' or 'none')
+        cands[year] = ranked(days, year); best = cands[year][0] if cands[year] else None
+        print(year, f'{len(days)} scenes', '->', best and f'{best["date"]} {best["sat"]} cloud {best["cloud"]:.0%} tongue {best.get("tcloud", 0):.0%} snow {best["snow"]:.0%} cover {best["cover"]:.0%}' or 'none')
         if a.list:
-            for d in sorted(days, key=lambda d: d['date']): print(f'    {d["date"]} {d["sat"]:10} P{d["path"]}R{d["row"]} cloud {d["cloud"]:4.0%} snow {d["snow"]:4.0%} cover {d["cover"]:4.0%}')
+            for d in sorted(days, key=lambda d: d['date']): print(f'    {d["date"]} {d["sat"]:10} P{d["path"]}R{d["row"]} cloud {d["cloud"]:4.0%} tongue {d.get("tcloud", 0):4.0%} snow {d["snow"]:4.0%} cover {d["cover"]:4.0%}')
         if best and not a.list: chosen[year] = best
     if a.list: return
     # the colours of the years are matched to one reference: the average levels of the LAND patch over all Landsat 5 and 7 pictures of every year (not only of the years asked for)
     levels = {}
     for year in range(a.y0, a.y1 + 1):
         try:
-            b = chosen.get(year) or pick([{**score(f, bbox), 'date': f['properties']['datetime'][:10], 'sat': f['properties']['platform'], 'item': f} for f in candidates((s, w, n, e), year)], year)
+            b = chosen.get(year) or pick([{**score(f, bbox, masks), 'date': f['properties']['datetime'][:10], 'sat': f['properties']['platform'], 'item': f} for f in candidates((s, w, n, e), year)], year)
             if b: arr = bands(b['item'], bbox, W, H); levels[year] = land_levels(arr, W, H)
         except Exception as ex: print('  reference', year, ex)
-    cal = [[sorted(l[c][q] for l in levels.values())[len(levels) // 2] for q in range(2)] for c in range(3)]
+    cal = [[sorted(l[c][q] for l in levels.values())[len(levels) // 2] for q in range(2)] for c in range(MASK)]
     print('reference ground levels (Landsat 5/7, median of', len(levels), 'years):', [[round(v, 3) for v in c] for c in cal])
     # the pictures are registered onto the Sentinel-2 mosaic: a scene can lie tens of metres off, which makes a timelapse jump
     mpp = (bbox[2] - bbox[0]) / W * math.cos(math.radians(o['lat'])); shifts = {}
     refs = {f: edge_image(sentinel_reference(bbox, W, H), W, H, f) for f in (8, 2, 1)}
-    for year, best in sorted(chosen.items()):
-        arr = bands(best['item'], bbox, W, H)
-        sx, sy, c, c0 = register(refs, arr, W, H)
-        ok = (sx, sy) != (0, 0) and c - c0 >= 0.03 and math.hypot(sx, sy) * mpp <= 150      # a clear gain, and a shift a Landsat scene can really have (a weak match far away is noise)
-        print(f'  {year}: lies {sx * mpp:+.0f} m east, {sy * mpp:+.0f} m south of the Sentinel-2 mosaic (correlation {c:.2f}, {c0:.2f} unshifted){"  -> shifted" if ok else ""}')
+    for year in sorted(chosen):
+        for best in cands[year]:      # the best scene first; one whose position cannot be checked (the picture matches the Sentinel-2 mosaic nowhere) or is far off is passed over for the next
+            arr = bands(best['item'], bbox, W, H)
+            sx, sy, c, c0 = register(refs, arr, W, H)
+            dist = math.hypot(sx, sy) * mpp
+            ok = (sx, sy) != (0, 0) and c - c0 >= 0.03 and (dist <= 150 or (c - c0 >= 0.08 and c >= 0.2 and dist <= 1500))      # a clear gain; a small shift is normal, a big one (some early Landsat 5 scenes lie 500 to 1,000 m off) needs a clear and strong match: a weak one far away is noise
+            good = (ok and c >= 0.12) or (not ok and c0 >= 0.12)
+            print(f'  {year} {best["date"]}: lies {sx * mpp:+.0f} m east, {sy * mpp:+.0f} m south of the Sentinel-2 mosaic (correlation {c:.2f}, {c0:.2f} unshifted){"  -> shifted" if ok else ""}{"" if good else "  -> position not confirmed: next scene"}')
+            if good: break
+        else: print(f'  {year}: no scene with a confirmed position'); continue
         if ok: shifts[year] = (sx, sy); arr = shifted(arr, W, H, sx, sy)
-        img, filled = render(arr, W, H, cal); img.save(os.path.join(out, a.outlet, f'{year}.jpg'), quality=88, optimize=True, progressive=True)
-        scenes[year] = {k: round(best[k], 3) if isinstance(best[k], float) else best[k] for k in ('date', 'id', 'sat', 'path', 'row', 'time', 'sun', 'cloud', 'snow', 'clear', 'cover')}
+        imgs, filled = render(arr, W, H, cal)
+        for k, img in imgs.items(): img.save(os.path.join(out, a.outlet, f'{year}{FILE_SUFFIX[k]}.jpg'), quality=88, optimize=True, progressive=True)
+        scenes[year] = {k: round(best[k], 3) if isinstance(best[k], float) else best[k] for k in ('date', 'id', 'sat', 'path', 'row', 'time', 'sun', 'cloud', 'tcloud', 'snow', 'clear', 'cover')}
         if shifts.get(year) and shifts[year] != (0, 0): scenes[year]['shiftM'] = [round(shifts[year][0] * mpp), round(shifts[year][1] * mpp)]      # how far the scene lay east and south of the reference, in metres: corrected
         if filled > 0.002: scenes[year]['filled'] = round(filled, 3)      # the share of the picture interpolated across the stripes of Landsat 7
-    if a.list: return
     mp = os.path.join(out, a.outlet + '.json'); old = {}
     if os.path.exists(mp) and a.years:
         with open(mp, encoding='utf-8') as f: old = json.load(f).get('scenes', {})
     old.update({str(k): v for k, v in scenes.items()})
     with open(mp, 'w', encoding='utf-8') as f:
-        json.dump({'bbox': bbox, 'w': W, 'h': H, 'scenes': dict(sorted(old.items())),
+        json.dump({'bbox': bbox, 'w': W, 'h': H, 'scenes': dict(sorted(old.items())), 'styles': list(STYLES),
                    'source': 'Landsat Collection 2 Level-2 surface reflectance, courtesy of the U.S. Geological Survey (public domain), via the Microsoft Planetary Computer', 'gsd': 30}, f, indent=1, ensure_ascii=False)
     print('wrote', mp, len(old), 'years')
 

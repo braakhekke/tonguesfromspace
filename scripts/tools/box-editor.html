@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Box editor</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<style>
+/* Local tool (python3 -m http.server 8000 in the repository, then the link from the glacier board): move and resize the picture box and the 3D strip of one glacier on the Sentinel-2 cloudless
+   background (with an optional Mapterhorn hillshade), and copy the result as one line to paste into "Notes for Claude" on the board. It writes nothing itself. Link: box-editor.html#r=<region id>&g=<glacier id> (no r = Switzerland). */
+html,body{height:100%;margin:0;font:13px/1.4 system-ui,sans-serif;color:#1b2430}
+#app{display:grid;grid-template-columns:300px 1fr;height:100%}
+#side{padding:12px;overflow:auto;border-right:1px solid #dfe3e9;background:#f6f7f9}
+#map{height:100%}
+h1{font-size:15px;margin:0 0 8px}
+fieldset{border:1px solid #dfe3e9;border-radius:6px;margin:0 0 10px;padding:8px 10px;background:#fff}
+legend{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#66707e}
+label{display:grid;grid-template-columns:92px 1fr 64px;gap:6px;align-items:center;margin:4px 0}
+input[type=number]{width:64px;font:inherit}
+input[type=range]{width:100%}
+button{font:inherit;padding:5px 10px;border-radius:4px;border:1px solid #2f6f9f;background:#2f6f9f;color:#fff;cursor:pointer}
+button.alt{background:#fff;color:#2f6f9f}
+textarea{width:100%;box-sizing:border-box;height:110px;font:11px/1.4 ui-monospace,Menlo,monospace}
+.note{color:#66707e;font-size:12px}
+.swatch{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:middle}
+</style></head>
+<body><div id="app"><div id="side">
+<h1 id="title">Box editor</h1>
+<p class="note" id="info">Loading…</p><p class="note" id="legend"></p>
+<fieldset id="fBg"><legend>Background</legend>
+ <label>layers<select id="mode"><option value="both" selected>Satellite + terrain</option><option value="sat">Satellite only</option><option value="hill">Terrain only</option></select><span></span></label>
+ <label>cloudless<select id="year"><option>2016</option><option>2017</option><option>2018</option><option>2019</option><option>2020</option><option>2021</option><option>2022</option><option>2023</option><option>2024</option><option>2025</option></select><span></span></label></fieldset>
+<fieldset id="fBox"><legend><span class="swatch" style="background:#c8322a"></span>Picture box</legend>
+ <label>half width km (E–W)<input type="range" id="half" min="1" max="40" step="0.1"><input type="number" id="halfN" step="0.1"></label>
+ <label>half height km (N–S)<input type="range" id="halfH" min="1" max="40" step="0.1"><input type="number" id="halfHN" step="0.1"></label>
+ <label>shape<button class="alt" id="square" type="button">Make square</button><span></span></label>
+ <p class="note" id="boxNote">Drag the red centre marker to move the box.</p></fieldset>
+<fieldset id="fStrip"><legend><span class="swatch" style="background:#2f6f9f"></span>3D strip</legend>
+ <label>azimuth °<input type="range" id="az" min="0" max="359" step="1"><input type="number" id="azN"></label>
+ <label>half width m<input type="range" id="sh" min="500" max="12000" step="100"><input type="number" id="shN" step="100"></label>
+ <label>below tip m<input type="range" id="sb" min="0" max="4000" step="100"><input type="number" id="sbN" step="100"></label>
+ <label>up the glacier m<input type="range" id="su" min="2000" max="14000" step="100"><input type="number" id="suN" step="100"></label>
+ <p class="note">Drag the blue tip marker to move the strip. Azimuth is the direction from the tip up the glacier (0 = north, 90 = east).</p></fieldset>
+<p><button id="copy">Copy for Notes for Claude</button> <button class="alt" id="reset">Reset</button></p>
+<textarea id="out" readonly aria-label="result"></textarea>
+<p class="note" id="msg"></p>
+</div><div id="map"></div></div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script>
+var FILES = {'is-vatnajokull': 'vatnajokull', 'is-rest': 'iceland', 'no-mainland': 'norway', 'no-svalbard': 'svalbard'};
+var P = new URLSearchParams(location.hash.slice(1)), REG = P.get('r') || 'ch', GID = P.get('g'), $ = function(i){ return document.getElementById(i); };
+var map = L.map('map', {zoomSnap: 0.25}), cur = null, orig = null, boxR, stripP, centreM, tipM, outlineL;
+var sat = null, hill = null;
+function setSat(year){ if(sat) sat.remove(); sat = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-' + year + '_3857/default/g/{z}/{y}/{x}.jpg', {maxZoom: 14, attribution: 'Sentinel-2 cloudless ' + year + ' © EOX'}).addTo(map); sat.bringToBack(); setMode(); }
+/* Terrain: Mapterhorn tiles (Terrarium in webp, 512 px, same source as the 3D view) drawn as a hillshade (light from the north-west) with a faint height tint; multiplied over the satellite picture. */
+var Hill = L.GridLayer.extend({
+  options: {tileSize: 512, maxNativeZoom: 13, minZoom: 3, attribution: 'Terrain © <a href="https://mapterhorn.com/attribution" target="_blank">Mapterhorn</a>'},
+  createTile: function(c, done){
+    var cv = document.createElement('canvas'); cv.width = cv.height = 512; var mz = c.z - 1;
+    if(mz < 0 || mz > 14){ done(null, cv); return cv; }
+    fetch('https://tiles.mapterhorn.com/' + mz + '/' + c.x + '/' + c.y + '.webp').then(function(r){ if(!r.ok) throw 0; return r.blob(); })
+    .then(function(b){ return createImageBitmap(b, {colorSpaceConversion: 'none', premultiplyAlpha: 'none'}); })
+    .then(function(bm){
+      var g = cv.getContext('2d', {willReadFrequently: true}); g.drawImage(bm, 0, 0); var d = g.getImageData(0, 0, 512, 512), px = d.data, N = 512, el = new Float32Array(N * N), i;
+      for(i = 0; i < N * N; i++) el[i] = px[i * 4] * 256 + px[i * 4 + 1] + px[i * 4 + 2] / 256 - 32768;
+      var lat = Math.atan(Math.sinh(Math.PI * (1 - 2 * (c.y + 0.5) / Math.pow(2, mz)))), cell = 40075016.7 * Math.cos(lat) / (N * Math.pow(2, mz)), zf = 2;
+      for(var y = 0; y < N; y++) for(var x = 0; x < N; x++){
+        var x0 = Math.max(0, x - 1), x1 = Math.min(N - 1, x + 1), y0 = Math.max(0, y - 1), y1 = Math.min(N - 1, y + 1);
+        var dx = (el[y * N + x1] - el[y * N + x0]) / ((x1 - x0) * cell) * zf, dy = (el[y1 * N + x] - el[y0 * N + x]) / ((y1 - y0) * cell) * zf;
+        var sh = (0.7071 * (dx - dy) * 0.5 + 0.7071) / Math.sqrt(1 + dx * dx + dy * dy); sh = Math.max(0, Math.min(1, sh * 0.9 + 0.1));
+        var t = Math.max(0, Math.min(1, el[y * N + x] / 2500)), o = (y * N + x) * 4, v = 60 + sh * 195;
+        px[o] = v * (1 - 0.12 * t); px[o + 1] = v * (1 - 0.04 * t); px[o + 2] = v * (1 + 0.0 * t); px[o + 3] = 255;
+      }
+      g.putImageData(d, 0, 0); done(null, cv);
+    }).catch(function(){ done(null, cv); });
+    return cv;
+  }
+});
+function setMode(){
+  var m = $('mode').value; if(m !== 'sat' && !hill) hill = new Hill({zIndex: 2}).addTo(map);
+  sat.setOpacity(m === 'hill' ? 0 : 1); if(hill) hill.setOpacity(m === 'sat' ? 0 : 1);
+  if(hill && hill.getContainer()) hill.getContainer().style.mixBlendMode = m === 'both' ? 'multiply' : 'normal';
+  $('map').style.background = m === 'hill' ? '#fff' : '#ddd';
+}
+setSat(REG === 'ch' ? 2024 : (REG.indexOf('is-') === 0 ? 2025 : 2024));
+$('year').value = REG.indexOf('is-') === 0 ? 2025 : 2024; $('mode').addEventListener('change', setMode);
+/* The Background panel (terrain hillshade, mosaic year) is for placing NEW glaciers. A glacier that already has a terrain file (and so imagery and a terrain model) gets the plain satellite background only; add &bg=1 to the link to get the panel anyway. */
+fetch('../../data/terrain/manifest.json').then(function(r){ return r.json(); }).then(function(m){ if(GID && m[GID] && P.get('bg') !== '1'){ $('fBg').hidden = true; $('mode').value = 'sat'; setMode(); } }).catch(function(){}); $('year').addEventListener('change', function(){ setSat($('year').value); });
+function load(src, cb){ var s = document.createElement('script'); s.src = src + (src.indexOf('?') < 0 ? '?t=' + Date.now() : ''); s.onload = cb; s.onerror = function(){ $('info').textContent = 'Could not load ' + src + ' (is the server running in the repository root?)'; }; document.head.appendChild(s); }
+function km(lat){ return 111.32 * Math.cos(lat * Math.PI / 180); }
+function start(g){
+  cur = JSON.parse(JSON.stringify(g)); orig = JSON.parse(JSON.stringify(g)); $('title').textContent = 'Box editor: ' + g.name; $('info').textContent = (REG === 'ch' ? 'Switzerland' : REG) + ' · ' + g.id;
+  if(g.swiss){ $('fStrip').hidden = true; document.querySelector('#fBox label').hidden = true; $('boxNote').textContent = 'Swiss pictures are built from the 1850 outline plus margins (js/03-imagery.js). The start box is a generic estimate (1850 outline + 33 %), not the exact box of the page. Drag the two red corners to the box you want; the result says what to change.'; }
+  if(outlineL) outlineL.remove(); outlineL = L.layerGroup().addTo(map);
+  var all = [];
+  function addGeo(geo, st, label){ if(!geo) return; var l = L.geoJSON({type: 'Feature', geometry: geo}, {style: st}).addTo(outlineL); l.bindTooltip(label, {sticky: true}); all.push(l.getBounds()); }
+  function addLines(lines, st, label){ (lines || []).forEach(function(ln){ var l = L.polyline(ln, st).addTo(outlineL); l.bindTooltip(label, {sticky: true}); all.push(l.getBounds()); }); }
+  var OLD = {color: '#ff9f1c', weight: 2, dashArray: '6 4', fill: false}, NEW = {color: '#ffffff', weight: 2, fill: false};
+  if(g.swiss){ addGeo(g.oldestGeo, OLD, 'oldest outline (SGI 1850)'); addGeo(g.outlineGeo, NEW, 'newest outline (SGI 2023)'); }
+  else {
+    var o = g.outlines || {};
+    if(o.lia && o.lia.lines) addLines(o.lia.lines, OLD, 'oldest outline (' + (o.lia.label || o.lia.year) + ')');
+    var nw = o.latest || o.new;
+    if(nw && nw.lines) addLines(nw.lines, NEW, 'newest outline (' + (nw.label || nw.year) + ')');
+    else addGeo({type: 'MultiPolygon', coordinates: (g.outline || []).map(function(r){ return [r.map(function(p){ return [p[1], p[0]]; })]; })}, NEW, 'outline (RGI, about ' + (g.outlineYear || '2000') + ')');
+    if(!o.lia && g.outline) { /* no older outline in the data file */ }
+  }
+  var lg = document.getElementById('legend'); if(lg) lg.innerHTML = '<span style="color:#ff9f1c">\u2500 \u2500</span> oldest outline &nbsp; <span style="color:#fff;background:#556;padding:0 3px">\u2500\u2500</span> newest outline';
+  var whole = all.length ? all.reduce(function(a, b){ return a.extend(b); }) : null; if(whole) { g._whole = whole; map.fitBounds(whole.pad(0.1)); } else map.fitBounds(L.latLngBounds(g.swiss ? g.sw : [g.lat - 0.1, g.lon - 0.2], g.swiss ? g.ne : [g.lat + 0.1, g.lon + 0.2]));
+  draw();
+}
+function hh(){ return cur.halfH || cur.half; }      // half height (N–S); without it the box is square
+function boxBounds(){
+  if(cur.swiss) return L.latLngBounds(cur.sw, cur.ne);
+  var dl = hh() / 111.32, dn = cur.half / km(cur.lat); return L.latLngBounds([cur.lat - dl, cur.lon - dn], [cur.lat + dl, cur.lon + dn]);
+}
+function stripCorners(){
+  var s = cur.strip3d, tip = cur.tip, k = km(tip[0]), ue = Math.sin(s.azimuth * Math.PI / 180), un = Math.cos(s.azimuth * Math.PI / 180), out = [];
+  [[-s.half, -s.back], [s.half, -s.back], [s.half, s.up], [-s.half, s.up]].forEach(function(c){ var x = (c[0] * un + c[1] * ue) / 1000, y = (-c[0] * ue + c[1] * un) / 1000; out.push([tip[0] + y / 111.32, tip[1] + x / k]); });
+  return out;
+}
+function draw(){
+  var b = boxBounds();
+  if(!boxR){ boxR = L.rectangle(b, {color: '#c8322a', weight: 2, fill: false}).addTo(map); } else boxR.setBounds(b);
+  if(cur.swiss){
+    if(!centreM){ centreM = L.marker(b.getSouthWest(), {draggable: true}).addTo(map); tipM = L.marker(b.getNorthEast(), {draggable: true}).addTo(map);
+      centreM.on('drag', function(){ cur.sw = [centreM.getLatLng().lat, centreM.getLatLng().lng]; draw2(); }); tipM.on('drag', function(){ cur.ne = [tipM.getLatLng().lat, tipM.getLatLng().lng]; draw2(); }); }
+    else { centreM.setLatLng(b.getSouthWest()); tipM.setLatLng(b.getNorthEast()); }
+  } else {
+    if(!centreM){ centreM = L.marker([cur.lat, cur.lon], {draggable: true, icon: L.divIcon({className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#c8322a;border:2px solid #fff"></div>', iconSize: [14, 14]})}).addTo(map);
+      centreM.on('drag', function(){ var p = centreM.getLatLng(); cur.lat = p.lat; cur.lon = p.lng; draw2(); }); }
+    else centreM.setLatLng([cur.lat, cur.lon]);
+    if(!stripP){ stripP = L.polygon(stripCorners(), {color: '#2f6f9f', weight: 2, fillOpacity: .12}).addTo(map);
+      tipM = L.marker(cur.tip, {draggable: true, icon: L.divIcon({className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#2f6f9f;border:2px solid #fff"></div>', iconSize: [14, 14]})}).addTo(map);
+      tipM.on('drag', function(){ var p = tipM.getLatLng(); cur.tip = [p.lat, p.lng]; draw2(); }); }
+    else { stripP.setLatLngs(stripCorners()); tipM.setLatLng(cur.tip); }
+  }
+  fields(); result();
+}
+function draw2(){ var b = boxBounds(); boxR.setBounds(b); if(stripP) stripP.setLatLngs(stripCorners()); result(); }
+function fields(){ if(cur.swiss) return; $('half').value = $('halfN').value = cur.half; $('halfH').value = $('halfHN').value = hh(); var s = cur.strip3d; $('az').value = $('azN').value = s.azimuth; $('sh').value = $('shN').value = s.half; $('sb').value = $('sbN').value = s.back; $('su').value = $('suN').value = s.up; }
+function bind(a, b, set){ [a, b].forEach(function(id){ $(id).addEventListener('input', function(e){ var v = +e.target.value; $(a).value = $(b).value = v; set(v); draw2(); }); }); }
+bind('half', 'halfN', function(v){ cur.half = v; }); bind('halfH', 'halfHN', function(v){ cur.halfH = v; });
+$('square').addEventListener('click', function(){ cur.halfH = cur.half; fields(); draw2(); }); bind('az', 'azN', function(v){ cur.strip3d.azimuth = v; }); bind('sh', 'shN', function(v){ cur.strip3d.half = v; }); bind('sb', 'sbN', function(v){ cur.strip3d.back = v; }); bind('su', 'suN', function(v){ cur.strip3d.up = v; });
+function r5(x){ return Math.round(x * 1e5) / 1e5; }
+function result(){
+  var t;
+  if(cur.swiss){ var b = boxBounds(); t = 'Set the picture box of ' + cur.id + ' (' + cur.name + ') to south-west ' + r5(b.getSouth()) + ', ' + r5(b.getWest()) + ' and north-east ' + r5(b.getNorth()) + ', ' + r5(b.getEast()) + ' (lat, lon). Keep 10 m pixels: over 24.9 km it must be tiled.'; }
+  else { var s = cur.strip3d; t = 'Set the box of ' + cur.id + ' (' + REG + '): lat ' + r5(cur.lat) + ', lon ' + r5(cur.lon) + ', half ' + cur.half + ' km' + (hh() !== cur.half ? ' wide (E–W) and ' + hh() + ' km high (N–S): a RECTANGLE ' + (2 * cur.half).toFixed(1) + ' x ' + (2 * hh()).toFixed(1) + ' km. Write halfH ' + hh() + ' for ' + cur.id + ' into data/box-halfh.json (the builders and the page read it as halfH next to half), rebuild the data file, then the usual rebuilds' : '') + '; tip [' + r5(cur.tip[0]) + ', ' + r5(cur.tip[1]) + ']; strip3d azimuth ' + s.azimuth + ', half ' + s.half + ', back ' + s.back + ', up ' + s.up + ' (cell ' + s.cell + '). Over 24.9 km across it must be tiled; rebuild terrain, trails, cloud masks and the Worker centres, then tick the box on the board.'; }
+  $('out').value = t; var ok = true, w = cur.swiss ? 0 : 0; if(!cur.swiss){ var bb = boxBounds(), k = km(cur.tip[0]); var m = Math.min((cur.tip[0] - bb.getSouth()) * 111.32, (bb.getNorth() - cur.tip[0]) * 111.32, (cur.tip[1] - bb.getWest()) * k, (bb.getEast() - cur.tip[1]) * k); $('msg').textContent = 'Box ' + (2 * cur.half).toFixed(1) + ' x ' + (2 * hh()).toFixed(1) + ' km · tip is ' + m.toFixed(1) + ' km inside the box' + (m < 1 ? ' (needs at least 1 km)' : '') + (Math.max(cur.half, hh()) * 2 > 24.9 ? ' · longest side ' + (Math.max(cur.half, hh()) * 2).toFixed(1) + ' km: tiling needed' : ''); }
+  else { var bb2 = boxBounds(); $('msg').textContent = 'Box about ' + ((bb2.getEast() - bb2.getWest()) * km((bb2.getNorth() + bb2.getSouth()) / 2)).toFixed(1) + ' x ' + ((bb2.getNorth() - bb2.getSouth()) * 111.32).toFixed(1) + ' km'; }
+}
+$('copy').addEventListener('click', function(){ $('out').select(); try { navigator.clipboard.writeText($('out').value); $('msg').textContent = 'Copied. Paste it into "Notes for Claude" of this glacier on the board.'; } catch(e){ document.execCommand('copy'); } });
+$('reset').addEventListener('click', function(){ cur = JSON.parse(JSON.stringify(orig)); draw(); });
+if(!GID){ $('info').textContent = 'Open this page from the glacier board (needs #r=…&g=…).'; }
+else if(REG === 'ch'){
+  load('../../data/glaciers.js', function(){ var g = window.GLACIER_DATA.glaciers.find(function(x){ return x.id === GID; }); if(!g) return $('info').textContent = 'Unknown glacier ' + GID;
+    var b = g.bbox, d = (b[1][0] - b[0][0]) * 0.33, dw = (b[1][1] - b[0][1]) * 0.33;
+    start({swiss: true, id: g.id, name: g.name, outlineGeo: g.outline, oldestGeo: g.oldest && g.oldest.outline, sw: [b[0][0] - d, b[0][1] - dw], ne: [b[1][0] + d, b[1][1] + dw], outline: []}); });
+} else if(FILES[REG]){
+  load('../../data/' + FILES[REG] + '.js', function(){ var g = (window.REGION_ICE.outlets || []).find(function(x){ return x.id === GID; }); if(!g) return $('info').textContent = 'Unknown outlet ' + GID; start(g); });
+} else $('info').textContent = 'Unknown region ' + REG;
+</script></body></html>
