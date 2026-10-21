@@ -19,6 +19,7 @@
  *   ALLOWED_ORIGINS     text     e.g. "https://tonguesfromspace.org,https://www.tonguesfromspace.org,https://braakhekke.github.io,http://localhost:8000"
  *   CACHE               KV namespace binding (optional but recommended): image cache
  *   Gallery (all optional; without them the gallery stays closed for uploads):
+ *   LANDSAT             R2 bucket binding: the Landsat pictures (data/landsat/..., uploaded from the working copy, see wrangler.toml); served at /data/landsat/*
  *   GALLERY             R2 bucket binding: the shared pictures and videos (pending/ and approved/)
  *   TURNSTILE_SECRET    secret: Cloudflare Turnstile secret key (checks that an upload comes from a person)
  *   TURNSTILE_SITEKEY   text: Turnstile site key (public, handed to the page)
@@ -87,6 +88,7 @@ export default {
     if (url.pathname === '/cdse/ping') return json({ relay: true, managed: true }, 200, cors);
 
     if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors);
+    if (url.pathname.startsWith('/data/landsat/')) return landsat(request, env, url);
 
     const route = { '/cdse/statistics': 'statistics', '/cdse/process': 'process' }[url.pathname];
     if (!route) return json({ error: 'Not found' }, 404, cors);
@@ -128,6 +130,19 @@ export default {
     return new Response(out.data.slice(0), { status: out.status, headers: { ...cors, 'Content-Type': out.type, 'X-Cache': 'MISS' } });
   }
 };
+
+/* ---------- Landsat pictures (R2 bucket LANDSAT, same paths as data/landsat/ in the working copy; not in the repository) ---------- */
+async function landsat(request, env, url) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Use GET', { status: 405 });
+  if (!env.LANDSAT) return new Response('Not found', { status: 404 });
+  const key = decodeURIComponent(url.pathname.slice(1));
+  if (key.includes('..') || !/\.(jpg|json)$/.test(key)) return new Response('Not found', { status: 404 });
+  const obj = request.method === 'HEAD' ? await env.LANDSAT.head(key) : await env.LANDSAT.get(key);
+  if (!obj) return new Response('Not found', { status: 404 });
+  const h = new Headers({ 'Content-Type': key.endsWith('.json') ? 'application/json' : 'image/jpeg', 'ETag': obj.httpEtag, 'Cache-Control': 'public, max-age=86400' });
+  if (request.headers.get('If-None-Match') === obj.httpEtag) return new Response(null, { status: 304, headers: h });
+  return new Response(request.method === 'HEAD' ? null : obj.body, { headers: h });
+}
 
 /* ---------- Copernicus ---------- */
 function upstream(env) {
@@ -306,7 +321,7 @@ function corsHeaders(request, env) {
     .split(',').map(s => s.trim().replace(/\/+$/, '')).filter(Boolean);
   const h = { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
               'Access-Control-Max-Age': '86400', 'Vary': 'Origin' };
-  if (allowed.includes(origin)) h['Access-Control-Allow-Origin'] = origin;
+  if (allowed.includes(origin) || origin === new URL(request.url).origin) h['Access-Control-Allow-Origin'] = origin;      // the site's own address always counts (the Worker serves the page too)
   return h;
 }
 function json(obj, status, headers) {

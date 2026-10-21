@@ -1,4 +1,4 @@
-# Builds glaciers.js and thickness.js from GLAMOS, checks the result and publishes the site on GitHub Pages.
+# Builds glaciers.js and thickness.js from GLAMOS, checks the result and publishes the site on Cloudflare (Worker with static assets).
 # Runs on every push to main, on the 1st of each month, and on demand (Actions tab -> Run workflow).
 name: Build data and deploy
 
@@ -11,11 +11,9 @@ on:
 
 permissions:
   contents: write      # commit the refreshed glaciers.js and thickness.js
-  pages: write
-  id-token: write
 
 concurrency:
-  group: pages
+  group: deploy
   cancel-in-progress: false
 
 jobs:
@@ -79,17 +77,32 @@ jobs:
           TFS_SITE_DIR=_site python -m unittest tests.test_site -v
           python -m unittest tests.test_worker -v
 
-      - uses: actions/configure-pages@v5
-      - uses: actions/upload-pages-artifact@v3
+      - uses: actions/upload-artifact@v4
         with:
+          name: site
           path: _site
+          include-hidden-files: true
+          retention-days: 3
 
   deploy:
     needs: build
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: site
+          path: _site
+      - name: Fill in the KV namespace and R2 bucket of the Worker
+        run: |
+          sed -i "s/__KV_CACHE_ID__/${{ vars.CF_KV_CACHE_ID }}/; s/__R2_GALLERY_BUCKET__/${{ vars.CF_R2_GALLERY_BUCKET }}/; s/__R2_LANDSAT_BUCKET__/${{ vars.CF_R2_LANDSAT_BUCKET }}/" worker/wrangler.toml
+          grep -q "__" worker/wrangler.toml && { echo "Set the repository variables CF_KV_CACHE_ID, CF_R2_GALLERY_BUCKET and CF_R2_LANDSAT_BUCKET"; exit 1; } || true
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Deploy the Worker and the site to Cloudflare
+        working-directory: worker
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: npx --yes wrangler@4 deploy
