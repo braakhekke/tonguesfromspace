@@ -96,7 +96,7 @@ jobs:
       - name: Fill in the KV namespace and R2 bucket of the Worker
         run: |
           sed -i "s/__KV_CACHE_ID__/${{ vars.CF_KV_CACHE_ID }}/; s/__R2_GALLERY_BUCKET__/${{ vars.CF_R2_GALLERY_BUCKET }}/; s/__R2_LANDSAT_BUCKET__/${{ vars.CF_R2_LANDSAT_BUCKET }}/" worker/wrangler.toml
-          grep -q "__" worker/wrangler.toml && { echo "Set the repository variables CF_KV_CACHE_ID, CF_R2_GALLERY_BUCKET and CF_R2_LANDSAT_BUCKET"; exit 1; } || true
+          grep -qE '^[^#]*__[A-Z_]+__' worker/wrangler.toml && { echo "Set the repository variables CF_KV_CACHE_ID, CF_R2_GALLERY_BUCKET and CF_R2_LANDSAT_BUCKET"; exit 1; } || true
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
