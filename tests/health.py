@@ -80,7 +80,9 @@ def _():
         except Exception:
             missing.append(hashed)
     assert not missing, "missing: " + ", ".join(missing)
-    assert state["cfg"]["assets"]["data/glaciers.js"] in state["html"], "index.html does not load the glaciers.js named in config.js (a stale page against a new config?)"
+    # the tag of the region's data file is written by js/00-regions.js, so the name is in the page or in one of its scripts
+    text = state["html"] + "".join(get(SITE + m)[1].decode("utf-8", "replace") for m in dict.fromkeys(re.findall(r'js/00-regions[^"\']*\.js', state["html"])))
+    assert state["cfg"]["assets"]["data/glaciers.js"] in text, "neither index.html nor js/00-regions.js loads the glaciers.js named in config.js (a stale page against a new config?)"
     return f"{len(state['cfg']['assets'])} files"
 
 
