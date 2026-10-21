@@ -40,7 +40,7 @@ PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # re
 GROUP_ON = {"iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
 PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -222,7 +222,7 @@ def main():
             data = read(f"js/{f}")
             if f == "00-regions.js":      # the data files of the regions: their hashed names go into the file that loads them
                 text = data.decode("utf-8")
-                for plain in ("data/glaciers.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"):
+                for plain in ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"):
                     if plain in assets:
                         if f"'{plain}'" not in text:
                             sys.exit(f"js/00-regions.js does not name '{plain}' any more: nothing was rewritten")

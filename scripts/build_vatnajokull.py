@@ -249,7 +249,7 @@ def main():
         fs = [byid[r] for r in [o["rgi"]] + o.get("also", [])]; ps = [f["properties"] for f in fs]
         outlets.append(dict(id=o["id"], rgi=" + ".join(p["RGIID"] for p in ps), name=o["name"], note=o["note"],
                             areaKm2=round(sum(p["AREA"] for p in ps), 1), lengthKm=round(max(p["LMAX"] for p in ps) / 1000, 1), zmin=min(p["ZMIN"] for p in ps), zmax=max(p["ZMAX"] for p in ps),
-                            outlineYear=int(ps[0]["BGNDATE"][:4]), lat=o["lat"], lon=o["lon"], half=o["half"], **({"halfH": o["halfH"]} if o.get("halfH") else __import__("icecap_lib").box_half_h(o["id"])), tip=o["tip"], strip3d=o["strip3d"],
+                            outlineYear=int(ps[0]["BGNDATE"][:4]), **__import__("icecap_lib").box_fields(o["id"], lat=o["lat"], lon=o["lon"], half=o["half"], tip=o["tip"], strip3d=o["strip3d"]),
                             outline=[r for f in fs for r in outline(f["geometry"], 25, 0)], units=len(fs)))
     for f in rows:
         p = f["properties"]

@@ -26,6 +26,8 @@ from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try: import review_lib      # local review walk-through; not in the repository
 except ImportError: review_lib = None
+try: import onboard_lib     # local onboarding page (scripts/tools/onboard.html): the steps, and a whitelisted runner for their commands
+except ImportError: onboard_lib = None
 
 IDENTITY = os.environ.get("CDSE_IDENTITY", "https://identity.dataspace.copernicus.eu")
 SH = os.environ.get("CDSE_SH", "https://sh.dataspace.copernicus.eu")
@@ -116,11 +118,39 @@ class Handler(SimpleHTTPRequestHandler):
         if review_lib and self.path.split("?")[0] == "/review/state":          # the review walk-through (scripts/tools/review.html, scripts/review_lib.py)
             try: return self._send(200, "application/json", json.dumps(review_lib.state()).encode())
             except Exception as e: return self._error("review state: %s" % e)
+        if onboard_lib and self.path.startswith("/onboard/"):
+            return self._onboard()
         if self._hidden():
             return self._send(404, "text/plain", b"Not found")
         return super().do_GET()
 
+    def _onboard(self):
+        """/onboard/state, /onboard/save, /onboard/run, /onboard/job?id=&since=, /onboard/stop (scripts/onboard_lib.py). Only from this computer's own page:
+        the Host must be localhost and the custom X-Onboard header must be there (a page on another site cannot send it without our consent)."""
+        host = (self.headers.get("Host") or "").split(":")[0]
+        if host not in ("localhost", "127.0.0.1") or self.headers.get("X-Onboard") != "1":
+            return self._send(403, "application/json", b'{"error":"not allowed"}')
+        u = urllib.parse.urlparse(self.path)
+        q = urllib.parse.parse_qs(u.query)
+        try:
+            j = {}
+            if self.command == "POST":
+                j = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
+            if u.path == "/onboard/state": out = onboard_lib.state()
+            elif u.path == "/onboard/save": out = onboard_lib.save_plan(j)
+            elif u.path == "/onboard/run": out = onboard_lib.start(j.get("cmd"), j.get("label"), j.get("target"))
+            elif u.path == "/onboard/stop": out = onboard_lib.stop(int(j.get("id")))
+            elif u.path == "/onboard/job":
+                out = onboard_lib.poll(int(q["id"][0]), int(q.get("since", ["0"])[0]))
+                if out is None: return self._send(404, "application/json", b'{"error":"no such job"}')
+            else: return self._send(404, "application/json", b'{"error":"unknown"}')
+            return self._send(200, "application/json", json.dumps(out).encode())
+        except (ValueError, KeyError, TypeError) as e:
+            return self._send(400, "application/json", json.dumps({"error": str(e)}).encode())
+
     def do_POST(self):
+        if onboard_lib and self.path.startswith("/onboard/"):
+            return self._onboard()
         if review_lib and self.path.split("?")[0] == "/review/sign":
             try:
                 j = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")

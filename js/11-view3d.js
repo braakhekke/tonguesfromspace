@@ -14,20 +14,12 @@ function terrainHtml(c){
   return `${ARCTIC_HTML}, ground reference ${y.reference ? `${y.reference}: ${REGION.terrain.html}` : REGION.terrain.html}`;
 }
 const bundleId = g => g.inv ? g.inv.id : g.id;      // the key of a glacier's terrain file and of its entries in the data files (the Swiss ones have an inventory id)
-const V3D_VIEW = {'A54e-24': {back: 2000, dist: 1.3}};      // Trift: the strip reaches further below the tongue tip and the camera starts further back, away from the glacier (back: metres below the tip; dist: times the usual distance)
+const V3D_VIEW = {'A54e-24': {dist: 1.3}};      // Trift: the camera starts further back, away from the glacier (dist: times the usual distance); the strip itself (azimuth, half, back, up) is in data/boxes.js
 const terrainTile = (z, x, y) => `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`;
-function stripFor(g, at){            // direction up the glacier and length of the strip
-  const P = L.CRS.EPSG3857.project(L.latLng(at[0], at[1])), k = 1 / Math.cos(at[0] * Math.PI / 180), geom = g.inv && g.inv.outline;
-  const ring = geom && geom.coordinates.map(poly => poly[0]).sort((a, b) => b.length - a.length)[0];
-  const rel = (ring || []).map(([lng, lat]) => { const q = L.CRS.EPSG3857.project(L.latLng(lat, lng)); return [(q.x - P.x) / k, (q.y - P.y) / k]; });      // outline points in ground metres east and north of the tip
-  const near = rel.filter(p => Math.hypot(p[0], p[1]) <= 3000);
-  let ue = 0, un = 1;
-  if (near.length) { const mx = near.reduce((s, p) => s + p[0], 0) / near.length, my = near.reduce((s, p) => s + p[1], 0) / near.length, d = Math.hypot(mx, my); if (d > 1) { ue = mx / d; un = my / d; } }
-  else if (g.center) { const c = Array.isArray(g.center) ? g.center : [g.center.lat, g.center.lng], q = L.CRS.EPSG3857.project(L.latLng(c[0], c[1])), d = Math.hypot(q.x - P.x, q.y - P.y); if (d > 1) { ue = (q.x - P.x) / d; un = (q.y - P.y) / d; } }
-  const view = V3D_VIEW[bundleId(g)] || g.view3d || {};
-  if (view.azimuth !== undefined) { ue = Math.sin(view.azimuth * Math.PI / 180); un = Math.cos(view.azimuth * Math.PI / 180); }      // a direction fixed by hand (Iceland: the arrow drawn on the picture)
-  const along = Math.max(0, ...rel.map(p => p[0] * ue + p[1] * un)), up = view.up || Math.min(V3D.UP[1], Math.max(V3D.UP[0], along + 800));
-  return {P, k, ue, un, up, back: view.back || V3D.BACK, dist: view.dist || 1, cam: view.cam || null, half: view.half || V3D.HALF, tex: view.tex || V3D.TEX, merc: (a, b) => [P.x + (a * ue + b * un) * k, P.y + (a * un - b * ue) * k]};      // right of the looking direction is (un, -ue)
+function stripFor(g, at){            // the strip of a glacier as stored: azimuth up the glacier from the tip, half width, metres below the tip and up (data/boxes.js)
+  const P = L.CRS.EPSG3857.project(L.latLng(at[0], at[1])), k = 1 / Math.cos(at[0] * Math.PI / 180), st = boxRecord(bundleId(g), g.name).strip3d;
+  const az = (st.azimuth || 0) * Math.PI / 180, ue = Math.sin(az), un = Math.cos(az), view = V3D_VIEW[bundleId(g)] || g.view3d || {};
+  return {P, k, ue, un, up: st.up || V3D.UP[1], back: st.back === undefined ? V3D.BACK : st.back, dist: view.dist || 1, cam: view.cam || null, half: st.half || V3D.HALF, tex: view.tex || V3D.TEX, merc: (a, b) => [P.x + (a * ue + b * un) * k, P.y + (a * un - b * ue) * k]};      // right of the looking direction is (un, -ue)
 }
 async function loadHeights(S, nA, nB, zoom){            // heights (m) on a grid of nA+1 rows (top row = far up the glacier) by nB+1 columns (left to right)
   const Z = zoom || REGION.terrainZoom || V3D.Z, WM = V3D.WM, HALF = S.half, BACK = S.back, n = 2 ** Z, tx = x => (x + WM) / (2 * WM) * n, ty = y => (WM - y) / (2 * WM) * n;

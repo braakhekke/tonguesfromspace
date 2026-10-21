@@ -14,12 +14,22 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.dirname(HERE)
 
 
-def box_half_h(oid):
-    """{'halfH': km} when the picture box of this outlet is a rectangle (half = east-west half width, halfH = north-south half height; set with scripts/tools/box-editor.html and kept in
-    data/box-halfh.json so that a rebuild of the data file keeps it), else {} (a square of 2 x half km)."""
-    try: v = json.load(open(os.path.join(ROOT, 'data', 'box-halfh.json'), encoding='utf-8')).get(oid)
-    except (OSError, ValueError): v = None
-    return {'halfH': v} if v else {}
+def stored_boxes():
+    """data/boxes.js as {glacier id: record}: the picture box (bounds), tip and 3D strip of every glacier, moved by scripts/tools/box-editor.html"""
+    t = open(os.path.join(ROOT, 'data', 'boxes.js'), encoding='utf-8').read()
+    return json.loads(t[t.index('{', t.index('window.GLACIER_BOXES')):t.rindex('}') + 1])['glaciers']
+
+
+def box_fields(oid, **found):
+    """lat, lon, half (+ halfH for a rectangle), tip and strip3d of an outlet for its data file. data/boxes.js wins over what the rule found (found: lat, lon, half, tip, strip3d), so a
+    rebuild of a data file keeps the boxes that were placed by hand; lat/lon/half/halfH are the centre and half sides (km) of the stored bounds (a square of 2 x half km has no halfH)."""
+    e = stored_boxes().get(oid)
+    if not e: return found
+    (s, w), (n, east) = e['box']['bounds']; lat = (s + n) / 2; lon = (w + east) / 2
+    half = round((east - w) / 2 * 111.32 * math.cos(math.radians(lat)), 3); halfh = round((n - s) / 2 * 111.32, 3)
+    out = dict(lat=round(lat, 5), lon=round(lon, 5), half=half)
+    if abs(halfh - half) > 0.0005: out['halfH'] = halfh
+    return {**out, 'tip': e['tip'], 'strip3d': e['strip3d']}
 CACHE = os.path.join(HERE, '.rgi-cache')
 TILES = os.path.join(HERE, '.dem-cache', 'mapterhorn')
 UA = {'User-Agent': 'tonguesfromspace/1.0 (https://tonguesfromspace.org)'}

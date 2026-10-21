@@ -24,6 +24,7 @@ const IC_INFO = {
     groups: () => [
       ['change', 'Since about 1890', '4–7 <small>km</small>', [
         {hero: true, loss: true, v: '4–7', s: 'km', k: 'Retreat of the front since about 1890', f: 'is_gudm'},
+        /* CHECK (external-numbers rule): '0.95 km² a year' looks calculated, not quoted; compare with Guðmundsson et al. 2017 before keeping it */
         {v: '115', s: 'km²', k: 'Land exposed', d: 'by the retreat, 0.95 km² a year', f: 'is_gudm'},
         {v: '70 ± 8', s: 'km³', k: 'Ice lost (water equivalent)', d: 'about two thirds after the mid 20th century', f: 'is_gudm'},
         {v: '−0.6', s: 'm w.e. a⁻¹', k: 'Mass balance, 1890 to 2010', d: '± 0.1, mean over the whole glacier', f: 'is_gudm'},

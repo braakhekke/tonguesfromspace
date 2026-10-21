@@ -37,7 +37,7 @@ textarea{width:100%;box-sizing:border-box;height:110px;font:11px/1.4 ui-monospac
  <label>half width m<input type="range" id="sh" min="500" max="12000" step="100"><input type="number" id="shN" step="100"></label>
  <label>below tip m<input type="range" id="sb" min="0" max="4000" step="100"><input type="number" id="sbN" step="100"></label>
  <label>up the glacier m<input type="range" id="su" min="2000" max="14000" step="100"><input type="number" id="suN" step="100"></label>
- <p class="note">Drag the blue tip marker to move the strip. Azimuth is the direction from the tip up the glacier (0 = north, 90 = east).</p></fieldset>
+ <p class="note">Drag the blue squares to resize the strip (near corners: below the tip; far corners: up the glacier; both set the half width), the blue dot at the far end to turn it, the tip dot to move the strip (not for Swiss glaciers). Azimuth is the direction from the tip up the glacier (0 = north, 90 = east).</p></fieldset>
 <p><button id="copy">Copy for Notes for Claude</button> <button class="alt" id="reset">Reset</button></p>
 <textarea id="out" readonly aria-label="result"></textarea>
 <p class="note" id="msg"></p>
@@ -46,7 +46,7 @@ textarea{width:100%;box-sizing:border-box;height:110px;font:11px/1.4 ui-monospac
 <script>
 var FILES = {'is-vatnajokull': 'vatnajokull', 'is-rest': 'iceland', 'no-mainland': 'norway', 'no-svalbard': 'svalbard'};
 var P = new URLSearchParams(location.hash.slice(1)), REG = P.get('r') || 'ch', GID = P.get('g'), $ = function(i){ return document.getElementById(i); };
-var map = L.map('map', {zoomSnap: 0.25}), cur = null, orig = null, boxR, stripP, centreM, tipM, outlineL;
+var map = L.map('map', {zoomSnap: 0.25});
 var sat = null, hill = null;
 function setSat(year){ if(sat) sat.remove(); sat = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-' + year + '_3857/default/g/{z}/{y}/{x}.jpg', {maxZoom: 14, attribution: 'Sentinel-2 cloudless ' + year + ' © EOX'}).addTo(map); sat.bringToBack(); setMode(); }
 /* Terrain: Mapterhorn tiles (Terrarium in webp, 512 px, same source as the 3D view) drawn as a hillshade (light from the north-west) with a faint height tint; multiplied over the satellite picture. */
@@ -85,76 +85,155 @@ $('year').value = REG.indexOf('is-') === 0 ? 2025 : 2024; $('mode').addEventList
 fetch('../../data/terrain/manifest.json').then(function(r){ return r.json(); }).then(function(m){ if(GID && m[GID] && P.get('bg') !== '1'){ $('fBg').hidden = true; $('mode').value = 'sat'; setMode(); } }).catch(function(){}); $('year').addEventListener('change', function(){ setSat($('year').value); });
 function load(src, cb){ var s = document.createElement('script'); s.src = src + (src.indexOf('?') < 0 ? '?t=' + Date.now() : ''); s.onload = cb; s.onerror = function(){ $('info').textContent = 'Could not load ' + src + ' (is the server running in the repository root?)'; }; document.head.appendChild(s); }
 function km(lat){ return 111.32 * Math.cos(lat * Math.PI / 180); }
+function r5(x){ return Math.round(x * 1e5) / 1e5; }
+
+/* ONE record for every glacier, Switzerland or not: bounds [[S, W], [N, E]] (the picture box), tip [lat, lon], strip3d {azimuth, half, back, up}. Everything is moved by dragging corners:
+   the red square handles are the corners of the picture box (the round one in the middle moves the whole box); the blue handles are the corners of the 3D strip (near corners: how far it reaches
+   below the tip, far corners: how far up the glacier, both: the half width) and the round one at the far end turns it (azimuth) and sets its length. The sliders are for exact values. */
+var cur = null, orig = null, H = {}, dragging = null, outlineL, stripP, boxR, whole = null;
+var R_EARTH = 6378137;
+function merc(lat, lon){ return [R_EARTH * lon * Math.PI / 180, R_EARTH * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360))]; }
+function imageBox(b){      // as imageBox() in js/03-imagery.js: Web Mercator bbox and pixels at 10 m, cut to 2,500 px
+  var sw = merc(b[0][0], b[0][1]), ne = merc(b[1][0], b[1][1]), scale = 1 / Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180);
+  var w = Math.round((ne[0] - sw[0]) / (10 * scale)), h = Math.round((ne[1] - sw[1]) / (10 * scale)), k = Math.min(1, 2500 / Math.max(w, h));
+  return {bbox: [sw[0], sw[1], ne[0], ne[1]].map(Math.round), w: Math.round(w * k), h: Math.round(h * k), fullW: w, fullH: h};
+}
+function centre(){ return [(cur.bounds[0][0] + cur.bounds[1][0]) / 2, (cur.bounds[0][1] + cur.bounds[1][1]) / 2]; }
+function halves(){ var c = centre(); return {half: (cur.bounds[1][1] - cur.bounds[0][1]) / 2 * km(c[0]), halfH: (cur.bounds[1][0] - cur.bounds[0][0]) / 2 * 111.32, lat: c[0], lon: c[1]}; }
+function setHalves(half, halfH){ var c = centre(); cur.bounds = [[c[0] - halfH / 111.32, c[1] - half / km(c[0])], [c[0] + halfH / 111.32, c[1] + half / km(c[0])]]; }
+function fromCentre(lat, lon, half, halfH){ var dl = (halfH || half) / 111.32, dn = half / km(lat); return [[lat - dl, lon - dn], [lat + dl, lon + dn]]; }
+/* the strip: a metres along the azimuth from the tip, b metres to the right of it */
+function axes(){ var az = cur.strip3d.azimuth * Math.PI / 180; return {ue: Math.sin(az), un: Math.cos(az), k: km(cur.tip[0]) * 1000}; }
+function stripPoint(a, b){ var x = axes(); return [cur.tip[0] + (a * x.un - b * x.ue) / 111320, cur.tip[1] + (a * x.ue + b * x.un) / x.k]; }
+function stripLocal(p){ var x = axes(), dx = (p.lng - cur.tip[1]) * x.k, dy = (p.lat - cur.tip[0]) * 111320; return {a: dx * x.ue + dy * x.un, b: dx * x.un - dy * x.ue, dx: dx, dy: dy}; }
+function stripCorners(){ var s = cur.strip3d; return [stripPoint(-s.back, -s.half), stripPoint(-s.back, s.half), stripPoint(s.up, s.half), stripPoint(s.up, -s.half)]; }
+
+function sq(color){ return L.divIcon({className: '', html: '<div style="width:12px;height:12px;background:' + color + ';border:2px solid #fff;box-shadow:0 0 2px #000"></div>', iconSize: [12, 12]}); }
+function dot(color, r){ return L.divIcon({className: '', html: '<div style="width:' + r + 'px;height:' + r + 'px;border-radius:50%;background:' + color + ';border:2px solid #fff;box-shadow:0 0 2px #000"></div>', iconSize: [r, r]}); }
+function handle(key, ll, icon, onDrag, tip){
+  var m = L.marker(ll, {draggable: true, icon: icon, zIndexOffset: 1000}).addTo(map); if(tip) m.bindTooltip(tip);
+  m.on('dragstart', function(){ dragging = key; }); m.on('drag', function(){ onDrag(m.getLatLng()); sync(); }); m.on('dragend', function(){ dragging = null; fixOrder(); sync(); });
+  H[key] = m; return m;
+}
+function fixOrder(){ var b = cur.bounds, s = Math.min(b[0][0], b[1][0]), n = Math.max(b[0][0], b[1][0]), w = Math.min(b[0][1], b[1][1]), e = Math.max(b[0][1], b[1][1]); cur.bounds = [[s, w], [n, e]]; }
+function makeHandles(){
+  Object.keys(H).forEach(function(k){ H[k].remove(); }); H = {};
+  /* picture box: corners and middle */
+  handle('sw', cur.bounds[0], sq('#c8322a'), function(p){ cur.bounds[0] = [p.lat, p.lng]; }, 'picture box corner');
+  handle('ne', cur.bounds[1], sq('#c8322a'), function(p){ cur.bounds[1] = [p.lat, p.lng]; }, 'picture box corner');
+  handle('nw', [cur.bounds[1][0], cur.bounds[0][1]], sq('#c8322a'), function(p){ cur.bounds[1][0] = p.lat; cur.bounds[0][1] = p.lng; }, 'picture box corner');
+  handle('se', [cur.bounds[0][0], cur.bounds[1][1]], sq('#c8322a'), function(p){ cur.bounds[0][0] = p.lat; cur.bounds[1][1] = p.lng; }, 'picture box corner');
+  var last = null;
+  handle('mid', centre(), dot('#c8322a', 14), function(p){ var c = centre(), dl = p.lat - c[0], dn = p.lng - c[1]; cur.bounds = [[cur.bounds[0][0] + dl, cur.bounds[0][1] + dn], [cur.bounds[1][0] + dl, cur.bounds[1][1] + dn]]; }, 'move the picture box');
+  if(!cur.strip3d) return;
+  /* strip: the four corners, the end that turns it, the tip */
+  var S = function(f){ return function(p){ var l = stripLocal(p); f(l, cur.strip3d); }; };
+  handle('nl', stripPoint(-cur.strip3d.back, -cur.strip3d.half), sq('#2f6f9f'), S(function(l, s){ s.back = Math.max(0, Math.round(-l.a)); s.half = Math.max(200, Math.round(Math.abs(l.b))); }), '3D strip: how far below the tip, half width');
+  handle('nr', stripPoint(-cur.strip3d.back, cur.strip3d.half), sq('#2f6f9f'), S(function(l, s){ s.back = Math.max(0, Math.round(-l.a)); s.half = Math.max(200, Math.round(Math.abs(l.b))); }), '3D strip: how far below the tip, half width');
+  handle('fl', stripPoint(cur.strip3d.up, -cur.strip3d.half), sq('#2f6f9f'), S(function(l, s){ s.up = Math.max(500, Math.round(l.a)); s.half = Math.max(200, Math.round(Math.abs(l.b))); }), '3D strip: how far up the glacier, half width');
+  handle('fr', stripPoint(cur.strip3d.up, cur.strip3d.half), sq('#2f6f9f'), S(function(l, s){ s.up = Math.max(500, Math.round(l.a)); s.half = Math.max(200, Math.round(Math.abs(l.b))); }), '3D strip: how far up the glacier, half width');
+  handle('turn', stripPoint(cur.strip3d.up, 0), dot('#2f6f9f', 16), function(p){ var l = stripLocal(p), s = cur.strip3d; s.azimuth = Math.round(((Math.atan2(l.dx, l.dy) * 180 / Math.PI) % 360 + 360) % 360 * 10) / 10; s.up = Math.max(500, Math.round(Math.hypot(l.dx, l.dy))); }, '3D strip: turn it (azimuth) and set its length');
+  if(cur.tipFixed) H.tip = L.circleMarker(cur.tip, {radius: 7, color: '#fff', weight: 2, fillColor: '#2f6f9f', fillOpacity: 1}).bindTooltip('tongue tip (fixed here: it comes from glaciers.js)').addTo(map);
+  else handle('tip', cur.tip, dot('#2f6f9f', 14), function(p){ cur.tip = [p.lat, p.lng]; }, 'tongue tip (moves the 3D strip)');
+}
+function sync(){      // every drawn thing from `cur`; the handle being dragged is left alone
+  var b = cur.bounds, bb = L.latLngBounds(b);
+  if(!boxR) boxR = L.rectangle(bb, {color: '#c8322a', weight: 2, fill: false, interactive: false}).addTo(map); else boxR.setBounds(bb);
+  var put = function(k, ll){ if(H[k] && dragging !== k) H[k].setLatLng(ll); };
+  put('sw', b[0]); put('ne', b[1]); put('nw', [b[1][0], b[0][1]]); put('se', [b[0][0], b[1][1]]); put('mid', centre());
+  if(cur.strip3d){
+    var s = cur.strip3d;
+    if(!stripP) stripP = L.polygon(stripCorners(), {color: '#2f6f9f', weight: 2, fillOpacity: .12, interactive: false}).addTo(map); else stripP.setLatLngs(stripCorners());
+    put('nl', stripPoint(-s.back, -s.half)); put('nr', stripPoint(-s.back, s.half)); put('fl', stripPoint(s.up, -s.half)); put('fr', stripPoint(s.up, s.half)); put('turn', stripPoint(s.up, 0)); if(!cur.tipFixed) put('tip', cur.tip);
+  }
+  fields(); result();
+}
+function fields(){
+  var h = halves(); $('half').value = $('halfN').value = h.half.toFixed(1); $('halfH').value = $('halfHN').value = h.halfH.toFixed(1);
+  if(cur.strip3d){ var q = cur.strip3d; $('az').value = $('azN').value = q.azimuth; $('sh').value = $('shN').value = q.half; $('sb').value = $('sbN').value = q.back; $('su').value = $('suN').value = q.up; }
+}
+function bind(a, b, set){ [a, b].forEach(function(id){ $(id).addEventListener('input', function(e){ var v = +e.target.value; if(!isFinite(v)) return; $(a).value = $(b).value = v; set(v); sync(); }); }); }
+bind('half', 'halfN', function(v){ setHalves(v, halves().halfH); }); bind('halfH', 'halfHN', function(v){ setHalves(halves().half, v); });
+$('square').addEventListener('click', function(){ setHalves(halves().half, halves().half); sync(); });
+bind('az', 'azN', function(v){ cur.strip3d.azimuth = v; }); bind('sh', 'shN', function(v){ cur.strip3d.half = v; }); bind('sb', 'sbN', function(v){ cur.strip3d.back = v; }); bind('su', 'suN', function(v){ cur.strip3d.up = v; });
+
+function result(){
+  var b = cur.bounds, hv = halves(), im = imageBox(b), t, s = cur.strip3d, sc = s ? ', 3D strip azimuth ' + r5(s.azimuth) + ', half ' + s.half + ', back ' + s.back + ', up ' + s.up + (s.cell ? ' (cell ' + s.cell + ')' : '') : '';
+  var wkm = 2 * hv.half, hkm = 2 * hv.halfH, tile = Math.max(wkm, hkm) > 24.9 ? ' Over 24.9 km across it must be tiled.' : '';
+  var common = 'bounds [[' + r5(b[0][0]) + ', ' + r5(b[0][1]) + '], [' + r5(b[1][0]) + ', ' + r5(b[1][1]) + ']] (' + wkm.toFixed(1) + ' x ' + hkm.toFixed(1) + ' km, image ' + im.w + ' x ' + im.h + ' px, bbox [' + im.bbox.join(', ') + '])';
+  var half = Math.round(hv.half * 100) / 100, halfH = Math.round(hv.halfH * 100) / 100, where = cur.region === 'ch' ? 'Switzerland' : cur.region;
+  var derived = 'derived {bbox [' + im.bbox.join(', ') + '], w ' + im.w + ', h ' + im.h + '}';
+  t = 'Set the box of ' + cur.id + ' (' + cur.name + ', ' + where + ') in data/boxes.js: ' + common + (cur.tipFixed ? '; tip [' + r5(cur.tip[0]) + ', ' + r5(cur.tip[1]) + '] (fixed)' : '; tip [' + r5(cur.tip[0]) + ', ' + r5(cur.tip[1]) + ']') + sc
+    + ' (centre lat ' + r5(hv.lat) + ', lon ' + r5(hv.lon) + ', half ' + half + ' km' + (Math.abs(half - halfH) > 0.005 ? ' wide (E–W) and ' + halfH + ' km high (N–S): a RECTANGLE' : '') + '). Write ' + derived + ' next to it (tests/test_boxes.py checks it). '
+    + (cur.region === 'ch' ? 'Rebuild the terrain bundle (python3 scripts/build_terrain_bundle.py --id ' + cur.id + ') and expect every picture of this glacier to be fetched anew.'
+       : 'Rebuild the region data file (the builder takes box, tip and strip from boxes.js), then terrain, trails, cloud masks and the Worker centres, then tick the box on the board.') + tile;
+  $('out').value = t;
+  var tipIn = Math.min((cur.tip[0] - b[0][0]) * 111.32, (b[1][0] - cur.tip[0]) * 111.32, (cur.tip[1] - b[0][1]) * km(cur.tip[0]), (b[1][1] - cur.tip[1]) * km(cur.tip[0]));
+  $('msg').textContent = 'Box ' + wkm.toFixed(1) + ' x ' + hkm.toFixed(1) + ' km, image ' + im.w + ' x ' + im.h + ' px' + (im.fullW !== im.w || im.fullH !== im.h ? ' (cut down from ' + im.fullW + ' x ' + im.fullH + ')' : '') + ' · tip is ' + tipIn.toFixed(1) + ' km inside the box' + (tipIn < 1 ? ' (needs at least 1 km)' : '') + (Math.max(wkm, hkm) > 24.9 ? ' · longest side ' + Math.max(wkm, hkm).toFixed(1) + ' km: tiling needed' : '');
+}
+$('copy').addEventListener('click', function(){ $('out').select(); try { navigator.clipboard.writeText($('out').value); $('msg').textContent = 'Copied. Paste it into "Notes for Claude" of this glacier on the board.'; } catch(e){ document.execCommand('copy'); } });
+$('reset').addEventListener('click', function(){ cur = JSON.parse(JSON.stringify(orig)); makeHandles(); sync(); });
+
+/* start(g): g = {id, name, region, bounds, tip, tipFixed, strip3d, oldestGeo, outlineGeo (GeoJSON) or outline (rings [lat, lon]) and outlines (lines)} */
 function start(g){
-  cur = JSON.parse(JSON.stringify(g)); orig = JSON.parse(JSON.stringify(g)); $('title').textContent = 'Box editor: ' + g.name; $('info').textContent = (REG === 'ch' ? 'Switzerland' : REG) + ' · ' + g.id;
-  if(g.swiss){ $('fStrip').hidden = true; document.querySelector('#fBox label').hidden = true; $('boxNote').textContent = 'Swiss pictures are built from the 1850 outline plus margins (js/03-imagery.js). The start box is a generic estimate (1850 outline + 33 %), not the exact box of the page. Drag the two red corners to the box you want; the result says what to change.'; }
+  cur = JSON.parse(JSON.stringify({id: g.id, name: g.name, region: g.region, bounds: g.bounds, tip: g.tip, tipFixed: !!g.tipFixed, strip3d: g.strip3d})); orig = JSON.parse(JSON.stringify(cur));
+  $('title').textContent = 'Box editor: ' + g.name; $('info').textContent = (g.region === 'ch' ? 'Switzerland' : g.region) + ' · ' + g.id;
+  $('fStrip').hidden = !cur.strip3d;
+  $('boxNote').textContent = 'Drag the red squares to resize the picture box, the red dot to move it.';
   if(outlineL) outlineL.remove(); outlineL = L.layerGroup().addTo(map);
+  if(boxR){ boxR.remove(); boxR = null; } if(stripP){ stripP.remove(); stripP = null; }
   var all = [];
   function addGeo(geo, st, label){ if(!geo) return; var l = L.geoJSON({type: 'Feature', geometry: geo}, {style: st}).addTo(outlineL); l.bindTooltip(label, {sticky: true}); all.push(l.getBounds()); }
   function addLines(lines, st, label){ (lines || []).forEach(function(ln){ var l = L.polyline(ln, st).addTo(outlineL); l.bindTooltip(label, {sticky: true}); all.push(l.getBounds()); }); }
   var OLD = {color: '#ff9f1c', weight: 2, dashArray: '6 4', fill: false}, NEW = {color: '#ffffff', weight: 2, fill: false};
-  if(g.swiss){ addGeo(g.oldestGeo, OLD, 'oldest outline (SGI 1850)'); addGeo(g.outlineGeo, NEW, 'newest outline (SGI 2023)'); }
+  if(g.outlineGeo || g.oldestGeo){ addGeo(g.oldestGeo, OLD, 'oldest outline (SGI 1850)'); addGeo(g.outlineGeo, NEW, 'newest outline (SGI 2023)'); }
   else {
     var o = g.outlines || {};
     if(o.lia && o.lia.lines) addLines(o.lia.lines, OLD, 'oldest outline (' + (o.lia.label || o.lia.year) + ')');
     var nw = o.latest || o.new;
     if(nw && nw.lines) addLines(nw.lines, NEW, 'newest outline (' + (nw.label || nw.year) + ')');
     else addGeo({type: 'MultiPolygon', coordinates: (g.outline || []).map(function(r){ return [r.map(function(p){ return [p[1], p[0]]; })]; })}, NEW, 'outline (RGI, about ' + (g.outlineYear || '2000') + ')');
-    if(!o.lia && g.outline) { /* no older outline in the data file */ }
   }
-  var lg = document.getElementById('legend'); if(lg) lg.innerHTML = '<span style="color:#ff9f1c">\u2500 \u2500</span> oldest outline &nbsp; <span style="color:#fff;background:#556;padding:0 3px">\u2500\u2500</span> newest outline';
-  var whole = all.length ? all.reduce(function(a, b){ return a.extend(b); }) : null; if(whole) { g._whole = whole; map.fitBounds(whole.pad(0.1)); } else map.fitBounds(L.latLngBounds(g.swiss ? g.sw : [g.lat - 0.1, g.lon - 0.2], g.swiss ? g.ne : [g.lat + 0.1, g.lon + 0.2]));
-  draw();
+  var lg = document.getElementById('legend'); if(lg) lg.innerHTML = '<span style="color:#ff9f1c">─ ─</span> oldest outline &nbsp; <span style="color:#fff;background:#556;padding:0 3px">──</span> newest outline';
+  whole = all.length ? all.reduce(function(a, b){ return a.extend(b); }) : null;
+  map.fitBounds((whole ? whole.extend(L.latLngBounds(cur.bounds)) : L.latLngBounds(cur.bounds)).pad(0.1));
+  makeHandles(); sync();
 }
-function hh(){ return cur.halfH || cur.half; }      // half height (N–S); without it the box is square
-function boxBounds(){
-  if(cur.swiss) return L.latLngBounds(cur.sw, cur.ne);
-  var dl = hh() / 111.32, dn = cur.half / km(cur.lat); return L.latLngBounds([cur.lat - dl, cur.lon - dn], [cur.lat + dl, cur.lon + dn]);
+function regionGlacier(g, region){      /* an outlet of a region data file (outlines) with its stored record of data/boxes.js (a record missing there starts from the data file's centre, half sides, tip and strip) */
+  var e = window.GLACIER_BOXES && window.GLACIER_BOXES.glaciers[g.id];
+  return {id: g.id, name: g.name, region: region, bounds: e ? e.box.bounds : fromCentre(g.lat, g.lon, g.half, g.halfH), tip: e ? e.tip : g.tip, strip3d: e ? e.strip3d : g.strip3d, outline: g.outline, outlines: g.outlines, outlineYear: g.outlineYear};
 }
-function stripCorners(){
-  var s = cur.strip3d, tip = cur.tip, k = km(tip[0]), ue = Math.sin(s.azimuth * Math.PI / 180), un = Math.cos(s.azimuth * Math.PI / 180), out = [];
-  [[-s.half, -s.back], [s.half, -s.back], [s.half, s.up], [-s.half, s.up]].forEach(function(c){ var x = (c[0] * un + c[1] * ue) / 1000, y = (-c[0] * ue + c[1] * un) / 1000; out.push([tip[0] + y / 111.32, tip[1] + x / k]); });
-  return out;
+
+/* Sub-outlets of an ice cap (#subs=1): one box per outlet, proposed by the rule (scripts/tools/sub-boxes-<id>.json), the confirmed ones from data/boxes.js (records whose parent is the cap); pick the outlet in the list. */
+var SUBS = [], subSel = 0, subBoxes = [], subEdited = {};
+function startSubs(cap){
+  fetch('sub-boxes-' + cap.id + '.json?t=' + Date.now()).then(function(r){ return r.json(); }).then(function(proposals){
+    SUBS = proposals; var confirmed = {}; Object.keys(window.GLACIER_BOXES.glaciers).forEach(function(k){ var r = window.GLACIER_BOXES.glaciers[k]; if(r.parent === cap.id) confirmed[r.name] = r; });
+    var sel = document.createElement('fieldset'); sel.innerHTML = '<legend>Outlet of ' + cap.name + '</legend><select id="subPick" style="width:100%"></select><p class="note">Boxes proposed by the rule (icecap_lib.derive_view) or, marked ✓, already confirmed (a record in data/boxes.js with this cap as its parent). The glacier basins are red areas (click one to pick it), the other outlets\' boxes dashed white rectangles.</p>';
+    $('side').insertBefore(sel, $('fBox')); var pick = $('subPick');
+    cap.subs.forEach(function(sb, i){ var o = document.createElement('option'); o.value = i; o.textContent = (confirmed[sb.name] ? '✓ ' : '') + sb.name + ' · ' + sb.areaKm2 + ' km²' + (SUBS[i].approx ? ' ≈' : ''); pick.appendChild(o); });
+    function view(i){ var c = confirmed[cap.subs[i].name], v = SUBS[i]; return subEdited[i] || (c ? {bounds: c.box.bounds, tip: c.tip, strip3d: c.strip3d} : {bounds: fromCentre(v.lat, v.lon, v.half), tip: v.tip, strip3d: v.strip3d}); }
+    function go(i){
+      if(cur && subSel in SUBS) subEdited[subSel] = {bounds: cur.bounds, tip: cur.tip, strip3d: cur.strip3d}; subSel = i;
+      var sb = cap.subs[i], v = view(i);
+      start({id: cap.id + '~' + sb.name, name: sb.name + ' (' + cap.name + ')', region: REG, bounds: JSON.parse(JSON.stringify(v.bounds)), tip: v.tip, strip3d: JSON.parse(JSON.stringify(v.strip3d)), outline: sb.outline, outlineYear: cap.outlineYear});
+      subBoxes.forEach(function(r){ r.remove(); }); subBoxes = [];
+      cap.subs.forEach(function(s2, j){ s2.outline.forEach(function(ring){ subBoxes.push(L.polygon(ring, {color: '#e0262a', weight: j === i ? 3 : 1.5, fill: true, fillColor: '#e0262a', fillOpacity: j === i ? .12 : .05}).bindTooltip(s2.name + ' · ' + s2.areaKm2 + ' km²', {sticky: true}).on('click', function(){ pick.value = j; go(j); }).addTo(map)); });
+        if(j !== i) subBoxes.push(L.rectangle(view(j).bounds, {color: '#ffffff', weight: 1.5, opacity: .8, dashArray: '5 4', fill: false, interactive: false}).bindTooltip(s2.name).addTo(map)); });
+    }
+    pick.addEventListener('change', function(){ go(+pick.value); }); go(0);
+  }).catch(function(){ $('info').textContent = 'No sub-box proposal for ' + cap.id + ' (scripts/tools/sub-boxes-' + cap.id + '.json)'; });
 }
-function draw(){
-  var b = boxBounds();
-  if(!boxR){ boxR = L.rectangle(b, {color: '#c8322a', weight: 2, fill: false}).addTo(map); } else boxR.setBounds(b);
-  if(cur.swiss){
-    if(!centreM){ centreM = L.marker(b.getSouthWest(), {draggable: true}).addTo(map); tipM = L.marker(b.getNorthEast(), {draggable: true}).addTo(map);
-      centreM.on('drag', function(){ cur.sw = [centreM.getLatLng().lat, centreM.getLatLng().lng]; draw2(); }); tipM.on('drag', function(){ cur.ne = [tipM.getLatLng().lat, tipM.getLatLng().lng]; draw2(); }); }
-    else { centreM.setLatLng(b.getSouthWest()); tipM.setLatLng(b.getNorthEast()); }
-  } else {
-    if(!centreM){ centreM = L.marker([cur.lat, cur.lon], {draggable: true, icon: L.divIcon({className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#c8322a;border:2px solid #fff"></div>', iconSize: [14, 14]})}).addTo(map);
-      centreM.on('drag', function(){ var p = centreM.getLatLng(); cur.lat = p.lat; cur.lon = p.lng; draw2(); }); }
-    else centreM.setLatLng([cur.lat, cur.lon]);
-    if(!stripP){ stripP = L.polygon(stripCorners(), {color: '#2f6f9f', weight: 2, fillOpacity: .12}).addTo(map);
-      tipM = L.marker(cur.tip, {draggable: true, icon: L.divIcon({className: '', html: '<div style="width:14px;height:14px;border-radius:50%;background:#2f6f9f;border:2px solid #fff"></div>', iconSize: [14, 14]})}).addTo(map);
-      tipM.on('drag', function(){ var p = tipM.getLatLng(); cur.tip = [p.lat, p.lng]; draw2(); }); }
-    else { stripP.setLatLngs(stripCorners()); tipM.setLatLng(cur.tip); }
-  }
-  fields(); result();
-}
-function draw2(){ var b = boxBounds(); boxR.setBounds(b); if(stripP) stripP.setLatLngs(stripCorners()); result(); }
-function fields(){ if(cur.swiss) return; $('half').value = $('halfN').value = cur.half; $('halfH').value = $('halfHN').value = hh(); var s = cur.strip3d; $('az').value = $('azN').value = s.azimuth; $('sh').value = $('shN').value = s.half; $('sb').value = $('sbN').value = s.back; $('su').value = $('suN').value = s.up; }
-function bind(a, b, set){ [a, b].forEach(function(id){ $(id).addEventListener('input', function(e){ var v = +e.target.value; $(a).value = $(b).value = v; set(v); draw2(); }); }); }
-bind('half', 'halfN', function(v){ cur.half = v; }); bind('halfH', 'halfHN', function(v){ cur.halfH = v; });
-$('square').addEventListener('click', function(){ cur.halfH = cur.half; fields(); draw2(); }); bind('az', 'azN', function(v){ cur.strip3d.azimuth = v; }); bind('sh', 'shN', function(v){ cur.strip3d.half = v; }); bind('sb', 'sbN', function(v){ cur.strip3d.back = v; }); bind('su', 'suN', function(v){ cur.strip3d.up = v; });
-function r5(x){ return Math.round(x * 1e5) / 1e5; }
-function result(){
-  var t;
-  if(cur.swiss){ var b = boxBounds(); t = 'Set the picture box of ' + cur.id + ' (' + cur.name + ') to south-west ' + r5(b.getSouth()) + ', ' + r5(b.getWest()) + ' and north-east ' + r5(b.getNorth()) + ', ' + r5(b.getEast()) + ' (lat, lon). Keep 10 m pixels: over 24.9 km it must be tiled.'; }
-  else { var s = cur.strip3d; t = 'Set the box of ' + cur.id + ' (' + REG + '): lat ' + r5(cur.lat) + ', lon ' + r5(cur.lon) + ', half ' + cur.half + ' km' + (hh() !== cur.half ? ' wide (E–W) and ' + hh() + ' km high (N–S): a RECTANGLE ' + (2 * cur.half).toFixed(1) + ' x ' + (2 * hh()).toFixed(1) + ' km. Write halfH ' + hh() + ' for ' + cur.id + ' into data/box-halfh.json (the builders and the page read it as halfH next to half), rebuild the data file, then the usual rebuilds' : '') + '; tip [' + r5(cur.tip[0]) + ', ' + r5(cur.tip[1]) + ']; strip3d azimuth ' + s.azimuth + ', half ' + s.half + ', back ' + s.back + ', up ' + s.up + ' (cell ' + s.cell + '). Over 24.9 km across it must be tiled; rebuild terrain, trails, cloud masks and the Worker centres, then tick the box on the board.'; }
-  $('out').value = t; var ok = true, w = cur.swiss ? 0 : 0; if(!cur.swiss){ var bb = boxBounds(), k = km(cur.tip[0]); var m = Math.min((cur.tip[0] - bb.getSouth()) * 111.32, (bb.getNorth() - cur.tip[0]) * 111.32, (cur.tip[1] - bb.getWest()) * k, (bb.getEast() - cur.tip[1]) * k); $('msg').textContent = 'Box ' + (2 * cur.half).toFixed(1) + ' x ' + (2 * hh()).toFixed(1) + ' km · tip is ' + m.toFixed(1) + ' km inside the box' + (m < 1 ? ' (needs at least 1 km)' : '') + (Math.max(cur.half, hh()) * 2 > 24.9 ? ' · longest side ' + (Math.max(cur.half, hh()) * 2).toFixed(1) + ' km: tiling needed' : ''); }
-  else { var bb2 = boxBounds(); $('msg').textContent = 'Box about ' + ((bb2.getEast() - bb2.getWest()) * km((bb2.getNorth() + bb2.getSouth()) / 2)).toFixed(1) + ' x ' + ((bb2.getNorth() - bb2.getSouth()) * 111.32).toFixed(1) + ' km'; }
-}
-$('copy').addEventListener('click', function(){ $('out').select(); try { navigator.clipboard.writeText($('out').value); $('msg').textContent = 'Copied. Paste it into "Notes for Claude" of this glacier on the board.'; } catch(e){ document.execCommand('copy'); } });
-$('reset').addEventListener('click', function(){ cur = JSON.parse(JSON.stringify(orig)); draw(); });
+
 if(!GID){ $('info').textContent = 'Open this page from the glacier board (needs #r=…&g=…).'; }
 else if(REG === 'ch'){
-  load('../../data/glaciers.js', function(){ var g = window.GLACIER_DATA.glaciers.find(function(x){ return x.id === GID; }); if(!g) return $('info').textContent = 'Unknown glacier ' + GID;
-    var b = g.bbox, d = (b[1][0] - b[0][0]) * 0.33, dw = (b[1][1] - b[0][1]) * 0.33;
-    start({swiss: true, id: g.id, name: g.name, outlineGeo: g.outline, oldestGeo: g.oldest && g.oldest.outline, sw: [b[0][0] - d, b[0][1] - dw], ne: [b[1][0] + d, b[1][1] + dw], outline: []}); });
+  load('../../data/glaciers.js', function(){ load('../../data/boxes.js', function(){
+    var g = window.GLACIER_DATA.glaciers.find(function(x){ return x.id === GID; }), e = window.GLACIER_BOXES && window.GLACIER_BOXES.glaciers[GID];
+    if(!g) return $('info').textContent = 'Unknown glacier ' + GID; if(!e) return $('info').textContent = 'No entry for ' + GID + ' in data/boxes.js';
+    start({id: g.id, name: g.name, region: 'ch', bounds: e.box.bounds, tip: e.tip, tipFixed: true, strip3d: e.strip3d, outlineGeo: g.outline, oldestGeo: g.oldest && g.oldest.outline}); }); });
 } else if(FILES[REG]){
-  load('../../data/' + FILES[REG] + '.js', function(){ var g = (window.REGION_ICE.outlets || []).find(function(x){ return x.id === GID; }); if(!g) return $('info').textContent = 'Unknown outlet ' + GID; start(g); });
+  load('../../data/' + FILES[REG] + '.js', function(){ load('../../data/boxes.js', function(){ var g = (window.REGION_ICE.outlets || []).find(function(x){ return x.id === GID; }); if(!g) return $('info').textContent = 'Unknown outlet ' + GID;
+    if(P.get('subs') === '1') return startSubs(g);
+    start(regionGlacier(g, REG)); }); });
 } else $('info').textContent = 'Unknown region ' + REG;
 </script></body></html>

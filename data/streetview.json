@@ -123,5 +123,320 @@
       "credit": "John Herb",
       "title": "From the shore of Jökulsárlón towards the ice"
     }
+  ],
+  "B56-07": [
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJRHU2dW53ZGc.",
+      "lat": 45.98413,
+      "lng": 7.79253,
+      "date": "2022-08",
+      "heading": 146,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "JE adventurous",
+      "title": "Ridge above the Gorner, the Matterhorn beyond"
+    },
+    {
+      "pano": "CAoSHENJQUJJaEEwOVNVQ3VaWjBDY3VXZERfcmVGeEI.",
+      "lat": 45.98649,
+      "lng": 7.8096,
+      "date": "2025-10",
+      "heading": 160,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "ch. skypixel",
+      "title": "Across the valley to the Gorner tongue"
+    },
+    {
+      "pano": "CAoSHENJQUJJaEFZSEVkNC1QU0k2dmFnVi1EQVBRR1o.",
+      "lat": 45.98325,
+      "lng": 7.78482,
+      "date": "2020-08",
+      "heading": 138,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Isabelle Billerey",
+      "title": "Over the Gorner glacier"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJRHU2cG5EWGc.",
+      "lat": 45.98253,
+      "lng": 7.77699,
+      "date": "2022-08",
+      "heading": 136,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "JE adventurous",
+      "title": "Looking down the Gorner glacier"
+    },
+    {
+      "pano": "MUSQ-JRrYeni_sY_v4I69w",
+      "lat": 45.97866,
+      "lng": 7.7934,
+      "date": "2014-09",
+      "heading": 149,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "Above the Gorner, the Monte Rosa massif beyond"
+    }
+  ],
+  "B40-07": [
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0hpX3E3Q2c.",
+      "lat": 46.53735,
+      "lng": 8.12606,
+      "date": "2024-08",
+      "heading": 215,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Lino Schmid",
+      "title": "High above the Fiescher firn"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0VwUHVWVFE.",
+      "lat": 46.53201,
+      "lng": 8.07769,
+      "date": "2016-08",
+      "heading": 107,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Alex Gross",
+      "title": "Grosses Grünhorn, over the upper glacier"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQ0hpOGF1NlFF",
+      "lat": 46.5219,
+      "lng": 8.11431,
+      "date": "2024-08",
+      "heading": 227,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Lino Schmid",
+      "title": "From the hut over the Fiescher ice"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJRHU5TkNFWFE.",
+      "lat": 46.52599,
+      "lng": 8.17281,
+      "date": "2022-08",
+      "heading": 249,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Martin Gygax",
+      "title": "Down the glacier towards the tongue"
+    }
+  ],
+  "A54g-11": [
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQ2t1SmJFaVFF",
+      "lat": 46.58572,
+      "lng": 8.20628,
+      "date": "2017-07",
+      "heading": 219,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Yannik Waeber",
+      "title": "Over the Unteraar medial moraines"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJRGEzNnpXcWdF",
+      "lat": 46.58991,
+      "lng": 8.11807,
+      "date": "2021-08",
+      "heading": 132,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Connor Benton",
+      "title": "From a summit over the firn fields"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ2t1SmJFUnc.",
+      "lat": 46.57996,
+      "lng": 8.25855,
+      "date": "2017-07",
+      "heading": 242,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Yannik Waeber",
+      "title": "Down the valley over the Unteraar"
+    },
+    {
+      "pano": "pcZlWmq_tsKQSDoUa4u9aA",
+      "lat": 46.56354,
+      "lng": 8.28007,
+      "date": "2014-08",
+      "heading": 272,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "Grimsel reservoir, the Unteraar beyond"
+    }
+  ],
+  "B83-03": [
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJRHFvOG50M2dF",
+      "lat": 45.99897,
+      "lng": 7.29905,
+      "date": "2014-09",
+      "heading": 180,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Romain Boisset",
+      "title": "Beside the Corbassière, looking up the glacier"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQzRpN2ZVbUFF",
+      "lat": 45.99497,
+      "lng": 7.30574,
+      "date": "2017-08",
+      "heading": 191,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "anthony dalla zuanna",
+      "title": "Over the Corbassière tongue"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQzhxNEh6UEE.",
+      "lat": 46.00638,
+      "lng": 7.28843,
+      "date": "2020-07",
+      "heading": 169,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Mehmet Artun",
+      "title": "The tongue and a suspension bridge"
+    }
+  ],
+  "B57-05": [
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ0NxTjNVZmc.",
+      "lat": 46.01124,
+      "lng": 7.61898,
+      "date": "2020-08",
+      "heading": 186,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "VNR Photography",
+      "title": "Over the Zmutt moraine and the glacier"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ2U1THlIY2c.",
+      "lat": 46.00199,
+      "lng": 7.62897,
+      "date": "2022-09",
+      "heading": 195,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Frank Schmidt",
+      "title": "Over the Zmutt tongue"
+    },
+    {
+      "pano": "ZIgWI7xuwvDw1CoZe5spIg",
+      "lat": 46.01339,
+      "lng": 7.67223,
+      "date": "2014-09",
+      "heading": 236,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "Down the Zmutt valley"
+    }
+  ],
+  "B43-03": [
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJRDQyZHYxcGdF",
+      "lat": 46.58548,
+      "lng": 8.40561,
+      "date": "2016-08",
+      "heading": 312,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "John Baldi",
+      "title": "Over the Rhone glacier tongue"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJRHE4LURKOXdF",
+      "lat": 46.57943,
+      "lng": 8.38873,
+      "date": "2019-09",
+      "heading": 350,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Omar Moling",
+      "title": "The Rhone tongue and its lake"
+    }
+  ],
+  "B56-03": [
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJRGU1S3lzUkE.",
+      "lat": 46.0165,
+      "lng": 7.84716,
+      "date": "2021-08",
+      "heading": 147,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Balázs Mészáros",
+      "title": "From a ridge, towards the Findel glacier"
+    },
+    {
+      "pano": "zEi0qMfY8AAd1oTT7B3DMw",
+      "lat": 46.02153,
+      "lng": 7.8024,
+      "date": "2014-09",
+      "heading": 120,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "Findel glacier from the path"
+    }
+  ],
+  "B53-04": [
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQ1U0Nm4wNlFF",
+      "lat": 46.10953,
+      "lng": 7.88859,
+      "date": "2019-08",
+      "heading": 180,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Lino Schmid",
+      "title": "From a ridge, down the valley to the Fee glacier"
+    },
+    {
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ00wcXVSWXc.",
+      "lat": 46.10759,
+      "lng": 7.87909,
+      "date": "2019-08",
+      "heading": 169,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Alex Gross",
+      "title": "Over the Fee glacier"
+    },
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJRDRybzI0aFFF",
+      "lat": 46.11471,
+      "lng": 7.91644,
+      "date": "2016-09",
+      "heading": 205,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Iacopo Navarri",
+      "title": "From the valley, the Fee glacier front"
+    }
+  ],
+  "A54e-24": [
+    {
+      "pano": "CAoSF0NJSE0wb2dLRUlDQWdJQ1UyNUt0dmdF",
+      "lat": 46.68315,
+      "lng": 8.37074,
+      "date": "2019-08",
+      "heading": 207,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Gustavs Venters",
+      "title": "Looking across to the Trift glacier"
+    }
   ]
 }

@@ -175,7 +175,7 @@ def build_iceland(list_only=False):
         zmin = t['zmin']
         outlets.append(dict(id=t['id'], name=t['name'], rgi=ents[0]['properties']['RGIID'], note='', tongueName=tname,
                             areaKm2=round(t['area'], 1), lengthKm=round(t['length'] / 1000, 1), zmin=zmin, zmax=t['zmax'], outlineYear=int(max(f['properties']['BGNDATE'][:4] for f in ents)),
-                            lat=view['lat'], lon=view['lon'], half=view['half'], **lib.box_half_h(t['id']), tip=view['tip'], strip3d=view['strip3d'],
+                            **lib.box_fields(t['id'], lat=view['lat'], lon=view['lon'], half=view['half'], tip=view['tip'], strip3d=view['strip3d']),
                             outline=[lib.thin_ll(r, 25) for r in rings if lib.km2(r) > 0.02], outlines=outl,
                             entities=len(ents)))
     # the other ice caps of the region, for the overview
@@ -298,7 +298,7 @@ def build_norway(list_only=False):
         outlets.append(dict(id=NO_SLUG[name], name=name, rgi=f'NVE {hid}', note='', tongueName=tname,
                             areaKm2=round(a_new, 1), lengthKm=round(max([u['lengde_m'] or 0 for u in us] + [0]) / 1000, 1),
                             zmin=min(u['minhoyde_moh'] for u in us if u['minhoyde_moh'] is not None), zmax=max(u['makshoyde_moh'] for u in us if u['makshoyde_moh'] is not None), outlineYear=2019,
-                            lat=view['lat'], lon=view['lon'], half=view['half'], **lib.box_half_h(NO_SLUG[name]), tip=view['tip'], strip3d=view['strip3d'],
+                            **lib.box_fields(NO_SLUG[name], lat=view['lat'], lon=view['lon'], half=view['half'], tip=view['tip'], strip3d=view['strip3d']),
                             outline=[lib.thin_ll(x, 25) for x in rings], units=len(us), areas=[dict(year=1966, label='1947–1985', km2=round(a_old, 1)), dict(year=2019, label='2018–2019', km2=round(a_new, 1))],
                             outlines=dict(lia=dict(year=1966, label='1947–1985', date='', lines=lines_old, areaInBasinKm2=round(a_old, 1)),
                                           latest=dict(year=2019, label='2018–2019, Sentinel-2', date=(f'{dates[0]} to {dates[-1]}' if dates else ''), lines=lines_new, areaInBasinKm2=round(a_new, 1)))))
@@ -376,7 +376,7 @@ def build_svalbard(list_only=False):
         print('  ', [(a['label'], a['km2']) for a in areas], 'placename' if pn else 'NO placename')
         outlets.append(dict(id=slug, name=name, rgi=f'NPI {ident}', note='', tongueName=None, placename=pn, tidewater=bool(u4[0]['properties'].get('TIDEWATER')),
                             areaKm2=round(a2020, 1), lengthKm=round((p3.get('LENGTH') or 0) / 1000, 1), zmin=round(p3.get('minZ') or 0), zmax=round(p3.get('maxZ') or 0), outlineYear=int(epochs[3][0]) if 3 in epochs else 2020,
-                            lat=view['lat'], lon=view['lon'], half=view['half'], **lib.box_half_h(slug), tip=view['tip'], strip3d=view['strip3d'],
+                            **lib.box_fields(slug, lat=view['lat'], lon=view['lon'], half=view['half'], tip=view['tip'], strip3d=view['strip3d']),
                             outline=[lib.thin_ll(r, 25) for r in rings], areas=areas, outlines=outl))
     ids = {i for i, _, _ in SV}
     basins = []

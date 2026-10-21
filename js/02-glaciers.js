@@ -28,15 +28,16 @@ function loadOutline(g){      // g: an entry of GLACIERS; resolves when g.inv.ou
   return outlineLoads.get(inv.id);
 }
 /* Vatnajökull (Iceland): the outlets of the ice cap that can be chosen (data/vatnajokull.js, scripts/build_vatnajokull.py). An outlet has no inventory record `inv` (that is the
-   Swiss GLAMOS data) but its RGI 6.0 outline and figures in `rgi`, and its picture is a rectangle of 2 x half km (east-west) by 2 x halfH km (north-south, default = half, i.e. a square) around its centre (`half`, `halfH`, see imageFootprint). */
+   Swiss GLAMOS data) but its RGI 6.0 outline and figures in `rgi`, and its picture is the stored box of data/boxes.js (see imageFootprint; `half`/`halfH` in the data file are the same box as centre and half sides). */
 const ICECAP = window.REGION_ICE || null;      // the data file of an ice-cap region (Vatnajökull, the rest of Iceland, Svalbard, mainland Norway): window.REGION_ICE
 const ringsBounds = rings => { const pts = rings.flat(); return [[Math.min(...pts.map(p => p[0])), Math.min(...pts.map(p => p[1]))], [Math.max(...pts.map(p => p[0])), Math.max(...pts.map(p => p[1]))]]; };
-const squareBounds = (lat, lon, halfKm, halfHKm) => { const dLat = (halfHKm || halfKm) / 111.32, dLon = halfKm / (111.32 * Math.cos(lat * Math.PI / 180)); return [[lat - dLat, lon - dLon], [lat + dLat, lon + dLon]]; };
+/* the stored picture box, tip and 3D strip of a glacier of any region (data/boxes.js, scripts/tools/box-editor.html): bounds [[S, W], [N, E]], tip, strip3d {azimuth, half, back, up}; a glacier without a record is an error, not a guess */
+const boxRecord = (id, name) => { const e = window.GLACIER_BOXES && window.GLACIER_BOXES.glaciers[id]; if (!e) throw new Error(`No box for ${name || id} in data/boxes.js`); return e; };
 let GLACIERS;
 if (REGION.rgi) {
   GLACIERS = ((ICECAP && ICECAP.outlets) || []).map(o => ({
     id: o.id, name: o.name, local: o.name, canton: REGION.place.canton, range: REGION.place.range, lede: o.note, look: '', note: '',
-    center: [o.lat, o.lon], half: o.half, box: o.image ? o.image.bounds : squareBounds(o.lat, o.lon, o.half, o.halfH), cap: o.image || null, subs: o.subs || null, bounds: padBounds(ringsBounds(o.outline), 0.04), tongue: o.tip, view3d: {...o.strip3d, tex: 2 * o.strip3d.half >= o.strip3d.up + o.strip3d.back ? [2048, 1024] : [1024, 2048]},      // box: the picture (the tongue, 2 x half km); bounds: the whole glacier (its RGI outline), which the Whole glacier button shows      // tip: where the 3D strip starts (build_vatnajokull.py)
+    center: [o.lat, o.lon], half: o.half, box: o.image ? o.image.bounds : boxRecord(o.id, o.name).box.bounds, cap: o.image || null, subs: o.subs || null, bounds: padBounds(ringsBounds(o.outline), 0.04), tongue: o.tip, view3d: {...boxRecord(o.id, o.name).strip3d, tex: 2 * boxRecord(o.id, o.name).strip3d.half >= boxRecord(o.id, o.name).strip3d.up + boxRecord(o.id, o.name).strip3d.back ? [2048, 1024] : [1024, 2048]},      // box: the picture (the tongue, 2 x half km); bounds: the whole glacier (its RGI outline), which the Whole glacier button shows      // tip: where the 3D strip starts (build_vatnajokull.py)
     rgi: {id: o.rgi, areaKm2: o.areaKm2, lengthKm: o.lengthKm, zmin: o.zmin, zmax: o.zmax, year: o.outlineYear, outline: o.outline}, outlines: o.outlines, areas: o.areas || null, tongueName: o.tongueName || null, placename: o.placename || null, tidewater: !!o.tidewater, units: o.units || o.entities || null
   }));
 } else if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {

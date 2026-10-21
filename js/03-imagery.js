@@ -192,37 +192,18 @@ const idb = (() => {
   };
 })();
 
-/* Image footprint per glacier: its bounds plus a margin, in Web Mercator so it lines up exactly. */
-const IMAGE_MARGIN = 0.33;      // share of the 1850 extent added on every side (Aletsch has its own margins below)
-/* Glaciers with their own margins along the length of the picture, as a share of the picture height: Aletsch is long and its image needs little space beyond the 1850 outline at both ends */
-const NS_MARGIN = [['aletsch', 0.08, 0.07]];      // [name part, north, south]; 8 % + 7 % keeps the picture under 2500 px, i.e. 10 m pixels
-const EXTRA_NORTH = [['findel', 0.15]];        // glaciers whose image reaches further north (share of the image height)
-const EXTRA_EW = [['rhone', 2000]];            // glaciers whose image is wider on both the west and the east side (metres)
-const EXTRA_EAST = [['aletsch', 3000]];        // glaciers whose image is wider on the east side only (metres); Aletsch: 20.4 -> 23.4 km = 2,340 px, still 10 m pixels
+/* Image footprint per glacier: the picture box is stored, never computed (data/boxes.js, for every region). */
+/* the stored box of a glacier (data/boxes.js, boxRecord in 02-glaciers.js) */
+const boxEntry = g => boxRecord(g.inv ? g.inv.id : g.id, g.name);
 function imageFootprint(g){
   if (g.cap) return capFootprint(g);
-  return imageBox(g.half ? g.box : imageMargins(g));      // Iceland: a square of fixed size around the centre, no margins to add
+  return imageBox(boxEntry(g).box.bounds);
 }
 /* A whole ice cap (data `image`, scripts/build_cap_images.py): one picture area of the old and the new outline plus a margin, in equal tiles of at most 2,490 px that are asked for one by
    one and stitched (loadCapImage). The area is bigger than the Process API's 2,500 px: w x h is the full picture at 10 m, `tiles` the requests. */
 function capFootprint(g){
   const c = g.cap, bb = c.bbox, scale = c.pix / CDSE.groundRes;      // pix = Mercator metres per 10 m pixel
   return {bounds: c.bounds, bbox: bb, w: c.w, h: c.h, statsRes: Math.round(CDSE.statsRes * scale), tiles: c.tiles, pix: c.pix};
-}
-function imageMargins(g){
-  const b = g.extent ? padBounds(g.extent, IMAGE_MARGIN) : padBounds(g.bounds, 0.35);   // margin around the 1850 extent, for panning and video crops
-  const ns = g.extent && NS_MARGIN.find(([k]) => norm(g.local || g.name).includes(k));
-  if (ns) {                                          // north and south margins as a share of the finished picture height
-    const [[s0], [n0]] = g.extent, eh = n0 - s0, H = eh / (1 - ns[1] - ns[2]);
-    b[0][0] = s0 - ns[2] * H; b[1][0] = n0 + ns[1] * H;
-  }
-  const extra = EXTRA_NORTH.find(([k]) => norm(g.local || g.name).includes(k));
-  if (extra) b[1][0] += (b[1][0] - b[0][0]) * extra[1];
-  const ew = EXTRA_EW.find(([k]) => norm(g.local || g.name).includes(k));
-  if (ew) { const d = ew[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180)); b[0][1] -= d; b[1][1] += d; }
-  const ee = EXTRA_EAST.find(([k]) => norm(g.local || g.name).includes(k));
-  if (ee) b[1][1] += ee[1] / (111320 * Math.cos((b[0][0] + b[1][0]) / 2 * Math.PI / 180));
-  return b;
 }
 function imageBox(b){
   const sw = L.CRS.EPSG3857.project(L.latLng(b[0])), ne = L.CRS.EPSG3857.project(L.latLng(b[1]));

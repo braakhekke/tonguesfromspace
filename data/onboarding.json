@@ -1,0 +1,636 @@
+{
+ "items": [
+  {
+   "id": "imvi30jh80",
+   "kind": "group",
+   "title": "Start",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh81",
+   "kind": "step",
+   "title": "Check what this region already has",
+   "note": "Look for docs/regions/<region>.md and the region entry in js/00-regions.js. If the region is known, reuse its outline rule, elevation model, season and source notes, and go straight to Agree the placement. If not, continue with the next section.",
+   "cmd": "ls docs/regions/",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "Gauli"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh82",
+   "kind": "group",
+   "title": "Find the data (new regions only)",
+   "note": "Any glacier on the globe can be requested, so nothing here assumes a country. Search from local to global and keep a record of every source tried.",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh83",
+   "kind": "step",
+   "title": "Find outlines and glacier IDs",
+   "note": "Search from local to global: national inventories first, then regional ones, then RGI and GLIMS. Get the newest outline and the oldest one, with the date and licence of each. Decide what counts as \"the glacier\" here (ice cap, main glacier, named unit, one outlet) and write that rule down. Id = lower-case ASCII slug; Swiss glaciers keep the SGI id. List skipped or ambiguous units with the reason.",
+   "cmd": "",
+   "look": "A map of every candidate outline over the cloudless EOX imagery, one colour per source, each with its date. You pick the source and the unit. Correct: merged or split glaciers, wrong names, outlines that are clearly out of date.",
+   "reveals": [
+    "basemap",
+    "outlines"
+   ],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh84",
+   "kind": "step",
+   "title": "Find elevation models",
+   "note": "National open model first, then regional and global ones. For each: coverage of the glacier, resolution, height system, acquisition date, licence. Look for dated models or strips that give yearly surfaces. Check that the Mapterhorn tiles exist at the zoom the page needs.",
+   "cmd": "",
+   "look": "A hillshade of each candidate model over the glacier. You reject models with holes, striping, or a visible offset from the ground beside the ice.",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh85",
+   "kind": "step",
+   "title": "Find supporting sources",
+   "note": "Historic aerial pictures, historic photographs (Smapshot and similar), footpaths (OSM), Street View, mass balance and length-change series, names and facts (Wikipedia, papers with DOI, place-name registers). Note date, licence and coverage of each. A source with nothing near the tongue is recorded as \"none\".",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh86",
+   "kind": "step",
+   "title": "Write the region notes",
+   "note": "One file per region. For every source: what it is, link, date, licence, what worked, what failed and why, and the command that builds from it. Link the file from the region entry. Later glaciers in this region start from it. Non-commercial data keeps the site non-commercial.",
+   "cmd": "docs/regions/<region>.md",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh87",
+   "kind": "group",
+   "title": "Placement",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh88",
+   "kind": "step",
+   "title": "Agree the placement",
+   "note": "Propose the image box (lat, lon, half, bounds), the 3D start camera and the 3D strip (tip, azimuth, half width, back, up) from the rule, then wait for your confirmation. Everything downstream depends on these numbers.",
+   "cmd": "scripts/tools/box-editor.html · scripts/tools/view3d-editor.html · icecap_lib.derive_view",
+   "look": "The glacier basin on the cloudless EOX imagery, with the newest and the oldest outline, the picture box, the tip and the 3D strip. Correct: box off-centre or cutting the glacier, tip on a nunatak or lake shore, strip not following the tongue, box wider than 24.9 km.",
+   "reveals": [
+    "box"
+   ],
+   "done": false,
+   "views": [
+    {
+     "label": "Box editor",
+     "url": "/scripts/tools/box-editor.html"
+    },
+    {
+     "label": "3D view editor",
+     "url": "/scripts/tools/view3d-editor.html"
+    },
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ],
+   "runs": []
+  },
+  {
+   "id": "imvi30jh89",
+   "kind": "group",
+   "title": "Data and geometry",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8a",
+   "kind": "step",
+   "title": "Add the region entry",
+   "note": "Season, outline names, terrain credit, trailsFile, landing and features in js/00-regions.js. Link the region notes file. For Swiss glaciers add the site id to SITE_ID in audit_glaciers.py.",
+   "cmd": "",
+   "look": "",
+   "reveals": [
+    "glacierlist"
+   ],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8b",
+   "kind": "step",
+   "title": "Run the build script",
+   "note": "Never hand-edit data/<region>.js. Compare area, length, zmin, zmax and outline year with the source. A gap over about 10 % is explained or fixed.",
+   "cmd": "build_regions.py · build_vatnajokull.py · build_outlines.py",
+   "look": "The built outlines over the imagery, next to a table of area and length against the source. Correct: units that are merged, cut or missing.",
+   "reveals": [
+    "facts"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_outlines.py"
+    }
+   ],
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ]
+  },
+  {
+   "id": "imvi30jh8c",
+   "kind": "step",
+   "title": "Tile the picture box if wider than 24.9 km",
+   "note": "One Sentinel-2 request holds 2,500 px (10 m), so wider areas are asked in equal tiles. Check that statsRes scales with pix.",
+   "cmd": "python3 scripts/build_cap_images.py <id>",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_cap_images.py {id}"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8d",
+   "kind": "step",
+   "title": "Sync the Worker centres",
+   "note": "The relay wants each picture centre within 25 km of a CENTRES entry. Then paste worker/worker.js into Cloudflare and Deploy.",
+   "cmd": "python3 scripts/sync_worker_centres.py",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/sync_worker_centres.py"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8e",
+   "kind": "group",
+   "title": "3D terrain",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8f",
+   "kind": "step",
+   "title": "Build the yearly surfaces",
+   "note": "Offset each strip to the reference on off-glacier ground and log offset and spread (about 1 m is normal). Summer strips only for bare ice. Label each year measured, interpolated or held.",
+   "cmd": "build_dem_arctic.py · build_dem_iceland.py · build_dem_change.py",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_dem_change.py --id {sgi}"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8g",
+   "kind": "step",
+   "title": "Build the terrain bundle",
+   "note": "Writes data/terrain/<id>.<hash>.bin and manifest.json.",
+   "cmd": "python3 scripts/build_terrain_bundle.py",
+   "look": "",
+   "reveals": [
+    "view3d",
+    "surfaces3d"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_terrain_bundle.py --id {id}"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8h",
+   "kind": "step",
+   "title": "Check the 3D view",
+   "note": "Peak names: at most six, 750 m apart.",
+   "cmd": "scripts/tools/view3d-editor.html",
+   "look": "The real 3D view from the start camera, then the first and last year. Correct: spikes or holes at the strip edges, lakes that are not flat, tip not in the middle of the lower edge, tongue not filling the lower half, anything cut off, a ridge hiding the tip.",
+   "reveals": [],
+   "done": false,
+   "views": [
+    {
+     "label": "3D view editor",
+     "url": "/scripts/tools/view3d-editor.html"
+    },
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ],
+   "runs": []
+  },
+  {
+   "id": "imvi30jh8i",
+   "kind": "group",
+   "title": "Imagery",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8j",
+   "kind": "step",
+   "title": "Choose scenes 2016 to now",
+   "note": "Pins go to data/scenes.json with the reason. One orbit for all years.",
+   "cmd": "scripts/tools/pick-scenes.html",
+   "look": "The one-frame-per-year sheet. Reject years with snow on the tongue, cloud or shadow in the lowest 3 km, or a different orbit.",
+   "reveals": [
+    "s2",
+    "years",
+    "downloads"
+   ],
+   "done": false,
+   "views": [
+    {
+     "label": "Scene picker",
+     "url": "/scripts/tools/pick-scenes.html"
+    },
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ],
+   "runs": []
+  },
+  {
+   "id": "imvi30jh8k",
+   "kind": "step",
+   "title": "Make the cloud masks for \"Latest\"",
+   "note": "Outline plus a 3 km circle around the tip.",
+   "cmd": "python3 scripts/make_cloud_masks.py",
+   "look": "",
+   "reveals": [
+    "latest"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/make_cloud_masks.py"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8l",
+   "kind": "step",
+   "title": "Build Landsat before 2016",
+   "note": "Colour patch on stable rock, registration shift at most 150 m, three styles per year. Upload the folder to R2 afterwards.",
+   "cmd": "python3 scripts/build_landsat.py <id> · scripts/upload_landsat.sh <bucket>",
+   "look": "The Landsat timelapse. Correct: years that jump in position or colour (they go to LEAVE_OUT_YEARS with the reason) and a colour patch that sits on snow or water.",
+   "reveals": [
+    "landsat"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_landsat.py --outlet {id} --list"
+    },
+    {
+     "cmd": "python3 scripts/build_landsat.py --outlet {id}"
+    }
+   ],
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ]
+  },
+  {
+   "id": "imvi30jh8m",
+   "kind": "step",
+   "title": "Find the oldest aerial picture",
+   "note": "Search the national archive first, then regional and global ones. Store data/oldest/<id>.webp and .json (year, source, licence), registered to the Mercator grid. If unusable, excuse it with the oldest year found.",
+   "cmd": "",
+   "look": "A crossfade of the oldest picture and Sentinel-2. Correct: a picture that does not line up or does not cover the box.",
+   "reveals": [
+    "oldest"
+   ],
+   "done": false,
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ],
+   "runs": []
+  },
+  {
+   "id": "imvi30jh8n",
+   "kind": "step",
+   "title": "Historic photographs",
+   "note": "Smapshot or similar: photos with a known pose, a date known to about a year, and a camera near the tongue. Choose by looking at each crossfade, not by score.",
+   "cmd": "python3 scripts/build_photos.py --no-los --min-share 0.3 --n 9 --keep <ids>",
+   "look": "The crossfade of each photo over the 3D view. Keep those where valley walls and ridges line up with the tongue in view. Drop panoramas, collages, close-ups and mis-placed photos.",
+   "reveals": [
+    "photos"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_photos.py --id {sgi} --no-los --min-share 0.3 --n 9"
+    }
+   ],
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ]
+  },
+  {
+   "id": "imvi30jh8o",
+   "kind": "step",
+   "title": "Street View ids",
+   "note": "Ids only, never pictures. Excuse only when no panorama sees the tongue.",
+   "cmd": "build_streetview.py scan | rank | review",
+   "look": "Thumbnails of the best panoramas (a few billable images, delete afterwards). Keep those that show the tongue.",
+   "reveals": [
+    "streetview"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/build_streetview.py scan --id {sgi}"
+    },
+    {
+     "cmd": "python3 scripts/build_streetview.py rank --id {sgi} --visitors"
+    }
+   ],
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ]
+  },
+  {
+   "id": "imvi30jh8p",
+   "kind": "step",
+   "title": "Trails and ice front in view",
+   "note": "Required, or excused when OSM has no paths.",
+   "cmd": "build_trails_regions.py · build_sightline.py",
+   "look": "The violet sight band under the trails, on the map and in 3D. Correct: trails through lakes, or a band over places that cannot see the tongue.",
+   "reveals": [
+    "trails"
+   ],
+   "done": false,
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ],
+   "runs": []
+  },
+  {
+   "id": "imvi30jh8q",
+   "kind": "group",
+   "title": "Page content",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8r",
+   "kind": "step",
+   "title": "Write the texts with sources",
+   "note": "IC_INFO record: lede, look, news, fact, name, front. Only parts that could be sourced. Copy external figures exactly as the source states them.",
+   "cmd": "python3 scripts/check_external_numbers.py",
+   "look": "",
+   "reveals": [
+    "discover"
+   ],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/check_external_numbers.py"
+    }
+   ],
+   "views": [
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ]
+  },
+  {
+   "id": "imvi30jh8s",
+   "kind": "step",
+   "title": "Complete the Sources list and credits",
+   "note": "Add every new dataset with its licence.",
+   "cmd": "",
+   "look": "",
+   "reveals": [
+    "credits"
+   ],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8t",
+   "kind": "group",
+   "title": "Check and ship",
+   "note": "",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8u",
+   "kind": "step",
+   "title": "Run the audit",
+   "note": "No MISSING for the glacier. Excuses go in data/audit-exceptions.json.",
+   "cmd": "python3 scripts/audit_glaciers.py",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/audit_glaciers.py"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8v",
+   "kind": "step",
+   "title": "Syntax and types",
+   "note": "",
+   "cmd": "python3 scripts/check_syntax.py && python3 scripts/check_types.py",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/check_syntax.py"
+    },
+    {
+     "cmd": "python3 scripts/check_types.py"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8w",
+   "kind": "step",
+   "title": "Build and run the tests",
+   "note": "",
+   "cmd": "PUBLISH_ICELAND=1 PUBLISH_NORWAY=1 python3 scripts/build_site.py /tmp/tfs_site; TFS_SITE_DIR=/tmp/tfs_site python3 -m unittest discover -s tests -v",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "PUBLISH_ICELAND=1 PUBLISH_NORWAY=1 python3 scripts/build_site.py /tmp/tfs_site"
+    },
+    {
+     "cmd": "TFS_SITE_DIR=/tmp/tfs_site python3 -m unittest discover -s tests -v"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8x",
+   "kind": "step",
+   "title": "Raise CDSE.version if needed",
+   "note": "Only when scene scoring or image rendering changed.",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8y",
+   "kind": "step",
+   "title": "Refresh the glacier board",
+   "note": "Sync, push the plan, delete removed ids, then stamp.",
+   "cmd": "python3 scripts/board_sync.py",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [
+    {
+     "cmd": "python3 scripts/board_sync.py"
+    }
+   ],
+   "views": []
+  },
+  {
+   "id": "imvi30jh8z",
+   "kind": "step",
+   "title": "Visual review",
+   "note": "One glacier, five steps, each with the real site in a frame. Also: export one image and one video, and check phone width.",
+   "cmd": "scripts/tools/review.html",
+   "look": "Map start view, Compare 2016 vs latest, timelapse (no jumps), the three colour styles, 3D start camera, 3D compare, 3D first and last year. Flag anything that looks wrong.",
+   "reveals": [],
+   "done": false,
+   "views": [
+    {
+     "label": "Review walk-through",
+     "url": "/scripts/tools/review.html#g={id}"
+    },
+    {
+     "label": "Real site",
+     "url": "/#g={id}"
+    }
+   ],
+   "runs": []
+  },
+  {
+   "id": "imvi30jh810",
+   "kind": "step",
+   "title": "Hand over",
+   "note": "Paste worker/worker.js into Cloudflare, set the PUBLISH_* variables, commit the data files (only when asked). You sign off steps 1 to 5.",
+   "cmd": "",
+   "look": "",
+   "reveals": [],
+   "done": false,
+   "runs": [],
+   "views": []
+  }
+ ],
+ "target": {
+  "name": "Gauligletscher",
+  "id": "gauligletscher",
+  "sgi": "",
+  "region": "",
+  "pos": "",
+  "note": ""
+ },
+ "updatedAt": 1792585442367
+}

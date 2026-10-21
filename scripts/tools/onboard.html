@@ -1,0 +1,676 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Add a glacier</title>
+<style>
+/* Local tool: python3 scripts/serve.py, then http://localhost:8000/scripts/tools/onboard.html. The steps and the glacier are kept in data/onboarding.json (scripts/onboard_lib.py);
+   a step runs its commands there (only scripts/*.py of this repository). Layout: steps list on the left, a mock of the main site on the right that gains parts as the selected step moves down the list. Matches tonguesfromspace.org. */
+:root{
+  --bg:#EEF1F4; --sheet:#FFFFFF; --ink:#14284B; --muted:#5E6B80; --rule:#D5DBE3;
+  --accent:#C8322A; --ice:#2C6FA8; --done:#8A97AA; --hover:#F5F7FA; --code-bg:#EEF1F4;
+  --map-bg:#DDE1D3; --map-line:#C6CBB9; --rock:#9A9588; --ice-fill:#EAF3FA; --viol:#7B3FB5; --sv:#1D4E89;
+  --font:'Schibsted Grotesk',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --mono:ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){
+  --bg:#0D1624; --sheet:#152238; --ink:#E6ECF5; --muted:#9AA8BE; --rule:#2A3A55;
+  --accent:#F0665E; --ice:#6DB0E8; --done:#6F7F99; --hover:#1B2B46; --code-bg:#0D1624;
+  --map-bg:#2B3429; --map-line:#3B4738; --rock:#5E5B53; --ice-fill:#D4E6F3; --viol:#B88BE8; --sv:#6DB0E8; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#0D1624; --sheet:#152238; --ink:#E6ECF5; --muted:#9AA8BE; --rule:#2A3A55;
+  --accent:#F0665E; --ice:#6DB0E8; --done:#6F7F99; --hover:#1B2B46; --code-bg:#0D1624;
+  --map-bg:#2B3429; --map-line:#3B4738; --rock:#5E5B53; --ice-fill:#D4E6F3; --viol:#B88BE8; --sv:#6DB0E8; color-scheme:dark}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{background:var(--bg);color:var(--ink);font-family:var(--font);font-size:15px;line-height:1.45;
+  padding-block:20px 56px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1240px;margin:0 auto}
+header{display:flex;flex-wrap:wrap;gap:10px 24px;justify-content:space-between;align-items:flex-end;padding-bottom:14px}
+h1{margin:0;font-size:26px;line-height:1.15;font-weight:700;text-wrap:balance}
+.sub{margin:4px 0 0;color:var(--muted);font-size:13px;max-width:70ch}
+.count{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums;text-align:right}
+.bar{height:4px;background:var(--rule);margin-top:6px;width:180px}
+.bar i{display:block;height:100%;background:var(--ice);width:0}
+.tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:14px}
+button{font:inherit;font-size:13px;color:var(--ink);background:transparent;border:1px solid var(--rule);padding:6px 11px;cursor:pointer;border-radius:0}
+button:hover{background:var(--hover);border-color:var(--muted)}
+button:focus-visible,[contenteditable]:focus-visible,.chk:focus-visible,.row:focus-visible,.pchip:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
+button.danger:hover{color:var(--accent);border-color:var(--accent)}
+.cols{display:grid;grid-template-columns:minmax(300px,400px) minmax(0,1fr);gap:20px;align-items:start}
+.card{background:var(--sheet);border-top:3px solid var(--accent)}
+.listcard{padding:6px 12px 16px}
+.side{position:sticky;top:12px;max-height:calc(100vh - 24px);overflow:auto;display:flex;flex-direction:column;gap:14px}
+@media (max-width:940px){.cols{grid-template-columns:minmax(0,1fr)}.side{position:static;max-height:none;order:-1}}
+
+.target{padding:10px 16px 14px;margin-bottom:14px}
+.tl2{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);margin-bottom:6px}
+.gow{display:flex;flex-wrap:wrap;gap:6px 12px;align-items:center;margin:2px 0 10px}
+button.go{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:500}
+button.go:hover{background:var(--accent);filter:brightness(1.1)}
+.tgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 12px}
+.tgrid label{display:flex;flex-direction:column;gap:2px;font-size:11px;color:var(--muted);min-width:0}
+.tgrid label.wide{grid-column:1/-1}
+.tgrid input{font:inherit;font-size:14px;color:var(--ink);background:var(--code-bg);border:1px solid var(--rule);border-radius:0;padding:6px 8px;min-width:0;width:100%}
+.tgrid input:focus-visible{outline:2px solid var(--ice);outline-offset:1px}
+@media (max-width:700px){.tgrid{grid-template-columns:minmax(0,1fr)}}
+/* step list */
+.row{display:grid;grid-template-columns:20px 24px minmax(0,1fr) auto;gap:0 6px;align-items:start;padding:8px 4px;border-bottom:1px solid var(--rule);position:relative;cursor:pointer}
+.row:hover{background:var(--hover)}
+.row.sel{background:var(--hover);box-shadow:inset 3px 0 0 var(--ice)}
+.row.dragging{opacity:.4}
+.row.over-top::before,.row.over-bottom::after{content:"";position:absolute;left:0;right:0;height:3px;background:var(--accent);z-index:2}
+.row.over-top::before{top:-2px}.row.over-bottom::after{bottom:-2px}
+.grip{cursor:grab;color:var(--muted);font-size:15px;line-height:22px;text-align:center;user-select:none;touch-action:none}
+.chk{width:18px;height:18px;margin-top:2px;border:1.5px solid var(--muted);background:transparent;padding:0;display:grid;place-items:center;color:transparent;font-size:12px;line-height:1}
+.row.done .chk{background:var(--ice);border-color:var(--ice);color:#fff}
+.num{font-variant-numeric:tabular-nums;color:var(--muted);margin-right:5px}
+.rt{font-weight:500;font-size:14px;overflow-wrap:anywhere}
+.row.done .rt{color:var(--done);text-decoration:line-through;text-decoration-thickness:1px}
+.tag{display:inline-block;margin-left:6px;padding:0 5px;font-size:10px;font-weight:500;letter-spacing:.04em;text-transform:uppercase;color:var(--ice);border:1px solid var(--ice);vertical-align:1px;white-space:nowrap}
+.acts{display:flex;gap:0;opacity:0}
+.row:hover .acts,.row:focus-within .acts,.row.sel .acts{opacity:1}
+@media (hover:none){.acts{opacity:1}}
+.acts button{border:0;padding:1px 5px;color:var(--muted);font-size:14px}
+.row.group{grid-template-columns:20px minmax(0,1fr) auto;padding:18px 4px 6px;border-bottom:1px solid var(--accent);box-shadow:none}
+.row.group.sel{box-shadow:inset 3px 0 0 var(--ice)}
+.row.group .rt{font-size:11px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.addrow{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.only-look .row:not(.has-look):not(.group){display:none}
+
+/* mock of the site */
+.mockcard{padding:12px 12px 14px}
+.cap{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline;margin-bottom:8px}
+.cap b{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.cap span{font-size:13px;color:var(--muted)}
+.newchips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 10px}
+.nc{font-size:11px;padding:1px 7px;border:1px solid var(--accent);color:var(--accent)}
+.nc.none{border-color:var(--rule);color:var(--muted)}
+.mock{display:grid;grid-template-columns:minmax(120px,.9fr) minmax(0,2.2fr) minmax(120px,1fr);border:1px solid var(--rule);background:var(--sheet);font-size:10.5px;line-height:1.3;min-height:330px}
+@media (max-width:640px){.mock{grid-template-columns:minmax(0,1fr)}.mock .stage{order:-1}}
+.mock .mp{padding:8px;display:flex;flex-direction:column;gap:6px;min-width:0}
+.mock .mp.left{border-right:1px solid var(--rule)}
+.mock .mp.right{border-left:1px solid var(--rule)}
+@media (max-width:640px){.mock .mp.left,.mock .mp.right{border:0;border-top:1px solid var(--rule)}}
+.mh{font-size:9.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent);margin-top:2px}
+.mrow{padding:3px 5px;border:1px solid var(--rule);color:var(--ink)}
+.seg{display:flex;border:1px solid var(--rule)}
+.seg span{flex:1;text-align:center;padding:2px 0;border-right:1px solid var(--rule);color:var(--muted);white-space:nowrap}
+.seg span:last-child{border:0}.seg span.a{background:var(--ink);color:var(--sheet)}
+.chips{display:flex;flex-wrap:wrap;gap:3px}
+.chips span{padding:1px 5px;border:1px solid var(--rule);color:var(--muted)}
+.chips span.a{background:var(--ice);border-color:var(--ice);color:#fff}
+.btns{display:flex;gap:4px}.btns span{flex:1;text-align:center;padding:3px 0;border:1px solid var(--ink);font-weight:500}
+.sk{height:6px;background:var(--rule);margin:4px 0}.sk.s{width:55%}.sk.m{width:78%}
+.tabs{display:flex;border-bottom:1px solid var(--rule)}
+.tabs b{flex:1;text-align:center;padding:3px 0;font-weight:500;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+.tabs b.a{color:var(--ink);border-color:var(--accent)}
+.mcard{border:1px solid var(--rule);padding:5px 6px}
+.mcard h6{margin:0 0 3px;font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--accent)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:3px}.tiles i{display:block;height:20px;background:var(--code-bg)}
+.stage{position:relative;overflow:hidden;min-height:330px;background:var(--code-bg)}
+.stage svg.map{position:absolute;inset:0;width:100%;height:100%}
+.ov{position:absolute;z-index:2}
+.ov.tl{top:6px;left:6px}.ov.bl{bottom:20px;left:6px}.ov.cr{bottom:0;left:0;right:0;padding:2px 6px;background:color-mix(in srgb,var(--sheet) 80%,transparent);color:var(--muted);font-size:9px}
+.pill{background:var(--sheet);border:1px solid var(--rule);padding:2px 6px;color:var(--ink);display:inline-flex;gap:6px}
+.pill b{font-weight:500;color:var(--muted)}.pill b.a{color:var(--ink);text-decoration:underline}
+.legend{background:var(--sheet);border:1px solid var(--rule);padding:3px 6px;color:var(--ink);display:flex;flex-direction:column;gap:2px}
+.legend i{display:inline-block;width:16px;height:0;border-top:2px solid var(--accent);vertical-align:middle;margin-right:5px}.legend i.d{border-top-style:dashed}
+.rail{top:34px;left:6px;width:44px;display:flex;flex-direction:column;gap:3px;background:var(--sheet);border:1px solid var(--rule);padding:3px;font-size:8.5px;color:var(--muted)}
+.rail i{display:block;height:28px;background:linear-gradient(135deg,var(--rock),var(--map-line))}
+.inset{right:8px;bottom:22px;width:48%;background:var(--sheet);border:1px solid var(--rule)}
+.inset .it{padding:2px 6px;font-size:9px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;color:var(--accent)}
+.inset svg{display:block;width:100%;height:auto}
+.inset .yr{padding:3px 6px;display:flex;align-items:center;gap:5px;font-size:9px;color:var(--muted)}
+.inset .yr i{flex:1;height:3px;background:var(--rule);position:relative}.inset .yr i::after{content:"";position:absolute;left:62%;top:-3px;width:3px;height:9px;background:var(--ice)}
+/* parts: ghost until revealed */
+.gp:not(.on){opacity:.3;border-style:dashed;position:relative}
+.gp:not(.on) *{color:var(--muted)!important}
+.gp.new,.ov.new,.sp.new{outline:2px solid var(--accent);outline-offset:1px}
+.sp:not(.on){display:none}
+.ov:not(.on){display:none}
+svg .sp.new{outline:0;filter:drop-shadow(0 0 2.5px var(--accent))}
+.gp.new::after,.ov.new::after{content:"NEW";position:absolute;top:-7px;right:-1px;background:var(--accent);color:#fff;font-size:8px;font-weight:700;letter-spacing:.06em;padding:0 4px;line-height:12px;z-index:3}
+.ghosttxt{font-size:11px;fill:var(--muted)}
+
+/* detail */
+.detail{padding:14px 16px 16px}
+.dtop{display:flex;justify-content:space-between;gap:8px;align-items:center;margin-bottom:6px}
+.dlab{font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.dnav button{padding:3px 9px}
+.f{outline:none;overflow-wrap:anywhere;white-space:pre-wrap;min-width:0}
+.f.t{font-size:19px;font-weight:700;line-height:1.2;text-wrap:balance}
+.f.n{margin-top:6px;color:var(--ink);font-size:14px}
+.f.c{margin-top:8px;font-family:var(--mono);font-size:12px;background:var(--code-bg);padding:5px 8px}
+.f.l{margin-top:8px;padding:8px 10px;background:var(--code-bg);font-size:13px}
+.f.l::before{content:"Visual check";display:block;margin-bottom:2px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ice)}
+.f:empty::before{content:attr(data-ph);color:var(--done);font-style:italic}
+.f.l:empty::before{content:"Visual check · " attr(data-ph);font-size:12px;font-weight:400;letter-spacing:0;text-transform:none;color:var(--done);font-style:italic}
+.pl{margin:12px 0 5px;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.pchips{display:flex;flex-wrap:wrap;gap:5px}
+.pchip{font-size:12px;padding:2px 8px;border:1px solid var(--rule);background:transparent;color:var(--muted)}
+.pchip.on{border-color:var(--accent);color:var(--accent);background:transparent}
+.pchip.before{border-style:dashed;color:var(--ink)}
+.offline{background:#fdf0d8;color:#8a5a00;padding:8px 12px;margin-bottom:10px;font-size:13px}
+.runs{display:flex;flex-direction:column;gap:5px}
+.run{display:flex;gap:5px;align-items:center}
+.run input{flex:1;min-width:0;font-family:var(--mono);font-size:12px;color:var(--ink);background:var(--code-bg);border:1px solid var(--rule);border-radius:0;padding:5px 7px}
+.run button.r{background:var(--ice);border-color:var(--ice);color:#fff;font-weight:500;white-space:nowrap}
+.run button.x{border:0;color:var(--muted);padding:2px 6px}
+.views{display:flex;flex-wrap:wrap;gap:6px}
+.console{padding:10px 14px 12px}
+.console pre{margin:6px 0 0;max-height:300px;overflow:auto;background:var(--code-bg);padding:8px 10px;font-family:var(--mono);font-size:11.5px;line-height:1.4;white-space:pre-wrap;overflow-wrap:anywhere}
+.chead{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.chead b{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.chead .st{font-size:12px;color:var(--muted);flex:1;min-width:0;overflow-wrap:anywhere}
+.chead .st.ok{color:#2e8b57}.chead .st.bad{color:var(--accent)}
+.live{display:flex;flex-direction:column;gap:6px}
+.live .lb{display:flex;gap:8px;align-items:center;flex-wrap:wrap;font-size:12px;color:var(--muted)}
+.live iframe{width:100%;height:480px;border:1px solid var(--rule);background:#222}
+.hint{margin-top:6px;font-size:12px;color:var(--muted)}
+#toast{position:fixed;bottom:calc(16px + env(safe-area-inset-bottom,0px));left:50%;transform:translateX(-50%);background:var(--ink);color:var(--sheet);padding:8px 14px;font-size:13px;opacity:0;pointer-events:none;transition:opacity .2s;z-index:9}
+#toast.on{opacity:1}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style></head><body>
+<div class="wrap">
+  <header>
+    <div>
+      <h1>Steps for a new glacier</h1>
+      <p class="sub">Any glacier on the globe can be requested, so the first steps are a source search. The mock of the site on the right shows only what exists after the selected step; it grows as you go down the list. Drag to reorder, click a step to edit it.</p>
+    </div>
+    <div><div class="count" id="count"></div><div class="bar"><i id="barfill"></i></div></div>
+  </header>
+  <div id="offline" class="offline" hidden>Cannot reach the server, so nothing runs and nothing is saved. Start <code>python3 scripts/serve.py</code> and open this page from <code>http://localhost:8000/scripts/tools/onboard.html</code>.</div>
+  <div class="card target">
+    <div class="tl2">Glacier to add</div>
+    <div class="tgrid">
+      <label>Name<input id="tName" type="text" placeholder="the name as the request gives it" autocomplete="off"></label>
+      <label>Id on the site<input id="tId" type="text" placeholder="lower-case slug, e.g. allalin" autocomplete="off"></label>
+      <label>Inventory id<input id="tSgi" type="text" placeholder="SGI, RGI or other id (once known)" autocomplete="off"></label>
+      <label>Country / region<input id="tRegion" type="text" placeholder="country, mountain range or ice cap" autocomplete="off"></label>
+      <label>Position<input id="tPos" type="text" placeholder="latitude, longitude or a map link" autocomplete="off"></label>
+      <label>Request and notes<input id="tNote" type="text" placeholder="who asked, why, what is known" autocomplete="off"></label>
+    </div>
+  </div>
+  <div class="tools">
+    <button id="onlyLook">Show only visual checks</button>
+    <button id="clearTicks">Clear ticks</button>
+    <button id="copyMd">Copy as Markdown</button>
+    <button id="resetAll" class="danger">Reset to default list</button>
+  </div>
+  <div class="cols">
+    <div class="card listcard">
+      <div id="list" aria-label="Steps"></div>
+      <div class="addrow"><button id="addStep">+ Add step</button><button id="addGroup">+ Add section</button></div>
+    </div>
+    <div class="side">
+      <div class="card mockcard">
+        <div class="cap"><b id="capLab"></b><span id="capTxt"></span><span style="flex:1"></span><button id="liveSite">Open the real site</button></div>
+        <div class="live" id="live" hidden><div class="lb"><span id="liveUrl"></span><span style="flex:1"></span><a id="liveTab" target="_blank" rel="noopener">Open in a tab</a><button id="liveClose">Back to the mock</button></div><iframe id="liveFrame" title="live view"></iframe></div>
+        <div class="newchips" id="newChips"></div>
+        <div class="mock" id="mock">
+          <div class="mp left">
+            <div class="mh">1 Choose a glacier</div>
+            <div class="gp mrow" data-part="glacierlist"><b id="mockName">Your glacier</b><div class="sk m"></div><div class="sk s"></div></div>
+            <div class="mh">2 Compare</div>
+            <div class="gp" data-part="years" style="display:flex;flex-direction:column;gap:4px">
+              <div class="seg"><span class="a">One year</span><span>Compare</span><span>Timelapse</span></div>
+              <div class="chips">
+                <span class="gp" data-part="oldest">Oldest</span>
+                <span class="gp" data-part="landsat">Landsat years</span>
+                <span class="a">2016</span><span>…</span><span>now</span>
+                <span class="gp" data-part="latest">Latest</span>
+              </div>
+            </div>
+            <div class="mh">3 Create and share</div>
+            <div class="gp btns" data-part="downloads"><span>Image</span><span>Animation</span></div>
+          </div>
+          <div class="stage" id="stage">
+            <svg class="map" viewBox="0 0 480 360" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+              <text class="ghosttxt" id="mapGhost" x="240" y="185" text-anchor="middle">Map appears here</text>
+              <g class="sp" data-part="basemap">
+                <rect width="480" height="360" fill="var(--map-bg)"/>
+                <path d="M0 80 C120 60 200 110 480 70 M0 150 C100 130 180 190 480 140 M0 230 C140 210 220 270 480 220 M0 300 C120 280 240 330 480 300" fill="none" stroke="var(--map-line)" stroke-width="1.2"/>
+                <path d="M60 0 C80 100 40 200 90 360 M400 0 C380 120 440 240 410 360" fill="none" stroke="var(--map-line)" stroke-width="1"/>
+              </g>
+              <g class="sp" data-part="s2">
+                <rect x="150" y="30" width="270" height="310" fill="var(--rock)"/>
+                <path d="M150 200 C220 170 300 230 420 190 L420 340 L150 340 Z" fill="var(--map-line)" opacity=".5"/>
+                <path d="M296 52 C336 40 372 80 362 125 C356 180 340 230 312 290 C296 316 252 312 246 280 C236 220 254 150 262 108 C270 80 280 58 296 52 Z" fill="var(--rock)" opacity=".55"/>
+                <path d="M300 60 C330 50 360 80 350 120 C345 170 330 210 300 250 C285 270 262 268 258 245 C250 200 262 150 270 110 C276 85 285 66 300 60 Z" fill="var(--ice-fill)"/>
+              </g>
+              <g class="sp" data-part="outlines" fill="none">
+                <path d="M296 52 C336 40 372 80 362 125 C356 180 340 230 312 290 C296 316 252 312 246 280 C236 220 254 150 262 108 C270 80 280 58 296 52 Z" stroke="#fff" stroke-width="1.6" stroke-dasharray="5 4"/>
+                <path d="M300 60 C330 50 360 80 350 120 C345 170 330 210 300 250 C285 270 262 268 258 245 C250 200 262 150 270 110 C276 85 285 66 300 60 Z" stroke="var(--accent)" stroke-width="2"/>
+              </g>
+              <g class="sp" data-part="trails" fill="none" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M236 330 L246 270 L238 210 L248 150 L256 100" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="3 3"/>
+                <path d="M338 320 L322 262 L346 200 L376 140" stroke="var(--ink)" stroke-width="1.4" stroke-dasharray="3 3"/>
+                <path d="M246 270 L238 210" stroke="#fff" stroke-width="10" opacity=".9"/><path d="M246 270 L238 210" stroke="var(--viol)" stroke-width="7" opacity=".75"/>
+                <path d="M322 262 L346 200" stroke="#fff" stroke-width="10" opacity=".9"/><path d="M322 262 L346 200" stroke="var(--viol)" stroke-width="7" opacity=".75"/>
+              </g>
+              <g class="sp" data-part="streetview" font-size="8" text-anchor="middle" fill="#fff">
+                <circle cx="236" cy="150" r="7" fill="var(--sv)"/><text x="236" y="153">1</text>
+                <circle cx="376" cy="140" r="7" fill="var(--sv)"/><text x="376" y="143">2</text>
+                <circle cx="240" cy="300" r="7" fill="var(--sv)"/><text x="240" y="303">3</text>
+              </g>
+              <g class="sp" data-part="box" fill="none">
+                <rect x="150" y="30" width="270" height="310" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="6 4"/>
+                <polygon points="268,270 292,270 348,66 322,60" stroke="var(--ice)" stroke-width="2" fill="var(--ice)" fill-opacity=".12"/>
+                <circle cx="280" cy="262" r="6" stroke="var(--accent)" stroke-width="2"/>
+              </g>
+            </svg>
+            <div class="ov tl pill gp-none" data-part="view3d"><b class="a">Map</b><b>3D</b></div>
+            <div class="ov bl legend" data-part="outlines"><span><i></i>Newest outline</span><span><i class="d"></i>Oldest outline</span></div>
+            <div class="ov rail" data-part="photos"><span>Then and now</span><i></i><i></i><i></i></div>
+            <div class="ov inset" data-part="view3d">
+              <div class="it">3D view</div>
+              <svg viewBox="0 0 200 100" aria-hidden="true">
+                <rect width="200" height="100" fill="var(--code-bg)"/>
+                <polygon points="0,60 30,28 58,48 90,14 130,44 160,20 200,50 200,100 0,100" fill="var(--rock)" opacity=".7"/>
+                <polygon points="70,100 92,54 112,40 128,58 138,100" fill="var(--ice-fill)"/>
+                <polygon points="0,86 60,70 150,76 200,66 200,100 0,100" fill="var(--map-line)" opacity=".8"/>
+              </svg>
+              <div class="yr ov-in gp-none" data-part="surfaces3d" style="display:none"><span>2016</span><i></i><span>now</span></div>
+            </div>
+            <div class="ov cr" data-part="credits">Credits and sources: imagery, outlines, elevation, with licences</div>
+          </div>
+          <div class="mp right">
+            <div class="tabs"><b data-tab="discover" class="a">Discover</b><b data-tab="stats">Stats</b></div>
+            <div data-body="discover">
+              <div class="gp mcard" data-part="discover"><h6>What to look for</h6><div class="sk"></div><div class="sk m"></div><div class="sk s"></div></div>
+              <div class="gp mcard" data-part="discover" style="margin-top:5px"><h6>In the news</h6><div class="sk"></div><div class="sk s"></div></div>
+              <div class="gp mcard" data-part="discover" style="margin-top:5px"><h6>The name</h6><div class="sk m"></div><div class="sk s"></div></div>
+            </div>
+            <div data-body="stats" hidden>
+              <div class="gp mcard" data-part="facts"><h6>Area</h6><div class="tiles"><i></i><i></i></div></div>
+              <div class="gp mcard" data-part="facts" style="margin-top:5px"><h6>Length</h6><div class="tiles"><i></i><i></i></div></div>
+              <div class="gp mcard" data-part="facts" style="margin-top:5px"><h6>Thickness and volume</h6><div class="tiles"><i></i><i></i></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card detail" id="detail"></div>
+      <div class="card console" id="console" hidden></div>
+    </div>
+  </div>
+</div>
+<div id="toast" role="status"></div>
+
+<script>
+(function(){
+  var uid=0; function nid(){return 'i'+Date.now().toString(36)+(uid++).toString(36)}
+  function G(t,n){return {id:nid(),kind:'group',title:t,note:n||'',cmd:'',look:'',reveals:[],done:false}}
+  function S(t,n,c,l){return {id:nid(),kind:'step',title:t,note:n||'',cmd:c||'',look:l||'',reveals:[],done:false}}
+
+  /* parts of the main site that the mock can show */
+  var PARTS=[
+    ['basemap','Base map'],['outlines','Outlines'],['box','Picture box, tip, 3D strip'],['glacierlist','Glacier in the list'],
+    ['facts','Stats tab'],['s2','Sentinel-2 pictures'],['years','Years, compare, timelapse'],['downloads','Image and video download'],
+    ['view3d','3D view'],['surfaces3d','Yearly ice surfaces in 3D'],['latest','Latest chip'],['landsat','Landsat years'],
+    ['oldest','Oldest aerial'],['photos','Then and now photos'],['streetview','Street View'],['trails','Trails and sight band'],
+    ['discover','Discover texts'],['credits','Credits and sources']
+  ];
+  var PN={};PARTS.forEach(function(p){PN[p[0]]=p[1]});
+  var SITE=['Real site','/#g={id}'];
+  var RUNS={
+    'Check what this region already has':['@lookup'],
+    'Run the build script':['python3 scripts/build_outlines.py'],
+    'Tile the picture box if wider than 24.9 km':['python3 scripts/build_cap_images.py {id}'],
+    'Sync the Worker centres':['python3 scripts/sync_worker_centres.py'],
+    'Build the yearly surfaces':['python3 scripts/build_dem_change.py --id {sgi}'],
+    'Build the terrain bundle':['python3 scripts/build_terrain_bundle.py --id {id}'],
+    'Make the cloud masks for "Latest"':['python3 scripts/make_cloud_masks.py'],
+    'Build Landsat before 2016':['python3 scripts/build_landsat.py --outlet {id} --list','python3 scripts/build_landsat.py --outlet {id}'],
+    'Historic photographs':['python3 scripts/build_photos.py --id {sgi} --no-los --min-share 0.3 --n 9'],
+    'Street View ids':['python3 scripts/build_streetview.py scan --id {sgi}','python3 scripts/build_streetview.py rank --id {sgi} --visitors'],
+    'Write the texts with sources':['python3 scripts/check_external_numbers.py'],
+    'Run the audit':['python3 scripts/audit_glaciers.py'],
+    'Syntax and types':['python3 scripts/check_syntax.py','python3 scripts/check_types.py'],
+    'Build and run the tests':['PUBLISH_ICELAND=1 PUBLISH_NORWAY=1 python3 scripts/build_site.py /tmp/tfs_site','TFS_SITE_DIR=/tmp/tfs_site python3 -m unittest discover -s tests -v'],
+    'Refresh the glacier board':['python3 scripts/board_sync.py']
+  };
+  var VIEWS={
+    'Agree the placement':[['Box editor','/scripts/tools/box-editor.html'],['3D view editor','/scripts/tools/view3d-editor.html'],SITE],
+    'Run the build script':[SITE],
+    'Check the 3D view':[['3D view editor','/scripts/tools/view3d-editor.html'],SITE],
+    'Choose scenes 2016 to now':[['Scene picker','/scripts/tools/pick-scenes.html'],SITE],
+    'Build Landsat before 2016':[SITE],'Find the oldest aerial picture':[SITE],'Historic photographs':[SITE],'Street View ids':[SITE],
+    'Trails and ice front in view':[SITE],'Write the texts with sources':[SITE],
+    'Visual review':[['Review walk-through','/scripts/tools/review.html#g={id}'],SITE]
+  };
+  var REV={
+    'Find outlines and glacier IDs':['basemap','outlines'],
+    'Agree the placement':['box'],
+    'Add the region entry':['glacierlist'],
+    'Run the build script':['facts'],
+    'Build the terrain bundle':['view3d','surfaces3d'],
+    'Choose scenes 2016 to now':['s2','years','downloads'],
+    'Make the cloud masks for "Latest"':['latest'],
+    'Build Landsat before 2016':['landsat'],
+    'Find the oldest aerial picture':['oldest'],
+    'Historic photographs':['photos'],
+    'Street View ids':['streetview'],
+    'Trails and ice front in view':['trails'],
+    'Write the texts with sources':['discover'],
+    'Complete the Sources list and credits':['credits']
+  };
+  function defaults(){var a=[
+    G('Start'),
+    S('Check what this region already has','Look for docs/regions/<region>.md and the region entry in js/00-regions.js. If the region is known, reuse its outline rule, elevation model, season and source notes, and go straight to Agree the placement. If not, continue with the next section.','ls docs/regions/'),
+
+    G('Find the data (new regions only)','Any glacier on the globe can be requested, so nothing here assumes a country. Search from local to global and keep a record of every source tried.'),
+    S('Find outlines and glacier IDs','Search from local to global: national inventories first, then regional ones, then RGI and GLIMS. Get the newest outline and the oldest one, with the date and licence of each. Decide what counts as "the glacier" here (ice cap, main glacier, named unit, one outlet) and write that rule down. Id = lower-case ASCII slug; Swiss glaciers keep the SGI id. List skipped or ambiguous units with the reason.','','A map of every candidate outline over the cloudless EOX imagery, one colour per source, each with its date. You pick the source and the unit. Correct: merged or split glaciers, wrong names, outlines that are clearly out of date.'),
+    S('Find elevation models','National open model first, then regional and global ones. For each: coverage of the glacier, resolution, height system, acquisition date, licence. Look for dated models or strips that give yearly surfaces. Check that the Mapterhorn tiles exist at the zoom the page needs.','','A hillshade of each candidate model over the glacier. You reject models with holes, striping, or a visible offset from the ground beside the ice.'),
+    S('Find supporting sources','Historic aerial pictures, historic photographs (Smapshot and similar), footpaths (OSM), Street View, mass balance and length-change series, names and facts (Wikipedia, papers with DOI, place-name registers). Note date, licence and coverage of each. A source with nothing near the tongue is recorded as "none".'),
+    S('Write the region notes','One file per region. For every source: what it is, link, date, licence, what worked, what failed and why, and the command that builds from it. Link the file from the region entry. Later glaciers in this region start from it. Non-commercial data keeps the site non-commercial.','docs/regions/<region>.md'),
+
+    G('Placement'),
+    S('Agree the placement','Propose the image box (lat, lon, half, bounds), the 3D start camera and the 3D strip (tip, azimuth, half width, back, up) from the rule, then wait for your confirmation. Everything downstream depends on these numbers.','scripts/tools/box-editor.html · scripts/tools/view3d-editor.html · icecap_lib.derive_view','The glacier basin on the cloudless EOX imagery, with the newest and the oldest outline, the picture box, the tip and the 3D strip. Correct: box off-centre or cutting the glacier, tip on a nunatak or lake shore, strip not following the tongue, box wider than 24.9 km.'),
+
+    G('Data and geometry'),
+    S('Add the region entry','Season, outline names, terrain credit, trailsFile, landing and features in js/00-regions.js. Link the region notes file. For Swiss glaciers add the site id to SITE_ID in audit_glaciers.py.'),
+    S('Run the build script','Never hand-edit data/<region>.js. Compare area, length, zmin, zmax and outline year with the source. A gap over about 10 % is explained or fixed.','build_regions.py · build_vatnajokull.py · build_outlines.py','The built outlines over the imagery, next to a table of area and length against the source. Correct: units that are merged, cut or missing.'),
+    S('Tile the picture box if wider than 24.9 km','One Sentinel-2 request holds 2,500 px (10 m), so wider areas are asked in equal tiles. Check that statsRes scales with pix.','python3 scripts/build_cap_images.py <id>'),
+    S('Sync the Worker centres','The relay wants each picture centre within 25 km of a CENTRES entry. Then paste worker/worker.js into Cloudflare and Deploy.','python3 scripts/sync_worker_centres.py'),
+
+    G('3D terrain'),
+    S('Build the yearly surfaces','Offset each strip to the reference on off-glacier ground and log offset and spread (about 1 m is normal). Summer strips only for bare ice. Label each year measured, interpolated or held.','build_dem_arctic.py · build_dem_iceland.py · build_dem_change.py'),
+    S('Build the terrain bundle','Writes data/terrain/<id>.<hash>.bin and manifest.json.','python3 scripts/build_terrain_bundle.py'),
+    S('Check the 3D view','Peak names: at most six, 750 m apart.','scripts/tools/view3d-editor.html','The real 3D view from the start camera, then the first and last year. Correct: spikes or holes at the strip edges, lakes that are not flat, tip not in the middle of the lower edge, tongue not filling the lower half, anything cut off, a ridge hiding the tip.'),
+
+    G('Imagery'),
+    S('Choose scenes 2016 to now','Pins go to data/scenes.json with the reason. One orbit for all years.','scripts/tools/pick-scenes.html','The one-frame-per-year sheet. Reject years with snow on the tongue, cloud or shadow in the lowest 3 km, or a different orbit.'),
+    S('Make the cloud masks for "Latest"','Outline plus a 3 km circle around the tip.','python3 scripts/make_cloud_masks.py'),
+    S('Build Landsat before 2016','Colour patch on stable rock, registration shift at most 150 m, three styles per year. Upload the folder to R2 afterwards.','python3 scripts/build_landsat.py <id> · scripts/upload_landsat.sh <bucket>','The Landsat timelapse. Correct: years that jump in position or colour (they go to LEAVE_OUT_YEARS with the reason) and a colour patch that sits on snow or water.'),
+    S('Find the oldest aerial picture','Search the national archive first, then regional and global ones. Store data/oldest/<id>.webp and .json (year, source, licence), registered to the Mercator grid. If unusable, excuse it with the oldest year found.','','A crossfade of the oldest picture and Sentinel-2. Correct: a picture that does not line up or does not cover the box.'),
+    S('Historic photographs','Smapshot or similar: photos with a known pose, a date known to about a year, and a camera near the tongue. Choose by looking at each crossfade, not by score.','python3 scripts/build_photos.py --no-los --min-share 0.3 --n 9 --keep <ids>','The crossfade of each photo over the 3D view. Keep those where valley walls and ridges line up with the tongue in view. Drop panoramas, collages, close-ups and mis-placed photos.'),
+    S('Street View ids','Ids only, never pictures. Excuse only when no panorama sees the tongue.','build_streetview.py scan | rank | review','Thumbnails of the best panoramas (a few billable images, delete afterwards). Keep those that show the tongue.'),
+    S('Trails and ice front in view','Required, or excused when OSM has no paths.','build_trails_regions.py · build_sightline.py','The violet sight band under the trails, on the map and in 3D. Correct: trails through lakes, or a band over places that cannot see the tongue.'),
+
+    G('Page content'),
+    S('Write the texts with sources','IC_INFO record: lede, look, news, fact, name, front. Only parts that could be sourced. Copy external figures exactly as the source states them.','python3 scripts/check_external_numbers.py'),
+    S('Complete the Sources list and credits','Add every new dataset with its licence.'),
+
+    G('Check and ship'),
+    S('Run the audit','No MISSING for the glacier. Excuses go in data/audit-exceptions.json.','python3 scripts/audit_glaciers.py'),
+    S('Syntax and types','','python3 scripts/check_syntax.py && python3 scripts/check_types.py'),
+    S('Build and run the tests','','PUBLISH_ICELAND=1 PUBLISH_NORWAY=1 python3 scripts/build_site.py /tmp/tfs_site; TFS_SITE_DIR=/tmp/tfs_site python3 -m unittest discover -s tests -v'),
+    S('Raise CDSE.version if needed','Only when scene scoring or image rendering changed.'),
+    S('Refresh the glacier board','Sync, push the plan, delete removed ids, then stamp.','python3 scripts/board_sync.py'),
+    S('Visual review','One glacier, five steps, each with the real site in a frame. Also: export one image and one video, and check phone width.','scripts/tools/review.html','Map start view, Compare 2016 vs latest, timelapse (no jumps), the three colour styles, 3D start camera, 3D compare, 3D first and last year. Flag anything that looks wrong.'),
+    S('Hand over','Paste worker/worker.js into Cloudflare, set the PUBLISH_* variables, commit the data files (only when asked). You sign off steps 1 to 5.')
+  ];
+    a.forEach(function(it){if(REV[it.title])it.reveals=REV[it.title].slice();
+      if(RUNS[it.title])it.runs=RUNS[it.title].map(function(c){return {cmd:c}});
+      if(VIEWS[it.title])it.views=VIEWS[it.title].map(function(v){return {label:v[0],url:v[1]}})});
+    return a}
+
+  var items=[], sel=0, tab='discover', listEl=document.getElementById('list'), loaded=false, saveTimer=null, job=null, pollT=null;
+  var PT=(function(){var d=document.createElement('div');try{d.contentEditable='plaintext-only';return d.contentEditable==='plaintext-only'}catch(e){return false}})()?'plaintext-only':'true';
+  function $(id){return document.getElementById(id)}
+  function toast(m){var t=$('toast');t.textContent=m;t.className='on';clearTimeout(toast._t);toast._t=setTimeout(function(){t.className=''},1600)}
+  function api(path,body){
+    return fetch(path,{method:body?'POST':'GET',headers:{'X-Onboard':'1','Content-Type':'application/json'},body:body?JSON.stringify(body):undefined})
+      .then(function(r){return r.json().then(function(j){if(!r.ok)throw new Error(j.error||('HTTP '+r.status));return j})});
+  }
+  function save(){
+    if(!loaded)return;
+    clearTimeout(saveTimer);
+    saveTimer=setTimeout(function(){api('/onboard/save',{items:items,target:target,updatedAt:Date.now()}).catch(function(e){toast('Not saved: '+e.message)})},400);
+  }
+  function el(tag,cls,txt){var e=document.createElement(tag);if(cls)e.className=cls;if(txt!=null)e.textContent=txt;return e}
+  function norm(a){a.forEach(function(it){if(!Array.isArray(it.reveals))it.reveals=[];if(!Array.isArray(it.runs))it.runs=[];if(!Array.isArray(it.views))it.views=[];if(it.look==null)it.look='';if(it.cmd==null)it.cmd='';if(it.note==null)it.note=''});return a}
+  function selIdx(){return Math.max(0,Math.min(sel,items.length-1))}
+
+  /* ---------- mock ---------- */
+  function firstIdx(){var m={};items.forEach(function(it,i){(it.reveals||[]).forEach(function(p){if(!(p in m))m[p]=i})});return m}
+  function paint(){
+    var m=firstIdx(),s=selIdx(),newParts=[];
+    document.querySelectorAll('#mock [data-part]').forEach(function(e){
+      var id=e.dataset.part,fi=m[id],on=fi!==undefined&&fi<=s,nw=fi===s;
+      e.classList.toggle('on',on);e.classList.toggle('new',nw);
+      if(nw&&newParts.indexOf(id)<0)newParts.push(id);
+    });
+    document.querySelectorAll('#mock .yr').forEach(function(e){e.style.display=e.classList.contains('on')?'flex':'none'});
+    $('mapGhost').style.display=(m.basemap!==undefined&&m.basemap<=s)?'none':'';
+    var it=items[s],n=0;for(var i=0;i<=s;i++)if(items[i].kind==='step')n++;
+    $('capLab').textContent=it.kind==='group'?'Section':'After step '+n;
+    $('capTxt').textContent=it.title;
+    var nc=$('newChips');nc.textContent='';
+    if(newParts.length)newParts.forEach(function(p){nc.appendChild(el('span','nc','New: '+PN[p]))});
+    else nc.appendChild(el('span','nc none','Nothing new on the site at this step'));
+    if(newParts.indexOf('discover')>=0)tab='discover';else if(newParts.indexOf('facts')>=0)tab='stats';
+    paintTab();
+  }
+  function paintTab(){
+    document.querySelectorAll('#mock .tabs b').forEach(function(b){b.classList.toggle('a',b.dataset.tab===tab)});
+    document.querySelectorAll('#mock [data-body]').forEach(function(d){d.hidden=d.dataset.body!==tab});
+  }
+  document.querySelectorAll('#mock .tabs b').forEach(function(b){b.onclick=function(){tab=b.dataset.tab;paintTab()}});
+
+  /* ---------- list ---------- */
+  var dragId=null;
+  function clearOver(){listEl.querySelectorAll('.over-top,.over-bottom').forEach(function(r){r.classList.remove('over-top','over-bottom')})}
+  function renderList(){
+    listEl.textContent='';var n=0,s=selIdx();
+    items.forEach(function(it,idx){
+      var g=it.kind==='group';
+      var row=el('div','row'+(g?' group':'')+(it.done?' done':'')+(it.look?' has-look':'')+(idx===s?' sel':''));
+      row.dataset.id=it.id;row.tabIndex=0;row.setAttribute('role','button');
+      var grip=el('div','grip','⋮⋮');grip.title='Drag to reorder';
+      grip.addEventListener('mousedown',function(){row.draggable=true});
+      grip.addEventListener('touchstart',function(){row.draggable=true},{passive:true});
+      row.addEventListener('dragend',function(){row.draggable=false;row.classList.remove('dragging');clearOver()});
+      row.addEventListener('dragstart',function(ev){dragId=it.id;row.classList.add('dragging');ev.dataTransfer.effectAllowed='move';try{ev.dataTransfer.setData('text/plain',it.id)}catch(e){}});
+      row.addEventListener('dragover',function(ev){if(!dragId||dragId===it.id)return;ev.preventDefault();clearOver();var r=row.getBoundingClientRect();row.classList.add(ev.clientY<r.top+r.height/2?'over-top':'over-bottom')});
+      row.addEventListener('drop',function(ev){
+        ev.preventDefault();if(!dragId||dragId===it.id)return;
+        var before=row.classList.contains('over-top');clearOver();
+        var cur=items[selIdx()];
+        var from=items.findIndex(function(x){return x.id===dragId});var moved=items.splice(from,1)[0];
+        var to=items.findIndex(function(x){return x.id===it.id});items.splice(before?to:to+1,0,moved);
+        dragId=null;sel=items.indexOf(moved);refresh();save();
+      });
+      row.addEventListener('click',function(ev){if(ev.target.closest('.grip,.chk,.acts'))return;select(idx)});
+      row.addEventListener('keydown',function(ev){if(ev.target===row&&(ev.key==='Enter'||ev.key===' ')){ev.preventDefault();select(idx)}});
+      row.appendChild(grip);
+      var main=el('div');main.style.minWidth='0';
+      if(!g){
+        n++;
+        var chk=el('button','chk','✓');chk.setAttribute('aria-label','Done');chk.setAttribute('aria-pressed',it.done);
+        chk.addEventListener('click',function(){it.done=!it.done;renderList();updateCount();save()});
+        row.appendChild(chk);
+        var t=el('div','rt');t.appendChild(el('span','num',n+'.'));t.appendChild(document.createTextNode(it.title));
+        if(it.look)t.appendChild(el('span','tag','Visual check'));
+        main.appendChild(t);
+      }else main.appendChild(el('div','rt',it.title));
+      row.appendChild(main);
+      var acts=el('div','acts');
+      function mk(l,tt,fn){var b=el('button','',l);b.title=tt;b.setAttribute('aria-label',tt);b.addEventListener('click',function(e){e.stopPropagation();fn()});acts.appendChild(b)}
+      mk('↑','Move up',function(){if(idx>0){var x=items.splice(idx,1)[0];items.splice(idx-1,0,x);sel=idx-1;refresh();save()}});
+      mk('↓','Move down',function(){if(idx<items.length-1){var x=items.splice(idx,1)[0];items.splice(idx+1,0,x);sel=idx+1;refresh();save()}});
+      mk('⧉','Duplicate',function(){var c=JSON.parse(JSON.stringify(it));c.id=nid();c.done=false;items.splice(idx+1,0,c);sel=idx+1;refresh();save()});
+      mk('✕','Delete',function(){items.splice(idx,1);if(sel>=items.length)sel=items.length-1;refresh();save();toast('Deleted')});
+      row.appendChild(acts);
+      listEl.appendChild(row);
+    });
+    updateCount();
+  }
+  function updateCount(){
+    var st=items.filter(function(x){return x.kind==='step'}),d=st.filter(function(x){return x.done}).length;
+    $('count').textContent=d+' of '+st.length+' done';$('barfill').style.width=(st.length?100*d/st.length:0)+'%';
+  }
+
+  /* ---------- detail ---------- */
+  function field(cls,val,ph,cb){
+    var e=el('div','f '+cls,val);e.contentEditable=PT;e.spellcheck=true;e.dataset.ph=ph;
+    e.addEventListener('keydown',function(ev){if(ev.key==='Enter'&&!ev.shiftKey&&cls==='t'){ev.preventDefault();e.blur()}});
+    e.addEventListener('paste',function(ev){ev.preventDefault();var t=(ev.clipboardData||window.clipboardData).getData('text');document.execCommand('insertText',false,t)});
+    e.addEventListener('blur',function(){var v=e.textContent.replace(/ /g,' ').trim();e.textContent=v;cb(v)});
+    return e;
+  }
+  function renderDetail(){
+    var d=$('detail'),s=selIdx(),it=items[s];d.textContent='';if(!it)return;
+    var top=el('div','dtop');top.appendChild(el('span','dlab',it.kind==='group'?'Section':'Step'));
+    var nav=el('div','dnav');
+    var pb=el('button','','← Previous'),nb=el('button','','Next →');
+    pb.disabled=s===0;nb.disabled=s===items.length-1;
+    pb.onclick=function(){select(s-1,true)};nb.onclick=function(){select(s+1,true)};
+    nav.appendChild(pb);nav.appendChild(document.createTextNode(' '));nav.appendChild(nb);top.appendChild(nav);d.appendChild(top);
+    d.appendChild(field('t',it.title,'Title',function(v){if(v)it.title=v;else renderDetail();renderList();paint();save()}));
+    d.appendChild(field('n',it.note,'Add a note',function(v){it.note=v;save()}));
+    if(it.kind==='step'){
+      var go=el('button','go','Copy prompt for Claude Code');go.title='Paste it into the Claude Code chat to run this step';
+      go.onclick=function(){copyText(promptFor(it),'Prompt copied. Paste it into Claude Code.')};
+      var gw=el('div','gow');gw.appendChild(go);
+      gw.appendChild(el('span','hint',target.name?'Runs this step for '+target.name+'.':'Fill in the glacier above first.'));
+      d.insertBefore(gw,d.children[1]);
+      d.appendChild(field('c',it.cmd,'Add a command or file',function(v){it.cmd=v;save()}));
+      d.appendChild(field('l',it.look,'what you are shown and what you correct',function(v){it.look=v;renderList();save()}));
+      d.appendChild(el('div','pl','Run'));
+      var rl=el('div','runs');
+      it.runs.forEach(function(r,ri){
+        var row=el('div','run'),inp=el('input');inp.value=r.cmd;inp.spellcheck=false;inp.setAttribute('aria-label','Command');
+        inp.addEventListener('change',function(){r.cmd=inp.value.trim();save()});
+        var rb=el('button','r',r.cmd==='@lookup'?'Look up':'Run ▶');rb.onclick=function(){r.cmd=inp.value.trim();save();runJob(r.cmd)};
+        var xb=el('button','x','✕');xb.title='Remove';xb.onclick=function(){it.runs.splice(ri,1);save();renderDetail()};
+        row.appendChild(rb);row.appendChild(inp);row.appendChild(xb);rl.appendChild(row);
+      });
+      var ab=el('button','','+ Add command');ab.onclick=function(){it.runs.push({cmd:'python3 scripts/'});save();renderDetail()};
+      var ab2=el('button','','+ Look up glacier');ab2.onclick=function(){it.runs.push({cmd:'@lookup'});save();renderDetail()};
+      var ar=el('div','views');ar.appendChild(ab);ar.appendChild(ab2);rl.appendChild(ar);d.appendChild(rl);
+      d.appendChild(el('div','hint','Only python3 scripts/<name>.py of this repository and python3 -m unittest run. {id} and {sgi} are replaced by the glacier fields above.'));
+      if(it.views.length){
+        d.appendChild(el('div','pl','Look at'));
+        var vw=el('div','views');
+        it.views.forEach(function(v){var b=el('button','',v.label);b.onclick=function(){openLive(v.url)};vw.appendChild(b)});
+        d.appendChild(vw);
+      }
+      d.appendChild(el('div','pl','This step adds to the site'));
+      var pc=el('div','pchips'),m=firstIdx();
+      PARTS.forEach(function(p){
+        var b=el('button','pchip',p[1]);var has=it.reveals.indexOf(p[0])>=0;
+        var earlier=m[p[0]]!==undefined&&m[p[0]]<s;
+        b.classList.toggle('on',has);b.classList.toggle('before',!has&&earlier);
+        b.title=earlier&&!has?'Already added by an earlier step':'Toggle';
+        b.onclick=function(){var i=it.reveals.indexOf(p[0]);if(i>=0)it.reveals.splice(i,1);else it.reveals.push(p[0]);save();paint();renderDetail()};
+        pc.appendChild(b);
+      });
+      d.appendChild(pc);
+      d.appendChild(el('div','hint','Solid red: added here. Dashed: already on the site from an earlier step. Drag steps in the list to change when parts appear.'));
+    }
+  }
+
+  function refresh(){renderList();renderDetail();paint()}
+  function select(i,scroll){
+    sel=Math.max(0,Math.min(i,items.length-1));refresh();
+    if(scroll){var r=listEl.children[sel];if(r)r.scrollIntoView({block:'nearest'})}
+  }
+
+  /* ---------- tools ---------- */
+  function addItem(kind){
+    var it=kind==='group'?G('New section'):S('New step');
+    items.splice(selIdx()+1,0,it);sel=selIdx()+1;refresh();save();
+    var f=document.querySelector('#detail .f.t');if(f){f.focus();var r=document.createRange();r.selectNodeContents(f);var x=getSelection();x.removeAllRanges();x.addRange(r)}
+  }
+  $('addStep').onclick=function(){addItem('step')};
+  $('addGroup').onclick=function(){addItem('group')};
+  $('onlyLook').onclick=function(){var on=listEl.classList.toggle('only-look');this.textContent=on?'Show all steps':'Show only visual checks'};
+  $('clearTicks').onclick=function(){items.forEach(function(x){x.done=false});renderList();save();toast('Ticks cleared')};
+  var armed=false,rb=$('resetAll');
+  rb.onclick=function(){
+    if(!armed){armed=true;rb.textContent='Click again to replace all edits';setTimeout(function(){armed=false;rb.textContent='Reset to default list'},3000);return}
+    armed=false;rb.textContent='Reset to default list';items=defaults();sel=0;refresh();save();toast('Default list restored');
+  };
+  $('copyMd').onclick=function(){
+    var n=0,out=['# Adding a glacier: '+(target.name||'steps'),''];
+    if(target.region)out.push('Region: '+target.region);if(target.pos)out.push('Position: '+target.pos);if(target.note)out.push('Request: '+target.note);
+    items.forEach(function(it){
+      if(it.kind==='group'){out.push('','## '+it.title);if(it.note)out.push(it.note);out.push('');return}
+      n++;out.push('- ['+(it.done?'x':' ')+'] '+n+'. **'+it.title+'**'+(it.note?' — '+it.note.replace(/\n+/g,' '):''));
+      if(it.cmd)out.push('  - `'+it.cmd.replace(/\n+/g,' ')+'`');
+      if(it.look)out.push('  - Visual check: '+it.look.replace(/\n+/g,' '));
+      if(it.reveals&&it.reveals.length)out.push('  - Adds to the site: '+it.reveals.map(function(p){return PN[p]||p}).join(', '));
+    });
+    var text=out.join('\n');
+    (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){toast('Markdown copied')},function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');toast('Markdown copied')}catch(e){toast('Copy not allowed here')}ta.remove();
+    });
+  };
+  document.addEventListener('dragend',function(){dragId=null;clearOver()});
+
+  function copyText(text,msg){
+    (navigator.clipboard?navigator.clipboard.writeText(text):Promise.reject()).then(function(){toast(msg)},function(){
+      var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();
+      try{document.execCommand('copy');toast(msg)}catch(e){toast('Copy not allowed here')}ta.remove();
+    });
+  }
+  function promptFor(it){
+    var n=0;for(var i=0;i<=selIdx();i++)if(items[i].kind==='step')n++;
+    var p=['Add a glacier to Tongues from Space, following docs/ADD_A_GLACIER.md and CLAUDE.md.',
+      'Glacier: '+(target.name||'(not filled in)')+(target.id?' | Site id: '+target.id:'')+(target.sgi?' | Inventory id: '+target.sgi:'')+(target.region?' | Region: '+target.region:'')+(target.pos?' | Position: '+target.pos:'')+(target.note?' | Request: '+target.note:''),
+      '','Run step '+n+': '+it.title];
+    if(it.note)p.push(it.note);
+    if(it.cmd)p.push('Tools: '+it.cmd);
+    if(it.look)p.push('Then show me, so I can check and correct: '+it.look);
+    p.push('','Write every source you try (what worked, what failed, licence, date) into docs/regions/<region>.md. Stop after this step and wait for my answer.');
+    return p.join('\n');
+  }
+
+  /* ---------- running and looking ---------- */
+  function consoleEl(){return $('console')}
+  function runJob(cmd){
+    if(!cmd){toast('Empty command');return}
+    var box=consoleEl();box.hidden=false;box.textContent='';
+    var head=el('div','chead');head.appendChild(el('b','','Output'));var st=el('span','st','starting…');head.appendChild(st);
+    var stop=el('button','','Stop');var tick=el('button','','Tick this step');tick.hidden=true;stop.hidden=true;
+    head.appendChild(stop);head.appendChild(tick);box.appendChild(head);
+    var pre=el('pre','','');box.appendChild(pre);
+    clearTimeout(pollT);var cur=items[selIdx()];
+    api('/onboard/run',{cmd:cmd,target:target}).then(function(r){
+      var id=r.job,since=0;stop.hidden=false;
+      stop.onclick=function(){api('/onboard/stop',{id:id})};
+      tick.onclick=function(){cur.done=true;renderList();save();tick.hidden=true};
+      (function tickPoll(){
+        api('/onboard/job?id='+id+'&since='+since).then(function(j){
+          if(j.lines.length){var atEnd=pre.scrollTop+pre.clientHeight>=pre.scrollHeight-20;pre.textContent+=(pre.textContent?'\n':'')+j.lines.join('\n');if(atEnd)pre.scrollTop=pre.scrollHeight}
+          since=j.next;
+          if(j.status==='running'){st.textContent='running… '+cmd;pollT=setTimeout(tickPoll,700);return}
+          stop.hidden=true;
+          st.textContent=j.status==='done'?'done (exit 0)':j.status==='stopped'?'stopped':'failed (exit '+j.rc+')';
+          st.className='st '+(j.status==='done'?'ok':'bad');
+          if(j.status==='done'&&!cur.done)tick.hidden=false;
+        }).catch(function(e){st.textContent='lost the job: '+e.message;st.className='st bad';stop.hidden=true});
+      })();
+    }).catch(function(e){st.textContent='refused: '+e.message;st.className='st bad'});
+  }
+  function fill(u){return u.replace(/\{id\}/g,encodeURIComponent(target.id||'')).replace(/\{sgi\}/g,encodeURIComponent(target.sgi||''))}
+  function openLive(url){
+    var u=fill(url);$('liveFrame').src=u;$('liveUrl').textContent=u;$('liveTab').href=u;$('live').hidden=false;$('mock').hidden=true;$('newChips').hidden=true;
+  }
+  function closeLive(){$('live').hidden=true;$('mock').hidden=false;$('newChips').hidden=false;$('liveFrame').src='about:blank'}
+  $('liveClose').onclick=closeLive;
+  $('liveSite').onclick=function(){openLive('/#g={id}')};
+
+  /* ---------- glacier to add ---------- */
+  var target={name:'',id:'',sgi:'',region:'',pos:'',note:''};
+  var TF={tName:'name',tId:'id',tSgi:'sgi',tRegion:'region',tPos:'pos',tNote:'note'};
+  function slug(x){return x.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,'-').replace(/^-+|-+$/g,'')}
+  function showTarget(){Object.keys(TF).forEach(function(id){$(id).value=target[TF[id]]||''});$('mockName').textContent=target.name||'Your glacier'}
+  Object.keys(TF).forEach(function(id){$(id).addEventListener('input',function(){
+    var k=TF[id],prev=target[k];target[k]=this.value;
+    if(k==='name'&&(!target.id||target.id===slug(prev))){target.id=slug(this.value);$('tId').value=target.id}
+    $('mockName').textContent=target.name||'Your glacier';save()})});
+  showTarget();
+
+  /* ---------- boot ---------- */
+  function firstOpen(){for(var i=0;i<items.length;i++)if(items[i].kind==='step'&&!items[i].done)return i;return 0}
+  items=norm(defaults());sel=firstOpen();refresh();
+  api('/onboard/state').then(function(j){
+    var p=j.plan;
+    if(p&&Array.isArray(p.items)&&p.items.length){items=norm(p.items);if(p.target)target=Object.assign(target,p.target);showTarget();sel=firstOpen();refresh()}
+    loaded=true;
+  }).catch(function(){$('offline').hidden=false});
+})();
+</script>
+</body></html>
