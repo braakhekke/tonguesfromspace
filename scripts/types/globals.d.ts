@@ -25,3 +25,5 @@ interface PromiseConstructor { new (executor: (resolve: (value?: any) => void, r
 interface Window { turnstile: any; __lastVideo: any; }
 // A few functions carry a timer on themselves (showNotice.t, sync3D.t) as a debounce handle.
 interface Function { t?: any; }
+
+interface Navigator { deviceMemory?: number; }
