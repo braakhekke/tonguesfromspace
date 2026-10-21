@@ -25,8 +25,10 @@ import build_dem_change as bd
 ROOT = bd.ROOT
 OUT = os.path.join(ROOT, 'data', 'terrain')
 HALF = 2000                 # half width of the strip (m): V3D.HALF in index.html
-BACK = {'A54e-24': 2000}    # metres of strip below the tongue tip (V3D.BACK = 1000; Trift: V3D_VIEW)
-UP = (2500, 6500)           # shortest and longest strip up the glacier (V3D.UP)
+def _boxes():                # data/boxes.js: window.GLACIER_BOXES = {...};
+    t = open(os.path.join(ROOT, 'data', 'boxes.js'), encoding='utf-8').read()
+    return json.loads(t[t.index('{', t.index('window.GLACIER_BOXES')):t.rindex('}') + 1])
+BOXES = _boxes()
 NB = 284                    # grid cells across (a multiple of 4: 2 * 2000 / 284 = 14.08 m); along: about the same size, an even number
 NAME_KINDS = {'Hauptgipfel': 3, 'Alpiner Gipfel': 3, 'Gipfel': 2, 'Pass': 1}
 R = 6378137.0
@@ -36,16 +38,10 @@ def merc(lat, lon): return R * math.radians(lon), R * math.log(math.tan(math.pi 
 def unmerc(x, y): return math.degrees(2 * math.atan(math.exp(y / R)) - math.pi / 2), math.degrees(x / R)
 
 
-def strip_for(g):                          # as stripFor() in index.html: direction up the glacier from the 2023 outline around the tip, length of the strip
-    tip = g['terminus']['tip']; px, py = merc(*tip); k = 1 / math.cos(math.radians(tip[0]))
-    rings = [poly[0] for poly in g['outline']['coordinates']]; ring = max(rings, key=len)
-    rel = [((merc(lat, lon)[0] - px) / k, (merc(lat, lon)[1] - py) / k) for lon, lat in ring]
-    near = [p for p in rel if math.hypot(*p) <= 3000]; ue, un = 0.0, 1.0
-    if near:
-        mx, my = sum(p[0] for p in near) / len(near), sum(p[1] for p in near) / len(near); d = math.hypot(mx, my)
-        if d > 1: ue, un = mx / d, my / d
-    along = max([0] + [p[0] * ue + p[1] * un for p in rel]); up = min(UP[1], max(UP[0], along + 800))
-    return {'P': (px, py), 'k': k, 'ue': ue, 'un': un, 'up': up, 'back': BACK.get(g['id'], 1000)}
+def strip_for(g):                          # the strip of data/boxes.js (the page reads the same: stripFor() in js/11-view3d.js): tip, azimuth up the glacier, metres below the tip and up
+    e = BOXES['glaciers'][g['id']]; t = e['strip3d']; tip = e['tip']; px, py = merc(*tip); k = 1 / math.cos(math.radians(tip[0])); az = math.radians(t['azimuth'])
+    if t['half'] != HALF: sys.exit(f"{g['id']}: strip half width {t['half']} m in data/boxes.js, but this script builds {HALF} m wide strips (HALF)")
+    return {'P': (px, py), 'k': k, 'ue': math.sin(az), 'un': math.cos(az), 'up': t['up'], 'back': t['back']}
 
 
 class Tiles:                               # the 2 m grids of the newest swissALTI3D edition, read when first needed

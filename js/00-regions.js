@@ -157,3 +157,4 @@ const regionLink = id => {
 };
 /* the data file of the region: one tag, written here so it is fetched at once and runs before the page's own scripts */
 document.write(`<script defer src="${siteFile(REGION.data)}"><\/script>`);
+document.write(`<script defer src="${siteFile('data/boxes.js')}"><\/script>`);      // window.GLACIER_BOXES: the picture box, tip and 3D strip of every glacier of every region (scripts/tools/box-editor.html)

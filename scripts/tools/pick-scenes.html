@@ -74,6 +74,7 @@ tr.orb{cursor:pointer} tr.orb:hover{background:#222} tr.orb.on{background:#2a241
 </div>
 
 <script src="../../data/glaciers.js"></script>
+<script src="../../data/boxes.js"></script>
 <script src="../../config.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6.5.0/turf.min.js"></script>
 <script>
@@ -149,16 +150,8 @@ function evaluatePixel(ss){
 
 /* ---------- the areas: the image area of the site (red box) and the tongue window ---------- */
 const norm = t => (t || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
-function siteFootprint(g){               // the same rules as imageFootprint() in index.html
-  let [[s, w], [n, e]] = g.bbox;
-  const o = g.oldest && g.oldest.outline;
-  if (o) o.coordinates.forEach(poly => poly[0].forEach(([x, y]) => { if (y < s) s = y; if (y > n) n = y; if (x < w) w = x; if (x > e) e = x; }));
-  const dy = (n - s) * 0.33, dx = (e - w) * 0.33; let S = s - dy, W = w - dx, N = n + dy, E = e + dx;       // IMAGE_MARGIN 0.33
-  if (norm(g.name).includes('aletsch')) { const H = (n - s) / (1 - 0.08 - 0.07); S = s - 0.07 * H; N = n + 0.08 * H; }     // NS_MARGIN
-  if (norm(g.name).includes('findel')) N += (N - S) * 0.15;                                                              // EXTRA_NORTH
-  if (norm(g.name).includes('aletsch')) E += 3000 / (111320 * Math.cos((S + N) / 2 * Math.PI / 180));                          // EXTRA_EAST
-  if (norm(g.name).includes('rhone')) { const d = 2000 / (111320 * Math.cos((S + N) / 2 * Math.PI / 180)); W -= d; E += d; }      // EXTRA_EW
-  const a = merc(W, S), b = merc(E, N);
+function siteFootprint(g){               // the stored picture box of the site (data/boxes.js), as imageBox() in the page makes it a Web Mercator bbox
+  const [[s, w], [n, e]] = window.GLACIER_BOXES.glaciers[g.id].box.bounds, a = merc(w, s), b = merc(e, n);
   return [a[0], a[1], b[0], b[1]].map(Math.round);
 }
 function tongueWindow(g, fp, km){       // circle around the tongue tip, cut to the red box; as a Web Mercator polygon
