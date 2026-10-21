@@ -157,7 +157,7 @@ function glacierSheet(){                 // the sheet with the ten glaciers, mad
   gSheet.innerHTML = '<div class="g-back"></div><div class="g-panel"><div class="g-head"><h2 class="step-h"><span class="num">01</span>Choose a glacier</h2><button type="button" class="g-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><ul class="g-list"></ul></div>';
   document.body.appendChild(gSheet);
   gSheet.querySelector('.g-back').onclick = gSheet.querySelector('.g-close').onclick = () => setGlacierSheet(false);
-  gSheet.querySelector('.g-list').onclick = e => { const b = e.target.closest('button[data-id]'); if (b) { setGlacierSheet(false); chooseGlacier(b.dataset.id); } };
+  gSheet.querySelector('.g-list').onclick = e => { const b = e.target.closest('button[data-id]'), sb = e.target.closest('button[data-sub]'); if (b) { setGlacierSheet(false); chooseGlacier(b.dataset.id); } else if (sb) { setGlacierSheet(false); focusSub(currentGlacier(), +sb.dataset.sub); } };
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && gSheet.classList.contains('open')) setGlacierSheet(false); });
   return gSheet;
 }
@@ -174,7 +174,7 @@ function renderMobileBar(){                 // phones: the glacier list becomes 
   btn.classList.toggle('placeholder', !g);
   btn.onclick = () => setGlacierSheet(true);
   const max = Math.max(...GLACIERS.map(rankArea)), list = glacierSheet().querySelector('.g-list');
-  const html = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${areaText(x, 2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>`).join('');
+  const html = GLACIERS.map((x, i) => `<li><button type="button" data-id="${x.id}" aria-pressed="${!!g && x.id === g.id}"><span class="rank">${i + 1}</span><span class="name">${x.name}</span><span class="area">${areaText(x, 2)} km²</span><i class="g-bar"><b style="width:${(rankArea(x) / max * 100).toFixed(1)}%"></b></i></button></li>${x.subs && g && x.id === g.id ? x.subs.map((sb, k) => `<li class="sub"><button type="button" data-sub="${k}" title="${subTitle(sb).replace(/"/g, '&quot;')}"><span class="rank"></span><span class="name">${sb.name}${sb.approx ? '<sup>≈</sup>' : ''}</span><span class="area">${sb.areaKm2.toLocaleString('en-US', {maximumFractionDigits: 1})} km²</span></button></li>`).join('') : ''}`).join('');
   if (list._html !== html) { list._html = html; list.innerHTML = html; }      // this runs with every redraw of the page: the rows must stay put under a finger that is about to tap one
 }
 

@@ -87,166 +87,183 @@ def warm_play(p):
     p.wait_for_timeout(600)
 
 
-def cine_full(p):
-    p.evaluate("() => { D.cine(true); setFull(true); }")
-    p.wait_for_timeout(1400)
+def set_speed(p, v):
+    p.evaluate("v => { document.getElementById('speedSel').value = v; updateSpeedIcon(); }", v)
 
 
-def take_open(T):
-    """The overview: all ten glaciers from orbit, a title, and a flight down to the Great Aletsch tongue."""
-    p = T.open("#m=single")
-    p.wait_for_timeout(9000)
-    cine_full(p)
-    p.evaluate("""() => { D.notags(); map.invalidateSize(); map.setView([46.33, 7.9], 8.2, {animate: false}); }""")
-    p.wait_for_timeout(1500)
-    T.go()
-    p.evaluate("""() => { D.shade(true); D.cap('Tongues from Space', 'Switzerland\u2019s glaciers, seen from space', 'The ten largest, in Sentinel-2 pictures since 2016.', {cw: 1150}); map.setView([46.33, 7.85], 9.5, {animate: true, duration: 3.4, easeLinearity: 0.3}); }""")
-    T.sleep(3.2)
-    p.evaluate("D.capOut()")
-    T.sleep(0.3)
-    p.evaluate("""() => { document.getElementById('boxToggle').checked = false; document.getElementById('boxToggle').dispatchEvent(new Event('change')); const g = GLACIERS.find(x => x.id === 'aletsch'); map.flyTo(L.latLng(g.inv.terminus.tip), 12.8, {duration: 2.8, easeLinearity: 0.25}); D.shade(false); }""")
-    T.sleep(2.9)
-    T.done(0.2)
+def loop_on(p):
+    p.evaluate("() => { document.getElementById('loopToggle').checked = true; }")      # the timelapse repeats for as long as the take runs
 
 
-def take_timelapse(T):
-    """Aletsch, 2016 to 2026, in the map, with the 1850 outline: the dashed line is where the ice reached."""
-    p = T.open("#g=aletsch&m=timelapse&from=2016&to=2026&ol=1")
+def stage_box(p):
+    return p.locator("#stage").bounding_box()
+
+
+def to_modes(p):
+    """The left panel scrolled to View and Mode, so that the clicks on them are on screen."""
+    p.evaluate("() => document.getElementById('viewGroup').scrollIntoView({block: 'start'})")
+
+
+def take_map(T):
+    """Map: Aletsch, 2016 to 2026. The cursor presses play (the years run in a loop), opens the Layers menu, then clicks Slider and drags through time."""
+    p = T.open("#g=aletsch&m=timelapse&from=2016&to=2026")
     ready_map(p)
-    p.evaluate("() => { document.getElementById('speedSel').value = 2; updateSpeedIcon(); }")
-    cine_full(p)
-    p.evaluate("() => { D.frameLower(3600, 0.46, 0.4); showFrame(0); }")
-    p.wait_for_timeout(1200)
-    T.go()
-    p.evaluate("() => { D.shade(true); D.cap('Timelapse', 'Every summer since 2016', 'One clear Sentinel-2 picture a year. Dashed: the ice in 1850.', {cw: 1100, cx: 72}); D.push('#map', 1.1, 6.2); }")
-    T.sleep(1.0)
-    p.evaluate("() => { play(); }")
-    T.sleep(6.4)
-    p.evaluate("D.capOut()")
-    T.done(0.5)
-
-
-def take_compare(T):
-    """Rhone: the slider between 2016 and 2026, dragged by a cursor."""
-    p = T.open("#g=rhone&m=compare&a=2016&b=2026")
-    wait_js(p, "state.checked && state.available[2016] && state.available[2026]", 90000)
-    p.evaluate("() => { setOrient('v'); }")
-    cine_full(p)
-    p.evaluate("() => { D.frameTongue(0.8, 0.5, 0.6); state.split = 0.5; clip(); }")
-    p.wait_for_timeout(2500)
+    set_speed(p, 3); loop_on(p)
+    p.evaluate("() => { D.cine(true); D.frameLower(2600, 0.5, 0.5); }")
+    warm_play(p)
+    to_modes(p)
+    p.evaluate("() => D.tipAt(0.5, 0.62)")
+    wait_js(p, "state.available[2016] && state.available[2026]", 60000)
     m = T.mouse
-    p.evaluate("D.follow = true")
-    m.place(1100, 660)
+    m.place(520, 470)
     T.go()
-    p.evaluate("() => { D.shade(true); D.cap('Compare', 'Drag through time', 'Rhone glacier, 2016 and 2026.', {cw: 1000}); }")
-    T.sleep(0.8)
+    p.evaluate("() => D.cap('', 'See it', 'Welcome to a new way to talk glaciers.', 'One clear Sentinel-2 picture a year. Landsat goes back to 1984.', {cw: 290})")
+    m.click(".tl-play", 450)
+    T.sleep(2.6)
+    m.click("#lbToggle", 700)      # the Layers menu opens and shows what the map can draw
+    T.sleep(2.0)
+    m.click("#lbToggle", 500)
+    T.sleep(0.6)
+    m.click("#modeCompare", 800)
+    p.evaluate("() => { setOrient('v'); D.tipAt(0.5, 0.62); state.split = 0.5; clip(); D.cap('', 'Compare it', 'Drag through time', 'Any two years, side by side.'); }")
+    T.sleep(0.6)
+    sb = stage_box(p)
+    x0, w = sb["x"], sb["width"]
     h = p.locator("#handle").bounding_box()
-    m.glide(h["x"] + h["width"] / 2, h["y"] + h["height"] / 2, 900)
-    m.page.mouse.down(); T.sleep(0.15)
     y = h["y"] + h["height"] / 2
-    m.glide(1280 * 0.25, y, 900)
-    T.sleep(0.15)
-    m.glide(1280 * 0.75, y, 2400)
-    T.sleep(0.15)
-    m.glide(1280 * 0.50, y, 900)
+    m.glide(h["x"] + h["width"] / 2, y, 700)
+    m.page.mouse.down(); T.sleep(0.1)
+    m.glide(x0 + w * 0.9, y, 1200)      # the tongue is in the right half of the picture: the drag stays over it
+    T.sleep(0.1)
+    m.glide(x0 + w * 0.42, y, 1800)
+    T.sleep(0.1)
+    m.glide(x0 + w * 0.62, y, 700)
     m.page.mouse.up()
-    T.sleep(0.5)
-    m.glide(1100, 640, 500)
+    T.sleep(0.4)
     p.evaluate("D.capOut()")
-    T.done(0.5)
+    T.done(0.3)
 
 
 def take_3d(T):
-    """Gorner in 3D: the camera flies, the years run, the ice surface sinks."""
-    p = T.open("#g=gorner&m=timelapse&from=2016&to=2026&v=3d")
+    """3D: the camera flies over the Aletsch tongue while the timelapse keeps looping, then One year and an old photograph with the line between then and now."""
+    p = T.open("#g=aletsch&m=timelapse&from=2016&to=2026&v=3d")
     ready_3d(p)
-    p.evaluate("() => { document.getElementById('speedSel').value = 3; updateSpeedIcon(); }")
-    cine_full(p)
-    p.wait_for_timeout(600)
+    set_speed(p, 3); loop_on(p)
+    p.evaluate("() => D.cine(true)")
     warm_play(p)
-    p.evaluate("() => v3d.setCam({az: -0.7, el: 0.26, dist: 3500})")
+    to_modes(p)
+    p.evaluate("() => v3d.setCam({az: -0.5, el: 0.28, dist: 4800})")
     p.wait_for_timeout(700)
-    T.go()
-    p.evaluate("() => { D.shade(true); D.cap('3D', 'Fly over the ice', 'Satellite pictures on the real terrain. The ice follows the years.', {cw: 1150}); }")
-    T.sleep(1.2)
-    p.evaluate("() => { play(); return D.tween(6400, u => v3d.setCam({az: -0.7 + 1.1 * u, el: 0.26 + 0.3 * Math.sin(u * Math.PI * 0.85), dist: 3500 - 1300 * u})); }")
-    p.evaluate("D.capOut()")
-    T.done(0.5)
-
-
-def take_photo(T):
-    """Aletsch: a click on an old photograph, the camera flies to where it was taken, the line shows 1954 against today."""
-    p = T.open("#g=aletsch&m=single&v=3d")
-    wait_js(p, "typeof v3dCtx !== 'undefined' && v3dCtx && v3dCtx.photos", 150000)
-    p.evaluate("() => { D.cine(true); document.body.classList.add('cine-photos'); setFull(true); v3d.setCam({az: 0.35, el: 0.32, dist: 4200}); }")
-    p.wait_for_timeout(1500)
     m = T.mouse
-    p.evaluate("D.follow = true")
-    m.place(1000, 300)
+    m.place(520, 470)
     T.go()
-    p.evaluate("() => { D.shade(true); D.cap('Then and now', 'Step into old photographs', 'Historic photos, placed on today\u2019s terrain.', {right: true, top: true, ct: 60, cw: 640, cx: 50}); }")
-    T.sleep(1.0)
-    m.click(".ph-toggle", 900)
-    T.sleep(0.7)
-    m.click(".ph[data-i='0']", 700)
+    p.evaluate("() => D.cap('', 'Fly over it', 'Fly over the ice', 'Satellite pictures on the real terrain. The ice sinks with the years.')")
+    m.click(".tl-play", 450)
+    p.evaluate("() => D.tween(7600, u => v3d.setCam({az: -0.5 + 1.1 * u, el: 0.28 + 0.26 * Math.sin(u * Math.PI * 0.85), dist: 4800 - 1500 * u}), false)")
+    p.evaluate("() => { v3d.setCam({az: 0.35, el: 0.32, dist: 4200}); }")
+    m.click("#modeSingle", 800)
+    p.evaluate("() => D.cap('', 'Step inside it', 'Step into old photographs', 'Photographs placed on today\u2019s terrain.', {top: 70, cr: 56})")
+    wait_js(p, "typeof v3dCtx !== 'undefined' && v3dCtx && v3dCtx.photos", 90000)
+    p.evaluate("() => { v3d.setCam({az: 0.35, el: 0.32, dist: 4200}); }")
+    T.sleep(0.5)
+    m.click(".ph-toggle", 700)
+    T.sleep(0.3)
+    m.click(".ph[data-i='7']", 600)
     wait_js(p, "!!photoOn", 30000)
     wait_js(p, "!document.getElementById('v3dDiv').hidden", 30000)
-    T.sleep(0.6)
+    T.sleep(0.5)
+    sb = stage_box(p)
     h = p.locator("#v3dDiv").bounding_box()
     y = h["y"] + h["height"] * 0.5
-    m.glide(h["x"] + h["width"] / 2, y, 900)
+    m.glide(h["x"] + h["width"] / 2, y, 700)
     m.page.mouse.down(); T.sleep(0.1)
-    m.glide(1280 * 0.85, y, 1100)
-    T.sleep(0.15)
-    m.glide(1280 * 0.2, y, 1300)
-    T.sleep(0.15)
-    m.glide(1280 * 0.5, y, 700)
+    m.glide(sb["x"] + sb["width"] * 0.85, y, 900)
+    T.sleep(0.1)
+    m.glide(sb["x"] + sb["width"] * 0.2, y, 1100)
+    T.sleep(0.1)
+    m.glide(sb["x"] + sb["width"] * 0.5, y, 600)
     m.page.mouse.up()
-    T.sleep(0.8)
+    T.sleep(0.5)
     p.evaluate("D.capOut()")
-    T.done(0.5)
+    T.done(0.3)
+
+
+def take_stats(T):
+    """The right panel: the cursor opens it, Stats (area, length, thickness and volume), Switzerland (how much ice is left), Discover (what to look for)."""
+    p = T.open("#g=aletsch&m=single")
+    ready = "state.checked && state.available[2026]"
+    wait_js(p, ready, 90000)
+    p.evaluate("() => { D.cine(true); }")
+    p.wait_for_timeout(1500)
+    m = T.mouse
+    m.place(700, 420)
+    T.go()
+    p.evaluate("() => D.cap('', 'Back it with facts', 'Know the ice', 'Figures from GLAMOS, with their sources.', {left: 312, cb: 96})")
+    m.click("#toggleRight", 800)
+    T.sleep(0.5)
+    m.click("#story .tabs button[data-tab='figures']", 700)
+    T.sleep(0.2)
+    for card in ("length", "volume"):
+        m.click(f"#story details[data-card='{card}'] summary", 650)
+        p.evaluate("c => { const d = document.querySelector(`#story details[data-card='${c}']`); d.open = true; }", card)
+        T.sleep(1.1)
+    m.click("#story .tabs button[data-tab='swiss']", 750)
+    T.sleep(0.2)
+    m.click("#story details[data-card='sw-left'] summary", 650)
+    p.evaluate("() => { document.querySelector(\"#story details[data-card='sw-left']\").open = true; }")
+    T.sleep(1.5)
+    m.click("#story .tabs button[data-tab='look']", 750)
+    T.sleep(0.2)
+    m.click("#story details.dcard summary", 650)
+    p.evaluate("() => { document.querySelector('#story details.dcard').open = true; }")
+    T.sleep(1.5)
+    p.evaluate("D.capOut()")
+    T.done(0.3)
 
 
 def take_export(T):
-    """The export pane: a 9:16 animation, previewed."""
+    """The download pane: a 9:16 animation with glacier facts, previewed."""
     p = T.open("#g=aletsch&m=timelapse&from=2016&to=2026")
     ready_map(p)
-    p.evaluate("() => { setPanel('right', true, false); showFrame(3); document.getElementById('videoBtn').scrollIntoView({block: 'center'}); }")
-    p.wait_for_timeout(1500)
+    p.evaluate("() => { D.cine(true); D.frameLower(3600, 0.5, 0.42); document.getElementById('videoBtn').scrollIntoView({block: 'center'}); }")
+    p.wait_for_timeout(1000)
     m = T.mouse
-    p.evaluate("D.follow = true")
-    m.place(700, 420)
+    m.place(160, 300)
     T.go()
-    p.evaluate("() => { D.shade(true); D.cap('Create and share', 'Make it yours', 'A picture or an animation: 16:9, 9:16 or 4:5.', {right: true, cb: 70, cw: 700, cx: 50}); }")
-    T.sleep(0.8)
-    m.click("#videoBtn", 1000)
-    T.sleep(1.0)
-    m.click("#vfReel", 700)
+    p.evaluate("() => D.cap('', 'Say it your way', 'Make it yours', 'A picture or an animation: 16:9, 9:16 or 4:5.', {left: 312})")
+    m.click("#videoBtn", 700)
     T.sleep(0.6)
+    m.click("#vfReel", 700)
+    T.sleep(0.3)
     m.click("#vFacts", 700)
     T.sleep(0.4)
-    m.click("#vfPlay", 700)
-    T.sleep(2.6)
+    m.click("#vfPlay", 600)
+    T.sleep(1.0)
     p.evaluate("D.capOut()")
-    T.done(0.4)
+    T.done(0.3)
 
 
 def make_exports(ctx):
-    """The real files of the page: an animation (9:16, with facts) and a picture (4:5), made by its own export, saved for the product shot."""
+    """The real files of the page, made by its own export: a 9:16 animation with facts and a picture of the compare view, saved for the product shot."""
     page = open_page(ctx, "#g=aletsch&m=timelapse&from=2016&to=2026")
     ready_map(page)
-    page.evaluate("openVideo('video'); setFmt('reel')")
+    page.evaluate("() => { D.frameLower(3600, 0.5, 0.42); openVideo('video'); setFmt('reel'); }")
     page.wait_for_timeout(1500)
+    page.evaluate("() => D.tipInFrame(0.5, 0.42)")      # the tongue tip in the lower part of the frame, the ice running in from above
+    page.wait_for_timeout(800)
     page.evaluate("$('vFacts').click()")
     page.wait_for_timeout(600)
     with page.expect_download(timeout=300000) as dl:
         page.evaluate("$('vsGo').click()")
     dl.value.save_as(f"{WORK}/export-916.mp4")
     page.close()
-    page = open_page(ctx, "#g=rhone&m=compare&a=2016&b=2026")
+    page = open_page(ctx, "#g=aletsch&m=compare&a=2016&b=2026")
     wait_js(page, "state.checked && state.available[2016] && state.available[2026]", 90000)
-    page.evaluate("() => { setOrient('v'); D.frameTongue(0.8, 0.5, 0.6); openVideo('image'); setFmt('feed'); }")
+    page.evaluate("() => { setOrient('v'); state.split = 0.5; clip(); D.frameLower(3600, 0.5, 0.42); openVideo('image'); setFmt('feed'); }")
     page.wait_for_timeout(1500)
+    page.evaluate("() => D.tipInFrame(0.5, 0.42)")
+    page.evaluate("() => { const f = $('videoFrame').getBoundingClientRect(), m = $('map').getBoundingClientRect(); state.split = (f.left + f.width * 0.5 - m.left) / m.width; clip(); }")      # the line in the middle of the frame, not of the map
+    page.wait_for_timeout(800)
     with page.expect_download(timeout=120000) as dl:
         page.evaluate("$('vsGo').click()")
     dl.value.save_as(f"{WORK}/export-image.jpg")
@@ -254,63 +271,36 @@ def make_exports(ctx):
 
 
 def take_product(T):
-    """The files the export made: the animation on a phone, the picture beside it."""
+    """What the export made: the animation on a phone, the picture beside it."""
     p = T.ctx.new_page()
     T.page = p
     p.add_init_script(DIRECTOR_SRC)
-    p.goto(f"{BASE}/scripts/teaser/product.html")
+    p.goto(f"{BASE}/scripts/tools/teaser-product.html")
     wait_js(p, "typeof D !== 'undefined' && window.ready", 30000)
-    p.evaluate("D.scale(%s)" % T.fmt["z"])
     p.evaluate("window.ready()")
     T.rec = Rec(p, *T.fmt["out"])
     T.go()
-    p.evaluate("""() => { window.go(); D.cap('Export', 'Your picture. Your animation.', 'Made in the page: MP4 for Instagram and TikTok, JPEG for everything else.', {cw: 900, cx: 72, cb: 120}); }""")
-    T.sleep(5.6)
+    p.evaluate("""() => { window.go(); D.cap('', 'Share it', 'Yours to post', 'MP4 for Instagram and TikTok, JPEG for everything else.', {left: 72, cb: 160, cw: 300}); }""")
+    T.sleep(4.2)
     p.evaluate("D.capOut()")
-    T.done(0.4)
-
-
-def take_stats(T):
-    """The right panel: the figures of Switzerland, then what to look for at the Rhone."""
-    p = T.open("#g=rhone&m=compare&a=2016&b=2026&t=stats")
-    wait_js(p, "state.checked && state.available[2016] && state.available[2026]", 90000)
-    p.evaluate("() => { D.cine(true); setPanel('left', true, false); setOrient('v'); D.frameTongue(0.5, 0.5, 0.55); state.split = 0.5; clip(); }")
-    p.wait_for_timeout(2500)
-    m = T.mouse
-    p.evaluate("D.follow = true")
-    m.place(600, 500)
-    T.go()
-    p.evaluate("() => { D.shade(true); D.cap('Discover', 'Know the ice', 'Figures from GLAMOS, stories, hikes and what to look for.', {cx: 56, cb: 60, cw: 760}); }")
-    T.sleep(0.8)
-    m.click("#story .tabs button[data-tab='swiss']", 900)
-    T.sleep(0.3)
-    m.click("#story details[data-card='sw-left'] summary", 900)
-    p.evaluate("() => { const d = document.querySelector(\"#story details[data-card='sw-left']\"); d.open = true; }")
-    T.sleep(2.3)
-    m.click("#story .tabs button[data-tab='look']", 700)
-    T.sleep(0.2)
-    m.click("#story details.dcard summary", 700)
-    p.evaluate("() => { const d = document.querySelector('#story details.dcard'); d.open = true; }")
-    T.sleep(1.5)
-    p.evaluate("D.capOut()")
-    T.done(0.4)
+    T.done(0.3)
 
 
 def take_end(T):
-    """The closing card over the overview."""
-    p = T.open("#m=single")
-    p.wait_for_timeout(9000)
-    cine_full(p)
-    p.evaluate("() => { map.invalidateSize(); const c = map.getCenter(); map.setView(c, map.getZoom() - 0.3, {animate: false}); }")
-    p.wait_for_timeout(1000)
+    """The closing text over the playing timelapse, darkened, slowly pushing in."""
+    p = T.open("#g=aletsch&m=timelapse&from=2016&to=2026")
+    ready_map(p)
+    set_speed(p, 3); loop_on(p)
+    p.evaluate("() => { D.cine(true); D.frameLower(3600, 0.5, 0.42); }")
+    warm_play(p)
     T.go()
-    p.evaluate("""() => { D.card('veil', '<img class="logo" src="logo/tongues-from-space-logo-ring-bold-white.svg" alt=""><div class="t1">Tongues from Space</div><div class="t2">Switzerland</div><div class="sub">Compare, create and share the ten largest Swiss glaciers.</div><div class="url">tonguesfromspace.org</div>'); }""")
-    T.sleep(3.6)
+    p.evaluate("""() => { play(); D.push('#map', 1.12, 5); D.card('Make your own picture or animation of the ten largest Swiss glaciers.', 'tonguesfromspace.org'); }""")
+    T.sleep(4.0)
     T.done(0.2)
 
 
-TAKES = {"open": take_open, "timelapse": take_timelapse, "compare": take_compare, "3d": take_3d, "photo": take_photo, "export": take_export, "product": take_product, "stats": take_stats, "end": take_end}
-ORDER = ["open", "timelapse", "compare", "3d", "photo", "product", "stats", "end"]      # "export" (the pane itself, 10 s) is left out of the film to keep it short; python3 scripts/make_teaser.py --takes export records it
+TAKES = {"map": take_map, "3d": take_3d, "stats": take_stats, "export": take_export, "product": take_product, "end": take_end}
+ORDER = ["map", "3d", "stats", "export", "product", "end"]
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
@@ -335,7 +325,7 @@ def assemble(names, fmt, out):
     base = [*cmd] + (["-filter_complex", graph, "-map", f"[{last}]"] if graph else [])
     subprocess.run(base + ["-c:v", "libx264", "-preset", "slow", "-crf", "26", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-r", str(FPS), f"{out}.mp4"], check=True)
     subprocess.run(base + ["-c:v", "libvpx-vp9", "-crf", "37", "-b:v", "0", "-row-mt", "1", "-pix_fmt", "yuv420p", "-r", str(FPS), f"{out}.webm"], check=True)
-    subprocess.run([exe, "-y", "-loglevel", "error", "-ss", "0.6", "-i", f"{out}.mp4", "-frames:v", "1", "-q:v", "3", f"{out}-poster.jpg"], check=True)
+    subprocess.run([exe, "-y", "-loglevel", "error", "-i", f"{out}.mp4", "-vf", "select=eq(n\\,0)", "-frames:v", "1", "-q:v", "3", f"{out}-poster.jpg"], check=True)
     print("film:", out, f"{sum(durs) - XFADE * (len(clips) - 1):.1f} s")
 
 
@@ -359,7 +349,7 @@ def main():
         with sync_playwright() as pw:
             ctx = pw.chromium.launch_persistent_context(f"{WORK}/profile-{a.format}", args=CHROME_ARGS, viewport={"width": fmt["size"][0], "height": fmt["size"][1]},
                                                         device_scale_factor=fmt["dsf"], accept_downloads=True, is_mobile=fmt["mobile"], has_touch=fmt["mobile"])
-            if a.exports or (("product" in names) and not os.path.exists(f"{WORK}/export-916.mp4")):
+            if a.exports or ("product" in names and not os.path.exists(f"{WORK}/export-916.mp4")):
                 print("exports"); make_exports(ctx)
             for n in names:
                 print("take", n)

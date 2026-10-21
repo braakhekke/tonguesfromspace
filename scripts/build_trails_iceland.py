@@ -27,7 +27,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--outlet', default='breidamerkurjokull'); a = ap.parse_args()
     t = open(os.path.join(ROOT, 'data', 'vatnajokull.js'), encoding='utf-8').read()
     o = next(x for x in json.loads(t[t.index('{'):t.rindex('}') + 1])['outlets'] if x['id'] == a.outlet)
-    (s, w), (n, e) = bv_square(o['lat'], o['lon'], o['half'])
+    (s, w), (n, e) = bv_square(o['lat'], o['lon'], o['half'], o.get('halfH'))
     inbox = lambda la, lo: s <= la <= n and w <= lo <= e
     print(f"{o['name']}: picture box {s:.3f},{w:.3f} to {n:.3f},{e:.3f}")
     # the paths
@@ -107,8 +107,8 @@ def main():
     open(out, 'w', encoding='utf-8').write(body); print(f'wrote {out} ({len(body) / 1024:.0f} kB)')
 
 
-def bv_square(lat, lon, half):
-    dlat = half / 111.32; dlon = half / (111.32 * math.cos(math.radians(lat)))
+def bv_square(lat, lon, half, half_h=None):
+    dlat = (half_h or half) / 111.32; dlon = half / (111.32 * math.cos(math.radians(lat)))
     return (lat - dlat, lon - dlon), (lat + dlat, lon + dlon)
 
 

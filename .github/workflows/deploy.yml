@@ -56,6 +56,8 @@ jobs:
           CDSE_RELAY_URL: ${{ vars.CDSE_RELAY_URL }}   # Settings -> Secrets and variables -> Actions -> Variables
           STREETVIEW_EMBED_KEY: ${{ vars.STREETVIEW_EMBED_KEY }}   # the public Maps Embed API key (restricted to the site's address); without it the Street View layer stays hidden
           PUBLISH_ICELAND: ${{ vars.PUBLISH_ICELAND }}   # set to 1 to show Iceland (menu entry, /iceland/ addresses, sitemap) on the public site; empty = hidden
+          PUBLISH_NORWAY: ${{ vars.PUBLISH_NORWAY }}   # set to 1 to show mainland Norway and Svalbard (menu entries, /norway/ addresses, sitemap) on the public site; empty = hidden
+          PUBLISH_LANDSAT: ${{ vars.PUBLISH_LANDSAT }}   # set to 1 to show the Landsat switch (years before 2016); the pictures themselves are not in the repository
         run: |
           python scripts/build_site.py _site
           cat _site/config.js | head -c 400; echo

@@ -39,6 +39,19 @@
 -->
 <link rel="stylesheet" href="css/style.css">
 <style>
+.space-sw{display:block;width:26px;height:16px;border-radius:3px;background:radial-gradient(1px 1px at 5px 4px,#fff,transparent),radial-gradient(1px 1px at 15px 11px,#fff,transparent),radial-gradient(1.2px 1.2px at 21px 5px,#e8e0cc,transparent),linear-gradient(#0b1230,#04070f)}
+.sub-pin{position:relative;width:10px;height:10px;border-radius:50%;border:2px solid #fff;background:rgba(200,50,42,.55);box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:pointer;transition:transform .12s}
+.sub-pin:hover{transform:scale(1.35);background:var(--accent)}
+.sub-pin .lab{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:6px;white-space:nowrap;font:600 12px/1 var(--sans);color:#fff;text-shadow:0 0 3px rgba(0,0,0,.9),0 0 7px rgba(0,0,0,.7)}
+.sub-pin sup{font-size:9px;margin-left:1px}
+.glaciers li.sub button{padding:3px 10px 3px 13px}
+.glaciers li.sub .name{font-weight:400;font-size:12px;color:var(--moraine);padding-left:4px}
+.glaciers li.sub .area{font-size:11px;color:var(--moraine)}
+.glaciers li.sub sup{font-size:9px;margin-left:1px}
+.g-list li.sub button{padding-top:4px;padding-bottom:4px}
+.g-list li.sub .name{font-weight:400}
+.g-list li.sub .g-bar{display:none}
+
 /* region menu: a country with several areas is a heading with its areas below it (css/style.css is shared with the sister sites, so this rule lives here) */
 .region-menu li[aria-disabled="true"]{font-weight:600}      /* the countries without data ("soon") keep the weight of the others: only their colour is lighter */
 .region-menu li.group{cursor:default}      /* a country with areas: same font and size as the other countries, not a choice itself */
@@ -48,6 +61,7 @@
 .size-link{display:block;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--crevasse)}
   .landsat-opt{align-items:flex-start;margin:8px 0 4px}
   .landsat-opt input{margin-top:3px}
+  .landsat-opt.not-recommended #landsatText{color:#9a5b00}
   .landsat-note{display:block;font-size:11px;line-height:1.35;color:var(--moraine);margin-top:1px}
 </style>
 </head>
@@ -137,7 +151,7 @@
           <label class="toggle loop"><input type="checkbox" id="loopToggle"> <span>Loop</span></label>
         </div>
       </div>
-      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat 5 and 7 pictures (30 m) for the years before Sentinel-2. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Also show Landsat pictures</span><small class="landsat-note">30 m pixels instead of the 10 m of Sentinel-2, so less detail. The stats in the right panel and the figures on exports stay limited to 2016 until today, for now.</small></span></label>
+      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span><small class="landsat-note">Note: 30 m pixels instead of the 10 m (from 2016 onwards), so less detail. For now, the dynamic statistics listed in the right panel start in 2016, not earlier.</small></span></label>
       <p class="status busy" id="status">Looking for the clearest scene of each year…</p>
 
       <details class="tune sat-need">
@@ -284,6 +298,7 @@
           <label class="toggle"><input type="checkbox" id="l3Osm"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-osm"/></svg></span>OpenStreetMap</span></label>
           <label class="toggle"><input type="checkbox" id="l3Topo"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo"/></svg></span>swisstopo map</span></label>
           <label class="toggle" title="Relief shading of the terrain"><input type="checkbox" id="l3Alti"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-shade"/></svg></span>Hillshade</span></label>
+          <label class="toggle" title="A night sky with stars behind the terrain"><input type="checkbox" id="l3Space"> <span><span class="sym"><i class="space-sw"></i></span>Space</span></label>
           <label class="toggle" title="Names of peaks and passes"><input type="checkbox" id="l3Names"> <span><span class="sym"><svg class="peak-sw" viewBox="0 0 16 12" aria-hidden="true"><path d="M0.5 11.5 6 2l3 5 2-3 4.5 7.5z"/></svg></span>Peak names</span></label>
         </div>
       </div>
@@ -338,6 +353,7 @@
     <button type="button" id="vfWide" aria-pressed="true">16:9<small>(landscape)</small></button>
     <button type="button" id="vfReel" aria-pressed="false">9:16<small>(portrait)</small></button>
     <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Insta feed)</small></button>
+    <button type="button" id="vfBox" aria-pressed="false" title="The extent, ratio and size of the glacier's image box">Image box<small>(full picture)</small></button>
   </div>
   <label class="toggle vo-video" id="vSafeRow" hidden title="Instagram Reels and TikTok cover the top, the bottom and the right edge with their own buttons and captions. Switch off for a plain 9:16 video, with the text at the very top and bottom."><input type="checkbox" id="vSafe" checked> <span>Keep text clear of Reels and TikTok buttons</span></label>
   <p class="hint vs-guide" id="vsGuide"></p>
@@ -346,6 +362,7 @@
   <div class="vs-opts">
     <label class="toggle speed-row" id="vFactsRow" title="Three facts about the glacier on the picture or video: Ice (volume, estimate), Retreat (length, area, thickness) or Size (area, thickness, tongue height)"><span class="fk"><input type="checkbox" id="vFacts"> <span>Glacier facts</span></span> <select class="small" id="vFactSet" aria-label="Which facts"><option value="ice">Ice</option><option value="retreat">Retreat</option><option value="size">Size</option></select></label>
     <label class="toggle vo-video vo-3d"><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
+    <label class="toggle" title="Only one small line up the left edge: Tongues from Space, the site, glacier, year and the data credit. No header, facts, timeline or scale."><input type="checkbox" id="vMinimal"> <span>Minimal text</span></label>
     <label class="toggle vo-outline"><input type="checkbox" id="vOutline"> <span id="vOutlineLabel">Show 1850 outline</span></label>
     <div class="vo-outside"><label class="slider-row" for="vOutside"><span>Surroundings opacity</span><output id="vOutsideOut">100 %</output></label>
       <input type="range" class="frame" id="vOutside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the image outside the 1850 outline"></div>
@@ -356,6 +373,7 @@
     <label class="toggle vo-video vo-tl vo-loops"><input type="checkbox" id="vBounce"> <span>Go back in time between loops</span></label>
   </div>
   <p class="hint vs-note" id="vsInfo"></p>
+  <p class="hint vs-note" id="vsEarly" hidden></p>
   <p class="hint vs-help"><span id="vsSource"></span> <span class="vo-video">Result: MP4, ready for Instagram or TikTok.</span></p>
   <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
   <button type="button" class="play" id="vsGo" style="width:100%;padding:9px 12px;font-size:14px">Download video</button>
@@ -383,7 +401,8 @@
 <script defer src="js/05-map.js"></script>
 <script defer src="js/06-scene-search.js"></script>
 <script defer src="js/07-render.js"></script>
-<script defer src="js/07a-region-vatnajokull.js"></script>
+<script defer src="js/07a-region-icecaps.js"></script>
+<script defer src="js/07b-icecap-texts.js"></script>
 <script defer src="js/08-controls.js"></script>
 <script defer src="js/09-phones.js"></script>
 <script defer src="js/10-animation.js"></script>

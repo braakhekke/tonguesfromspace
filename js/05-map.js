@@ -55,10 +55,10 @@ function updateCredits(){
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
-  if (document.getElementById('trailsToggle').checked) parts.push((REGION.id === 'ch' ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.id === 'ch' ? 'swissALTI3D' : 'ÍslandsDEM'})` : ''));
+  if (document.getElementById('trailsToggle').checked) parts.push((REGION.id === 'ch' ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
   if (REGION.id === 'ch' && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
-  if (outlineLayers.old || outlineLayers.new) parts.push(REGION.id === 'is-vatnajokull' ? `Outlines: <a href="https://doi.org/10.7265/N5-RGI-60" target="_blank" rel="noopener">Randolph Glacier Inventory 6.0</a> (RGI Consortium 2017, via GLIMS), about 2000` : 'Outlines GLAMOS (CC BY 4.0)');
+  if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
@@ -147,7 +147,8 @@ let sightTried = false, sightLoad = null;
 const ensureSight = () => sightLoad || (sightLoad = new Promise(res => {      // the file (Switzerland: sightline.js, all glaciers, 135 kB; Iceland: trails-is.js) is fetched when the trails are on, not at the start; everyone who asks waits for the same load
   if (window.GLACIER_SIGHT) { sightTried = true; return res(); }
   sightTried = true;
-  const sc = document.createElement('script'); sc.src = asset(REGION.trailsFile); sc.onload = sc.onerror = () => res(); document.head.appendChild(sc);
+  const files = [].concat(REGION.trailsFile); let left = files.length;      // one file, or several (Vatnajökull: Breiðamerkurjökull has its own)
+  files.forEach(f => { const sc = document.createElement('script'); sc.src = asset(f); sc.onload = sc.onerror = () => { if (--left === 0) res(); }; document.head.appendChild(sc); });
 }));
 const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && bundleId(g)]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
 let sightLayer = null;
@@ -320,9 +321,15 @@ function applySatVisibility(){          // the Sentinel-2 pictures can be switch
   if (!satShown() && !document.getElementById('videoSheet').hidden) closeVideo();      // a download pane needs the picture
 }
 function imageryLayer(yr, pane, opacity=1){
-  const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className:'scene-img'});
+  const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className: 'scene-img'});
   ov._g = g;
-  const load = () => loadImage(g, yr).then(url => showImage(ov, url)).catch(e => { setStatus(e.message); showNotice(e.message); });
+  const fail = e => { setStatus(e.message); showNotice(e.message); };
+  const load = () => {
+    const fine = () => loadImage(g, yr).then(url => showImage(ov, url)).catch(fail);
+    if (!(g.cap && capLevel() === 1)) return fine();
+    ov._loadFine = fine;      // a cap's picture is big: a small copy (40 m) shows first; the 10 m one replaces it at once if the map is zoomed in, else when it is (capCheckFine)
+    loadImage(g, yr, null, 0.25).then(url => { if (!ov._orig) showImage(ov, url); if (capWantsFine()) fine(); else { capWaiting.add(ov); setLoading(); } }).catch(() => fine());
+  };
   if (viewMode === '3d') deferredLoads.push([ov, load]); else load();      // the map is not on show in the 3D view: its pictures wait (that view asks for its own, much smaller ones)
   return ov;
 }
@@ -464,7 +471,9 @@ function play(){
   const wait = () => {            // the first run: every picture has to be loaded before the years change, else the frames flash
     const ready = pre3 ? n3 : tlLayers.filter(t => t.layer._ready).length;
     if (ready < tlLayers.length && Date.now() - begun < (pre3 ? 45000 : 20000)) {
-      document.getElementById('playBtn').innerHTML = `<span class="spin-s"></span>${ready}/${tlLayers.length}`;
+      const pb = document.getElementById('playBtn');      // keep the spinner element: rebuilding it every 250 ms restarts its turn, so it only jitters
+      if (!pb.querySelector('.spin-s')) pb.innerHTML = '<span class="spin-s"></span><span class="spin-n"></span>';
+      pb.querySelector('.spin-n').textContent = `${ready}/${tlLayers.length}`;
       state.timer = setTimeout(wait, 250); return;
     }
     document.getElementById('playBtn').innerHTML = PAUSE_ICON;
@@ -530,7 +539,7 @@ function drawOutlines(){
   syncOutsideUi();
   if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
   const g = currentGlacier();
-  if (g.rgi) {      // an outlet of the Vatnajökull ice cap: the Icelandic Met Office outlines (lines, cut to the outlet's region)
+  if (g.rgi) {      // a glacier of an ice-cap region: the outlines of the region's institute (lines, cut to the glacier's region)
     const O = REGION.outlines, line = (geom, color, dash, title) => L.geoJSON(geom, {pane:'outlines', style:{color, weight:2.5, dashArray:dash, fill:false}}).bindPopup(`<strong>${title}</strong>`);
     if (document.getElementById('oldToggle').checked && hasOldOutline(g)) outlineLayers.old = line(oldOutlineGeom(g), getVar('--old'), '7 6', `${g.name}, outline ${g.outlines.lia.label}`).addTo(map);
     if (document.getElementById('newToggle').checked && newOutlineGeom(g)) outlineLayers.new = line(newOutlineGeom(g), getVar('--new'), null, `${g.name}, outline ${g.outlines.latest.label}`).addTo(map);
@@ -623,7 +632,7 @@ async function drawRadar(){
     .bindPopup(popup(m, y, all)).on('popupopen', e => e.target.closeTooltip()))).addTo(map);
   updateCredits();
 }
-map.on('zoomend', () => { if (radarLayer) drawRadar(); });
+map.on('zoomend', () => { if (radarLayer) drawRadar(); capCheckFine(); });
 /* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map */
 function drawMax(){
   if (maxMarker) { map.removeLayer(maxMarker); maxMarker = null; }
@@ -710,13 +719,13 @@ document.getElementById('labelsToggle').onchange = e => { e.target.checked ? lab
 document.getElementById('oldToggle').checked = prefs.old === true;      // the 1850 outline is off until it is switched on
 document.getElementById('oldToggle').onchange = () => { prefs.old = document.getElementById('oldToggle').checked; savePrefs(); drawOutlines(); };
 document.getElementById('newToggle').onchange = drawOutlines;
-function fitGlacier(animate = true){ map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
+function fitGlacier(animate = true){ if (typeof subFocus !== 'undefined') subFocus = null; map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
 const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
 /* The tip of the tongue is the lowest point of the newest outline (found by build_outlines.py with the swisstopo height service).
    The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
    so the tip sits near the middle of the screen with room around it, whatever the window size. */
 const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way from the tip to the middle of that stretch
-const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: 200}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.2 km west; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
+const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: -800}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.8 km east; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
 const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
 function tongueBounds(g){
   if (g.half) return L.latLngBounds(g.box);      // Iceland: the tongue view shows the picture box (the big glaciers are pictured only where the tongue is)
@@ -760,6 +769,7 @@ function tongueView(){          // {center, zoom} the Tongue button goes to, or 
   return g.tongue ? {center: L.latLng(g.tongue), zoom: g.tz || TONGUE_ZOOM} : null;
 }
 function focusTongue(animate = true){
+  if (typeof subFocus !== 'undefined') subFocus = null;
   const v = tongueView();
   if (v) map.setView(v.center, v.zoom, {animate});
   else fitGlacier(animate);

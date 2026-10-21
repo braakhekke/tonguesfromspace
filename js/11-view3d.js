@@ -7,6 +7,12 @@
    ===================================================================== */
 const V3D = {HALF: 2000, BACK: 1000, UP: [2500, 6500], CELL: [14, 28], TEX: [1024, 2048], Z: 13, EL: [0.12, 1.35], DIST: [600, 7500], AZ: 1.3, WM: 20037508.342789244};      // HALF: half width (m); BACK: strip below the tip (m); UP: shortest and longest strip up the glacier (m); CELL: grid spacing (m), the fine one needs 32-bit indices (about 150,000 points), the coarse one is the fallback; TEX: texture width and height; Z: tile zoom; EL / DIST / AZ: tilt, distance and turn limits
 const LANDING_CAM = {az: 0.1565, el: 0.3228, dist: 3880};      // the camera of the landing page (plain address, first glacier): azimuth and elevation in radians, distance in metres; read it from a view you like with v3d.getCam() in the console
+/* the credit of the terrain of the open view: the region's, and the ArcticDEM strips when the glacier's terrain file has a surface for every year */
+const ARCTIC_HTML = 'ArcticDEM strips © <a href="https://www.pgc.umn.edu/data/arcticdem/" target="_blank" rel="noopener">Polar Geospatial Center</a>, University of Minnesota (CC BY 4.0; Maxar WorldView images)';
+function terrainHtml(c){
+  const y = c && c.bundle && c.bundle.yearly; if (!y || /ArcticDEM/.test(REGION.terrain.html)) return REGION.terrain.html;
+  return `${ARCTIC_HTML}, ground reference ${y.reference ? `${y.reference}: ${REGION.terrain.html}` : REGION.terrain.html}`;
+}
 const bundleId = g => g.inv ? g.inv.id : g.id;      // the key of a glacier's terrain file and of its entries in the data files (the Swiss ones have an inventory id)
 const V3D_VIEW = {'A54e-24': {back: 2000, dist: 1.3}};      // Trift: the strip reaches further below the tongue tip and the camera starts further back, away from the glacier (back: metres below the tip; dist: times the usual distance)
 const terrainTile = (z, x, y) => `https://tiles.mapterhorn.com/${z}/${x}/${y}.webp`;
@@ -21,10 +27,10 @@ function stripFor(g, at){            // direction up the glacier and length of t
   const view = V3D_VIEW[bundleId(g)] || g.view3d || {};
   if (view.azimuth !== undefined) { ue = Math.sin(view.azimuth * Math.PI / 180); un = Math.cos(view.azimuth * Math.PI / 180); }      // a direction fixed by hand (Iceland: the arrow drawn on the picture)
   const along = Math.max(0, ...rel.map(p => p[0] * ue + p[1] * un)), up = view.up || Math.min(V3D.UP[1], Math.max(V3D.UP[0], along + 800));
-  return {P, k, ue, un, up, back: view.back || V3D.BACK, dist: view.dist || 1, half: view.half || V3D.HALF, tex: view.tex || V3D.TEX, merc: (a, b) => [P.x + (a * ue + b * un) * k, P.y + (a * un - b * ue) * k]};      // right of the looking direction is (un, -ue)
+  return {P, k, ue, un, up, back: view.back || V3D.BACK, dist: view.dist || 1, cam: view.cam || null, half: view.half || V3D.HALF, tex: view.tex || V3D.TEX, merc: (a, b) => [P.x + (a * ue + b * un) * k, P.y + (a * un - b * ue) * k]};      // right of the looking direction is (un, -ue)
 }
-async function loadHeights(S, nA, nB){            // heights (m) on a grid of nA+1 rows (top row = far up the glacier) by nB+1 columns (left to right)
-  const {Z, WM} = V3D, HALF = S.half, BACK = S.back, n = 2 ** Z, tx = x => (x + WM) / (2 * WM) * n, ty = y => (WM - y) / (2 * WM) * n;
+async function loadHeights(S, nA, nB, zoom){            // heights (m) on a grid of nA+1 rows (top row = far up the glacier) by nB+1 columns (left to right)
+  const Z = zoom || REGION.terrainZoom || V3D.Z, WM = V3D.WM, HALF = S.half, BACK = S.back, n = 2 ** Z, tx = x => (x + WM) / (2 * WM) * n, ty = y => (WM - y) / (2 * WM) * n;
   const corners = [[-BACK, -HALF], [-BACK, HALF], [S.up, -HALF], [S.up, HALF]].map(([a, b]) => S.merc(a, b));
   const xs = corners.map(c => tx(c[0])), ys = corners.map(c => ty(c[1])), x0 = Math.floor(Math.min(...xs)), x1 = Math.floor(Math.max(...xs)), y0 = Math.floor(Math.min(...ys)), y1 = Math.floor(Math.max(...ys));
   const W = (x1 - x0 + 1) * 512, Hh = (y1 - y0 + 1) * 512, c = document.createElement('canvas'); c.width = W; c.height = Hh;
@@ -34,7 +40,7 @@ async function loadHeights(S, nA, nB){            // heights (m) on a grid of nA
     const bmp = await createImageBitmap(await r.blob(), {colorSpaceConversion: 'none', premultiplyAlpha: 'none'});
     ctx.drawImage(bmp, (x - x0) * 512, (y - y0) * 512); if (bmp.close) bmp.close();
   })());
-  await Promise.all(jobs);
+  try { await Promise.all(jobs); } catch (e) { if (Z > 11) return loadHeights(S, nA, nB, Z - 1); throw e; }      // a zoom without tiles over this place (Mapterhorn's finest tiles end at 12 over Iceland and Svalbard): one level coarser
   const px = ctx.getImageData(0, 0, W, Hh).data, el = (ix, iy) => { const i = (iy * W + ix) * 4; return px[i] * 256 + px[i + 1] + px[i + 2] / 256 - 32768; };
   const out = new Float32Array((nA + 1) * (nB + 1));
   for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) {
@@ -80,6 +86,27 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, V3D_VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, V3D_FS)); gl.linkProgram(pr);
   if (!gl.getProgramParameter(pr, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(pr));
   gl.useProgram(pr);
+  /* The space background (Layers: Background > Space): a night sky with stars behind the terrain, drawn as one full-screen triangle before it. The stars turn with the camera; the grid is in units of the picture height, so a download shows the same sky. */
+  const sp = gl.createProgram(); gl.attachShader(sp, sh(gl.VERTEX_SHADER, 'attribute vec2 aP; varying vec2 vP; void main(){ vP = aP; gl_Position = vec4(aP, 0.0, 1.0); }'));
+  gl.attachShader(sp, sh(gl.FRAGMENT_SHADER, `precision highp float; varying vec2 vP; uniform vec3 uS;
+    float hs(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
+    void main(){
+      vec2 q = vec2(vP.x * uS.x, vP.y) * 0.5 + vec2(uS.y, uS.z);
+      vec3 c = vec3(0.027, 0.043, 0.078);      // #070b14, the dark of the map, with the same few small stars as the download frame of the map
+      for (int L = 0; L < 2; L++) {
+        float n = L == 0 ? 30.0 : 12.0; vec2 g = q * n + float(L) * 17.3, id = floor(g), f = fract(g) - 0.5;
+        float on = step(L == 0 ? 0.92 : 0.88, hs(id));
+        vec2 o = vec2(hs(id + 3.1), hs(id + 7.7)) - 0.5; float d = length(f - o * 0.7);
+        float sz = L == 0 ? 0.045 : 0.07, a = on * smoothstep(sz, sz * 0.3, d) * (0.6 + 0.4 * hs(id + 1.9));
+        c += a * mix(vec3(0.81, 0.89, 1.0), vec3(1.0, 0.91, 0.77), step(0.7, hs(id + 5.3)));
+      }
+      gl_FragColor = vec4(c, 1.0);
+    }`));
+  gl.bindAttribLocation(sp, 7, 'aP'); gl.linkProgram(sp);
+  if (!gl.getProgramParameter(sp, gl.LINK_STATUS)) throw new Error(gl.getProgramInfoLog(sp));
+  const uSky = gl.getUniformLocation(sp, 'uS'), skyBuf = gl.createBuffer(); gl.bindBuffer(gl.ARRAY_BUFFER, skyBuf); gl.bufferData(gl.ARRAY_BUFFER, new Float32Array([-1, -1, 3, -1, -1, 3]), gl.STATIC_DRAW);
+  let space = false;
+  gl.useProgram(pr);
   const len = up + BACK, sx = 2 * HALF / nB, sz = len / nA, W = nB + 1, jt = Math.round(up / len * nA), h0 = heights[jt * W + nB / 2];      // nB is even      // h0: height of the tongue tip, the camera looks near it
   let cur = heights;      // the heights on show (the ice surface of the year)
   const at0 = (a, i, j) => a[Math.min(nA, Math.max(0, j)) * W + Math.min(nB, Math.max(0, i))] - h0;
@@ -124,10 +151,11 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
     const cr = Math.cos(p.roll), sr = Math.sin(p.roll), x2 = x.map((v, i) => v * cr + y[i] * sr), y2 = x.map((v, i) => -v * sr + y[i] * cr), e = [p.x, p.y, p.z];
     return [x2[0], y2[0], b[0], 0, x2[1], y2[1], b[1], 0, x2[2], y2[2], b[2], 0, -(x2[0] * e[0] + x2[1] * e[1] + x2[2] * e[2]), -(y2[0] * e[0] + y2[1] * e[1] + y2[2] * e[2]), -(b[0] * e[0] + b[1] * e[1] + b[2] * e[2]), 1];
   };
+  let shift = {cx: 0, cy: 0};      // where the middle of the picture sits on the screen (shares of -1..1, up is +): moved to the middle of the download frame while a pane covers the side of the stage
   const viewM = (w, h, view) => {            // projection and camera of the picture (view: the part of the screen a download frame covers)
     if (pose) return m4.mul(m4.persp(pose.fovY, w / h, 10, 30000 * SC, view || (pose.view ? {a: w / h, sx: 1, sy: 1, cx: pose.view.cx, cy: pose.view.cy} : null)), poseView(pose));
     const {eye, tgt} = rig();
-    return m4.mul(m4.persp(0.75, w / h, 50, 30000 * SC, view), m4.look(eye, tgt));
+    return m4.mul(m4.persp(0.75, w / h, 50, 30000 * SC, view || (shift.cx || shift.cy ? {a: w / h, sx: 1, sy: 1, cx: -shift.cx, cy: -shift.cy} : null)), m4.look(eye, tgt));
   };
   const orbitPose = () => { const {eye, tgt} = rigOrbit(), f = [tgt[0] - eye[0], tgt[1] - eye[1], tgt[2] - eye[2]], l = Math.hypot(...f); return {x: eye[0], y: eye[1], z: eye[2], yaw: Math.atan2(f[0], -f[2]), pitch: Math.asin(f[1] / l), roll: 0, fovY: 0.75, view: null}; };
   const setPose = (p, ms = 0) => new Promise(res => {            // p: {alt (m), x, z, yaw, pitch, roll, fovY, view}: fly to the camera of a photograph; null: back to the orbiting camera
@@ -146,6 +174,13 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
   });
   const paint = (w, h, view) => {
     gl.viewport(0, 0, w, h); gl.clearColor(0.043, 0.071, 0.125, 1); gl.clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT);
+    if (space) {
+      const {eye, tgt} = rig(), fx = tgt[0] - eye[0], fy = tgt[1] - eye[1], fz = tgt[2] - eye[2], fl = Math.hypot(fx, fy, fz) || 1;
+      gl.useProgram(sp); gl.uniform3f(uSky, w / h, Math.atan2(fx, -fz) * 0.9, Math.asin(fy / fl) * 0.9);
+      gl.disable(gl.DEPTH_TEST); gl.bindBuffer(gl.ARRAY_BUFFER, skyBuf); gl.enableVertexAttribArray(7); gl.vertexAttribPointer(7, 2, gl.FLOAT, false, 0, 0);
+      gl.drawArrays(gl.TRIANGLES, 0, 3);
+      gl.disableVertexAttribArray(7); gl.enable(gl.DEPTH_TEST); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.useProgram(pr);
+    }
     gl.uniformMatrix4fv(uM, false, viewM(w, h, view)); gl.uniform1f(uX, cam.exag); gl.uniform3f(uSplit, split, w, h); gl.uniform1f(uHz, hz); gl.uniform3f(uSplitV, split, w, h); gl.uniform1f(uHzV, hz);
     gl.drawElements(gl.TRIANGLES, idx.length, wide ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
   };
@@ -177,7 +212,7 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
     if (pose) return null;
     const {eye, tgt} = rig(), nz = [eye[0] - tgt[0], eye[1] - tgt[1], eye[2] - tgt[2]], lz = Math.hypot(...nz), z = nz.map(v => v / lz);
     const xr = [z[2], 0, -z[0]], lx = Math.hypot(...xr), x = xr.map(v => v / lx), y = [z[1] * x[2] - z[2] * x[1], z[2] * x[0] - z[0] * x[2], z[0] * x[1] - z[1] * x[0]];
-    const th = Math.tan(0.75 / 2), nx = (px / w) * 2 - 1, ny = 1 - (py / h) * 2, d = [0, 1, 2].map(i => x[i] * nx * th * (w / h) + y[i] * ny * th - z[i]), ld = Math.hypot(...d);
+    const th = Math.tan(0.75 / 2), nx = (px / w) * 2 - 1 - shift.cx, ny = 1 - (py / h) * 2 - shift.cy, d = [0, 1, 2].map(i => x[i] * nx * th * (w / h) + y[i] * ny * th - z[i]), ld = Math.hypot(...d);
     for (let i = 0; i < 3; i++) d[i] /= ld;
     const at = t => [eye[0] + d[0] * t, eye[1] + d[1] * t, eye[2] + d[2] * t];
     let prev = 50;
@@ -206,9 +241,10 @@ function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, di
   const ro = new ResizeObserver(redraw); ro.observe(canvas);
   draw();
   const setTexture = (c, unit = 0) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texs[unit]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.generateMipmap(gl.TEXTURE_2D); redraw(); };
+  const setSpace = on => { space = !!on; redraw(); };
   const setSplit = (f, horizontal) => { split = f; hz = horizontal ? 1 : 0; redraw(); };
   const setHeights = (h1, h2 = h1) => { fill(h1, h2); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw(); };      // another year's ice surface
-  return {setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
+  return {setSpace, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
     gl.deleteBuffer(vb); gl.deleteBuffer(ib); texs.forEach(t => gl.deleteTexture(t)); gl.deleteProgram(pr); const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }};
 }
 let v3dCtx = null, v3dBusy = false;      // v3dCtx: what the download buttons need from the open 3D view
@@ -285,7 +321,7 @@ async function detectTrails(c){            // is any hiking trail inside the str
 const outline3D = g => hasOldOutline(g) && $('oldToggle').checked;      // the layers of the map, drawn on the picture of the 3D view
 const outlineNew3D = g => !!newOutlineGeom(g) && $('newToggle').checked;
 const radar3D = g => !!(g.inv && g.inv.radar) && $('radarToggle').checked;
-const layerCreditNames = g => [...baseKeys().map(k => ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', altiToggle: REGION.id === 'ch' ? 'swisstopo' : 'ArcticDEM', aerialToggle: REGION.id === 'ch' ? 'swisstopo' : 'Náttúrufræðistofnun Íslands'}[k] || null)), $('trailsToggle').checked && (REGION.id === 'ch' ? 'swisstopo' : 'OpenStreetMap'), (outline3D(g) || outlineNew3D(g) || radar3D(g)) && (REGION.id === 'ch' ? 'GLAMOS' : 'Icelandic Met Office'), $('l3Names').checked && (REGION.id === 'ch' ? 'swisstopo' : 'OpenStreetMap')].filter(Boolean);
+const layerCreditNames = g => [...baseKeys().map(k => ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', altiToggle: REGION.id === 'ch' ? 'swisstopo' : REGION.terrain.short.split(' · ')[0], aerialToggle: REGION.id === 'ch' ? 'swisstopo' : 'Náttúrufræðistofnun Íslands'}[k] || null)), $('trailsToggle').checked && (REGION.id === 'ch' ? 'swisstopo' : 'OpenStreetMap'), (outline3D(g) || outlineNew3D(g) || radar3D(g)) && (REGION.id === 'ch' ? 'GLAMOS' : REGION.outlines.credit), $('l3Names').checked && (REGION.id === 'ch' ? 'swisstopo' : 'OpenStreetMap')].filter(Boolean);
 const layersCredit = g => layerCreditNames(g).join(' · ');
 const layersCreditText = g => { const t = layersCredit(g); return t ? ` Layers: ${t}.` : ''; };      // the sentence in the full note under the 3D view
 /* The 3D view needs only the strip, which is a small part of the glacier area (Aletsch: about a twelfth): it asks the relay for a picture of just the box around the strip, at the same 10 m pixels.
@@ -336,13 +372,14 @@ async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the satell
     mx.setTransform(imgM[0] / 2, imgM[1] / 2, imgM[2] / 2, imgM[3] / 2, imgM[4] / 2, imgM[5] / 2); mx.drawImage(bmp, 0, 0);
     lakeMasks.set(g.id + '|' + yr, lakeMaskFrom(mx, mw, mh, nA, nB));
   }
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
   if (og && oa < 0.99) {            // surroundings opacity: the picture outside the 1850 outline is made fainter (the base map or empty space shows), inside it stays as it is
     ctx.globalAlpha = ia * oa; ctx.setTransform(...imgM); ctx.drawImage(bmp, 0, 0);
     ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.save(); ctx.beginPath();
     og.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const q = L.CRS.EPSG3857.project(L.latLng(pt[1], pt[0])), [x, y] = toTexM(q.x, q.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); }));
     ctx.clip(); ctx.globalAlpha = ia; ctx.setTransform(...imgM); ctx.drawImage(bmp, 0, 0); ctx.restore();
   } else { ctx.globalAlpha = ia; ctx.setTransform(...imgM); ctx.drawImage(bmp, 0, 0); }
-  if (bmp.close) bmp.close(); ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = true; if (bmp.close) bmp.close(); ctx.globalAlpha = 1; ctx.setTransform(1, 0, 0, 1, 0, 0);
   const sight = $('trailsToggle').checked && sightFor(g);
   if (sight) {            // where the tongue is in view from the trail, under the trail lines
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
@@ -464,7 +501,7 @@ function loadBundle(id){            // the parsed file of a glacier, or null (no
   })().catch(e => { console.error('terrain file', e); bundles.delete(id); return null; }));
   return bundles.get(id);
 }
-const stripOf = (b, g) => ({P: {x: b.P[0], y: b.P[1]}, k: b.k, ue: b.ue, un: b.un, up: b.up, back: b.back, dist: (V3D_VIEW[bundleId(g)] || {}).dist || 1, half: b.half || V3D.HALF, tex: b.tex || V3D.TEX,
+const stripOf = (b, g) => ({P: {x: b.P[0], y: b.P[1]}, k: b.k, ue: b.ue, un: b.un, up: b.up, back: b.back, dist: (V3D_VIEW[bundleId(g)] || {}).dist || 1, cam: (V3D_VIEW[bundleId(g)] || g.view3d || {}).cam || null, half: b.half || V3D.HALF, tex: b.tex || V3D.TEX,
   merc: (a, c) => [b.P[0] + (a * b.ue + c * b.un) * b.k, b.P[1] + (a * b.un - c * b.ue) * b.k]});      // the strip as the file was made: the same as stripFor() finds
 function coarseBundle(b){            // every second point: the 28 m grid for devices that cannot draw the fine one
   const nA = b.nA / 2, nB = b.nB / 2, W = b.nB + 1, W2 = nB + 1, pick = a => { if (!a) return null; const o = new Float32Array((nA + 1) * W2); for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) o[j * W2 + i] = a[2 * j * W + 2 * i]; return o; };
@@ -473,16 +510,39 @@ function coarseBundle(b){            // every second point: the 28 m grid for de
 /* The note at the bottom of the 3D view: in full on bigger screens; on phones one short line (what the picture is made of) with "Details" for the rest */
 const shortLayerNames = g => layerCreditNames(g).filter(n => n !== 'swisstopo').map(n => ' · ' + n).join('');
 const KIND_TEXT = {measured: 'measured (a summer strip within 45 days)', interpolated: 'interpolated between the strips before and after it', held: 'the surface of the nearest strip, unchanged (before the first or after the last)'};
-const yearNote = yr => { const b = v3dCtx && v3dCtx.bundle; return b && b.yearly ? ` The ice surface of ${yr} is ${KIND_TEXT[b.yearly.kind[b.yearly.years.indexOf(Math.min(Math.max(yr, b.yearly.years[0]), b.yearly.years[b.yearly.years.length - 1]))]] || 'estimated'}.` : ''; };      // Iceland: how this year's surface was found
-function note3DHtml(g, picture, when, usesDem, terrainNote){
+const yearNote = yr => { const b = v3dCtx && v3dCtx.bundle; if(!(b && b.yearly)) return ''; const y = Math.min(Math.max(yr, b.yearly.years[0]), b.yearly.years[b.yearly.years.length - 1]), est = (b.yearly.estimated || {})[y] || 0; return ` The ice surface of ${yr} is ${KIND_TEXT[b.yearly.kind[b.yearly.years.indexOf(y)]] || 'estimated'}.${est >= 0.005 ? ' About ' + Math.round(100 * est) + ' % of the strip (ice no recent strip covers) is estimated from the thinning measured around it.' : ''}`; };      // Iceland: how this year's surface was found
+function note3DHtml(g, picture, when, usesDem, terrainNote, oldNote){
   const noSat = !satOn(), old = state.oldestAerial && oldestAerial.get(g.id); if (noSat) picture = old ? `Picture: ${REGION.id === 'ch' ? `swisstopo aerial image flown ${old.flown} (SWISSIMAGE edition ${old.ed})` : oldestWhat(old)}. ` : 'No satellite picture is shown. ';
-  const full = `Terrain: ${REGION.terrain.html}. ${picture}${terrainNote}<span id="v3dLc">${layersCreditText(g)}</span> <button type="button" class="n-more n-less">Less</button>`;
-  const short = `${old ? 'Aerial image ' + old.flown : noSat ? 'No satellite picture' : sensorName(state.available[v3dCtx ? v3dCtx.current() || v3dCtx.years[0] : 0]) + ' ' + when} · ${REGION.terrain.short}<span id="v3dLcS">${shortLayerNames(g)}</span>${usesDem ? (REGION.id === 'ch' ? ' · ice surface: estimate' : ' · ice surface: ArcticDEM') : ''} <button type="button" class="n-more">Details</button>`;
+  const full = `Terrain: ${terrainHtml(v3dCtx)}. ${picture}${terrainNote}${oldNote ? ' ' + oldNote.full : ''}<span id="v3dLc">${layersCreditText(g)}</span> <button type="button" class="n-more n-less">Less</button>`;
+  const short = `${old ? 'Aerial image ' + old.flown : noSat ? 'No satellite picture' : sensorName(state.available[v3dCtx ? v3dCtx.current() || v3dCtx.years[0] : 0]) + ' ' + when} · ${v3dCtx && v3dCtx.bundle && v3dCtx.bundle.yearly && !/ArcticDEM/.test(REGION.terrain.short) ? 'ArcticDEM · ' : ''}${REGION.terrain.short}<span id="v3dLcS">${shortLayerNames(g)}</span>${usesDem ? (REGION.id === 'ch' ? ' · ice surface: estimate' : ' · ice surface: ArcticDEM') : ''}${oldNote ? ' · ' + oldNote.short : ''} <button type="button" class="n-more">Details</button>`;
   return `<span class="n-short">${short}</span><span class="n-full">${full}</span>`;
 }
 $('v3dNote').addEventListener('click', e => { const b = e.target.closest && e.target.closest('.n-more'); if (b) $('v3dNote').classList.toggle('open'); });
+/* The glacier the 3D view shows: the chosen one, or, when an outlet of an ice cap was clicked (subFocus, g.subs), a copy of the glacier that stands for that outlet: its tip, its name and a strip along it
+   found from its catchment (the RGI basin): the direction from the tip to the middle of the basin, as wide as the basin is across the first 2 km above the tip, as long as it reaches up the glacier.
+   Such a strip has no baked terrain file: the terrain tiles and the strip pictures of the relay are used. */
+const subGlaciers = new Map();
+function nearestSub(g){      // index of the outlet whose tip is nearest the middle of the map view
+  const c = map.getCenter(); let best = -1, d0 = Infinity;
+  g.subs.forEach((sb, k) => { const t = sb.tip; if (!t) return; const d = (t[0] - c.lat) ** 2 + ((t[1] - c.lng) * Math.cos(c.lat * Math.PI / 180)) ** 2; if (d < d0) { d0 = d; best = k; } });
+  return best;
+}
+function v3dGlacier(){
+  const g = currentGlacier(); if (!g || !g.subs) return g;
+  const k = subFocus && subFocus.gid === g.id && g.subs[subFocus.k] ? subFocus.k : nearestSub(g);      // no outlet clicked (the whole cap on the map): the outlet nearest the middle of the map, not the fixed strip of the cap
+  if (k < 0) return g;
+  const key = g.id + '~' + k; if (!subGlaciers.has(key)) subGlaciers.set(key, subGlacier(g, k, key)); return subGlaciers.get(key);
+}
+function subGlacier(g, k, key){
+  const sb = g.subs[k], tip = sb.tip || [(sb.bounds[0][0] + sb.bounds[1][0]) / 2, (sb.bounds[0][1] + sb.bounds[1][1]) / 2], P = L.CRS.EPSG3857.project(L.latLng(tip[0], tip[1])), kk = 1 / Math.cos(tip[0] * Math.PI / 180);
+  const pts = sb.outline.flat().map(([la, lo]) => { const q = L.CRS.EPSG3857.project(L.latLng(la, lo)); return [(q.x - P.x) / kk, (q.y - P.y) / kk]; });      // ground metres east and north of the tip
+  const cx = pts.reduce((t, p) => t + p[0], 0) / pts.length, cy = pts.reduce((t, p) => t + p[1], 0) / pts.length, az = (Math.atan2(cx, cy) * 180 / Math.PI + 360) % 360, ue = Math.sin(az * Math.PI / 180), un = Math.cos(az * Math.PI / 180);
+  const along = p => p[0] * ue + p[1] * un, across = p => p[0] * un - p[1] * ue;
+  const up = Math.min(9000, Math.max(3500, Math.max(...pts.map(along)) + 600)), near = pts.filter(p => along(p) > -400 && along(p) < 2000), half = Math.min(4500, Math.max(2000, Math.max(0, ...near.map(p => Math.abs(across(p)))) + 400));
+  return {...g, id: key, name: sb.name, local: sb.name, tongue: tip, cap: null, subs: null, image: null, subOf: g.id, view3d: {azimuth: Math.round(az), half: Math.round(half), back: 1500, up: Math.round(up), tex: 2 * half >= up + 1500 ? [2048, 1024] : [1024, 2048]}};
+}
 async function open3D(){
-  const run = ++v3dRun, g = currentGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
+  const run = ++v3dRun, g = v3dGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
   const cmp = state.mode === 'compare' && state.a !== state.b && state.available[state.a] && state.available[state.b] ? [state.a, state.b] : null;      // compare: both years side by side with a slider
   const years = cmp || (state.mode === 'timelapse' ? tlFrames() : [stillYear()].filter(y => state.available[y])), first = years.includes(stillYear()) ? stillYear() : years[years.length - 1];
   if (M3.gid && M3.gid !== g.id) clear3Measure();      // measurements belong to the glacier they were made on
@@ -502,15 +562,18 @@ async function open3D(){
     const [heights, tc, tc2, dem] = await Promise.all([bb ? bb.heights : v3dTerrain.hp, strip3DTexture(g, S, cmp ? cmp[0] : first, nA, nB, hillH), cmp ? strip3DTexture(g, S, cmp[1], nA, nB, hillH) : null,
       bb ? (bb.delta && bb.dem ? {delta: bb.delta, old: bb.dem.old, new: bb.dem.new} : null) : iceChangeGrid(g, S, nA, nB).catch(() => null)]);
     if (run !== v3dRun) return;
-    v3d = startViewer($('v3dCanvas'), heights, tc, nA, nB, S.up, S.back, S.dist, S.half);
-    v3d.setExag(+$('v3dExag').value); msg.hidden = true; if (keepCam) v3d.setCam(keepCam); else if (PLAIN_START && REGION.id === 'ch' && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
+    v3d = startViewer($('v3dCanvas'), heights, tc, nA, nB, S.up, S.back, S.dist, S.half); v3d.setSpace(prefs.space3d === true);
+    v3d.setExag(+$('v3dExag').value); msg.hidden = true; if (keepCam) v3d.setCam(keepCam); else if (S.cam) v3d.setCam(S.cam); else if (PLAIN_START && REGION.id === 'ch' && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
     v3d.setOnCam(() => { if (!$('videoSheet').hidden) hint3D(); });      // the sharpness hint follows the zoom
     bindRadarPicking($('v3dCanvas')); bindCamPicking($('v3dCanvas'));
-    const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null, surfYear = y => !dem ? y : special === 'latest' ? dem.new.year : special === 'oldest' ? dem.old.year : y;      // the specials use the newest / the oldest elevation model as it is
+    const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null, surfYear = y => !dem ? y : special === 'latest' ? dem.new.year : special === 'oldest' ? dem.old.year : Math.max(y, dem.old.year);      // the specials use the newest / the oldest elevation model as it is
     const yearly = bb && bb.surfaces ? bb : null, yearLo = yearly ? yearly.yearly.years[0] : 0, yearHi = yearly ? yearly.yearly.years[yearly.yearly.years.length - 1] : 0;      // Iceland: a surface for every year
     const hy = yearly ? y => lakeFlat(g, yearly.surfaces.get(Math.min(Math.max(y, yearLo), yearHi)), y, nA, nB, heights) : y => lakeFlat(g, surfaceFor(g, heights, dem, surfYear(y)), y, nA, nB, heights), usesDem = yearly ? true : !!dem && iceShare(g, dem, first) !== null;      // the ice surface follows the year when the glacier has data for it
+    const elevFirst = yearly ? yearLo : dem && usesDem ? dem.old.year : 0, elevName = yearly ? 'ArcticDEM' : 'swissALTI3D';
+    const oldNoteFor = ys => { if (!usesDem) return {short: 'one terrain model for all years', full: 'This glacier has a single elevation model, used for every year: the ice surface is not adjusted to the year, so pictures of other years are draped on the same terrain.'}; const early = elevFirst && ys.some(y => y < elevFirst || special === 'oldest'); return early ? {short: `terrain as of ${elevFirst}`, full: `The oldest ${elevName} elevation model for this glacier is from ${elevFirst}: pictures of earlier years are draped on the ${elevFirst} terrain and surface, which is not extrapolated further back.`} : null; };
     const lastStrip = yearly ? yearly.yearly.strips[yearly.yearly.strips.length - 1].date : '';
-    const terrainNote = yearly ? ` Ice surface of each year: ArcticDEM strips (2 m, ${yearly.yearly.strips.length} dated models since ${yearly.yearly.strips[0].date.slice(0, 4)}), set onto ÍslandsDEM with the ground beside the glacier. Each year is the surface on 15 September: measured where a summer strip lies within 45 days, interpolated in time between strips otherwise, and after the last strip (${fmtDate(lastStrip)}) the surface of that strip, unchanged. Strips of the winter months carry some snow.` : usesDem ? ` Ice surface of each year: estimate from the swissALTI3D editions ${dem.old.edition} and ${dem.new.edition} (surveys ${dem.old.year}${dem.old.assumed ? ', assumed,' : ''} and ${dem.new.year}; the years before ${dem.old.year} and after ${dem.new.year} are extrapolated) and the yearly mass balance (GLAMOS); after the last measured year it stays as it was.` : ' The terrain model is older than the picture, so the ice sits a little lower today.';
+    const fmtMD = md => { const [m, d] = md.split('-').map(Number); return `${d} ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m - 1]}`; };
+    const terrainNote = yearly ? ` Ice surface of each year: ArcticDEM strips (2 m, ${yearly.yearly.strips.length} dated models since ${yearly.yearly.strips[0].date.slice(0, 4)}), set onto ${yearly.yearly.reference || 'ÍslandsDEM'} with the ground beside the glacier. Each year is the surface on ${fmtMD(yearly.yearly.day || '09-15')}: measured where a summer strip lies within 45 days, interpolated in time between strips otherwise, and after the last strip (${fmtDate(lastStrip)}) the surface of that strip, unchanged.${Math.max(0, ...Object.values(yearly.yearly.estimated || {})) >= 0.005 ? ' Where no recent strip covers the ice (up to ' + Math.round(100 * Math.max(...Object.values(yearly.yearly.estimated))) + ' % of the strip in a year) the surface is the last strip plus the thinning measured on the ice around it between the same days: an estimate.' : ''} Strips of the winter months carry some snow.` : usesDem ? ` Ice surface of each year: estimate from the swissALTI3D editions ${dem.old.edition} and ${dem.new.edition} (surveys ${dem.old.year}${dem.old.assumed ? ', assumed,' : ''} and ${dem.new.year}; the years after ${dem.new.year} are extrapolated; for the years before ${dem.old.year} the surface of ${dem.old.year} is used) and the yearly mass balance (GLAMOS); after the last measured year it stays as it was.` : ' The terrain model is older than the picture, so the ice sits a little lower today.';
     if (usesDem) { if (cmp) v3d.setHeights(hy(cmp[0]), hy(cmp[1])); else v3d.setHeights(hy(first)); }
     let current = first;      // declared before the context: the download pane reads it as soon as the context exists
     v3dCtx = {g, S, bundle: bb, latest: heights, dem, grid: {nA, nB}, cmp, years, pin: pinData(g, S), tip: tipData(g, S), names: null, namesP: null, hz: horiz(), tex: y => strip3DTexture(g, S, y, nA, nB, hillH), surface: hy, usesDem, follow: null, current: () => cmp ? null : current, restore: () => cmp ? null : showYear(current)};      sync3DMenu(); detectTrails(v3dCtx);
@@ -519,12 +582,12 @@ async function open3D(){
     if (cmp) {
       v3d.setTexture(tc2, 1); showDivider3D(cmp, v3dCtx.hz);      // same direction as chosen for the map: stacked or side by side
       setTitle3D(g, `${cmp[0]} – ${cmp[1]}`);
-      updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Pictures: ${sensorName(state.available[cmp[0]])}${sensorName(state.available[cmp[1]]) !== sensorName(state.available[cmp[0]]) ? ' and ' + sensorName(state.available[cmp[1]]) : ''}, ${fmtDate(state.available[cmp[0]].date)} and ${fmtDate(state.available[cmp[1]].date)}.`, `${state.available[cmp[0]].date.slice(0, 4)} and ${state.available[cmp[1]].date.slice(0, 4)}`, usesDem, terrainNote);
+      updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Pictures: ${sensorName(state.available[cmp[0]])}${sensorName(state.available[cmp[1]]) !== sensorName(state.available[cmp[0]]) ? ' and ' + sensorName(state.available[cmp[1]]) : ''}, ${fmtDate(state.available[cmp[0]].date)} and ${fmtDate(state.available[cmp[1]].date)}.`, `${state.available[cmp[0]].date.slice(0, 4)} and ${state.available[cmp[1]].date.slice(0, 4)}`, usesDem, terrainNote, oldNoteFor(cmp));
       return;
     }
     const oldA = special === 'oldest' ? oldestAerial.get(g.id) : null, modelNote = !usesDem || !special ? '' : special === 'latest' ? `newest elevation model (swissALTI3D ${dem.new.year})` : `oldest elevation model (swissALTI3D ${dem.old.year})`;
     const specialTxt = yr => special === 'latest' ? `Latest scene · ${fmtDM(state.available[yr].date)} ${yr}${modelNote ? ' · ' + modelNote : ''}` : oldA ? `Oldest aerial image · ${REGION.id === 'ch' ? 'SWISSIMAGE ' + oldA.ed : oldA.flown}${modelNote ? ' · ' + modelNote : ''}` : '';
-    const note = yr => { setTitle3D(g, oldA ? String(oldA.flown) : String(yr), specialTxt(yr)); updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Picture: ${sensorName(state.available[yr])}, ${fmtDate(state.available[yr].date)}${isLandsat(state.available[yr]) ? ' (30 m pixels)' : ''}.`, fmtDM(state.available[yr].date) + ' ' + yr, usesDem, terrainNote + yearNote(yr) + (modelNote ? ` The ice surface is the ${modelNote}, not an estimate for a year.` : '')); };
+    const note = yr => { setTitle3D(g, oldA ? String(oldA.flown) : String(yr), specialTxt(yr)); updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Picture: ${sensorName(state.available[yr])}, ${fmtDate(state.available[yr].date)}${isLandsat(state.available[yr]) ? ' (30 m pixels)' : ''}.`, fmtDM(state.available[yr].date) + ' ' + yr, usesDem, terrainNote + yearNote(yr) + (modelNote ? ` The ice surface is the ${modelNote}, not an estimate for a year.` : ''), oldNoteFor([yr])); };
     note(first);
     const showYear = async y => {      // the year follows the left panel (the frame of the timelapse); the terrain stays and only the picture changes
       current = y;
@@ -797,6 +860,7 @@ function sync3DMenu(){
   $('l3RadarLegend').hidden = !$('radarToggle').checked;
   $('l3RadarNote').textContent = !R ? 'No radar measurements for this glacier.' : `Surveys ${R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join(' and ')) : ''}. The ice has thinned since. The 3D view shows only about ten pins, the thickest of each stretch of the glacier, to keep loading and moving fast. Hover a pin for the thickness, click to keep it.`;
   $('l3Names').checked = prefs.names3d === true;
+  $('l3Space').checked = prefs.space3d === true; if (v3d) v3d.setSpace(prefs.space3d === true);
   { const lc = $('v3dLc'); if (lc && v3dCtx) lc.textContent = layersCreditText(v3dCtx.g); const ls = $('v3dLcS'); if (ls && v3dCtx) ls.textContent = shortLayerNames(v3dCtx.g); }
   $('l3MaxNote').hidden = !$('maxToggle').checked || !!(R && R.max_at);
   if (v3dCtx) { const seen = !!v3dCtx.pin; $('l3Max').closest('label').style.display = seen ? '' : 'none'; if (!seen) $('l3MaxNote').hidden = true; const tr = v3dCtx.hasTrails !== false; $('l3Trails').closest('label').style.display = tr ? '' : 'none'; if (!tr) { $('l3TrailLegend').hidden = true; $('l3SightLegend').hidden = true; } }      // the thickest ice only has a place in the menu when it lies inside the strip
@@ -827,6 +891,13 @@ const namesCache = new Map();
 function namesFor(g, S){
   if (!namesCache.has(g.id)) {
     const HALF = S.half, cs = [[-S.back, -HALF], [-S.back, HALF], [S.up, -HALF], [S.up, HALF]].map(([a, b]) => S.merc(a, b)), env = [Math.min(...cs.map(c => c[0])), Math.min(...cs.map(c => c[1])), Math.max(...cs.map(c => c[0])), Math.max(...cs.map(c => c[1]))].join(',');
+    if (REGION.id !== 'ch') {      // outside Switzerland the peaks, volcanoes and passes of OpenStreetMap (Overpass API, open, CORS), looked up in the box around the strip
+      const [w, s] = ((p) => [p.lng, p.lat])(L.CRS.EPSG3857.unproject(L.point(Math.min(...cs.map(c => c[0])), Math.min(...cs.map(c => c[1]))))), [e, n] = ((p) => [p.lng, p.lat])(L.CRS.EPSG3857.unproject(L.point(Math.max(...cs.map(c => c[0])), Math.max(...cs.map(c => c[1]))))),
+        q = `[out:json][timeout:25];node["natural"~"^(peak|volcano|saddle)$"]["name"](${s},${w},${n},${e});out;`;
+      const pr = fetch('https://overpass-api.de/api/interpreter', {method: 'POST', body: 'data=' + encodeURIComponent(q), headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(r => { if (!r.ok) throw new Error('overpass ' + r.status); return r.json(); })
+        .then(j => (j.elements || []).filter(el => el.tags && el.tags.name).map(el => { const m = L.CRS.EPSG3857.project(L.latLng(el.lat, el.lon)); return {name: el.tags.name, kind: el.tags.natural === 'saddle' ? 'Pass' : 'Gipfel', m: [m.x, m.y]}; }));
+      pr.catch(() => namesCache.delete(g.id)); namesCache.set(g.id, pr); return pr;
+    }
     const url = 'https://api3.geo.admin.ch/rest/services/api/MapServer/identify?' + new URLSearchParams({geometryType: 'esriGeometryEnvelope', geometry: env, imageDisplay: '1000,1000,96', mapExtent: env, tolerance: '0', layers: 'all:ch.swisstopo.swissnames3d', sr: '3857', returnGeometry: 'true', limit: '200', lang: 'en'});
     const pr = fetch(url).then(r => { if (!r.ok) throw new Error('swisstopo names ' + r.status); return r.json(); })
       .then(j => (j.results || []).filter(r => NAME_KINDS[r.attributes.objektart] && r.geometry && r.geometry.points && r.attributes.name).map(r => ({name: r.attributes.name, kind: r.attributes.objektart, m: r.geometry.points[0]})));
@@ -1185,7 +1256,7 @@ function refresh3D(){            // a layer was switched: make the pictures agai
       else { const y = c.current(), t = await c.tex(y); if (run !== v3dRun || c.current() !== y) return; viewer.setTexture(t); }
     } catch (e) { console.error(e); }
     const lc = $('v3dLc'); if (lc) lc.textContent = layersCreditText(c.g); const ls = $('v3dLcS'); if (ls) ls.textContent = shortLayerNames(c.g);
-    if (!$('videoSheet').hidden) update3DInfo();
+    if (!$('videoSheet').hidden) { centre3D(); update3DInfo(); }
   }, 80);
 }
 L3.forEach(([a, b]) => $(a).onchange = () => {
@@ -1194,6 +1265,7 @@ L3.forEach(([a, b]) => $(a).onchange = () => {
   sync3DMenu(); refresh3D();
 });
 $('l3Sat').addEventListener('change', () => sync3D());      // the caption and the pictures follow
+$('l3Space').onchange = e => { prefs.space3d = e.target.checked; savePrefs(); sync3DMenu(); };      // the night sky behind the terrain, 3D only
 $('l3Names').onchange = e => { prefs.names3d = e.target.checked; savePrefs(); sync3DMenu(); };      // 3D only: the map's own labels are pictures
 $('l3Op').oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); sync3DMenu(); refresh3D(); };      // the map's own handlers keep the setting
 $('v3dLayers').classList.add('min'); $('v3dLbToggle').setAttribute('aria-expanded', 'false');      // closed at the start, like the map's
@@ -1204,12 +1276,13 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && viewMode === '3d' &
 /* ---- download of the 3D view: the picture as it is on screen, or a video in which the camera swings over the terrain (timelapse: the years follow one another, compare: the slider moves) ---- */
 function draw3DLabels(ctx, W, H, S, L){
   const g = L.g;
+  if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(g), L.cmp ? `${L.cmp[0]} | ${L.cmp[1]}` : String(L.year), L.credit, L.hA ?? 1, L.facts && !L.cmp ? factTiles(g, L.year, L.facts.set, L.facts.base) : []);
   shade(ctx, W, H, S);
   ctx.textBaseline = 'alphabetic';
   const legend = [[L.outline, '#F2A93B', [14, 9], REGION.outlines.oldLegend], [L.outlineNew, getVar('--new'), [], REGION.outlines.newLegend]].filter(r => r[0]).map(r => r.slice(1));      // the legend of the outlines, as in the map downloads
   const sa = L.cmp && state.available[L.cmp[0]], sb = L.cmp && state.available[L.cmp[1]], sc = !L.cmp && state.available[L.year];
   drawHeader(ctx, W, S, {year: L.cmp ? `${L.cmp[0]} – ${L.cmp[1]}` : String(L.year), name: stillName(g), place: placeOf(g), hA: L.hA ?? 1, legend, keyW: 0,
-    date: L.cmp ? [`${fmtDM(sa.date)}  ·  ${fmtDM(sb.date)}`, ` · ${L.hz ? 'top' : 'left'} ${L.cmp[0]}, ${L.hz ? 'bottom' : 'right'} ${L.cmp[1]} · 3D view`, ' · 3D view'] : [fmtDM(sc.date), ` · ${styleLine(state.style, sc)} · 3D view`, ` · ${sensorName(sc)} · ${isLandsat(sc) ? 'natural color' : STYLE_NAME[state.style] || STYLE_NAME.natural} · 3D view`]});
+    date: L.cmp ? [`${fmtDM(sa.date)}  ·  ${fmtDM(sb.date)}`, ` · ${L.hz ? 'top' : 'left'} ${L.cmp[0]}, ${L.hz ? 'bottom' : 'right'} ${L.cmp[1]} · 3D view`, ' · 3D view'] : [fmtDM(sc.date), ` · ${styleLine(state.style, sc)} · 3D view`, ` · ${sensorName(sc)} · ${STYLE_NAME[state.style] || STYLE_NAME.natural} · 3D view`]});
   drawBottom(ctx, W, H, S, {
     credit: L.credit,
     tiles: L.facts && !L.cmp ? factTiles(g, L.year, L.facts.set, L.facts.base) : [],
@@ -1234,20 +1307,20 @@ function updateCredits3D(){            // the sources of the 3D view, in the cre
   const s2Yrs = yrs.filter(y => !isLandsat(state.available[y])), lsYrs = yrs.filter(y => isLandsat(state.available[y]));
   if (satOn() && s2Yrs.length) parts.push(`Contains modified Copernicus Sentinel data ${[...new Set(s2Yrs)].join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`);
   if (satOn() && lsYrs.length) parts.push(`${[...new Set(lsYrs)].join(' and ')}: ${LANDSAT_CREDIT}`);
-  parts.push(`Terrain: ${REGION.terrain.html}` + (c && c.usesDem ? (REGION.id === 'ch' ? ' (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)' : ' (ice surface of each year: from the dated ArcticDEM strips)') : ''));
+  parts.push(`Terrain: ${terrainHtml(c)}` + (c && c.usesDem ? (REGION.id === 'ch' ? ' (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)' : ' (ice surface of each year: from the dated ArcticDEM strips)') : ''));
   for (const bk of baseKeys()) {
     if (bk === 'osmToggle') parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
     else if (bk === 'topoToggle') parts.push(`Map © ${A_SWT}`);
     else if (bk === 'altiToggle') parts.push(REGION.id === 'ch' ? `Hillshade: swissALTI3D © ${A_SWT}` : 'Hillshade: calculated from the elevation model of each year');
     else if (bk === 'aerialToggle') parts.push(REGION.id === 'ch' ? `Aerial images: SWISSIMAGE ${state.oldestAerial || [...new Set(yrs.map(siYear))].join(' and ')} © ${A_SWT}` : `Aerial image ${flownYear(g, state.oldestAerial) || state.oldestAerial}: Náttúrufræðistofnun Íslands and Landmælingar Íslands (CC BY 4.0)`);
   }
-  if ($('trailsToggle').checked && (!c || c.hasTrails !== false)) parts.push((REGION.id === 'ch' ? `Hiking trails © ${A_SWT}` : 'Paths © OpenStreetMap contributors') + (g && sightFor(g) ? ` (line of sight: own calculation from ${REGION.id === 'ch' ? 'swissALTI3D' : 'ÍslandsDEM'})` : ''));
-  if (g && (outline3D(g) || outlineNew3D(g))) parts.push(REGION.id === 'ch' ? 'Outlines GLAMOS (CC BY 4.0)' : 'Outlines: <a href="https://islenskirjoklar.is" target="_blank" rel="noopener">Icelandic Met Office</a> (Hannesdóttir et al. 2020, CC BY 4.0)');
+  if ($('trailsToggle').checked && (!c || c.hasTrails !== false)) parts.push((REGION.id === 'ch' ? `Hiking trails © ${A_SWT}` : 'Paths © OpenStreetMap contributors') + (g && sightFor(g) ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
+  if (g && (outline3D(g) || outlineNew3D(g))) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (g && radar3D(g)) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if ($('l3Names').checked) parts.push(REGION.id === 'ch' ? `Peak names: ${A_SWT} (swissNAMES3D)` : 'Place names © OpenStreetMap contributors');
   $('credits').innerHTML = parts.join(' · ');
 }
-const credit3D = (c, yrs) => shortCredit(yrs, [...REGION.terrain.short.split(' · '), ...layerCreditNames(c.g)]);
+const credit3D = (c, yrs) => shortCredit(yrs, [...(c && c.bundle && c.bundle.yearly ? ['ArcticDEM'] : []), ...REGION.terrain.short.split(' · ').filter(n => !(c && c.bundle && c.bundle.yearly && n === 'ArcticDEM')), ...layerCreditNames(c.g)]);
 function labels3D(c, facts){            // what the labels of the picture show now (the timelapse: the year on screen); facts: {set, base} or null
   const year = c.cmp ? null : c.current();
   return {g: c.g, cmp: c.cmp, hz: c.hz, year, outline: outline3D(c.g), outlineNew: outlineNew3D(c.g), facts, years: c.cmp ? null : vstate.kind === 'image' ? [] : c.years, credit: credit3D(c, c.cmp ? c.cmp.join(' and ') : vstate.kind !== 'image' && c.years.length > 1 ? `${c.years[0]}–${c.years[c.years.length - 1]}` : year)};
@@ -1295,6 +1368,7 @@ function update3DInfo(){            // the line in the download pane, the frame 
     : c.cmp ? `Slider, ${c.cmp.join(' and ')}, ${$('vSwing').checked ? 'the camera swings over the terrain' : 'the viewpoint stays fixed'}, about ${sec(P.total)} s.`
     : c.years.length > 1 ? `Timelapse ${c.years[0]}–${c.years[c.years.length - 1]}, ${$('vSwing').checked ? 'the camera swings over the terrain' : 'the viewpoint stays fixed'}, about ${sec(P.total)} s.`
     : `The camera swings over the terrain, about ${sec(P.total)} s.`;
+  earlyNote(c ? (c.cmp || c.years) : []);
   hint3D();
   $('vsGuide').textContent = guideText();
   $('vFactsRow').style.display = c && c.cmp ? 'none' : '';      // the facts belong to a single year
@@ -1304,7 +1378,7 @@ async function download3D(kind){
   const c = v3dCtx, viewer = v3d; if (!c || !viewer || v3dBusy) return;
   const run = v3dRun, fmt = vstate.fmt, F = VIDEO.formats[fmt], W = F.w, H = F.h, S = marginsFor(kind, fmt), g = c.g, msg = $('v3dMsg'), cv = $('v3dCanvas');
   const ok = () => run === v3dRun && viewer === v3d;
-  const cw = cv.clientWidth, ch = cv.clientHeight, R = frameRect(), view = {a: cw / ch, sx: R.w / cw, sy: R.h / ch, cx: (R.x + R.w / 2 - cw / 2) / (cw / 2), cy: -(R.y + R.h / 2 - ch / 2) / (ch / 2)};      // the part of the screen inside the frame
+  const cw = cv.clientWidth, ch = cv.clientHeight, R = frameRect(), view = {a: cw / ch, sx: R.w / cw, sy: R.h / ch, cx: (R.x + R.w / 2 - cw / 2) / (cw / 2) - viewer.getShift().cx, cy: -(R.y + R.h / 2 - ch / 2) / (ch / 2) - viewer.getShift().cy};      // the part of the screen inside the frame (the picture on screen is shifted by the same amount as it was moved into the frame: the difference is what the export crops)
   const sl = v3dSplit, shownSplit = Math.min(1, Math.max(0, c.hz ? (ch * sl - R.y) / R.h : (cw * sl - R.x) / R.w));      // where the slider sits inside the frame
   const out = document.createElement('canvas'); out.width = W; out.height = H; const ctx = out.getContext('2d');
   const buttons = [$('vsGo')], say = t => { msg.hidden = false; msg.textContent = t; progress(Math.min(1, +(t.match(/\d+(?= %)/) || [0])[0] / 100), t); };

@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>3D view editor</title>
+<style>
+/* Local tool (python3 -m http.server 8000 in the repository, then the link from the glacier board). It embeds the real site in its 3D view, so what you see is exactly what a visitor gets.
+   Orbit and zoom in the view with the mouse, or use the sliders; the numbers below follow the view. "Copy for Notes for Claude" gives one line for a task. It writes nothing itself.
+   Link: view3d-editor.html#r=<region id>&g=<glacier id>&s=<the id the site uses in #g=, for the Swiss glaciers a short name such as trift> (no r = Switzerland). The start camera is cam {az, el, dist} (radians, radians, metres), see V3D_VIEW / strip3d.cam in js/11-view3d.js. */
+html,body{height:100%;margin:0;font:13px/1.4 system-ui,sans-serif;color:#1b2430}
+#app{display:grid;grid-template-columns:300px 1fr;height:100%}
+#side{padding:12px;overflow:auto;border-right:1px solid #dfe3e9;background:#f6f7f9}
+iframe{width:100%;height:100%;border:0;background:#222}
+h1{font-size:15px;margin:0 0 8px}
+fieldset{border:1px solid #dfe3e9;border-radius:6px;margin:0 0 10px;padding:8px 10px;background:#fff}
+legend{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#66707e}
+label{display:grid;grid-template-columns:84px 1fr 64px;gap:6px;align-items:center;margin:4px 0}
+input[type=number]{width:64px;font:inherit}input[type=range]{width:100%}
+button{font:inherit;padding:5px 10px;border-radius:4px;border:1px solid #2f6f9f;background:#2f6f9f;color:#fff;cursor:pointer}
+button.alt{background:#fff;color:#2f6f9f}
+textarea{width:100%;box-sizing:border-box;height:110px;font:11px/1.4 ui-monospace,Menlo,monospace}
+.note{color:#66707e;font-size:12px}
+</style></head>
+<body><div id="app"><div id="side">
+<h1 id="title">3D view editor</h1><p class="note" id="info">Loading the 3D view…</p>
+<fieldset><legend>Start camera</legend>
+ <label>azimuth °<input type="range" id="az" min="-74" max="74" step="0.5"><input type="number" id="azN" step="0.5"></label>
+ <label>elevation °<input type="range" id="el" min="7" max="77" step="0.5"><input type="number" id="elN" step="0.5"></label>
+ <label>distance m<input type="range" id="di" min="600" max="7500" step="50"><input type="number" id="diN" step="50"></label>
+ <p class="note">Azimuth 0 looks straight up the glacier from below the tongue; negative turns the camera to the left. Elevation is the angle above the ground. You can also orbit and zoom in the view.</p></fieldset>
+<p><button id="copy">Copy for Notes for Claude</button> <button class="alt" id="reset">Reload view</button></p>
+<textarea id="out" readonly aria-label="result"></textarea><p class="note" id="msg"></p>
+<p class="note">The strip itself (area, direction, width) is set in the box editor; this tool only moves the camera.</p>
+</div><iframe id="f" title="the site in 3D"></iframe></div>
+<script>
+var P = new URLSearchParams(location.hash.slice(1)), REG = P.get('r') || 'ch', GID = P.get('g'), SID = P.get('s') || P.get('g'), $ = function(i){ return document.getElementById(i); }, deg = 180 / Math.PI, busy = false, last = '';
+function src(){ return '../../index.html#' + (REG === 'ch' ? '' : 'r=' + REG + '&') + 'g=' + SID + '&m=single&one=2025&v=3d'; }
+function win(){ return $('f').contentWindow; }
+function getCam(){ try { return win().eval('typeof v3d !== "undefined" && v3d ? v3d.getCam() : null'); } catch(e){ return null; } }
+function setCam(c){ try { win().eval('v3d && v3d.setCam(' + JSON.stringify(c) + ')'); } catch(e){} }
+function show(c){
+  $('az').value = $('azN').value = (c.az * deg).toFixed(1); $('el').value = $('elN').value = (c.el * deg).toFixed(1); $('di').value = $('diN').value = Math.round(c.dist);
+  var t = 'Set the 3D start camera of ' + GID + (REG === 'ch' ? '' : ' (' + REG + ')') + ': az ' + c.az.toFixed(4) + ', el ' + c.el.toFixed(4) + ', dist ' + Math.round(c.dist) + ' (radians, radians, metres; as cam in its strip3d / V3D_VIEW). Rebuild nothing else; then tick the 3D view on the board.';
+  if($('out').value !== t) $('out').value = t;
+}
+function poll(){ if(busy) return; var c = getCam(); if(!c) return; if(!last) { $('info').textContent = GID + ' · ' + REG; } last = 'ok'; show(c); }
+setInterval(poll, 500);
+function fromSliders(){ var c = {az: +$('azN').value / deg, el: +$('elN').value / deg, dist: +$('diN').value}; busy = true; setCam(c); setTimeout(function(){ busy = false; }, 300); show(getCam() || c); }
+[['az', 'azN'], ['el', 'elN'], ['di', 'diN']].forEach(function(p){ [p[0], p[1]].forEach(function(id){ $(id).addEventListener('input', function(e){ $(p[0]).value = $(p[1]).value = e.target.value; fromSliders(); }); }); });
+$('copy').addEventListener('click', function(){ $('out').select(); try { navigator.clipboard.writeText($('out').value); $('msg').textContent = 'Copied. Paste it into "Notes for Claude" of this glacier on the board.'; } catch(e){ document.execCommand('copy'); } });
+$('reset').addEventListener('click', function(){ last = ''; $('f').src = 'about:blank'; setTimeout(function(){ $('f').src = src(); }, 50); });
+if(!GID) $('info').textContent = 'Open this page from the glacier board (needs #r=…&g=…).'; else { $('title').textContent = '3D view editor: ' + GID; $('f').src = src(); }
+</script></body></html>

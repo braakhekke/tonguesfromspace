@@ -146,7 +146,7 @@ class TestRelay(WorkerCase):
           const y = year - 1, ok = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-10-16T00:00:00Z`)));
           const early = await info(await post(ice(`${y}-07-01T00:00:00Z`, `${y}-09-21T00:00:00Z`)));        // the Swiss window is not an Icelandic one
           const late = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-11-01T00:00:00Z`)));
-          const away = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-10-16T00:00:00Z`, [-1729000, 9370000, -1704000, 9395000])));    // 90 km east of the outlet
+          const away = await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-10-16T00:00:00Z`, [-1329000, 9370000, -1304000, 9395000])));    // 500 km east of the outlet, in the sea
           const image = await info(await W.fetch(req('/cdse/process', 'POST', JSON.stringify({
             input: {bounds: {bbox: box, properties: {crs: 'http://www.opengis.net/def/crs/EPSG/0/3857'}}, data: [{type: 'sentinel-2-l1c', dataFilter: {timeRange: {from: `${y}-09-15T00:00:00Z`, to: `${y}-09-15T23:59:59Z`}}}]},
             output: {width: 2400, height: 2400, responses: [{identifier: 'default', format: {type: 'image/jpeg'}}]}, evalscript: 'x'}), 'http://t.test'), env, {}));
@@ -162,6 +162,25 @@ class TestRelay(WorkerCase):
         self.assertEqual(r["swissOk"]["status"], 200)
         self.assertEqual(r["latest"]["status"], 200, r["latest"]["text"])
         self.assertEqual(r["tooLong"]["status"], 400)
+
+    def test_norway_and_svalbard_have_their_own_seasons(self):
+        # mainland Norway: Jostedalsbreen (centre 7.012 E, 61.627 N), 20 July to 30 September; Svalbard: Negribreen (19.03 E, 78.59 N), 20 July to 15 September
+        r = self.run_js("""
+          const merc = (lon, lat) => [lon * 20037508.34 / 180, Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180) * 20037508.34 / 180];
+          const boxAt = (lon, lat) => { const [x, y] = merc(lon, lat); return [x - 12000, y - 12000, x + 12000, y + 12000]; };
+          const ice = (from, to, bbox) => JSON.stringify({
+            input: {bounds: {bbox, properties: {crs: 'http://www.opengis.net/def/crs/EPSG/0/3857'}}, data: [{type: 'sentinel-2-l2a'}]},
+            aggregation: {timeRange: {from, to}, aggregationInterval: {of: 'P1D'}, evalscript: 'x', resx: 60, resy: 60}});
+          const y = year - 1, no = boxAt(7.012, 61.627), sj = boxAt(19.03, 78.59), far = boxAt(10, 64);
+          return {
+            noOk: (await info(await post(ice(`${y}-07-20T00:00:00Z`, `${y}-10-01T00:00:00Z`, no)))).status,
+            noIceland: (await info(await post(ice(`${y}-08-01T00:00:00Z`, `${y}-10-16T00:00:00Z`, no)))).status,
+            sjOk: (await info(await post(ice(`${y}-07-20T00:00:00Z`, `${y}-09-16T00:00:00Z`, sj)))).status,
+            sjLong: (await info(await post(ice(`${y}-07-20T00:00:00Z`, `${y}-10-01T00:00:00Z`, sj)))).status,
+            far: (await info(await post(ice(`${y}-07-20T00:00:00Z`, `${y}-10-01T00:00:00Z`, far)))).status};""")
+        self.assertEqual((r["noOk"], r["sjOk"]), (200, 200))
+        for k in ("noIceland", "sjLong", "far"):
+            self.assertEqual(r[k], 400, k)
 
     def test_ping(self):
         r = self.run_js("return await info(await W.fetch(req('/cdse/ping', 'GET', '', 'http://t.test'), env, {}));")

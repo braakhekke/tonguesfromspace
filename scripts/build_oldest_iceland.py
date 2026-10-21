@@ -47,7 +47,7 @@ def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--outlet', default='breidamerkurjokull'); ap.add_argument('--years', nargs='*', type=int, default=[1980, 1982]); a = ap.parse_args()
     t = open(os.path.join(ROOT, 'data', 'vatnajokull.js'), encoding='utf-8').read()
     o = next(x for x in json.loads(t[t.index('{'):t.rindex('}') + 1])['outlets'] if x['id'] == a.outlet)
-    dlat = o['half'] / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
+    dlat = (o.get('halfH') or o['half']) / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
     s, w, n, e = o['lat'] - dlat, o['lon'] - dlon, o['lat'] + dlat, o['lon'] + dlon
     (mx0, my0), (mx1, my1) = merc(s, w), merc(n, e)
     corners = [isn93(lo, la) for la in (s, n) for lo in (w, e)]
@@ -65,7 +65,7 @@ def main():
         print(year, 'share of the source with pictures:', covered[year])
         src = Image.alpha_composite(src, layer)
     # onto Web Mercator: the output grid of the picture box at about 10 m, by a mesh of small quads
-    ow = oh = int(round(2 * o['half'] * 1000 / 10)); out_x0, out_x1, out_y0, out_y1 = mx0, mx1, my0, my1
+    ow, oh = int(round(2 * o['half'] * 1000 / 10)), int(round(2 * (o.get('halfH') or o['half']) * 1000 / 10)); out_x0, out_x1, out_y0, out_y1 = mx0, mx1, my0, my1
     cells = 48; mesh = []
     def srcxy(px, py):      # output pixel -> pixel of the joined source
         mx, my = out_x0 + px / ow * (out_x1 - out_x0), out_y1 - py / oh * (out_y1 - out_y0); la, lo = unmerc(mx, my); x, y = isn93(lo, la)

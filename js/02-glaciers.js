@@ -28,16 +28,16 @@ function loadOutline(g){      // g: an entry of GLACIERS; resolves when g.inv.ou
   return outlineLoads.get(inv.id);
 }
 /* Vatnajökull (Iceland): the outlets of the ice cap that can be chosen (data/vatnajokull.js, scripts/build_vatnajokull.py). An outlet has no inventory record `inv` (that is the
-   Swiss GLAMOS data) but its RGI 6.0 outline and figures in `rgi`, and its picture is a square of 2 x half km around its centre (`half`, see imageFootprint). */
-const ICECAP = window.VATNAJOKULL || null;
+   Swiss GLAMOS data) but its RGI 6.0 outline and figures in `rgi`, and its picture is a rectangle of 2 x half km (east-west) by 2 x halfH km (north-south, default = half, i.e. a square) around its centre (`half`, `halfH`, see imageFootprint). */
+const ICECAP = window.REGION_ICE || null;      // the data file of an ice-cap region (Vatnajökull, the rest of Iceland, Svalbard, mainland Norway): window.REGION_ICE
 const ringsBounds = rings => { const pts = rings.flat(); return [[Math.min(...pts.map(p => p[0])), Math.min(...pts.map(p => p[1]))], [Math.max(...pts.map(p => p[0])), Math.max(...pts.map(p => p[1]))]]; };
-const squareBounds = (lat, lon, halfKm) => { const dLat = halfKm / 111.32, dLon = halfKm / (111.32 * Math.cos(lat * Math.PI / 180)); return [[lat - dLat, lon - dLon], [lat + dLat, lon + dLon]]; };
+const squareBounds = (lat, lon, halfKm, halfHKm) => { const dLat = (halfHKm || halfKm) / 111.32, dLon = halfKm / (111.32 * Math.cos(lat * Math.PI / 180)); return [[lat - dLat, lon - dLon], [lat + dLat, lon + dLon]]; };
 let GLACIERS;
-if (REGION.id === 'is-vatnajokull') {
+if (REGION.rgi) {
   GLACIERS = ((ICECAP && ICECAP.outlets) || []).map(o => ({
-    id: o.id, name: o.name, local: o.name, canton: 'Vatnajökull ice cap', range: 'Iceland', lede: o.note, look: '', note: '',
-    center: [o.lat, o.lon], half: o.half, box: squareBounds(o.lat, o.lon, o.half), bounds: padBounds(ringsBounds(o.outline), 0.04), tongue: o.tip, view3d: {...o.strip3d, tex: o.strip3d.half >= 6000 ? [2048, 1024] : [1024, 2048]},      // box: the picture (the tongue, 2 x half km); bounds: the whole glacier (its RGI outline), which the Whole glacier button shows      // tip: where the 3D strip starts (build_vatnajokull.py)
-    rgi: {id: o.rgi, areaKm2: o.areaKm2, lengthKm: o.lengthKm, zmin: o.zmin, zmax: o.zmax, year: o.outlineYear, outline: o.outline}, outlines: o.outlines
+    id: o.id, name: o.name, local: o.name, canton: REGION.place.canton, range: REGION.place.range, lede: o.note, look: '', note: '',
+    center: [o.lat, o.lon], half: o.half, box: o.image ? o.image.bounds : squareBounds(o.lat, o.lon, o.half, o.halfH), cap: o.image || null, subs: o.subs || null, bounds: padBounds(ringsBounds(o.outline), 0.04), tongue: o.tip, view3d: {...o.strip3d, tex: 2 * o.strip3d.half >= o.strip3d.up + o.strip3d.back ? [2048, 1024] : [1024, 2048]},      // box: the picture (the tongue, 2 x half km); bounds: the whole glacier (its RGI outline), which the Whole glacier button shows      // tip: where the 3D strip starts (build_vatnajokull.py)
+    rgi: {id: o.rgi, areaKm2: o.areaKm2, lengthKm: o.lengthKm, zmin: o.zmin, zmax: o.zmax, year: o.outlineYear, outline: o.outline}, outlines: o.outlines, areas: o.areas || null, tongueName: o.tongueName || null, placename: o.placename || null, tidewater: !!o.tidewater, units: o.units || o.entities || null
   }));
 } else if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
   GLACIERS = DATA.glaciers.map(g => {
@@ -82,6 +82,14 @@ const oldOutlineGeom = g => !g ? null : g.inv ? (g.inv.oldest && g.inv.oldest.ou
 const newOutlineGeom = g => !g ? null : g.inv ? g.inv.outline || null : g.outlines && g.outlines.latest ? (g.outlines.latest.geom || (g.outlines.latest.geom = lineGeom(g.outlines.latest.lines))) : null;
 function eachPiece(geom, fn){            // fn(points, closed): the closed rings of polygons, or the open lines of a line geometry
   if (geom.type === 'MultiLineString') geom.coordinates.forEach(l => fn(l, false)); else geom.coordinates.forEach(poly => poly.forEach(r => fn(r, true)));
+}
+/* The area of an ice-cap glacier at the dates the region's inventories hold, oldest first: [{label, km2}] (the data file's `areas` where it has them: Svalbard has four outlines, Norway two;
+   Iceland: the RGI basin of about 2000 and the Icelandic Met Office outline of 2025 inside it). The last entry is the newest. */
+function areaSeries(g){
+  if (!g || !g.rgi) return [];
+  if (g.areas && g.areas.length) return g.areas;
+  const n = g.outlines && g.outlines.latest;
+  return [{label: REGION.inventory.about, km2: g.rgi.areaKm2}].concat(n && n.areaInBasinKm2 ? [{label: String(n.year), km2: n.areaInBasinKm2}] : []);
 }
 const rankLabel = () => DATA ? DATA.latest_label : 'SGI2016';
 GLACIERS.sort((x, y) => rankArea(y) - rankArea(x));

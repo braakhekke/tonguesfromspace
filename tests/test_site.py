@@ -183,7 +183,7 @@ class TestRegions(SiteCase):
     def test_vatnajokull_link_loads_only_its_own_data_and_opens_on_its_outlet(self):
         page, seen = self.requested("#r=is-vatnajokull")
         self.assertEqual(page.evaluate("REGION.id"), "is-vatnajokull")
-        self.assertEqual(page.evaluate("GLACIERS.map(g => g.id)"), ["breidamerkurjokull"])
+        self.assertEqual(page.evaluate("GLACIERS.map(g => g.id).sort()"), sorted(["skeidararjokull", "bruarjokull", "breidamerkurjokull", "dyngjujokull", "sidujokull", "koldukvislarjokull", "tungnaarjokull", "flaajokull", "heinabergsjokull", "hoffellsjokull", "svinafellsjokull", "sylgjujokull"]))
         self.assertFalse([u for u in seen if "/data/glaciers" in u], "the Icelandic page must not fetch the Swiss data")
         self.assertTrue([u for u in seen if "/data/vatnajokull" in u])
         self.assertTrue(page.evaluate("glacierPicked"), "Vatnajökull opens on Breiðamerkurjökull, like Switzerland on its biggest glacier")
@@ -191,9 +191,29 @@ class TestRegions(SiteCase):
         self.assertEqual(page.evaluate("viewMode"), "3d")
         self.assertClean()
 
+    def test_the_other_ice_cap_regions_have_ten_glaciers_each_and_their_own_panels(self):
+        """Rest of Iceland, mainland Norway and Svalbard: exactly ten glaciers, own data file only, every glacier can be chosen and its panel draws without errors."""
+        for rid, data, first in (("is-rest", "iceland", "langjokull"), ("no-mainland", "norway", "jostedalsbreen"), ("no-svalbard", "svalbard", "storisstraumen")):
+            with self.subTest(region=rid):
+                page, seen = self.requested("#r=" + rid)
+                self.assertEqual(page.evaluate("REGION.id"), rid)
+                self.assertEqual(page.evaluate("GLACIERS.length"), 10)
+                self.assertEqual(page.evaluate("GLACIERS[0].id"), first)
+                self.assertTrue([u for u in seen if f"/data/{data}" in u])
+                self.assertFalse([u for u in seen if "/data/glaciers" in u or "/data/vatnajokull" in u])
+                for gid in page.evaluate("GLACIERS.map(g => g.id)"):
+                    page.evaluate(f"chooseGlacier('{gid}')")
+                    page.wait_for_function(f"document.getElementById('story').dataset.glacier === '{gid}'", timeout=15000)
+                    text = page.evaluate("document.getElementById('story').innerText")
+                    self.assertIn("what to look for", text.lower(), gid)
+                    self.assertTrue(page.evaluate("(() => { const g = currentGlacier(); return g.rgi.areaKm2 > 5 && !!g.tongue && !!newOutlineGeom(g) && g.box.length === 2; })()"), gid)
+                src = page.evaluate("document.querySelectorAll('#story .src-list li').length")
+                self.assertGreaterEqual(src, 6)
+                self.assertClean()
+
     def test_vatnajokull_outlines_whole_glacier_and_tongue(self):
         page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map")
-        r = page.evaluate("""() => { const g = GLACIERS[0], fp = imageFootprint(g).bounds, tb = tongueBounds(g);
+        r = page.evaluate("""() => { const g = GLACIERS.find(g => g.id === 'breidamerkurjokull'), fp = imageFootprint(g).bounds, tb = tongueBounds(g);
           return {lia: g.outlines.lia.lines.length, latest: g.outlines.latest.lines.length, year: [g.outlines.lia.year, g.outlines.latest.year], same: JSON.stringify(tb.toBBoxString().split(',').map(Number).map(v => +v.toFixed(3))) === JSON.stringify([fp[0][1], fp[0][0], fp[1][1], fp[1][0]].map(v => +v.toFixed(3))),
                   wholeBigger: wholeGlacierZoom(g) < map.getBoundsZoom(tb), outlineGeom: !!oldOutlineGeom(g) && !!newOutlineGeom(g)}; }""")
         self.assertGreater(r["lia"], 20); self.assertGreater(r["latest"], 20)
@@ -222,7 +242,7 @@ class TestRegions(SiteCase):
         self.assertEqual(len(set(fonts)), 1, fonts)
 
     # setCam clamps the camera with the limits defined next to the camera: a missing definition shows only here
-    VIEWER_JS = """async () => { const g = GLACIERS[0], b = await loadBundle(bundleId(g)); if (!b) return 'no terrain file'; const S = stripOf(b, g), tc = document.createElement('canvas'); tc.width = S.tex[0]; tc.height = S.tex[1];
+    VIEWER_JS = """async () => { const g = GLACIERS.find(g => g.id === 'breidamerkurjokull') || GLACIERS[0], b = await loadBundle(bundleId(g)); if (!b) return 'no terrain file'; const S = stripOf(b, g), tc = document.createElement('canvas'); tc.width = S.tex[0]; tc.height = S.tex[1];
       const cv = document.createElement('canvas'); cv.width = 320; cv.height = 200; document.body.appendChild(cv);
       const v = startViewer(cv, b.heights, tc, b.nA, b.nB, S.up, S.back, S.dist, S.half); const cam = v.getCam(); v.setCam(cam); v.destroy(); cv.remove(); return {half: S.half, el: cam.el, dist: cam.dist}; }"""
 
@@ -274,17 +294,17 @@ class TestRegions(SiteCase):
         page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map")
         page.click("#lbToggle"); page.click("#trailsToggle")
         page.wait_for_function("!!window.GLACIER_SIGHT && !!sightLayer", timeout=15000)
-        self.assertGreater(page.evaluate("trailsFor(GLACIERS[0]).paths.length"), 10)
-        self.assertGreater(page.evaluate("sightFor(GLACIERS[0]).lines.length"), 5)
+        self.assertGreater(page.evaluate("trailsFor(GLACIERS.find(g => g.id === 'breidamerkurjokull')).paths.length"), 10)
+        self.assertGreater(page.evaluate("sightFor(GLACIERS.find(g => g.id === 'breidamerkurjokull')).lines.length"), 5)
         self.assertClean()
 
     def test_region_menu_has_iceland_with_vatnajokull_below_it_and_switches(self):
         page = self.open()
         page.click("#regionBtn")
-        self.assertEqual(page.locator("#regionMenu li.group").text_content(), "Iceland")
-        self.assertEqual(page.locator("#regionMenu li.sub").text_content(), "Vatnajökull")
+        self.assertEqual(page.locator("#regionMenu li.group").all_text_contents(), ["Iceland", "Norway"])
+        self.assertEqual(page.locator("#regionMenu li.sub").all_text_contents(), ["Vatnajökull", "Rest of Iceland", "Mainland Norway", "Svalbard"])
         with page.expect_navigation():
-            page.click("#regionMenu li.sub")
+            page.locator("#regionMenu li.sub").first.click()
         page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'is-vatnajokull'")
         self.assertTrue("r=is-vatnajokull" in page.evaluate("location.hash") or page.evaluate("location.pathname") == "/iceland/vatnajokull/")      # the built site has an address for it, the source tree the hash
         self.assertClean()
@@ -328,7 +348,7 @@ class TestRegions(SiteCase):
           const day = (date, orbit, cloud) => ({date, orbit, cloud, snow: 0, cover: 1});
           const pick = pickScene([day('2024-09-10', 'R095', 0.01), day('2024-10-02', 'R095', 0.02), day('2024-08-05', 'R052', 0)], 2024);
           const cloudy = pickScene([day('2024-09-10', 'R095', 0.2), day('2024-09-30', 'R095', 0.1)], 2024);
-          const g = GLACIERS[0]; sceneDays.clear();
+          const g = GLACIERS.find(g => g.id === 'breidamerkurjokull'); sceneDays.clear();
           const set = (yr, days) => sceneDays.set(g.id + '|' + yr, days);
           set(2020, [day('2020-09-01', 'R095', 0.01), day('2020-09-29', 'R052', 0.01)]);
           set(2021, [day('2021-09-05', 'R095', 0.02)]);
@@ -338,6 +358,11 @@ class TestRegions(SiteCase):
           return {pick: pick.date, cloudy: [cloudy.date, cloudy.clear], u, orbits: [2020, 2021, 2022].map(y => avail[y] && avail[y].orbit)};
         }""")
         self.assertEqual(r["pick"], "2024-10-02")      # 2 days from 30 Sep beats 20 days
+        snowy = page.evaluate("""() => { const d = (date, snow) => ({date, orbit: 'R095', cloud: 0.01, snow, cover: 1});
+          return [pickScene([d('2022-09-12', 0.05), d('2022-10-08', 0.40)], 2022).date,      // a late scene under fresh snow loses against an earlier bare one
+                  pickScene([d('2022-09-12', 0.05), d('2022-09-29', 0.08)], 2022).date];      // within 5 points of the least snowy: the one nearest to 30 September
+        }""")
+        self.assertEqual(snowy, ["2022-09-12", "2022-09-29"])
         self.assertEqual(r["cloudy"], ["2024-09-30", False])
         self.assertEqual(r["u"]["orbit"], "R095")      # R095 has a usable scene in all three years (2022 only a cloudy one), R052 in two
         self.assertEqual(r["orbits"][:2], ["R095", "R095"])
@@ -500,6 +525,139 @@ class TestTeaser(SiteCase):
         page.keyboard.press("Escape")
         page.wait_for_selector("#teaser", state="detached", timeout=5000)
         self.assertEqual(self.open("#teaser").locator("#teaser").count(), 1)      # the link plays it even when seen
+
+
+def solid_png(rgb, w=2, h=2):      # a tiny PNG of one colour, made with the standard library (the fake relay's "satellite picture")
+    import struct, zlib
+    raw = b"".join(b"\x00" + bytes(rgb) * w for _ in range(h))
+    chunk = lambda t, d: struct.pack(">I", len(d)) + t + d + struct.pack(">I", zlib.crc32(t + d) & 0xFFFFFFFF)
+    return b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", struct.pack(">IIBBBBB", w, h, 8, 2, 0, 0, 0)) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+
+
+@unittest.skipIf(ICELAND_HIDDEN, "built site without Iceland (PUBLISH_ICELAND is not 1)")
+class TestIcecapImagery(SiteCase):
+    """A whole ice cap (Hofsjökull, data `image` made by scripts/build_cap_images.py): one scene for the cap, the tiles asked for one by one (each at most 2,500 px) and stitched
+    into one picture; the outlets are sub-items of the list. The relay is a fake one: statistics say every year has one clear day, a picture is a solid colour per tile."""
+    COLOURS = [(220, 30, 30), (30, 200, 30), (30, 30, 220), (230, 220, 30)]      # south-west, south-east, north-west, north-east
+
+    def open_cap(self, extra_hash="m=single&one=2023"):
+        page = self.open("#r=is-rest&g=hofsjokull&" + extra_hash)
+        if page.evaluate("REGION.id") != "is-rest":
+            self.skipTest("Iceland is not on this build")
+        self.requests = []
+        ctx = page.context
+
+        def relay(route):
+            import json
+            req = route.request; url = req.url
+            if url.endswith("/ping"):
+                return route.fulfill(status=200, content_type="application/json", body='{"relay":true,"managed":true}', headers={"Access-Control-Allow-Origin": "*"})
+            body = json.loads(req.post_data or "{}")
+            cors = {"Access-Control-Allow-Origin": "*"}
+            if url.endswith("/statistics"):
+                year = body["aggregation"]["timeRange"]["from"][:4]
+                one = lambda m: {"bands": {"B0": {"stats": {"mean": m}}}}
+                out = {"validA": one(1), "orbA": one(95), "cloudA": one(0), "snowA": one(0), "validB": one(0), "orbB": one(0), "cloudB": one(0), "snowB": one(0)}
+                return route.fulfill(status=200, content_type="application/json", headers=cors, body=json.dumps({"data": [{"interval": {"from": f"{year}-09-12T00:00:00Z", "to": f"{year}-09-13T00:00:00Z"}, "outputs": out}]}))
+            if url.endswith("/process"):
+                self.requests.append(body)
+                bb = body["input"]["bounds"]["bbox"]; tiles = self.tiles
+                i = min(range(len(tiles)), key=lambda k: abs(tiles[k][0] - bb[0]) + abs(tiles[k][1] - bb[1]))
+                south, west = tiles[i][1] == min(t[1] for t in tiles), tiles[i][0] == min(t[0] for t in tiles)
+                colour = self.COLOURS[(0 if south else 2) + (0 if west else 1)]
+                return route.fulfill(status=200, content_type="image/png", headers=cors, body=solid_png(colour))
+            return route.fulfill(status=404, body="{}", headers=cors)
+        ctx.route("**/cdse/*", relay)
+        self.tiles = page.evaluate("currentGlacier().cap.tiles")
+        page.evaluate("relayCheck = null")
+        return page
+
+    def test_data_of_the_cap(self):
+        page = self.open_cap()
+        c = page.evaluate("currentGlacier().cap")
+        self.assertEqual(len(c["tiles"]), 4)
+        for t in c["tiles"]:
+            self.assertTrue(0 < t[4] <= 2490 and 0 < t[5] <= 2490)
+        bb = c["bbox"]
+        self.assertEqual((bb[0], bb[1]), (min(t[0] for t in c["tiles"]), min(t[1] for t in c["tiles"])))
+        self.assertEqual((bb[2], bb[3]), (max(t[2] for t in c["tiles"]), max(t[3] for t in c["tiles"])))
+        self.assertEqual(c["w"], sum(t[4] for t in c["tiles"] if t[1] == bb[1]))
+        old = page.evaluate("currentGlacier().outlines.lia.lines.flat().map(p => p[0])") if page.evaluate("!!currentGlacier().outlines.lia") else []
+        south = page.evaluate("currentGlacier().cap.bounds[0][0]")
+        self.assertTrue(not old or south < min(old) - 0.015, "the picture area reaches 2 km beyond the old outline")
+        self.assertClean()
+
+    def test_the_outlets_are_sub_items_and_the_inferred_names_say_so(self):
+        page = self.open_cap()
+        subs = page.evaluate("currentGlacier().subs.map(s => [s.name, s.approx, s.rgi.length])")
+        self.assertEqual(len(subs), 9)
+        self.assertEqual([s[0] for s in subs if s[1]], ["Illviðrajökull", "Miklafellsjökull", "Austari-Jökulsárjökull"])
+        self.assertEqual(page.evaluate("document.querySelectorAll('#glacierList li.sub').length"), 9)
+        self.assertEqual(page.evaluate("document.querySelectorAll('#glacierList li.sub sup').length"), 3)
+        page.click("#glacierList li.sub:nth-of-type(3) button")
+        page.wait_for_timeout(400)
+        self.assertTrue(page.evaluate("map.getBounds().intersects(L.latLngBounds(currentGlacier().subs[1].bounds))"))
+        self.assertClean()
+
+    def test_the_scene_is_chosen_once_for_the_cap_and_the_tiles_are_stitched(self):
+        page = self.open_cap()
+        page.evaluate("checkYears()")
+        page.wait_for_function("state.available[2023] && state.available[2023].orbit === 'R095'", timeout=20000)
+        url = page.evaluate("loadImage(currentGlacier(), 2023, null, 1)")      # the full 10 m picture, as a computer shows one year
+        res = page.evaluate("""async u => { const b = await createImageBitmap(await (await fetch(u)).blob()), c = document.createElement('canvas'); c.width = b.width; c.height = b.height;
+            const x = c.getContext('2d'); x.drawImage(b, 0, 0); const px = (fx, fy) => Array.from(x.getImageData(Math.floor(b.width * fx), Math.floor(b.height * fy), 1, 1).data.slice(0, 3));
+            return {w: b.width, h: b.height, sw: px(.25, .75), se: px(.75, .75), nw: px(.25, .25), ne: px(.75, .25)}; }""", url)
+        cap = page.evaluate("currentGlacier().cap")
+        self.assertEqual((res["w"], res["h"]), (cap["w"], cap["h"]))
+        near = lambda a, b: all(abs(x - y) < 12 for x, y in zip(a, b))      # JPEG changes colours a little
+        for key, colour in zip(("sw", "se", "nw", "ne"), self.COLOURS):
+            self.assertTrue(near(res[key], colour), f"{key}: {res[key]} should be {colour}: the tile is in the wrong place")
+        mine = [r for r in self.requests if r["input"]["data"][0]["dataFilter"]["timeRange"]["from"].startswith("2023-09-12") and r["output"]["width"] == cap["tiles"][0][4]]      # the full-resolution ones (the page also asks for a small copy and, on a small screen, half)
+        self.assertEqual(len(mine), 4, "one request per tile")
+        for r in mine:
+            self.assertTrue(r["output"]["width"] <= 2500 and r["output"]["height"] <= 2500)
+        self.assertEqual(sorted(r["input"]["bounds"]["bbox"] for r in mine), sorted(t[:4] for t in cap["tiles"]), "the tiles are the same requests for everybody (the relay's cache)")
+        self.assertClean()
+
+    def test_a_whole_cap_takes_the_clear_scene_with_the_least_snow_not_the_one_after_the_first_autumn_snow(self):      # Hofsjökull 2020 and 2022 were far too snowy
+        page = self.open_cap()
+        r = page.evaluate("""() => { const d = (date, snow, cloud = 0) => ({date, orbit: 'R095', cloud, snow, cover: 1}), days = [d('2022-08-20', .31), d('2022-09-05', .30), d('2022-09-28', .55), d('2022-10-04', .70)];
+            return {cap: pickScene(days, 2022, true).date, plain: pickScene(days, 2022, false).date, tie: pickScene([d('2022-08-20', .30), d('2022-09-05', .31)], 2022, true).date}; }""")
+        self.assertEqual(r["cap"], "2022-09-05", "equal snow within 2 %: the day nearest to 30 September")
+        self.assertEqual(r["plain"], "2022-09-05", "the other outlets too: a scene with more than 5 points more snow than the least snowy one loses (Eyjafjallajökull 2020, 2022, 2026)")
+        self.assertEqual(r["tie"], "2022-09-05")
+
+    def test_a_cap_shows_a_40_m_preview_and_loads_the_10_m_tiles_when_the_map_is_zoomed_in(self):
+        page = self.open_cap()
+        page.evaluate("checkYears()")
+        page.wait_for_function("state.available[2023]", timeout=20000)
+        full = lambda: len([r for r in self.requests if r["output"]["width"] == self.tiles[0][4]])
+        page.evaluate("map.setZoom(9)")
+        page.evaluate("refreshAll()")
+        page.wait_for_function("capWaiting.size === 1 && document.getElementById('status').textContent.includes('40 m preview')", timeout=20000)
+        self.assertEqual(full(), 0, "zoomed out: only the preview was asked for")
+        page.evaluate("map.setZoom(13)")
+        page.wait_for_function("capWaiting.size === 0", timeout=10000)
+        page.wait_for_function("!document.getElementById('status').textContent.includes('40 m preview') && !document.getElementById('status').textContent.includes('Loading')", timeout=20000)
+        self.assertEqual(full(), 4, "zoomed in: the four 10 m tiles")
+        self.assertClean()
+
+    def test_the_landsat_switch_is_greyed_out_for_a_cap_without_landsat_pictures(self):
+        page = self.open_cap()
+        page.context.route("**/data/landsat/**", lambda route: route.fulfill(status=404, body="{}"))      # the cap has Landsat pictures now (scripts/build_landsat.py): this test is about one that has none
+        page.evaluate("landsatFiles.clear(); updateLandsatRow()")
+        page.wait_for_function("document.getElementById('landsatToggle').disabled", timeout=10000)
+        self.assertIn("none found", page.evaluate("document.getElementById('landsatText').textContent"))
+        self.assertNotEqual(page.evaluate("getComputedStyle(document.getElementById('landsatRow')).display"), "none")
+        self.assertEqual(page.evaluate("getComputedStyle(document.querySelector('#landsatRow .landsat-note')).display"), "none", "no note on 30 m pixels when there are no Landsat pictures")
+        self.assertClean()
+
+    def test_a_timelapse_and_small_screens_get_half_the_resolution(self):
+        page = self.open_cap("m=timelapse&from=2022&to=2023")
+        self.assertEqual(page.evaluate("capLevel()"), 0.5)
+        page.evaluate("state.mode = 'single'")
+        phone = self.open("#r=is-rest&g=hofsjokull", viewport={"width": 390, "height": 800})
+        self.assertEqual(phone.evaluate("capLevel()"), 0.5)
 
 
 if __name__ == "__main__":

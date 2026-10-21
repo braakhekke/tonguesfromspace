@@ -23,6 +23,9 @@ Create the OAuth client at https://shapps.dataspace.copernicus.eu/dashboard/ -> 
 """
 import argparse, getpass, json, os, ssl, sys, threading, time, urllib.error, urllib.parse, urllib.request, webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+try: import review_lib      # local review walk-through; not in the repository
+except ImportError: review_lib = None
 
 IDENTITY = os.environ.get("CDSE_IDENTITY", "https://identity.dataspace.copernicus.eu")
 SH = os.environ.get("CDSE_SH", "https://sh.dataspace.copernicus.eu")
@@ -102,7 +105,7 @@ class Handler(SimpleHTTPRequestHandler):
     def _hidden(self):
         """The credentials file, .git and other dot files and the scripts folder are never served."""
         parts = [x for x in urllib.parse.unquote(self.path.split("?")[0]).split("/") if x]
-        return any(x.startswith(".") for x in parts) or (parts[:1] == ["scripts"])
+        return any(x.startswith(".") for x in parts) or (parts[:1] == ["scripts"] and parts[:2] != ["scripts", "tools"])
 
     def do_HEAD(self):
         return self._send(404, "text/plain", b"Not found") if self._hidden() else super().do_HEAD()
@@ -110,11 +113,20 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path == "/cdse/ping":
             return self._send(200, "application/json", b'{"relay":true,"managed":true}')
+        if review_lib and self.path.split("?")[0] == "/review/state":          # the review walk-through (scripts/tools/review.html, scripts/review_lib.py)
+            try: return self._send(200, "application/json", json.dumps(review_lib.state()).encode())
+            except Exception as e: return self._error("review state: %s" % e)
         if self._hidden():
             return self._send(404, "text/plain", b"Not found")
         return super().do_GET()
 
     def do_POST(self):
+        if review_lib and self.path.split("?")[0] == "/review/sign":
+            try:
+                j = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
+                return self._send(200, "application/json", json.dumps(review_lib.sign(j["id"], j["step"], j["kind"], j.get("note", ""))).encode())
+            except (ValueError, KeyError) as e:
+                return self._send(400, "application/json", json.dumps({"error": str(e)}).encode())
         target = ROUTES.get(self.path.split("?")[0])
         if not target:
             return self._send(404, "text/plain", b"Unknown relay path")

@@ -35,6 +35,30 @@ OUTLETS = [
          lat=64.095, lon=-16.305, half=12.4, tip=[64.06564, -16.24333],
          strip3d=dict(azimuth=318, half=9000, back=1500, up=10200, cell=36),      # the 3D area, as drawn by hand on a screenshot: the whole lobe of the tongue, 18 km along the lagoon shore and 10 km up the glacier
          note="Its snout ends in the glacier lagoon Jökulsárlón."),
+    # The other six largest outlets of the ice cap (by RGI 6.0 area). tip, strip3d, lat, lon, half: found by rule with icecap_lib.derive_view (tip = the lowest point of the outline by the
+    # Mapterhorn terrain tiles, strip = up the glacier from there; Mapterhorn has no finer tiles than zoom 12 over Iceland) and written down here, so a rebuild changes nothing.
+    dict(id="skeidararjokull", rgi="RGI60-06.00475", name="Skeiðarárjökull", lat=64.04367, lon=-17.2692, half=11.1, tip=[63.9909, -17.2556],
+         strip3d=dict(azimuth=0, half=9000, back=1500, up=10000, cell=32), note="The outlet that flows south to the outwash plain Skeiðarársandur."),
+    dict(id="bruarjokull", rgi="RGI60-06.00377", name="Brúarjökull", lat=64.7174, lon=-15.9551, half=10.1, tip=[64.74586, -15.89538],
+         strip3d=dict(azimuth=222, half=7500, back=1500, up=10000, cell=34), note="A big outlet on the north side of the ice cap."),
+    dict(id="dyngjujokull", rgi="RGI60-06.00477", name="Dyngjujökull", lat=64.7885, lon=-16.7523, half=8.1, tip=[64.82361, -16.71713],
+         strip3d=dict(azimuth=203, half=5500, back=1500, up=10000, cell=30), note="The outlet that flows north from the ice cap."),
+    dict(id="sidujokull", rgi="RGI60-06.00416", name="Síðujökull", lat=64.1189, lon=-17.8352, half=6.5, tip=[64.08074, -17.83318],
+         strip3d=dict(azimuth=359, half=5100, back=1500, up=10000, cell=28), note="The inventory holds Síðujökull and Skaftárjökull as one basin; the tongue shown is Síðujökull."),
+    dict(id="koldukvislarjokull", rgi="RGI60-06.00424", name="Köldukvíslarjökull", lat=64.5391, lon=-17.8858, half=7.1, tip=[64.5311, -17.97263],
+         strip3d=dict(azimuth=78, half=3900, back=1500, up=10000, cell=25), note="An outlet on the western side of the ice cap."),
+    dict(id="tungnaarjokull", rgi="RGI60-06.00443", name="Tungnaárjökull", lat=64.2824, lon=-18.0847, half=7.9, tip=[64.25485, -18.14556],
+         strip3d=dict(azimuth=44, half=4500, back=1500, up=10000, cell=27), note="An outlet on the south-western side of the ice cap."),
+    dict(id="heinabergsjokull", rgi="RGI60-06.00478", also=["RGI60-06.00471"], name="Heinabergsjökull and Skálafellsjökull", lat=64.286, lon=-15.7546, half=6.8, tip=[64.27566, -15.66989],
+         strip3d=dict(azimuth=286, half=2100, back=1500, up=10000, cell=18), note="Two neighbouring outlets on the south-eastern side of the ice cap, shown as one unit: the inventory has them as two basins side by side."),
+    dict(id="hoffellsjokull", rgi="RGI60-06.00466", name="Hoffellsjökull", lat=64.4603, lon=-15.5011, half=6.9, tip=[64.42489, -15.46795],
+         strip3d=dict(azimuth=338, half=2500, back=1500, up=10000, cell=20), note="An outlet on the south-eastern side of the ice cap, near Hoffell. Its basin in the inventory is unnamed; it is the one whose lowest ice lies there."),
+    dict(id="svinafellsjokull", rgi="RGI60-06.00474", name="Svínafellsjökull", lat=64.0086, lon=-16.7927, half=6.6, tip=[64.00361, -16.87905],
+         strip3d=dict(azimuth=82, half=2100, back=1500, up=10000, cell=18), note="An outlet from the ice cap Öræfajökull in the south, near Skaftafell. Its basin in the inventory is unnamed; it is the one whose lowest ice lies there."),
+    dict(id="sylgjujokull", rgi="RGI60-06.00473", name="Sylgjujökull", lat=64.4234, lon=-17.9539, half=7.2, tip=[64.39984, -18.02343],
+         strip3d=dict(azimuth=52, half=3300, back=1500, up=10000, cell=23), note="An outlet on the western side of the ice cap."),
+    dict(id="flaajokull", rgi="RGI60-06.00465", name="Fláajökull", lat=64.3458, lon=-15.626, half=7.2, tip=[64.33051, -15.54524],
+         strip3d=dict(azimuth=294, half=3100, back=1500, up=10000, cell=22), note="An outlet on the south-eastern side of the ice cap, north-west of Höfn. Its basin in the inventory is unnamed; it is the one whose lowest ice lies there."),
 ]
 # Display names for RGI entities (RGI writes Icelandic letters in ASCII). Only entities with an RGI name are listed.
 NAMES = {
@@ -216,30 +240,30 @@ def main():
     for f in rows[:14]:
         p = f["properties"]; print(f"  {p['RGIID']}  {p['AREA']:8.1f} km2  {p['NAME'] or '-':28} outline date {p['BGNDATE'][:4]}")
     if a.list: return
-    chosen = {o["rgi"]: o for o in OUTLETS}
-    missing = [r for r in chosen if not any(f["properties"]["RGIID"] == r for f in rows)]
+    byid = {f["properties"]["RGIID"]: f for f in rows}
+    used = {r for o in OUTLETS for r in [o["rgi"]] + o.get("also", [])}
+    missing = [r for r in used if r not in byid]
     if missing: sys.exit(f"Outlet not found in the inventory: {missing}")
     outlets, basins = [], []
+    for o in OUTLETS:      # an outlet may be several RGI basins (`also`): Heinabergsjökull and Skálafellsjökull are one unit
+        fs = [byid[r] for r in [o["rgi"]] + o.get("also", [])]; ps = [f["properties"] for f in fs]
+        outlets.append(dict(id=o["id"], rgi=" + ".join(p["RGIID"] for p in ps), name=o["name"], note=o["note"],
+                            areaKm2=round(sum(p["AREA"] for p in ps), 1), lengthKm=round(max(p["LMAX"] for p in ps) / 1000, 1), zmin=min(p["ZMIN"] for p in ps), zmax=max(p["ZMAX"] for p in ps),
+                            outlineYear=int(ps[0]["BGNDATE"][:4]), lat=o["lat"], lon=o["lon"], half=o["half"], **({"halfH": o["halfH"]} if o.get("halfH") else __import__("icecap_lib").box_half_h(o["id"])), tip=o["tip"], strip3d=o["strip3d"],
+                            outline=[r for f in fs for r in outline(f["geometry"], 25, 0)], units=len(fs)))
     for f in rows:
         p = f["properties"]
-        if p["RGIID"] in chosen:
-            o = chosen[p["RGIID"]]
-            outlets.append(dict(id=o["id"], rgi=p["RGIID"], name=o["name"], note=o["note"],
-                                areaKm2=round(p["AREA"], 1), lengthKm=round(p["LMAX"] / 1000, 1), zmin=p["ZMIN"], zmax=p["ZMAX"],
-                                outlineYear=int(p["BGNDATE"][:4]), lat=o["lat"], lon=o["lon"], half=o["half"], tip=o["tip"], strip3d=o["strip3d"],
-                                outline=outline(f["geometry"], 25, 0)))
-        else:
-            basins.append(dict(rgi=p["RGIID"], name=NAMES.get(p["NAME"], p["NAME"] or ""), areaKm2=round(p["AREA"], 1),
-                               outline=outline(f["geometry"], 120, 0.5)))
+        if p["RGIID"] not in used:
+            basins.append(dict(rgi=p["RGIID"], name=NAMES.get(p["NAME"], p["NAME"] or ""), areaKm2=round(p["AREA"], 1), outline=outline(f["geometry"], 120, 0.5)))
     for o in outlets:
-        o["outlines"] = outlines_for(o, basins)      # the Icelandic Met Office outlines of about 1890 and of 2025
+        o["outlines"] = outlines_for(o, basins + [x for x in outlets if x is not o])      # the Icelandic Met Office outlines of about 1890 and of 2025, without the ice of the other outlets
     data = dict(
         source="Randolph Glacier Inventory 6.0, region 06 Iceland (RGI Consortium 2017), via GLIMS; outlines from about 2000",
         icecap=dict(name="Vatnajökull", areaKm2=round(sum(f["properties"]["AREA"] for f in rows)), entities=len(rows)),
         outlets=outlets, basins=basins)
     os.makedirs(os.path.dirname(a.out), exist_ok=True)
     with open(a.out, "w", encoding="utf-8") as fh:
-        fh.write("// generated by scripts/build_vatnajokull.py - do not edit by hand\nwindow.VATNAJOKULL = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n")
+        fh.write("// generated by scripts/build_vatnajokull.py - do not edit by hand\nwindow.REGION_ICE = " + json.dumps(data, ensure_ascii=False, separators=(",", ":")) + ";\n")
     print(f"wrote {a.out} ({os.path.getsize(a.out) / 1024:.0f} kB)")
 
 if __name__ == "__main__":

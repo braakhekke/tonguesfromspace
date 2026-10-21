@@ -32,7 +32,7 @@ def outlet(oid):
 
 
 def box(o, margin):
-    dlat = (o['half'] * 1000 + margin) / 111320.0; dlon = (o['half'] * 1000 + margin) / (111320.0 * math.cos(math.radians(o['lat'])))
+    dlat = ((o.get('halfH') or o['half']) * 1000 + margin) / 111320.0; dlon = (o['half'] * 1000 + margin) / (111320.0 * math.cos(math.radians(o['lat'])))
     return o['lat'] - dlat, o['lon'] - dlon, o['lat'] + dlat, o['lon'] + dlon
 
 
