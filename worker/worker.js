@@ -15,7 +15,7 @@
  * Settings (Cloudflare dashboard -> Worker -> Settings -> Variables and Secrets):
  *   CDSE_CLIENT_ID      secret   OAuth client ID from the CDSE dashboard
  *   CDSE_CLIENT_SECRET  secret   OAuth client secret
- *   CDSE_CLIENT_ID_2 / CDSE_CLIENT_SECRET_2   optional second account (and _3, _4, _5): used when the first has no processing units left
+ *   CDSE_CLIENT_ID_2 / CDSE_CLIENT_SECRET_2   optional second account (and _3 up to _15): used when the first has no processing units left
  *   ALLOWED_ORIGINS     text     e.g. "https://tonguesfromspace.org,https://www.tonguesfromspace.org,https://braakhekke.github.io,http://localhost:8000"
  *   CACHE               KV namespace binding (optional but recommended): image cache
  *   Gallery (all optional; without them the gallery stays closed for uploads):
@@ -58,9 +58,9 @@ const yearOk = y => Number.isInteger(+y) && +y >= FIRST_YEAR && +y <= lastYear()
 const MIN_STATS_RES = 40;                                           // metres (CRS units); keeps scene scoring cheap
 const DAY = 86400;
 
-/* Copernicus accounts: CDSE_CLIENT_ID / CDSE_CLIENT_SECRET, then the same names with _2, _3, _4, _5. They are used in this order; an account that answers
+/* Copernicus accounts: CDSE_CLIENT_ID / CDSE_CLIENT_SECRET, then the same names with _2 up to _15. They are used in this order; an account that answers
    "insufficient processing units" is put last for an hour, so the next one takes over. */
-const clients = env => { const out = []; for (let i = 1; i <= 5; i++) { const x = i === 1 ? '' : '_' + i, id = env['CDSE_CLIENT_ID' + x], secret = env['CDSE_CLIENT_SECRET' + x]; if (id && secret) out.push({ n: i, id, secret }); } return out; };
+const clients = env => { const out = []; for (let i = 1; i <= 15; i++) { const x = i === 1 ? '' : '_' + i, id = env['CDSE_CLIENT_ID' + x], secret = env['CDSE_CLIENT_SECRET' + x]; if (id && secret) out.push({ n: i, id, secret }); } return out; };
 const tokens = new Map();                                            // account number -> { token, until }, reused while the isolate lives
 const spent = new Map();                                             // account number -> time (ms) until which it counts as out of units
 const inflight = new Map();
