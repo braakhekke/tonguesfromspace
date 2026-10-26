@@ -28,3 +28,28 @@ interface Window { turnstile: any; __lastVideo: any; }
 interface Function { t?: any; }
 
 interface Navigator { deviceMemory?: number; }
+
+// Names exported by js/01-data.js (a module) that the classic scripts read as globals; same list as its window bridge.
+declare const FIRST_YEAR: typeof import('../../js/01-data.js').FIRST_YEAR;
+declare const CURRENT_YEAR: typeof import('../../js/01-data.js').CURRENT_YEAR;
+declare const YEARS: typeof import('../../js/01-data.js').YEARS;
+declare const LANDSAT_YEARS: typeof import('../../js/01-data.js').LANDSAT_YEARS;
+declare const SWISS_SERIES: typeof import('../../js/01-data.js').SWISS_SERIES;
+declare const ICE_2024: typeof import('../../js/01-data.js').ICE_2024;
+declare const iceVolume: typeof import('../../js/01-data.js').iceVolume;
+declare const EIFFEL_M: typeof import('../../js/01-data.js').EIFFEL_M;
+declare const PITCH_M2: typeof import('../../js/01-data.js').PITCH_M2;
+declare const BUS_M: typeof import('../../js/01-data.js').BUS_M;
+declare const LAKE_ZURICH_KM3: typeof import('../../js/01-data.js').LAKE_ZURICH_KM3;
+declare const POOL_L: typeof import('../../js/01-data.js').POOL_L;
+declare const SWISS_SUPPLY_KM3: typeof import('../../js/01-data.js').SWISS_SUPPLY_KM3;
+declare const HOUSEHOLD_L_DAY: typeof import('../../js/01-data.js').HOUSEHOLD_L_DAY;
+declare const SWISS_POP: typeof import('../../js/01-data.js').SWISS_POP;
+declare const VOLUME_LOSS: typeof import('../../js/01-data.js').VOLUME_LOSS;
+declare const DEFAULTS: typeof import('../../js/01-data.js').DEFAULTS;
+declare const TRAILS: typeof import('../../js/01-data.js').TRAILS;
+declare const lv95: typeof import('../../js/01-data.js').lv95;
+declare const TRAIL_LAYERS: typeof import('../../js/01-data.js').TRAIL_LAYERS;
+declare const trailMaps: typeof import('../../js/01-data.js').trailMaps;
+declare const trailsHtml: typeof import('../../js/01-data.js').trailsHtml;
+declare const GLACIER_INFO: typeof import('../../js/01-data.js').GLACIER_INFO;

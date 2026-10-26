@@ -1,19 +1,19 @@
 /* =====================================================================
    1. Static data
    ===================================================================== */
-const FIRST_YEAR = 2016;
-const CURRENT_YEAR = new Date().getFullYear();
-const YEARS = Array.from({length: CURRENT_YEAR - FIRST_YEAR + 1}, (_, i) => FIRST_YEAR + i);      // the years with Sentinel-2 pictures; Iceland: the switch "Landsat" puts LANDSAT_YEARS in front of them (setLandsat, js/08-controls.js), the array is changed in place
-const LANDSAT_YEARS = REGION.landsat ? Array.from({length: FIRST_YEAR - REGION.landsat.from}, (_, i) => REGION.landsat.from + i) : [];
+export const FIRST_YEAR = 2016;
+export const CURRENT_YEAR = new Date().getFullYear();
+export const YEARS = Array.from({length: CURRENT_YEAR - FIRST_YEAR + 1}, (_, i) => FIRST_YEAR + i);      // the years with Sentinel-2 pictures; Iceland: the switch "Landsat" puts LANDSAT_YEARS in front of them (setLandsat, js/08-controls.js), the array is changed in place
+export const LANDSAT_YEARS = REGION.landsat ? Array.from({length: FIRST_YEAR - REGION.landsat.from}, (_, i) => REGION.landsat.from + i) : [];
 
 /* Swiss-wide annual loss of glacier volume, hydrological years (Oct–Sep), GLAMOS / SCNAT annual reports.
    approx: the press release gave a rounded or "almost/over" figure. Add a row each autumn. */
 /* National ice volume: GLAMOS "Swisswide Glacier Mass Balance" gives the volume of all Swiss glaciers for every year (glaciers.js, swiss_volume: [year, km³, change %]).
    Where that file is missing, or for years after its last one, the figures below are used: 46.4 km³ at the end of 2024 (annual report 2024) and the annual losses.
    Ice to water: density 0.9, so 1 km³ ice = 0.9 trillion litres. */
-const SWISS_SERIES = (window.GLACIER_DATA && window.GLACIER_DATA.swiss_volume) || [];
-const ICE_2024 = (SWISS_SERIES.find(r => r[0] === 2024) || [0, 46.4])[1];
-function iceVolume(year){            // km³ at the end of the hydrological year (September)
+export const SWISS_SERIES = (window.GLACIER_DATA && window.GLACIER_DATA.swiss_volume) || [];
+export const ICE_2024 = (SWISS_SERIES.find(r => r[0] === 2024) || [0, 46.4])[1];
+export function iceVolume(year){            // km³ at the end of the hydrological year (September)
   const row = SWISS_SERIES.find(r => r[0] === year);
   if (row) return row[1];
   let v = ICE_2024;
@@ -21,15 +21,15 @@ function iceVolume(year){            // km³ at the end of the hydrological year
   if (year > 2024) for (let y = 2025; y <= year; y++) { const n = VOLUME_LOSS.find(d => d.y === y); v = v * (1 - (n ? n.v : 0) / 100); }
   return v;
 }
-const EIFFEL_M = 330;                        // height of the Eiffel Tower with antennas (Société d'exploitation de la Tour Eiffel, since 2022)
-const PITCH_M2 = 7140;                       // a football pitch of the usual international size, 105 x 68 m
-const BUS_M = 12;                            // a standard city bus is about 12 m long (an articulated one 18 m)
-const LAKE_ZURICH_KM3 = 3.9;                 // volume of Lake Zurich
-const POOL_L = 2.5e6;                        // Olympic pool, 50 x 25 x 2 m
-const SWISS_SUPPLY_KM3 = 0.93;               // all drinking and process water supplied in Switzerland per year (SVGW: 900-950 million m³)
-const HOUSEHOLD_L_DAY = 142;                 // household use per person and day (SVGW)
-const SWISS_POP = 9.0e6;
-const VOLUME_LOSS = [
+export const EIFFEL_M = 330;                        // height of the Eiffel Tower with antennas (Société d'exploitation de la Tour Eiffel, since 2022)
+export const PITCH_M2 = 7140;                       // a football pitch of the usual international size, 105 x 68 m
+export const BUS_M = 12;                            // a standard city bus is about 12 m long (an articulated one 18 m)
+export const LAKE_ZURICH_KM3 = 3.9;                 // volume of Lake Zurich
+export const POOL_L = 2.5e6;                        // Olympic pool, 50 x 25 x 2 m
+export const SWISS_SUPPLY_KM3 = 0.93;               // all drinking and process water supplied in Switzerland per year (SVGW: 900-950 million m³)
+export const HOUSEHOLD_L_DAY = 142;                 // household use per person and day (SVGW)
+export const SWISS_POP = 9.0e6;
+export const VOLUME_LOSS = [
   {y:2016, v:1.5, approx:true}, {y:2017, v:3.0}, {y:2018, v:2.5}, {y:2019, v:2.0, approx:true},
   {y:2020, v:2.0, approx:true}, {y:2021, v:1.0, approx:true}, {y:2022, v:5.9}, {y:2023, v:4.4},
   {y:2024, v:2.4}, {y:2025, v:3.0}, {y:2026, v:5.5}
@@ -45,7 +45,7 @@ VOLUME_LOSS.sort((a, b) => a.y - b.y);
 /* Built-in list: the ten largest glaciers by area in SGI2016 (largest entities >14.5 km²).
    Areas: SGI1850, SGI2016 and, where published, SGI2023/24 (GLAMOS via de.wikipedia "Liste Schweizer Gletscher").
    build_outlines.py replaces the ranking with the newest inventory and adds outlines. */
-const DEFAULTS = [
+export const DEFAULTS = [
   { id:'aletsch', tongue:[46.424,8.032], keys:['grosser aletsch'], name:'Grosser Aletsch', local:'Grosser Aletschgletscher', canton:'Valais', range:'Bernese Alps',
     center:[46.47,8.04], bounds:[[46.40,7.95],[46.56,8.12]], a1850:105.6, a1973:86.6, a2016:78.49, aNew:[75.79,2023], len:[26.5,24.0,22.6],
     lede:'The largest glacier in the Alps. Several firn streams meet at Konkordiaplatz before the tongue curves south-west towards the Massa gorge above Brig.',
@@ -102,7 +102,7 @@ const DEFAULTS = [
 /* "Did you know?" and "Where the name comes from" per glacier. Only documented facts; uncertain origins say so. */
 /* Hike and bike near each tongue. Route numbers and distances from the tongue tip: SchweizMobil route data of the Federal Roads Office (ASTRA) on geo.admin.ch, checked October 2026;
    the title links to the page the description follows. `bike: null` = no marked SchweizMobil bike route within about 3 km of the tongue. */
-const TRAILS = {
+export const TRAILS = {
  aletsch: {
   hike: { title: 'Aletsch Panoramaweg (route 39)', text: 'Belalp to Riederalp, high above the glacier with several viewpoints. Passes 1.3 km from the tongue.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
   bike: { title: 'Moosfluh Enduro (mountain bike route 131)', text: 'From the Moosfluh viewpoint down to Mörel. Passes 1.4 km from the tongue.', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-131', kind: 'mtb' } },
@@ -128,25 +128,25 @@ const TRAILS = {
   hike: { title: 'Naturweg, Riffelalp to Sunnegga', text: 'Through a stone-pine forest to the retreating glacier, with Matterhorn views: 6.2 km, about 1 h 40 min.', url: 'https://zermatt.swiss/p/naturweg-nr-19-01tVj000005EvuoIAC', kind: 'wander' }, bike: null }
 };
 /* swisstopo's approximate WGS84 to LV95 formulas (about 1 m), for the map links */
-const lv95 = (lon, lat) => {
+export const lv95 = (lon, lat) => {
   const p = (lat * 3600 - 169028.66) / 10000, l = (lon * 3600 - 26782.5) / 10000;
   return [2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3,
           1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3].map(Math.round);
 };
-const TRAIL_LAYERS = { wander: 'Wanderland', velo: 'Veloland', mtb: 'Mountainbikeland' };
-function trailMaps(g, kind){       // the SchweizMobil map around the tongue, with the route layer on
+export const TRAIL_LAYERS = { wander: 'Wanderland', velo: 'Veloland', mtb: 'Mountainbikeland' };
+export function trailMaps(g, kind){       // the SchweizMobil map around the tongue, with the route layer on
   const at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue; if (!at) return '';
   const [E, N] = lv95(at[1], at[0]);
   return `<span class="tr-maps"><a href="https://map.schweizmobil.ch/?lang=en&amp;E=${E}&amp;N=${N}&amp;resolution=25&amp;layers=${TRAIL_LAYERS[kind]}" target="_blank" rel="noopener">SchweizMobil map</a></span>`;
 }
-function trailsHtml(g, key){
+export function trailsHtml(g, key){
   const t = TRAILS[key]; if (!t) return '';
   const row = (label, r, kindFallback) => r
     ? `<div class="tr-row"><b>${label}</b> ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>` : r.title}${typeof gfn === 'function' ? (r.url ? gfn(`${label} route: <a href="${r.url}" target="_blank" rel="noopener">${new URL(r.url).hostname.replace(/^www\./, '')}</a> (${r.title}); route data of SchweizMobil / swisstopo`) : fn('routes')) : ''}<span class="tr-t">${r.text}</span>${trailMaps(g, r.kind)}</div>`
     : `<div class="tr-row"><b>${label}</b><span class="tr-t">No marked bike route within about 3 km of the tongue.</span>${trailMaps(g, kindFallback)}</div>`;
   return `${row('Hike', t.hike, 'wander')}${row('Bike', t.bike, 'velo')}`;
 }
-const GLACIER_INFO = {
+export const GLACIER_INFO = {
  "aletsch": {
   "fact": "The Aletsch region has its own legend: the Rollibock, a huge goat-like creature with long horns, fiery eyes and icicles for fur, who lives in the ice of the glacier. He appears when people harm nature. In one story he drowns a poacher in Lake Märjelen, the glacier lake beside the ice whose floods once devastated the valleys below, which people explained with an angry Rollibock. Today he is the mascot of the Aletsch Arena and stands for respect for nature.",
   "name": "Named after the Alp Aletsch below it, first recorded in 1231 as <em>Alech</em>. Where the name itself comes from is unknown.",
@@ -221,3 +221,6 @@ const GLACIER_INFO = {
  }
 };
 
+// Bridge while the other scripts are still classic scripts: they read these names as globals.
+// Delete it when the last of them has become a module and imports what it needs.
+Object.assign(window, { FIRST_YEAR, CURRENT_YEAR, YEARS, LANDSAT_YEARS, SWISS_SERIES, ICE_2024, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, DEFAULTS, TRAILS, lv95, TRAIL_LAYERS, trailMaps, trailsHtml, GLACIER_INFO });
