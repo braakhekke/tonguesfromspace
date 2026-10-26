@@ -10,7 +10,7 @@ npm run walkthrough -- new-region iceland Iceland 64.9 -18.5
 npm run walkthrough -- new-glacier iceland breidamerkurjokull "Breiðamerkurjökull" 64.1 -16.3
 ```
 
-Scene scans need Copernicus credentials in `.dev.vars` (`CDSE_CLIENT_ID=...`, `CDSE_CLIENT_SECRET=...`; git-ignored) or in the environment. Everything else works without.
+Scene scans and the satellite pictures in the Real page need Copernicus credentials: run `npm run credentials` in a terminal (the secret is typed hidden, checked with a real login, and saved to the git-ignored `.dev.vars`; `-- --account 2` adds a failover account), or put `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET` in the environment. Everything else works without.
 
 ## How it works
 
