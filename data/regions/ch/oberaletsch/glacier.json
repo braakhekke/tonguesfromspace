@@ -1,0 +1,13 @@
+{
+  "id": "oberaletsch",
+  "region": "ch",
+  "name": "Oberaletschgletscher",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.423001240677216,
+    7.964000526813548
+  ]
+}

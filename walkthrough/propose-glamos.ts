@@ -8,7 +8,7 @@ import { glacierFile } from './data';
 import { loadCtx, newGlacier } from './engine';
 import { writeProposal } from './proposals';
 import { centreOf, fetchInventory, idOf, loadInventory, locationOf, rankByArea, SGI, type SgiFeature } from './sources/glamos';
-import { featuresBounds, km, simplifyRing } from '../shared/geo';
+import { featuresBounds, km, MAX_PER_REGION, MIN_ONBOARD_KM2, simplifyRing } from '../shared/geo';
 import { lowestPoint } from './sources/swisstopo';
 
 /** The citation and licence exactly as the DOI landing pages state them (read 22 Oct 2026). */
@@ -50,6 +50,7 @@ export async function proposeGlamos(region: string, name: string, opts: { id?: s
   if (found.length === 0) throw new Error(`No glacier named "${name}" in SGI 2023.`);
   if (found.length > 1) throw new Error(`"${name}" matches ${found.length} glaciers: ${found.slice(0, 8).map((f) => `${f.properties.name} (${idOf(f, '2023')}, ${Number(f.properties.area_km2).toFixed(2)} km²)`).join('; ')}. Use the full name.`);
   const f = found[0]!, inv = idOf(f, '2023');
+  if (Number(f.properties.area_km2) < MIN_ONBOARD_KM2) throw new Error(`${f.properties.name} is ${f.properties.area_km2} km² in SGI 2023, under the ${MIN_ONBOARD_KM2} km² minimum for onboarding.`);
   const dir = await fetchInventory('2023');
   const centre = locationOf(inv, dir) ?? centreOf(f);
   const id = opts.id ?? addressFor(String(f.properties.name));
@@ -63,7 +64,7 @@ export async function proposeGlamos(region: string, name: string, opts: { id?: s
   const by = 'propose-glamos';
 
   writeProposal(region, null, 'region.unit', by, 'Rule and sources as the GLAMOS DOI landing pages state them.', {
-    unitRule: 'The ten largest glaciers of Switzerland by area in the Swiss Glacier Inventory 2023 (GLAMOS).', count: 10, sources: GLAMOS_SOURCES,
+    unitRule: 'Every glacier of Switzerland of 10 km² and over in the Swiss Glacier Inventory 2023 (GLAMOS), the 26 largest at most.', count: MAX_PER_REGION, sources: GLAMOS_SOURCES,
   });
   writeProposal(region, id, 'glacier.record', by, `From SGI 2023, glacier ${inv}: name, area_km2 and the location point are the file's own values.`, {
     id, name: String(f.properties.name), inventoryId: inv, rank: rankByArea(all, f), areaKm2: Number(f.properties.area_km2), areaSource: 'glamos-sgi2023',

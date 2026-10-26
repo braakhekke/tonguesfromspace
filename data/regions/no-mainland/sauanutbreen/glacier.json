@@ -1,0 +1,14 @@
+{
+  "id": "sauanutbreen",
+  "region": "no-mainland",
+  "name": "Sauanutbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    59.983,
+    6.41
+  ],
+  "parent": "sondre-folgefonna"
+}

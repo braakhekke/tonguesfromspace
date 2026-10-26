@@ -1,0 +1,13 @@
+{
+  "id": "batura",
+  "region": "pk",
+  "name": "Batura Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    36.6050135,
+    74.53499222507969
+  ]
+}

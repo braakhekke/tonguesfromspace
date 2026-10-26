@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-02973",
+  "region": "no-mainland",
+  "name": "RGI60-08.02973",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.217,
+    6.495
+  ],
+  "parent": "nordre-folgefonna"
+}

@@ -34,4 +34,17 @@ describe('layer fetching', () => {
     expect(r.sources.map((s) => s.id)).toEqual(['eox']);
     expect(r.sources[0]!.layers).toEqual(['basemap']);
   });
+  it('finds the ITS_LIVE region mosaic of a place, smallest region first, and says so when there is none', async () => {
+    const item = (rgi: string, bbox: number[]) => ({ bbox, properties: { rgi, temporal_coverage_type: 'annual' } });
+    const stac = JSON.stringify({ features: [item('RGI05A', [-75, 59, -8, 84]), item('RGI06A', [-26, 62, -10, 67])] });
+    const prov: Provider = { id: 'itslive', layer: 'velocity', name: 'ITS_LIVE', url: 'https://its.test/', covers: { global: true }, probe: { type: 'itslive', stac: 'https://stac.test/items', cog: 'https://cog.test/{rgi}_{year}.tif', year: 2020 } };
+    const asked: string[] = [];
+    const f = (async (u: string) => { asked.push(String(u)); return String(u).startsWith('https://stac.test') ? new Response(stac) : new Response('', { status: 200 }); }) as unknown as typeof fetch;
+    const iceland: [[number, number], [number, number]] = [[64, -17], [64.2, -16.8]];
+    const r = await fetchLayers(iceland, [], f, [prov]);
+    expect(r.layers.velocity).toMatchObject({ state: 'enabled', provider: 'itslive' });
+    expect(asked).toContain('https://cog.test/RGI06A_2020.tif');
+    const none = await fetchLayers([[-30, 80], [-29.9, 80.1]], [], f, [prov]);      // Antarctic Peninsula-ish: no region in this catalogue
+    expect(none.layers.velocity).toMatchObject({ state: 'unavailable' });
+  });
 });

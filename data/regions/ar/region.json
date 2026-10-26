@@ -1,0 +1,12 @@
+{
+  "id": "ar",
+  "name": "Argentina",
+  "status": "onboarding",
+  "centre": [
+    -49.726067,
+    -73.26168350378256
+  ],
+  "zoom": 6,
+  "blurb": "Argentina.",
+  "sources": []
+}

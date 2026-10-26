@@ -1,0 +1,13 @@
+{
+  "id": "klinaklini",
+  "region": "ca",
+  "name": "Klinaklini Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    51.452683500000006,
+    -126.18085718750001
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "kg",
+  "name": "Kyrgyzstan",
+  "status": "onboarding",
+  "centre": [
+    42.1299805,
+    80.21734291097334
+  ],
+  "zoom": 6,
+  "blurb": "Kyrgyzstan.",
+  "sources": []
+}

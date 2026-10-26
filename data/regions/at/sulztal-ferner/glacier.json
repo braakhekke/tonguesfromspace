@@ -1,0 +1,13 @@
+{
+  "id": "sulztal-ferner",
+  "region": "at",
+  "name": "Sulztal Ferner",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.9967,
+    11.087
+  ]
+}

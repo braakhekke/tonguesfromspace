@@ -106,6 +106,7 @@ body.sheet-open{overflow:hidden}
 .sw[aria-pressed="true"]{background:#E9EFF2;border-color:var(--rule);box-shadow:inset 0 -2px 0 var(--accent)}      /* selected, as in the glacier list: pale, red line under it */
 .sw:hover{border-color:var(--crevasse)}
 .hint{font-size:11.5px;color:var(--moraine);margin:8px 0 0}
+.g-search{width:100%;box-sizing:border-box;margin:0 0 6px;padding:7px 10px;border:1px solid var(--line,#d5dbe0);border-radius:6px;font:inherit;font-size:13px}
 .glaciers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
 .glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;column-gap:6px;row-gap:0;text-align:left;padding:6px 10px 6px 13px;border:0;background:none;border-radius:0;cursor:pointer}
 .glaciers button:hover{background:var(--firn)}
@@ -208,6 +209,9 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .status{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0;padding:6px 8px;background:var(--firn);border-radius:0}
 .status.busy{display:flex;align-items:center;gap:8px}
 .status.busy::before{content:'';flex:none;width:12px;height:12px;border-radius:50%;border:2px solid var(--rule);border-top-color:var(--accent);animation:spin .8s linear infinite}
+.stage-busy{position:absolute;z-index:650;left:50%;top:16px;transform:translateX(-50%);display:flex;align-items:center;gap:8px;max-width:calc(100% - 340px);padding:8px 12px;background:rgba(10,27,51,.88);color:#fff;font-size:12.5px;line-height:1.35;pointer-events:none}
+.stage-busy[hidden]{display:none}
+.stage-busy::before{content:'';flex:none;width:12px;height:12px;border-radius:50%;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;animation:spin .8s linear infinite}
 @keyframes spin{to{transform:rotate(360deg)}}
 .byline{margin:10px 0 0;font-size:12.5px;line-height:1.4;color:var(--moraine);text-align:center}
 .byline a{color:var(--crevasse);font-weight:600}
@@ -571,7 +575,7 @@ details.about>summary::-webkit-details-marker{display:none}
 details.about[open]>summary{margin-bottom:6px;padding-bottom:12px}
 details.about .note,details.about .src{margin:0 0 8px}
 .story .dcard{position:relative;padding:0;margin:0;box-shadow:none;border-bottom:1px solid #EDF0F2}      /* flat chapters with a thin divider under each, as in the redesign */
-.story .dcard + .dcard,#gWater .dcard{margin-top:0}
+.story .dcard + .dcard,#gWater .dcard,#gSpeed .dcard{margin-top:0}
 .story .dcard > summary{padding:15px 0 14px}
 .story .dcard[open] > summary{padding-bottom:8px;margin-bottom:0}
 .story .dcard .dbody{padding:2px 0 18px}
@@ -905,6 +909,7 @@ sup.fn a:hover{opacity:.7}
 .sym-txt b{font-size:24px;line-height:1.1;color:var(--rock);font-weight:800}
 .sym-txt small{font-size:12px;line-height:1.3;color:var(--moraine)}
 .gwater .stat.hero.wide .v{color:var(--accent)}
+.gspeed .stat.hero.wide .v{color:var(--crevasse)}
 .wbox{display:flex;align-items:center;gap:10px;background:var(--firn);border-radius:0;padding:10px 12px;min-width:0}
 .wbox .wi{flex:none;width:34px;display:grid;place-items:center}
 .wbox .wi svg{width:34px;height:auto}
@@ -1418,7 +1423,7 @@ a,a:hover,a:focus,.tile-link,.tile-link *,.down-hint,.n-more{text-decoration:non
 .story .chart-t em{font-style:normal;font-size:11.5px;color:var(--faint)}
 .story svg.ch{display:block;width:100%;height:auto;max-height:170px}
 .story svg.ch text{font:10.5px var(--sans);fill:var(--faint)}
-.story .gwater .stat.hero .v,.story .gwater .stat.hero.wide .v{color:var(--ink)}      /* the water figure is not a loss: dark, as in its closed row */
+.story .gwater .stat.hero .v,.story .gwater .stat.hero.wide .v,.story .gspeed .stat.hero .v,.story .gspeed .stat.hero.wide .v{color:var(--ink)}      /* the water figure is not a loss: dark, as in its closed row */
 .story .stat.hero{align-items:center;text-align:center}      /* the headline figure, its text and the comparison chip are centred in every card */
 .story .stat.hero .v,.story .stat.hero .k,.story .stat.hero .d{text-align:center}
 .story .stat.hero .sym-chip{align-self:center}
@@ -1511,3 +1516,19 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
   .layerbox.open .lb-group:first-child{margin-top:0}
   .layerbox .lb-more{display:none!important}
 }
+
+.speed-hist{font-family:var(--sans);font-size:12px;line-height:1.4;color:var(--ink)}.speed-hist svg{display:block;margin:6px 0 4px}.speed-hist small{display:block;font-size:11px;color:var(--moraine)}
+
+/* One year: previous / next year in the dock (js/05-map.js, showFrame), a round button on each side of the year */
+.tl-step{align-items:center;gap:14px}
+.tl-step .tl-step-year{min-width:44px;text-align:center;font-size:14px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+.tl-prev,.tl-next{display:grid;place-items:center;flex:none;width:30px;height:30px;min-width:0;min-height:0;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}
+.tl-prev:hover:not(:disabled),.tl-next:hover:not(:disabled){background:rgba(255,255,255,.3)}
+.tl-prev:disabled,.tl-next:disabled{opacity:.35;cursor:default}
+.tl-prev svg,.tl-next svg{display:block;width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+@media (min-width:721px){.mapbar .tl-prev,.mapbar .tl-next{min-height:0}}
+.tl-dots:has(.tl-step){display:block}      /* the map dock shows its timeline row only in Timelapse; One year puts the previous / next buttons in it */
+.mapbar .tl-prev svg,.mapbar .tl-next svg{display:block;width:16px;height:16px;stroke-width:2.4}      /* the dock hides the icons of its buttons on desktop (.mapbar button svg); the arrows are icons only */
+.mapbar .tl-prev,.mapbar .tl-next{width:30px;height:30px;min-width:0;padding:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff}
+.mapbar .tl-prev:hover:not(:disabled),.mapbar .tl-next:hover:not(:disabled){background:rgba(255,255,255,.3)}
+.mapbar .tl-prev:disabled,.mapbar .tl-next:disabled{background:rgba(255,255,255,.18);opacity:.35}

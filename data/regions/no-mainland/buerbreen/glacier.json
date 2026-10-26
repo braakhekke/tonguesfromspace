@@ -1,0 +1,14 @@
+{
+  "id": "buerbreen",
+  "region": "no-mainland",
+  "name": "Buerbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.041,
+    6.394
+  ],
+  "parent": "sondre-folgefonna"
+}

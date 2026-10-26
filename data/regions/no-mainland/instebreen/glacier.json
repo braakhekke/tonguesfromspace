@@ -1,0 +1,14 @@
+{
+  "id": "instebreen",
+  "region": "no-mainland",
+  "name": "Instebreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.742,
+    6.719
+  ],
+  "parent": "myklebustbreen"
+}

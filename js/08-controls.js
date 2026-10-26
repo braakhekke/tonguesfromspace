@@ -5,7 +5,7 @@ import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, rest
 import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
 import { updateNames, map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
 import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
-import { focusSub, syncPane, outlineGeom, maxLinkText, refreshAll } from './07-render.js';
+import { focusSub, syncPane, outlineGeom, maxLinkText, speedLinkText, refreshAll } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'setStatus', { get: () => setStatus, configurable: true });
 Object.defineProperty(wire, 'showNotice', { get: () => showNotice, configurable: true });
@@ -37,6 +37,18 @@ export function setStatus(t){             // a message ending in "…" means wor
   const el = document.getElementById('status');
   el.textContent = t; el.classList.toggle('busy', /…$/.test(t));
   if (viewMode === '3d' && !state.checked) document.getElementById('v3dMsg').textContent = t;      // the 3D view shows the progress of the search too
+}
+/* The status under the years is in the left panel: when it is out of sight (panel scrolled, closed, or below the map on a phone) the same message, with its spinner, shows on the stage. */
+{
+  const st = document.getElementById('status'), chip = document.getElementById('stageBusy');
+  let seen = true;
+  const sync = () => {
+    const busy = st.classList.contains('busy') && !!st.textContent.trim(), own3d = viewMode === '3d' && !state.checked;      // the 3D view has its own progress line (#v3dMsg)
+    chip.hidden = !(busy && !seen && !own3d);
+    if (!chip.hidden) chip.textContent = st.textContent;
+  };
+  new IntersectionObserver(e => { seen = e[e.length - 1].isIntersecting; sync(); }).observe(st);
+  new MutationObserver(sync).observe(st, {attributes: true, attributeFilter: ['class'], childList: true, characterData: true, subtree: true});
 }
 export function showNotice(msg){
   const n = document.getElementById('notice');
@@ -154,7 +166,7 @@ document.getElementById('maxToggle').onchange = e => { prefs.maxspot = e.target.
 document.getElementById('radarToggle').checked = prefs.radar === true;
 document.getElementById('radarToggle').onchange = e => { prefs.radar = e.target.checked; savePrefs(); drawRadar(); };
 document.getElementById('speedToggle').checked = prefs.speed === true;
-document.getElementById('speedToggle').onchange = e => { prefs.speed = e.target.checked; savePrefs(); updateSpeed(); };
+document.getElementById('speedToggle').onchange = e => { prefs.speed = e.target.checked; savePrefs(); updateSpeed(); document.querySelectorAll('[data-act="speed-toggle"] .tl-t').forEach(n => { n.textContent = speedLinkText(); }); };
 document.getElementById('namesToggle').checked = prefs.names === true;
 document.getElementById('namesToggle').onchange = e => { prefs.names = e.target.checked; savePrefs(); updateNames(); };
 document.getElementById('boxToggle').checked = !OPEN_ON_GLACIER;      // on at the start; off as soon as a glacier is chosen (or the link opens on one)

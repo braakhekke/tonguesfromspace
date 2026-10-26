@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-06-00485",
+  "region": "is-vatnajokull",
+  "name": "RGI60-06.00485",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    64.4692,
+    -15.3587
+  ],
+  "parent": "hoffellsjokull"
+}

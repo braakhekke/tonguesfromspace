@@ -1,0 +1,13 @@
+{
+  "id": "braldu",
+  "region": "pk",
+  "name": "Braldu Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    36.1451355,
+    75.86578165137556
+  ]
+}

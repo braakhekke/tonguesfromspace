@@ -1,0 +1,13 @@
+{
+  "id": "grindelwald",
+  "region": "ch",
+  "name": "Unterer Grindelwaldgletscher",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.57401087668483,
+    8.058129436167741
+  ]
+}

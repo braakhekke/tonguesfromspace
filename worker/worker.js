@@ -32,6 +32,7 @@
  *   GET  /gallery/config, /gallery/list, /gallery/file/<id>   public gallery (approved items only)
  *   POST /gallery/submit   upload of a finished picture or video (waits for approval)
  *   /gallery/admin/*       moderation, needs the admin token
+ *   GET  /ask/config, POST /ask/glacier   "please add this glacier" (only glaciers on Wikidata's list; see the section below); GET /ask/admin/list, DELETE /ask/admin/<Q-id> need the admin token
  */
 
 const COLLECTION = 'sentinel-2-l2a';                              // scene scoring (scene classification)
@@ -88,6 +89,7 @@ export default {
     if (url.pathname === '/cdse/ping') return json({ relay: true, managed: true }, 200, cors);
 
     if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors);
+    if (url.pathname.startsWith('/ask/')) return ask(request, env, url, cors);
     if (url.pathname.startsWith('/data/landsat/')) return landsat(request, env, url);
 
     const route = { '/cdse/statistics': 'statistics', '/cdse/process': 'process' }[url.pathname];
@@ -332,6 +334,88 @@ async function sha256(text) {
   return [...new Uint8Array(d)].map(b => b.toString(16).padStart(2, '0')).join('');
 }
 
+
+/* ---------- "please add this glacier" ----------
+   The front page offers it when a search finds nothing. A person (Cloudflare Turnstile, the same keys as the gallery) sends the name they looked for, and it
+   is accepted only when it is a glacier we can find on a list: Wikidata (CC0; the name is searched in a few languages and the hit must be an item whose class is
+   glacier, wdt:P31/wdt:P279* wd:Q35666, the class walkthrough/build-aliases.ts uses), or else the Randolph Glacier Inventory 6.0's own names, asked from GLIMS'
+   public service like walkthrough/sources/glims.ts findByName. The request is kept in KV under ask/<Wikidata id or GLIMS id>, so every spelling of one
+   glacier counts together, with the names people typed, a counter and the dates; the owner reads them with GET /ask/admin/list
+   (GALLERY_ADMIN_TOKEN) and removes one with DELETE /ask/admin/<id>. Only a short name is accepted, per address a few an hour, and at most ASK.max different
+   glaciers are kept, so a flood cannot grow storage without limit. Records expire after a year. Closed (no button on the page) without CACHE,
+   TURNSTILE_SECRET and TURNSTILE_SITEKEY. */
+const ASK = { max: 1000, perHour: 5, keep: 365 * 86400, adminFails: 10, langs: ['en', 'de', 'fr', 'it'] };
+const askSends = new Map();                                          // ip -> [timestamps in ms]
+const askName = /^[\p{L}\p{N}][\p{L}\p{N} .,'’()\/-]{1,79}$/u;
+const WD_UA = { 'User-Agent': 'tonguesfromspace-worker/1.0 (https://tonguesfromspace.org)' };
+async function wikidataGlacier(name, lang) {                         // the Wikidata glacier the name means, or null
+  const langs = [...new Set([...ASK.langs, ...(/^[a-z]{2,3}$/.test(lang) ? [lang] : [])])];
+  const hits = await Promise.all(langs.map(l => fetch('https://www.wikidata.org/w/api.php?' + new URLSearchParams({ action: 'wbsearchentities', search: name, language: l, type: 'item', limit: '10', format: 'json' }), { headers: WD_UA })
+    .then(r => r.ok ? r.json() : { search: [] }).then(j => j.search || []).catch(() => [])));
+  const found = new Map();
+  for (const h of hits.flat()) if (/^Q\d+$/.test(h.id) && !found.has(h.id)) found.set(h.id, h.label || name);
+  if (!found.size) return null;
+  const query = `SELECT ?i WHERE { VALUES ?i { ${[...found.keys()].slice(0, 40).map(q => 'wd:' + q).join(' ')} } ?i wdt:P31/wdt:P279* wd:Q35666 }`;
+  const r = await fetch('https://query.wikidata.org/sparql?' + new URLSearchParams({ query }), { headers: { ...WD_UA, Accept: 'application/sparql-results+json' } });
+  if (!r.ok) throw new Error('Wikidata answered ' + r.status);
+  const j = await r.json(), q = (j.results.bindings[0] || { i: { value: '' } }).i.value.split('/').pop();
+  return q ? { q, label: found.get(q) } : null;
+}
+const RGI_LAYERS = ['Alaska', 'WesternCanadaUS', 'ArcticCanadaNorth', 'ArcticCanadaSouth', 'GreenlandPeriphery', 'Iceland', 'Svalbard', 'Scandinavia', 'RussianArctic', 'NorthAsia',
+  'CentralEurope', 'CaucasusMiddleEast', 'CentralAsia', 'SouthAsiaWest', 'SouthAsiaEast', 'LowLatitudes', 'SouthernAndes', 'NewZealand', 'AntarcticSubantarctic'];   // GLIMS:RGI_<name>, as in walkthrough/sources/glims.ts
+const foldName = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
+async function rgiGlacier(name) {                                    // a glacier the Randolph Glacier Inventory names like this, or null
+  const safe = name.replace(/[^\p{L}\p{N} .-]/gu, '').trim();       // no quote can get into the filter
+  if (safe.length < 3) return null;
+  const want = ' ' + foldName(safe) + ' ';
+  const layers = await Promise.all(RGI_LAYERS.map(l => fetch('https://www.glims.org/geoserver/ows?' + new URLSearchParams({ service: 'WFS', version: '1.0.0', request: 'GetFeature', typeName: 'GLIMS:RGI_' + l,
+    outputFormat: 'application/json', maxFeatures: '10', cql_filter: `NAME ILIKE '%${safe}%'` }), { headers: WD_UA }).then(r => r.ok ? r.json() : { features: [] }).then(j => j.features || []).catch(() => [])));
+  for (const x of layers.flat()) {
+    const n = String((x.properties || {}).NAME || '').trim(), id = String((x.properties || {}).GLIMSID || '');
+    if (n && /^G\d{6}E\d{5}[NS]$/.test(id) && (' ' + foldName(n) + ' ').includes(want)) return { q: id, label: n };      // the name as a whole word (or words) of the inventory's name
+  }
+  return null;
+}
+async function ask(request, env, url, cors) {
+  const path = url.pathname.slice('/ask/'.length), m = request.method, ip = request.headers.get('CF-Connecting-IP') || 'unknown';
+  const open = !!(env.CACHE && env.TURNSTILE_SECRET && env.TURNSTILE_SITEKEY);
+  if (path === 'config' && m === 'GET') return json({ open, siteKey: open ? env.TURNSTILE_SITEKEY : '' }, 200, { ...cors, 'Cache-Control': 'public, max-age=300' });
+  if (path === 'glacier' && m === 'POST') {
+    if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
+    if (!open) return json({ error: 'Requests are not open yet.' }, 503, cors);
+    if (overHourly(askSends, ip, ASK.perHour)) return json({ error: 'Too many requests from this address. Please try again later.' }, 429, { ...cors, 'Retry-After': '3600' });
+    let body;
+    try { if ((+request.headers.get('Content-Length') || 0) > 3000) throw 0; body = await request.json(); } catch { return json({ error: 'Invalid request' }, 400, cors); }
+    const name = typeof body.name === 'string' ? body.name.normalize('NFC').replace(/\s+/g, ' ').trim() : '', token = body.token;
+    if (!askName.test(name) || typeof token !== 'string' || token.length > 2100) return json({ error: 'Invalid request' }, 400, cors);
+    const t = await fetch('https://challenges.cloudflare.com/turnstile/v0/siteverify', { method: 'POST',
+      body: new URLSearchParams({ secret: env.TURNSTILE_SECRET, response: token, remoteip: ip }) }).then(r => r.json()).catch(() => null);
+    if (!t || !t.success) return json({ error: 'The check "are you a person" failed. Please try again.' }, 403, cors);
+    let g;
+    try { g = await wikidataGlacier(name, typeof body.lang === 'string' ? body.lang : '').catch(() => null) || await rgiGlacier(name); } catch { return json({ error: 'The glacier list could not be reached. Please try again later.' }, 502, cors); }
+    if (!g) return json({ error: 'unknown', message: `“${name}” is not a glacier we can find in Wikidata or in the Randolph Glacier Inventory. Please check the spelling.` }, 404, cors);
+    const key = 'ask/' + g.q, old = await env.CACHE.get(key, 'json'), now = new Date().toISOString();
+    if (!old && (await env.CACHE.list({ prefix: 'ask/', limit: ASK.max })).keys.length >= ASK.max) return json({ error: 'Too many requests are waiting. Please try again later.' }, 503, cors);
+    const typed = old ? [...new Set([...old.typed, name])].slice(0, 8) : [name];
+    await env.CACHE.put(key, JSON.stringify({ q: g.q, label: g.label, typed, count: (old ? old.count : 0) + 1, first: old ? old.first : now, last: now }), { expirationTtl: ASK.keep });
+    return json({ ok: true, label: g.label }, 200, cors);
+  }
+  if (path.startsWith('admin/')) {
+    if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
+    const want = env.GALLERY_ADMIN_TOKEN || '', got = (request.headers.get('Authorization') || '').replace(/^Bearer /, '');
+    if ((galFails.get(ip) || []).filter(x => Date.now() - x < 3600e3).length >= ASK.adminFails) return json({ error: 'Too many attempts' }, 429, cors);
+    if (want.length < 20 || !(await sameText(got, want))) { overHourly(galFails, ip, Infinity); return json({ error: 'Not allowed' }, 401, cors); }
+    if (!env.CACHE) return json({ error: 'No storage' }, 503, cors);
+    const a = path.slice('admin/'.length);
+    if (a === 'list' && m === 'GET') {
+      const l = await env.CACHE.list({ prefix: 'ask/', limit: ASK.max }), items = [];
+      for (const k of l.keys) { const v = await env.CACHE.get(k.name, 'json'); if (v) items.push(v); }
+      return json({ items: items.sort((x, y) => y.count - x.count || (y.last > x.last ? 1 : -1)) }, 200, { ...cors, 'Cache-Control': 'no-store' });
+    }
+    if (/^(Q\d+|G\d{6}E\d{5}[NS])$/.test(a) && m === 'DELETE') { await env.CACHE.delete('ask/' + a); return json({ ok: true }, 200, cors); }
+  }
+  return json({ error: 'Not found' }, 404, cors);
+}
 
 /* ---------- gallery ----------
    Visitors share a finished picture or video. Everything the browser sends is checked here: size, the real file type

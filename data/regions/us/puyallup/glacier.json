@@ -1,0 +1,13 @@
+{
+  "id": "puyallup",
+  "region": "us",
+  "name": "Puyallup Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.847597,
+    -121.8237854576087
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "kleinleiten-ferner",
+  "region": "at",
+  "name": "Kleinleiten Ferner",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.7743,
+    10.9942
+  ]
+}

@@ -1,0 +1,14 @@
+{
+  "id": "brufossbrea",
+  "region": "no-mainland",
+  "name": "Brufossbrea",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.053,
+    6.363
+  ],
+  "parent": "sondre-folgefonna"
+}

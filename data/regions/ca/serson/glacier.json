@@ -1,0 +1,13 @@
+{
+  "id": "serson",
+  "region": "ca",
+  "name": "Serson Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    82.24159800000001,
+    -85.37012272946905
+  ]
+}

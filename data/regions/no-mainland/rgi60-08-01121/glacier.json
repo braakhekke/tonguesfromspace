@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-01121",
+  "region": "no-mainland",
+  "name": "RGI60-08.01121",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.675,
+    7.149
+  ],
+  "parent": "jostedalsbreen"
+}

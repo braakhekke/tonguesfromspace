@@ -1,0 +1,13 @@
+{
+  "id": "hufifirn",
+  "region": "ch",
+  "name": "Hüfifirn",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.82700050410955,
+    8.861002725157308
+  ]
+}

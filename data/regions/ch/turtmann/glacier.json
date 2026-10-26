@@ -1,0 +1,13 @@
+{
+  "id": "turtmann",
+  "region": "ch",
+  "name": "Turtmanngletscher",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.120000422324864,
+    7.702000497932224
+  ]
+}

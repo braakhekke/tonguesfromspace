@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-06-00242",
+  "region": "is-rest",
+  "name": "RGI60-06.00242",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    64.5287,
+    -20.6834
+  ],
+  "parent": "thorisjokull"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "dettebrea",
+  "region": "no-mainland",
+  "name": "Dettebrea",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.2,
+    6.481
+  ],
+  "parent": "nordre-folgefonna"
+}

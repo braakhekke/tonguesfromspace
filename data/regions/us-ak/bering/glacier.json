@@ -1,0 +1,13 @@
+{
+  "id": "bering",
+  "region": "us-ak",
+  "name": "Bering Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    60.41605,
+    -142.84283555624228
+  ]
+}

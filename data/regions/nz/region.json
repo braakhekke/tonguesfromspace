@@ -1,0 +1,12 @@
+{
+  "id": "nz",
+  "name": "New Zealand",
+  "status": "onboarding",
+  "centre": [
+    -43.5879725,
+    170.17238288055256
+  ],
+  "zoom": 6,
+  "blurb": "New Zealand.",
+  "sources": []
+}

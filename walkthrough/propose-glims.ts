@@ -48,29 +48,29 @@ export async function lookUp(at: LatLon, name: string | undefined, f: typeof fet
   return { g, near, dated };
 }
 
-export async function proposeGlims(region: string, found: { g: Rgi; near: Rgi[]; dated: Dated[] }, opts: { name?: string; id?: string; rank: number; regionRule?: string; log?: (m: string) => void }) {
+export async function proposeGlims(region: string, found: { g: Rgi; near: Rgi[]; dated: Dated[] }, opts: { name?: string; id?: string; rank: number; source?: Source; label?: string; nameNote?: string; regionRule?: string; log?: (m: string) => void }) {
   const log = opts.log ?? (() => {});
   const { g, near, dated } = found;
   const name = opts.name || g.name || `RGI ${g.rgiId}`;
   const id = opts.id ?? addressFor(name);
   if (!existsSync(glacierFile(region, id))) newGlacier(region, id, name, g.centre);
   const c = loadCtx(region, id);
-  const by = 'propose-glims';
+  const by = 'propose-glims', src = opts.source ?? RGI_SOURCE, label = opts.label ?? 'RGI 6.0';
 
   // outlines: the RGI one is "new" (about 2000); the oldest GLIMS date is "old" if it is clearly older
   const year = yearOf(g.date);
-  const oldest = dated[0] ?? null, older = oldest && year !== null && Number(oldest.date.slice(0, 4)) < year - 10 ? oldest : null;
+  const newest = dated[dated.length - 1] ?? null, oldest = dated[0] ?? null, older = oldest && year !== null && Number(oldest.date.slice(0, 4)) < year - 10 ? oldest : null;
   const feat = (x: Rgi) => ({ type: 'Feature' as const, properties: { 'rgi-id': x.rgiId, name: x.name, area_km2: x.areaKm2, year: yearOf(x.date) }, geometry: slim(x.geometry, x.rgiId === g.rgiId) });
   const datedFeats = dated.map((d) => ({ type: 'Feature' as const, properties: { date: d.date, by: d.by, area_km2: d.areaKm2 }, geometry: slim(d.geometry as Rgi['geometry'], false) }));
   const oldIdx = older ? dated.findIndex((d) => d.date === older.date && d.by === older.by) : -1;
-  writeProposal(region, id, 'glacier.outline', by, `RGI 6.0 outline of ${g.rgiId} (outline date ${g.date || 'not stated'}), ${near.length} glaciers within 10 km shown so you can add parts that belong to this one. GLIMS holds ${dated.length} dated outline${dated.length === 1 ? '' : 's'} of this glacier${dated.length ? ` (${dated[0]!.date.slice(0, 4)} to ${dated[dated.length - 1]!.date.slice(0, 4)})`: ''}: all are listed to choose from${older ? `; the oldest (${older.date}, ${older.by ?? 'contributor not stated'}) is proposed as the past outline` : '; none is clearly older than the RGI one, so no past outline is proposed'}.`, {
+  writeProposal(region, id, 'glacier.outline', by, `${label} outline of ${g.rgiId} (outline date ${g.date || 'not stated'}), ${near.length} glaciers within 10 km shown so you can add parts that belong to this one. GLIMS holds ${dated.length} dated outline${dated.length === 1 ? '' : 's'} of this glacier${dated.length ? ` (${dated[0]!.date.slice(0, 4)} to ${dated[dated.length - 1]!.date.slice(0, 4)})`: ''}${newest && year !== null && Number(newest.date.slice(0, 4)) > year + 3 ? `; THE NEWEST (${newest.date}, ${newest.by ?? 'contributor not stated'}, ${newest.areaKm2 ?? 'area not stated'} km² against ${g.areaKm2} km² here) IS NEWER THAN THE ${label} ONE: look at it, it may be the better present outline, or only part of the glacier` : ''}: all are listed to choose from${older ? `; the oldest (${older.date}, ${older.by ?? 'contributor not stated'}) is proposed as the past outline` : '; none is clearly older than the RGI one, so no past outline is proposed'}.`, {
     candidates: { new: near.map(feat), old: older ? [datedFeats[oldIdx]!] : [] },
     dated: datedFeats,      // every dated outline GLIMS has, oldest first: the screen lists them all, any number can be kept
     preselect: { new: near.map((x, i) => (x.rgiId === g.rgiId ? i : -1)).filter((i) => i >= 0), old: older ? [0] : [] },
-    epochs: { new: { year: year ?? 2000, source: RGI_SOURCE.id }, ...(older ? { old: { year: Number(older.date.slice(0, 4)), source: GLIMS_SOURCE.id, date: older.date, datedIndex: oldIdx } } : {}) },
+    epochs: { new: { year: year ?? 2000, source: src.id }, ...(older ? { old: { year: Number(older.date.slice(0, 4)), source: GLIMS_SOURCE.id, date: older.date, datedIndex: oldIdx } } : {}) },
   });
 
-  writeProposal(region, id, 'glacier.record', by, `From the RGI 6.0 record ${g.rgiId}: area (${g.areaKm2} km²), name and centre are the inventory's own values${g.name ? '' : '; the inventory gives this glacier no name, the name is the one you asked for'}.`, {
+  writeProposal(region, id, 'glacier.record', by, `From the ${label} record ${g.rgiId}: area (${g.areaKm2} km²) and centre are the inventory's own values${opts.nameNote ? `; ${opts.nameNote}` : `, and so is the name${g.name ? '' : '; the inventory gives this glacier no name, the name is the one you asked for'}`}.`, {
     id, name, inventoryId: g.rgiId, rank: opts.rank, areaKm2: g.areaKm2, areaSource: RGI_SOURCE.id, centre: [+g.centre[0].toFixed(5), +g.centre[1].toFixed(5)], legacyIds: [],
   });
 
@@ -89,7 +89,7 @@ export async function proposeGlims(region: string, found: { g: Rgi; near: Rgi[];
 
   writeProposal(region, null, 'region.unit', by, 'Sources found for the outlines. Licences are NOT READ: open each page and write the licence into the source. The unit rule is a placeholder.', {
     unitRule: c.region.unitRule ?? opts.regionRule ?? 'TO WRITE: what counts as "a glacier" in this region, as a rule someone else could apply and get the same list.',
-    sources: [...(c.region.sources.length ? c.region.sources : []), ...[RGI_SOURCE, GLIMS_SOURCE].filter((s) => !c.region.sources.some((x) => x.id === s.id))],
+    sources: [...(c.region.sources.length ? c.region.sources : []), ...[src, GLIMS_SOURCE].filter((s) => !c.region.sources.some((x) => x.id === s.id))],
   });
   log(`${name}: ${g.rgiId}, ${g.areaKm2} km², ${near.length} near, ${dated.length} dated outlines`);
   return { id, name, rgiId: g.rgiId, glimsId: g.glimsId, areaKm2: g.areaKm2, centre: g.centre, older, box, tip, seasonFrom: near1?.x.name ?? null } satisfies Proposed;

@@ -1,0 +1,13 @@
+{
+  "id": "arpont",
+  "region": "fr",
+  "name": "Arpont",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.3214,
+    6.75298
+  ]
+}

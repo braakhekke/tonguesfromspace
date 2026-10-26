@@ -61,13 +61,16 @@ class TestBoxesFile(unittest.TestCase):
     def test_terrain_files_hold_the_strip_of_the_file(self):
         d = load("data/boxes.js")["glaciers"]; manifest = load("data/terrain/manifest.json")
         for gid, g in d.items():
-            if g["region"] != "ch": continue      # the Swiss files are made from the record; the ones of the other regions from the data files (equal, see above)
-            with open(os.path.join(ROOT, "data", "terrain", manifest[gid]), "rb") as f: raw = f.read(8); h = json.loads(f.read(struct.unpack("<I", raw[4:8])[0]))
-            px, py = merc(*g["tip"]); t = g["strip3d"]; az = math.radians(t["azimuth"])
-            self.assertAlmostEqual(h["P"][0], px, delta=1e-3, msg=gid); self.assertAlmostEqual(h["P"][1], py, delta=1e-3, msg=gid)
-            self.assertAlmostEqual(h["k"], 1 / math.cos(math.radians(g["tip"][0])), delta=1e-9, msg=gid)
-            self.assertAlmostEqual(h["ue"], math.sin(az), delta=1e-9, msg=gid); self.assertAlmostEqual(h["un"], math.cos(az), delta=1e-9, msg=gid)
-            self.assertAlmostEqual(h["up"], t["up"], delta=1e-6, msg=gid); self.assertEqual(h["back"], t["back"], gid)
+            if g.get("parent"): continue      # a sub-outlet is a record only
+            with self.subTest(gid):
+                self.assertIn(gid, manifest, "every glacier of every region has a baked terrain file (one rule for all regions)")
+                with open(os.path.join(ROOT, "data", "terrain", manifest[gid]), "rb") as f: raw = f.read(8); h = json.loads(f.read(struct.unpack("<I", raw[4:8])[0]))
+                px, py = merc(*g["tip"]); t = g["strip3d"]; az = math.radians(t["azimuth"])
+                self.assertAlmostEqual(h["P"][0], px, delta=1e-3); self.assertAlmostEqual(h["P"][1], py, delta=1e-3)
+                self.assertAlmostEqual(h["k"], 1 / math.cos(math.radians(g["tip"][0])), delta=1e-9)
+                self.assertAlmostEqual(h["ue"], math.sin(az), delta=1e-9); self.assertAlmostEqual(h["un"], math.cos(az), delta=1e-9)
+                self.assertAlmostEqual(h["up"], t["up"], delta=1e-6); self.assertEqual(h["back"], t["back"])
+                self.assertEqual(h.get("half", 2000), t["half"], "strip half width")
 
 
 class TestPageAgreesWithBoxes(SiteCase):

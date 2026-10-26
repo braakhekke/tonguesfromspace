@@ -1,0 +1,14 @@
+{
+  "id": "rembesdalskaaka",
+  "region": "no-mainland",
+  "name": "Rembesdalskaaka",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.537,
+    7.405
+  ],
+  "parent": "hardangerjokulen"
+}

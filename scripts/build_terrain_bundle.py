@@ -21,25 +21,19 @@ Usage: python3 scripts/build_terrain_bundle.py [--id B36-26 ...]
 import argparse, array, base64, datetime, hashlib, json, math, os, struct, sys, urllib.parse, urllib.request, zipfile, zlib
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import build_dem_change as bd
+import terrain_lib as tl
+import terrain_names as tn
 
 ROOT = bd.ROOT
 OUT = os.path.join(ROOT, 'data', 'terrain')
 HALF = 2000                 # half width of the strip (m): V3D.HALF in index.html
-def _boxes():                # data/boxes.js: window.GLACIER_BOXES = {...};
-    t = open(os.path.join(ROOT, 'data', 'boxes.js'), encoding='utf-8').read()
-    return json.loads(t[t.index('{', t.index('window.GLACIER_BOXES')):t.rindex('}') + 1])
-BOXES = _boxes()
 NB = 284                    # grid cells across (a multiple of 4: 2 * 2000 / 284 = 14.08 m); along: about the same size, an even number
 NAME_KINDS = {'Hauptgipfel': 3, 'Alpiner Gipfel': 3, 'Gipfel': 2, 'Pass': 1}
-R = 6378137.0
-
-
-def merc(lat, lon): return R * math.radians(lon), R * math.log(math.tan(math.pi / 4 + math.radians(lat) / 2))
-def unmerc(x, y): return math.degrees(2 * math.atan(math.exp(y / R)) - math.pi / 2), math.degrees(x / R)
+merc, unmerc = tl.merc, tl.unmerc
 
 
 def strip_for(g):                          # the strip of data/boxes.js (the page reads the same: stripFor() in js/11-view3d.js): tip, azimuth up the glacier, metres below the tip and up
-    e = BOXES['glaciers'][g['id']]; t = e['strip3d']; tip = e['tip']; px, py = merc(*tip); k = 1 / math.cos(math.radians(tip[0])); az = math.radians(t['azimuth'])
+    e = tl.records()[g['id']]; t = e['strip3d']; tip = e['tip']; px, py = merc(*tip); k = 1 / math.cos(math.radians(tip[0])); az = math.radians(t['azimuth'])
     if t['half'] != HALF: sys.exit(f"{g['id']}: strip half width {t['half']} m in data/boxes.js, but this script builds {HALF} m wide strips (HALF)")
     return {'P': (px, py), 'k': k, 'ue': math.sin(az), 'un': math.cos(az), 'up': t['up'], 'back': t['back']}
 
@@ -97,29 +91,6 @@ def relevant_pins(pins, up, back):         # as relevantPins() in index.html: ab
     return [b for b in best if b]
 
 
-def names_for(st, h, nA, h0, avoid):       # the peak names of the strip: swisstopo swissNAMES3D, chosen as pickNames() in index.html
-    px, py, k, ue, un, up, back = st['P'][0], st['P'][1], st['k'], st['ue'], st['un'], st['up'], st['back']
-    cs = [(px + (a * ue + b * un) * k, py + (a * un - b * ue) * k) for a, b in ((-back, -HALF), (-back, HALF), (up, -HALF), (up, HALF))]
-    env = ','.join(str(v) for v in (min(c[0] for c in cs), min(c[1] for c in cs), max(c[0] for c in cs), max(c[1] for c in cs)))
-    url = 'https://api3.geo.admin.ch/rest/services/api/MapServer/identify?' + urllib.parse.urlencode({'geometryType': 'esriGeometryEnvelope', 'geometry': env, 'imageDisplay': '1000,1000,96', 'mapExtent': env,
-          'tolerance': '0', 'layers': 'all:ch.swisstopo.swissnames3d', 'sr': '3857', 'returnGeometry': 'true', 'limit': '200', 'lang': 'en'})
-    j = json.load(urllib.request.urlopen(urllib.request.Request(url, headers={'User-Agent': 'tonguesfromspace-build'}), timeout=60))
-    ln = up + back; nB = NB; seen = set(); cand = []
-    for r in j.get('results', []):
-        a_ = r['attributes']; kind = a_.get('objektart')
-        if kind not in NAME_KINDS or not r.get('geometry') or not r['geometry'].get('points') or not a_.get('name'): continue
-        mx, my = r['geometry']['points'][0]; dx, dy = (mx - px) / k, (my - py) / k; a, b = dx * ue + dy * un, dx * un - dy * ue
-        if not (abs(b) <= HALF and -back <= a <= up and abs(b) < HALF - 200 and a > -back + 150 and a < up - 200) or a_['name'] in seen: continue
-        seen.add(a_['name']); x, z = b, -a
-        jj = min(nA, max(0, round((z + up) / ln * nA))); ii = min(nB, max(0, round((x + HALF) / (2 * HALF) * nB)))
-        cand.append((h[jj][ii] / 10 + NAME_KINDS[kind] * 120, x, z, a_['name']))
-    cand.sort(reverse=True); out = []
-    for sc, x, z, name in cand:
-        if len(out) >= 6: break
-        if all(math.hypot(o['x'] - x, o['z'] - z) > 750 for o in out) and all(math.hypot(o[0] - x, o[1] - z) > 750 for o in avoid): out.append({'x': round(x, 1), 'z': round(z, 1), 'text': name})
-    return out
-
-
 def delta_grid(g, st, nA, nB):             # the ice change (cm) at every grid point, resampled from demchange/<id>.json as iceChangeGrid() in index.html
     path = os.path.join(ROOT, 'data', 'demchange', g['id'] + '.json')
     if not os.path.exists(path): return None, None
@@ -165,22 +136,17 @@ def build(g, tiles):
     if R_ and R_.get('max_at'):
         mx, my = merc(*R_['max_at']); dx, dy = (mx - px) / k, (my - py) / k; a, b = dx * ue + dy * un, dx * un - dy * ue
         if abs(b) <= HALF and -back <= a <= up: avoid.append((b, -a))
-    try: names = names_for(st, q, nA, h0, avoid)
+    sj = dict(st, half=HALF); at_ = lambda a, b: q[min(nA, max(0, round((up - a) / ln * nA)))][min(nB, max(0, round((b + HALF) / (2 * HALF) * nB)))] / 10
+    try: names = tn.names_for('ch', sj, at_, avoid)
     except Exception as e: print('  names failed:', e, file=sys.stderr); names = []
-    head = {'v': 1, 'id': gid, 'P': [px, py], 'k': k, 'ue': ue, 'un': un, 'up': up, 'back': back, 'nA': nA, 'nB': nB, 'h0': h0, 'dem': dem, 'names': names, 'radar': pins, 'built': datetime.date.today().isoformat()}
+    head = {'v': 1, 'id': gid, 'P': [px, py], 'k': k, 'ue': ue, 'un': un, 'up': up, 'back': back, 'nA': nA, 'nB': nB, 'h0': h0, 'dem': dem, 'names': names, 'namesSource': tn.source('ch')[0], 'radar': pins, 'built': datetime.date.today().isoformat()}
     def packed(rows):                      # int16 differences along each row
         flat = []
         for row in rows: flat += [row[0]] + [row[i] - row[i - 1] for i in range(1, len(row))]
         return struct.pack('<%dh' % len(flat), *flat)
     payload = zlib.compress(packed(q) + (packed(delta) if delta else b''), 9)
-    hb = json.dumps(head, separators=(',', ':')).encode(); data = b'TFS1' + struct.pack('<I', len(hb)) + hb + payload
-    name = f'{gid}.{hashlib.sha1(data).hexdigest()[:8]}.bin'; os.makedirs(OUT, exist_ok=True)
-    for f in os.listdir(OUT):
-        if f.startswith(gid + '.') and f.endswith('.bin') and f != name: os.remove(os.path.join(OUT, f))
-    open(os.path.join(OUT, name), 'wb').write(data)
-    mp = os.path.join(OUT, 'manifest.json'); man = json.load(open(mp)) if os.path.exists(mp) else {}; man[gid] = name
-    json.dump(man, open(mp, 'w'), indent=1, sort_keys=True)
-    print(f'  {len(pins)} radar pins, {len(names)} names ({", ".join(n["text"] for n in names)}), ice change: {"yes" if delta else "no"}; wrote {name}: {len(data) / 1024:.0f} KB', file=sys.stderr)
+    name, size = tl.write_bundle(gid, head, payload)
+    print(f'  {len(pins)} radar pins, {len(names)} names ({", ".join(n["text"] for n in names)}), ice change: {"yes" if delta else "no"}; wrote {name}: {size / 1024:.0f} KB', file=sys.stderr)
 
 
 def main():

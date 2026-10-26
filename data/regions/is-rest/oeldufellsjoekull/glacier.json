@@ -1,0 +1,14 @@
+{
+  "id": "oeldufellsjoekull",
+  "region": "is-rest",
+  "name": "Oeldufellsjoekull",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    63.7409,
+    -18.9994
+  ],
+  "parent": "myrdalsjokull"
+}

@@ -1,0 +1,14 @@
+{
+  "id": "engabreen",
+  "region": "no-mainland",
+  "name": "Engabreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    66.657,
+    13.853
+  ],
+  "parent": "vestre-svartisen"
+}

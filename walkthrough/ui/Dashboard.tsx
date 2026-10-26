@@ -5,6 +5,12 @@ import { go } from './nav';
 
 const slugify = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ø/g, 'o').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
 
+/** the glaciers by rank, each ice cap followed by its outlets */
+const inListOrder = (list: api.Overview['regions'][number]['glaciers']) => {
+  const top = list.filter((g) => !g.parent).sort((a, b) => (a.rank || 99) - (b.rank || 99));
+  return top.flatMap((g) => [g, ...list.filter((o) => o.parent === g.id).sort((a, b) => (a.rank || 99) - (b.rank || 99))]);
+};
+
 export function Dashboard() {
   const [o, setO] = useState<api.Overview | null>(null);
   const [err, setErr] = useState<string | null>(null);
@@ -52,9 +58,9 @@ export function Dashboard() {
             <a class="grow" href={`/onboard/${r.id}/-/${r.regionProgress.next ?? 'region.unit'}`}>
               <span>Region setup</span><span class="bar"><b style={`width:${(r.regionProgress.done / Math.max(1, r.regionProgress.total)) * 100}%`} /></span>
             </a>
-            {r.glaciers.map((g) => (
-              <a class="grow" key={g.id} href={`/onboard/${r.id}/${g.id}/${g.next ?? 'glacier.record'}`}>
-                <b>{g.name}{g.done < 1 && <span class="pill-draft">draft</span>}</b>
+            {inListOrder(r.glaciers).map((g) => (
+              <a class="grow" key={g.id} style={g.parent ? 'margin-left:18px' : ''} href={`/onboard/${r.id}/${g.id}/${g.next ?? 'glacier.record'}`}>
+                <b>{g.parent && '↳ '}{g.name}{g.done < 1 && <span class="pill-draft">draft</span>}</b>
                 <span class="bar"><b style={`width:${(g.done / Math.max(1, g.total)) * 100}%`} /></span>
               </a>
             ))}

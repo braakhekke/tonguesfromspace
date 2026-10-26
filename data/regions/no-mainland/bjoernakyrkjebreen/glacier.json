@@ -1,0 +1,14 @@
+{
+  "id": "bjoernakyrkjebreen",
+  "region": "no-mainland",
+  "name": "Bjoernakyrkjebreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.561,
+    6.809
+  ],
+  "parent": "jostedalsbreen"
+}

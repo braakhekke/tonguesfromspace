@@ -1,0 +1,13 @@
+{
+  "id": "challenger",
+  "region": "us",
+  "name": "Challenger Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    48.845381,
+    -121.33761734142087
+  ]
+}

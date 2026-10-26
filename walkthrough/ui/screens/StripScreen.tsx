@@ -31,7 +31,8 @@ export function StripScreen({ st, setPatch, setBlock }: ScreenProps) {
     L.tileLayer(BASE, { maxNativeZoom: 14, maxZoom: 17 }).addTo(map);
     const poly = L.polygon(stripCorners(tip, live.current), { color: '#2D6E8E', weight: 2, fillOpacity: 0.12, interactive: false }).addTo(map);
     L.circleMarker(tip, { radius: 6, color: '#fff', weight: 2, fillColor: '#C8322A', fillOpacity: 1 }).bindTooltip('Tongue tip (from the placement)', { direction: 'top' }).addTo(map);
-    map.fitBounds(poly.getBounds(), { paddingTopLeft: [60, 60], paddingBottomRight: [330, 60] });
+    if (p.pictureBox) L.rectangle(p.pictureBox as L.LatLngBoundsLiteral, { color: '#2F6FB0', weight: 2, dashArray: '6 4', fill: false, interactive: false }).bindTooltip('Picture box (the satellite picture of each year)', { sticky: true }).addTo(map);
+    map.fitBounds(L.latLngBounds(poly.getBounds().getSouthWest(), poly.getBounds().getNorthEast()).extend(p.pictureBox ? (p.pictureBox as L.LatLngBoundsLiteral) : poly.getBounds()), { paddingTopLeft: [60, 60], paddingBottomRight: [330, 60] });
     const mk = (cls: string) => L.marker(tip, { draggable: true, icon: icon(cls), zIndexOffset: 1000 }).addTo(map);
     const far = mk('wz-h wz-h-far'), side = mk('wz-h'), near = mk('wz-h');
     far.bindTooltip('Far end: drag to turn and lengthen', { direction: 'top' }); side.bindTooltip('Width', { direction: 'top' }); near.bindTooltip('How far below the tip', { direction: 'top' });
@@ -62,6 +63,8 @@ export function StripScreen({ st, setPatch, setBlock }: ScreenProps) {
     setPatch({ strip3d: { azimuth: s.azimuth, half: s.half, back: s.back, up: s.up, ...(cell && c > 0 ? { cell: c } : {}), ...(cam ? { cam } : {}) } });
   }, [s.azimuth, s.half, s.back, s.up, cell, cam && cam.az + '|' + cam.el + '|' + cam.dist]);
 
+  // a strip that leaves the picture box needs a second satellite picture per year (more Copernicus requests), and the elevation model has to cover it
+  const outside = p.pictureBox ? stripCorners(tip, s).some(([la, lo]) => la < p.pictureBox![0][0] || la > p.pictureBox![1][0] || lo < p.pictureBox![0][1] || lo > p.pictureBox![1][1]) : false;
   const num = (k: keyof Strip, d = 0) => (
     <input inputMode="decimal" value={String(s[k])} onInput={(e) => { const v = Number((e.target as HTMLInputElement).value); if (Number.isFinite(v)) setS({ ...s, [k]: round(v, d) }); }} />
   );
@@ -77,6 +80,9 @@ export function StripScreen({ st, setPatch, setBlock }: ScreenProps) {
         </div>
         <label class="field"><span>Up the glacier, m</span>{num('up')}</label>
         <label class="field"><span>Terrain grid cell, m (optional)</span><input inputMode="decimal" value={cell} onInput={(e) => setCell((e.target as HTMLInputElement).value)} placeholder="the region's default" /></label>
+        {p.pictureBox && (outside
+          ? <p class="note" style="color:#C8322A">Part of the strip lies outside the picture box (blue dashed). The 3D view then loads an extra satellite picture for every year, which costs more Copernicus requests. Shorten or narrow the strip, or grow the box in the placement step.</p>
+          : <p class="note">The strip lies inside the picture box (blue dashed): no extra satellite pictures are needed.</p>)}
         <h3>Start camera</h3>
         {cam
           ? <p class="note">Azimuth {round((cam.az * 180) / Math.PI, 1)}°, elevation {round((cam.el * 180) / Math.PI, 1)}°, distance {round(cam.dist)} m. <button type="button" class="linkish" onClick={() => setCam(null)}>Use the default</button></p>

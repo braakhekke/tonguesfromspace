@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-01108",
+  "region": "no-mainland",
+  "name": "RGI60-08.01108",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.745,
+    6.689
+  ],
+  "parent": "myklebustbreen"
+}

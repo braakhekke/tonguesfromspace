@@ -725,6 +725,39 @@
   },
   "hasScenes": true
  },
+ "hofsjokull-thjorsarjokull": {
+  "region": "is-rest",
+  "name": "Þjórsárjökull",
+  "pictureBox": [
+   [
+    64.67226279195113,
+    -18.733566680149398
+   ],
+   [
+    64.89863720804887,
+    -18.438353319850602
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": false
+ },
  "langjokull": {
   "region": "is-rest",
   "name": "Langjökull",
@@ -790,6 +823,39 @@
    "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
   },
   "hasScenes": true
+ },
+ "hofsjokull-blondujokull-kvislajokull": {
+  "region": "is-rest",
+  "name": "Blöndujökull / Kvíslajökull",
+  "pictureBox": [
+   [
+    64.73709692777578,
+    -19.232071929633296
+   ],
+   [
+    64.89340307222423,
+    -18.970308070366702
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": false
  },
  "myrdalsjokull": {
   "region": "is-rest",

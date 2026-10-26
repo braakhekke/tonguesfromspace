@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-06-00287",
+  "region": "is-rest",
+  "name": "RGI60-06.00287",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    64.7468,
+    -17.9697
+  ],
+  "parent": "tungnafellsjokull"
+}

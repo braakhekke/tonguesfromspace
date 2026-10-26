@@ -1,0 +1,13 @@
+{
+  "id": "de-la-sassiere",
+  "region": "fr",
+  "name": "de la Sassiere",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.5106,
+    6.98855
+  ]
+}

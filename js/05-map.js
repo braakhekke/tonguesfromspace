@@ -1,6 +1,6 @@
 import { wire } from './wire.js';
 import { YEARS, $, COARSE } from './01-data.js';
-import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, GLACIERS } from './02-glaciers.js';
+import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, isLandsat, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, setLoading, fmtDM, latestBusy } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, glacierPicked } from './04-state.js';
 // registered for the files below it in the load order (see wire.js)
@@ -69,7 +69,7 @@ export function updateCredits(){
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
-  if (speedLayer) parts.push('Ice speed: <a href="https://its-live.jpl.nasa.gov" target="_blank" rel="noopener">ITS_LIVE</a> annual velocity mosaics, NASA MEaSUREs (CC BY 4.0)');
+  if (speedLayer) parts.push('Ice speed: <a href="https://its-live.jpl.nasa.gov" target="_blank" rel="noopener">ITS_LIVE</a> annual mosaics of image pair velocities v2.1, NASA MEaSUREs (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (typeof wire.svActive === 'function' && wire.svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
   document.getElementById('credits').innerHTML = parts.join(' · ');
@@ -436,7 +436,8 @@ export function showFrame(i){
   else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`, sc);
   /* the timeline as in the Timelapse download: first and last year above a line, a tick for every year, the line filled up to the year on show, a round marker */
   const dockOpen = !!state.dockOpen, nTl = tlLayers.length, pct = k => nTl > 1 ? k / (nTl - 1) * 100 : 0;
-  const tlHtml = state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl-row"><button type="button" class="tl-play" aria-label="${state.playing ? 'Pause' : 'Play'}">${state.playing ? FULL_ICONS.pause : FULL_ICONS.play}</button><div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div><button type="button" class="tl-tools" aria-label="Show tools" aria-expanded="${dockOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>`;
+  const ys1 = okYears(), at1 = ys1.indexOf(state.one), stepHtml = state.mode !== 'single' || off || ys1.length < 2 ? '' : `<div class="tl-row tl-step"><button type="button" class="tl-prev" aria-label="Previous year" title="Previous year"${at1 <= 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b class="tl-step-year">${yShown}</b><button type="button" class="tl-next" aria-label="Next year" title="Next year"${at1 < 0 || at1 >= ys1.length - 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;      // One year: previous / next year with a scene, in the dock
+  const tlHtml = stepHtml || (state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl-row"><button type="button" class="tl-play" aria-label="${state.playing ? 'Pause' : 'Play'}">${state.playing ? FULL_ICONS.pause : FULL_ICONS.play}</button><div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div><button type="button" class="tl-tools" aria-label="Show tools" aria-expanded="${dockOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>`);
   document.getElementById('tlDots').innerHTML = tlHtml; document.getElementById('v3dTlLine').innerHTML = tlHtml;      // the same timeline on the map and in the 3D view; in full screen its play button is the way to start and stop
   document.getElementById('frameSlider').value = i;
   updateCredits();
@@ -461,6 +462,11 @@ export function syncDock(){          // phones: while a timelapse plays, the doc
   [document.querySelector('.mapbar'), document.getElementById('v3dMeasure')].forEach(d => { if (!d) return; d.classList.toggle('tl-live', !!state.playing); d.classList.toggle('tools-open', !!state.dockOpen); });
   document.querySelectorAll('.tl-tools').forEach(b => b.setAttribute('aria-expanded', !!state.dockOpen));
 }
+document.addEventListener('click', e => {      // One year: the dock's previous / next buttons go to the neighbouring year with a scene
+  const b = e.target.closest && e.target.closest('.tl-prev, .tl-next'); if (!b || b.disabled) return;
+  const ys = okYears(), at = ys.indexOf(state.one), to = ys[at + (b.classList.contains('tl-next') ? 1 : -1)]; if (!to) return;
+  restoreLatest(); restoreOldest(); state.one = to; wire.refreshAll();
+});
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.tl-tools'); if (b) { state.dockOpen = !state.dockOpen; syncDock(); } });
 export function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
   if (!state.playing) state.dockOpen = false;
@@ -642,8 +648,8 @@ export async function drawRadar(){
   updateCredits();
 }
 map.on('zoomend', () => { if (radarLayer) drawRadar(); capCheckFine(); });
-/* ---------- ice speed (ITS_LIVE annual velocity mosaics) ----------
-   data/itslive/<SGI id>.json (made by scripts/build_itslive.py) holds, per year 2013 to 2022, the speed of the surface in 0.1 m/yr steps on a Web Mercator grid over the picture box
+/* ---------- ice speed (ITS_LIVE annual mosaics of image pair velocities, version 2.1) ----------
+   data/itslive/<glacier key>.json (made by scripts/build_itslive.py) holds, per year of `years` (2013 to 2024), the speed of the surface in 0.1 m/yr steps on a Web Mercator grid over the picture box
    of the glacier. The values are ITS_LIVE's `v`, copied. The layer shows the year of the picture on the map (one year: that year; Compare: the right-hand year; Timelapse: the frame).
    Years without data (2023 on) show nothing and say so. Values under SPEED_MIN m/yr are the noise floor of the product (rock beside the glaciers reads 1 to 2 m/yr) and stay clear. */
 export const SPEED_MIN = 5, SPEED_MAX = 150;
@@ -677,7 +683,7 @@ export async function updateNames(){
   namesLayer.addTo(map); declutterNames(); updateCredits();
 }
 map.on('zoomend moveend', () => { if (map.hasLayer(namesLayer)) declutterNames(); });
-export let speedLayer = null, speedKey = '', speedGen = 0;
+export let speedLayer = null, speedPin = null, speedFile = null, speedKey = '', speedGen = 0;
 export const speedFiles = new Map(), speedArrays = new Map();      // glacier id -> the file; "id|year" -> Float of m/yr
 export const loadSpeedFile = id => { if (!speedFiles.has(id)) speedFiles.set(id, fetch(asset(`data/itslive/${id}.json`)).then(r => r.ok ? r.json() : null).catch(() => null)); return speedFiles.get(id); };
 export async function speedArray(f, year){
@@ -690,10 +696,46 @@ export function speedYear(){
   if (state.mode === 'compare') return state.b;
   return tlLayers[state.frame] ? tlLayers[state.frame].yr : (state.one || state.to);
 }
-export function speedCanvas(f, a){
+/* only the glacier itself: the cells inside its oldest outline (the outer limit, the largest extent), found by drawing the outline on the grid of the file; a cell the outline touches counts.
+   Without an old outline the newest one is used, without either nothing is shown. */
+export const speedMasks = new Map();
+export const speedId = g => g.inv ? g.inv.id : g.id;      // the key of the glacier in data/itslive: the SGI id of a Swiss glacier, the record id elsewhere (as in data/boxes.js)
+export function speedMask(f, g){
+  if (speedMasks.has(f.id)) return speedMasks.get(f.id);
+  const geom = oldOutlineGeom(g) || newOutlineGeom(g), m = new Uint8Array(f.w * f.h), pieces = [];
+  if (g.rgi) g.rgi.outline.forEach(r => pieces.push(r.map(([la, lo]) => [lo, la])));      // an ice-cap outlet has open lines for its old outlines: its RGI basin polygon is the limit
+  else if (geom && geom.type !== 'MultiLineString') eachPiece(geom, pts => pieces.push(pts));
+  if (pieces.length) {
+    const c = document.createElement('canvas'); c.width = f.w; c.height = f.h; const x = c.getContext('2d', {willReadFrequently: true}), [x0, y0, x1, y1] = f.bbox;
+    x.beginPath();
+    pieces.forEach(pts => pts.forEach(([lo, la], i) => { const P = L.CRS.EPSG3857.project(L.latLng(la, lo)), X = (P.x - x0) / (x1 - x0) * f.w, Y = (y1 - P.y) / (y1 - y0) * f.h; i ? x.lineTo(X, Y) : x.moveTo(X, Y); }));
+    x.fillStyle = x.strokeStyle = '#000'; x.lineWidth = 1; x.fill('evenodd'); x.stroke();
+    const d = x.getImageData(0, 0, f.w, f.h).data; for (let i = 0; i < m.length; i++) m[i] = d[i * 4 + 3] > 0 ? 1 : 0;
+  }
+  speedMasks.set(f.id, m); return m;
+}
+/* The fastest ice of a year: the highest value along the flowline of the file (`flow`, from the tongue tip up the glacier, made by build_itslive.py) after a running median
+   of FLOW_MED points (about 400 m), so that a single bad cell cannot set it; {v in m/yr, xy the Web Mercator place of that point}, or null under SPEED_MIN. A file without
+   a flowline falls back to the fastest single cell inside the mask. */
+export const FLOW_MED = 7;
+export function speedPeak(f, a, mask){
+  const [x0, , , y1] = f.bbox, cellOf = (X, Y) => { const c = Math.floor((X - x0) / f.cell), r = Math.floor((y1 - Y) / f.cell); return c >= 0 && c < f.w && r >= 0 && r < f.h ? r * f.w + c : -1; };
+  if (f.flow && f.flow.length) {
+    const v = f.flow.map(([X, Y]) => { const i = cellOf(X, Y); return i >= 0 && a[i] !== f.nodata ? a[i] * f.step : NaN; });
+    let top = 0, at = -1;
+    for (let i = 0; i < v.length; i++) {
+      const w = v.slice(Math.max(0, i - (FLOW_MED >> 1)), i + (FLOW_MED >> 1) + 1).filter(Number.isFinite).sort((p, q) => p - q);
+      if (w.length >= (FLOW_MED >> 1) + 1) { const m = w.length % 2 ? w[w.length >> 1] : (w[w.length / 2 - 1] + w[w.length / 2]) / 2; if (m > top) { top = m; at = i; } }
+    }
+    return at >= 0 && top >= SPEED_MIN ? {v: top, xy: f.flow[at]} : null;
+  }
+  let at = -1, top = 0; for (let i = 0; i < a.length; i++) if (mask[i] && a[i] !== f.nodata && a[i] * f.step > top) { top = a[i] * f.step; at = i; }
+  return at >= 0 && top >= SPEED_MIN ? {v: top, xy: [x0 + (at % f.w + .5) * f.cell, y1 - (Math.floor(at / f.w) + .5) * f.cell]} : null;
+}
+export function speedCanvas(f, a, mask){
   const c = document.createElement('canvas'); c.width = f.w; c.height = f.h; const x = c.getContext('2d'), im = x.createImageData(f.w, f.h);
   for (let i = 0; i < a.length; i++) {
-    if (a[i] === f.nodata) continue; const v = a[i] * f.step; if (v < SPEED_MIN) continue;
+    if (!mask[i] || a[i] === f.nodata) continue; const v = a[i] * f.step; if (v < SPEED_MIN) continue;
     const col = SPEED_LUT[Math.min(255, Math.round((v - SPEED_MIN) / (SPEED_MAX - SPEED_MIN) * 255))], o = i * 4;
     im.data[o] = col[0]; im.data[o + 1] = col[1]; im.data[o + 2] = col[2]; im.data[o + 3] = Math.round(Math.min(1, (v - SPEED_MIN) / 20) * 230);      // fades in over 20 m/yr: no hard edge at the noise floor
   }
@@ -701,12 +743,29 @@ export function speedCanvas(f, a){
   const big = document.createElement('canvas'); big.width = f.w * 4; big.height = f.h * 4;      // the 120 m cells, smoothed (the browser blends premultiplied colours, so no dark rim where the layer fades out)
   const bx = big.getContext('2d'); bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high'; bx.drawImage(c, 0, 0, big.width, big.height); return big;
 }
+/* Click on the glacier with the speed layer on: the speed of that place in every year of the file, as small bars in a popup. The value of a year is the mean of the cells with a value
+   among the 3 x 3 around the click (about 500 m): one 120 m cell is noisy. It is computed here from the product, and the popup says so. Years without a value are empty. */
+export const speedPopup = L.popup({maxWidth: 300, className: 'speed-pop'});
+export async function speedClick(e){
+  const f = speedFile; if (!f || !speedLayer || M.mode) return;
+  const [x0, , , y1] = f.bbox, P = L.CRS.EPSG3857.project(e.latlng), c0 = Math.floor((P.x - x0) / f.cell), r0 = Math.floor((y1 - P.y) / f.cell);
+  if (c0 < 0 || c0 >= f.w || r0 < 0 || r0 >= f.h) return;
+  const arrs = await Promise.all(f.years.map(y => speedArray(f, y))); if (f !== speedFile) return;
+  const vals = arrs.map(a => { let n = 0, t = 0; for (let r = r0 - 1; r <= r0 + 1; r++) for (let c = c0 - 1; c <= c0 + 1; c++) if (r >= 0 && r < f.h && c >= 0 && c < f.w && a[r * f.w + c] !== f.nodata) { n++; t += a[r * f.w + c] * f.step; } return n ? t / n : null; });
+  if (!vals.some(v => v != null && v >= SPEED_MIN)) return;      // not on the moving ice
+  const W = 260, H = 84, B = 14, mx = Math.max(...vals.filter(v => v != null)), step = W / f.years.length, bw = step * .66, shown = speedYear();
+  const bars = f.years.map((y, i) => { const v = vals[i], h = v == null ? 0 : Math.max(1, v / mx * (H - B - 4)), x = i * step + (step - bw) / 2;
+    return `<g><title>${y}: ${v == null ? 'no value' : Math.round(v) + ' m/yr'}</title><rect x="${(i * step).toFixed(1)}" y="0" width="${step.toFixed(1)}" height="${H}" fill="transparent"/>${v == null ? '' : `<rect x="${x.toFixed(1)}" y="${(H - B - h).toFixed(1)}" width="${bw.toFixed(1)}" height="${h.toFixed(1)}" fill="var(--crevasse)" opacity="${y === shown ? 1 : .4}"/>`}<text x="${(i * step + step / 2).toFixed(1)}" y="${H - 2}" font-size="8" text-anchor="middle" fill="var(--moraine)">${f.years.length > 14 && i % 2 ? '' : String(y).slice(2)}</text></g>`; }).join('');
+  const k = f.years.indexOf(shown), now = k >= 0 && vals[k] != null ? `${shown}: <b>${Math.round(vals[k])} m/yr</b>. ` : '';
+  speedPopup.setLatLng(e.latlng).setContent(`<div class="speed-hist"><b>Speed here, ${f.years[0]} to ${f.years[f.years.length - 1]}</b><svg viewBox="0 0 ${W} ${H}" width="${W}" role="img" aria-label="Surface speed at this place per year: ${f.years.map((y, i) => `${y} ${vals[i] == null ? 'no value' : Math.round(vals[i]) + ' m/yr'}`).join(', ')}">${bars}</svg><small>${now}Yearly mean surface speed, ITS_LIVE; mean of the 3 × 3 cells around the click, computed here.</small></div>`).openOn(map);
+}
+map.on('click', speedClick);
 export async function updateSpeed(){
   const gen = ++speedGen, on = document.getElementById('speedToggle').checked && glacierPicked && viewMode !== '3d' && FEATURES.speed, legend = document.getElementById('speedLegend'), note = document.getElementById('speedNote');
   legend.hidden = !document.getElementById('speedToggle').checked || !FEATURES.speed;
-  const drop = () => { if (speedLayer) { map.removeLayer(speedLayer); speedLayer = null; speedKey = ''; updateCredits(); } };
+  const drop = () => { map.closePopup(speedPopup); if (speedPin) { map.removeLayer(speedPin); speedPin = null; } speedFile = null; if (speedLayer) { map.removeLayer(speedLayer); speedLayer = null; speedKey = ''; updateCredits(); } };
   if (!on) return drop();
-  const g = currentGlacier(), id = g.inv && g.inv.id, yr = speedYear();
+  const g = currentGlacier(), id = speedId(g), yr = speedYear();
   const f = id && await loadSpeedFile(id); if (gen !== speedGen) return;
   if (!f) { note.textContent = 'No ice speed data for this glacier.'; return drop(); }
   if (!f.years.includes(yr)) { note.textContent = `${yr ? `No ice speed for ${yr}: ` : ''}the ITS_LIVE annual maps cover ${f.years[0]} to ${f.years[f.years.length - 1]}.`; return drop(); }
@@ -714,8 +773,15 @@ export async function updateSpeed(){
   const key = id + '|' + yr; if (speedLayer && speedKey === key) return;
   const a = await speedArray(f, yr); if (gen !== speedGen) return;
   const [x0, y0, x1, y1] = f.bbox, sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1));
-  const layer = L.imageOverlay(speedCanvas(f, a).toDataURL(), [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'speedPane', opacity: .9, interactive: false, className: 'speed-img'});
-  if (speedLayer) map.removeLayer(speedLayer); speedLayer = layer.addTo(map); speedKey = key; updateCredits();
+  const layer = L.imageOverlay(speedCanvas(f, a, speedMask(f, g)).toDataURL(), [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'speedPane', opacity: .9, interactive: false, className: 'speed-img'});
+  if (speedLayer) map.removeLayer(speedLayer); speedLayer = layer.addTo(map); speedKey = key; speedFile = f;
+  if (speedPin) { map.removeLayer(speedPin); speedPin = null; }
+  const pk = speedPeak(f, a, speedMask(f, g));      // the fastest ice of the year along the flowline, marked like the thickest ice
+  if (pk) {
+    const top = pk.v, p = L.CRS.EPSG3857.unproject(L.point(pk.xy[0], pk.xy[1]));
+    speedPin = L.marker(p, {icon: L.divIcon({className: '', html: `<div class="tongue-pin max-pin"><span>${Math.round(top)} m/yr (${yr})</span></div>`, iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false, zIndexOffset: 500}).addTo(map);
+  }
+  updateCredits();
 }
 /* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map */
 export function drawMax(){

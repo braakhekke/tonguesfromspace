@@ -1,0 +1,14 @@
+{
+  "id": "storglombreen-n",
+  "region": "no-mainland",
+  "name": "Storglombreen N",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    66.685,
+    13.994
+  ],
+  "parent": "vestre-svartisen"
+}

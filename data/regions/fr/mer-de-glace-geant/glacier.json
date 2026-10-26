@@ -1,0 +1,13 @@
+{
+  "id": "mer-de-glace-geant",
+  "region": "fr",
+  "name": "Mer de Glace/Geant",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.8573,
+    6.91509
+  ]
+}

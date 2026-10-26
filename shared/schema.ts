@@ -114,6 +114,8 @@ export const Glacier = z.object({
   imported: z.object({ from: z.string(), at: isoDay, note: z.string() }).optional(),
   /** ids this glacier had on the old site (#g=aletsch): old shared links are redirected through them */
   legacyIds: z.array(z.string()).optional(),
+  /** an outlet of an ice cap is a glacier of its own (its own steps, box, strip and scenes): the id of the cap's record. Outlets are not counted in the region's ranking. */
+  parent: slug.optional(),
   rank: z.number().int().positive(),
   areaKm2: z.number().positive(),
   areaSource: z.string().describe('a Source id'),
@@ -133,6 +135,10 @@ export const Glacier = z.object({
     .object({ model: z.string(), resolutionM: z.number().positive(), yearlySurfaces: z.boolean(), reason: z.string(), confirmation: Confirmation })
     .optional(),
   stripConfirmation: Confirmation.optional(),
+  /** the Landsat pictures before Sentinel-2 (scripts/build_landsat.py, data/landsat/<id>): what the build made, looked at and confirmed */
+  landsat: z
+    .object({ years: z.number().int().min(0), firstYear: z.number().int().optional(), lastYear: z.number().int().optional(), confirmation: Confirmation })
+    .optional(),
   credits: z.array(z.string()).optional().describe('Source ids this glacier actually uses; the Sources list is generated from it'),
 });
 export type Glacier = z.infer<typeof Glacier>;

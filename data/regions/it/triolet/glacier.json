@@ -1,0 +1,13 @@
+{
+  "id": "triolet",
+  "region": "it",
+  "name": "Triolet",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.8944,
+    7.02129
+  ]
+}

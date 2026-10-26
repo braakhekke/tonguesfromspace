@@ -1,0 +1,13 @@
+{
+  "id": "devon-ice-cap-nw",
+  "region": "ca",
+  "name": "Devon Ice Cap NW,",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    75.1561085,
+    -82.63516101026741
+  ]
+}

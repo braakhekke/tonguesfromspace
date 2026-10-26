@@ -1,0 +1,13 @@
+{
+  "id": "gauli",
+  "region": "ch",
+  "name": "Gauligletscher",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.61600141369479,
+    8.15600338286377
+  ]
+}

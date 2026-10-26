@@ -1,8 +1,8 @@
 import { needsOutline, loadOutline } from './02-glaciers.js';
-import { currentGlacier, OPEN_ON_GLACIER, PLAIN_START, OPEN_3D, glacierPicked } from './04-state.js';
+import { currentGlacier, OPEN_ON_GLACIER, PLAIN_START, OPEN_3D, glacierPicked, HASH_AT_LOAD } from './04-state.js';
 import { updateCredits, updateSight, updateTrailClip, drawOutlines, focusTongue } from './05-map.js';
 import { checkYears } from './06-scene-search.js';
-import { renderGlacierList, renderYears, renderMode, renderStory, fn, renderOutlineControls } from './07-render.js';
+import { renderGlacierList, renderYears, renderMode, renderStory, fn, renderOutlineControls, focusSub } from './07-render.js';
 import { setStatus, updateBoxes, showOverview } from './08-controls.js';
 import { updatePickHint } from './09-phones.js';
 import { setView } from './11-view3d.js';
@@ -15,7 +15,11 @@ export function boot(){
   renderOutlineControls();
   drawOutlines();
   renderMode(); renderYears();
-  if (OPEN_ON_GLACIER) focusTongue(false); else showOverview(false);
+  if (OPEN_ON_GLACIER) {
+    focusTongue(false);
+    const g = currentGlacier(), k = Number(new URLSearchParams(HASH_AT_LOAD.slice(1)).get('sub'));      // #g=<cap>&sub=<k>: an outlet of the ice cap, as picked on the front page
+    if (g.subs && Number.isInteger(k) && g.subs[k]) focusSub(g, k);
+  } else showOverview(false);
   updateBoxes(); updateTrailClip(); updateSight();
   renderStory();
   updateCredits();

@@ -1,0 +1,13 @@
+{
+  "id": "columbia",
+  "region": "us-ak",
+  "name": "Columbia Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    61.2757705,
+    -147.082330044827
+  ]
+}

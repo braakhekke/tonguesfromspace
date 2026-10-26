@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-01586",
+  "region": "no-mainland",
+  "name": "RGI60-08.01586",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    66.58,
+    13.892
+  ],
+  "parent": "vestre-svartisen"
+}

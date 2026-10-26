@@ -1,0 +1,14 @@
+{
+  "id": "lodalsbreen",
+  "region": "no-mainland",
+  "name": "Lodalsbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.777,
+    7.189
+  ],
+  "parent": "jostedalsbreen"
+}

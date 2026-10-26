@@ -18,6 +18,8 @@ import { callCdse } from '../worker/relay/cdse';
 import { sha } from '../worker/relay/cache';
 import { imageGrid } from '../shared/geo';
 import { searchLandsat } from './sources/landsat';
+import { buildState, startBuild } from './landsat-build';
+import { startTerrain, terrainState } from './terrain-build';
 import { isProbing, probeGlacierLayers } from './probe-layers';
 import { parseStatistics, statisticsBody, STATS_RES_M } from '../shared/copernicus';
 import type { Env, GlacierIndex } from '../worker/relay/env';
@@ -121,7 +123,7 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     const { regions, drafts, problems } = loadAll();
     const out = dirsOf(dataRoot()).map((rid) => {
       const c = loadCtx(rid), rp = progress(c);
-      return { id: rid, name: c.region.name, status: c.region.status, centre: c.region.centre, regionProgress: { done: rp.done, total: rp.total, next: rp.next }, glaciers: dirsOf(join(dataRoot(), rid)).map((gid) => { const cg = loadCtx(rid, gid), pr = progress(cg); return { id: gid, name: cg.glacier?.name ?? gid, done: pr.done, total: pr.total, next: pr.next }; }) };
+      return { id: rid, name: c.region.name, status: c.region.status, centre: c.region.centre, regionProgress: { done: rp.done, total: rp.total, next: rp.next }, glaciers: dirsOf(join(dataRoot(), rid)).map((gid) => { const cg = loadCtx(rid, gid), pr = progress(cg); return { id: gid, name: cg.glacier?.name ?? gid, ...(cg.glacier?.parent ? { parent: cg.glacier.parent } : {}), rank: cg.glacier?.rank ?? 0, done: pr.done, total: pr.total, next: pr.next }; }) };
     });
     return send(res, 200, { regions: out, drafts, problems, published: regions.length });
   }
@@ -153,6 +155,15 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     saveCtx({ ...c, glacier: Glacier.parse({ ...c.glacier, ...b.patch }) });
     return send(res, 200, { ok: true });
   }
+  if (p === '/__onboard/landsat-build' && req.method === 'POST') { const b = await body(req); return send(res, 200, startBuild(b.region, b.glacier)); }
+  if (p === '/__onboard/terrain-build' && req.method === 'POST') { const b = await body(req); return send(res, 200, startTerrain(b.region, b.glacier)); }
+  if (p === '/__onboard/terrain-relief') {      // a shaded-relief picture of a baked surface (scripts/terrain_quality.py): the base surface and the year with the most seams
+    const n = url.searchParams.get('name') ?? '', f = join(ROOT, 'scripts', '.relief-cache', n);
+    if (!/^[a-z0-9~-]+-(base|\d{4})\.png$/.test(n) || !existsSync(f)) return send(res, 404, { error: 'no such picture' });
+    res.statusCode = 200; res.setHeader('Content-Type', 'image/png'); return void res.end(readFileSync(f));
+  }
+  if (p === '/__onboard/terrain-state') return send(res, 200, terrainState(url.searchParams.get('region')!, url.searchParams.get('glacier')!));
+  if (p === '/__onboard/landsat-state') return send(res, 200, buildState(url.searchParams.get('region')!, url.searchParams.get('glacier')!));
   if (p === '/__onboard/landsat-scan' || p === '/__onboard/scan') {
     // every scene over the picture box in the window the page asks for: the scene window of that year, never a range of our own
     const c = loadCtx(url.searchParams.get('region')!, url.searchParams.get('glacier'));

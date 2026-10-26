@@ -26,6 +26,10 @@
 /* rules for this page only; everything else comes from css/style.css */
 .cities{grid-template-columns:repeat(3,1fr)}
 .cities button{padding:6px 0;font-family:inherit}
+.city-find{display:flex;gap:6px;margin-top:8px}
+.city-find input{flex:1;min-width:0;border:1px solid var(--rule);border-radius:0;padding:6px 8px;font:inherit;font-size:13px}
+.city-find button{flex:none;padding:6px 12px;font-family:inherit;font-size:13px;border:1px solid var(--rule);background:#fff;cursor:pointer}
+#cityMsg{margin-top:6px}
 .stage{background:#070b14}
 #map.over-ice{cursor:grab}
 #map.dragging-ice,#map.dragging-ice *{cursor:grabbing!important}
@@ -62,6 +66,7 @@
 .story .sec .stat-row{margin:0}
 .story .sec .note,.story .head .sub{text-align:left}
 .story .sec .note{margin:12px 0 0}
+.src-list{margin:0;padding:0 0 0 16px;font-size:11.5px;line-height:1.45;color:var(--moraine)}.src-list li+li{margin-top:6px}
 .story .sec .note:first-child{margin-top:0}
 .story .stat .v.loss-v{color:var(--accent)}
 .cmp-bars{display:flex;flex-direction:column;gap:8px}
@@ -97,7 +102,7 @@
         <!--LOGO--><img class="brand-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="52" height="49"><!--/LOGO-->
         <h1><a class="home-link" href="./" title="Back to the start"><span class="t1">Tongues from Space</span></a> <span class="t2">Glacier sizes</span></h1>
       </div>
-      <p>How big is a glacier? All ten glaciers lie where they really are. Pick one, drag it onto a city or another glacier, and turn it with its round handle.</p>
+      <p>How big is a glacier? All ten glaciers lie where they really are. Pick one or two, drag them onto a city (or type your own) or onto each other, and turn them with the round handle.</p>
     </div>
 
     <section class="step" id="glacierGroup">
@@ -109,7 +114,9 @@
     <section class="step" id="placeGroup">
       <h2 class="step-h"><span class="num">02</span>Compare with a city</h2>
       <div class="years cities" id="cities" role="group" aria-label="City"></div>
-      <p class="note">City outlines are the municipal boundaries (swissBOUNDARIES3D), so they include lake area where the boundary does.</p>
+      <form class="city-find" id="cityForm" autocomplete="off"><input type="search" id="cityQ" placeholder="Type a city of your choice" aria-label="Type a city of your choice" maxlength="80"><button type="submit">Show</button></form>
+      <p class="note" id="cityMsg" aria-live="polite" hidden></p>
+      <p class="note">City outlines are the municipal boundaries (swissBOUNDARIES3D), so they include lake area where the boundary does. A city you type comes from OpenStreetMap (administrative boundary, © OpenStreetMap contributors, ODbL, found with Nominatim).</p>
     </section>
     <section class="step" id="shareGroup">
       <h2 class="step-h"><span class="num">03</span>Create and share</h2>
@@ -137,8 +144,10 @@
         <div class="lb-group">On the map</div>
         <label class="toggle"><input type="checkbox" id="oldToggle"> <span><span class="sym"><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i></span>Outline 1850</span></label>
         <label class="toggle"><input type="checkbox" id="cityToggle" checked> <span><span class="sym"><i class="swatch" style="border-color:#A98BF0;border-top-style:dashed"></i></span>City boundary</span></label>
+        <label class="toggle"><input type="checkbox" id="cityNameToggle" checked> <span><span class="sym"><svg class="label-sw" viewBox="0 0 14 16" aria-hidden="true"><path fill-rule="evenodd" d="M7 .8a5.6 5.6 0 0 1 5.6 5.6C12.6 10.6 7 15.2 7 15.2S1.4 10.6 1.4 6.4A5.6 5.6 0 0 1 7 .8zm0 3.4a2.2 2.2 0 1 0 0 4.4 2.2 2.2 0 0 0 0-4.4z" fill="#A98BF0"/></svg></span>City name</span></label>
         <label class="toggle"><input type="checkbox" id="namesToggle" checked> <span><span class="sym"><svg class="label-sw" viewBox="0 0 14 16" aria-hidden="true"><path fill-rule="evenodd" d="M7 .8a5.6 5.6 0 0 1 5.6 5.6c0 3.9-5.6 8.8-5.6 8.8S1.4 10.3 1.4 6.4A5.6 5.6 0 0 1 7 .8zM7 4.4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span>Glacier names</span></label>
         <div class="lb-group">Background</div>
+        <label class="toggle" title="Sentinel-2 cloudless 2024 by EOX, the picture under everything, so places outside Switzerland are not on black"><input type="checkbox" id="worldToggle" checked> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-mosaic"/></svg></span>Sentinel-2 mosaic (EOX)</span></label>
         <label class="toggle"><input type="checkbox" id="topoToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo"/></svg></span>swisstopo map</span></label>
         <label class="toggle"><input type="checkbox" id="airToggle" checked> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-air"/></svg></span>swisstopo aerial</span></label>
         <label class="toggle"><input type="checkbox" id="altiToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-shade"/></svg></span>Hillshade</span></label>
@@ -179,7 +188,7 @@ const fmt = (v, d = 1) => v.toLocaleString('en-US', {minimumFractionDigits: d, m
 const times = r => (r >= 10 ? fmt(r, 0) : fmt(r, 1)) + '×';
 
 /* recent = the two glaciers picked last: [newest, the one before]; they are the red and the blue one */
-const state = {city: null, show1850: false, names: true, cityOn: true, recent: [], active: null, focus: null, moved: false, dirty: false};
+const state = {city: null, show1850: false, names: true, cityOn: true, cityName: true, recent: [], active: null, focus: null, moved: false, dirty: false};
 const slots = {};                                   // one per glacier id: {g, lat, lon, rot, newPoly, oldPoly, tag}
 const roleOf = o => state.recent[0] === o.g.id ? 'A' : state.recent[1] === o.g.id ? 'B' : null;
 const markDirty = () => { state.dirty = true; $('reset').hidden = false; };      // the red Reset button shows once anything was clicked or moved
@@ -191,6 +200,9 @@ map.attributionControl.setPrefix(false);
 const swiss = (layer, ext) => L.tileLayer(`https://wmts.geo.admin.ch/1.0.0/${layer}/default/current/3857/{z}/{x}/{y}.${ext}`,
   {maxNativeZoom: 18, maxZoom: 18, attribution: '© <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> · GLAMOS SGI2023/SGI1850'});
 const bases = {topo: swiss('ch.swisstopo.pixelkarte-grau', 'jpeg'), air: swiss('ch.swisstopo.swissimage', 'jpeg'), alti: swiss('ch.swisstopo.swissalti3d-reliefschattierung', 'png')};
+/* outside Switzerland swisstopo has no picture: EOX's Sentinel-2 cloudless mosaic (the main site's background) lies under everything, so a typed city abroad is not on black */
+const world = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg', {maxNativeZoom: 14, maxZoom: 18, attribution: 'Sentinel-2 cloudless 2024 by EOX'});
+world.addTo(map); world.bringToBack();
 bases.air.addTo(map);
 map.createPane('placeNames'); map.getPane('placeNames').style.zIndex = 440; map.getPane('placeNames').style.pointerEvents = 'none';      // above the outlines
 /* place names: EOX's transparent OpenStreetMap overlay, the same one the main site uses (swisstopo has no names-only layer: its swissnames3d tiles are a coloured map) */
@@ -253,10 +265,11 @@ function makeSlot(g) {
   o.tag = document.createElement('div'); o.tag.className = 'map-tag'; o.tag.textContent = g.name; $('stage').appendChild(o.tag);
   slots[g.id] = o; return o;
 }
+const fillOf = o => o.fillOp != null ? o.fillOp : roleOf(o) ? .42 : .35;      // the inside of the outline; the line itself keeps its strength
 function styleSlot(o) {
   const r = roleOf(o);
-  o.newPoly.setStyle(r ? {color: COLOUR[r], weight: 2, fillColor: COLOUR[r], fillOpacity: .42}
-                       : {color: '#FFD84D', weight: 2, fillColor: '#FFD84D', fillOpacity: .35});
+  o.newPoly.setStyle(r ? {color: COLOUR[r], weight: 2, fillColor: COLOUR[r], fillOpacity: fillOf(o)}
+                       : {color: '#FFD84D', weight: 2, fillColor: '#FFD84D', fillOpacity: fillOf(o)});
   o.tag.classList.toggle('dim', !r);
 }
 function drawSlot(o) {
@@ -290,7 +303,7 @@ function drawCity() {
 }
 const cityTag = document.createElement('div'); cityTag.className = 'map-tag city'; $('stage').appendChild(cityTag);
 function overlayCity() {
-  const c = state.city; cityTag.hidden = !(c && state.cityOn && state.names); if (cityTag.hidden) return;
+  const c = state.city; cityTag.hidden = !(c && state.cityOn && state.cityName); if (cityTag.hidden) return;      // the city's name follows the city boundary, not the glacier names
   let low = 1e9;
   for (const p of c.polys) for (let i = 1; i < p[0].length; i += 2) low = Math.min(low, p[0][i]);
   const pt = map.latLngToContainerPoint([c.lat + low / M_LAT, c.lon]);
@@ -387,6 +400,35 @@ function resetAll() {          // every polygon back in place, no city
   for (const o of Object.values(slots)) { o.lat = o.g.lat; o.lon = o.g.lon; o.rot = 0; }
   state.city = null; state.moved = false; state.dirty = false; $('reset').hidden = true; fitAll(); redrawAll(); syncUi(); syncHash();
 }
+/* A city of the visitor's choice: its administrative boundary from OpenStreetMap (Nominatim, simplified by the server), drawn in metres around its own centre like the nine built-in ones. Area and span are computed here. */
+function ringArea(r) { let t = 0; for (let i = 0; i < r.length; i += 2) { const j = (i + 2) % r.length; t += r[i] * r[j + 1] - r[j] * r[i + 1]; } return Math.abs(t) / 2; }
+function cityFromGeo(name, geo, bb) {
+  const parts = geo.type === 'Polygon' ? [geo.coordinates] : geo.coordinates;
+  const box = pt => { const la = pt.map(q => q[1]), lo = pt.map(q => q[0]); return [Math.min(...la), Math.max(...la), Math.min(...lo), Math.max(...lo)]; };
+  const main = parts.map(pl => box(pl[0])).sort((a, b) => (b[1] - b[0]) * (b[3] - b[2]) - (a[1] - a[0]) * (a[3] - a[2]))[0];      // centred on the biggest piece, so an island or exclave does not pull the city off its place
+  const lat0 = (main[0] + main[1]) / 2, lon0 = (main[2] + main[3]) / 2, kx = M_LAT * Math.cos(lat0 * Math.PI / 180);
+  const polys = parts.map(poly => poly.map(ring => ring.slice(0, -1).flatMap(([lo, la]) => [Math.round((lo - lon0) * kx), Math.round((la - lat0) * M_LAT)])).filter(r => r.length >= 6)).filter(p => p.length);
+  if (!polys.length) return null;
+  const area = polys.reduce((t, p) => t + ringArea(p[0]) - p.slice(1).reduce((u, h) => u + ringArea(h), 0), 0) / 1e6;
+  const pts = polys.flatMap(p => { const r = p[0], out = [], st = Math.max(1, Math.floor(r.length / 2 / 150)); for (let i = 0; i < r.length; i += 2 * st) out.push([r[i], r[i + 1]]); return out; });
+  let best = 0; for (const a of pts) for (const b of pts) best = Math.max(best, (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2);
+  name = name.replace(/[<>&"']/g, '');
+  return {id: 'q:' + name, name, clat: lat0, clon: lon0, lat: lat0, lon: lon0, area, span: Math.sqrt(best) / 1000, polys, custom: true};
+}
+async function findCity(q) {
+  const msg = $('cityMsg'), say = t => { msg.textContent = t; msg.hidden = !t; };
+  q = q.trim(); if (!q) return say('');
+  say('Looking for ' + q + '…');
+  try {
+    const r = await fetch('https://nominatim.openstreetmap.org/search?format=jsonv2&limit=10&polygon_geojson=1&polygon_threshold=0.0004&accept-language=en&q=' + encodeURIComponent(q));
+    if (!r.ok) throw new Error(r.status);
+    const hit = (await r.json()).find(x => x.geojson && /Polygon/.test(x.geojson.type) && ['boundary', 'place'].includes(x.category));
+    const c = hit && cityFromGeo(hit.name || hit.display_name.split(',')[0], hit.geojson, hit.boundingbox);
+    if (!c) return say('No city boundary found for "' + q + '". Try the name with its country.');
+    say(c.name + ': ' + c.area.toFixed(1) + ' km² (computed here from the OpenStreetMap boundary)');
+    setCity(c);
+  } catch (_) { say('The search is not available right now. Try again in a moment.'); }
+}
 function setCity(c) { hideHint(); markDirty(); state.city = c; state.cityOn = true; $('cityToggle').checked = true; layCity(); syncUi(); syncHash(); }
 function choose(id) {          // a click in the list; a picked glacier is un-picked by clicking it again
   hideHint();
@@ -402,9 +444,11 @@ function build() {
   $('gList').innerHTML = GL.map((g, i) => `<li><button type="button" data-id="${g.id}" aria-pressed="false"><span class="rank">${i + 1}</span><span class="name">${g.name}</span><span class="area">${fmt(g.area)} km²</span></button></li>`).join('');
   $('cities').innerHTML = CITIES.map(c => `<button type="button" data-k="${c.id}" aria-pressed="false">${c.name}</button>`).join('');
   $('gList').onclick = e => { const b = e.target.closest('button'); if (b) choose(b.dataset.id); };
+  $('cityForm').onsubmit = e => { e.preventDefault(); findCity($('cityQ').value); };
   $('cities').onclick = e => { const b = e.target.closest('button'); if (b) setCity(CITIES.find(c => c.id === b.dataset.k)); };
   $('oldToggle').onchange = e => { state.show1850 = e.target.checked; redrawAll(); syncUi(); };
   $('cityToggle').onchange = e => { state.cityOn = e.target.checked; drawCity(); schedulePreview(); };
+  $('cityNameToggle').onchange = e => { state.cityName = e.target.checked; placeOverlays(); schedulePreview(); };
   $('namesToggle').onchange = e => { state.names = e.target.checked; placeOverlays(); schedulePreview(); };
   const showBase = () => {
     for (const [k, id] of [['topo', 'topoToggle'], ['air', 'airToggle'], ['alti', 'altiToggle']]) {
@@ -416,6 +460,7 @@ function build() {
   };
   for (const [id, other] of [['topoToggle', ['airToggle', 'altiToggle']], ['airToggle', ['topoToggle', 'altiToggle']], ['altiToggle', ['topoToggle', 'airToggle']]])
     $(id).onchange = e => { if (e.target.checked) other.forEach(o => $(o).checked = false); showBase(); };
+  $('worldToggle').onchange = e => { if (e.target.checked) { world.addTo(map); world.bringToBack(); } else map.removeLayer(world); schedulePreview(); };
   $('placesToggle').onchange = e => { if (e.target.checked) placeNames.addTo(map); else map.removeLayer(placeNames); schedulePreview(); };
   $('lbToggle').onclick = () => { const m = $('layerbox').classList.toggle('min'); $('lbToggle').setAttribute('aria-expanded', !m); };
   $('zoomIn').onclick = () => map.zoomIn(); $('zoomOut').onclick = () => map.zoomOut();
@@ -433,6 +478,7 @@ function build() {
   const c = CITIES.find(x => x.id === h.get('c'));
   map.setView([46.6, 8.2], 9, {animate: false});
   if (c) { state.city = c; markDirty(); layCity(); } else fitAll();
+  if ((h.get('c') || '').startsWith('q:')) { $('cityQ').value = h.get('c').slice(2); findCity($('cityQ').value); }
   if (h.get('m')) {            // glaciers the sender had moved
     markDirty();
     for (const part of h.get('m').split(',')) { const [id, la, lo, ro] = part.split('_'), o = slots[id]; if (o && isFinite(+la) && isFinite(+lo)) { o.lat = +la; o.lon = +lo; o.rot = +ro || 0; } }
@@ -442,6 +488,10 @@ function build() {
   redrawAll(); restyleAll(); setActive(state.active); syncUi();
   setTimeout(hideHint, 9000);
 }
+document.addEventListener('input', e => {
+  const t = e.target, o = t.dataset && t.dataset.fill && slots[t.dataset.fill]; if (!o) return;
+  o.fillOp = +t.value; $('fillOut-' + t.id.slice(5)).textContent = Math.round(o.fillOp * 100) + ' %'; styleSlot(o); schedulePreview();
+});
 function stats(g, key) {
   const lost = (1 - g.area / g.area1850) * 100;
   return `<section class="sec"><div class="card-h" style="color:${key === 'A' ? 'var(--accent)' : 'var(--crevasse)'}"><span style="color:${COLOUR[key]}">●</span> ${g.full}</div>
@@ -451,13 +501,19 @@ function stats(g, key) {
       <div class="stat"><span class="k">Lost since 1850</span><span class="v loss-v">${fmt(lost, 0)}<small>%</small></span></div>
       <div class="stat"><span class="k">Straight-line span</span><span class="v">${fmt(g.span)}<small>km</small></span></div>
       <div class="stat wide"><span class="k">Football pitches in it</span><span class="v">${Math.round(g.area * 1e6 / PITCH).toLocaleString('en-US')}</span></div>
-    </div></section>`;
+    </div>
+    <label class="slider-row" for="fill-${key}" title="How opaque the inside of the outline is; the line stays as it is"><span>Fill opacity</span><output id="fillOut-${key}">${Math.round(fillOf(slots[g.id]) * 100)} %</output></label>
+    <input type="range" class="frame" id="fill-${key}" data-fill="${g.id}" min="0" max="1" step="0.05" value="${fillOf(slots[g.id])}" aria-label="Opacity of the inside of the ${g.name} outline"></section>`;
 }
 function ratioText(a, an, b, bn) {
   const r = a / b;
   if (r >= 1.05) return `<b>${an}</b> is <b>${times(r)}</b> the size of ${bn}`;
   if (r <= .95) return `<b>${an}</b> is about <b>${fmt(r * 100, 0)} %</b> of ${bn}`;
   return `<b>${an}</b> is about as big as ${bn}`;
+}
+function fitsText(a, an, b, bn) {      // computed here from the two areas: how often the smaller one fits into the bigger one
+  const [sn, s, bgn, bg] = a <= b ? [an, a, bn, b] : [bn, b, an, a], n = bg / s;
+  return n < 1.05 ? `<b>${sn}</b> and <b>${bgn}</b> are about the same size` : `<b>${sn}</b> fits <b>${n >= 10 ? fmt(n, 0) : fmt(n, 1)}</b> times in <b>${bgn}</b> (${fmt(s / bg * 100, 0)} %)`;
 }
 function bars(items) {
   const max = Math.max(...items.map(i => i.v));
@@ -472,7 +528,7 @@ function renderStory() {
   }
   const lines = [];
   if (b) lines.push(ratioText(a.area, a.name, b.area, b.name));
-  if (c) { lines.push(ratioText(a.area, a.name, c.area, c.name)); if (b) lines.push(ratioText(b.area, b.name, c.area, c.name)); }
+  if (c) { lines.push(fitsText(a.area, a.name, c.area, c.name)); if (b) lines.push(fitsText(b.area, b.name, c.area, c.name)); }
   const items = [{n: a.name, v: a.area, c: COLOUR.A}];
   if (b) items.push({n: b.name, v: b.area, c: COLOUR.B});
   if (c) items.push({n: c.name, v: c.area, c: CITY_COLOUR});
@@ -483,9 +539,13 @@ function renderStory() {
     <div class="head"><h2>${a.name}${b ? ' and ' + b.name : ''}</h2><p class="sub">${sub}</p>
       ${lines.length ? `<p class="lede">${lines.join('.<br>')}.</p>` : ''}</div>
     ${items.length > 1 ? `<section class="sec"><div class="card-h">Areas side by side</div>${bars(items)}
-      <p class="note">Glaciers: latest available outlines (SGI2023, state of 2023–24).${c ? ' ' + c.name + ': municipal boundary' + (c.name === 'Zermatt' ? ', which reaches up to the Matterhorn and the glaciers around it' : '') + '.' : ''}</p></section>` : ''}
+      </section>` : ''}
     ${stats(a, 'A')}${b ? stats(b, 'B') : ''}
-    <section class="sec"><p class="note">Sources: GLAMOS Swiss Glacier Inventory SGI2023, the latest available outlines (state of 2023, Unteraar and Trift 2024; the glaciers have shrunk since), and SGI1850 (CC BY 4.0); municipal boundaries © swisstopo (swissBOUNDARIES3D); maps © swisstopo. The span is the distance between the two farthest points of the outline. A pitch is 105 × 68 m. The outline keeps its true size wherever you drag it.</p></section>`;
+    <section class="sec sources"><div class="card-h">Sources</div><ul class="src-list">
+      <li>Glacier outlines: GLAMOS Swiss Glacier Inventory SGI2023, the latest available (state of 2023, Unteraar and Trift 2024; the glaciers have shrunk since), and SGI1850 (CC BY 4.0).</li>
+      <li>City boundaries: municipal boundaries © swisstopo (swissBOUNDARIES3D)${c && c.custom ? '; ' + c.name + ': boundary © OpenStreetMap contributors (ODbL)' : '; a typed city: boundary © OpenStreetMap contributors (ODbL)'}.${c && !c.custom ? ' ' + c.name + ': municipal boundary' + (c.name === 'Zermatt' ? ', which reaches up to the Matterhorn and the glaciers around it' : '') + '.' : ''}</li>
+      <li>Maps: © swisstopo; background Sentinel-2 cloudless 2024 by EOX.</li>
+      <li>Computed here: the span is the distance between the two farthest points of the outline; the areas of a typed city and the "fits" figures are calculated from the outlines. A pitch is 105 × 68 m. The outline keeps its true size wherever you drag it.</li></ul></section>`;
 }
 function syncUi() {
   const A = slotOf('A'), B = slotOf('B');
@@ -503,7 +563,7 @@ function syncHash() {          // the link carries the picks, the city, where th
   schedulePreview();
   const q = [`g=${state.recent[0] || ''}`];
   if (state.recent[1]) q.push('b=' + state.recent[1]);
-  if (state.city) q.push('c=' + state.city.id);
+  if (state.city) q.push('c=' + encodeURIComponent(state.city.id));
   const moved = Object.values(slots).filter(o => Math.abs(o.lat - o.g.lat) > 1e-5 || Math.abs(o.lon - o.g.lon) > 1e-5 || o.rot);
   if (moved.length) q.push('m=' + moved.map(o => [o.g.id, o.lat.toFixed(5), o.lon.toFixed(5), Math.round(o.rot)].join('_')).join(','));
   if (state.dirty) { const c = map.getCenter(); q.push('v=' + [c.lat.toFixed(5), c.lng.toFixed(5), map.getZoom()].join('_')); }
@@ -551,16 +611,16 @@ async function makeImage() {
 
   /* tiles of the layers that are on, in the order they lie on the map */
   const jobs = [];
-  for (const layer of [bases.topo, bases.air, bases.alti, placeNames]) {
+  for (const layer of [world, bases.topo, bases.air, bases.alti, placeNames]) {
     if (!map.hasLayer(layer)) continue;
-    const ztl = layer === placeNames ? Math.min(zt, 16) : zt, kk = Math.pow(2, zf - ztl), tsz = 256 * kk, n = Math.pow(2, ztl);
+    const ztl = layer === placeNames ? Math.min(zt, 16) : layer === world ? Math.min(zt, 14) : zt, kk = Math.pow(2, zf - ztl), tsz = 256 * kk, n = Math.pow(2, ztl);
     for (let x = Math.floor(ox / tsz); x <= Math.floor((ox + W) / tsz); x++) for (let y = Math.floor(oy / tsz); y <= Math.floor((oy + H) / tsz); y++) {
       if (y < 0 || y >= n) continue;
       jobs.push(loadImg(tileUrl(layer, ((x % n) + n) % n, y, ztl)).then(img => ({img, x: x * tsz - ox, y: y * tsz - oy, tsz, layer})));
     }
   }
   const done = await Promise.all(jobs);
-  for (const layer of [bases.topo, bases.air, bases.alti, placeNames]) for (const t of done) if (t.layer === layer && t.img) ctx.drawImage(t.img, t.x, t.y, t.tsz + .6, t.tsz + .6);
+  for (const layer of [world, bases.topo, bases.air, bases.alti, placeNames]) for (const t of done) if (t.layer === layer && t.img) ctx.drawImage(t.img, t.x, t.y, t.tsz + .6, t.tsz + .6);
 
   const path = (polys, o) => {
     ctx.beginPath();
@@ -574,13 +634,17 @@ async function makeImage() {
   for (const o of order) {
     const r = roleOf(o), col = r ? COLOUR[r] : '#FFD84D';
     if (state.show1850) path(polysLL(o, o.g.old), {fill: 'rgba(255,255,255,.22)', stroke: '#F2A93B', w: 2.5, dash: [8, 6]});
-    path(polysLL(o, o.g.new), {fill: col + (r ? '6b' : '59'), stroke: col, w: 2});
+    path(polysLL(o, o.g.new), {fill: col + Math.round(fillOf(o) * 255).toString(16).padStart(2, '0'), stroke: col, w: 2});
   }
   if (state.names) {
     ctx.font = `700 ${Math.round(24 * u)}px ${FONT}`;
     for (const o of Object.values(slots)) { const [x, y] = px([o.lat, o.lon]); shadowText(ctx, o.g.name, x, y, {align: 'center', blur: 6 * u}); }
-    if (c) { let low = 1e9; for (const p of c.polys) for (let i = 1; i < p[0].length; i += 2) low = Math.min(low, p[0][i]); const [x, y] = px([c.lat + low / M_LAT, c.lon]); shadowText(ctx, `${c.name} · ${fmt(c.area)} km²`, x, y + 30 * u, {align: 'center', blur: 6 * u}); }
   }
+  if (c && state.cityName) {
+    ctx.font = `700 ${Math.round(24 * u)}px ${FONT}`;
+    let low = 1e9; for (const p of c.polys) for (let i = 1; i < p[0].length; i += 2) low = Math.min(low, p[0][i]); const [x, y] = px([c.lat + low / M_LAT, c.lon]); shadowText(ctx, `${c.name} · ${fmt(c.area)} km²`, x, y + 30 * u, {align: 'center', blur: 6 * u});
+  }
+
 
   drawOverlay(ctx, W, H, u, 156543.03392 * Math.cos(centre.lat * Math.PI / 180) / Math.pow(2, zf), logo);
   return cv;
@@ -590,6 +654,7 @@ function creditParts() {      // only what is on the picture: the credit follows
   const parts = ['Latest outlines: GLAMOS SGI2023 (2023–24)' + (state.show1850 ? ', SGI1850' : '')];
   const st = [air && 'aerial photo', topo && 'map', alti && 'hillshade', state.city && state.cityOn && 'city boundary'].filter(Boolean);
   if (st.length) parts.push('© swisstopo ' + st.join(', '));
+  if (map.hasLayer(world)) parts.push('Sentinel-2 cloudless 2024 by EOX');
   if (map.hasLayer(placeNames)) parts.push('names © OSM, EOX');
   return parts;
 }

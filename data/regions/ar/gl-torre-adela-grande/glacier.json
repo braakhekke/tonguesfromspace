@@ -1,0 +1,13 @@
+{
+  "id": "gl-torre-adela-grande",
+  "region": "ar",
+  "name": "Gl. Torre-Adela-Grande",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    -49.296816,
+    -73.08555837323844
+  ]
+}

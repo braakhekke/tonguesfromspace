@@ -1,0 +1,14 @@
+{
+  "id": "oksfjellbreen",
+  "region": "no-mainland",
+  "name": "Oksfjellbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    65.975,
+    14.186
+  ],
+  "parent": "okstindbreen"
+}

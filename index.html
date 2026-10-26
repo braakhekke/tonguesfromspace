@@ -24,6 +24,7 @@
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" as="script" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous">
 <script src="js/regions.js"></script>
 <script src="js/00-regions.js"></script>
+<script src="js/search.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <!--
   Swiss glacier comparison dashboard
@@ -112,6 +113,7 @@
     <section class="step" id="glacierGroup">
       <h2 class="step-h"><span class="num">01</span>Glacier</h2>
       <button type="button" id="mGlacier" class="m-pick" aria-haspopup="dialog" aria-expanded="false" aria-label="Glacier"></button>
+      <input type="search" id="glacierSearch" class="g-search" placeholder="Search glaciers" aria-label="Search glaciers" autocomplete="off" hidden>
       <ul class="glaciers" id="glacierList"></ul>
       <p class="note" id="rankNote"></p>
       <button type="button" class="down-hint" id="downHint" hidden>Stats, stories and hikes for this glacier are further down <span aria-hidden="true">↓</span></button>
@@ -165,7 +167,7 @@
           <label class="toggle loop"><input type="checkbox" id="loopToggle"> <span>Loop</span></label>
         </div>
       </div>
-      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span><small class="landsat-note">Note: 30 m pixels instead of the 10 m (from 2016 onwards), so less detail. For now, the dynamic statistics listed in the right panel start in 2016, not earlier.</small></span></label>
+      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span><small class="landsat-note">Before 2016, the imagery comes with 30 m pixels instead of the 10 m from 2016 onwards, so less detail. For now, the dynamic statistics listed in the right panel start in 2016, not earlier.</small></span></label>
       <p class="status busy" id="status">Looking for the clearest scene of each year…</p>
 
       <details class="tune sat-need">
@@ -215,6 +217,7 @@
   <!-- ================= CENTRE ================= -->
   <div class="stage-slot" id="stageSlot"><main class="stage" id="stage">
     <div id="map" role="application" aria-label="Satellite image map"></div>
+    <div class="stage-busy" id="stageBusy" role="status" aria-live="polite" hidden></div>
     <div class="year-tag" id="tagA">–<small>Sentinel-2</small></div>
     <div class="year-tag" id="tagB">–<small>Sentinel-2</small></div>
     <div class="year-tag" id="tagT">–<small id="tagTsub">Timelapse</small></div>

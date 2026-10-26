@@ -1,0 +1,14 @@
+{
+  "id": "lappbreen",
+  "region": "no-mainland",
+  "name": "Lappbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    66.591,
+    14.292
+  ],
+  "parent": "ostre-svartisen"
+}

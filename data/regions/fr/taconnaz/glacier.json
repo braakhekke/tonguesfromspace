@@ -1,0 +1,13 @@
+{
+  "id": "taconnaz",
+  "region": "fr",
+  "name": "Taconnaz",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.852,
+    6.83594
+  ]
+}

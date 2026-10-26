@@ -73,6 +73,19 @@ export function PlacementScreen({ st, step, setPatch, setBlock }: ScreenProps) {
     return () => { map.remove(); };
   }, []);
 
+  // the outlets of an ice cap (placement.subs): their boxes and tips, drawn faint and not editable here
+  const subs = g.placement?.subs ?? [];
+  useEffect(() => {
+    const map = parts.current?.map;
+    if (!map || !subs.length) return;
+    const lg = L.layerGroup().addTo(map);
+    for (const o of subs) {
+      L.rectangle(o.pictureBox as L.LatLngBoundsLiteral, { color: '#2F6FB0', weight: 1.5, dashArray: '5 4', fill: false, interactive: false }).addTo(lg);
+      L.circleMarker(o.tip as L.LatLngExpression, { radius: 5, color: '#2F6FB0', weight: 2, fillOpacity: 0.3 }).bindTooltip(o.name, { permanent: true, direction: 'right', opacity: 0.9 }).addTo(lg);
+    }
+    return () => { lg.remove(); };
+  }, [subs.length]);
+
   // keep handles and rectangle in step with the state (dragging one corner moves the others)
   useEffect(() => {
     const p = parts.current;
@@ -125,6 +138,11 @@ export function PlacementScreen({ st, step, setPatch, setBlock }: ScreenProps) {
           <dt>Requests per picture</dt><dd class={grid.tiles.length > 1 ? '' : ''}>{grid.tiles.length}</dd>
         </dl>
         <p class={'hint' + (inside ? '' : ' bad')}>{!inside ? 'The yellow tip is outside the box.' : grid.tiles.length > 1 ? `Over 2,500 px (about 25 km): every picture is fetched in ${grid.tiles.length} equal tiles.` : 'One request per picture.'}</p>
+        {subs.length > 0 && (<>
+          <h4>Outlets ({subs.length})</h4>
+          <p class="hint">Blue boxes on the map, from the record; their own box, tip and 3D strip. Read only here.</p>
+          <ul class="hint" style="margin:0 0 6px;padding-left:16px">{subs.map((o) => <li key={o.dataKey}>{o.name}: tip {o.tip[0].toFixed(4)}, {o.tip[1].toFixed(4)}; strip azimuth {o.strip3d.azimuth}°</li>)}</ul>
+        </>)}
         <p class="hint">{!g.placement && cur ? 'Proposed from the outline: the tip is its southernmost point, a guess. Move it to the lowest point of the ice front. ' : ''}Red squares: resize. Red dot: move. Yellow ring: tongue tip. {step.status === 'stale' ? 'Something upstream changed: look again.' : ''}</p>
       </div>
     </div>

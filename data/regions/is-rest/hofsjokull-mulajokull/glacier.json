@@ -1,0 +1,61 @@
+{
+  "id": "hofsjokull-mulajokull",
+  "region": "is-rest",
+  "name": "Múlajökull",
+  "inventoryId": "RGI60-06.00237",
+  "dataKey": "hofsjokull~Múlajökull",
+  "imported": {
+    "from": "scripts/tools/sub-boxes-hofsjokull.json",
+    "at": "2026-10-26",
+    "note": "Outlet of Hofsjökull. Picture box, tip and 3D strip PROPOSED by scripts/tools/sub-boxes-hofsjokull.json (the rule of icecap_lib.derive_view); not on the site yet, placement still to be agreed. Season copied from the ice cap. The data file says: \"Name in the RGI 6.0; Nauthagajökull is a branch inside the basin (OpenStreetMap).\""
+  },
+  "parent": "hofsjokull",
+  "rank": 5,
+  "areaKm2": 77.8,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    64.6785,
+    -18.7145
+  ],
+  "placement": {
+    "tip": [
+      64.6432,
+      -18.68032
+    ],
+    "pictureBox": [
+      [
+        64.615618,
+        -18.861524
+      ],
+      [
+        64.741382,
+        -18.567476
+      ]
+    ],
+    "strip3d": {
+      "azimuth": 337,
+      "half": 2700,
+      "back": 1500,
+      "up": 10000,
+      "cell": 21
+    }
+  },
+  "balanceYear": {
+    "start": "10-01",
+    "end": "09-30",
+    "label": "ends-in",
+    "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+    "daysBeforeEnd": 60,
+    "daysAfterEnd": 15,
+    "maxCloud": 0.05,
+    "maxCloudTongue": 0.05,
+    "maxSnow": 1,
+    "fallbackCloud": 0.3,
+    "minCoverage": 1,
+    "noDataMarginM": 1000,
+    "oneOrbit": true,
+    "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  }
+}

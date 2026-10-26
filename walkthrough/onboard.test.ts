@@ -25,7 +25,8 @@ function glims(names: Record<string, (string | undefined)[]> = {}) {
     }
     if (t === 'GLIMS:RGI_NewZealand') return body(3857, [
       { properties: { RGIID: 'RGI60-18.02342', GLIMSID: 'G170200E43500S', NAME: 'Tasman Glacier', AREA: 95.216, LMAX: 27000, ZMIN: 700, ZMAX: 3700, CENLAT: -43.5, CENLON: 170.25, BGNDATE: '19780399' }, geometry: { type: 'MultiPolygon', coordinates: [[sq(170.2, -43.55, 0.1)]] } },
-      { properties: { RGIID: 'RGI60-18.02375', GLIMSID: 'G170300E43400S', NAME: '', AREA: 4.2, LMAX: 3000, ZMIN: 900, ZMAX: 2500, CENLAT: -43.4, CENLON: 170.3, BGNDATE: '19780399' }, geometry: { type: 'MultiPolygon', coordinates: [[sq(170.3, -43.45, 0.03)]] } },
+      { properties: { RGIID: 'RGI60-18.02375', GLIMSID: 'G170300E43400S', NAME: '', AREA: 14.2, LMAX: 3000, ZMIN: 900, ZMAX: 2500, CENLAT: -43.4, CENLON: 170.3, BGNDATE: '19780399' }, geometry: { type: 'MultiPolygon', coordinates: [[sq(170.3, -43.45, 0.03)]] } },
+      { properties: { RGIID: 'RGI60-18.02399', GLIMSID: 'G170400E43300S', NAME: '', AREA: 4.2, LMAX: 2000, ZMIN: 1000, ZMAX: 2300, CENLAT: -44.3, CENLON: 171.4, BGNDATE: '19780399' }, geometry: { type: 'MultiPolygon', coordinates: [[sq(171.4, -44.35, 0.03)]] } },
     ]);
     if (t === 'GLIMS:GLIMS_Glacier_Outlines' && cql.startsWith('glac_name')) {
       const q = /%(.*)%/.exec(cql)![1]!.toLowerCase(), hit = Object.entries(names).filter(([n]) => n.toLowerCase().includes(q));
@@ -56,7 +57,7 @@ describe('onboard: a chat request turns into records, proposals and a window', (
     expect(p['glacier.outline']!.data.epochs).toMatchObject({ new: { year: 1978, source: 'rgi-6' }, old: { year: 1890, source: 'glims', date: '1890-01-01' } });
     expect(p['glacier.outline']!.data.dated.map((f: any) => f.properties.date)).toEqual(['1890-01-01', '1978-03-01']);      // every dated outline GLIMS has is offered, oldest first
     expect(p['glacier.outline']!.data.preselect.old).toEqual([0]);
-    expect(p['glacier.outline']!.data.candidates.new).toHaveLength(2);      // the neighbour is shown so parts can be added
+    expect(p['glacier.outline']!.data.candidates.new).toHaveLength(3);      // the mock returns every glacier of the layer as a neighbour (the 14.2 and the 4.2 km² one); the neighbours are shown so parts can be added
     expect(p['glacier.placement']!.note).toMatch(/SOUTHERNMOST.*first guess/);
     const [[s, w], [n, e]] = p['glacier.placement']!.data.pictureBox;
     expect(s).toBeLessThan(-43.55); expect(n).toBeGreaterThan(-43.45); expect(w).toBeLessThan(170.2); expect(e).toBeGreaterThan(170.3);
@@ -73,8 +74,15 @@ describe('onboard: a chat request turns into records, proposals and a window', (
 
   it('a group is ranked by area, the biggest first, whatever order it was asked in', async () => {
     const r = await run('new-zealand', ['Tasman@-43.5,170.25', 'Small one@-43.42,170.31']);
-    expect(r.done.map((x) => [x.id, x.areaKm2])).toEqual([['tasman', 95.216], ['small-one', 4.2]]);
+    expect(r.done.map((x) => [x.id, x.areaKm2])).toEqual([['tasman', 95.216], ['small-one', 14.2]]);
     expect(readProposals('new-zealand', 'small-one')['glacier.record']!.data.rank).toBe(2);
+  });
+
+  it('a glacier under 10 km² is left out, and said so; nothing is made when all are', async () => {
+    const r = await run('new-zealand', ['Tasman@-43.5,170.25', 'Tiny@-44.3,171.4']);
+    expect(r.done.map((x) => x.id)).toEqual(['tasman']);
+    expect(r.report.join('\n')).toMatch(/Left out \(under 10 km²\): Tiny \(4\.2 km²\)/);
+    await expect(run('somewhere-new', ['Tiny@-44.3,171.4'])).rejects.toThrow(/under 10 km²/);
   });
 
   it('says what is wrong instead of guessing: unknown name, ambiguous name, new region without a name', async () => {

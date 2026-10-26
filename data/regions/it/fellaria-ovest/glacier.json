@@ -1,0 +1,13 @@
+{
+  "id": "fellaria-ovest",
+  "region": "it",
+  "name": "Fellaria Ovest",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.3544,
+    9.93297
+  ]
+}

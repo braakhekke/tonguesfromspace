@@ -1,0 +1,13 @@
+{
+  "id": "du-tour",
+  "region": "fr",
+  "name": "du Tour",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.9832,
+    6.99697
+  ]
+}

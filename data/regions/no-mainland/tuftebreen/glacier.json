@@ -1,0 +1,14 @@
+{
+  "id": "tuftebreen",
+  "region": "no-mainland",
+  "name": "Tuftebreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.677,
+    7.087
+  ],
+  "parent": "jostedalsbreen"
+}

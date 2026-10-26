@@ -1,0 +1,13 @@
+{
+  "id": "khalde",
+  "region": "ge",
+  "name": "Khalde",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    43.001016500000006,
+    43.05704063769838
+  ]
+}

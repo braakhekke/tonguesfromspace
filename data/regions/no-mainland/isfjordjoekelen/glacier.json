@@ -1,0 +1,14 @@
+{
+  "id": "isfjordjoekelen",
+  "region": "no-mainland",
+  "name": "Isfjordjoekelen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    70.15,
+    22.083
+  ],
+  "parent": "oksfjordjokelen"
+}

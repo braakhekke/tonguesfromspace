@@ -8,7 +8,7 @@ import { yearOfScene } from '../shared/season';
 
 export type Ctx = { region: Region; glacier: Glacier | null; scenes: ScenesFile | null; outlines: OutlinesFile | null };
 export type Patch = Record<string, unknown>;
-export type Screen = 'region' | 'record' | 'outline' | 'placement' | 'season' | 'scenes' | 'layers' | 'elevation' | 'strip' | 'later';
+export type Screen = 'region' | 'record' | 'outline' | 'placement' | 'season' | 'scenes' | 'layers' | 'landsat' | 'elevation' | 'strip' | 'later';
 
 export type StepDef = {
   id: string;
@@ -181,6 +181,16 @@ export const STEPS: StepDef[] = [
       for (const x of (patch.layerSources ?? []) as Source[]) if (!have.has(x.id)) extra.set(x.id, x);
       return { ...c, region: Region.parse({ ...c.region, layerSources: [...extra.values()] }), glacier: Glacier.parse({ ...needGlacier(c), layers: patch.layers, layersConfirmation: conf }) };
     },
+  },
+  {
+    id: 'glacier.landsat', phase: 1, scope: 'glacier', title: 'Landsat before 2016',
+    why: 'One clear late-summer Landsat picture per year before Sentinel-2, cut to the picture box and colour-matched to each other on one patch of bare rock, so the years look alike. It is built from the confirmed box, outline and scene rule: a changed box makes it stale.',
+    look: ['Are the years steady against each other: the same rock colour, no jump in position (a shift over 150 m is listed with its year)?', 'Is there cloud or snow on the tongue in any year? Leave such a year out (LEAVE_OUT_BY_OUTLET in scripts/build_landsat.py) and build again.', 'Is the colour reference patch on bare rock, not snow, ice or water?'],
+    needs: ['glacier.scenes'], screen: 'landsat', implemented: true,
+    outputs: (c) => pick(c.glacier?.landsat, 'years', 'firstYear', 'lastYear'),
+    confirmation: (c) => c.glacier?.landsat?.confirmation,
+    problems: (c) => (c.glacier?.landsat?.years === 0 ? ['The build made no picture. If no clear scene exists before 2016, the glacier is excused in data/audit-exceptions.json with the reason; otherwise look at the scene rule and the picture box.'] : []),
+    apply: (c, patch, conf) => ({ ...c, glacier: Glacier.parse({ ...needGlacier(c), landsat: { ...patch, confirmation: conf } }) }),
   },
   {
     id: 'glacier.strip', phase: 2, scope: 'glacier', title: '3D strip and start camera',

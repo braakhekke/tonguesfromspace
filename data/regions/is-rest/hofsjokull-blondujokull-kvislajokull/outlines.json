@@ -1,0 +1,14 @@
+{
+  "epochs": [
+    {
+      "kind": "new",
+      "year": 2025,
+      "source": "rgi-6-iceland",
+      "ref": {
+        "file": "data/iceland.js",
+        "id": "hofsjokull",
+        "field": "subs.1.outline"
+      }
+    }
+  ]
+}

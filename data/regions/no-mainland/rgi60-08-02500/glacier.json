@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-02500",
+  "region": "no-mainland",
+  "name": "RGI60-08.02500",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    70.183,
+    22.017
+  ],
+  "parent": "oksfjordjokelen"
+}

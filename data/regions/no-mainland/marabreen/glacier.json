@@ -1,0 +1,14 @@
+{
+  "id": "marabreen",
+  "region": "no-mainland",
+  "name": "Marabreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.508,
+    6.712
+  ],
+  "parent": "jostedalsbreen"
+}

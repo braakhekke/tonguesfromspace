@@ -18,7 +18,7 @@ describe('import-site', () => {
     const { regions, problems, drafts } = loadAll();
     expect(problems).toEqual([]);
     expect(drafts).toEqual([]);      // imported records are published, not drafts
-    expect(Object.fromEntries(regions.map((x) => [x.region.id, x.glaciers.length]))).toEqual({ ch: 10, 'is-vatnajokull': 12, 'is-rest': 10, 'no-mainland': 10, 'no-svalbard': 10 });
+    expect(Object.fromEntries(regions.map((x) => [x.region.id, x.glaciers.length]))).toEqual({ ch: 10, 'is-vatnajokull': 12, 'is-rest': 19, 'no-mainland': 10, 'no-svalbard': 10 });
     const ch = regions.find((x) => x.region.id === 'ch')!.glaciers.map((g) => g.glacier);
     expect(ch.map((g) => g.id)).toContain('aletsch');
     expect(ch.find((g) => g.id === 'sgi-b56-03')?.legacyIds).toEqual(['sgi-B56-03']);      // the id is a slug; the old link keeps working through the legacy id
@@ -51,7 +51,7 @@ describe('import-site', () => {
     saveCtx(confirm(loadCtx('ch', 'aletsch'), 'glacier.record', {}, 'owner', 'name, area and marker are right', '2026-10-27'));
     const again = importSite();
     expect(again.skipped).toEqual(['ch/aletsch: confirmed in the walkthrough, left as it is']);
-    expect(again.glaciers).toBe(51);
+    expect(again.glaciers).toBe(60);
     const c = loadCtx('ch', 'aletsch');
     expect(c.glacier?.recordConfirmation?.by).toBe('owner');
     expect(c.region.confirmation?.by).toBe('owner');      // the region text a person confirmed is kept too

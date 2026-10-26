@@ -1,0 +1,13 @@
+{
+  "id": "theodul",
+  "region": "ch",
+  "name": "Unterer Theodulgletscher",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    45.92969455548853,
+    7.729435899788629
+  ]
+}

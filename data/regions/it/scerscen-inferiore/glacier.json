@@ -1,0 +1,13 @@
+{
+  "id": "scerscen-inferiore",
+  "region": "it",
+  "name": "Scerscen Inferiore",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.3549,
+    9.85587
+  ]
+}

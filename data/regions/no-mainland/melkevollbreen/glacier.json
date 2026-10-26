@@ -1,0 +1,14 @@
+{
+  "id": "melkevollbreen",
+  "region": "no-mainland",
+  "name": "Melkevollbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.623,
+    6.832
+  ],
+  "parent": "jostedalsbreen"
+}

@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, isLandsat, LANDSAT_BANDS, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
-import { map, osm, topo, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, tlLayers } from './05-map.js';
+import { map, osm, topo, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, SPEED_MIN } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
@@ -22,7 +22,11 @@ Object.defineProperty(wire, 'syncPane', { get: () => syncPane, configurable: tru
    ===================================================================== */
 export function renderGlacierList(){
   const ul = document.getElementById('glacierList'); ul.innerHTML = '';
+  const box = document.getElementById('glacierSearch'), q = box ? box.value.trim() : '';
+  if (box) box.hidden = GLACIERS.length <= 10;      // a short list needs no search
+  const GS = /** @type {any} */ (window).GlacierSearch, shown = new Set(q && GS ? GS.search(q, GLACIERS.map(g => ({label: g.name, id: g.id})), {limit: GLACIERS.length}).map(r => r.item.id) : GLACIERS.map(g => g.id));
   GLACIERS.forEach((g, i) => {
+    if (!shown.has(g.id)) return;
     const area = rankArea(g);
     const li = document.createElement('li'), b = document.createElement('button');
     b.type = 'button'; b.setAttribute('aria-pressed', glacierPicked && g.id === state.glacier);      // nothing is highlighted before the first choice
@@ -42,6 +46,7 @@ export function renderGlacierList(){
   if (typeof wire.updateLandsatRow === 'function') wire.updateLandsatRow();
   if (typeof wire.refreshStreetView === 'function') wire.refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
 }
+document.addEventListener('input', e => { if (/** @type {HTMLElement} */ (e.target).id === 'glacierSearch') renderGlacierList(); });
 /* The outlets of an ice cap (g.subs, scripts/build_cap_images.py): the name rests on the RGI 6.0 or on the sources in `basis`; a name marked approx is inferred, and said so */
 export const subTitle = sb => `${sb.approx ? 'Name inferred, not certain. ' : ''}${sb.basis}`;
 export let subFocus = null;      // {gid, k}: the outlet of the chosen ice cap that was clicked last; the 3D view then shows a strip along that outlet (v3dGlacier); the Tongue and Whole glacier buttons clear it
@@ -516,6 +521,7 @@ export function renderStory(){
 
     <div class="tab-panel" data-panel="figures" ${storyTab === 'figures' ? '' : 'hidden'}>
       ${statsHtml}
+      <div id="gSpeed"></div>
       <div id="gWater"></div>
     </div>
 
@@ -533,7 +539,7 @@ ${aboutFrame(aboutChaptersCh())}`;
     if (storyTab === 'swiss') { wireWater(); }
   });
   wireWater();
-  renderGlacierWater(); renderShare(); fillThickness();
+  renderGlacierWater(); renderGlacierSpeed(lo, hi); renderShare(); fillThickness();
   restoringCards = true;
   storyEl.querySelectorAll('details.coll').forEach(d => { if (openCards.includes(cardKey(d))) d.open = true; else if (sameGlacier && d.open) d.open = false; });
   setTimeout(() => { restoringCards = false; }, 100);
@@ -577,6 +583,7 @@ export const ICONS = {
   change: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l7 7 4-4 7 8M21 11v6h-6"/></svg>',
   past:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7L3 8M3 3v5h5M12 7v5l3 2"/></svg>',
   now:    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 19a9 9 0 0 1 0-14M19 5a9 9 0 0 1 0 14M8.5 15.5a4 4 0 0 1 0-7M15.5 8.5a4 4 0 0 1 0 7"/><circle cx="12" cy="12" r="1.5"/></svg>',
+  speed:  '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0M12 18l4-6"/><circle cx="12" cy="18" r="1.4"/></svg>',
   down:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v16M5 13l7 7 7-7"/></svg>'
 };
 /* Eight figures for every glacier, all from one source: GLAMOS.
@@ -600,7 +607,7 @@ export const SOURCES = {
   sgi:    () => `GLAMOS: Swiss Glacier Inventory, editions SGI1850, SGI1973, SGI2016 and SGI2023 (areas, outlines, ranking by area). CC BY 4.0. ${lnk('https://www.glamos.ch', 'glamos.ch')}${DATA ? `. Downloaded for this site on ${DATA.generated}` : ''}.`,
   lc:     () => `GLAMOS: Glacier length change, release 2025. ${lnk('https://doi.org/10.18750/lengthchange.2025.r2025', 'doi:10.18750/lengthchange.2025.r2025')}. Non-commercial use. Length today: GLAMOS, ${lnk('https://doi.glamos.ch/figures/lc_stat_frequency.pdf', 'figure lc_stat_frequency')}.`,
   vc:     () => `GLAMOS: Glacier volume change (comparison of aerial elevation models), release 2025. ${lnk('https://doi.org/10.18750/volumechange.2025.r2025', 'doi:10.18750/volumechange.2025.r2025')}. Non-commercial use. The period of each survey is its own (for example 2015–2023) and is not the period of the image series.`,
-  itslive: () => `ITS_LIVE: annual velocity mosaics v2 (120 m, 2013 to 2022, region RGI11A), NASA MEaSUREs ITS_LIVE project, Gardner et al. ${lnk('https://its-live.jpl.nasa.gov', 'its-live.jpl.nasa.gov')}. CC BY 4.0. Surface speed of the ice, copied from the product; the maps are made from image pairs of Landsat 8/9, Sentinel-2 and Sentinel-1.`,
+  itslive: () => `ITS_LIVE: annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024), NASA MEaSUREs ITS_LIVE project, Gardner et al. ${lnk('https://its-live.jpl.nasa.gov', 'its-live.jpl.nasa.gov')}. CC BY 4.0. Surface speed of the ice, copied from the product; the maps are made from image pairs of Landsat 8/9, Sentinel-2 and Sentinel-1.`,
   swiss:  () => `GLAMOS: Swiss-wide glacier volume and mass balance, release 2025. ${lnk('https://doi.org/10.18750/massbalance.swisswide.2025.r2025', 'doi:10.18750/massbalance.swisswide.2025.r2025')}. Non-commercial use. Years after the last release: GLAMOS and SCNAT annual reports.`,
   mb:     () => `GLAMOS: Glaciological mass balance of single glaciers (Aletsch, Rhone, Corbassière, Findel), release 2025. ${lnk('https://doi.org/10.18750/massbalance.2025.r2025', 'doi:10.18750/massbalance.2025.r2025')}. Non-commercial use.`,
   radar:  () => `GLAMOS: Glacier ice thickness from ground-penetrating radar, release 2020. ${lnk('https://doi.org/10.18750/icethickness.2020.r2020', 'doi:10.18750/icethickness.2020.r2020')}. CC BY 4.0. Measured between 1958 and 2017, depending on the glacier.`,
@@ -783,6 +790,11 @@ export function thinningChart(g, lo, hi){
 }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.ch-mode button[data-mode]'); if (!b || b.dataset.mode === thinMode) return; thinMode = b.dataset.mode; renderStory(); });
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.ch-mode button[data-lmode]'); if (!b || b.dataset.lmode === leftMode) return; leftMode = b.dataset.lmode; renderStory(); });
+document.addEventListener('click', e => {          // "Show speed on the map" in the Ice speed card: the layer and its pin on or off, the same switch as in the Layers menu
+  if (!e.target.closest || !e.target.closest('[data-act="speed-toggle"]')) return;
+  const t = document.getElementById('speedToggle'); t.checked = !t.checked; t.dispatchEvent(new Event('change'));
+  if (t.checked) document.getElementById('map').scrollIntoView({block: 'center', behavior: 'smooth'});
+});
 document.addEventListener('click', e => {          // "Show on map" in the stats: layer on, fly to the thickest ice measurement, open its label
   if (!e.target.closest || !e.target.closest('[data-act="radar-max"]')) return;
   const g = currentGlacier(), R = g && g.inv && g.inv.radar, t = document.getElementById('maxToggle');
@@ -1005,6 +1017,36 @@ export function renderGlacierWater(){
       </div>
     </div></details>`;
   });
+}
+export const speedLinkText = () => document.getElementById('speedToggle').checked ? 'Hide speed and its fastest point on the map' : 'Show speed and its fastest point on the map';
+/* Ice speed card: the fastest ice of the ITS_LIVE annual surface speed (data/itslive, copied from the product), per year: the highest value along the flowline of the glacier
+   after a running median (`speedPeak`), computed here and labelled so; under SPEED_MIN m/yr the product does not tell ice from rock. */
+export async function renderGlacierSpeed(lo, hi){
+  const g = currentGlacier(), slot = document.getElementById('gSpeed');
+  if (!slot) return;
+  slot.innerHTML = '';
+  const id = FEATURES.speed && speedId(g), f = id && await loadSpeedFile(id);
+  if (!f || currentGlacier() !== g) return;
+  const mask = speedMask(f, g), peaks = await Promise.all(f.years.map(async y => { const k = speedPeak(f, await speedArray(f, y), mask); return k ? k.v : null; }));
+  if (currentGlacier() !== g || !document.getElementById('gSpeed')) return;
+  const y0 = f.years[0], y1 = f.years[f.years.length - 1], shown = hi ? Math.min(Math.max(hi, y0), y1) : y1, k = f.years.indexOf(shown), pk = peaks[k];
+  const items = f.years.map((y, i) => ({lab: String(y).slice(2), sel: !!(lo && hi && r_in(y, lo, hi)), v: peaks[i], t: `${y}: fastest point ${peaks[i] == null ? 'under ' + SPEED_MIN : Math.round(peaks[i])} m/yr (computed here from ITS_LIVE, along the flowline)`}));
+  const have = peaks.filter(v => v != null); if (!have.length) return;
+  slot.innerHTML = `<details class="card gspeed dcard coll" name="stats" data-card="speed"${cardOpen('speed') ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS.speed}</span>Ice speed</div>${pk != null ? sumValue(Math.round(pk) + ' m/yr') : ''}</summary><div class="dbody">
+    <div class="stat-row">
+      <div class="stat hero wide">
+        <span class="v">${pk != null ? Math.round(pk) + ' <small>m/yr</small>' : '—'}</span>
+        <span class="k">Fastest ice on the main flowline, ${shown}${fn('itslive')}</span>
+        <span class="d">Computed here: the highest speed along one line from the tongue up the glacier (other branches can be faster), smoothed over about 400 m</span>
+        <button type="button" class="tile-link" data-act="speed-toggle"><span class="tl-t">${speedLinkText()}</span>${fn('itslive')}</button>
+      </div>
+      <div class="stat"><span class="v">${Math.round(Math.max(...have))} <small>m/yr</small></span><span class="k">Fastest year</span><span class="d">${f.years[peaks.indexOf(Math.max(...have))]}, of ${y0} to ${y1}</span></div>
+      <div class="stat"><span class="v">${Math.round(Math.min(...have))} <small>m/yr</small></span><span class="k">Slowest year</span><span class="d">${f.years[peaks.indexOf(Math.min(...have))]}, of ${y0} to ${y1}</span></div>
+    </div>
+    <figure class="cum dh-chart">${barChart('Fastest ice per year', 'm/yr', items, `Fastest ice on the main flowline of ${g.local || g.name} per year, ${y0} to ${y1}: ${items.map(r => `${r.lab} ${r.v == null ? 'none' : Math.round(r.v) + ' m/yr'}`).join(', ')}`)}
+      <figcaption>${lo && hi && (Math.min(lo, hi) < y0 || Math.max(lo, hi) > y1) ? `<b>Speed maps are available for ${y0} to ${y1} only.</b> ` : ''}Yearly mean surface speed from satellite image pairs (ITS_LIVE). Switch it on in the Layers menu or with the link above.</figcaption>
+    </figure>
+  </div></details>`;
 }
 
 /* ---------- "How much water?" ---------- */

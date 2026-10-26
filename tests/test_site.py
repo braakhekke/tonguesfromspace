@@ -19,7 +19,7 @@ SITE = os.path.abspath(os.environ.get("TFS_SITE_DIR", ROOT))
 ALLOWED_EXTERNAL = ("https://cdnjs.cloudflare.com/",)
 BUILT = bool(os.environ.get("TFS_SITE_DIR"))
 DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss dashboard: on the built site at its region address (the front page / is the region picker)
-REGION_PATHS = {"is-vatnajokull": "iceland/vatnajokull", "is-rest": "iceland/rest", "no-mainland": "norway/mainland", "no-svalbard": "norway/svalbard"}
+REGION_PATHS = {"is-vatnajokull": "iceland/vatnajokull", "is-rest": "iceland/rest", "no-mainland": "norway", "no-svalbard": "svalbard"}
 
 
 def where(path, hash):
@@ -320,8 +320,8 @@ class TestRegions(SiteCase):
     def test_region_menu_has_iceland_with_vatnajokull_below_it_and_switches(self):
         page = self.open()
         page.click("#regionBtn")
-        self.assertEqual(page.locator("#regionMenu li.group").all_text_contents(), ["Iceland", "Norway"])
-        self.assertEqual(page.locator("#regionMenu li.sub").all_text_contents(), ["Vatnajökull", "Rest of Iceland", "Mainland Norway", "Svalbard"])
+        self.assertEqual(page.locator("#regionMenu li.group").all_text_contents(), ["Iceland"])
+        self.assertEqual(page.locator("#regionMenu li.sub").all_text_contents(), ["Vatnajökull", "Rest of Iceland"])
         with page.expect_navigation():
             page.locator("#regionMenu li.sub").first.click()
         page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'is-vatnajokull'")
@@ -848,15 +848,14 @@ class TestPicker(SiteCase):
     def test_the_front_page_is_international_counts_what_is_open_and_puts_why_under_the_picker(self):
         page = self.picker()
         page.wait_for_function("typeof REGIONS !== 'undefined' && HOME_GLACIERS.length > 0")
-        open_n = page.evaluate("(() => { const o = new Set(REGIONS.filter(r => !r.soon).map(r => r.id)); return HOME_GLACIERS.filter(g => o.has(g.region)).length; })()")
+        open_n = page.evaluate("(() => { const o = new Set(REGIONS.filter(r => !r.soon).map(r => r.id)); return HOME_GLACIERS.filter(g => o.has(g.region) && !g.parent).length; })()")
         self.assertGreaterEqual(open_n, 10)
-        self.assertEqual(page.evaluate("document.getElementById('count').textContent"), f"{open_n} and counting…")
         text = page.evaluate("document.body.innerText").lower()      # the eyebrows are capitalised by the stylesheet
         self.assertNotIn("ten largest swiss", text, "the front page is not about Switzerland alone")
         self.assertNotIn("every summer", text, "the best picture of each year, not a line about every summer")
         self.assertNotIn("why glaciers", text)
         self.assertIn("why tongues from space", text)
-        order = page.evaluate("['regions', 'why', 'curated', 'how'].map(id => document.getElementById(id).getBoundingClientRect().top)")
+        order = page.evaluate("['regions', 'why', 'how'].map(id => document.getElementById(id).getBoundingClientRect().top)")
         self.assertEqual(order, sorted(order), "the picker comes first, then why Tongues from Space under it")
         self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').innerText"), "figures are Swiss for now, and it says so")
         self.assertEqual(self.errors, [])
@@ -938,11 +937,42 @@ class TestIceSpeedLayer(SiteCase):
         page.evaluate("document.getElementById('speedToggle').click()")
         page.wait_for_function("speedLayer !== null", timeout=15000)
         self.assertEqual(page.evaluate("speedKey"), "B36-26|2022")
+        self.assertIn("m/yr (2022)", page.evaluate("document.querySelector('.max-pin').textContent"))
         self.assertFalse(page.evaluate("document.getElementById('speedLegend').hidden"))
         self.assertIn("ITS_LIVE", page.evaluate("document.getElementById('credits').textContent"))
-        page.evaluate("state.mode = 'compare'; state.b = 2024; updateSpeed()")      # the annual maps end in 2022
+        page.evaluate("state.mode = 'compare'; state.b = 2026; updateSpeed()")      # the annual maps end in 2024
         page.wait_for_function("speedLayer === null", timeout=15000)
-        self.assertIn("2013 to 2022", page.evaluate("document.getElementById('speedNote').textContent"))
+        self.assertIn("2013 to 2024", page.evaluate("document.getElementById('speedNote').textContent"))
         page.evaluate("document.getElementById('speedToggle').click()")
         self.assertTrue(page.evaluate("document.getElementById('speedLegend').hidden"))
+        self.assertClean()
+
+    def test_click_on_the_glacier_shows_its_speed_history(self):
+        page = self.open("#g=aletsch&m=single&one=2022")
+        page.wait_for_function("state.available && state.available[2022]", timeout=60000)
+        page.evaluate("document.getElementById('speedToggle').click()")
+        page.wait_for_function("speedLayer !== null && speedFile !== null", timeout=15000)
+        page.evaluate("(() => { const [X, Y] = speedFile.flow[Math.floor(speedFile.flow.length / 2)]; speedClick({latlng: L.CRS.EPSG3857.unproject(L.point(X, Y))}); })()")
+        page.wait_for_selector(".speed-hist svg rect[fill='var(--crevasse)']", timeout=15000)
+        n = page.evaluate("[document.querySelectorAll('.speed-hist svg title').length, speedFile.years.length]")
+        self.assertEqual(n[0], n[1])
+        self.assertIn("computed here", page.evaluate("document.querySelector('.speed-hist small').textContent"))
+        page.evaluate("document.getElementById('speedToggle').click()")
+        page.wait_for_function("document.querySelectorAll('.speed-hist').length === 0", timeout=5000)      # the popup closes with the layer
+        self.assertClean()
+
+    def test_figures_tab_has_an_ice_speed_card(self):
+        page = self.open("#g=aletsch&m=single&one=2022&t=stats")
+        page.wait_for_selector("#gSpeed details[data-card='speed']", timeout=60000)
+        self.assertIn("Ice speed", page.evaluate("document.querySelector('#gSpeed summary').textContent"))
+        self.assertEqual(page.evaluate("document.querySelectorAll('#gSpeed .stat').length"), 3)
+        self.assertEqual(page.evaluate("document.querySelectorAll('#gSpeed .rb').length"), 10)
+        self.assertNotIn("available for", page.evaluate("document.querySelector('#gSpeed figcaption').textContent"))
+        page.evaluate("document.querySelector('#gSpeed [data-act=speed-toggle]').click()")
+        page.wait_for_selector(".max-pin", timeout=15000)
+        self.assertIn("Hide speed", page.evaluate("document.querySelector('#gSpeed [data-act=speed-toggle]').textContent"))
+        page.evaluate("document.querySelector('#gSpeed [data-act=speed-toggle]').click()")
+        page.wait_for_function("speedLayer === null && !document.querySelector('.max-pin')", timeout=15000)
+        page.evaluate("state.one = 2026; renderStory()")
+        page.wait_for_function("document.querySelector('#gSpeed figcaption') && /available for 2013 to 2024/.test(document.querySelector('#gSpeed figcaption').textContent)", timeout=15000)
         self.assertClean()

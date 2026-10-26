@@ -1,0 +1,14 @@
+{
+  "id": "ruklebreen",
+  "region": "no-mainland",
+  "name": "Ruklebreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.067,
+    6.427
+  ],
+  "parent": "sondre-folgefonna"
+}

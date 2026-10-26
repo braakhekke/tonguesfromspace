@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-06-00340",
+  "region": "is-rest",
+  "name": "RGI60-06.00340",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    63.5996,
+    -19.2353
+  ],
+  "parent": "myrdalsjokull"
+}

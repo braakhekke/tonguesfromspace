@@ -34,6 +34,7 @@ scripts/.rgi-cache/
 scripts/.footprints-ch.json
 scripts/.landsat-overview.html
 scripts/.board-cache/
+scripts/.relief-cache/
 
 # Landsat pictures (2,600+ files, 200 MB) and the 3D terrain of regions other than Switzerland: kept local until those regions go live
 data/landsat/

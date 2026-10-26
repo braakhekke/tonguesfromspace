@@ -62,6 +62,10 @@ describe('the front page search', () => {
     const r = S.search('ghiacciaio del Rodano', items, { limit: 1 })[0]!;
     expect(r.item.id).toBe('rhone'); expect(S.fold(r.name)).toMatch(/rodano/); expect(typeof r.lang).toBe('string');      // (a name several languages spell alike carries the first of them)
   });
+  it('searches a lone qualifier such as "Great" (part of names like Great Aletsch Glacier)', () => {
+    expect(S.search('Great', items).length).toBeGreaterThan(0);
+    expect(top('Great Aletsch')).toEqual(['aletsch']);
+  });
   it('finds nothing for nonsense, only the word glacier, or an empty box', () => {
     expect(S.search('zqxvw', items)).toEqual([]);
     expect(S.search('glacier', items)).toEqual([]);

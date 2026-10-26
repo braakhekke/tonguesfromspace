@@ -1,0 +1,829 @@
+{
+ "A54e-24": {
+  "file": "A54e-24.d912d2db.bin",
+  "relief": [
+   "A54e-24-base.png"
+  ],
+  "rough": 2.56,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0362,
+  "strips": [],
+  "why": []
+ },
+ "A54g-11": {
+  "file": "A54g-11.0eb80933.bin",
+  "relief": [
+   "A54g-11-base.png"
+  ],
+  "rough": 2.88,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0459,
+  "strips": [],
+  "why": []
+ },
+ "B36-26": {
+  "file": "B36-26.1b9561b8.bin",
+  "relief": [
+   "B36-26-base.png"
+  ],
+  "rough": 2.4,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0125,
+  "strips": [],
+  "why": []
+ },
+ "B40-07": {
+  "file": "B40-07.f8c02b69.bin",
+  "relief": [
+   "B40-07-base.png"
+  ],
+  "rough": 3.5,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0746,
+  "strips": [],
+  "why": []
+ },
+ "B43-03": {
+  "file": "B43-03.a15fbbc7.bin",
+  "relief": [
+   "B43-03-base.png"
+  ],
+  "rough": 2.43,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0313,
+  "strips": [],
+  "why": []
+ },
+ "B53-04": {
+  "file": "B53-04.d559e907.bin",
+  "relief": [
+   "B53-04-base.png"
+  ],
+  "rough": 2.92,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0536,
+  "strips": [],
+  "why": []
+ },
+ "B56-03": {
+  "file": "B56-03.c688f3f1.bin",
+  "relief": [
+   "B56-03-base.png"
+  ],
+  "rough": 1.89,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0264,
+  "strips": [],
+  "why": []
+ },
+ "B56-07": {
+  "file": "B56-07.c244799d.bin",
+  "relief": [
+   "B56-07-base.png"
+  ],
+  "rough": 2.24,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0189,
+  "strips": [],
+  "why": []
+ },
+ "B57-05": {
+  "file": "B57-05.3c1502f2.bin",
+  "relief": [
+   "B57-05-base.png"
+  ],
+  "rough": 2.9,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0624,
+  "strips": [],
+  "why": []
+ },
+ "B83-03": {
+  "file": "B83-03.d62414fa.bin",
+  "relief": [
+   "B83-03-base.png"
+  ],
+  "rough": 3.42,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0605,
+  "strips": [],
+  "why": []
+ },
+ "blamannsisen": {
+  "file": "blamannsisen.f2510c0d.bin",
+  "relief": [
+   "blamannsisen-base.png",
+   "blamannsisen-2015.png"
+  ],
+  "rough": 3.2,
+  "seams": 0.00383,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0232,
+  "strips": [],
+  "why": []
+ },
+ "brasvellbreen": {
+  "file": "brasvellbreen.78ae6906.bin",
+  "relief": [
+   "brasvellbreen-base.png",
+   "brasvellbreen-2015.png"
+  ],
+  "rough": 0.35,
+  "seams": 0.01944,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0001,
+  "strips": [],
+  "why": [
+   "1.94% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "breidamerkurjokull": {
+  "file": "breidamerkurjokull.06fc5eba.bin",
+  "relief": [
+   "breidamerkurjokull-base.png",
+   "breidamerkurjokull-2015.png"
+  ],
+  "rough": 2.06,
+  "seams": 0.00034,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0018,
+  "strips": [],
+  "why": []
+ },
+ "bruarjokull": {
+  "file": "bruarjokull.196ffea6.bin",
+  "relief": [
+   "bruarjokull-base.png",
+   "bruarjokull-2019.png"
+  ],
+  "rough": 1.15,
+  "seams": 0.00077,
+  "seamsYear": "2019",
+  "status": "ok",
+  "steep": 0.0037,
+  "strips": [],
+  "why": []
+ },
+ "drangajokull": {
+  "file": "drangajokull.e9068e97.bin",
+  "relief": [
+   "drangajokull-base.png",
+   "drangajokull-2015.png"
+  ],
+  "rough": 1.54,
+  "seams": 0.01374,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0,
+  "strips": [],
+  "why": [
+   "1.37% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "dyngjujokull": {
+  "file": "dyngjujokull.833e0f31.bin",
+  "relief": [
+   "dyngjujokull-base.png"
+  ],
+  "rough": 0.95,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "eiriksjokull": {
+  "file": "eiriksjokull.130dea53.bin",
+  "relief": [
+   "eiriksjokull-base.png",
+   "eiriksjokull-2015.png"
+  ],
+  "rough": 0.85,
+  "seams": 0.0021,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0066,
+  "strips": [],
+  "why": []
+ },
+ "etonbreen": {
+  "file": "etonbreen.610aab98.bin",
+  "relief": [
+   "etonbreen-base.png",
+   "etonbreen-2015.png"
+  ],
+  "rough": 0.37,
+  "seams": 0.00131,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0002,
+  "strips": [],
+  "why": []
+ },
+ "eyjafjallajokull": {
+  "file": "eyjafjallajokull.2c0476f9.bin",
+  "relief": [
+   "eyjafjallajokull-base.png",
+   "eyjafjallajokull-2015.png"
+  ],
+  "rough": 2.75,
+  "seams": 0.00731,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0172,
+  "strips": [],
+  "why": [
+   "0.73% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "flaajokull": {
+  "file": "flaajokull.1a0bb844.bin",
+  "relief": [
+   "flaajokull-base.png",
+   "flaajokull-2015.png"
+  ],
+  "rough": 2.08,
+  "seams": 8e-05,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0014,
+  "strips": [],
+  "why": []
+ },
+ "hardangerjokulen": {
+  "file": "hardangerjokulen.6f8dc633.bin",
+  "relief": [
+   "hardangerjokulen-base.png",
+   "hardangerjokulen-2015.png"
+  ],
+  "rough": 3.33,
+  "seams": 0.00035,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0254,
+  "strips": [],
+  "why": []
+ },
+ "heinabergsjokull": {
+  "file": "heinabergsjokull.0d11ff31.bin",
+  "relief": [
+   "heinabergsjokull-base.png",
+   "heinabergsjokull-2019.png"
+  ],
+  "rough": 2.07,
+  "seams": 7e-05,
+  "seamsYear": "2019",
+  "status": "ok",
+  "steep": 0.005,
+  "strips": [],
+  "why": []
+ },
+ "hinlopenbreen": {
+  "file": "hinlopenbreen.fed4d97f.bin",
+  "relief": [
+   "hinlopenbreen-base.png",
+   "hinlopenbreen-2015.png"
+  ],
+  "rough": 0.53,
+  "seams": 0.00288,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0005,
+  "strips": [],
+  "why": []
+ },
+ "hochstetterbreen": {
+  "file": "hochstetterbreen.83aab6f1.bin",
+  "relief": [
+   "hochstetterbreen-base.png",
+   "hochstetterbreen-2015.png"
+  ],
+  "rough": 0.35,
+  "seams": 0.00513,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0001,
+  "strips": [],
+  "why": [
+   "0.51% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "hoffellsjokull": {
+  "file": "hoffellsjokull.d4020633.bin",
+  "relief": [
+   "hoffellsjokull-base.png",
+   "hoffellsjokull-2015.png"
+  ],
+  "rough": 2.02,
+  "seams": 0.00067,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0022,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull": {
+  "file": "hofsjokull.3666aa1c.bin",
+  "relief": [
+   "hofsjokull-base.png",
+   "hofsjokull-2015.png"
+  ],
+  "rough": 0.8,
+  "seams": 0.00166,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0002,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~0": {
+  "file": "hofsjokull~0.08ab4a9f.bin",
+  "relief": [
+   "hofsjokull~0-base.png",
+   "hofsjokull~0-2015.png"
+  ],
+  "rough": 0.62,
+  "seams": 5e-05,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0001,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~1": {
+  "file": "hofsjokull~1.54d60624.bin",
+  "relief": [
+   "hofsjokull~1-base.png",
+   "hofsjokull~1-2019.png"
+  ],
+  "rough": 0.71,
+  "seams": 7e-05,
+  "seamsYear": "2019",
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~2": {
+  "file": "hofsjokull~2.12fa1390.bin",
+  "relief": [
+   "hofsjokull~2-base.png",
+   "hofsjokull~2-2015.png"
+  ],
+  "rough": 0.77,
+  "seams": 0.00099,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0005,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~3": {
+  "file": "hofsjokull~3.40ea5c20.bin",
+  "relief": [
+   "hofsjokull~3-base.png",
+   "hofsjokull~3-2015.png"
+  ],
+  "rough": 0.75,
+  "seams": 0.00159,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0002,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~4": {
+  "file": "hofsjokull~4.e01dc9a9.bin",
+  "relief": [
+   "hofsjokull~4-base.png"
+  ],
+  "rough": 0.77,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~5": {
+  "file": "hofsjokull~5.17e1490c.bin",
+  "relief": [
+   "hofsjokull~5-base.png",
+   "hofsjokull~5-2015.png"
+  ],
+  "rough": 0.58,
+  "seams": 0.00117,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~6": {
+  "file": "hofsjokull~6.e13da1d6.bin",
+  "relief": [
+   "hofsjokull~6-base.png",
+   "hofsjokull~6-2015.png"
+  ],
+  "rough": 0.61,
+  "seams": 0.00087,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~7": {
+  "file": "hofsjokull~7.e7df9c53.bin",
+  "relief": [
+   "hofsjokull~7-base.png",
+   "hofsjokull~7-2015.png"
+  ],
+  "rough": 0.79,
+  "seams": 0.00242,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.001,
+  "strips": [],
+  "why": []
+ },
+ "hofsjokull~8": {
+  "file": "hofsjokull~8.2ed880c1.bin",
+  "relief": [
+   "hofsjokull~8-base.png",
+   "hofsjokull~8-2015.png"
+  ],
+  "rough": 0.47,
+  "seams": 1e-05,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "jostedalsbreen": {
+  "file": "jostedalsbreen.0e6bda20.bin",
+  "relief": [
+   "jostedalsbreen-base.png",
+   "jostedalsbreen-2015.png"
+  ],
+  "rough": 4.94,
+  "seams": 0.00058,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0182,
+  "strips": [],
+  "why": []
+ },
+ "koldukvislarjokull": {
+  "file": "koldukvislarjokull.ef99300f.bin",
+  "relief": [
+   "koldukvislarjokull-base.png"
+  ],
+  "rough": 0.86,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0001,
+  "strips": [],
+  "why": []
+ },
+ "kvitoyjokulen": {
+  "file": "kvitoyjokulen.f58a97eb.bin",
+  "relief": [
+   "kvitoyjokulen-base.png"
+  ],
+  "rough": 4.43,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0178,
+  "strips": [],
+  "why": []
+ },
+ "langjokull": {
+  "file": "langjokull.ff2eade4.bin",
+  "relief": [
+   "langjokull-base.png",
+   "langjokull-2015.png"
+  ],
+  "rough": 2.45,
+  "seams": 0.00592,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0183,
+  "strips": [],
+  "why": [
+   "0.59% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "monacobreen": {
+  "file": "monacobreen.f573cfc4.bin",
+  "relief": [
+   "monacobreen-base.png",
+   "monacobreen-2015.png"
+  ],
+  "rough": 1.46,
+  "seams": 0.00363,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0045,
+  "strips": [],
+  "why": []
+ },
+ "myklebustbreen": {
+  "file": "myklebustbreen.68ef80ff.bin",
+  "relief": [
+   "myklebustbreen-base.png",
+   "myklebustbreen-2015.png"
+  ],
+  "rough": 2.03,
+  "seams": 0.00029,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0173,
+  "strips": [],
+  "why": []
+ },
+ "myrdalsjokull": {
+  "file": "myrdalsjokull.7953321b.bin",
+  "relief": [
+   "myrdalsjokull-base.png",
+   "myrdalsjokull-2015.png"
+  ],
+  "rough": 2.09,
+  "seams": 0.00037,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.011,
+  "strips": [],
+  "why": []
+ },
+ "negribreen": {
+  "file": "negribreen.b6c9b8e7.bin",
+  "relief": [
+   "negribreen-base.png",
+   "negribreen-2015.png"
+  ],
+  "rough": 2.03,
+  "seams": 0.00092,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0015,
+  "strips": [],
+  "why": []
+ },
+ "nordre-folgefonna": {
+  "file": "nordre-folgefonna.740909ee.bin",
+  "relief": [
+   "nordre-folgefonna-base.png",
+   "nordre-folgefonna-2015.png"
+  ],
+  "rough": 3.24,
+  "seams": 0.00537,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0182,
+  "strips": [],
+  "why": [
+   "0.54% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "oksfjordjokelen": {
+  "file": "oksfjordjokelen.29cb8261.bin",
+  "relief": [
+   "oksfjordjokelen-base.png",
+   "oksfjordjokelen-2015.png"
+  ],
+  "rough": 3.94,
+  "seams": 0.00836,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0245,
+  "strips": [],
+  "why": [
+   "0.84% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "okstindbreen": {
+  "file": "okstindbreen.9e1bea27.bin",
+  "relief": [
+   "okstindbreen-base.png",
+   "okstindbreen-2019.png"
+  ],
+  "rough": 2.24,
+  "seams": 4e-05,
+  "seamsYear": "2019",
+  "status": "ok",
+  "steep": 0.0126,
+  "strips": [],
+  "why": []
+ },
+ "ostre-svartisen": {
+  "file": "ostre-svartisen.ebd54fee.bin",
+  "relief": [
+   "ostre-svartisen-base.png",
+   "ostre-svartisen-2015.png"
+  ],
+  "rough": 1.17,
+  "seams": 0.00022,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0039,
+  "strips": [],
+  "why": []
+ },
+ "schweigaardbreen": {
+  "file": "schweigaardbreen.bcb92884.bin",
+  "relief": [
+   "schweigaardbreen-base.png",
+   "schweigaardbreen-2015.png"
+  ],
+  "rough": 0.45,
+  "seams": 0.00029,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0004,
+  "strips": [],
+  "why": []
+ },
+ "sidujokull": {
+  "file": "sidujokull.7e71d0b3.bin",
+  "relief": [
+   "sidujokull-base.png",
+   "sidujokull-2015.png"
+  ],
+  "rough": 0.52,
+  "seams": 0.0004,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "skeidararjokull": {
+  "file": "skeidararjokull.e0dbbabf.bin",
+  "relief": [
+   "skeidararjokull-base.png",
+   "skeidararjokull-2019.png"
+  ],
+  "rough": 1.78,
+  "seams": 3e-05,
+  "seamsYear": "2019",
+  "status": "ok",
+  "steep": 0.0022,
+  "strips": [],
+  "why": []
+ },
+ "sondre-folgefonna": {
+  "file": "sondre-folgefonna.e9f78293.bin",
+  "relief": [
+   "sondre-folgefonna-base.png",
+   "sondre-folgefonna-2015.png"
+  ],
+  "rough": 8.5,
+  "seams": 0.00014,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0538,
+  "strips": [],
+  "why": []
+ },
+ "svinafellsjokull": {
+  "file": "svinafellsjokull.25585971.bin",
+  "relief": [
+   "svinafellsjokull-base.png",
+   "svinafellsjokull-2015.png"
+  ],
+  "rough": 1.79,
+  "seams": 0.00022,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0093,
+  "strips": [],
+  "why": []
+ },
+ "sylgjujokull": {
+  "file": "sylgjujokull.23e0d42d.bin",
+  "relief": [
+   "sylgjujokull-base.png"
+  ],
+  "rough": 0.48,
+  "seams": 0.0,
+  "seamsYear": null,
+  "status": "ok",
+  "steep": 0.0001,
+  "strips": [],
+  "why": []
+ },
+ "thorisjokull": {
+  "file": "thorisjokull.36486d3c.bin",
+  "relief": [
+   "thorisjokull-base.png",
+   "thorisjokull-2015.png"
+  ],
+  "rough": 1.1,
+  "seams": 1e-05,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0017,
+  "strips": [],
+  "why": []
+ },
+ "thrandarjokull": {
+  "file": "thrandarjokull.b2fa2b33.bin",
+  "relief": [
+   "thrandarjokull-base.png",
+   "thrandarjokull-2015.png"
+  ],
+  "rough": 2.46,
+  "seams": 0.00023,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0113,
+  "strips": [],
+  "why": []
+ },
+ "tindfjallajokull": {
+  "file": "tindfjallajokull.6ed68266.bin",
+  "relief": [
+   "tindfjallajokull-base.png",
+   "tindfjallajokull-2015.png"
+  ],
+  "rough": 1.79,
+  "seams": 0.00701,
+  "seamsYear": "2015",
+  "status": "warn",
+  "steep": 0.0119,
+  "strips": [],
+  "why": [
+   "0.70% of the cells of 2015 jump by more than 25 m from a neighbour where the newest surface is smooth: that year is stitched together from strips that disagree"
+  ]
+ },
+ "tungnaarjokull": {
+  "file": "tungnaarjokull.bc9b2413.bin",
+  "relief": [
+   "tungnaarjokull-base.png",
+   "tungnaarjokull-2019.png"
+  ],
+  "rough": 0.99,
+  "seams": 2e-05,
+  "seamsYear": "2019",
+  "status": "ok",
+  "steep": 0.0,
+  "strips": [],
+  "why": []
+ },
+ "tungnafellsjokull": {
+  "file": "tungnafellsjokull.9b59c76c.bin",
+  "relief": [
+   "tungnafellsjokull-base.png",
+   "tungnafellsjokull-2015.png"
+  ],
+  "rough": 1.23,
+  "seams": 1e-05,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0002,
+  "strips": [],
+  "why": []
+ },
+ "vestre-svartisen": {
+  "file": "vestre-svartisen.6a54413c.bin",
+  "relief": [
+   "vestre-svartisen-base.png",
+   "vestre-svartisen-2015.png"
+  ],
+  "rough": 4.72,
+  "seams": 0.00081,
+  "seamsYear": "2015",
+  "status": "ok",
+  "steep": 0.0298,
+  "strips": [],
+  "why": []
+ }
+}

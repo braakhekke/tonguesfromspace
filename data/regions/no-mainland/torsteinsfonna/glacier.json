@@ -1,0 +1,14 @@
+{
+  "id": "torsteinsfonna",
+  "region": "no-mainland",
+  "name": "Torsteinsfonna",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.535,
+    7.5
+  ],
+  "parent": "hardangerjokulen"
+}

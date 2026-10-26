@@ -1,0 +1,14 @@
+{
+  "id": "brenndalsbreen-rgi60-08-00314",
+  "region": "no-mainland",
+  "name": "Brenndalsbreen (RGI60-08.00314)",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.687,
+    6.964
+  ],
+  "parent": "jostedalsbreen"
+}

@@ -13,7 +13,7 @@ import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT, loadAll } from './data';
 import { siteEntry, siteFileExists, siteJson, siteScript } from './site-data';
-import { regionRecords } from './import-site';
+import { regionRecords, SITE_DATA } from './import-site';
 import type { Glacier, ScenesFile } from '../shared/schema';
 
 const SITE = () => process.env.TFS_SITE ?? ROOT;
@@ -49,18 +49,21 @@ function placed(draft: Draft = {}): Placed[] {
   const order = regionRecords().map((r) => r.id as string);
   return loadAll().regions.flatMap((r) => r.glaciers.map((x) => { const d = draft[x.glacier.id]; return { g: d?.glacier ?? x.glacier, region: r.region.id, scenes: d && 'scenes' in d ? d.scenes ?? null : x.scenes }; }))
     .filter((x) => x.g.placement)
+    .filter((x) => !x.g.parent || !x.g.imported || x.g.imported.from === SITE_DATA || !!x.g.placement!.confirmation) // an outlet only proposed from a tool's file is not on the site until a person confirms it
     .sort((a, b) => order.indexOf(a.region) - order.indexOf(b.region) || a.g.rank - b.g.rank);
 }
 
 export function boxesObject(draft: Draft = {}) {
   const out: Record<string, unknown> = {};
   const dataFiles: Record<string, string> = { 'is-vatnajokull': 'data/vatnajokull.js', 'is-rest': 'data/iceland.js', 'no-mainland': 'data/norway.js', 'no-svalbard': 'data/svalbard.js' };
-  for (const { g, region } of placed(draft)) {
+  const all = placed(draft);
+  const keyOf = (id: string) => { const x = all.find((y) => y.g.id === id)?.g; return x ? x.dataKey ?? x.id : id; };
+  for (const { g, region } of all) {
     const p = g.placement!, key = g.dataKey ?? g.id;
     let derived: Record<string, unknown>;
-    if (p.imageFrom === 'cap') { const im = siteEntry(dataFiles[region]!, key).image; derived = { bbox: im.bbox, w: im.w, h: im.h }; }
+    if (p.imageFrom === 'cap' && !g.parent) { const im = siteEntry(dataFiles[region]!, key).image; derived = { bbox: im.bbox, w: im.w, h: im.h }; }
     else derived = imageBox(p.pictureBox);
-    out[key] = { name: region === 'ch' ? shortName(g.name) : g.name, region, box: { bounds: p.pictureBox }, tip: p.tip, strip3d: p.strip3d, derived, ...(p.imageFrom ? { imageFrom: p.imageFrom } : {}) };
+    out[key] = { name: region === 'ch' ? shortName(g.name) : g.name, region, box: { bounds: p.pictureBox }, tip: p.tip, strip3d: p.strip3d, derived, ...(p.imageFrom ? { imageFrom: p.imageFrom } : {}), ...(g.parent ? { parent: keyOf(g.parent) } : {}) };
     for (const s of p.subs ?? []) out[s.dataKey] = { name: s.name, region, box: { bounds: s.pictureBox }, tip: s.tip, strip3d: s.strip3d, derived: imageBox(s.pictureBox), parent: key };
   }
   return out;

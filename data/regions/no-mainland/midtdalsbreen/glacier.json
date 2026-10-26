@@ -1,0 +1,14 @@
+{
+  "id": "midtdalsbreen",
+  "region": "no-mainland",
+  "name": "Midtdalsbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.558,
+    7.433
+  ],
+  "parent": "hardangerjokulen"
+}

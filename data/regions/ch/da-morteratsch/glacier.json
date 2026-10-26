@@ -1,0 +1,13 @@
+{
+  "id": "da-morteratsch",
+  "region": "ch",
+  "name": "Vadret da Morteratsch",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.38329977468338,
+    9.92645374850101
+  ]
+}

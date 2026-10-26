@@ -1,0 +1,13 @@
+{
+  "id": "lobbia",
+  "region": "it",
+  "name": "Lobbia",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.1531,
+    10.5769
+  ]
+}

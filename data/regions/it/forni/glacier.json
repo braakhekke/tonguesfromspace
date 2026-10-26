@@ -1,0 +1,13 @@
+{
+  "id": "forni",
+  "region": "it",
+  "name": "Forni",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    46.3917,
+    10.5908
+  ]
+}

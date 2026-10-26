@@ -262,19 +262,16 @@
   {
    "id": "itslive-annual-v2",
    "layer": "velocity",
-   "name": "NASA MEaSUREs ITS_LIVE: annual velocity mosaics v2 (120 m, RGI region 11A)",
+   "name": "NASA MEaSUREs ITS_LIVE: annual mosaics of image pair velocities v2.1 (120 m, one mosaic per RGI region)",
    "url": "https://its-live.jpl.nasa.gov/",
    "covers": {
-    "bbox": [
-     5.8,
-     45.7,
-     10.6,
-     47.9
-    ]
+    "global": true
    },
    "probe": {
-    "type": "reach",
-    "url": "https://its-live-data.s3.amazonaws.com/velocity_mosaic/v2/annual/ITS_LIVE_velocity_120m_RGI11A_2022_v02.nc"
+    "type": "itslive",
+    "stac": "https://stac.itslive.cloud/collections/velocity-mosaics/items?limit=1000",
+    "cog": "https://its-live-data.s3.amazonaws.com/velocity_mosaic/v2.1/annual/cog/ITS_LIVE_velocity_120m_{rgi}_{year}_V02.1_v.tif",
+    "year": 2020
    },
    "licence": {
     "url": "https://stac.itslive.cloud/collections/velocity-mosaics",

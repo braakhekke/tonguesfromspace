@@ -1,0 +1,13 @@
+{
+  "id": "gl-del-cerro-totora",
+  "region": "ar",
+  "name": "Gl. del Cerro Totora",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    -31.4514645,
+    -69.98958739126712
+  ]
+}

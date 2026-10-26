@@ -1,0 +1,14 @@
+{
+  "id": "hagafellsjoekull-east-langjoekull-s-dome",
+  "region": "is-rest",
+  "name": "Hagafellsjoekull East (Langjoekull S Dome",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    64.5711,
+    -20.2417
+  ],
+  "parent": "langjokull"
+}

@@ -12,6 +12,7 @@ import { SeasonScreen } from './screens/SeasonScreen';
 import { ScenesScreen } from './screens/ScenesScreen';
 import { LayersScreen } from './screens/LayersScreen';
 import { LaterScreen } from './screens/LaterScreen';
+import { LandsatScreen } from './screens/LandsatScreen';
 import { ElevationScreen } from './screens/ElevationScreen';
 import { StripScreen } from './screens/StripScreen';
 
@@ -132,7 +133,7 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
   };
   useEffect(() => { return () => { api.draft(region, glacier ?? '', null, null).catch(() => {}); }; }, []);
   const props: ScreenProps = { st, step, patch, setPatch, setBlock };
-  const Screen = { region: RegionScreen, record: RecordScreen, outline: OutlineScreen, placement: PlacementScreen, season: SeasonScreen, scenes: ScenesScreen, layers: LayersScreen, elevation: ElevationScreen, strip: StripScreen, later: LaterScreen }[step.screen as 'region'] ?? LaterScreen;
+  const Screen = { region: RegionScreen, record: RecordScreen, outline: OutlineScreen, placement: PlacementScreen, season: SeasonScreen, scenes: ScenesScreen, layers: LayersScreen, landsat: LandsatScreen, elevation: ElevationScreen, strip: StripScreen, later: LaterScreen }[step.screen as 'region'] ?? LaterScreen;
 
   return (
     <>

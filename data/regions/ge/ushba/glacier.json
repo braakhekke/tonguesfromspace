@@ -1,0 +1,13 @@
+{
+  "id": "ushba",
+  "region": "ge",
+  "name": "Ushba",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    43.1404445,
+    42.648728505571036
+  ]
+}

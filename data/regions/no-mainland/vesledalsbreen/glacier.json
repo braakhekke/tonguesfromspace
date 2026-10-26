@@ -1,0 +1,14 @@
+{
+  "id": "vesledalsbreen",
+  "region": "no-mainland",
+  "name": "Vesledalsbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.833,
+    7.278
+  ],
+  "parent": "jostedalsbreen"
+}

@@ -1,0 +1,12 @@
+{
+  "id": "us",
+  "name": "United States (without Alaska)",
+  "status": "onboarding",
+  "centre": [
+    46.8671845,
+    -121.71497396472773
+  ],
+  "zoom": 6,
+  "blurb": "United States (without Alaska).",
+  "sources": []
+}

@@ -1,0 +1,13 @@
+{
+  "id": "pelve",
+  "region": "fr",
+  "name": "Pelve",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.3425,
+    6.7562
+  ]
+}

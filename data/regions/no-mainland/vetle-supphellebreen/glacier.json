@@ -1,0 +1,14 @@
+{
+  "id": "vetle-supphellebreen",
+  "region": "no-mainland",
+  "name": "Vetle Supphellebreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.53,
+    6.837
+  ],
+  "parent": "jostedalsbreen"
+}

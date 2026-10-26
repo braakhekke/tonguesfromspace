@@ -1,0 +1,13 @@
+{
+  "id": "momhil",
+  "region": "pk",
+  "name": "Momhil Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    36.398487,
+    75.08070416057032
+  ]
+}

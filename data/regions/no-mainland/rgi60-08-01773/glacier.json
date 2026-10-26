@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-01773",
+  "region": "no-mainland",
+  "name": "RGI60-08.01773",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.523,
+    7.363
+  ],
+  "parent": "hardangerjokulen"
+}

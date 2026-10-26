@@ -12,16 +12,17 @@
  * `npm run walkthrough -- add-source` and say so in the outline step.
  */
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, openSync } from 'node:fs';
+import { existsSync, mkdirSync, openSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
-import { ROOT } from './data';
+import { dataRoot, ROOT } from './data';
 import { loadCtx, newRegion, progress } from './engine';
 import { probeGlacierLayers } from './probe-layers';
 import { lookUp, proposeGlims, RGI_SOURCE, GLIMS_SOURCE, type Proposed } from './propose-glims';
 import { findByName, type Rgi } from './sources/glims';
-import { regionFile } from './data';
-import { readFileSync } from 'node:fs';
+import { regionFile, glacierFile } from './data';
+import { readFileSync, writeFileSync } from 'node:fs';
 import type { LatLon } from '../shared/schema';
+import { MAX_PER_REGION, MIN_ONBOARD_KM2 } from '../shared/geo';
 
 const PORT = Number(process.env.TFS_WALKTHROUGH_PORT ?? 5174);
 const BASE = `http://localhost:${PORT}`;
@@ -65,7 +66,7 @@ export function knownSources(at: LatLon[]): string[] {
   ];
 }
 
-export async function onboard(region: string, specs: Spec[], opts: { regionName?: string; layers?: boolean; open?: boolean; log?: (m: string) => void; fetch?: typeof fetch } = {}) {
+export async function onboard(region: string, specs: Spec[], opts: { regionName?: string; parent?: string; layers?: boolean; open?: boolean; log?: (m: string) => void; fetch?: typeof fetch } = {}) {
   const log = opts.log ?? console.log, f = opts.fetch ?? fetch;
   if (!/^[a-z0-9-]+$/.test(region)) throw new Error(`"${region}" is not a region id (lower case letters, digits and hyphens).`);
 
@@ -79,25 +80,38 @@ export async function onboard(region: string, specs: Spec[], opts: { regionName?
     placed.push({ spec: s, at: hits[0]!.centre });
   }
 
-  // 2. the region, and what GLIMS knows about every glacier (so the group can be ranked by area first)
+  // 2. what GLIMS knows about every glacier (so the group can be ranked by area first); glaciers known to be under MIN_ONBOARD_KM2 are left out
+  const looked = [];
+  for (const p of placed) looked.push({ ...p, look: await lookUp(p.at, p.spec.name, f) });
+  const small = looked.filter((x) => x.look.g.areaKm2 < MIN_ONBOARD_KM2);
+  for (const x of small) log(`left out: ${x.spec.name} (${x.look.g.rgiId}) is ${x.look.g.areaKm2} km² in the inventory, under the ${MIN_ONBOARD_KM2} km² minimum for onboarding`);
+  const room = MAX_PER_REGION - (existsSync(join(dataRoot(), region)) ? readdirSync(join(dataRoot(), region), { withFileTypes: true }).filter((d) => d.isDirectory() && existsSync(glacierFile(region, d.name))).length : 0);
+  const big = looked.filter((x) => !small.includes(x)).sort((a, b) => b.look.g.areaKm2 - a.look.g.areaKm2);
+  const over = big.slice(Math.max(0, room));
+  for (const x of over) log(`left out: ${x.spec.name} (${x.look.g.areaKm2} km²): a region holds at most ${MAX_PER_REGION} glaciers, the largest ones`);
+  const found = big.slice(0, Math.max(0, room));
+  if (found.length === 0) throw new Error(`Nothing to onboard: every glacier asked for is under ${MIN_ONBOARD_KM2} km², or the region already holds ${MAX_PER_REGION}.`);
   if (!existsSync(regionFile(region))) {
     if (!opts.regionName) throw new Error(`Region "${region}" does not exist yet: say what it is called with --region-name "Name".`);
-    newRegion(region, opts.regionName, placed[0]!.at);
+    newRegion(region, opts.regionName, found[0]!.at);
     log(`made the region ${region}`);
   }
-  const found = [];
-  for (const p of placed) found.push({ ...p, look: await lookUp(p.at, p.spec.name, f) });
   const ranked = [...found].sort((a, b) => b.look.g.areaKm2 - a.look.g.areaKm2);
   const done: Proposed[] = [];
   for (const x of found) done.push(await proposeGlims(region, x.look, { name: x.spec.name, rank: ranked.indexOf(x) + 1, log }));
+  if (opts.parent) for (const p of done) {      // outlets of an ice cap: records of their own, with the cap as parent (they do not count towards a region's top list)
+    const file = glacierFile(region, p.id), rec = JSON.parse(readFileSync(file, 'utf8'));
+    writeFileSync(file, JSON.stringify({ ...rec, parent: opts.parent }, null, 2) + '\n');
+  }
 
   // 3. map layers, over the proposed box
-  const layers: Record<string, string> = {};
+  const layers: Record<string, string> = {}, speed: Record<string, string> = {};
   if (opts.layers !== false) for (const p of done) {
     try {
       const r = await probeGlacierLayers(region, p.id, f, () => {}, { box: p.box, outlineSources: ['rgi-6', ...(p.older ? ['glims'] : [])] });
       const on = Object.values(r?.found.layers ?? {}).filter((l) => l?.state === 'enabled').length;
       layers[p.id] = `${on} of ${Object.keys(r?.found.layers ?? {}).length} layers found`;
+      const v = r?.found.layers.velocity; speed[p.id] = v?.state === 'enabled' ? (v.note ?? 'an ITS_LIVE mosaic holds it') : v ? `not available: ${v.reason}` : 'not looked for';
     } catch (e) { layers[p.id] = `not run: ${(e as Error).message}`; }
   }
 
@@ -109,10 +123,14 @@ export async function onboard(region: string, specs: Spec[], opts: { regionName?
 
   // 5. what was filled, and what is left
   const report = [
+    ...(small.length ? [`Left out (under ${MIN_ONBOARD_KM2} km²): ${small.map((x) => `${x.spec.name} (${x.look.g.areaKm2} km²)`).join('; ')}.`] : []),
     `Filled in as proposals (nothing confirmed): ${done.map((p) => `${p.name} (${p.rgiId}, ${p.areaKm2} km²${p.older ? `, old outline ${p.older.date.slice(0, 4)}` : ', no old outline found'})`).join('; ')}.`,
     `Per glacier: record, outline, picture box and tongue tip (first guess), season (${done.map((p) => `${p.name}: ${p.seasonFrom ? `copied from ${p.seasonFrom}` : 'none proposed, no glacier is set up near enough to copy from'}`).join('; ')}), map layers (${Object.entries(layers).map(([k, v]) => `${k}: ${v}`).join('; ') || 'skipped'}).`,
     `Sources proposed: ${[RGI_SOURCE, GLIMS_SOURCE].map((s) => s.name).join('; ')}. Their licences are NOT READ: open the pages and write the licence into each source (region step).`,
     `Left for you: the region's unit rule (a placeholder), the licences, the tongue tip (southernmost point of the outline is a guess), balance-year dates, scene review (the scans run in the wizard), 3D strip and camera, then the elevation model that covers the strip.`,
+    `Ice speed (ITS_LIVE, one annual mosaic per RGI region): ${done.map((p) => `${p.name}: ${speed[p.id] ?? 'not looked for (--no-layers)'}`).join('; ')}. After the box and tip are confirmed: \`python3 scripts/build_itslive.py --id <id>\` (cuts the glacier out of its mosaic and makes the flowline; docs/ADD_A_GLACIER.md, "Ice speed"), then switch the region's \`speed\` feature on in js/regions.js and add the source \`itslive\` to the region. \`python3 scripts/audit_glaciers.py\` shows the piece "speed".`,
+    `Landsat before 2016 (colour-matched across the years on a patch of bare rock): the wizard has a step "Landsat before 2016" with a Build button, after the scene review. It is not run here: it depends on the box, which is only a first guess now. By hand: ${done.map((p) => `\`python3 scripts/build_landsat.py --outlet ${p.id}\``).join('; ')}.`,
+    `Baked 3D terrain with peak names (the same for every region): the wizard's elevation step has a "Build the terrain file" button; it is not run here because it needs the confirmed 3D strip (a changed strip makes the file stale). By hand: \`python3 scripts/build_terrain.py <id>\`. Every build is measured (scripts/terrain_quality.py: seams between the years, which come from matching errors in the elevation strips); the elevation step shows the verdict and two relief pictures. It only warns, so look at the pictures before confirming.`,
     ...knownSources(done.map((p) => p.centre)),
     `Wizard: ${url}`,
   ];
@@ -122,8 +140,8 @@ export async function onboard(region: string, specs: Spec[], opts: { regionName?
 
 if (process.argv[1]?.endsWith('onboard.ts')) {
   const a = process.argv.slice(2), flag = (n: string) => { const i = a.indexOf(n); if (i < 0) return undefined; const v = a[i + 1]; a.splice(i, 2); return v; }, bool = (n: string) => { const i = a.indexOf(n); if (i < 0) return false; a.splice(i, 1); return true; };
-  const regionName = flag('--region-name'), noOpen = bool('--no-open'), noLayers = bool('--no-layers');
+  const regionName = flag('--region-name'), parent = flag('--parent'), noOpen = bool('--no-open'), noLayers = bool('--no-layers');
   const [region, ...names] = a;
-  if (!region || names.length === 0) { console.error('usage: npm run onboard -- <region-id> "<Glacier name>[@lat,lon]" ... [--region-name "Name"] [--no-open] [--no-layers]'); process.exit(2); }
-  onboard(region, names.map(parseSpec), { regionName, open: !noOpen, layers: !noLayers }).catch((e) => { console.error(`\n${(e as Error).message}`); process.exit(1); });
+  if (!region || names.length === 0) { console.error('usage: npm run onboard -- <region-id> "<Glacier name>[@lat,lon]" ... [--region-name "Name"] [--parent <ice-cap-id>] [--no-open] [--no-layers]'); process.exit(2); }
+  onboard(region, names.map(parseSpec), { regionName, parent, open: !noOpen, layers: !noLayers }).catch((e) => { console.error(`\n${(e as Error).message}`); process.exit(1); });
 }

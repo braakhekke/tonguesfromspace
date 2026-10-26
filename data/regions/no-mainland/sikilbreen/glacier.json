@@ -1,0 +1,14 @@
+{
+  "id": "sikilbreen",
+  "region": "no-mainland",
+  "name": "Sikilbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.867,
+    7.4
+  ],
+  "parent": "jostedalsbreen"
+}

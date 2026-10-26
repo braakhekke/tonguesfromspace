@@ -1,0 +1,13 @@
+{
+  "id": "ghandogoro",
+  "region": "pk",
+  "name": "Ghandogoro Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    35.6027975,
+    76.36278449873387
+  ]
+}

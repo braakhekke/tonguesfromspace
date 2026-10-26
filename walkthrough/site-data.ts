@@ -39,7 +39,7 @@ const at = (o: any, path: string) => path.split('.').reduce((v, k) => (v == null
 export function resolveRef(ref: { file: string; id: string; field: string }) {
   const v = at(siteEntry(ref.file, ref.id), ref.field);
   if (!v) throw new Error(`${ref.file}: ${ref.id} has no ${ref.field}`);
-  const geometry = v.lines ? { type: 'MultiLineString', coordinates: v.lines.map((l: number[][]) => l.map(([la, lo]) => [lo, la])) } : v.type ? v : null;
+  const geometry = Array.isArray(v) ? { type: 'Polygon', coordinates: v.map((ring: number[][]) => ring.map(([la, lo]) => [lo, la])) } : v.lines ? { type: 'MultiLineString', coordinates: v.lines.map((l: number[][]) => l.map(([la, lo]) => [lo, la])) } : v.type ? v : null;
   if (!geometry) throw new Error(`${ref.file}: ${ref.id}.${ref.field} is not an outline I can read`);
   return { type: 'FeatureCollection' as const, features: [{ type: 'Feature' as const, properties: null, geometry }] };
 }

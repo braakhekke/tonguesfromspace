@@ -1,0 +1,13 @@
+{
+  "id": "du-mont-mine",
+  "region": "ch",
+  "name": "Glacier du Mont Miné",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    45.99632353234226,
+    7.555002139069631
+  ]
+}

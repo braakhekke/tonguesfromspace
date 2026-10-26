@@ -1,0 +1,12 @@
+{
+  "id": "fr",
+  "name": "France",
+  "status": "onboarding",
+  "centre": [
+    45.883,
+    6.934
+  ],
+  "zoom": 6,
+  "blurb": "France.",
+  "sources": []
+}

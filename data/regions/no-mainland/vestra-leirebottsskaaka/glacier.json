@@ -1,0 +1,14 @@
+{
+  "id": "vestra-leirebottsskaaka",
+  "region": "no-mainland",
+  "name": "Vestra Leirebottsskaaka",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.518,
+    7.438
+  ],
+  "parent": "hardangerjokulen"
+}

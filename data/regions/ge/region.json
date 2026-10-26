@@ -1,0 +1,12 @@
+{
+  "id": "ge",
+  "name": "Georgia",
+  "status": "onboarding",
+  "centre": [
+    43.1599375,
+    42.72359368916668
+  ],
+  "zoom": 6,
+  "blurb": "Georgia.",
+  "sources": []
+}

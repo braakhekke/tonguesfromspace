@@ -13,7 +13,9 @@
     "test:walkthrough": "vitest run --config walkthrough/vitest.config.ts",
     "check:data": "tsx walkthrough/cli.ts export --check",
     "onboard": "tsx walkthrough/onboard.ts",
-    "credentials": "tsx walkthrough/credentials.ts"
+    "credentials": "tsx walkthrough/credentials.ts",
+    "onboard-paul": "tsx walkthrough/onboard-paul.ts",
+    "onboard-rgi7": "tsx walkthrough/onboard-rgi7.ts"
   },
   "devDependencies": {
     "@cloudflare/workers-types": "^5.20261026.1",

@@ -81,56 +81,53 @@ const REGIONS_ALL = [
         background: { mosaicYear: 2025 },
         features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
     ] },
-  { id: 'no', name: 'Norway', adj: 'Norwegian',
-    children: [
-      { id: 'no-mainland', name: 'Mainland Norway', adj: 'Norwegian', ready: true, rgi: true,
-        picker: { ll: [66.6, 14.0], zoom: 5, text: 'The ten largest main glaciers of mainland Norway.' },      // the front page (home.html): where the region sits on the world map
-        path: 'norway/mainland', pathAlso: ['norway'],
-        data: 'data/norway.js',                // window.REGION_ICE, made by scripts/build_regions.py norway (NVE)
-        docTitle: 'Tongues from Space | Mainland Norway',
-        brandLede: 'Discover the ten largest glaciers of mainland Norway: Jostedalsbreen, Svartisen, Folgefonna and more. Compare, create and share your visuals.',
-        overviewName: 'Mainland Norway',
-        shareTitle: 'Tongues from Space - Mainland Norway',
-        sightDem: 'the terrain tiles of Mapterhorn',
-        trailsFile: 'data/trails-norway.js',
-        landing: 'glacier3d',                  // opens on Jostedalsbreen
-        /* Scene season: 20 July to 30 September, only scenes that cover the whole picture, the clear one closest to 1 September (end of the melt season, before the first autumn snow; NVE's own
-           inventory of 2018-2019 used scenes of late August and early September); one orbit for all years where it can be. */
-        season: { find: ['07-20', '09-30'], target: '09-01', pick: 'target', minCover: 0.999, oneOrbit: true },
-        outlines: { old: '1947–1985', new: '2018–2019', oldLegend: 'Glacier outline 1947–1985', newLegend: 'Glacier outline 2018–2019', credit: 'NVE', html: NO_OUTLINE_CREDIT },
-        inventory: { short: 'NVE', about: '2018–2019', source: 'no_nve', listAll: false },
-        unnamed: 'Unnamed glacier', units: 'glaciers',
-        place: { canton: '', range: 'Norway' }, sources: ['no_nve', 'no_old', 's2', 'landsat', 'mapterhorn', 'is_arctic', 'is_osm', 'bg', 'me'],
-        rankNote: 'Glaciers and ice caps by area, NVE glacier inventory 2018–2019.',
-        terrain: { short: 'Kartverket · Mapterhorn', html: 'Terrengmodell (DTM) © <a href="https://www.kartverket.no/api-og-data/terrengdata" target="_blank" rel="noopener">Kartverket</a> (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
-        terrainZoom: 13,
-        landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
-        background: { mosaicYear: 2025 },
-        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
-      { id: 'no-svalbard', name: 'Svalbard', adj: 'Norwegian', ready: true, rgi: true,
-        picker: { ll: [78.8, 17.0], zoom: 5, text: 'The ten largest named glacier units of Svalbard.' },      // the front page (home.html): where the region sits on the world map
-        path: 'norway/svalbard',
-        data: 'data/svalbard.js',              // window.REGION_ICE, made by scripts/build_regions.py svalbard (Norwegian Polar Institute)
-        docTitle: 'Tongues from Space | Svalbard, Norway',
-        brandLede: 'Discover ten of the largest glaciers of the Svalbard (Spitsbergen) archipelago: Negribreen, Bråsvellbreen, Monacobreen and more. Compare, create and share your visuals.',
-        overviewName: 'Svalbard',
-        shareTitle: 'Tongues from Space - Svalbard',
-        sightDem: 'the terrain tiles of Mapterhorn',
-        trailsFile: 'data/trails-svalbard.js',
-        landing: 'glacier3d',                  // opens on Negribreen
-        /* Scene season: 20 July to 15 September, the clear scene closest to 25 August: Svalbard's ice is bare for a short time, from July to the first snow in September */
-        season: { find: ['07-20', '09-15'], target: '08-25', pick: 'target', minCover: 0.999, oneOrbit: true },
-        outlines: { old: '1936–1972', new: '2020', oldLegend: 'Glacier outline 1936–1972', newLegend: 'Glacier outline 2020', credit: 'Norwegian Polar Institute', html: SV_OUTLINE_CREDIT },
-        inventory: { short: 'NPI', about: '2001–2010', source: 'sj_npi', listAll: false },
-        unnamed: 'Unnamed glacier', units: 'glaciers',
-        place: { canton: '', range: 'Svalbard, Norway' }, sources: ['sj_npi', 's2', 'landsat', 'mapterhorn', 'is_arctic', 'is_osm', 'bg', 'me'],
-        rankNote: 'Named glacier units by area in 2020, Norwegian Polar Institute.',
-        terrain: { short: 'NPI · Mapterhorn', html: 'S0 Terrengmodell Svalbard © <a href="https://data.npolar.no/dataset/dce53a47-c726-4845-85c3-a65b46fe2fea" target="_blank" rel="noopener">Norwegian Polar Institute</a> (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
-        terrainZoom: 12,
-        landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
-        background: { mosaicYear: 2025 },
-        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
-    ] },
+  { id: 'no-mainland', name: 'Norway', adj: 'Norwegian', ready: true, rgi: true,
+    picker: { ll: [66.6, 14.0], zoom: 5, text: 'The ten largest main glaciers of Norway.' },      // the front page (home.html): where the region sits on the world map
+    path: 'norway',
+    data: 'data/norway.js',                // window.REGION_ICE, made by scripts/build_regions.py norway (NVE)
+    docTitle: 'Tongues from Space | Norway',
+    brandLede: 'Discover the ten largest glaciers of Norway: Jostedalsbreen, Svartisen, Folgefonna and more. Compare, create and share your visuals.',
+    overviewName: 'Norway',
+    shareTitle: 'Tongues from Space - Norway',
+    sightDem: 'the terrain tiles of Mapterhorn',
+    trailsFile: 'data/trails-norway.js',
+    landing: 'glacier3d',                  // opens on Jostedalsbreen
+    /* Scene season: 20 July to 30 September, only scenes that cover the whole picture, the clear one closest to 1 September (end of the melt season, before the first autumn snow; NVE's own
+       inventory of 2018-2019 used scenes of late August and early September); one orbit for all years where it can be. */
+    season: { find: ['07-20', '09-30'], target: '09-01', pick: 'target', minCover: 0.999, oneOrbit: true },
+    outlines: { old: '1947–1985', new: '2018–2019', oldLegend: 'Glacier outline 1947–1985', newLegend: 'Glacier outline 2018–2019', credit: 'NVE', html: NO_OUTLINE_CREDIT },
+    inventory: { short: 'NVE', about: '2018–2019', source: 'no_nve', listAll: false },
+    unnamed: 'Unnamed glacier', units: 'glaciers',
+    place: { canton: '', range: 'Norway' }, sources: ['no_nve', 'no_old', 's2', 'landsat', 'mapterhorn', 'is_arctic', 'is_osm', 'bg', 'me'],
+    rankNote: 'Glaciers and ice caps by area, NVE glacier inventory 2018–2019.',
+    terrain: { short: 'Kartverket · Mapterhorn', html: 'Terrengmodell (DTM) © <a href="https://www.kartverket.no/api-og-data/terrengdata" target="_blank" rel="noopener">Kartverket</a> (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
+    terrainZoom: 13,
+    landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
+    background: { mosaicYear: 2025 },
+    features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
+  { id: 'no-svalbard', name: 'Svalbard', adj: 'Norwegian', ready: true, rgi: true,
+    picker: { ll: [78.8, 17.0], zoom: 5, text: 'The ten largest named glacier units of Svalbard.' },      // the front page (home.html): where the region sits on the world map
+    path: 'svalbard',
+    data: 'data/svalbard.js',              // window.REGION_ICE, made by scripts/build_regions.py svalbard (Norwegian Polar Institute)
+    docTitle: 'Tongues from Space | Svalbard',
+    brandLede: 'Discover ten of the largest glaciers of the Svalbard (Spitsbergen) archipelago: Negribreen, Bråsvellbreen, Monacobreen and more. Compare, create and share your visuals.',
+    overviewName: 'Svalbard',
+    shareTitle: 'Tongues from Space - Svalbard',
+    sightDem: 'the terrain tiles of Mapterhorn',
+    trailsFile: 'data/trails-svalbard.js',
+    landing: 'glacier3d',                  // opens on Negribreen
+    /* Scene season: 20 July to 15 September, the clear scene closest to 25 August: Svalbard's ice is bare for a short time, from July to the first snow in September */
+    season: { find: ['07-20', '09-15'], target: '08-25', pick: 'target', minCover: 0.999, oneOrbit: true },
+    outlines: { old: '1936–1972', new: '2020', oldLegend: 'Glacier outline 1936–1972', newLegend: 'Glacier outline 2020', credit: 'Norwegian Polar Institute', html: SV_OUTLINE_CREDIT },
+    inventory: { short: 'NPI', about: '2001–2010', source: 'sj_npi', listAll: false },
+    unnamed: 'Unnamed glacier', units: 'glaciers',
+    place: { canton: '', range: 'Svalbard' }, sources: ['sj_npi', 's2', 'landsat', 'mapterhorn', 'is_arctic', 'is_osm', 'bg', 'me'],
+    rankNote: 'Named glacier units by area in 2020, Norwegian Polar Institute.',
+    terrain: { short: 'NPI · Mapterhorn', html: 'S0 Terrengmodell Svalbard © <a href="https://data.npolar.no/dataset/dce53a47-c726-4845-85c3-a65b46fe2fea" target="_blank" rel="noopener">Norwegian Polar Institute</a> (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
+    terrainZoom: 12,
+    landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
+    background: { mosaicYear: 2025 },
+    features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
   { id: 'cl', name: 'Chile', adj: 'Chilean', picker: { ll: [-49.5, -73.2], zoom: 5 } },
   { id: 'np', name: 'Nepal', adj: 'Nepalese', picker: { ll: [28.2, 85.0], zoom: 6 } }
 ];

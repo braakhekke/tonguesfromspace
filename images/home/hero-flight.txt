@@ -1,0 +1,1 @@
+Contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)

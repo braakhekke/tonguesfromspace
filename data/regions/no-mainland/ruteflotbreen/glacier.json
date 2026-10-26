@@ -1,0 +1,14 @@
+{
+  "id": "ruteflotbreen",
+  "region": "no-mainland",
+  "name": "Ruteflotbreen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    61.714,
+    6.944
+  ],
+  "parent": "jostedalsbreen"
+}

@@ -49,7 +49,7 @@ export function loadAll(): Loaded {
     if (region.id !== rid) problems.push(`${rid}/region.json: id "${region.id}" must equal the folder name`);
     const sourceIds = new Set([...region.sources, ...(region.layerSources ?? [])].map((s) => s.id));
     const glaciers: Loaded['regions'][number]['glaciers'] = [];
-    const ranks = new Set<number>();
+    const ranks = new Set<string>();
     for (const gid of dirs(join(dataRoot(), rid))) {
       const gf = glacierFile(rid, gid);
       if (!existsSync(gf)) { problems.push(`${rid}/${gid}: glacier.json missing`); continue; }
@@ -62,8 +62,9 @@ export function loadAll(): Loaded {
       if (glacier.region !== rid) problems.push(`${where}: region "${glacier.region}" must equal the folder name`);
       if (ids.has(glacier.id)) problems.push(`${where}: id is used twice (ids are global: they are the URL)`);
       ids.add(glacier.id);
-      if (ranks.has(glacier.rank)) problems.push(`${where}: rank ${glacier.rank} is used twice in ${rid}`);
-      ranks.add(glacier.rank);
+      const rankKey = `${glacier.parent ?? ''}#${glacier.rank}`;      // outlets are ranked within their ice cap
+      if (ranks.has(rankKey)) problems.push(`${where}: rank ${glacier.rank} is used twice in ${glacier.parent ? `the outlets of ${glacier.parent}` : rid}`);
+      ranks.add(rankKey);
       if (!sourceIds.has(glacier.areaSource)) problems.push(`${where}: areaSource "${glacier.areaSource}" is not a source of region ${rid}`);
       for (const c of glacier.credits ?? []) if (!sourceIds.has(c)) problems.push(`${where}: credit "${c}" is not a source of region ${rid}`);
       for (const [layer, st] of Object.entries(glacier.layers ?? {}))

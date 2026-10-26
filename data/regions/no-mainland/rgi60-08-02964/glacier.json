@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-08-02964",
+  "region": "no-mainland",
+  "name": "RGI60-08.02964",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.108,
+    6.447
+  ],
+  "parent": "sondre-folgefonna"
+}

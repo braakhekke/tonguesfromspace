@@ -22,6 +22,7 @@ const Probe = z.discriminatedUnion('type', [
   z.object({ type: z.literal('stac'), url: z.string().url(), collection: z.string(), days: z.number().optional() }),
   z.object({ type: z.literal('overpass'), url: z.string().url(), filter: z.string() }),
   z.object({ type: z.literal('reach'), url: z.string().url() }),
+  z.object({ type: z.literal('itslive'), stac: z.string().url(), cog: z.string().describe('the address of one region mosaic of one year, with {rgi} and {year}'), year: z.number() }),
   z.object({ type: z.literal('none'), reason: z.string() }),
 ]);
 export const Provider = z.object({
@@ -54,6 +55,18 @@ export async function probe(p: Provider, box: Bounds, f: typeof fetch, now = Dat
   try {
     if (pr.type === 'none') return { ok: false, note: pr.reason };
     if (pr.type === 'reach') { const r = await get(f, pr.url); return { ok: r.ok, note: r.ok ? 'the landing page answers' : `HTTP ${r.status}` }; }
+    if (pr.type === 'itslive') {
+      // ITS_LIVE has one annual mosaic per RGI region: the regions of the catalogue whose bounding box holds the middle of the box, smallest first; the first whose mosaic file answers.
+      // (RGI regions 13, 15 and 16 have no annual 120 m mosaic.) Whether the mosaic has speeds in the box is only known when scripts/build_itslive.py reads it.
+      const r = await get(f, pr.stac); if (!r.ok) return { ok: false, note: `the ITS_LIVE catalogue answered HTTP ${r.status}` };
+      const items = ((await r.json()) as { features: { bbox: number[]; properties: { rgi: string; temporal_coverage_type?: string } }[] }).features;
+      const seen = new Map<string, number>();
+      for (const it of items) { const [w, s, e, n] = it.bbox as [number, number, number, number]; if (it.properties.temporal_coverage_type === 'annual' && !seen.has(it.properties.rgi) && lon >= w && lon <= e && lat >= s && lat <= n) seen.set(it.properties.rgi, (e - w) * (n - s)); }
+      const names = [...seen].sort((a, b) => a[1] - b[1]).map(([k]) => k);
+      if (!names.length) return { ok: false, note: 'no region of the ITS_LIVE annual mosaics holds this place (the product has none for RGI regions 13, 15 and 16)' };
+      for (const rgi of names) { const h = await get(f, pr.cog.replace('{rgi}', rgi).replace('{year}', String(pr.year)), { method: 'HEAD' }); if (h.ok) return { ok: true, note: `the ${rgi} annual mosaic holds this place (checked: its ${pr.year} file answers); run python3 scripts/build_itslive.py --id <id> to cut the glacier out of it and make the flowline` }; }
+      return { ok: false, note: `the catalogue lists ${names.join(', ')} for this place but its ${pr.year} file did not answer` };
+    }
     if (pr.type === 'tile') {
       const { x, y } = lonLatToTile(lon, lat, pr.zoom), url = pr.url.replace('{z}', String(pr.zoom)).replace('{x}', String(x)).replace('{y}', String(y)).replace('{year}', String(pr.year ?? ''));
       const r = await get(f, url), n = r.ok ? (await r.arrayBuffer()).byteLength : 0;

@@ -1,0 +1,12 @@
+{
+  "id": "ca",
+  "name": "Canada",
+  "status": "onboarding",
+  "centre": [
+    82.01276849999999,
+    -75.78022884653197
+  ],
+  "zoom": 6,
+  "blurb": "Canada.",
+  "sources": []
+}

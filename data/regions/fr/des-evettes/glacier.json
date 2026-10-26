@@ -1,0 +1,13 @@
+{
+  "id": "des-evettes",
+  "region": "fr",
+  "name": "Glacier des Evettes",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    45.3344,
+    7.11682
+  ]
+}

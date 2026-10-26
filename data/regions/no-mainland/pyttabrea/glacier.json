@@ -1,0 +1,14 @@
+{
+  "id": "pyttabrea",
+  "region": "no-mainland",
+  "name": "Pyttabrea",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.028,
+    6.284
+  ],
+  "parent": "sondre-folgefonna"
+}

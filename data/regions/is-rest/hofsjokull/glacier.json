@@ -38,58 +38,6 @@
       "up": 10000,
       "cell": 22
     },
-    "subs": [
-      {
-        "dataKey": "hofsjokull~Þjórsárjökull",
-        "name": "Þjórsárjökull",
-        "pictureBox": [
-          [
-            64.67226279195113,
-            -18.733566680149398
-          ],
-          [
-            64.89863720804887,
-            -18.438353319850602
-          ]
-        ],
-        "tip": [
-          64.76683,
-          -18.46166
-        ],
-        "strip3d": {
-          "azimuth": 286,
-          "half": 11600,
-          "back": 1500,
-          "up": 10000,
-          "cell": 24
-        }
-      },
-      {
-        "dataKey": "hofsjokull~Blöndujökull / Kvíslajökull",
-        "name": "Blöndujökull / Kvíslajökull",
-        "pictureBox": [
-          [
-            64.73709692777578,
-            -19.232071929633296
-          ],
-          [
-            64.89340307222423,
-            -18.970308070366702
-          ]
-        ],
-        "tip": [
-          64.83048,
-          -19.19761
-        ],
-        "strip3d": {
-          "azimuth": 105,
-          "half": 7400,
-          "back": 1500,
-          "up": 7400,
-          "cell": 24
-        }
-      }
-    ],
     "imageFrom": "cap"
   },
   "balanceYear": {

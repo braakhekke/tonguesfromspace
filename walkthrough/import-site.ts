@@ -18,6 +18,9 @@ import { ROOT, dataRoot, glacierFile, outlinesFile, regionFile, scenesFile, writ
 import { Glacier, OutlinesFile, Region, ScenesFile, type Source } from '../shared/schema';
 import { siteFileExists, siteJson, siteScript } from './site-data';
 
+/** what `imported.from` says for a record taken from the site's own data files */
+export const SITE_DATA = 'the data files of the site';
+
 /** The site ids of the ten Swiss glaciers (what `#g=` names). The page builds them from its list of defaults; they are fixed here so links stay valid. */
 export const SWISS_SITE_ID: Record<string, string> = { 'B36-26': 'aletsch', 'B56-07': 'gorner', 'B40-07': 'fiescher', 'A54g-11': 'unteraar', 'B83-03': 'corbassiere', 'B57-05': 'zmutt', 'B43-03': 'rhone', 'B56-03': 'sgi-B56-03', 'B53-04': 'sgi-B53-04', 'A54e-24': 'trift' };
 
@@ -38,6 +41,12 @@ const SOURCE: Record<string, { id: string; url: string }> = {
 };
 const DATA_FILE: Record<string, string> = { ch: 'data/glaciers.js', 'is-vatnajokull': 'data/vatnajokull.js', 'is-rest': 'data/iceland.js', 'no-mainland': 'data/norway.js', 'no-svalbard': 'data/svalbard.js' };
 
+const slugify = (s: string) => s.toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/ø/g, 'o').replace(/ð/g, 'd').replace(/þ/g, 'th').replace(/æ/g, 'ae').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');
+/** the square picture box of a place: centre and half side in km (what icecap_lib.derive_view gives) */
+const boundsAround = (lat: number, lon: number, halfKm: number): [[number, number], [number, number]] => {
+  const dla = halfKm / 111.32, dlo = halfKm / (111.32 * Math.cos((lat * Math.PI) / 180)), r = (v: number) => Math.round(v * 1e6) / 1e6;
+  return [[r(lat - dla), r(lon - dlo)], [r(lat + dla), r(lon + dlo)]];
+};
 const today = () => new Date().toISOString().slice(0, 10);
 const days = (a: string, b: string) => Math.round((Date.parse(`2001-${a}T00:00:00Z`) - Date.parse(`2001-${b}T00:00:00Z`)) / 864e5);
 
@@ -56,7 +65,7 @@ export function importSite(only?: string): ImportReport {
   const boxes: Record<string, any> = siteScript('data/boxes.js').GLACIER_BOXES.glaciers;
   const scenesJson = siteFileExists('data/scenes.json') ? siteJson('data/scenes.json').glaciers ?? {} : {};
   const report: ImportReport = { regions: 0, glaciers: 0, skipped: [], scenes: 0 };
-  const imported = (note: string) => ({ from: 'the data files of the site', at: today(), note });
+  const imported = (note: string) => ({ from: SITE_DATA, at: today(), note });
 
   for (const rec of regionRecords()) {
     if (only && rec.id !== only) continue;
@@ -111,8 +120,7 @@ export function importSite(only?: string): ImportReport {
           + `the site asks for ${Math.round((season.minCover ?? 1) * 100)} % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September`
           + `${nYears ? `; it also holds the ${nYears} scenes the site already has` : ''}. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place.`,
       };
-      const subs = Object.entries<any>(boxes).filter(([, x]) => x.parent === key).map(([k, x]) => ({ dataKey: k, name: x.name, pictureBox: x.box.bounds, tip: x.tip, strip3d: x.strip3d }));
-      const placement = { tip: b.tip as [number, number], pictureBox: b.box.bounds, strip3d: b.strip3d, ...(b.imageFrom ? { imageFrom: b.imageFrom } : {}), ...(subs.length ? { subs } : {}) };
+      const placement = { tip: b.tip as [number, number], pictureBox: b.box.bounds, strip3d: b.strip3d, ...(b.imageFrom ? { imageFrom: b.imageFrom } : {}) };
       const area = swiss ? e.area_km2 : e.areaKm2;
       const record = Glacier.parse({
         id, region: rid, name: swiss ? e.name : e.name, inventoryId: swiss ? key : String(e.rgi ?? key), dataKey: key, ...(site !== id ? { legacyIds: [site] } : {}),
@@ -129,6 +137,29 @@ export function importSite(only?: string): ImportReport {
       if (eps.length) writeJson(outlinesFile(rid, id), OutlinesFile.parse({ epochs: eps }));
       if (nYears) { writeJson(scenesFile(rid, id), ScenesFile.parse({ years })); report.scenes += nYears; }
       report.glaciers++;
+
+      // the outlets of an ice cap are glaciers of their own: their own record, steps, box and strip
+      const proposals: any[] = existsSync(join(ROOT, 'scripts/tools', `sub-boxes-${key}.json`)) ? JSON.parse(readFileSync(join(ROOT, 'scripts/tools', `sub-boxes-${key}.json`), 'utf8')) : [];
+      const outlets: any[] = [...(e.subs ?? [])].sort((x, y) => y.areaKm2 - x.areaKm2);
+      for (const [i, sb] of outlets.entries()) {
+        const sid = `${id}-${slugify(sb.name)}`, dataKey = `${key}~${sb.name}`;
+        const oldO = existsSync(glacierFile(rid, sid)) ? Glacier.parse(JSON.parse(readFileSync(glacierFile(rid, sid), 'utf8'))) : null;
+        if (hasConfirmation(oldO)) { report.skipped.push(`${rid}/${sid}: confirmed in the walkthrough, left as it is`); continue; }
+        const onSite = boxes[dataKey], prop = proposals.find((x) => x.name === sb.name);
+        if (!onSite && !prop) { report.skipped.push(`${rid}/${sid}: no placement on the site and no proposal in scripts/tools/sub-boxes-${key}.json`); continue; }
+        const placementO = onSite
+          ? { tip: onSite.tip as [number, number], pictureBox: onSite.box.bounds, strip3d: onSite.strip3d }
+          : { tip: prop.tip as [number, number], pictureBox: boundsAround(prop.lat, prop.lon, prop.half), strip3d: prop.strip3d };
+        const where = onSite ? `Picture box, tip and 3D strip from data/boxes.js (placed by hand)` : `Picture box, tip and 3D strip PROPOSED by scripts/tools/sub-boxes-${key}.json (the rule of icecap_lib.derive_view); not on the site yet, placement still to be agreed`;
+        writeJson(glacierFile(rid, sid), Glacier.parse({
+          id: sid, region: rid, parent: id, name: sb.name, inventoryId: (sb.rgi as string[]).join(', '), dataKey,
+          rank: i + 1, areaKm2: sb.areaKm2, areaSource: source.id, centre: [(placementO.pictureBox[0][0] + placementO.pictureBox[1][0]) / 2, (placementO.pictureBox[0][1] + placementO.pictureBox[1][1]) / 2],
+          placement: placementO, balanceYear: record.balanceYear, sceneRule: record.sceneRule,
+          imported: { from: onSite ? SITE_DATA : `scripts/tools/sub-boxes-${key}.json`, at: today(), note: `Outlet of ${e.name}. ${where}. Season copied from the ice cap.${sb.approx ? ` The identification is approximate. The data file says: "${sb.basis}"` : ` The data file says: "${sb.basis}"`}` },
+        }));
+        if (sb.outline) writeJson(outlinesFile(rid, sid), OutlinesFile.parse({ epochs: [{ kind: 'new', year: e.outlines.latest.year, source: source.id, ref: { file, id: key, field: `subs.${e.subs.indexOf(sb)}.outline` } }] }));
+        report.glaciers++;
+      }
     }
   }
   return report;

@@ -8,7 +8,7 @@
       This file is a plain script loaded synchronously (no defer) after js/regions.js (the records) and before everything else: it picks the region and writes the tag of its data file into the page, so that file loads in
       step with the others and nothing else is fetched. Keep it to these few functions.
    ===================================================================== */
-const REGIONS = REGIONS_ALL.map(r => r.children ? {...r, children: r.children.filter(c => !HIDDEN_REGIONS.includes(c.id))} : r).filter(r => !r.children || r.children.length);
+const REGIONS = REGIONS_ALL.map(r => r.children ? {...r, children: r.children.filter(c => !HIDDEN_REGIONS.includes(c.id))} : r).filter(r => r.children ? r.children.length : !HIDDEN_REGIONS.includes(r.id));
 /* the entries a visitor can choose, flat, each with the country it belongs to */
 const REGION_LIST = REGIONS.flatMap(r => r.children ? r.children.map(c => ({...c, parent: r})) : [r]);
 const regionById = id => REGION_LIST.find(r => r.id === id && r.ready);

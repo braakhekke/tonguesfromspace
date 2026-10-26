@@ -6,6 +6,10 @@
 import type { Bounds } from './schema';
 
 export const GROUND_RES_M = 10;
+/** Onboarding rule: a glacier known to be smaller than this (km², by the inventory's own area) is not onboarded. */
+export const MIN_ONBOARD_KM2 = 10;
+/** Onboarding rule: a region holds at most this many glaciers (the largest by inventory area, 10 km² and over; outlets of an ice cap count as glaciers). Decided by the owner 2026-10-26. */
+export const MAX_PER_REGION = 26;
 /** The Process API's own limit: 2,500 px per side. A box up to that size is one request; above it, equal tiles. */
 export const MAX_TILE_PX = 2500;
 const R = 6378137;
@@ -88,6 +92,7 @@ function ringKm2(ring: Ring): number {
 /** Area of a Polygon or MultiPolygon: outer ring minus holes. */
 export function areaKm2(geom: { type: string; coordinates: any[] }): number {
   const poly = (rings: Ring[]) => ringKm2(rings[0]!) - rings.slice(1).reduce((a, r) => a + ringKm2(r), 0);
+  if (geom.type !== 'Polygon' && geom.type !== 'MultiPolygon') return 0; // an outline kept as lines (the Iceland little-ice-age lines) has no area
   return geom.type === 'Polygon' ? poly(geom.coordinates as Ring[]) : (geom.coordinates as Ring[][]).reduce((a, p) => a + poly(p), 0);
 }
 

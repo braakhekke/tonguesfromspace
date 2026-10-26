@@ -460,7 +460,36 @@ def find_outlet(oid):
             t = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read(); d = json.loads(t[t.index('{'):t.rindex('}') + 1])
             rings = [[[lat, lon] for lon, lat in poly[0]] for g in d['glaciers'] for poly in ((g.get('oldest') or {}).get('outline') or {}).get('coordinates', [])]
             return dict(id=oid, name=fp['name'], lat=fp['lat'], lon=fp['lon'], tip=fp.get('tip')), 'ch', rings, 13, fp['bbox']
-    sys.exit(f'{oid}: not in the data files of the regions, and not in {FOOTPRINTS} (python3 scripts/dump_footprints.py)')
+    rec = find_record(oid)
+    if rec: return rec
+    sys.exit(f'{oid}: not in the data files of the regions, not in {FOOTPRINTS} (python3 scripts/dump_footprints.py), and no record data/regions/<region>/{oid}/glacier.json with a picture box')
+
+
+def find_record(oid):
+    """the same tuple from the record of the glacier (data/regions/<region>/<id>/glacier.json, outlines.json): for glaciers onboarded with the walkthrough, which are in no data file yet. The season is the record's own
+    scene rule (days before and after the end of its balance year); region 'is*' leaves Landsat 8 out like Iceland. None when there is no record, no picture box or no outline written out in the record."""
+    import datetime, glob
+    hits = glob.glob(os.path.join(ROOT, 'data', 'regions', '*', oid, 'glacier.json'))
+    if not hits: return None
+    rec = json.load(open(hits[0], encoding='utf-8')); pl = rec.get('placement') or {}; pb = pl.get('pictureBox')
+    if not pb: sys.exit(f'{oid}: the record has no picture box yet: place it in the walkthrough first (the Landsat picture follows the box)')
+    (la0, lo0), (la1, lo1) = pb; (x0, y0), (x1, y1) = merc(la0, lo0), merc(la1, lo1)
+    rings = []
+    op = os.path.join(os.path.dirname(hits[0]), 'outlines.json')
+    if os.path.exists(op):
+        for ep in json.load(open(op, encoding='utf-8')).get('epochs', []):
+            for ft in (ep.get('geojson') or {}).get('features', []):
+                g = ft['geometry']; polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']] if g['type'] == 'Polygon' else []
+                rings += [[[lat, lon] for lon, lat in ring] for poly in polys for ring in poly]
+    if not rings: sys.exit(f'{oid}: no outline is written out in the record (outlines.json holds only references into data files): the ice-free reference patch needs it')
+    by = rec.get('balanceYear') or {}; rule = rec.get('sceneRule') or {}; end = by.get('end') or '09-30'
+    ref = datetime.date(2001, int(end[:2]), int(end[3:5]))      # a non-leap year: only month and day matter
+    f = lambda d: (ref + datetime.timedelta(days=d)).strftime('%m-%d')
+    global SEASONS
+    SEASONS = {**SEASONS, rec['region']: (f(-rule.get('daysBeforeEnd', 60)), f(rule.get('daysAfterEnd', 15)), end)}
+    c = rec.get('centre') or [(la0 + la1) / 2, (lo0 + lo1) / 2]
+    o = dict(id=oid, name=rec['name'], lat=c[0], lon=c[1], tip=pl.get('tip'))
+    return o, rec['region'], rings, 12 if rec['region'].startswith('is') else 13, [round(x0), round(y0), round(x1), round(y1)]
 
 
 def main():
@@ -470,7 +499,7 @@ def main():
     ap.add_argument('--outlet', default='breidamerkurjokull'); ap.add_argument('--from', dest='y0', type=int, default=1984); ap.add_argument('--to', dest='y1', type=int, default=2015)
     ap.add_argument('--years', nargs='*', type=int); ap.add_argument('--list', action='store_true'); ap.add_argument('--res', type=float, default=30.0, help='ground metres per picture pixel (30: the real pixels of Landsat)'); a = ap.parse_args()
     o, region, rings, zdem, bbox = find_outlet(a.outlet); SEASON = SEASONS[region]
-    EXCLUDE = ('landsat-8',) if region in ('iceland', 'svalbard') else ()      # Landsat 8 surface reflectance is over-corrected over the ice and water of Iceland (and probably Svalbard); in the Alps and Norway it is used (2013 to 2015)
+    EXCLUDE = ('landsat-8',) if region in ('iceland', 'svalbard') or region.startswith('is') else ()      # Landsat 8 surface reflectance is over-corrected over the ice and water of Iceland (and probably Svalbard); in the Alps and Norway it is used (2013 to 2015)
     rj = os.path.join(ROOT, 'scripts', 'landsat-rejects.json')
     if os.path.exists(rj): REJECT.update(json.load(open(rj)).get(a.outlet, []))
     tip = o.get('tip') or [o['lat'], o['lon']]; masks = masks_for(rings, tip, bbox) if not a.list or True else None

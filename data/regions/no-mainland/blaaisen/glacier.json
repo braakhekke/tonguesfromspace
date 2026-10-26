@@ -1,0 +1,14 @@
+{
+  "id": "blaaisen",
+  "region": "no-mainland",
+  "name": "Blaaisen",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "nve-inventory",
+  "centre": [
+    60.546,
+    7.475
+  ],
+  "parent": "hardangerjokulen"
+}

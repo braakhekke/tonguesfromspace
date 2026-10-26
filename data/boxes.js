@@ -807,6 +807,44 @@ window.GLACIER_BOXES = {
     "h": 1320
    }
   },
+  "hofsjokull~Þjórsárjökull": {
+   "name": "Þjórsárjökull",
+   "region": "is-rest",
+   "box": {
+    "bounds": [
+     [
+      64.67226279195113,
+      -18.733566680149398
+     ],
+     [
+      64.89863720804887,
+      -18.438353319850602
+     ]
+    ]
+   },
+   "tip": [
+    64.76683,
+    -18.46166
+   ],
+   "strip3d": {
+    "azimuth": 286,
+    "half": 11600,
+    "back": 1500,
+    "up": 10000,
+    "cell": 24
+   },
+   "derived": {
+    "bbox": [
+     -2085411,
+     9522569,
+     -2052548,
+     9581723
+    ],
+    "w": 1389,
+    "h": 2500
+   },
+   "parent": "hofsjokull"
+  },
   "langjokull": {
    "name": "Langjökull",
    "region": "is-rest",
@@ -881,44 +919,6 @@ window.GLACIER_BOXES = {
     "h": 4350
    },
    "imageFrom": "cap"
-  },
-  "hofsjokull~Þjórsárjökull": {
-   "name": "Þjórsárjökull",
-   "region": "is-rest",
-   "box": {
-    "bounds": [
-     [
-      64.67226279195113,
-      -18.733566680149398
-     ],
-     [
-      64.89863720804887,
-      -18.438353319850602
-     ]
-    ]
-   },
-   "tip": [
-    64.76683,
-    -18.46166
-   ],
-   "strip3d": {
-    "azimuth": 286,
-    "half": 11600,
-    "back": 1500,
-    "up": 10000,
-    "cell": 24
-   },
-   "derived": {
-    "bbox": [
-     -2085411,
-     9522569,
-     -2052548,
-     9581723
-    ],
-    "w": 1389,
-    "h": 2500
-   },
-   "parent": "hofsjokull"
   },
   "hofsjokull~Blöndujökull / Kvíslajökull": {
    "name": "Blöndujökull / Kvíslajökull",

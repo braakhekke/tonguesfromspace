@@ -28,6 +28,8 @@ Scene scans and the satellite pictures in the Real page need Copernicus credenti
 npm run onboard -- new-zealand "Tasman Glacier" "Franz Josef@-43.4678,170.1883" --region-name "New Zealand"
 ```
 
+**Minimum and maximum size (the same in every region):** at most 26 glaciers per region, the largest by inventory area (`MAX_PER_REGION`, `shared/geo.ts`); outlets of an ice cap count as glaciers. **Minimum size:** a glacier known to be under 10 km² (`MIN_ONBOARD_KM2`, `shared/geo.ts`; the inventory's own area) is not onboarded: `onboard`, `onboard-paul` and `propose-glamos` leave it out and say so.
+
 One command does what a request in chat means: it makes the region and the glaciers (drafts), looks up the outlines, writes every proposal that can be written, probes the map layers, starts the walkthrough server in the background (log: `.cache/walkthrough.log`) and opens it in a **new browser window** on the first step that needs a person (`--no-open` only prints the link). What it fills in, all as proposals and nothing confirmed:
 
 | Step | Proposal | From |
@@ -40,6 +42,8 @@ One command does what a request in chat means: it makes the region and the glaci
 | Map layers | what each provider has over the box, with the licence read from its page | `providers.json` |
 
 A name GLIMS does not know, or knows twice, needs coordinates: `"name@lat,lon"`. RGI 6.0 is the one outline source that answers anywhere; where a national inventory exists it is better (`walkthrough/outline-sources.json` lists what is known and how each is fetched: GLAMOS for Switzerland automatically, the Icelandic, Norwegian and Svalbard inventories through the site's build scripts). RGI 7 is newer but its files need an Earthdata login (HTTP 401 without one, checked 26 Oct 2026). Sources found on the web are added with `npm run walkthrough -- add-source <region> <id> "<name>" <url>`. Not filled in, because it cannot be known without a person or credentials: licences, the unit rule, where the balance-year dates come from, the lowest point of the ice front, the scene review (scans run in the wizard and need Copernicus credentials), the 3D strip and camera, the elevation model that covers the strip.
+
+**Baked 3D terrain (every region the same):** the Elevation model step has a *Build the terrain file* button (`walkthrough/terrain-build.ts`: exports the records, then `scripts/build_terrain.py <id>`). It needs the confirmed 3D strip; the screen shows the file, its peak names with their source and whether it holds the record's strip (stale = build again). The board's *Elevation models* and *Peak names* checks are the safety net.
 
 ## The records are the source of truth
 
@@ -93,7 +97,7 @@ npm run walkthrough -- import-site       # fill the records from the site's curr
 
 - The wizard is bundled by esbuild in a plain Node server (`walkthrough/server.ts`), not a Vite plugin; colours and the typeface are the site's `css/tokens.css`.
 - Outlines may be references into the site's data files, and lines (the Icelandic Met Office outlines are open lines), besides polygons.
-- A glacier carries `dataKey` (its key in the site's data files), `imported`, sub-outlets in its placement, and `strip3d.cell` / `strip3d.cam`.
+- A glacier carries `dataKey` (its key in the site's data files), `imported`, `parent` (an outlet of an ice cap is a glacier of its own, id `<cap>-<name>`, ranked within its cap; one only proposed from `scripts/tools/sub-boxes-<cap>.json` stays off the site until its placement is confirmed), and `strip3d.cell` / `strip3d.cam`.
 - v2's own app (Explorer, landing page, gallery) is not ported: this repo has them. The Real page tab shows this site's dashboard.
 - Shared code lives at the repo level (`shared/`: schema, season rule, geometry, Copernicus request builder), because the Worker, the walkthrough and their tests all use it.
 - `providers.json` (which services are asked for each map layer) lives in `walkthrough/`.

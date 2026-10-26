@@ -35,7 +35,7 @@ HASH_LEN = 10
 
 HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
-PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for mainland Norway and Svalbard
+PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
 DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
 GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
@@ -121,16 +121,15 @@ REGION_PAGES = [
      "og_description": "Watch the ice caps of Iceland retreat: Langjökull, Hofsjökull, Mýrdalsjökull and seven more in satellite images since 2016, 3D terrain and outlines from the Little Ice Age maximum to today.",
      "image": "images/preview-iceland-rest.jpg", "image_w": "1200", "image_h": "630",
      "image_alt": "Tongues from Space - Iceland excl. Vatnajökull: a Sentinel-2 satellite picture of a glacier tongue with its outline of about 1890"},
-    {"path": "norway/mainland", "canonical": "norway/mainland/", "group": "norway",
-     "title": "Tongues from Space | Mainland Norway",
-     "description": "Explore the ten largest glaciers of mainland Norway, among them Jostedalsbreen, Svartisen and Folgefonna, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
-     "og_title": "Tongues from Space - Mainland Norway",
+    {"path": "norway", "canonical": "norway/", "group": "norway",
+     "title": "Tongues from Space | Norway",
+     "description": "Explore the ten largest glaciers of Norway, among them Jostedalsbreen, Svartisen and Folgefonna, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Norway",
      "og_description": "Watch the glaciers of Norway retreat: Jostedalsbreen, Svartisen, Folgefonna and seven more in satellite images since 2016, 3D terrain and outlines from the 1947–1985 inventory to today.",
      "image": "images/preview-norway.jpg", "image_w": "1200", "image_h": "630",
-     "image_alt": "Tongues from Space - Mainland Norway: a Sentinel-2 satellite picture of a Norwegian glacier tongue with its older outline"},
-    {"path": "norway", "canonical": "norway/mainland/", "same_as": "norway/mainland", "group": "norway"},      # /norway/ shows mainland Norway
-    {"path": "norway/svalbard", "canonical": "norway/svalbard/", "group": "norway",
-     "title": "Tongues from Space | Svalbard, Norway",
+     "image_alt": "Tongues from Space - Norway: a Sentinel-2 satellite picture of a Norwegian glacier tongue with its older outline"},
+    {"path": "svalbard", "canonical": "svalbard/", "group": "norway",
+     "title": "Tongues from Space | Svalbard",
      "description": "Explore ten of the largest glaciers of Svalbard, the archipelago around Spitsbergen, among them Negribreen, Bråsvellbreen and Monacobreen, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
      "og_title": "Tongues from Space - Svalbard",
      "og_description": "Watch the glaciers of Svalbard surge and retreat: Negribreen, Bråsvellbreen, Monacobreen and seven more in satellite images since 2016, 3D terrain and outlines from 1936 to 2020.",

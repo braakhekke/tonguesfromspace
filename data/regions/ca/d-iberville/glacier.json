@@ -1,0 +1,13 @@
+{
+  "id": "d-iberville",
+  "region": "ca",
+  "name": "d'Iberville",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    80.3572155,
+    -75.0340880088622
+  ]
+}

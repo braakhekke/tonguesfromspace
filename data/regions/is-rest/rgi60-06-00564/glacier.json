@@ -1,0 +1,14 @@
+{
+  "id": "rgi60-06-00564",
+  "region": "is-rest",
+  "name": "RGI60-06.00564",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    63.8096,
+    -19.58
+  ],
+  "parent": "tindfjallajokull"
+}

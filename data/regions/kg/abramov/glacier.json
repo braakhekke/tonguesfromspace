@@ -1,0 +1,13 @@
+{
+  "id": "abramov",
+  "region": "kg",
+  "name": "Abramov Glacier",
+  "inventoryId": "unset",
+  "rank": 1,
+  "areaKm2": 1,
+  "areaSource": "unset",
+  "centre": [
+    39.621041000000005,
+    71.5483636551282
+  ]
+}
