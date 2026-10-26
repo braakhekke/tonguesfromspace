@@ -50,7 +50,7 @@ export const terrainTile = (z, x, y) => `https://tiles.mapterhorn.com/${z}/${x}/
 export function stripFor(g, at){            // the strip of a glacier as stored: azimuth up the glacier from the tip, half width, metres below the tip and up (data/boxes.js)
   const P = L.CRS.EPSG3857.project(L.latLng(at[0], at[1])), k = 1 / Math.cos(at[0] * Math.PI / 180), st = boxRecord(bundleId(g), g.name).strip3d;
   const az = (st.azimuth || 0) * Math.PI / 180, ue = Math.sin(az), un = Math.cos(az), view = V3D_VIEW[bundleId(g)] || g.view3d || {};
-  return {P, k, ue, un, up: st.up || V3D.UP[1], back: st.back === undefined ? V3D.BACK : st.back, dist: view.dist || 1, cam: view.cam || null, half: st.half || V3D.HALF, tex: view.tex || V3D.TEX, merc: (a, b) => [P.x + (a * ue + b * un) * k, P.y + (a * un - b * ue) * k]};      // right of the looking direction is (un, -ue)
+  return {P, k, ue, un, up: st.up || V3D.UP[1], back: st.back === undefined ? V3D.BACK : st.back, dist: view.dist || 1, cam: view.cam || st.cam || null, half: st.half || V3D.HALF, tex: view.tex || V3D.TEX, merc: (a, b) => [P.x + (a * ue + b * un) * k, P.y + (a * un - b * ue) * k]};      // right of the looking direction is (un, -ue)
 }
 export async function loadHeights(S, nA, nB, zoom){            // heights (m) on a grid of nA+1 rows (top row = far up the glacier) by nB+1 columns (left to right)
   const Z = zoom || REGION.terrainZoom || V3D.Z, WM = V3D.WM, HALF = S.half, BACK = S.back, n = 2 ** Z, tx = x => (x + WM) / (2 * WM) * n, ty = y => (WM - y) / (2 * WM) * n;
@@ -524,7 +524,7 @@ export function loadBundle(id){            // the parsed file of a glacier, or n
   })().catch(e => { console.error('terrain file', e); bundles.delete(id); return null; }));
   return bundles.get(id);
 }
-export const stripOf = (b, g) => ({P: {x: b.P[0], y: b.P[1]}, k: b.k, ue: b.ue, un: b.un, up: b.up, back: b.back, dist: (V3D_VIEW[bundleId(g)] || {}).dist || 1, cam: (V3D_VIEW[bundleId(g)] || g.view3d || {}).cam || null, half: b.half || V3D.HALF, tex: b.tex || V3D.TEX,
+export const stripOf = (b, g) => ({P: {x: b.P[0], y: b.P[1]}, k: b.k, ue: b.ue, un: b.un, up: b.up, back: b.back, dist: (V3D_VIEW[bundleId(g)] || {}).dist || 1, cam: (V3D_VIEW[bundleId(g)] || g.view3d || {}).cam || (boxRecord(bundleId(g), g.name).strip3d || {}).cam || null, half: b.half || V3D.HALF, tex: b.tex || V3D.TEX,
   merc: (a, c) => [b.P[0] + (a * b.ue + c * b.un) * b.k, b.P[1] + (a * b.un - c * b.ue) * b.k]});      // the strip as the file was made: the same as stripFor() finds
 export function coarseBundle(b){            // every second point: the 28 m grid for devices that cannot draw the fine one
   const nA = b.nA / 2, nB = b.nB / 2, W = b.nB + 1, W2 = nB + 1, pick = a => { if (!a) return null; const o = new Float32Array((nA + 1) * W2); for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) o[j * W2 + i] = a[2 * j * W + 2 * i]; return o; };

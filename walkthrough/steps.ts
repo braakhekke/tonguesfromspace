@@ -8,7 +8,7 @@ import { yearOfScene } from './shared/season';
 
 export type Ctx = { region: Region; glacier: Glacier | null; scenes: ScenesFile | null; outlines: OutlinesFile | null };
 export type Patch = Record<string, unknown>;
-export type Screen = 'region' | 'record' | 'outline' | 'placement' | 'season' | 'scenes' | 'layers' | 'later';
+export type Screen = 'region' | 'record' | 'outline' | 'placement' | 'season' | 'scenes' | 'layers' | 'elevation' | 'strip' | 'later';
 
 export type StepDef = {
   id: string;
@@ -93,14 +93,16 @@ export const STEPS: StepDef[] = [
       }
       return out;
     },
-    apply: (c, patch, conf) => ({ ...c, outlines: OutlinesFile.parse({ epochs: patch.epochs, confirmation: conf }) }),
+    // an outline the record only points at stays a pointer: the wizard shows it resolved, and sends the geometry back with it
+    apply: (c, patch, conf) => ({ ...c, outlines: OutlinesFile.parse({ epochs: ((patch.epochs ?? []) as { ref?: unknown; geojson?: unknown }[]).map((e) => (e.ref ? { ...e, geojson: undefined } : e)), confirmation: conf }) }),
   },
   {
     id: 'glacier.placement', phase: 1, scope: 'glacier', title: 'Tongue tip and picture box',
     why: 'The box decides every picture\'s framing and every request to Copernicus. Change it later and every picture of this glacier is fetched anew.',
     look: ['Is the whole tongue inside, with some surroundings?', 'Does the tip sit on the lowest point of the ice front?', 'Pixels and requests: does the readout look sensible (above 2,500 px a side, about 25 km, the picture is tiled)?'],
     needs: ['glacier.outline'], screen: 'placement', implemented: true,
-    outputs: (c) => { const p = c.glacier?.placement; return p ? { tip: p.tip, pictureBox: p.pictureBox, strip3d: p.strip3d } : undefined; },
+    // the 3D strip is not part of what this step produced: changing it must not make the placement stale (the strip step depends on the placement, not the other way round)
+    outputs: (c) => { const p = c.glacier?.placement; return p ? { tip: p.tip, pictureBox: p.pictureBox } : undefined; },
     confirmation: (c) => c.glacier?.placement?.confirmation,
     problems: (c) => {
       const p = c.glacier?.placement;
@@ -179,8 +181,38 @@ export const STEPS: StepDef[] = [
       return { ...c, region: Region.parse({ ...c.region, layerSources: [...extra.values()] }), glacier: Glacier.parse({ ...needGlacier(c), layers: patch.layers, layersConfirmation: conf }) };
     },
   },
-  later('glacier.elevation', 2, 'Elevation model', 'Which elevation model covers the area and whether dated surfaces exist for yearly ice heights. Decides what the 3D view offers.', ['glacier.placement']),
-  later('glacier.strip', 2, '3D strip and start camera', 'The strip along the tongue and where the camera starts, confirmed in the real 3D view.', ['glacier.elevation']),
+  {
+    id: 'glacier.elevation', phase: 2, scope: 'glacier', title: 'Elevation model',
+    why: 'Which elevation model covers the area, how fine it is, and whether it has dated surfaces for yearly ice heights. This decides what the 3D view offers: yearly ice surfaces, or one surface for all years.',
+    look: ['Does the model cover the whole strip, including the area above the tongue?', 'Is the resolution the model\'s own figure, as its source states it?', 'Yearly surfaces: are there dated surfaces (several editions, or dated strips), not a single composite?'],
+    needs: ['glacier.placement'], screen: 'elevation', implemented: true,
+    outputs: (c) => pick(c.glacier?.elevation, 'model', 'resolutionM', 'yearlySurfaces', 'reason'),
+    confirmation: (c) => c.glacier?.elevation?.confirmation,
+    problems: (c) => {
+      const e = c.glacier?.elevation;
+      if (!e) return [];
+      return [...(e.reason.trim().length < 20 ? ['The reason is too short: say what was checked (coverage, resolution, dates of the surfaces) and where.'] : []), ...(e.yearlySurfaces && !/\d{4}/.test(e.reason) ? ['Yearly surfaces are claimed: name the years or editions the surfaces come from in the reason.'] : [])];
+    },
+    apply: (c, patch, conf) => ({ ...c, glacier: Glacier.parse({ ...needGlacier(c), elevation: { ...patch, confirmation: conf } }) }),
+  },
+  {
+    id: 'glacier.strip', phase: 2, scope: 'glacier', title: '3D strip and start camera',
+    why: 'The strip along the tongue that the 3D view shows, and where its camera starts. Confirmed in the real 3D view.',
+    look: ['Does the strip start below the tip and run up the middle of the glacier, not along a ridge?', 'Is it wide enough for the tongue and the valley walls, and no wider than the elevation data?', 'In the real page (3D): does the start camera show the tongue and the glacier above it, with the picture sharp?'],
+    needs: ['glacier.elevation'], screen: 'strip', implemented: true,
+    outputs: (c) => c.glacier?.placement?.strip3d,
+    confirmation: (c) => c.glacier?.stripConfirmation,
+    problems: (c) => {
+      const t = c.glacier?.placement?.strip3d;
+      if (!t) return [];
+      return [...(t.up > 40000 ? ['The strip is over 40 km long: too long for one glacier.'] : []), ...(t.half > 15000 ? ['The strip is over 30 km wide: too wide for the terrain grid.'] : []), ...(t.azimuth < 0 || t.azimuth >= 360 ? ['The azimuth is not between 0 and 360 degrees.'] : [])];
+    },
+    apply: (c, patch, conf) => {
+      const g = needGlacier(c);
+      if (!g.placement) throw new Error('this step needs the placement');
+      return { ...c, glacier: Glacier.parse({ ...g, placement: { ...g.placement, strip3d: patch.strip3d }, stripConfirmation: conf }) };
+    },
+  },
   later('glacier.content', 3, 'Discover, facts and stats', 'The texts of the right panel, every fact with its source.', ['glacier.record']),
   later('glacier.about', 4, 'About and Sources', 'Generated from what phases 1 to 3 enabled, then edited by hand.', ['glacier.content', 'glacier.layers']),
 ];

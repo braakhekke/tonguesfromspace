@@ -75,3 +75,26 @@ describe('simplifying a closed ring', () => {
     expect(Math.abs(a - b) / a).toBeLessThan(0.01);
   });
 });
+
+import { bearingFrom, stripCorners, stripLocal, stripPoint } from '../shared/geo';
+describe('the 3D strip on the ground', () => {
+  const tip: [number, number] = [46.4, 8.03];
+  it('azimuth 0 runs north, 90 east; across is to the right of that direction', () => {
+    const n = stripPoint(tip, { azimuth: 0 }, 1000, 0), e = stripPoint(tip, { azimuth: 90 }, 1000, 0);
+    expect(n[0]).toBeGreaterThan(tip[0]); expect(n[1]).toBeCloseTo(tip[1], 8);
+    expect(e[1]).toBeGreaterThan(tip[1]); expect(e[0]).toBeCloseTo(tip[0], 8);
+    const right = stripPoint(tip, { azimuth: 0 }, 0, 500);      // facing north, the right is east
+    expect(right[1]).toBeGreaterThan(tip[1]);
+  });
+  it('local and back again, and the bearing of a point', () => {
+    const p = stripPoint(tip, { azimuth: 47 }, 3200, -800), l = stripLocal(tip, { azimuth: 47 }, p);
+    expect(l.along).toBeCloseTo(3200, 3); expect(l.across).toBeCloseTo(-800, 3);
+    const b = bearingFrom(tip, stripPoint(tip, { azimuth: 200 }, 5000, 0));
+    expect(b.azimuth).toBeCloseTo(200, 4); expect(b.metres).toBeCloseTo(5000, 3);
+  });
+  it('four corners: below the tip and above it', () => {
+    const c = stripCorners(tip, { azimuth: 0, half: 2000, back: 1000, up: 6500 });
+    expect(c).toHaveLength(4);
+    expect(c[0]![0]).toBeLessThan(tip[0]); expect(c[2]![0]).toBeGreaterThan(tip[0]);
+  });
+});

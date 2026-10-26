@@ -12,6 +12,8 @@ import { SeasonScreen } from './screens/SeasonScreen';
 import { ScenesScreen } from './screens/ScenesScreen';
 import { LayersScreen } from './screens/LayersScreen';
 import { LaterScreen } from './screens/LaterScreen';
+import { ElevationScreen } from './screens/ElevationScreen';
+import { StripScreen } from './screens/StripScreen';
 
 const PHASES = ['', 'Map view and everything on it', '3D view and everything on it', 'Content', 'About and Sources'];
 export type ScreenProps = { st: State; step: Step; patch: any; setPatch: (p: any) => void; setBlock: (why: string | null) => void };
@@ -111,17 +113,26 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
     return () => removeEventListener('keydown', k);
   }, []);
 
+  const [camHint, setCamHint] = useState<string | null>(null);
+  /** The start camera is whatever the real 3D view shows now: read from the frame (same origin) and handed to the strip screen. */
+  const useCamera = () => {
+    const w = document.querySelector<HTMLIFrameElement>('iframe.wz-frame')?.contentWindow as (Window & { v3d?: { getCam(): { az: number; el: number; dist: number } } }) | null | undefined;
+    const cam = w?.v3d?.getCam?.();
+    if (!cam) return setCamHint('The 3D view is not open in the page yet: switch View to 3D there first.');
+    dispatchEvent(new CustomEvent('wz-cam', { detail: { az: +cam.az.toFixed(4), el: +cam.el.toFixed(4), dist: Math.round(cam.dist) } }));
+    setCamHint(null); setTab('edit');
+  };
   /** The page for this glacier opens on the draft: the form is handed to the server first, then the frame loads (the page asks the server for boxes.js and scenes.json). */
   const openPage = async () => {
     if (!st.glacier) return;
     await api.draft(st.region.id, st.glacier.id, step.id, patch).catch(() => {});
     const site = st.glacier.legacyIds?.[0] ?? st.glacier.id;
-    setFrame(`/site/index.html?v=${Date.now()}#${st.region.id === 'ch' ? '' : `r=${st.region.id}&`}g=${encodeURIComponent(site)}&m=single`);
+    setFrame(`/site/index.html?v=${Date.now()}#${st.region.id === 'ch' ? '' : `r=${st.region.id}&`}g=${encodeURIComponent(site)}&m=single${step.id === 'glacier.strip' ? '&v=3d' : ''}`);
     setTab('page');
   };
   useEffect(() => { return () => { api.draft(region, glacier ?? '', null, null).catch(() => {}); }; }, []);
   const props: ScreenProps = { st, step, patch, setPatch, setBlock };
-  const Screen = { region: RegionScreen, record: RecordScreen, outline: OutlineScreen, placement: PlacementScreen, season: SeasonScreen, scenes: ScenesScreen, layers: LayersScreen, later: LaterScreen }[step.screen as 'region'] ?? LaterScreen;
+  const Screen = { region: RegionScreen, record: RecordScreen, outline: OutlineScreen, placement: PlacementScreen, season: SeasonScreen, scenes: ScenesScreen, layers: LayersScreen, elevation: ElevationScreen, strip: StripScreen, later: LaterScreen }[step.screen as 'region'] ?? LaterScreen;
 
   return (
     <>
@@ -143,7 +154,17 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
         )}
         {/* the editor stays mounted while the real page is shown, so nothing typed or dragged is lost */}
         <div class="wz-stage" style={tab === 'page' ? 'display:none' : ''}><Screen {...props} /></div>
-        {tab === 'page' && frame && <div class="wz-stage wz-real"><iframe class="wz-frame" title="The real page" src={frame} /></div>}
+        {frame && (
+          <div class="wz-stage wz-real" style={tab === 'page' ? '' : 'display:none'}>
+            {step.id === 'glacier.strip' && (
+              <div class="wz-camera">
+                <button type="button" onClick={useCamera}>Use this 3D view as the start camera</button>
+                <small>{camHint ?? 'Open the 3D view (View → 3D) and orbit to where the camera should start.'}</small>
+              </div>
+            )}
+            <iframe class="wz-frame" title="The real page" src={frame} />
+          </div>
+        )}
       </main>
 
       <aside class="wz-side">

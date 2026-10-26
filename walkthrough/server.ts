@@ -185,7 +185,7 @@ async function bundle() {
 /** The real site, from the source tree, under /site/: the dashboard as a visitor sees it, with the data files generated from the records and the draft. */
 function realSite(res: ServerResponse, rel: string) {
   const text = (t: string, type: string) => { res.setHeader('Content-Type', type); res.setHeader('Cache-Control', 'no-store'); res.end(t); };
-  if (rel === 'config.js') return text('window.TFS_CONFIG = { relay: "" };', 'text/javascript');
+  if (rel === 'config.js') return text('window.TFS_CONFIG = { relay: "" };\nwindow.TFS_EXPOSE = true;      // the wizard reads the 3D view\'s camera from this frame (js/devtools.js)', 'text/javascript');
   if (rel === 'data/boxes.js') return text(boxesFile(draftOverlay()), 'text/javascript');
   if (rel === 'data/scenes.json') return text(scenesJson(draftOverlay()), 'application/json');
   const f = normalize(join(ROOT, rel)), top = rel.split('/')[0]!;

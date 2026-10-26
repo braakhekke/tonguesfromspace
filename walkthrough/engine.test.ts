@@ -125,10 +125,12 @@ describe('the walkthrough', () => {
     const c = walk();
     expect(() => confirm(c, 'glacier.layers', { layers: { basemap: { state: 'enabled', provider: 'inv' } } }, 'me', 'checked it')).toThrow(/has no decision/);
   });
-  it('phase 2 to 4 are listed but not doable yet', () => {
+  it('content, About and Sources (phases 3 and 4) are listed but not doable yet; elevation and the 3D strip (phase 2) are', () => {
     const c = walk();
-    expect(status(c, 'glacier.elevation')).toBe('unavailable');
-    expect(() => confirm(c, 'glacier.elevation', {}, 'me', 'checked it')).toThrow(/not built/);
+    expect(status(c, 'glacier.content')).toBe('unavailable');
+    expect(() => confirm(c, 'glacier.content', {}, 'me', 'checked it')).toThrow(/not built/);
+    expect(status(c, 'glacier.elevation')).not.toBe('unavailable');
+    expect(status(c, 'glacier.strip')).not.toBe('unavailable');
   });
 });
 

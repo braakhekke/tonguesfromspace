@@ -112,6 +112,39 @@ class TestWalkthrough(unittest.TestCase):
         self.assertIn("Aletsch", frame.locator("#story").inner_text(timeout=30000))
         self.assertEqual(errors, [])
 
+    def test_the_strip_screen_edits_the_numbers_and_saves_them_with_the_confirmation(self):
+        def ok(step, patch, glacier="aletsch"):
+            r = self.call("/__onboard/confirm", {"region": "ch", "glacier": glacier, "step": step, "patch": patch, "reason": "looked at it on the real page"})
+            self.assertEqual(r.get("ok"), True, r)
+        ok("region.unit", {}, None); ok("glacier.record", {})
+        st = self.call("/__onboard/state?region=ch&glacier=aletsch")
+        ok("glacier.outline", {"epochs": st["outlines"]["epochs"]}); ok("glacier.placement", {})
+        ok("glacier.elevation", {"model": "a national model", "resolutionM": 2, "yearlySurfaces": False, "reason": "One composite surface covers the strip; read on the source page."})
+        ctx = self.browser.new_context(viewport={"width": 1500, "height": 900})
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(self.base + "/onboard/ch/aletsch/glacier.strip")
+        page.wait_for_selector("text=Azimuth up the glacier", timeout=15000)
+        azimuth = page.locator("label:has(span:text-is('Azimuth up the glacier, degrees')) input")
+        self.assertEqual(float(azimuth.input_value()), 46.980177754196404, "the strip of the record, as imported")
+        azimuth.fill("50")
+        page.fill("label:has(span:text-is('Up the glacier, m')) input", "7000")
+        page.fill("textarea", "The strip follows the middle of the tongue; checked on the map.")
+        page.keyboard.press("Tab")
+        for box in page.locator("[role=checkbox]").all(): box.click()
+        page.click("text=Looks good, confirm")
+        for _ in range(60):      # the step is done when the engine says so
+            st = self.call("/__onboard/state?region=ch&glacier=aletsch")
+            if [x["status"] for x in st["steps"] if x["id"] == "glacier.strip"] == ["done"]:
+                break
+            time.sleep(0.25)
+        saved = json.load(open(os.path.join(self.tmp, "data", "ch", "aletsch", "glacier.json")))
+        self.assertEqual((saved["placement"]["strip3d"]["azimuth"], saved["placement"]["strip3d"]["up"]), (50, 7000))
+        self.assertTrue(saved["stripConfirmation"]["basedOn"])
+        self.assertEqual(errors, [])
+
     def test_the_stale_cascade_is_derived_not_stored(self):
         self.call("/__onboard/new-region", {"id": "cascade", "name": "Cascade", "centre": [46.5, 8.2]})
         src = {"id": "inv", "name": "National inventory", "url": "https://example.org/inv", "licence": "CC BY 4.0", "commercialUse": True}

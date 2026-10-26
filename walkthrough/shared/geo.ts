@@ -139,3 +139,25 @@ export function simplifyRing(ring: number[][], tol: number): number[][] {
   const out = [...a, ...b.slice(1)];
   return out.length >= 4 ? out : ring;
 }
+
+/**
+ * The 3D strip on the ground: from the tongue tip, `azimuth` degrees clockwise from north is "up the glacier"; the strip reaches `back` metres below the tip
+ * and `up` metres above it, `half` metres to each side. (along, across) are metres along that direction and to its right.
+ */
+export type Strip = { azimuth: number; half: number; back: number; up: number };
+const M_PER_DEG = 111320;
+export function stripPoint(tip: [number, number], s: Pick<Strip, 'azimuth'>, along: number, across: number): [number, number] {
+  const a = (s.azimuth * Math.PI) / 180, e = along * Math.sin(a) + across * Math.cos(a), n = along * Math.cos(a) - across * Math.sin(a);
+  return [tip[0] + n / M_PER_DEG, tip[1] + e / (M_PER_DEG * Math.cos((tip[0] * Math.PI) / 180))];
+}
+/** the inverse: where a point lies in (along, across) of the strip */
+export function stripLocal(tip: [number, number], s: Pick<Strip, 'azimuth'>, p: [number, number]): { along: number; across: number } {
+  const a = (s.azimuth * Math.PI) / 180, n = (p[0] - tip[0]) * M_PER_DEG, e = (p[1] - tip[1]) * M_PER_DEG * Math.cos((tip[0] * Math.PI) / 180);
+  return { along: e * Math.sin(a) + n * Math.cos(a), across: e * Math.cos(a) - n * Math.sin(a) };
+}
+/** azimuth (degrees, 0 to 360) and distance in metres from the tip to a point */
+export function bearingFrom(tip: [number, number], p: [number, number]): { azimuth: number; metres: number } {
+  const n = (p[0] - tip[0]) * M_PER_DEG, e = (p[1] - tip[1]) * M_PER_DEG * Math.cos((tip[0] * Math.PI) / 180);
+  return { azimuth: ((Math.atan2(e, n) * 180) / Math.PI + 360) % 360, metres: Math.hypot(e, n) };
+}
+export const stripCorners = (tip: [number, number], s: Strip): [number, number][] => [stripPoint(tip, s, -s.back, -s.half), stripPoint(tip, s, -s.back, s.half), stripPoint(tip, s, s.up, s.half), stripPoint(tip, s, s.up, -s.half)];
