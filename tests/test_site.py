@@ -19,7 +19,7 @@ SITE = os.path.abspath(os.environ.get("TFS_SITE_DIR", ROOT))
 ALLOWED_EXTERNAL = ("https://cdnjs.cloudflare.com/",)
 BUILT = bool(os.environ.get("TFS_SITE_DIR"))
 DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss dashboard: on the built site at its region address (the front page / is the region picker)
-REGION_PATHS = {"is-vatnajokull": "iceland/vatnajokull", "is-rest": "iceland/rest", "no-mainland": "norway", "no-svalbard": "svalbard"}
+REGION_PATHS = {"is": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard"}
 
 
 def where(path, hash):
@@ -175,7 +175,7 @@ ICELAND_HIDDEN = bool(os.environ.get("TFS_SITE_DIR")) and not os.path.isfile(os.
 
 @unittest.skipIf(ICELAND_HIDDEN, "built site without Iceland (PUBLISH_ICELAND is not 1)")
 class TestRegions(SiteCase):
-    """Switzerland is the plain address; Iceland > Vatnajökull is #r=is-vatnajokull. Each loads only its own data file; features without data are off."""
+    """Switzerland is the plain address; Iceland > Vatnajökull is #r=is. Each loads only its own data file; features without data are off."""
     def requested(self, page_hash):
         seen = []
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
@@ -199,26 +199,27 @@ class TestRegions(SiteCase):
         self.assertClean()
 
     def test_vatnajokull_link_loads_only_its_own_data_and_opens_on_its_outlet(self):
-        page, seen = self.requested("#r=is-vatnajokull")
-        self.assertEqual(page.evaluate("REGION.id"), "is-vatnajokull")
-        self.assertEqual(page.evaluate("GLACIERS.map(g => g.id).sort()"), sorted(["skeidararjokull", "bruarjokull", "breidamerkurjokull", "dyngjujokull", "sidujokull", "koldukvislarjokull", "tungnaarjokull", "flaajokull", "heinabergsjokull", "hoffellsjokull", "svinafellsjokull", "sylgjujokull"]))
+        page, seen = self.requested("#r=is")
+        self.assertEqual(page.evaluate("REGION.id"), "is")
+        self.assertEqual(page.evaluate("GLACIERS.filter(g => g.canton === 'Vatnajökull ice cap').map(g => g.id).sort()"), sorted(["skeidararjokull", "bruarjokull", "breidamerkurjokull", "dyngjujokull", "sidujokull", "koldukvislarjokull", "tungnaarjokull", "flaajokull", "heinabergsjokull", "hoffellsjokull", "svinafellsjokull", "sylgjujokull"]))
         self.assertFalse([u for u in seen if "/data/glaciers" in u], "the Icelandic page must not fetch the Swiss data")
-        self.assertTrue([u for u in seen if "/data/vatnajokull" in u])
+        self.assertEqual(page.evaluate("GLACIERS.length"), 22)
+        self.assertTrue([u for u in seen if "/data/iceland-all" in u])
         self.assertTrue(page.evaluate("glacierPicked"), "Vatnajökull opens on Breiðamerkurjökull, like Switzerland on its biggest glacier")
         self.assertEqual(page.evaluate("state.glacier"), "breidamerkurjokull")
         self.assertEqual(page.evaluate("viewMode"), "3d")
         self.assertClean()
 
     def test_the_other_ice_cap_regions_have_ten_glaciers_each_and_their_own_panels(self):
-        """Rest of Iceland, mainland Norway and Svalbard: exactly ten glaciers, own data file only, every glacier can be chosen and its panel draws without errors."""
-        for rid, data, first in (("is-rest", "iceland", "langjokull"), ("no-mainland", "norway", "jostedalsbreen"), ("no-svalbard", "svalbard", "storisstraumen")):
+        """Norway and Svalbard: exactly ten glaciers, own data file only, every glacier can be chosen and its panel draws without errors."""
+        for rid, data, first in (("no-mainland", "norway", "jostedalsbreen"), ("no-svalbard", "svalbard", "storisstraumen")):
             with self.subTest(region=rid):
                 page, seen = self.requested("#r=" + rid)
                 self.assertEqual(page.evaluate("REGION.id"), rid)
                 self.assertEqual(page.evaluate("GLACIERS.length"), 10)
                 self.assertEqual(page.evaluate("GLACIERS[0].id"), first)
                 self.assertTrue([u for u in seen if f"/data/{data}" in u])
-                self.assertFalse([u for u in seen if "/data/glaciers" in u or "/data/vatnajokull" in u])
+                self.assertFalse([u for u in seen if "/data/glaciers" in u or "/data/iceland" in u])
                 for gid in page.evaluate("GLACIERS.map(g => g.id)"):
                     page.evaluate(f"chooseGlacier('{gid}')")
                     page.wait_for_function(f"document.getElementById('story').dataset.glacier === '{gid}'", timeout=15000)
@@ -231,7 +232,7 @@ class TestRegions(SiteCase):
                 self.assertClean()
 
     def test_vatnajokull_outlines_whole_glacier_and_tongue(self):
-        page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map")
+        page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
         r = page.evaluate("""() => { const g = GLACIERS.find(g => g.id === 'breidamerkurjokull'), fp = imageFootprint(g).bounds, tb = tongueBounds(g);
           return {lia: g.outlines.lia.lines.length, latest: g.outlines.latest.lines.length, year: [g.outlines.lia.year, g.outlines.latest.year], same: JSON.stringify(tb.toBBoxString().split(',').map(Number).map(v => +v.toFixed(3))) === JSON.stringify([fp[0][1], fp[0][0], fp[1][1], fp[1][0]].map(v => +v.toFixed(3))),
                   wholeBigger: wholeGlacierZoom(g) < map.getBoundsZoom(tb), outlineGeom: !!oldOutlineGeom(g) && !!newOutlineGeom(g)}; }""")
@@ -243,7 +244,7 @@ class TestRegions(SiteCase):
         self.assertClean()
 
     def test_vatnajokull_panel_has_the_about_block_and_no_extra_cards(self):
-        page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single")
+        page = self.open("#r=is&g=breidamerkurjokull&m=single")
         self.assertEqual(page.locator("#story details.about").count(), 1)
         self.assertEqual(page.locator("#story .gh-invite").count(), 1)
         self.assertGreaterEqual(page.locator("#story details.about-ch").count(), 8)
@@ -251,7 +252,7 @@ class TestRegions(SiteCase):
         self.assertNotIn("About Tongues from Space Vatnaj", text)
         figures = page.evaluate("[...document.querySelectorAll('#story [data-panel=figures] .card-h')].map(e => e.textContent.trim())")
         self.assertNotIn("Source", figures, "no Source card in Stats")
-        self.assertIn("/data/vatnajokull", "".join(page.evaluate("[...document.scripts].map(s => s.src)")))
+        self.assertIn("/data/iceland-all", "".join(page.evaluate("[...document.scripts].map(s => s.src)")))
         self.assertClean()
 
     def test_region_menu_items_share_font_and_size(self):
@@ -266,16 +267,16 @@ class TestRegions(SiteCase):
       const v = startViewer(cv, b.heights, tc, b.nA, b.nB, S.up, S.back, S.dist, S.half); const cam = v.getCam(); v.setCam(cam); v.destroy(); cv.remove(); return {half: S.half, el: cam.el, dist: cam.dist}; }"""
 
     def test_3d_viewer_starts_on_the_terrain_file_of_each_region(self):      # a plain script error in the viewer (a comment that swallowed a definition once) would show as "3D view failed"
-        for h in ("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map", "#g=gorner&m=single&v=map"):
+        for h in ("#r=is&g=breidamerkurjokull&m=single&v=map", "#g=gorner&m=single&v=map"):
             page = self.open(h)
             r = page.evaluate(self.VIEWER_JS)
             self.assertIsInstance(r, dict, f"{h}: {r}")
             self.assertGreater(r["dist"], 0)
             self.assertClean()
-        self.assertEqual(self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map").evaluate(self.VIEWER_JS)["half"], 9000)
+        self.assertEqual(self.open("#r=is&g=breidamerkurjokull&m=single&v=map").evaluate(self.VIEWER_JS)["half"], 9000)
 
     def test_landsat_switch_adds_and_removes_the_years_before_sentinel2(self):      # Iceland: the checkbox under the years; the Landsat pictures are static files (no relay), 30 m, natural colour
-        page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map")
+        page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
         page.wait_for_function("state.checked", timeout=30000)
         self.assertEqual(page.evaluate("YEARS[0]"), 2016, "off at first: the years start with Sentinel-2")
         self.assertEqual(page.evaluate("document.getElementById('landsatToggle').checked"), False)
@@ -297,7 +298,7 @@ class TestRegions(SiteCase):
         self.assertClean()
 
     def test_vatnajokull_has_oldest_and_latest(self):      # Oldest: the historic aerial mosaic of 1980/82 (one file), Latest: the newest scene of the last weeks
-        page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&one=1990&v=map")      # a year before Sentinel-2 in the link switches the Landsat pictures on, which need no relay (the tests have none)
+        page = self.open("#r=is&g=breidamerkurjokull&m=single&one=1990&v=map")      # a year before Sentinel-2 in the link switches the Landsat pictures on, which need no relay (the tests have none)
         page.wait_for_function("oldestAerial.get('breidamerkurjokull') !== undefined", timeout=15000)
         self.assertEqual(page.evaluate("[...document.querySelectorAll('#yearsSpecial button')].map(b => b.textContent)"), ["Oldest", "Latest"])
         page.click("#yearsSpecial button >> text=Oldest")
@@ -310,35 +311,40 @@ class TestRegions(SiteCase):
         self.assertClean()
 
     def test_vatnajokull_trails_are_lines_and_the_ice_front_in_view_is_drawn(self):
-        page = self.open("#r=is-vatnajokull&g=breidamerkurjokull&m=single&v=map")
+        page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
         page.click("#lbToggle"); page.click("#trailsToggle")
         page.wait_for_function("!!window.GLACIER_SIGHT && !!sightLayer", timeout=15000)
         self.assertGreater(page.evaluate("trailsFor(GLACIERS.find(g => g.id === 'breidamerkurjokull')).paths.length"), 10)
         self.assertGreater(page.evaluate("sightFor(GLACIERS.find(g => g.id === 'breidamerkurjokull')).lines.length"), 5)
         self.assertClean()
 
-    def test_region_menu_has_iceland_with_vatnajokull_below_it_and_switches(self):
+    def test_region_menu_lists_every_region_on_its_own_and_switches(self):
         page = self.open()
         page.click("#regionBtn")
-        self.assertEqual(page.locator("#regionMenu li.group").all_text_contents(), ["Iceland"])
-        self.assertEqual(page.locator("#regionMenu li.sub").all_text_contents(), ["Vatnajökull", "Rest of Iceland"])
+        self.assertEqual(page.locator("#regionMenu li.group").all_text_contents(), [])
+        self.assertEqual(page.locator("#regionMenu li[role=option]").all_text_contents()[:4], ["Switzerland", "Iceland", "Norway", "Svalbard"])
         with page.expect_navigation():
-            page.locator("#regionMenu li.sub").first.click()
-        page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'is-vatnajokull'")
-        self.assertTrue("r=is-vatnajokull" in page.evaluate("location.hash") or page.evaluate("location.pathname") == "/iceland/vatnajokull/")      # the built site has an address for it, the source tree the hash
+            page.locator("#regionMenu li[data-id=is]").click()
+        page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'is'")
+        self.assertTrue("r=is" in page.evaluate("location.hash") or page.evaluate("location.pathname") == "/iceland/")      # the built site has an address for it, the source tree the hash
         self.assertClean()
 
-    def test_iceland_has_its_own_address_on_the_built_site(self):      # /iceland/vatnajokull/ and /iceland/ are written by build_site.py: TFS_SITE_DIR=_site
-        if not os.path.isfile(os.path.join(SITE, "iceland", "vatnajokull", "index.html")):
+    def test_the_old_icelandic_region_ids_open_iceland(self):
+        for old in ("is-vatnajokull", "is-rest"):
+            page = self.open("#r=" + old)
+            self.assertEqual(page.evaluate("REGION.id"), "is", old)
+
+    def test_iceland_has_its_own_address_on_the_built_site(self):      # /iceland/ (and the two older addresses) are written by build_site.py: TFS_SITE_DIR=_site
+        if not os.path.isfile(os.path.join(SITE, "iceland", "index.html")):
             self.skipTest("not the built site")
-        for path in ("/iceland/vatnajokull/", "/iceland/"):
+        for path in ("/iceland/vatnajokull/", "/iceland/rest/", "/iceland/"):
             page = self.open(path=path)
-            self.assertEqual(page.evaluate("REGION.id"), "is-vatnajokull", path)
-            self.assertEqual(page.evaluate("document.title"), "Tongues from Space | Vatnajökull, Iceland")
+            self.assertEqual(page.evaluate("REGION.id"), "is", path)
+            self.assertEqual(page.evaluate("document.title"), "Tongues from Space | Iceland")
             self.assertNotIn("r=", page.evaluate("location.hash"), "the address names the region, not the hash")
-            self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/iceland/vatnajokull/")
+            self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/iceland/")
             self.assertIn("preview-iceland", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
-            self.assertEqual(page.evaluate("[regionLink('ch'), regionLink('is-vatnajokull')]"), ["/switzerland/", "/iceland/vatnajokull/"])
+            self.assertEqual(page.evaluate("[regionLink('ch'), regionLink('is')]"), ["/switzerland/", "/iceland/"])
             self.assertClean()
         page.click("#regionBtn")
         with page.expect_navigation():
@@ -350,7 +356,7 @@ class TestRegions(SiteCase):
         self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/switzerland/")
 
     def test_vatnajokull_hides_what_has_no_data_and_choosing_the_outlet_works(self):
-        page = self.open("#r=is-vatnajokull")
+        page = self.open("#r=is")
         self.assertTrue(page.is_visible("#viewGroup"), "the 3D view is offered (terrain from the ArcticDEM file)")
         for sel in ("#aerialToggle", "#topoToggle", "#altiToggle", "#radarToggle", "#teaserBtn"):
             self.assertFalse(page.locator(sel).evaluate("e => (e.closest('label') || e).offsetParent !== null"), sel + " should be hidden")
@@ -362,7 +368,7 @@ class TestRegions(SiteCase):
         self.assertClean()
 
     def test_vatnajokull_scene_rules(self):      # the clear scene closest to 30 September; one orbit for all years
-        page = self.open("#r=is-vatnajokull")
+        page = self.open("#r=is")
         r = page.evaluate("""() => {
           const day = (date, orbit, cloud) => ({date, orbit, cloud, snow: 0, cover: 1});
           const pick = pickScene([day('2024-09-10', 'R095', 0.01), day('2024-10-02', 'R095', 0.02), day('2024-08-05', 'R052', 0)], 2024);
@@ -560,8 +566,8 @@ class TestIcecapImagery(SiteCase):
     COLOURS = [(220, 30, 30), (30, 200, 30), (30, 30, 220), (230, 220, 30)]      # south-west, south-east, north-west, north-east
 
     def open_cap(self, extra_hash="m=single&one=2023"):
-        page = self.open("#r=is-rest&g=hofsjokull&" + extra_hash)
-        if page.evaluate("REGION.id") != "is-rest":
+        page = self.open("#r=is&g=hofsjokull&" + extra_hash)
+        if page.evaluate("REGION.id") != "is":
             self.skipTest("Iceland is not on this build")
         self.requests = []
         ctx = page.context
@@ -613,7 +619,7 @@ class TestIcecapImagery(SiteCase):
         self.assertEqual([s[0] for s in subs if s[1]], ["Illviðrajökull", "Miklafellsjökull", "Austari-Jökulsárjökull"])
         self.assertEqual(page.evaluate("document.querySelectorAll('#glacierList li.sub').length"), 9)
         self.assertEqual(page.evaluate("document.querySelectorAll('#glacierList li.sub sup').length"), 3)
-        page.click("#glacierList li.sub:nth-of-type(3) button")
+        page.locator("#glacierList li.sub").nth(1).locator("button").click()      # the second outlet of the cap (the list holds all of Iceland, so its place among the siblings is not fixed)
         page.wait_for_timeout(400)
         self.assertTrue(page.evaluate("map.getBounds().intersects(L.latLngBounds(currentGlacier().subs[1].bounds))"))
         self.assertClean()
@@ -675,7 +681,7 @@ class TestIcecapImagery(SiteCase):
         page = self.open_cap("m=timelapse&from=2022&to=2023")
         self.assertEqual(page.evaluate("capLevel()"), 0.5)
         page.evaluate("state.mode = 'single'")
-        phone = self.open("#r=is-rest&g=hofsjokull", viewport={"width": 390, "height": 800})
+        phone = self.open("#r=is&g=hofsjokull", viewport={"width": 390, "height": 800})
         self.assertEqual(phone.evaluate("capLevel()"), 0.5)
 
 
@@ -817,7 +823,7 @@ class TestPicker(SiteCase):
         page = self.picker()
         page.wait_for_function("typeof REGIONS !== 'undefined' && REGIONS.length > 0")
         rows = page.evaluate("REGIONS.map(r => [r.id, r.soon, r.href || ''])")
-        self.assertEqual([r[0] for r in rows], ["ch", "is-vatnajokull", "is-rest", "no-mainland", "no-svalbard", "cl", "np"])
+        self.assertEqual([r[0] for r in rows], ["ch", "is", "no-mainland", "no-svalbard", "cl", "np"])
         hidden = page.evaluate("HIDDEN_REGIONS")
         for rid, soon, href in rows:
             if rid in ("cl", "np"): self.assertTrue(soon, rid)      # planned: no records yet
@@ -889,7 +895,7 @@ class TestPicker(SiteCase):
         self.assertIn("No glacier found", page.locator("#gstat").inner_text())
         # only glaciers of open regions are offered
         hidden = page.evaluate("REGIONS.filter(r => r.soon && r.n).map(r => r.id)")
-        if "is-vatnajokull" in hidden:
+        if "is" in hidden:
             box.fill("Breidamerkurjokull")
             page.wait_for_function("!document.getElementById('gstat').hidden")
             self.assertEqual(page.locator("#gresults [role=option]").count(), 0, "a glacier that is not published cannot be found")
@@ -901,9 +907,9 @@ class TestPicker(SiteCase):
         url = page.url
         self.assertIn("/switzerland/" if BUILT else "/index.html", url)
         self.assertIn("#g=aletsch&m=compare&a=2016&b=2024", url)      # the dashboard adds its own defaults after it
-        page = self.picker("#r=is-rest&g=hofsjokull")
+        page = self.picker("#r=is&g=hofsjokull")
         page.wait_for_url(lambda u: "g=hofsjokull" in u, timeout=15000)
-        self.assertIn("/iceland/rest/" if BUILT else "#r=is-rest", page.url)
+        self.assertIn("/iceland/" if BUILT else "#r=is", page.url)
 
 
 class TestGlacierNames(SiteCase):

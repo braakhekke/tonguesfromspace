@@ -37,11 +37,11 @@ HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html"]      # ind
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
-DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
+DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
 GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
 PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -97,7 +97,7 @@ def split_glaciers(out, assets):
 
 SITE = "https://tonguesfromspace.org"
 # What differs on the page of a region with its own address. Keys are the texts of index.html that are replaced (each must be found).
-REGION_GROUP = {"ch": "switzerland", "is-vatnajokull": "iceland", "is-rest": "iceland", "no-mainland": "norway", "no-svalbard": "norway"}
+REGION_GROUP = {"ch": "switzerland", "is": "iceland", "no-mainland": "norway", "no-svalbard": "norway"}
 REGION_PAGES = [
     {"path": "switzerland", "canonical": "switzerland/", "group": "switzerland",
      "title": "Tongues from Space | Swiss glaciers",
@@ -106,21 +106,15 @@ REGION_PAGES = [
      "og_description": "Watch the ten largest Swiss glaciers retreat: Sentinel-2 satellite images since 2016 and 3D terrain.",
      "image": "images/preview-social.jpg", "image_w": "1200", "image_h": "589",
      "image_alt": "Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2024, and glacier figures"},
-    {"path": "iceland/vatnajokull", "canonical": "iceland/vatnajokull/", "group": "iceland",
-     "title": "Tongues from Space | Vatnajökull, Iceland",
-     "description": "Explore the outlet glaciers of Vatnajökull, Iceland’s largest ice cap, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
-     "og_title": "Tongues from Space - Vatnajökull, Iceland",
-     "og_description": "Watch the outlet glaciers of Vatnajökull retreat: satellite images since 2016, 3D terrain and outlines from the Little Ice Age maximum to today.",
+    {"path": "iceland", "canonical": "iceland/", "group": "iceland",
+     "title": "Tongues from Space | Iceland",
+     "description": "Explore the glaciers of Iceland, among them the outlets of Vatnajökull, Langjökull, Hofsjökull and Mýrdalsjökull, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Iceland",
+     "og_description": "Watch the glaciers of Iceland retreat: Breiðamerkurjökull, Skeiðarárjökull, Langjökull, Hofsjökull and more in satellite images since 2016, 3D terrain and outlines from the Little Ice Age maximum to today.",
      "image": "images/preview-iceland.jpg", "image_w": "1200", "image_h": "630",
-     "image_alt": "Tongues from Space - Vatnajökull: Breiðamerkurjökull and its lagoon Jökulsárlón in a Sentinel-2 satellite picture, with the glacier outline of about 1890"},
-    {"path": "iceland", "canonical": "iceland/vatnajokull/", "same_as": "iceland/vatnajokull", "group": "iceland"},      # /iceland/ shows the same page; search engines are told the long address is the real one
-    {"path": "iceland/rest", "canonical": "iceland/rest/", "group": "iceland",
-     "title": "Tongues from Space | Iceland excl. Vatnajökull",
-     "description": "Explore the ten largest glaciers of Iceland outside Vatnajökull, among them Langjökull, Hofsjökull and Mýrdalsjökull, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
-     "og_title": "Tongues from Space - Iceland excl. Vatnajökull",
-     "og_description": "Watch the ice caps of Iceland retreat: Langjökull, Hofsjökull, Mýrdalsjökull and seven more in satellite images since 2016, 3D terrain and outlines from the Little Ice Age maximum to today.",
-     "image": "images/preview-iceland-rest.jpg", "image_w": "1200", "image_h": "630",
-     "image_alt": "Tongues from Space - Iceland excl. Vatnajökull: a Sentinel-2 satellite picture of a glacier tongue with its outline of about 1890"},
+     "image_alt": "Tongues from Space - Iceland: Breiðamerkurjökull and its lagoon Jökulsárlón in a Sentinel-2 satellite picture, with the glacier outline of about 1890"},
+    {"path": "iceland/vatnajokull", "canonical": "iceland/", "same_as": "iceland", "group": "iceland"},      # the two older addresses show the page of Iceland; search engines are told /iceland/ is the real one
+    {"path": "iceland/rest", "canonical": "iceland/", "same_as": "iceland", "group": "iceland"},
     {"path": "norway", "canonical": "norway/", "group": "norway",
      "title": "Tongues from Space | Norway",
      "description": "Explore the ten largest glaciers of Norway, among them Jostedalsbreen, Svartisen and Folgefonna, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
@@ -244,7 +238,7 @@ def main():
             if f == "regions.js":
                 if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
                     text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
-                hidden = [r for r in ("is-vatnajokull", "is-rest", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+                hidden = [r for r in ("is", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
                 if "/*hidden-regions*/" not in text:
                     sys.exit("js/regions.js lost the marker /*hidden-regions*/")
                 text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))

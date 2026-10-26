@@ -54,7 +54,9 @@ const days = (a: string, b: string) => Math.round((Date.parse(`2001-${a}T00:00:0
 export function regionRecords(): any[] {
   const w: Record<string, any> = {};
   vm.runInNewContext(readFileSync(join(process.env.TFS_SITE ?? ROOT, 'js', 'regions.js'), 'utf8') + '\n;window.__r = REGIONS_ALL;', { window: w });
-  return (w.__r as any[]).flatMap((r) => r.children ?? [r]).filter((r) => r.ready);
+  // The site shows Iceland as one region (`aliases`: its old ids), the records keep the two record regions of the two data files (vatnajokull.js, iceland.js).
+  const RECORD_NAMES: Record<string, string> = { 'is-vatnajokull': 'Vatnajökull', 'is-rest': 'Rest of Iceland' };
+  return (w.__r as any[]).flatMap((r) => r.children ?? (r.aliases ? r.aliases.map((id: string) => ({ ...r, id, name: RECORD_NAMES[id] ?? r.name })) : [r])).filter((r) => r.ready);
 }
 
 const hasConfirmation = (g: Glacier | null) => !!g && !!(g.recordConfirmation || g.placement?.confirmation || g.seasonConfirmation || g.layersConfirmation || g.stripConfirmation);

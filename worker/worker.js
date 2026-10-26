@@ -40,9 +40,9 @@ const IMAGES = 'sentinel-2-l1c';                                  // the images 
 const MOSAIC = 'byoc-5460de54-082e-473a-b6ea-d5cbe3c17cca';     // Sentinel-2 quarterly cloudless mosaics (background)
 /* The regions this relay serves (js/00-regions.js of the page names the same ones). A request must lie inside one of them:
    ch               Switzerland, a box with a margin; scene search from 1 July (see checkStatistics)
-   is               Iceland (Vatnajökull and the rest of Iceland): the pictures of the glaciers (a square of up to 25 km around the centre of each), within NEAR_KM of a centre in CENTRES.is;
+   is               Iceland: the pictures of the glaciers (a square of up to 25 km around the centre of each), within NEAR_KM of a centre in CENTRES.is;
                     scene search from 1 August to 15 October of a year
-   no               mainland Norway, centres in CENTRES.no; scene search from 20 July to 30 September
+   no               Norway, centres in CENTRES.no; scene search from 20 July to 30 September
    sj               Svalbard, centres in CENTRES.sj; scene search from 20 July to 15 September
    Add a glacier: its centre goes into CENTRES (scripts/sync_worker_centres.py rewrites the block from the data files of the regions). */
 const SWISS = { west: 5.8, east: 10.6, south: 45.7, north: 47.9 }; // WGS84, with a margin

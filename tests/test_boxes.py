@@ -74,14 +74,15 @@ class TestBoxesFile(unittest.TestCase):
 
 
 class TestPageAgreesWithBoxes(SiteCase):
-    def check_region(self, hash_, region):
+    def check_region(self, hash_, region, box_regions=None):      # the records of the page's region: Iceland is one region of the page and two of the records
+        box_regions = box_regions or [region]
         d = load("data/boxes.js")["glaciers"]; page = self.open(hash_)
         if page.evaluate("REGION.id") != region: self.skipTest(f"region {region} is not published on this build")      # a built site without PUBLISH_ICELAND / PUBLISH_NORWAY hides these regions
         rows = page.evaluate("""async () => { const out = [];
           for (const g of GLACIERS) { await loadOutline(g); const fp = imageFootprint(g), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, s = stripFor(g, at);
             out.push({id: bundleId(g), cap: !!g.cap, tip: at, bbox: fp.bbox, w: fp.w, h: fp.h, ue: s.ue, un: s.un, up: s.up, back: s.back, half: s.half}); }
           return out; }""")
-        self.assertEqual(sorted(r["id"] for r in rows), sorted(k for k, v in d.items() if v["region"] == region and not v.get("parent")))
+        self.assertEqual(sorted(r["id"] for r in rows), sorted(k for k, v in d.items() if v["region"] in box_regions and not v.get("parent")))
         for r in rows:
             g = d[r["id"]]; t = g["strip3d"]; az = math.radians(t["azimuth"])
             if not r["cap"]: self.assertEqual((r["bbox"], r["w"], r["h"]), (g["derived"]["bbox"], g["derived"]["w"], g["derived"]["h"]), r["id"] + ": image bbox")
@@ -94,7 +95,7 @@ class TestPageAgreesWithBoxes(SiteCase):
         self.check_region("", "ch")
 
     def test_icelandic_page_boxes_and_strips_equal_the_file(self):
-        self.check_region("#r=is-rest", "is-rest"); self.check_region("#r=is-vatnajokull", "is-vatnajokull")
+        self.check_region("#r=is", "is", ["is-vatnajokull", "is-rest"])
 
     def test_norwegian_page_boxes_and_strips_equal_the_file(self):
         self.check_region("#r=no-mainland", "no-mainland"); self.check_region("#r=no-svalbard", "no-svalbard")

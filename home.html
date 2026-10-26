@@ -206,7 +206,7 @@ const $ = id => document.getElementById(id);
 /* The picker is the front page (/); the dashboards live at the address of their region (js/00-regions.js, `path`).
    Opened as /home.html (local use from the source tree) its links go to the local dashboard, index.html. */
 const LOCAL = /home\.html$/.test(location.pathname);
-const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r]).filter(c => c.path).map(c => [c.id, c.path]));
+const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r]).filter(c => c.path).flatMap(c => [c.id, ...(c.aliases || [])].map(id => [id, c.path])));      // aliases: the ids of old links (#r=is-rest)
 /* Links of the old site: /#g=aletsch&m=compare opened the Swiss dashboard at the root. Any hash that names a dashboard setting goes to the dashboard of its region. */
 (() => {
   const h = location.hash.slice(1), q = new URLSearchParams(h);

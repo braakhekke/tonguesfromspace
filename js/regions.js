@@ -29,58 +29,33 @@ const REGIONS_ALL = [
     terrain: { short: 'swisstopo · Mapterhorn', html: 'swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
     trailsFile: 'data/sightline.js',      // the line-of-sight stretches of the hiking trails (the trails themselves are swisstopo tiles)
     features: { facts: true, latest: true, oldest: true, view3d: true, photos: true, streetview: true, trails: true, aerial: true, swisstopo: true, speed: true, radar: true, glamos: true, teaser: true, swissTab: true, sizeTool: true } },
-  { id: 'is', name: 'Iceland', adj: 'Icelandic',
-    children: [
-      { id: 'is-vatnajokull', name: 'Vatnajökull', adj: 'Icelandic', ready: true, rgi: true, streetviewIn: 'Breiðamerkurjökull',
-        picker: { ll: [64.4, -16.8], zoom: 7, text: 'The outlets of the Vatnajökull ice cap.' },      // the front page (home.html): where the region sits on the world map
-        path: 'iceland/vatnajokull', pathAlso: ['iceland'],      // the address on the public site: /iceland/vatnajokull/ (and /iceland/); build_site.py writes a page for each
-        data: 'data/vatnajokull.js',            // window.REGION_ICE, made by scripts/build_vatnajokull.py (RGI 6.0)
-        docTitle: 'Tongues from Space | Vatnajökull, Iceland',
-        brandLede: 'Discover the Vatnajökull ice cap in Iceland and its outlet glaciers. Compare, create and share your visuals.',
-        overviewName: 'Vatnajökull',
-        shareTitle: 'Tongues from Space - Vatnajökull',
-        sightDem: 'ÍslandsDEM',
-        trailsFile: ['data/trails-is.js', 'data/trails-vatnajokull.js'],       // footpaths and tracks (OpenStreetMap) and where the ice front is in view, scripts/build_trails_iceland.py
-        landingGlacier: 'breidamerkurjokull',   // the glacier it opens on (else the biggest)
-        landing: 'glacier3d',                  // opens on Breiðamerkurjökull as a 3D timelapse, like Switzerland on its biggest glacier; the overview of the ice cap is one click away (the title menu entry, "Vatnajökull")
-        /* Scene season: 1 August to 15 October, only scenes that cover the whole picture, the clear one closest to 30 September; one orbit for all years where it can be.
-           Iceland is cloudy: the scene of a year may be pinned in data/scenes.json. */
-        season: { find: ['08-01', '10-15'], target: '09-30', pick: 'target', minCover: 0.999, oneOrbit: true },
-        outlines: { old: '~1890', new: '2025', oldLegend: 'Glacier outline about 1890', newLegend: 'Glacier outline 2025', credit: 'Icelandic Met Office', html: IS_OUTLINE_CREDIT },      // Icelandic Met Office (Hannesdóttir et al. 2020): the Little Ice Age maximum and the Sentinel-2 outline of 2025
-        inventory: { short: 'RGI 6.0', about: 'about 2000', source: 'is_rgi', listAll: true },      // the record of the glacier in the data file (`rgi`): where its area, length and heights come from
-        unnamed: 'Unnamed outlet', units: 'outlets',
-        place: { canton: 'Vatnajökull ice cap', range: 'Iceland' }, sources: ['is_rgi', 'is_imo', 'is_gudm', 's2', 'landsat', 'is_arctic', 'is_dem', 'mapterhorn', 'is_osm', 'is_wiki', 'streetview', 'bg', 'me'],
-        rankNote: 'Drainage basins of the Randolph Glacier Inventory 6.0, about 2000.',
-        /* The 3D terrain: a file per outlet with one ice surface per year (data/terrain/, scripts/build_dem_iceland.py and build_dem_arctic.py) from the dated 2 m ArcticDEM strips; the others use the terrain tiles */
-        terrain: { short: 'ÍslandsDEM · Mapterhorn', html: 'ÍslandsDEM v1.0 © <a href="https://www.natt.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
-        terrainZoom: 12,      // Mapterhorn's finest tiles over Iceland (outlets without a terrain file)
-        /* Landsat before Sentinel-2: static pictures of the picture box (data/landsat/<outlet>.json and <outlet>/<year>.jpg, scripts/build_landsat.py), years from `from` up to the first Sentinel-2 year; a switch under the years adds them (prefs.landsat), off at first */
-        landsat: { from: 1984, first: 1985 },      // from: the first year asked for; first: the first year that has a picture (the switch says it)
-        background: { mosaicYear: 2025 },      // EOX Sentinel-2 cloudless of this year is the base picture of the overview
-        features: { facts: true, latest: true, oldest: true, view3d: true, photos: false, streetview: true, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
-      { id: 'is-rest', name: 'Rest of Iceland', adj: 'Icelandic', ready: true, rgi: true,
-        picker: { ll: [64.9, -19.3], zoom: 7, side: 'left', text: 'The ten largest glaciers and ice caps outside Vatnajökull.' },      // the front page (home.html): where the region sits on the world map
-        path: 'iceland/rest',
-        data: 'data/iceland.js',               // window.REGION_ICE, made by scripts/build_regions.py iceland (RGI 6.0, Icelandic Met Office)
-        docTitle: 'Tongues from Space | Iceland excl. Vatnajökull',
-        brandLede: 'Discover the ten largest glaciers of Iceland outside Vatnajökull: Langjökull, Hofsjökull, Mýrdalsjökull and seven more. Compare, create and share your visuals.',
-        overviewName: 'Rest of Iceland',
-        shareTitle: 'Tongues from Space - Iceland excl. Vatnajökull',
-        sightDem: 'the terrain tiles of Mapterhorn',
-        trailsFile: 'data/trails-iceland.js',
-        landing: 'glacier3d',                  // opens on Langjökull, the biggest, as a 3D timelapse
-        season: { find: ['08-01', '10-15'], target: '09-30', pick: 'target', minCover: 0.999, oneOrbit: true },
-        outlines: { old: '~1890', new: '2025', oldLegend: 'Glacier outline about 1890', newLegend: 'Glacier outline 2025', credit: 'Icelandic Met Office', html: IS_OUTLINE_CREDIT },
-        inventory: { short: 'RGI 6.0', about: 'about 2000', source: 'is_rgi', listAll: false },
-        unnamed: 'Unnamed glacier', units: 'glaciers',
-        place: { canton: '', range: 'Iceland' }, sources: ['is_rgi', 'is_imo', 's2', 'landsat', 'mapterhorn', 'is_arctic', 'is_osm', 'bg', 'me'],
-        rankNote: 'Ice caps and glaciers by area, from the basins of the Randolph Glacier Inventory 6.0 that touch, about 2000.',
-        terrain: { short: 'ÍslandsDEM · Mapterhorn', html: 'ÍslandsDEM v1.0 © <a href="https://www.natt.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
-        terrainZoom: 12,
-        landsat: { from: 1984, first: 1985 },      // as Vatnajökull: Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
-        background: { mosaicYear: 2025 },
-        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
-    ] },
+  { id: 'is', name: 'Iceland', adj: 'Icelandic', ready: true, rgi: true, streetviewIn: 'Iceland', aliases: ['is-vatnajokull', 'is-rest'],      // aliases: the old region ids of old links (#r=)
+    picker: { ll: [64.9, -18.4], zoom: 7, text: 'The ice caps and glaciers of Iceland, with the outlets of Vatnajökull.' },      // the front page (home.html): where the region sits on the world map
+    path: 'iceland', pathAlso: ['iceland/vatnajokull', 'iceland/rest'],      // the address on the public site: /iceland/ (the two older addresses show the same page); build_site.py writes a page for each
+    data: 'data/iceland-all.js',            // window.REGION_ICE, made by scripts/build_iceland_all.py from data/vatnajokull.js (build_vatnajokull.py) and data/iceland.js (build_regions.py iceland), RGI 6.0
+    docTitle: 'Tongues from Space | Iceland',
+    brandLede: 'Discover the glaciers of Iceland: the outlets of Vatnajökull, Langjökull, Hofsjökull, Mýrdalsjökull and more. Compare, create and share your visuals.',
+    overviewName: 'Iceland',
+    shareTitle: 'Tongues from Space - Iceland',
+    sightDem: 'ÍslandsDEM',
+    trailsFile: ['data/trails-is.js', 'data/trails-vatnajokull.js', 'data/trails-iceland.js'],       // footpaths and tracks (OpenStreetMap) and where the ice front is in view, scripts/build_trails_iceland.py
+    landingGlacier: 'breidamerkurjokull',   // the glacier it opens on (else the biggest)
+    landing: 'glacier3d',                  // opens on Breiðamerkurjökull as a 3D timelapse, like Switzerland on its biggest glacier; the overview of Iceland is one click away (the title menu entry, "Iceland")
+    /* Scene season: 1 August to 15 October, only scenes that cover the whole picture, the clear one closest to 30 September; one orbit for all years where it can be.
+       Iceland is cloudy: the scene of a year may be pinned in data/scenes.json. */
+    season: { find: ['08-01', '10-15'], target: '09-30', pick: 'target', minCover: 0.999, oneOrbit: true },
+    outlines: { old: '~1890', new: '2025', oldLegend: 'Glacier outline about 1890', newLegend: 'Glacier outline 2025', credit: 'Icelandic Met Office', html: IS_OUTLINE_CREDIT },      // Icelandic Met Office (Hannesdóttir et al. 2020): the Little Ice Age maximum and the Sentinel-2 outline of 2025
+    inventory: { short: 'RGI 6.0', about: 'about 2000', source: 'is_rgi', listAll: false },      // the record of the glacier in the data file (`rgi`): where its area, length and heights come from
+    unnamed: 'Unnamed glacier', units: 'glaciers',
+    place: { canton: '', range: 'Iceland' }, sources: ['is_rgi', 'is_imo', 'is_gudm', 's2', 'landsat', 'is_arctic', 'is_dem', 'mapterhorn', 'is_osm', 'is_wiki', 'streetview', 'bg', 'me'],
+    rankNote: 'Ice caps and glaciers, and the drainage basins of the outlets of Vatnajökull, of the Randolph Glacier Inventory 6.0, about 2000.',
+    /* The 3D terrain: a file per outlet with one ice surface per year (data/terrain/, scripts/build_dem_iceland.py and build_dem_arctic.py) from the dated 2 m ArcticDEM strips; the others use the terrain tiles */
+    terrain: { short: 'ÍslandsDEM · Mapterhorn', html: 'ÍslandsDEM v1.0 © <a href="https://www.natt.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0), as terrain tiles by <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
+    terrainZoom: 12,      // Mapterhorn's finest tiles over Iceland (outlets without a terrain file)
+    /* Landsat before Sentinel-2: static pictures of the picture box (data/landsat/<outlet>.json and <outlet>/<year>.jpg, scripts/build_landsat.py), years from `from` up to the first Sentinel-2 year; a switch under the years adds them (prefs.landsat), off at first */
+    landsat: { from: 1984, first: 1985 },      // from: the first year asked for; first: the first year that has a picture (the switch says it)
+    background: { mosaicYear: 2025 },      // EOX Sentinel-2 cloudless of this year is the base picture of the overview
+    features: { facts: true, latest: true, oldest: true, view3d: true, photos: false, streetview: true, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
   { id: 'no-mainland', name: 'Norway', adj: 'Norwegian', ready: true, rgi: true,
     picker: { ll: [66.6, 14.0], zoom: 5, text: 'The ten largest main glaciers of Norway.' },      // the front page (home.html): where the region sits on the world map
     path: 'norway',
