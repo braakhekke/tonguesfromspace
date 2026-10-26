@@ -9,7 +9,7 @@ The full file table, the section-by-section map of `js/` and the data flow are i
 Short version:
 
 - **Pages:** `index.html` (the dashboard), `home.html`, `gallery.html`, `size.html`; `css/style.css` is synced to the sister sites (see REFERENCE), a rule for one site only belongs in the page.
-- **Code:** `js/main.js` imports the sections `js/01-…14-*.js` in order; they are ES modules, bundled by esbuild in `scripts/build_site.py`. `js/00-regions.js` is the one classic script (it writes the data tags).
+- **Code:** `js/main.js` imports the sections `js/01-…14-*.js` in order; they are ES modules, bundled by esbuild in `scripts/build_site.py`. `js/regions.js` (the region records, data only) and `js/00-regions.js` (picks the region, writes the data tags) are the two classic scripts.
 - **Wiring rules (keep them when you edit):** import from files with a lower number; for something in a higher-numbered file use `wire.name` (`js/wire.js`; the owner registers it at its top); to assign a variable that lives in another file use its `setX()`; differences between regions are `features` flags in `00-regions.js`, never `REGION.id === ...`; new helpers go in the lowest file that needs them.
 - **Data** in `data/` (generated or hand-made), **tooling** in `scripts/`, the Worker in `worker/`, tests in `tests/`.
 - **Checks:** `npm ci`, then `npm run check` (syntax + types) and `npm test`.

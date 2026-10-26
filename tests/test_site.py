@@ -817,6 +817,12 @@ class TestPicker(SiteCase):
         self.assertFalse([r for r in rows if r[0] == "ch" and r[1]], "Switzerland is always open")
         self.assertEqual(self.errors, [])
 
+    def test_the_front_page_can_be_indexed_and_names_its_address(self):
+        page = self.picker()
+        self.assertEqual(page.evaluate("document.querySelectorAll('meta[name=robots]').length"), 0, "no noindex on the front page")
+        self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/")
+        self.assertIn("preview-social", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
+
     def test_a_link_of_the_old_site_goes_to_the_dashboard(self):
         page = self.picker("#g=aletsch&m=compare&a=2016&b=2024")
         page.wait_for_url(lambda u: "g=aletsch" in u and "home" not in u, timeout=15000)

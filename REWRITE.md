@@ -18,12 +18,17 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
 4. **Clutter.** Checked 2026-10-26: `size.html` (size comparison) and `teaser/` (first-visit film) are live features, not clutter. The board/review layer, `lab/`, `experiments/` and `backup/` are already untracked. What remains: parked scripts, and `scripts/tools/onboard.html` once the ported walkthrough replaces it.
 5. **Docs. (done)** `README.md` is 100 lines; the file table and `js/` map moved to `docs/REFERENCE.md` (corrected for modules), setup to `docs/SETUP.md`, sources to `docs/SOURCES.md`; `CLAUDE.md` keeps the wiring rules, `Rules`, style and testing.
 
-## Milestone 2: routes and landing
-Picker done (2026-10-26): `/` is `home.html` (world map + list), every region including Switzerland has a page at its
-`path` (`/switzerland/`, `/iceland/vatnajokull/`, ...), old `/#g=...` links are redirected by the picker, the build
-and the health check know the new addresses. Still to do: one shared `Shell` for all pages (dashboard, picker, gallery,
-size), the picker listing regions from the region records instead of its own `REGIONS` table, the data-driven redirect
-of old links.
+## Milestone 2: routes and landing (done, 2026-10-26)
+- `/` is `home.html`, the region picker; every region including Switzerland has a page at its `path` (`/switzerland/`,
+  `/iceland/vatnajokull/`, ...); old `/#g=...` links are redirected by the picker; build, health check and tests follow.
+- The picker reads the region records: `js/regions.js` is data only and shared by the dashboard and the front page;
+  `js/00-regions.js` is the logic that picks a region. The front page is indexable (it carried `noindex` as a draft).
+- One stylesheet per concern: `css/style.css` (dashboard and size page; synced to the sister sites, so not touched),
+  `css/pages.css` (tokens and base of the public pages), `css/home.css` (the picker; moved out of the page, checked
+  pixel-identical).
+- Not done: a single shared header/footer component. The pages differ by design (dark hero page, light utility
+  gallery, app-like dashboard), and `style.css` and `pages.css` both hold the colour tokens because of the sister-site
+  sync. Retiring that sync would let `pages.css` import one token file; that is a decision for the owner.
 
 ## Milestone 3: Worker and onboarding
 Port from v2: Worker that builds the Copernicus request itself (`src/shared/copernicus.ts`), `season.ts`
