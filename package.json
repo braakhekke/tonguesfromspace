@@ -4,12 +4,28 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "check": "python3 scripts/check_syntax.py && npm run types",
+    "check": "python3 scripts/check_syntax.py && npm run types && npm run types:walkthrough",
     "types": "python3 scripts/check_types.py",
-    "test": "python3 -m unittest discover -s tests -v"
+    "test": "python3 -m unittest discover -s tests -v && npm run test:walkthrough",
+    "walkthrough": "tsx walkthrough/cli.ts",
+    "walkthrough:serve": "tsx walkthrough/server.ts",
+    "types:walkthrough": "tsc -p walkthrough/tsconfig.json",
+    "test:walkthrough": "vitest run --config walkthrough/vitest.config.ts"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261026.1",
+    "@preact/signals": "^2.11.3",
+    "@types/leaflet": "^1.9.22",
+    "@types/node": "^26.6.5",
+    "@types/proj4": "^2.5.6",
     "esbuild": "0.28.2",
-    "typescript": "5.9.3"
+    "jpeg-js": "^0.4.4",
+    "leaflet": "^1.9.4",
+    "preact": "^11.0.2",
+    "proj4": "^2.22.0",
+    "tsx": "^4.23.15",
+    "typescript": "5.9.3",
+    "vitest": "^5.0.5",
+    "zod": "^4.6.7"
   }
 }

@@ -31,11 +31,10 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
   gallery, app-like dashboard), and `style.css` still holds a copy of the tokens because of the sister-site sync;
   retiring the sync (LaunchAgent org.tonguesfromspace.stylesync) lets that copy be deleted.
 
-## Milestone 3: Worker and onboarding
-Port from v2: Worker that builds the Copernicus request itself (`src/shared/copernicus.ts`), `season.ts`
-(balance-year rule, boundary tests), schema validation (`npm run data`), the walkthrough (derived status, stale
-cascade, dev-only). Convert existing glacier data to the schema instead of re-onboarding by hand.
-
-## Not touched without asking
-Cloudflare resources and deploys, your uncommitted work in the working tree (20 files at the start), the external
-numbers rule.
+## Milestone 3: Worker and onboarding (in progress)
+Walkthrough: ported from v2 as the preferred one (`walkthrough/`, docs/WALKTHROUGH.md). Done: the schema, season rule,
+engine, steps (phase 1), CLI, local server and wizard, local relay by meaning; 119 unit tests and browser tests.
+Next: (1) exporter from confirmed records to the site's data files, and importer from the site's data to proposals,
+so every existing glacier is confirmed instead of re-typed; (2) the "Real page" tab on top of the exporter;
+(3) retire `scripts/tools/onboard.html` and the box/3D/scene editors once the walkthrough covers them; (4) phases 2 to 4;
+(5) the public Worker moves to the relay by meaning (request validated against the glacier record, no raw bodies).

@@ -34,6 +34,7 @@ data/                                              generated or hand-made data, 
 scripts/                                           data builders (Python, standard library) and local tools
 worker/                                            the Cloudflare Worker (relay, gallery, static assets)
 tests/                                             browser tests (Playwright), Worker tests, health check
+walkthrough/                                       the onboarding walkthrough: engine, wizard, local relay (TypeScript, dev only)
 docs/                                              reference, setup, sources, how to add a glacier
 ```
 
@@ -74,13 +75,14 @@ The workflows run the same before every deploy (`.github/workflows/`): a failure
 
 ## Add a glacier or a region
 
-Placement comes first: agree the picture box, the 3D strip and the start camera before building anything else. The pieces every glacier needs are listed in the file table of [docs/REFERENCE.md](docs/REFERENCE.md); the rule is in [CLAUDE.md](CLAUDE.md). Adapting the project to another country is described in [docs/SETUP.md](docs/SETUP.md).
+Placement comes first: agree the picture box, the 3D strip and the start camera before building anything else. The walkthrough (`npm run walkthrough:serve`, [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md)) is the ordered way to do it. The pieces every glacier needs are listed in the file table of [docs/REFERENCE.md](docs/REFERENCE.md); the rule is in [CLAUDE.md](CLAUDE.md). Adapting the project to another country is described in [docs/SETUP.md](docs/SETUP.md).
 
 ## More documentation
 
 | File | What |
 |---|---|
 | [docs/REFERENCE.md](docs/REFERENCE.md) | Every file and data set, the map of `js/`, the data flow |
+| [docs/WALKTHROUGH.md](docs/WALKTHROUGH.md) | Adding a region or a glacier: the walkthrough and its commands |
 | [docs/SETUP.md](docs/SETUP.md) | Publishing a copy, Street View, gallery, another region |
 | [docs/SOURCES.md](docs/SOURCES.md) | Data sources and their licences |
 | [REWRITE.md](REWRITE.md) | The ongoing simplification of the code, and where it stands |

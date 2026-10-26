@@ -56,3 +56,7 @@ _site/
 scripts/.itslive-cache/
 
 node_modules/
+
+# the walkthrough: proposals, relay cache, Cloudflare/Copernicus credentials of this computer
+.cache/
+.dev.vars
