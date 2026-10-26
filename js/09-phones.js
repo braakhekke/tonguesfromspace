@@ -1,13 +1,59 @@
+import { needsOutline, loadOutline, rankArea, areaText, GLACIERS } from './02-glaciers.js';
+import { prefs, savePrefs } from './03-imagery.js';
+import { state, writeHash, currentGlacier, viewMode } from './04-state.js';
+import { map, updateSight, updateTrailClip, updateAerial, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
+import { checkYears, checkGen } from './06-scene-search.js';
+import { renderGlacierList, subTitle, focusSub, renderStory } from './07-render.js';
+import { showNotice, drawBoxes, updateBoxes, glaciersExtent, syncSatUi } from './08-controls.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'COARSE', { get: () => COARSE, configurable: true });
+Object.defineProperty(window, '$', { get: () => $, configurable: true });
+Object.defineProperty(window, 'START_ZOOM', { get: () => START_ZOOM, configurable: true });
+Object.defineProperty(window, 'updatePickHint', { get: () => updatePickHint, configurable: true });
+Object.defineProperty(window, 'setPanel', { get: () => setPanel, configurable: true });
+Object.defineProperty(window, 'updateRightTab', { get: () => updateRightTab, configurable: true });
+Object.defineProperty(window, 'PHONE', { get: () => PHONE, configurable: true });
+Object.defineProperty(window, 'fullState', { get: () => fullState, configurable: true });
+Object.defineProperty(window, 'setFull', { get: () => setFull, configurable: true });
+Object.defineProperty(window, 'isFull', { get: () => isFull, configurable: true });
+Object.defineProperty(window, 'miniClosed', { get: () => miniClosed, set: v => { miniClosed = v; }, configurable: true });
+Object.defineProperty(window, 'setMini', { get: () => setMini, configurable: true });
+Object.defineProperty(window, 'evalMini', { get: () => evalMini, configurable: true });
+Object.defineProperty(window, 'miniBack', { get: () => miniBack, configurable: true });
+Object.defineProperty(window, 'SW_PALETTE', { get: () => SW_PALETTE, configurable: true });
+Object.defineProperty(window, 'swatchSvg', { get: () => swatchSvg, configurable: true });
+Object.defineProperty(window, 'pendingChoice', { get: () => pendingChoice, set: v => { pendingChoice = v; }, configurable: true });
+Object.defineProperty(window, 'chooseGlacier', { get: () => chooseGlacier, configurable: true });
+Object.defineProperty(window, 'MP_CHEV', { get: () => MP_CHEV, configurable: true });
+Object.defineProperty(window, 'gSheet', { get: () => gSheet, set: v => { gSheet = v; }, configurable: true });
+Object.defineProperty(window, 'glacierSheet', { get: () => glacierSheet, configurable: true });
+Object.defineProperty(window, 'setGlacierSheet', { get: () => setGlacierSheet, configurable: true });
+Object.defineProperty(window, 'renderMobileBar', { get: () => renderMobileBar, configurable: true });
+Object.defineProperty(window, 'setMore', { get: () => setMore, configurable: true });
+Object.defineProperty(window, 'layerBoxNow', { get: () => layerBoxNow, configurable: true });
+Object.defineProperty(window, 'setLayers', { get: () => setLayers, configurable: true });
+Object.defineProperty(window, 'updateLayerMore', { get: () => updateLayerMore, configurable: true });
+Object.defineProperty(window, 'FYI', { get: () => FYI, configurable: true });
+Object.defineProperty(window, 'FYI_HOME', { get: () => FYI_HOME, configurable: true });
+Object.defineProperty(window, 'FYI_PHONE', { get: () => FYI_PHONE, configurable: true });
+Object.defineProperty(window, 'FYI_BY', { get: () => FYI_BY, configurable: true });
+Object.defineProperty(window, 'placeFyi', { get: () => placeFyi, configurable: true });
+Object.defineProperty(window, 'placeLayers', { get: () => placeLayers, configurable: true });
+Object.defineProperty(window, 'LAND', { get: () => LAND, configurable: true });
+Object.defineProperty(window, 'shareView', { get: () => shareView, configurable: true });
+Object.defineProperty(window, 'dataNoteShown', { get: () => dataNoteShown, set: v => { dataNoteShown = v; }, configurable: true });
+Object.defineProperty(window, 'mobileDataNote', { get: () => mobileDataNote, configurable: true });
+// end of bridge
 /* =====================================================================
    10. Phones: control bar under the map, map tools, two-finger map, sharing
    ===================================================================== */
-const COARSE = matchMedia('(pointer:coarse)').matches;
+export const COARSE = matchMedia('(pointer:coarse)').matches;
 /** @type {(id: string) => any} */
-const $ = id => document.getElementById(id);
+export const $ = id => document.getElementById(id);
 
 /* Pick-a-glacier message: at the start until a glacier is chosen, and again whenever the map is zoomed out beyond the first view */
-const START_ZOOM = () => map.getBoundsZoom(glaciersExtent(), false, L.point(80, 80));
-function updatePickHint(){
+export const START_ZOOM = () => map.getBoundsZoom(glaciersExtent(), false, L.point(80, 80));
+export function updatePickHint(){
   const far = map.getZoom() < START_ZOOM() - 0.5, el = $('pickHint'), show = !glacierPicked || far;
   el.classList.toggle('show', show);
   const wasLocked = $('app').classList.contains('no-glacier');
@@ -26,7 +72,7 @@ function updatePickHint(){
 map.on('zoomend moveend resize', updatePickHint);
 
 /* Hide or show the side panels (desktop and tablet); the map gets the room */
-function setPanel(side, hidden, save = true){
+export function setPanel(side, hidden, save = true){
   $('app').classList.toggle(side === 'left' ? 'no-left' : 'no-right', hidden);
   $(side === 'left' ? 'toggleLeft' : 'toggleRight').setAttribute('aria-expanded', !hidden);
   if (save) { prefs[side === 'left' ? 'hideL' : 'hideR'] = hidden; savePrefs(); }
@@ -41,7 +87,7 @@ $('toggleRight').onclick = () => setPanel('right', !$('app').classList.contains(
 if (prefs.hideL) setPanel('left', true, false);
 if (prefs.hideR === undefined ? matchMedia('(min-width:1101px) and (min-height:521px)').matches : prefs.hideR) setPanel('right', true, false);      // collapsed at the first visit (wide screens): the tab on the edge invites to open it
 /* the tab of the collapsed right panel names the glacier in full */
-function updateRightTab(){
+export function updateRightTab(){
   const l = $('toggleRightLabel'); if (!l) return;
   const t = typeof glacierPicked !== 'undefined' && glacierPicked ? `Discover ${currentGlacier().name} facts and figures` : 'Discover glacier facts and figures';
   l.textContent = t; $('toggleRight').title = t;
@@ -49,9 +95,9 @@ function updateRightTab(){
 
 
 /* ---------- Full screen (visual only) and the small floating window (phones) ---------- */
-const PHONE = matchMedia('(max-width:720px) and (orientation:portrait)');
-const fullState = {saved: null};
-function setFull(on){
+export const PHONE = matchMedia('(max-width:720px) and (orientation:portrait)');
+export const fullState = {saved: null};
+export function setFull(on){
   const stage = $('stage'), app = $('app');
   if (PHONE.matches) {
     const c0 = map.getCenter(), z0 = map.getZoom();            // the middle of what is on show stays the middle (the small window's centre becomes the centre of the full screen)
@@ -69,7 +115,7 @@ function setFull(on){
   ['fsBtn', 'v3dFs'].forEach(id => { const b = $(id); if (b) { const t = on ? 'Exit full screen (Esc)' : 'Full screen, visual only'; b.setAttribute('aria-label', t); b.title = t; } });      // the buttons show only an icon: the words are in the tooltip and for screen readers
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof v3d !== 'undefined' && v3d && v3d.resize) try { v3d.resize(); } catch {} }, 380);
 }
-const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
+export const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
 document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click', e => {      // the title leads back to the start: no glacier chosen, the overview of Switzerland
   if (e.metaKey || e.ctrlKey || e.shiftKey) return;
   e.preventDefault(); history.replaceState(null, '', regionLink(REGION.id)); location.reload();
@@ -94,19 +140,19 @@ document.addEventListener('fullscreenchange', () => { if (!document.fullscreenEl
   upd();
 })();
 /* phones: scrolled below the visual, it stays as a small window in the corner (enlarge, full screen, close) */
-let miniClosed = false;
-function setMini(on){
+export let miniClosed = false;
+export function setMini(on){
   const stage = $('stage'); if (stage.classList.contains('mini') === on) return;
   const c = map.getCenter(), z = map.getZoom();            // the small window shows the middle of what the big one showed, at the same scale
   stage.classList.toggle('mini', on); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
-function evalMini(){            // the small window shows while the visual is scrolled out above the screen
+export function evalMini(){            // the small window shows while the visual is scrolled out above the screen
   const below = $('stageSlot').getBoundingClientRect().bottom < 0;
   if (!below) miniClosed = false;
   setMini(PHONE.matches && below && !miniClosed && glacierPicked && $('videoSheet').hidden && !$('stage').classList.contains('is-full'));
 }
 if ('IntersectionObserver' in window) new IntersectionObserver(evalMini).observe($('stageSlot'));
-const miniBack = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
+export const miniBack = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
 $('miniBig').onclick = miniBack;
 $('stage').addEventListener('click', e => { if ($('stage').classList.contains('mini') && !e.target.closest('.mini-ctl')) miniBack(); });      // a tap on the small window itself goes back to the big visual
 $('miniFull').onclick = () => setFull(true);
@@ -114,12 +160,12 @@ $('miniClose').onclick = () => { miniClosed = true; setMini(false); };
 
 
 /* Colour composition buttons: a small drawn glacier in the colours each band combination gives (rock, ice, snow, lake, plants), as in the About chapter "The colours" */
-const SW_PALETTE = {
+export const SW_PALETTE = {
   natural: {rock: '#8f8679', rock2: '#6e675c', ice: '#d9e5ea', snow: '#fbfdfe', crev: '#aebfca', lake: '#5d8f9f', veg: '#5c8c3a'},
   false1:  {rock: '#857d72', rock2: '#625c53', ice: '#b6c3cc', snow: '#f7fafb', crev: '#8f9fab', lake: '#1d2b3b', veg: '#c22f3f'},
   false2:  {rock: '#d6cfbf', rock2: '#b9b2a2', ice: '#c9473d', snow: '#f06a5c', crev: '#a53630', lake: '#0b0f14', veg: '#aab59a'}
 };
-function swatchSvg(k){
+export function swatchSvg(k){
   const c = SW_PALETTE[k];
   return `<svg viewBox="0 0 90 44" preserveAspectRatio="xMidYMid slice" aria-hidden="true"><rect width="90" height="44" fill="${c.rock}"/>
     <path d="M0 44V30L12 22 20 28 30 18 40 26V44Z" fill="${c.rock2}"/>
@@ -131,8 +177,8 @@ function swatchSvg(k){
 }
 document.querySelectorAll('.sw').forEach(b => { const k = b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : 'false2'; b.querySelector('i').innerHTML = swatchSvg(k); });
 
-let pendingChoice = null;
-function chooseGlacier(id){
+export let pendingChoice = null;
+export function chooseGlacier(id){
   const next = GLACIERS.find(x => x.id === id);
   if (needsOutline(next)) { pendingChoice = id; loadOutline(next).then(() => { if (pendingChoice === id) chooseGlacier(id); }); return; }      // the 2023 outline comes first (a file per glacier); then the choice is made as usual. A later click on another glacier wins
   pendingChoice = null;
@@ -149,9 +195,9 @@ function chooseGlacier(id){
   state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); updateTrailClip(); updateAerial(); updateSight(); drawTonguePin(); focusTongue(); writeHash();
   checkYears();                 // each glacier has its own clearest scenes
 }
-const MP_CHEV = '<svg class="mp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-let gSheet = null;
-function glacierSheet(){                 // the sheet with the ten glaciers, made the first time it is needed
+export const MP_CHEV = '<svg class="mp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+export let gSheet = null;
+export function glacierSheet(){                 // the sheet with the ten glaciers, made the first time it is needed
   if (gSheet) return gSheet;
   gSheet = document.createElement('div'); gSheet.className = 'g-sheet'; gSheet.setAttribute('role', 'dialog'); gSheet.setAttribute('aria-modal', 'true'); gSheet.setAttribute('aria-label', 'Choose a glacier');
   gSheet.innerHTML = '<div class="g-back"></div><div class="g-panel"><div class="g-head"><h2 class="step-h"><span class="num">01</span>Choose a glacier</h2><button type="button" class="g-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><ul class="g-list"></ul></div>';
@@ -161,13 +207,13 @@ function glacierSheet(){                 // the sheet with the ten glaciers, mad
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && gSheet.classList.contains('open')) setGlacierSheet(false); });
   return gSheet;
 }
-function setGlacierSheet(open){
+export function setGlacierSheet(open){
   const s = glacierSheet(), btn = $('mGlacier');
   s.classList.toggle('open', open); btn.setAttribute('aria-expanded', open); document.body.classList.toggle('sheet-open', open);
   if (open) { const cur = s.querySelector('button[aria-pressed="true"]') || s.querySelector('.g-list button'); cur.focus(); cur.scrollIntoView({block: 'center'}); }
   else btn.focus({preventScroll: true});
 }
-function renderMobileBar(){                 // phones: the glacier list becomes one card, and a tap opens the sheet with the glaciers
+export function renderMobileBar(){                 // phones: the glacier list becomes one card, and a tap opens the sheet with the glaciers
   const btn = $('mGlacier'), g = glacierPicked ? currentGlacier() : null;      // before the first choice nothing is selected: the card asks for one
   const card = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${areaText(g, 1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
   if (btn._card !== card) { btn._card = card; btn.innerHTML = card; }
@@ -179,39 +225,39 @@ function renderMobileBar(){                 // phones: the glacier list becomes 
 }
 
 /* Map tools on phones: layers and measuring live behind two small buttons */
-function setMore(open){
+export function setMore(open){
   setTimeout(() => clip(), 0);
   document.querySelector('.mapbar').classList.toggle('more-open', open); $('app').classList.toggle('more-open', open);
   $('moreBtn').setAttribute('aria-expanded', open); $('moreBtn').setAttribute('aria-pressed', open);
 }
-const layerBoxNow = () => viewMode === '3d' && PHONE.matches ? $('v3dLayers') : $('layerbox');      // phones: one bar under the visual opens the menu of the view that is shown
-function setLayers(open){
+export const layerBoxNow = () => viewMode === '3d' && PHONE.matches ? $('v3dLayers') : $('layerbox');      // phones: one bar under the visual opens the menu of the view that is shown
+export function setLayers(open){
   const box = layerBoxNow();
   [$('layerbox'), $('v3dLayers')].forEach(x => x.classList.toggle('open', x === box && open));
   updateLayerMore();
   $('layersBtn').setAttribute('aria-expanded', open); $('layersBtn').setAttribute('aria-pressed', open);
 }
 /* Layer box on phones: show the fade and chevron at the bottom while more items can be scrolled to */
-function updateLayerMore(){
+export function updateLayerMore(){
   const b = $('layerbox'); b.classList.toggle('more', b.classList.contains('open') && b.scrollHeight - b.scrollTop - b.clientHeight > 6);
 }
 $('layerbox').addEventListener('scroll', updateLayerMore, {passive: true});
 addEventListener('resize', updateLayerMore);
 if (window.ResizeObserver) new ResizeObserver(updateLayerMore).observe(document.querySelector('#layerbox .lb-body'));
 /* On phones the For Your Ice box sits at the very bottom of the page; elsewhere it stays in the settings panel */
-const FYI = document.querySelector('a.fyi'), FYI_HOME = FYI.parentNode, FYI_PHONE = matchMedia('(max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px)');
-const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under the box, wherever the box is
-function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); home.appendChild(FYI_BY); }
+export const FYI = document.querySelector('a.fyi'), FYI_HOME = FYI.parentNode, FYI_PHONE = matchMedia('(max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px)');
+export const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under the box, wherever the box is
+export function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); home.appendChild(FYI_BY); }
 FYI_PHONE.addEventListener('change', placeFyi); placeFyi();
 
 /* phones in portrait: the map's layer box moves out of the visual, to a panel below it; the dock button opens it */
-function placeLayers(){
+export function placeLayers(){
   const lbx = $('layerbox'), l3 = $('v3dLayers'), inflow = PHONE.matches;
   [lbx, l3].forEach(x => x.classList.toggle('in-flow', inflow));
   if (inflow) $('stageSlot').after(lbx, l3); else { $('stage').appendChild(lbx); $('v3d').appendChild(l3); }
 }
 PHONE.addEventListener('change', placeLayers); placeLayers();
-const LAND = matchMedia('(max-width:950px) and (orientation:landscape) and (max-height:520px)');      // phone held sideways: the menu slides in from the right edge of the map; its chevron (pointing right) and a press on the map close it
+export const LAND = matchMedia('(max-width:950px) and (orientation:landscape) and (max-height:520px)');      // phone held sideways: the menu slides in from the right edge of the map; its chevron (pointing right) and a press on the map close it
 $('lbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
@@ -241,7 +287,7 @@ if (COARSE) {
 }
 
 /* Sharing: the address already contains glacier, mode and years */
-async function shareView(){
+export async function shareView(){
   const g = currentGlacier(), url = location.href;
   const text = state.mode === 'single' ? `${g.name}, ${state.one}` : state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
   if (navigator.share) {
@@ -254,8 +300,8 @@ async function shareView(){
 $('shareBtn').onclick = shareView;
 
 /* Mobile data: a timelapse loads one image per year the first time */
-let dataNoteShown = false;
-function mobileDataNote(){
+export let dataNoteShown = false;
+export function mobileDataNote(){
   if (!COARSE || dataNoteShown) return;
   dataNoteShown = true;
   const n = tlFrames().length;

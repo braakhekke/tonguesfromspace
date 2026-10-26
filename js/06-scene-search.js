@@ -2,6 +2,12 @@ import { FIRST_YEAR, YEARS } from './01-data.js';
 import { SEASON, isLandsat, unifyOrbit, summerStarted, findScene, queued, fmtDM, fmtDate } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode } from './04-state.js';
 import { map, updateCredits, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, oldestPair, aerialDesc, tagLine, play } from './05-map.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'checkYears', { get: () => checkYears, configurable: true });
+Object.defineProperty(window, 'statusLine', { get: () => statusLine, configurable: true });
+Object.defineProperty(window, 'updateTags', { get: () => updateTags, configurable: true });
+Object.defineProperty(window, 'checkGen', { get: () => checkGen, set: v => { checkGen = v; }, configurable: true });
+// end of bridge
 /* =====================================================================
    6. Scene search: for the selected glacier, the clearest summer scene of every year.
       Years without a usable scene cannot be picked.
@@ -72,7 +78,3 @@ export function updateTags(){
   tagLine(document.querySelector('#tagA small'), sub(state.a), scA); tagLine(document.querySelector('#tagB small'), sub(state.b), scB);
   if (oldestPair()) { setTag('tagA', flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#tagA small').innerHTML = aerialDesc(state.oldestAerial); }
 }
-
-// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
-Object.assign(window, { checkYears, statusLine, updateTags });
-Object.defineProperty(window, 'checkGen', { get: () => checkGen, set: v => { checkGen = v; }, configurable: true });

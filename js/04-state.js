@@ -1,6 +1,20 @@
 import { FIRST_YEAR, YEARS } from './01-data.js';
 import { GLACIERS } from './02-glaciers.js';
 import { prefs } from './03-imagery.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'state', { get: () => state, configurable: true });
+Object.defineProperty(window, 'HASH_AT_LOAD', { get: () => HASH_AT_LOAD, configurable: true });
+Object.defineProperty(window, 'writeHash', { get: () => writeHash, configurable: true });
+Object.defineProperty(window, 'okYears', { get: () => okYears, configurable: true });
+Object.defineProperty(window, 'currentGlacier', { get: () => currentGlacier, configurable: true });
+Object.defineProperty(window, 'viewMode', { get: () => viewMode, set: v => { viewMode = v; }, configurable: true });
+Object.defineProperty(window, 'HASH_TAB', { get: () => HASH_TAB, set: v => { HASH_TAB = v; }, configurable: true });
+Object.defineProperty(window, 'OPEN_ON_GLACIER', { get: () => OPEN_ON_GLACIER, set: v => { OPEN_ON_GLACIER = v; }, configurable: true });
+Object.defineProperty(window, 'AUTOPLAY', { get: () => AUTOPLAY, set: v => { AUTOPLAY = v; }, configurable: true });
+Object.defineProperty(window, 'PLAIN_START', { get: () => PLAIN_START, set: v => { PLAIN_START = v; }, configurable: true });
+Object.defineProperty(window, 'OPEN_3D', { get: () => OPEN_3D, set: v => { OPEN_3D = v; }, configurable: true });
+Object.defineProperty(window, 'glacierPicked', { get: () => glacierPicked, set: v => { glacierPicked = v; }, configurable: true });
+// end of bridge
 /* =====================================================================
    4. State
    ===================================================================== */
@@ -39,13 +53,3 @@ export const writeHash = () => history.replaceState(null, '',
   `#${REGION.id === 'ch' || PATH_REGION ? '' : `r=${REGION.id}&`}${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}${typeof viewMode !== 'undefined' && viewMode === '3d' ? '&v=3d' : ''}`);      // v=3d: the link opens the 3D view
 export const okYears = () => YEARS.filter(y => state.available[y]);
 export const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
-
-// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
-Object.assign(window, { state, HASH_AT_LOAD, writeHash, okYears, currentGlacier });
-Object.defineProperty(window, 'viewMode', { get: () => viewMode, set: v => { viewMode = v; }, configurable: true });
-Object.defineProperty(window, 'HASH_TAB', { get: () => HASH_TAB, set: v => { HASH_TAB = v; }, configurable: true });
-Object.defineProperty(window, 'OPEN_ON_GLACIER', { get: () => OPEN_ON_GLACIER, set: v => { OPEN_ON_GLACIER = v; }, configurable: true });
-Object.defineProperty(window, 'AUTOPLAY', { get: () => AUTOPLAY, set: v => { AUTOPLAY = v; }, configurable: true });
-Object.defineProperty(window, 'PLAIN_START', { get: () => PLAIN_START, set: v => { PLAIN_START = v; }, configurable: true });
-Object.defineProperty(window, 'OPEN_3D', { get: () => OPEN_3D, set: v => { OPEN_3D = v; }, configurable: true });
-Object.defineProperty(window, 'glacierPicked', { get: () => glacierPicked, set: v => { glacierPicked = v; }, configurable: true });

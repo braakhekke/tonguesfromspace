@@ -1,7 +1,46 @@
+import { FIRST_YEAR, YEARS, LANDSAT_YEARS } from './01-data.js';
+import { ICECAP, areaText, GLACIERS } from './02-glaciers.js';
+import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, restoreLatest } from './03-imagery.js';
+import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
+import { map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers } from './05-map.js';
+import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
+import { focusSub, syncPane, outlineGeom, maxLinkText, refreshAll } from './07-render.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'setOrient', { get: () => setOrient, configurable: true });
+Object.defineProperty(window, 'setStatus', { get: () => setStatus, configurable: true });
+Object.defineProperty(window, 'showNotice', { get: () => showNotice, configurable: true });
+Object.defineProperty(window, 'BOX_MAX_ZOOM', { get: () => BOX_MAX_ZOOM, configurable: true });
+Object.defineProperty(window, 'boxLayer', { get: () => boxLayer, configurable: true });
+Object.defineProperty(window, 'otherLayer', { get: () => otherLayer, configurable: true });
+Object.defineProperty(window, 'subLayer', { get: () => subLayer, configurable: true });
+Object.defineProperty(window, 'frameLayer', { get: () => frameLayer, configurable: true });
+Object.defineProperty(window, 'roundedBox', { get: () => roundedBox, configurable: true });
+Object.defineProperty(window, 'glacierBounds', { get: () => glacierBounds, configurable: true });
+Object.defineProperty(window, 'hasOutline', { get: () => hasOutline, configurable: true });
+Object.defineProperty(window, 'badgeLatLng', { get: () => badgeLatLng, configurable: true });
+Object.defineProperty(window, 'boxParts', { get: () => boxParts, configurable: true });
+Object.defineProperty(window, 'drawBoxes', { get: () => drawBoxes, configurable: true });
+Object.defineProperty(window, 'updateBoxes', { get: () => updateBoxes, configurable: true });
+Object.defineProperty(window, 'basinLayer', { get: () => basinLayer, configurable: true });
+Object.defineProperty(window, 'iceCapBounds', { get: () => iceCapBounds, configurable: true });
+Object.defineProperty(window, 'glaciersExtent', { get: () => glaciersExtent, configurable: true });
+Object.defineProperty(window, 'showOverview', { get: () => showOverview, configurable: true });
+Object.defineProperty(window, 'lb', { get: () => lb, configurable: true });
+Object.defineProperty(window, 'BASE_TOGGLES', { get: () => BASE_TOGGLES, configurable: true });
+Object.defineProperty(window, 'onlyBase', { get: () => onlyBase, configurable: true });
+Object.defineProperty(window, 'syncSatUi', { get: () => syncSatUi, configurable: true });
+Object.defineProperty(window, 'applyRegionUi', { get: () => applyRegionUi, configurable: true });
+Object.defineProperty(window, 'regionItem', { get: () => regionItem, configurable: true });
+Object.defineProperty(window, 'renderRegionMenu', { get: () => renderRegionMenu, configurable: true });
+Object.defineProperty(window, 'toggleRegionMenu', { get: () => toggleRegionMenu, configurable: true });
+Object.defineProperty(window, 'setLandsat', { get: () => setLandsat, configurable: true });
+Object.defineProperty(window, 'restoreLatestIfOld', { get: () => restoreLatestIfOld, configurable: true });
+Object.defineProperty(window, 'updateLandsatRow', { get: () => updateLandsatRow, configurable: true });
+// end of bridge
 /* =====================================================================
    8. Controls
    ===================================================================== */
-function setOrient(o){
+export function setOrient(o){
   prefs.orient = o; savePrefs();
   document.getElementById('orientV').setAttribute('aria-pressed', o !== 'h'); document.getElementById('orientH').setAttribute('aria-pressed', o === 'h');
   document.getElementById('labelA').textContent = o === 'h' ? 'Top' : 'Left'; document.getElementById('labelB').textContent = o === 'h' ? 'Bottom' : 'Right';
@@ -20,25 +59,25 @@ document.getElementById('modeSingle').onclick = () => { state.mode = 'single'; s
 
 
 
-function setStatus(t){             // a message ending in "…" means work in progress: show the spinner
+export function setStatus(t){             // a message ending in "…" means work in progress: show the spinner
   const el = document.getElementById('status');
   el.textContent = t; el.classList.toggle('busy', /…$/.test(t));
   if (viewMode === '3d' && !state.checked) document.getElementById('v3dMsg').textContent = t;      // the 3D view shows the progress of the search too
 }
-function showNotice(msg){
+export function showNotice(msg){
   const n = document.getElementById('notice');
   n.textContent = msg; n.classList.add('show');
   clearTimeout(showNotice.t); showNotice.t = setTimeout(() => n.classList.remove('show'), 7000);
 }
 
 /* ---------- Switzerland overview: the ten glaciers as red boxes, clickable ---------- */
-const BOX_MAX_ZOOM = 11.25;                      // boxes show when zoomed out; at a glacier they would clutter the image
-const boxLayer = L.layerGroup();
-const otherLayer = L.layerGroup();               // a glacier is chosen and the map is zoomed out beyond its picture: the outlines of the others, clickable
-const subLayer = L.layerGroup();                // the outlets of the chosen ice cap (g.subs): a ring and the name at each tip, a click zooms to the outlet
-const frameLayer = L.layerGroup();               // zoomed in: the red line stays as the outline of the selected glacier's image
+export const BOX_MAX_ZOOM = 11.25;                      // boxes show when zoomed out; at a glacier they would clutter the image
+export const boxLayer = L.layerGroup();
+export const otherLayer = L.layerGroup();               // a glacier is chosen and the map is zoomed out beyond its picture: the outlines of the others, clickable
+export const subLayer = L.layerGroup();                // the outlets of the chosen ice cap (g.subs): a ring and the name at each tip, a click zooms to the outlet
+export const frameLayer = L.layerGroup();               // zoomed in: the red line stays as the outline of the selected glacier's image
 /* The red boxes have exactly the size of the satellite image of each glacier, with the same rounded corners (14 px, as on .scene-img). */
-function roundedBox(b, maxR = 14){
+export function roundedBox(b, maxR = 14){
   const z = map.getZoom();
   if (z === undefined) return [[b[1][0], b[0][1]], [b[1][0], b[1][1]], [b[0][0], b[1][1]], [b[0][0], b[0][1]]];   // before the first view is set
   const nw = map.project(L.latLng(b[1][0], b[0][1]), z), se = map.project(L.latLng(b[0][0], b[1][1]), z);
@@ -48,11 +87,11 @@ function roundedBox(b, maxR = 14){
   return pts;
 }
 /* The overview: every glacier as its 1850 outline, clickable, with its number. Once a glacier is chosen, the outline of its satellite picture shows in red. */
-const glacierBounds = g => g.extent || g.bounds;
-const hasOutline = g => !!(outlineGeom(g) || g.rgi);      // the glacier has an outline to draw in the overview (Swiss: the 1850 outline, Iceland: the RGI outline)
-const badgeLatLng = g => g.center ? L.latLng(g.center) : L.latLngBounds(glacierBounds(g)).getCenter();
+export const glacierBounds = g => g.extent || g.bounds;
+export const hasOutline = g => !!(outlineGeom(g) || g.rgi);      // the glacier has an outline to draw in the overview (Swiss: the 1850 outline, Iceland: the RGI outline)
+export const badgeLatLng = g => g.center ? L.latLng(g.center) : L.latLngBounds(glacierBounds(g)).getCenter();
 /* One glacier of the overview: its outline (or box) and its numbered label. flat: no fill, for the other glaciers seen from a zoomed-out chosen glacier. */
-function boxParts(g, i, sel, flat){
+export function boxParts(g, i, sel, flat){
   const fp = imageFootprint(g).bounds, geom = outlineGeom(g), has = hasOutline(g);
     const W = sel ? 1.6 : 1.1, F = has && !flat ? 0.16 : 0, style = {color: getVar('--accent'), weight: W, opacity: .9, fillColor: getVar('--accent'), fillOpacity: F, className: 'gbox'};      // thin line and a faint fill so the ice stays visible; stronger under the pointer
     const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : g.rgi ? L.polygon(g.rgi.outline.map(r => [r]), {...style}) : L.polygon(roundedBox(fp), {...style});
@@ -65,7 +104,7 @@ function boxParts(g, i, sel, flat){
       keyboard: true}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false)).bindTooltip(tip, {direction: 'top', offset: [0, -12], className: 'gbox-tip'});      // the same tooltip over the number
     return [shape, num];
 }
-function drawBoxes(){
+export function drawBoxes(){
   boxLayer.clearLayers(); frameLayer.clearLayers(); otherLayer.clearLayers(); subLayer.clearLayers();
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
   const cur = picked && GLACIERS.find(x => x.id === state.glacier);
@@ -95,7 +134,7 @@ function drawBoxes(){
     if (picked) { const [s2, n2] = boxParts(g, i, sel, true); otherLayer.addLayer(s2).addLayer(n2); }      // the same, without fill, for the zoomed-out look at a chosen glacier (the chosen one included)
   });
 }
-function updateBoxes(){
+export function updateBoxes(){
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
   const sel = picked && GLACIERS.find(g => g.id === state.glacier), fpb = sel && imageFootprint(sel).bounds;
   const small = !!fpb && map.getZoom() !== undefined && (map.project(L.latLng(fpb[0][0], fpb[0][1])).y - map.project(L.latLng(fpb[1][0], fpb[1][1])).y) * 2 <= map.getSize().y;      // the map is at least twice as high as the picture area of the chosen glacier
@@ -116,20 +155,20 @@ function updateBoxes(){
   if (!frame && map.hasLayer(frameLayer)) map.removeLayer(frameLayer);
 }
 /* Iceland: the drainage basins of the whole ice cap (RGI 6.0) lie under the outlets that can be chosen, as thin white outlines with their name and area on hover */
-const basinLayer = L.layerGroup();
+export const basinLayer = L.layerGroup();
 if (REGION.rgi && ICECAP) ICECAP.basins.forEach(b => {
   const poly = L.polygon(b.outline.map(r => [r]), {color: '#fff', weight: 1.1, opacity: .8, fillColor: '#fff', fillOpacity: .04, className: 'basin'}).addTo(basinLayer);
   poly.bindTooltip(`${b.name || REGION.unnamed}, ${b.areaKm2.toLocaleString('en')} km²`, {direction: 'top', sticky: true, className: 'gbox-tip'});
   poly.on('mouseover', () => poly.setStyle({fillOpacity: .18})).on('mouseout', () => poly.setStyle({fillOpacity: .04}));
 });
-const iceCapBounds = () => L.latLngBounds(ICECAP.basins.concat(ICECAP.outlets).flatMap(b => b.outline.flat()));
-function glaciersExtent(){
+export const iceCapBounds = () => L.latLngBounds(ICECAP.basins.concat(ICECAP.outlets).flatMap(b => b.outline.flat()));
+export function glaciersExtent(){
   if (REGION.rgi && ICECAP) { const b = iceCapBounds(); return [[b.getSouth(), b.getWest()], [b.getNorth(), b.getEast()]]; }      // the whole ice cap
   const b = GLACIERS.map(g => imageFootprint(g).bounds);
   return [[Math.min(...b.map(x => x[0][0])), Math.min(...b.map(x => x[0][1]))], [Math.max(...b.map(x => x[1][0])), Math.max(...b.map(x => x[1][1]))]];
 }
 /* the overview of the region: the ten Swiss glaciers, or the whole Vatnajökull ice cap */
-function showOverview(animate = true){ stopPlay(); map.fitBounds(glaciersExtent(), {animate, padding: [40, 40]}); }
+export function showOverview(animate = true){ stopPlay(); map.fitBounds(glaciersExtent(), {animate, padding: [40, 40]}); }
 map.on('zoomend', () => { drawBoxes(); updateBoxes(); });
 map.on('resize', updateBoxes);   // the rounded corners are a fixed number of pixels
 document.getElementById('pinToggle').checked = prefs.pin === true;
@@ -148,7 +187,7 @@ drawBoxes(); drawTonguePin();
 
 
 /* Map layer box: minimize, mosaic background, OpenStreetMap */
-const lb = document.getElementById('layerbox');
+export const lb = document.getElementById('layerbox');
 lb.classList.add('min'); document.getElementById('lbToggle').setAttribute('aria-expanded', 'false');      // the layer menu starts closed at every visit; opening it is not remembered
 document.getElementById('lbToggle').onclick = () => {
   const min = lb.classList.toggle('min'); prefs.lbMin = min; savePrefs();
@@ -156,8 +195,8 @@ document.getElementById('lbToggle').onclick = () => {
 };
 document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;      // Sentinel-2 background on at the start (switch off to see the tongue in space)
 /* the three base maps replace each other: switching one on switches the others off */
-const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle'];
-function onlyBase(id){ BASE_TOGGLES.forEach(o => { const el = document.getElementById(o); if (o !== id && el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); }
+export const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle'];
+export function onlyBase(id){ BASE_TOGGLES.forEach(o => { const el = document.getElementById(o); if (o !== id && el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); }
 document.getElementById('mosaicToggle').onchange = e => { if (e.target.checked) onlyBase('mosaicToggle'); prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
 setBackground();
 document.getElementById('osmToggle').checked = prefs.osm === true;
@@ -194,7 +233,7 @@ applySatVisibility(); updateAerial();
 
 /* Controls that need a picture of the glacier (colours, brightness, downloads...) are greyed out while none is on show: no glacier chosen, or the Sentinel-2 picture
    switched off in the layer menu. Pressing one says why instead of doing it. Before a glacier is chosen, all of steps 2 and 3 do the same (they are greyed by .no-glacier). */
-function syncSatUi(){
+export function syncSatUi(){
   document.getElementById('app').classList.toggle('sat-off', !satShown());
   if (satShown()) { const n = document.getElementById('notice'); if (n.textContent === SAT_MSG || n.textContent === OLDEST_MSG) { n.classList.remove('show'); clearTimeout(showNotice.t); } }      // the message is gone as soon as it no longer applies: the picture is on, or a glacier is picked
 }
@@ -208,7 +247,7 @@ syncSatUi();
 /* ---------- region picker: the second line of the title ---------- */
 /* The regions are listed in js/00-regions.js. A country with several areas (Iceland) is a heading with its areas below it; a region without data is listed as "soon" so the menu shows where the
    site is going. Choosing one opens its link (#r=...) and reloads: every region starts clean and loads only its own data. */
-function applyRegionUi(){
+export function applyRegionUi(){
   document.querySelectorAll('.region-name').forEach(e => { e.textContent = REGION.name; });
   document.getElementById('regionBtn').setAttribute('aria-label', `Region: ${REGION.name}. Change region`);
   document.getElementById('brandLede').textContent = REGION.brandLede;
@@ -241,12 +280,12 @@ function applyRegionUi(){
     document.getElementById('boxToggle').parentElement.lastElementChild.lastChild.textContent = `Selectable ${REGION.units}`;
   }
 }
-function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
-function renderRegionMenu(){
+export function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
+export function renderRegionMenu(){
   document.getElementById('regionMenu').innerHTML = REGIONS.map(r => r.children
     ? `<li class="group" role="presentation">${r.name}</li>` + r.children.map(c => regionItem(c, true)).join('') : regionItem(r)).join('');
 }
-function toggleRegionMenu(open = document.getElementById('regionMenu').hidden){
+export function toggleRegionMenu(open = document.getElementById('regionMenu').hidden){
   document.getElementById('regionMenu').hidden = !open; document.getElementById('regionBtn').setAttribute('aria-expanded', open);
 }
 document.getElementById('regionBtn').onclick = e => { e.stopPropagation(); toggleRegionMenu(); };
@@ -260,7 +299,7 @@ document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.
 renderRegionMenu(); applyRegionUi();
 
 /* Landsat years (Iceland): the switch under the years puts the Landsat years in front of the Sentinel-2 years and takes them out again; it stays on across views, modes and glaciers (prefs.landsat) */
-async function setLandsat(on){
+export async function setLandsat(on){
   if (!REGION.landsat || on === YEARS[0] < FIRST_YEAR) return;
   prefs.landsat = on; savePrefs();
   if (on) YEARS.unshift(...LANDSAT_YEARS); else YEARS.splice(0, LANDSAT_YEARS.length);
@@ -279,11 +318,11 @@ async function setLandsat(on){
   }
   state.frame = 0; setStatus(statusLine()); refreshAll();
 }
-const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
+export const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
 { const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');
   if (REGION.landsat) { row.dataset.title = row.title; row.style.display = ''; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); updateLandsatRow(); } }
 /* The text of the Landsat switch; for a glacier whose picture is so small that 30 m pixels make it blurry (under 400 Landsat pixels across, a picture box under 12 km) it says "not recommended" */
-async function updateLandsatRow(){
+export async function updateLandsatRow(){
   const t = document.getElementById('landsatText'), row = document.getElementById('landsatRow'); if (!t || !REGION.landsat) return;
   const g = glacierPicked ? currentGlacier() : null, fp = g ? imageFootprint(g) : null, px = fp ? Math.round(Math.max(fp.w, fp.h) * CDSE.groundRes / 30) : 1e9, small = px < 400;
   const note = small ? ` · not recommended here: 30 m pixels, the picture is only ${px} pixels across` : '';

@@ -1,4 +1,29 @@
 import { DEFAULTS } from './01-data.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'DATA', { get: () => DATA, configurable: true });
+Object.defineProperty(window, 'norm', { get: () => norm, configurable: true });
+Object.defineProperty(window, 'PLACE', { get: () => PLACE, configurable: true });
+Object.defineProperty(window, 'unionBbox', { get: () => unionBbox, configurable: true });
+Object.defineProperty(window, 'outlineLoads', { get: () => outlineLoads, configurable: true });
+Object.defineProperty(window, 'needsOutline', { get: () => needsOutline, configurable: true });
+Object.defineProperty(window, 'loadOutline', { get: () => loadOutline, configurable: true });
+Object.defineProperty(window, 'ICECAP', { get: () => ICECAP, configurable: true });
+Object.defineProperty(window, 'ringsBounds', { get: () => ringsBounds, configurable: true });
+Object.defineProperty(window, 'boxRecord', { get: () => boxRecord, configurable: true });
+Object.defineProperty(window, 'shortName', { get: () => shortName, configurable: true });
+Object.defineProperty(window, 'padBounds', { get: () => padBounds, configurable: true });
+Object.defineProperty(window, 'rankArea', { get: () => rankArea, configurable: true });
+Object.defineProperty(window, 'CURRENT_LENGTH', { get: () => CURRENT_LENGTH, configurable: true });
+Object.defineProperty(window, 'areaText', { get: () => areaText, configurable: true });
+Object.defineProperty(window, 'lineGeom', { get: () => lineGeom, configurable: true });
+Object.defineProperty(window, 'hasOldOutline', { get: () => hasOldOutline, configurable: true });
+Object.defineProperty(window, 'oldOutlineGeom', { get: () => oldOutlineGeom, configurable: true });
+Object.defineProperty(window, 'newOutlineGeom', { get: () => newOutlineGeom, configurable: true });
+Object.defineProperty(window, 'eachPiece', { get: () => eachPiece, configurable: true });
+Object.defineProperty(window, 'areaSeries', { get: () => areaSeries, configurable: true });
+Object.defineProperty(window, 'rankLabel', { get: () => rankLabel, configurable: true });
+Object.defineProperty(window, 'GLACIERS', { get: () => GLACIERS, set: v => { GLACIERS = v; }, configurable: true });
+// end of bridge
 /* =====================================================================
    2. Glacier list: built-in, or ranked from glaciers.js when present
    ===================================================================== */
@@ -95,7 +120,3 @@ export function areaSeries(g){
 }
 export const rankLabel = () => DATA ? DATA.latest_label : 'SGI2016';
 GLACIERS.sort((x, y) => rankArea(y) - rankArea(x));
-
-// Bridge while other scripts are still classic scripts (delete when none is left).
-Object.assign(window, { DATA, norm, PLACE, unionBbox, outlineLoads, needsOutline, loadOutline, ICECAP, ringsBounds, boxRecord, shortName, padBounds, rankArea, CURRENT_LENGTH, areaText, lineGeom, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, areaSeries, rankLabel });
-Object.defineProperty(window, 'GLACIERS', { get: () => GLACIERS, set: v => { GLACIERS = v; }, configurable: true });

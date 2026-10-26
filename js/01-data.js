@@ -1,3 +1,28 @@
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'FIRST_YEAR', { get: () => FIRST_YEAR, configurable: true });
+Object.defineProperty(window, 'CURRENT_YEAR', { get: () => CURRENT_YEAR, configurable: true });
+Object.defineProperty(window, 'YEARS', { get: () => YEARS, configurable: true });
+Object.defineProperty(window, 'LANDSAT_YEARS', { get: () => LANDSAT_YEARS, configurable: true });
+Object.defineProperty(window, 'SWISS_SERIES', { get: () => SWISS_SERIES, configurable: true });
+Object.defineProperty(window, 'ICE_2024', { get: () => ICE_2024, configurable: true });
+Object.defineProperty(window, 'iceVolume', { get: () => iceVolume, configurable: true });
+Object.defineProperty(window, 'EIFFEL_M', { get: () => EIFFEL_M, configurable: true });
+Object.defineProperty(window, 'PITCH_M2', { get: () => PITCH_M2, configurable: true });
+Object.defineProperty(window, 'BUS_M', { get: () => BUS_M, configurable: true });
+Object.defineProperty(window, 'LAKE_ZURICH_KM3', { get: () => LAKE_ZURICH_KM3, configurable: true });
+Object.defineProperty(window, 'POOL_L', { get: () => POOL_L, configurable: true });
+Object.defineProperty(window, 'SWISS_SUPPLY_KM3', { get: () => SWISS_SUPPLY_KM3, configurable: true });
+Object.defineProperty(window, 'HOUSEHOLD_L_DAY', { get: () => HOUSEHOLD_L_DAY, configurable: true });
+Object.defineProperty(window, 'SWISS_POP', { get: () => SWISS_POP, configurable: true });
+Object.defineProperty(window, 'VOLUME_LOSS', { get: () => VOLUME_LOSS, configurable: true });
+Object.defineProperty(window, 'DEFAULTS', { get: () => DEFAULTS, configurable: true });
+Object.defineProperty(window, 'TRAILS', { get: () => TRAILS, configurable: true });
+Object.defineProperty(window, 'lv95', { get: () => lv95, configurable: true });
+Object.defineProperty(window, 'TRAIL_LAYERS', { get: () => TRAIL_LAYERS, configurable: true });
+Object.defineProperty(window, 'trailMaps', { get: () => trailMaps, configurable: true });
+Object.defineProperty(window, 'trailsHtml', { get: () => trailsHtml, configurable: true });
+Object.defineProperty(window, 'GLACIER_INFO', { get: () => GLACIER_INFO, configurable: true });
+// end of bridge
 /* =====================================================================
    1. Static data
    ===================================================================== */
@@ -220,7 +245,3 @@ export const GLACIER_INFO = {
   "src": "Wikipedia (Findeln)"
  }
 };
-
-// Bridge while the other scripts are still classic scripts: they read these names as globals.
-// Delete it when the last of them has become a module and imports what it needs.
-Object.assign(window, { FIRST_YEAR, CURRENT_YEAR, YEARS, LANDSAT_YEARS, SWISS_SERIES, ICE_2024, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, DEFAULTS, TRAILS, lv95, TRAIL_LAYERS, trailMaps, trailsHtml, GLACIER_INFO });

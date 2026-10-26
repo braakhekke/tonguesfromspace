@@ -1,5 +1,85 @@
 import { FIRST_YEAR, CURRENT_YEAR, YEARS } from './01-data.js';
 import { boxRecord } from './02-glaciers.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'prefs', { get: () => prefs, configurable: true });
+Object.defineProperty(window, 'savePrefs', { get: () => savePrefs, configurable: true });
+Object.defineProperty(window, 'SEASON', { get: () => SEASON, configurable: true });
+Object.defineProperty(window, 'CDSE', { get: () => CDSE, configurable: true });
+Object.defineProperty(window, 'LAST_DAY', { get: () => LAST_DAY, configurable: true });
+Object.defineProperty(window, 'lastDay', { get: () => lastDay, configurable: true });
+Object.defineProperty(window, 'ONE_ORBIT', { get: () => ONE_ORBIT, configurable: true });
+Object.defineProperty(window, 'orbitFilter', { get: () => orbitFilter, configurable: true });
+Object.defineProperty(window, 'SCENE_EVALSCRIPT', { get: () => SCENE_EVALSCRIPT, configurable: true });
+Object.defineProperty(window, 'TRUE_COLOR', { get: () => TRUE_COLOR, configurable: true });
+Object.defineProperty(window, 'STYLE_BANDS', { get: () => STYLE_BANDS, configurable: true });
+Object.defineProperty(window, 'STYLE_NAME', { get: () => STYLE_NAME, configurable: true });
+Object.defineProperty(window, 'isLandsat', { get: () => isLandsat, configurable: true });
+Object.defineProperty(window, 'landsatName', { get: () => landsatName, configurable: true });
+Object.defineProperty(window, 'LANDSAT_CREDIT', { get: () => LANDSAT_CREDIT, configurable: true });
+Object.defineProperty(window, 'sensorName', { get: () => sensorName, configurable: true });
+Object.defineProperty(window, 'LANDSAT_BANDS', { get: () => LANDSAT_BANDS, configurable: true });
+Object.defineProperty(window, 'styleLine', { get: () => styleLine, configurable: true });
+Object.defineProperty(window, 'IMAGE_COLLECTION', { get: () => IMAGE_COLLECTION, configurable: true });
+Object.defineProperty(window, 'evalscriptFor', { get: () => evalscriptFor, configurable: true });
+Object.defineProperty(window, 'RELAY_BASE', { get: () => RELAY_BASE, configurable: true });
+Object.defineProperty(window, 'ASSETS', { get: () => ASSETS, configurable: true });
+Object.defineProperty(window, 'asset', { get: () => asset, configurable: true });
+Object.defineProperty(window, 'relayRoot', { get: () => relayRoot, configurable: true });
+Object.defineProperty(window, 'relayInfo', { get: () => relayInfo, configurable: true });
+Object.defineProperty(window, 'LOCAL', { get: () => LOCAL, configurable: true });
+Object.defineProperty(window, 'NO_RELAY', { get: () => NO_RELAY, configurable: true });
+Object.defineProperty(window, 'errorText', { get: () => errorText, configurable: true });
+Object.defineProperty(window, 'cdse', { get: () => cdse, configurable: true });
+Object.defineProperty(window, 'memCache', { get: () => memCache, configurable: true });
+Object.defineProperty(window, 'IMG_CAP', { get: () => IMG_CAP, configurable: true });
+Object.defineProperty(window, 'idb', { get: () => idb, configurable: true });
+Object.defineProperty(window, 'boxEntry', { get: () => boxEntry, configurable: true });
+Object.defineProperty(window, 'imageFootprint', { get: () => imageFootprint, configurable: true });
+Object.defineProperty(window, 'capFootprint', { get: () => capFootprint, configurable: true });
+Object.defineProperty(window, 'imageBox', { get: () => imageBox, configurable: true });
+Object.defineProperty(window, 'CRS3857', { get: () => CRS3857, configurable: true });
+Object.defineProperty(window, 'SNOW_TIE', { get: () => SNOW_TIE, configurable: true });
+Object.defineProperty(window, 'SNOW_SLACK', { get: () => SNOW_SLACK, configurable: true });
+Object.defineProperty(window, 'pickScene', { get: () => pickScene, configurable: true });
+Object.defineProperty(window, 'unifyOrbit', { get: () => unifyOrbit, configurable: true });
+Object.defineProperty(window, 'sceneDays', { get: () => sceneDays, configurable: true });
+Object.defineProperty(window, 'SCENES_FILE', { get: () => SCENES_FILE, configurable: true });
+Object.defineProperty(window, 'curatedScene', { get: () => curatedScene, configurable: true });
+Object.defineProperty(window, 'summerStarted', { get: () => summerStarted, configurable: true });
+Object.defineProperty(window, 'landsatFiles', { get: () => landsatFiles, configurable: true });
+Object.defineProperty(window, 'landsatFile', { get: () => landsatFile, configurable: true });
+Object.defineProperty(window, 'landsatScene', { get: () => landsatScene, configurable: true });
+Object.defineProperty(window, 'findScene', { get: () => findScene, configurable: true });
+Object.defineProperty(window, 'LATEST', { get: () => LATEST, configurable: true });
+Object.defineProperty(window, 'MASKS', { get: () => MASKS, configurable: true });
+Object.defineProperty(window, 'cloudByDay', { get: () => cloudByDay, configurable: true });
+Object.defineProperty(window, 'findLatest', { get: () => findLatest, configurable: true });
+Object.defineProperty(window, 'restoreLatest', { get: () => restoreLatest, configurable: true });
+Object.defineProperty(window, 'showLatest', { get: () => showLatest, configurable: true });
+Object.defineProperty(window, 'runQueue', { get: () => runQueue, configurable: true });
+Object.defineProperty(window, 'queued', { get: () => queued, configurable: true });
+Object.defineProperty(window, 'imageKey', { get: () => imageKey, configurable: true });
+Object.defineProperty(window, 'footprintRes', { get: () => footprintRes, configurable: true });
+Object.defineProperty(window, 'imageHere', { get: () => imageHere, configurable: true });
+Object.defineProperty(window, 'smallDevice', { get: () => smallDevice, configurable: true });
+Object.defineProperty(window, 'capLevel', { get: () => capLevel, configurable: true });
+Object.defineProperty(window, 'loadCapImage', { get: () => loadCapImage, configurable: true });
+Object.defineProperty(window, 'CAP_FINE_MPP', { get: () => CAP_FINE_MPP, configurable: true });
+Object.defineProperty(window, 'capWaiting', { get: () => capWaiting, configurable: true });
+Object.defineProperty(window, 'capWantsFine', { get: () => capWantsFine, configurable: true });
+Object.defineProperty(window, 'capCheckFine', { get: () => capCheckFine, configurable: true });
+Object.defineProperty(window, 'loadImage', { get: () => loadImage, configurable: true });
+Object.defineProperty(window, 'setLoading', { get: () => setLoading, configurable: true });
+Object.defineProperty(window, 'STAC_URL', { get: () => STAC_URL, configurable: true });
+Object.defineProperty(window, 'stacDone', { get: () => stacDone, configurable: true });
+Object.defineProperty(window, 'sceneProducts', { get: () => sceneProducts, configurable: true });
+Object.defineProperty(window, 'fmtDM', { get: () => fmtDM, configurable: true });
+Object.defineProperty(window, 'fmtDate', { get: () => fmtDate, configurable: true });
+Object.defineProperty(window, 'relayCheck', { get: () => relayCheck, set: v => { relayCheck = v; }, configurable: true });
+Object.defineProperty(window, 'masksFile', { get: () => masksFile, set: v => { masksFile = v; }, configurable: true });
+Object.defineProperty(window, 'latestBusy', { get: () => latestBusy, set: v => { latestBusy = v; }, configurable: true });
+Object.defineProperty(window, 'pending', { get: () => pending, set: v => { pending = v; }, configurable: true });
+// end of bridge
 /* =====================================================================
    3. Imagery: the clearest summer scene of each year
       Copernicus Sentinel-2 L2A via the Copernicus Data Space Ecosystem.
@@ -497,10 +577,3 @@ export function sceneProducts(g, sc){
 }
 export const fmtDM = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day:'numeric', month:'long', timeZone:'UTC'});      // the day and month: the year is already shown big next to it
 export const fmtDate = d => new Date(d + 'T12:00:00Z').toLocaleDateString('en-GB', {day:'numeric', month:'long', year:'numeric', timeZone:'UTC'});
-
-// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
-Object.assign(window, { prefs, savePrefs, SEASON, CDSE, LAST_DAY, lastDay, ONE_ORBIT, orbitFilter, SCENE_EVALSCRIPT, TRUE_COLOR, STYLE_BANDS, STYLE_NAME, isLandsat, landsatName, LANDSAT_CREDIT, sensorName, LANDSAT_BANDS, styleLine, IMAGE_COLLECTION, evalscriptFor, RELAY_BASE, ASSETS, asset, relayRoot, relayInfo, LOCAL, NO_RELAY, errorText, cdse, memCache, IMG_CAP, idb, boxEntry, imageFootprint, capFootprint, imageBox, CRS3857, SNOW_TIE, SNOW_SLACK, pickScene, unifyOrbit, sceneDays, SCENES_FILE, curatedScene, summerStarted, landsatFiles, landsatFile, landsatScene, findScene, LATEST, MASKS, cloudByDay, findLatest, restoreLatest, showLatest, runQueue, queued, imageKey, footprintRes, imageHere, smallDevice, capLevel, loadCapImage, CAP_FINE_MPP, capWaiting, capWantsFine, capCheckFine, loadImage, setLoading, STAC_URL, stacDone, sceneProducts, fmtDM, fmtDate });
-Object.defineProperty(window, 'relayCheck', { get: () => relayCheck, set: v => { relayCheck = v; }, configurable: true });
-Object.defineProperty(window, 'masksFile', { get: () => masksFile, set: v => { masksFile = v; }, configurable: true });
-Object.defineProperty(window, 'latestBusy', { get: () => latestBusy, set: v => { latestBusy = v; }, configurable: true });
-Object.defineProperty(window, 'pending', { get: () => pending, set: v => { pending = v; }, configurable: true });
