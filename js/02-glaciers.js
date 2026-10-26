@@ -97,4 +97,5 @@ export const rankLabel = () => DATA ? DATA.latest_label : 'SGI2016';
 GLACIERS.sort((x, y) => rankArea(y) - rankArea(x));
 
 // Bridge while other scripts are still classic scripts (delete when none is left).
-Object.assign(window, { DATA, norm, PLACE, unionBbox, outlineLoads, needsOutline, loadOutline, ICECAP, ringsBounds, boxRecord, GLACIERS, shortName, padBounds, rankArea, CURRENT_LENGTH, areaText, lineGeom, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, areaSeries, rankLabel });
+Object.assign(window, { DATA, norm, PLACE, unionBbox, outlineLoads, needsOutline, loadOutline, ICECAP, ringsBounds, boxRecord, shortName, padBounds, rankArea, CURRENT_LENGTH, areaText, lineGeom, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, areaSeries, rankLabel });
+Object.defineProperty(window, 'GLACIERS', { get: () => GLACIERS, set: v => { GLACIERS = v; }, configurable: true });

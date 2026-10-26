@@ -1,21 +1,24 @@
+import { FIRST_YEAR, YEARS } from './01-data.js';
+import { GLACIERS } from './02-glaciers.js';
+import { prefs } from './03-imagery.js';
 /* =====================================================================
    4. State
    ===================================================================== */
-let viewMode = 'map';      // 'map' or '3d': what the stage shows. The panel (mode, years, colours) and the download pane serve both
-const state = {
+export let viewMode = 'map';      // 'map' or '3d': what the stage shows. The panel (mode, years, colours) and the download pane serve both
+export const state = {
   glacier: (GLACIERS.find(g => g.id === REGION.landingGlacier) || GLACIERS[0]).id, mode: 'single',          // new visitors start with one image, the newest year
   a: null, b: null, from: null, to: null, one: null,
   split: 0.5, available: {}, latest: null, oldestAerial: null, oldestSaved: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,
   style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
 };
-let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
-let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
-let AUTOPLAY = false;           // the plain address opens on a timelapse that starts by itself, once the scenes are found
-const HASH_AT_LOAD = location.hash;      // the address as the visitor opened it: the landing page writes its own state into the hash while it boots
-let PLAIN_START = false;        // the plain address: the landing page is the 3D timelapse of the biggest glacier
-let OPEN_3D = false;            // a shared link asks for the 3D view
-let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen
+export let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
+export let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
+export let AUTOPLAY = false;           // the plain address opens on a timelapse that starts by itself, once the scenes are found
+export const HASH_AT_LOAD = location.hash;      // the address as the visitor opened it: the landing page writes its own state into the hash while it boots
+export let PLAIN_START = false;        // the plain address: the landing page is the 3D timelapse of the biggest glacier
+export let OPEN_3D = false;            // a shared link asks for the 3D view
+export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
@@ -32,8 +35,17 @@ let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is re
   glacierPicked = OPEN_ON_GLACIER; OPEN_3D = FEATURES.view3d && OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));
   HASH_TAB = { discover: 'look', fun: 'look', stats: 'figures', switzerland: 'swiss' }[p.get('t')] || null;
 })();
-const writeHash = () => history.replaceState(null, '', 
+export const writeHash = () => history.replaceState(null, '', 
   `#${REGION.id === 'ch' || PATH_REGION ? '' : `r=${REGION.id}&`}${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}${typeof viewMode !== 'undefined' && viewMode === '3d' ? '&v=3d' : ''}`);      // v=3d: the link opens the 3D view
-const okYears = () => YEARS.filter(y => state.available[y]);
-const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
+export const okYears = () => YEARS.filter(y => state.available[y]);
+export const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 
+// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
+Object.assign(window, { state, HASH_AT_LOAD, writeHash, okYears, currentGlacier });
+Object.defineProperty(window, 'viewMode', { get: () => viewMode, set: v => { viewMode = v; }, configurable: true });
+Object.defineProperty(window, 'HASH_TAB', { get: () => HASH_TAB, set: v => { HASH_TAB = v; }, configurable: true });
+Object.defineProperty(window, 'OPEN_ON_GLACIER', { get: () => OPEN_ON_GLACIER, set: v => { OPEN_ON_GLACIER = v; }, configurable: true });
+Object.defineProperty(window, 'AUTOPLAY', { get: () => AUTOPLAY, set: v => { AUTOPLAY = v; }, configurable: true });
+Object.defineProperty(window, 'PLAIN_START', { get: () => PLAIN_START, set: v => { PLAIN_START = v; }, configurable: true });
+Object.defineProperty(window, 'OPEN_3D', { get: () => OPEN_3D, set: v => { OPEN_3D = v; }, configurable: true });
+Object.defineProperty(window, 'glacierPicked', { get: () => glacierPicked, set: v => { glacierPicked = v; }, configurable: true });

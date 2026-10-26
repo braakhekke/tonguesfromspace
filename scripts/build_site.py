@@ -234,6 +234,13 @@ def main():
                     sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
                 text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
                 data = text.encode("utf-8")
+            if b"from './" in data:      # ES modules import each other by plain name; imports only look back in load order, so the hashed names exist already
+                def imported(m):
+                    target = assets.get("js/" + m.group(1))
+                    if not target:
+                        sys.exit(f"js/{f} imports './{m.group(1)}', which is not hashed before it (imports must look back in load order)")
+                    return "from './" + os.path.basename(target) + "'"
+                data = re.sub(r"from '\./([\w.-]+\.js)'", imported, data.decode("utf-8")).encode("utf-8")
             rel = hashed_name(f"js/{f}", data)
             write(out, rel, data)
             assets[f"js/{f}"] = rel
