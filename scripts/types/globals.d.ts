@@ -53,3 +53,28 @@ declare const TRAIL_LAYERS: typeof import('../../js/01-data.js').TRAIL_LAYERS;
 declare const trailMaps: typeof import('../../js/01-data.js').trailMaps;
 declare const trailsHtml: typeof import('../../js/01-data.js').trailsHtml;
 declare const GLACIER_INFO: typeof import('../../js/01-data.js').GLACIER_INFO;
+
+// Names exported by js/02-glaciers.js (a module), read as globals by classic scripts.
+declare const DATA: typeof import('../../js/02-glaciers.js').DATA;
+declare const norm: typeof import('../../js/02-glaciers.js').norm;
+declare const PLACE: typeof import('../../js/02-glaciers.js').PLACE;
+declare const unionBbox: typeof import('../../js/02-glaciers.js').unionBbox;
+declare const outlineLoads: typeof import('../../js/02-glaciers.js').outlineLoads;
+declare const needsOutline: typeof import('../../js/02-glaciers.js').needsOutline;
+declare const loadOutline: typeof import('../../js/02-glaciers.js').loadOutline;
+declare const ICECAP: typeof import('../../js/02-glaciers.js').ICECAP;
+declare const ringsBounds: typeof import('../../js/02-glaciers.js').ringsBounds;
+declare const boxRecord: typeof import('../../js/02-glaciers.js').boxRecord;
+declare var GLACIERS: typeof import('../../js/02-glaciers.js').GLACIERS;
+declare const shortName: typeof import('../../js/02-glaciers.js').shortName;
+declare const padBounds: typeof import('../../js/02-glaciers.js').padBounds;
+declare const rankArea: typeof import('../../js/02-glaciers.js').rankArea;
+declare const CURRENT_LENGTH: typeof import('../../js/02-glaciers.js').CURRENT_LENGTH;
+declare const areaText: typeof import('../../js/02-glaciers.js').areaText;
+declare const lineGeom: typeof import('../../js/02-glaciers.js').lineGeom;
+declare const hasOldOutline: typeof import('../../js/02-glaciers.js').hasOldOutline;
+declare const oldOutlineGeom: typeof import('../../js/02-glaciers.js').oldOutlineGeom;
+declare const newOutlineGeom: typeof import('../../js/02-glaciers.js').newOutlineGeom;
+declare const eachPiece: typeof import('../../js/02-glaciers.js').eachPiece;
+declare const areaSeries: typeof import('../../js/02-glaciers.js').areaSeries;
+declare const rankLabel: typeof import('../../js/02-glaciers.js').rankLabel;
