@@ -23,13 +23,12 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
   `/iceland/vatnajokull/`, ...); old `/#g=...` links are redirected by the picker; build, health check and tests follow.
 - The picker reads the region records: `js/regions.js` is data only and shared by the dashboard and the front page;
   `js/00-regions.js` is the logic that picks a region. The front page is indexable (it carried `noindex` as a draft).
-- One stylesheet per concern: `css/style.css` (dashboard and size page; synced to the sister sites, so not touched),
+- One stylesheet per concern: `css/style.css` (dashboard and size page),
   `css/pages.css` (tokens and base of the public pages), `css/home.css` (the picker; moved out of the page, checked
   pixel-identical).
-- `css/tokens.css` is the one token file of every page (wins over the copy in the synced `style.css`; a test keeps them equal). Every page has an "← All regions" link to the picker.
+- `css/tokens.css` is the one token file of every page (the only definition; the style sync to the sister sites was retired and `style.css` lost its copy). Every page has an "← All regions" link to the picker.
 - Not done: a single shared header/footer component. The pages differ by design (dark hero page, light utility
-  gallery, app-like dashboard), and `style.css` still holds a copy of the tokens because of the sister-site sync;
-  retiring the sync (LaunchAgent org.tonguesfromspace.stylesync) lets that copy be deleted.
+  gallery, app-like dashboard), the style sync (LaunchAgent) is retired, so the tokens exist once.
 
 ## Milestone 3: Worker and onboarding (in progress)
 Walkthrough: ported from v2 as the preferred one (`walkthrough/`, docs/WALKTHROUGH.md). Done: the schema, season rule,

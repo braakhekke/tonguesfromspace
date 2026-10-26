@@ -1,13 +1,4 @@
-/* Schibsted Grotesk (SIL Open Font Licence 1.1, see fonts/OFL.txt), served from this site: no request to Google */
-@font-face{font-family:"Schibsted Grotesk";src:url(../fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
-:root{
-  --firn:#F4F6F7; --sheet:#FFFFFF; --rock:#1C2A33; --moraine:#66757E; --faint:#93A0A7; --ink:#0E1A22; --rule-2:#EDF0F2;
-  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6;
-  --accent:#C8322A;
-  --old:#F2A93B; --new:#E5443B; --measure:#FFD84D;
-  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
-  --serif:var(--sans);
-}
+/* Colours and the typeface are in css/tokens.css (linked by every page). */
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 html,body{height:100%;margin:0}
