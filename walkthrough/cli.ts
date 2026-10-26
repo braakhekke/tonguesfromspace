@@ -5,6 +5,7 @@
  *   new-region <id> <name> <lat> <lon>
  *   new-glacier <region> <id> <name> <lat> <lon>
  *   import-site [region]               fill the records from the site's own data (boxes, scenes, regions): proposals, nothing confirmed
+ *   add-source <region> <id> "<name>" <url> [--glacier <id>]   a source found (an outline inventory, say) as a proposal for the region step; its licence is NOT READ
  *   export [--check]                   write data/boxes.js and data/scenes.json from the records; --check only compares (CI runs it)
  *   import-old-scenes <region> <glacier> <old repo> <old scene key> <old landsat id>   the previous site's scenes, as proposals
  *   refill-landsat <region> <glacier>   fill the stripes of the Landsat 7 pictures along the flow (from the original renders)
@@ -20,6 +21,7 @@ import { proposeGlamos } from './propose-glamos';
 import { proposeBox } from './propose-box';
 import { importOldScenes } from './import-old';
 import { importSite } from './import-site';
+import { writeProposal } from './proposals';
 import { check as checkExport, exportAll } from './export';
 import { refillScene } from './landsat/refill';
 import { readProposals } from './proposals';
@@ -60,6 +62,14 @@ try {
     const r = importSite(a[0]);
     console.log(`Imported ${r.glaciers} glaciers of ${r.regions} regions (${r.scenes} scenes). Nothing is confirmed: open the walkthrough and look at each step.`);
     for (const x of r.skipped) console.log(C.dim('  skipped: ' + x));
+  } else if (cmd === 'add-source') {
+    const [region, id, name, url] = a;
+    if (!region || !id || !name || !/^https?:\/\//.test(url ?? '')) throw new Error('usage: add-source <region> <id> "<name>" <url>');
+    const c = loadCtx(region), prev = readProposals(region, null)['region.unit']?.data ?? {};
+    const sources = [...(prev.sources ?? c.region.sources), ].filter((s: { id: string }) => s.id !== id);
+    sources.push({ id, name, url, licence: `NOT READ: open ${url}, find the licence and write it here.`, commercialUse: false });
+    writeProposal(region, null, 'region.unit', 'add-source', `${name} added as a source: its licence is NOT READ.`, { ...prev, unitRule: prev.unitRule ?? c.region.unitRule ?? 'TO WRITE: what counts as "a glacier" in this region, as a rule someone else could apply and get the same list.', sources });
+    console.log(`${name} is now a proposed source of ${region}. Open the region step, read its licence and write it in.`);
   } else if (cmd === 'export') {
     if (a.includes('--check')) {
       const bad = checkExport();

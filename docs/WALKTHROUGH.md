@@ -22,6 +22,25 @@ Scene scans need Copernicus credentials in `.dev.vars` (`CDSE_CLIENT_ID=...`, `C
 - **Placement first** (see CLAUDE.md): the box, tip and 3D strip are confirmed before anything else is built on them.
 - The local server accepts only `localhost` calls, refuses cross-site requests and needs a custom header for writes (`server.ts`, tested).
 
+## Starting from a chat request
+
+```bash
+npm run onboard -- new-zealand "Tasman Glacier" "Franz Josef@-43.4678,170.1883" --region-name "New Zealand"
+```
+
+One command does what a request in chat means: it makes the region and the glaciers (drafts), looks up the outlines, writes every proposal that can be written, probes the map layers, starts the walkthrough server in the background (log: `.cache/walkthrough.log`) and opens it in a **new browser window** on the first step that needs a person (`--no-open` only prints the link). What it fills in, all as proposals and nothing confirmed:
+
+| Step | Proposal | From |
+|---|---|---|
+| Region | the sources found, with licences marked NOT READ; the unit rule is a placeholder that cannot be confirmed | the outline sources |
+| The glacier | id (the address), name, inventory id, rank among the group by area, area, centre | RGI 6.0 record, as the inventory states it |
+| Outline | the RGI 6.0 outline (about 2000), neighbours to add parts from, and the oldest dated GLIMS outline of the same glacier when it is clearly older | GLIMS public service (`sources/glims.ts`) |
+| Tip and box | the outline plus 15 %; the tip is the southernmost point, a first guess that says so | the outline |
+| Balance year and scene rule | copied from the closest glacier already set up, and said so | the records |
+| Map layers | what each provider has over the box, with the licence read from its page | `providers.json` |
+
+A name GLIMS does not know, or knows twice, needs coordinates: `"name@lat,lon"`. RGI 6.0 is the one outline source that answers anywhere; where a national inventory exists it is better (`walkthrough/outline-sources.json` lists what is known and how each is fetched: GLAMOS for Switzerland automatically, the Icelandic, Norwegian and Svalbard inventories through the site's build scripts). RGI 7 is newer but its files need an Earthdata login (HTTP 401 without one, checked 26 Oct 2026). Sources found on the web are added with `npm run walkthrough -- add-source <region> <id> "<name>" <url>`. Not filled in, because it cannot be known without a person or credentials: licences, the unit rule, where the balance-year dates come from, the lowest point of the ice front, the scene review (scans run in the wizard and need Copernicus credentials), the elevation model, the 3D strip and camera.
+
 ## The records are the source of truth
 
 `data/regions/<region>/...` holds what has been decided about each region and glacier; three files of the site are **generated** from it and must not be edited by hand:

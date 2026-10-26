@@ -57,6 +57,7 @@ export const STEPS: StepDef[] = [
     confirmation: (c) => c.region.confirmation,
     problems: (c) => [
       ...(c.region.unitRule && c.region.unitRule.length < 20 ? ['The unit rule is too short to be a rule.'] : []),
+      ...(c.region.unitRule && /^TO WRITE/.test(c.region.unitRule) ? ['The unit rule is still the placeholder: write what counts as "a glacier" here as a rule someone else could apply and get the same list.'] : []),
       ...(c.region.sources.length === 0 ? ['No sources yet.'] : []),
       ...[...c.region.sources, ...(c.region.layerSources ?? [])].filter((x) => /^NOT READ/i.test(x.licence)).map((x) => `The licence of "${x.name}" was not read: open ${x.url}, find the licence and write it into the source.`),
     ],

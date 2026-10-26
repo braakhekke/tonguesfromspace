@@ -1,0 +1,117 @@
+{
+  "_doc": "Outline sources the walkthrough knows, so onboarding can say what exists for a place. `area` is a rough box [south, west, north, east] used only to say which entries are worth a look, never as data. `fetch`: automatic = a command here fetches it; manual = used by the site's own build scripts (scripts/build_regions.py and others), not yet by the walkthrough; login = needs an account. Better ones for a place than these are looked for on the web when a glacier is onboarded; add what is found with `npm run walkthrough -- add-source`. Licences are not stated here: they are read from the source's own page in the region step.",
+  "sources": [
+    {
+      "id": "glamos-sgi",
+      "name": "GLAMOS Swiss Glacier Inventory (SGI 2023, 1973, 1850)",
+      "url": "https://doi.glamos.ch/data/inventory/inventory_sgi2023_r2026.html",
+      "area": [
+        45.7,
+        5.8,
+        48.0,
+        10.7
+      ],
+      "offers": "newest outline 2023 and the 1850 outline, with the inventory's own ids and areas",
+      "fetch": "automatic",
+      "how": "npm run walkthrough -- propose-glamos <region> \"<glacier name>\"",
+      "better_than_rgi": true,
+      "national": true
+    },
+    {
+      "id": "imo",
+      "name": "Icelandic Met Office glacier outlines (about 1890 and 2025; Hannesdóttir et al. 2020)",
+      "url": "https://islenskirjoklar.is",
+      "area": [
+        63.0,
+        -25.0,
+        67.0,
+        -12.0
+      ],
+      "offers": "an outline of about 1890 and of 2025 for the ice caps of Iceland",
+      "fetch": "manual",
+      "how": "scripts/build_vatnajokull.py and scripts/build_regions.py (WFS geo.vedur.is)",
+      "better_than_rgi": true,
+      "national": true
+    },
+    {
+      "id": "nve",
+      "name": "NVE glacier inventory of Norway (outlines 2018-2019 and 1947-1985)",
+      "url": "https://www.nve.no/hydrology/glaciers/",
+      "area": [
+        57.5,
+        4.0,
+        71.5,
+        31.5
+      ],
+      "offers": "the main glaciers (hovedbre) with outlines of two inventories",
+      "fetch": "manual",
+      "how": "scripts/build_regions.py (kart.nve.no Bre2 service)",
+      "better_than_rgi": true,
+      "national": true
+    },
+    {
+      "id": "npi",
+      "name": "Norwegian Polar Institute glacier outlines of Svalbard (1936-1972, 1990, 2001-2010, 2020)",
+      "url": "https://geodata.npolar.no",
+      "area": [
+        74.0,
+        10.0,
+        81.5,
+        35.0
+      ],
+      "offers": "named glacier units with outlines of four epochs",
+      "fetch": "manual",
+      "how": "scripts/build_regions.py (geodata.npolar.no)",
+      "better_than_rgi": true,
+      "national": true
+    },
+    {
+      "id": "rgi-6",
+      "name": "Randolph Glacier Inventory 6.0, via GLIMS",
+      "url": "https://www.glims.org/RGI/",
+      "area": [
+        -90,
+        -180,
+        90,
+        180
+      ],
+      "offers": "one outline of about 2000 for every glacier on Earth, with the inventory's id, name, area, length and heights",
+      "fetch": "automatic",
+      "how": "npm run onboard (walkthrough/sources/glims.ts)",
+      "better_than_rgi": false,
+      "national": false
+    },
+    {
+      "id": "glims",
+      "name": "GLIMS Glacier Database: dated outlines",
+      "url": "https://www.glims.org/",
+      "area": [
+        -90,
+        -180,
+        90,
+        180
+      ],
+      "offers": "outlines of many dates where contributors supplied them (for many Alpine glaciers back to 1850)",
+      "fetch": "automatic",
+      "how": "npm run onboard (walkthrough/sources/glims.ts)",
+      "better_than_rgi": false,
+      "national": false
+    },
+    {
+      "id": "rgi-7",
+      "name": "Randolph Glacier Inventory 7.0 (NSIDC-0770)",
+      "url": "https://nsidc.org/data/nsidc-0770",
+      "area": [
+        -90,
+        -180,
+        90,
+        180
+      ],
+      "offers": "a newer global inventory than RGI 6.0, one outline per glacier from about 2000",
+      "fetch": "login",
+      "how": "files at https://daacdata.apps.nsidc.org/pub/DATASETS/nsidc0770_rgi_v7/ answer HTTP 401 without an Earthdata Login (checked 26 Oct 2026); download by hand",
+      "better_than_rgi": true,
+      "national": false
+    }
+  ]
+}
