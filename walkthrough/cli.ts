@@ -6,6 +6,7 @@
  *   new-glacier <region> <id> <name> <lat> <lon>
  *   import-site [region]               fill the records from the site's own data (boxes, scenes, regions): proposals, nothing confirmed
  *   add-source <region> <id> "<name>" <url> [--glacier <id>]   a source found (an outline inventory, say) as a proposal for the region step; its licence is NOT READ
+ *   aliases                            the names of every glacier in every language (Wikidata, CC0) into data/glacier-aliases.js, for the front page's search
  *   export [--check]                   write data/boxes.js and data/scenes.json from the records; --check only compares (CI runs it)
  *   import-old-scenes <region> <glacier> <old repo> <old scene key> <old landsat id>   the previous site's scenes, as proposals
  *   refill-landsat <region> <glacier>   fill the stripes of the Landsat 7 pictures along the flow (from the original renders)
@@ -22,6 +23,7 @@ import { proposeBox } from './propose-box';
 import { importOldScenes } from './import-old';
 import { importSite } from './import-site';
 import { writeProposal } from './proposals';
+import { buildAliases, writeAliases } from './build-aliases';
 import { check as checkExport, exportAll } from './export';
 import { refillScene } from './landsat/refill';
 import { readProposals } from './proposals';
@@ -70,6 +72,10 @@ try {
     sources.push({ id, name, url, licence: `NOT READ: open ${url}, find the licence and write it here.`, commercialUse: false });
     writeProposal(region, null, 'region.unit', 'add-source', `${name} added as a source: its licence is NOT READ.`, { ...prev, unitRule: prev.unitRule ?? c.region.unitRule ?? 'TO WRITE: what counts as "a glacier" in this region, as a rule someone else could apply and get the same list.', sources });
     console.log(`${name} is now a proposed source of ${region}. Open the region step, read its licence and write it in.`);
+  } else if (cmd === 'aliases') {
+    const { aliases, missing } = await buildAliases(8, (m) => console.log(C.dim('  ' + m)));
+    writeAliases(aliases);
+    console.log(`${Object.keys(aliases).length} glaciers with names in other languages written to data/glacier-aliases.js.${missing.length ? ` No Wikidata item found for: ${missing.join(', ')} (the search still finds them by the name the site has).` : ''}`);
   } else if (cmd === 'export') {
     if (a.includes('--check')) {
       const bad = checkExport();

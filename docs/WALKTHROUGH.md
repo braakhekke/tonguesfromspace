@@ -61,6 +61,10 @@ npm run walkthrough -- import-site       # fill the records from the site's curr
 - **Exporting** publishes imported records as they are, so nothing changes for visitors while the confirming goes on. A test imports the real site data, exports it again and requires `boxes.js` (including the derived picture sizes by the page's own rounding rule), `scenes.json` and the index to be what they were.
 - **The real page tab** shows the actual dashboard (`/site/` of the walkthrough server) drawn from the records plus what is in the form right now, confirmed or not. Nothing is saved until you confirm.
 
+## Names for the front page's search
+
+`npm run walkthrough -- aliases` writes `data/glacier-aliases.js`: for every glacier the labels and aliases of its Wikidata item in every language (Wikidata's data is CC0, from its own licensing page), so the search on the front page (`js/search.js`) finds a glacier by its name in any language. An item counts only when it is a glacier (a subclass of Q35666) near the glacier's centre **and** one of its names says the glacier's name (the glacier itself before its firn or neighbour); a glacier with no such item (three of 52 today: Sylgjujökull, Jostedalsbreen, Storisstraumen) is still found by the name the site has. Run it by hand when glaciers are added and commit the file. The search folds accents (ð d, þ th, ß ss ...), ignores the word for "glacier" in many languages, forgives a wrong, missing, extra or swapped letter, finds half-typed names and two words written as one, and offers "Did you mean…" when it is unsure. Only glaciers of open regions are offered.
+
 ## Phases
 
 | Phase | Steps | State |

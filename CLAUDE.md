@@ -2,6 +2,17 @@
 
 Public dashboard of the tongues of the ten largest Swiss glaciers (and, as a second region, the Vatnajökull ice cap in Iceland) in Sentinel-2 imagery, one clear late-summer scene per year since 2016, with GLAMOS statistics, a single-image export and an animation (video) export. Site: https://tonguesfromspace.org/. Non-commercial (see Licences).
 
+## Rules (non-negotiable)
+
+- External numbers (GLAMOS, Wikipedia, papers, press) appear EXACTLY as the source states them: no rounding, unit conversion, midpoints or respelling. If you cannot read the source, leave the figure out. Computed values are labelled as computed.
+- Site is non-commercial (GLAMOS length/volume data and EOX background are non-commercial). Keep credits and the Sources list complete.
+- No CSS/SVG filters for image effects (Safari on iPhone ignores them); process pixels in a canvas.
+- Raise the image-cache version (`CDSE.version`, `js/03-imagery.js`) whenever scene scoring or rendering changes. (The relay by meaning under `/api/` needs no bump: its cache keys contain a hash of the evalscripts.)
+- Glaciological years are named after the year they end in (2017 = Oct 2016 to Sep 2017).
+- UI text in English. Calm, compact style; red accent #C8322A for loss, blue for ice and water; Schibsted Grotesk.
+
+The long forms of these rules (external numbers, licences, glaciological years, style) are in "Rules" and "Style" below; this block is the short list.
+
 ## Where things are
 
 The full file table, the section-by-section map of `js/` and the data flow are in **docs/REFERENCE.md** (read the row of the file you are about to change). Setup and operations: **docs/SETUP.md**. Data sources and licences: **docs/SOURCES.md**. The rewrite plan and its state: **REWRITE.md**.
@@ -59,7 +70,7 @@ Short version:
 ## Style
 
 - **Calm and compact.** Little text; explanations go into the collapsed "About Tongues from Space" or behind small "i" buttons. Small notes 11–11.5 px.
-- **Red accent `--accent: #C8322A`** for headers and loss; **blue `--crevasse`** for ice and water. Stats in white cards: red uppercase card header with an icon, grey tiles.
+- **Red accent `--accent: #C8322A`** for headers and loss; **blue `--crevasse`** for ice and water; **typeface Schibsted Grotesk** (`css/tokens.css`). Stats in white cards: red uppercase card header with an icon, grey tiles.
 - **Left panel:** numbered steps 1 Choose a glacier, 2 Compare, 3 Create and share. On phones: map first, then that panel, then the story; two fingers move the map.
 - **UI text in English.**
 

@@ -49,7 +49,15 @@
         <button class="btn-ghost" id="watch" type="button">
           <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the 1-minute teaser</button>
       </div>
-      
+      <div class="search" role="search">
+        <label for="gsearch" class="sr">Search for a glacier, in any language</label>
+        <div class="sbox">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 105.2 11.7l4.8 4.8-1.4 1.4-4.8-4.8A7 7 0 0010 3zm0 2a5 5 0 100 10 5 5 0 000-10z"/></svg>
+          <input id="gsearch" type="search" role="combobox" aria-expanded="false" aria-controls="gresults" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search a glacier, in any language">
+        </div>
+        <ul id="gresults" role="listbox" aria-label="Glaciers you may mean" hidden></ul>
+        <p class="sstat" id="gstat" role="status" aria-live="polite" hidden></p>
+      </div>
     </div>
 
     <figure class="ba" id="ba">
@@ -170,6 +178,7 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
 <script src="js/regions.js"></script>
+<script src="js/search.js"></script>
 <script src="data/home-glaciers.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -289,6 +298,7 @@ const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picke
 /* The counter of the facts band: the glaciers of the regions that are open, so it is right on the public site (Switzerland alone) and grows with each region. */
 { const open = new Set(REGIONS.filter((r) => !r.soon).map((r) => r.id)), n = (window.HOME_GLACIERS || []).filter((g) => open.has(g.region)).length; if (n) $('count').textContent = `${n} and counting…`; }
 
+
 const map = L.map('map', { worldCopyJump: true, minZoom: 2, maxZoom: 10, scrollWheelZoom: false }).setView([67, 8], 3);      // the five regions; the planned ones are one zoom out
 map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());
 L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg', { maxNativeZoom: 14, maxZoom: 17 }).addTo(map);
@@ -381,6 +391,68 @@ pick.onchange = () => { const [k, id] = pick.value.split(/:(.+)/); if (k === 'r'
 const start = location.hash.slice(1);
 if (start.startsWith('glacier=')) chooseGlacier(decodeURIComponent(start.slice(8)));
 else if (REGIONS.some(r => r.id === start && !r.soon)) chooseRegion(start, false);
+</script>
+<script>
+/* ---------- search: any language, forgiving of typos (js/search.js); the names in other languages (data/glacier-aliases.js, Wikidata, CC0) load when the box is first used.
+   Its own script on purpose: it needs the region records and nothing of the map, so it works when the map library cannot be loaded. ---------- */
+(() => {
+  const el = (id) => document.getElementById(id), input = el('gsearch'), box = el('gresults'), stat = el('gstat');
+  const LOCAL_PAGE = /home\.html$/.test(location.pathname);
+  const regions = REGIONS_ALL.flatMap((r) => r.children || [r]).filter((c) => c.ready && !HIDDEN_REGIONS.includes(c.id));      // the regions that are open
+  const regionOf = (id) => regions.find((r) => r.id === id);
+  const area = (a) => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
+  let items = [], active = -1, shown = [], aliasesAsked = false;
+  const lang = (c) => { try { return new Intl.DisplayNames(['en'], { type: 'language' }).of(c) || c; } catch (e) { return c; } };
+  const build = () => {
+    const al = window.GLACIER_ALIASES || {};
+    items = (window.HOME_GLACIERS || []).filter((g) => regionOf(g.region)).map((g) => ({ id: g.id, label: g.name, names: (al[g.id] && al[g.id].names) || [], region: g.region, area: g.area, weight: Math.log10(1 + g.area) * 0.01 }));
+  };
+  build();
+  const askAliases = () => { if (aliasesAsked) return; aliasesAsked = true; const sc = document.createElement('script'); sc.src = 'data/glacier-aliases.js'; sc.onload = () => { build(); render(); }; document.head.appendChild(sc); };
+  const close = () => { box.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  function render() {
+    const q = input.value.trim();
+    stat.hidden = true;
+    if (!q) { box.innerHTML = ''; return close(); }
+    shown = GlacierSearch.search(q, items, { limit: 8 });
+    if (!shown.length) { box.innerHTML = ''; close(); stat.hidden = false; stat.textContent = `No glacier found for “${q}”. Try another spelling, or choose a region on the map below.`; return; }
+    const unsure = shown[0].score < 0.8;
+    box.innerHTML = (unsure ? '<li class="sh" role="presentation">Did you mean…</li>' : '') + shown.map((r, i) => {
+      const also = GlacierSearch.fold(r.name) !== GlacierSearch.fold(r.item.label) ? `<small class="al">also called “${esc(r.name)}”${r.lang ? ' (' + esc(lang(r.lang)) + ')' : ''}</small>` : '';
+      return `<li role="option" id="gres-${i}" data-i="${i}"><span class="n"><b>${esc(r.item.label)}</b>${also}</span><small>${esc(regionOf(r.item.region).name)} · ${area(r.item.area)}</small></li>`;
+    }).join('');
+    box.hidden = false; input.setAttribute('aria-expanded', 'true'); setActive(unsure ? -1 : 0);
+  }
+  function setActive(i) {
+    active = i;
+    box.querySelectorAll('[role=option]').forEach((li, k) => li.setAttribute('aria-selected', k === i ? 'true' : 'false'));
+    if (i >= 0) input.setAttribute('aria-activedescendant', 'gres-' + i); else input.removeAttribute('aria-activedescendant');
+  }
+  function choose(i) {
+    const r = shown[i]; if (!r) return;
+    input.value = r.item.label; close();
+    if (typeof chooseGlacier === 'function') {      // the map is there: go to the region section and open the glacier's card
+      el('regions').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+      chooseGlacier(r.item.id);
+    } else {      // no map (its library did not load): open the glacier's page
+      const rg = regionOf(r.item.region), g = encodeURIComponent(r.item.id);
+      location.href = LOCAL_PAGE ? 'index.html#' + (rg.id === 'ch' ? '' : 'r=' + rg.id + '&') + 'g=' + g : rg.path + '/#g=' + g;
+    }
+  }
+  input.addEventListener('focus', askAliases);
+  input.addEventListener('input', () => { askAliases(); render(); });
+  input.addEventListener('keydown', (e) => {
+    const n = shown.length;
+    if (e.key === 'ArrowDown' && n) { e.preventDefault(); if (box.hidden) render(); else setActive((active + 1) % n); }
+    else if (e.key === 'ArrowUp' && n) { e.preventDefault(); setActive((active - 1 + n) % n); }
+    else if (e.key === 'Enter') { if (!box.hidden && shown.length) { e.preventDefault(); choose(active >= 0 ? active : 0); } }
+    else if (e.key === 'Escape') { if (!box.hidden) { e.preventDefault(); close(); } else input.value = ''; }
+  });
+  box.addEventListener('mousedown', (e) => { const li = e.target.closest('[data-i]'); if (li) { e.preventDefault(); choose(Number(li.dataset.i)); } });
+  box.addEventListener('mousemove', (e) => { const li = e.target.closest('[data-i]'); if (li && Number(li.dataset.i) !== active) setActive(Number(li.dataset.i)); });
+  document.addEventListener('click', (e) => { if (!e.target.closest('.search')) close(); });
+})();
 </script>
 </body>
 </html>

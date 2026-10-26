@@ -20,7 +20,7 @@ a{color:inherit}
 .bar nav a.pill:hover{background:#fff;color:var(--night)}
 
 /* ---------- hero ---------- */
-.hero{position:relative;background:#070b14 center/cover no-repeat;color:#fff;padding:120px 0 64px;overflow:hidden}
+.hero{position:relative;background:#070b14 center/cover no-repeat;color:#fff;padding:120px 0 64px}      /* not overflow:hidden: the search suggestions drop below the hero */
 .hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center}
 .hero h1{margin:0 0 18px;font-size:clamp(38px,5.4vw,68px);line-height:1.02;font-weight:800;letter-spacing:-.035em}
 .hero h1 em{font-style:normal}
@@ -194,3 +194,22 @@ dialog.player{overflow:visible}
   .mapbox{height:520px}
   section.s{padding:52px 0}
 }
+
+/* ---------- search ---------- */
+.sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.search{position:relative;margin-top:20px;max-width:460px}
+.sbox{display:flex;align-items:center;gap:10px;background:var(--sheet);border:1px solid var(--rule);padding:0 14px}
+.sbox:focus-within{outline:2px solid var(--crevasse);outline-offset:2px}
+.sbox svg{width:18px;height:18px;flex:none;fill:var(--moraine)}
+.sbox input{flex:1;min-width:0;border:0;outline:0;background:none;padding:13px 0;font:inherit;font-size:15px;color:#0A1B33}
+.sbox input::placeholder{color:var(--faint)}
+.search ul{position:absolute;z-index:700;top:100%;left:0;right:0;margin:4px 0 0;padding:0;list-style:none;background:var(--sheet);border:1px solid var(--rule);box-shadow:0 12px 32px rgba(7,11,20,.28);max-height:min(60vh,420px);overflow:auto}
+.search li{display:flex;justify-content:space-between;align-items:baseline;gap:14px;padding:10px 14px;cursor:pointer;color:#0A1B33;border-top:1px solid var(--rule-2)}
+.search li:first-child{border-top:0}
+.search li[aria-selected=true]{background:var(--firn)}
+.search li .n{display:flex;flex-direction:column;min-width:0}
+.search li b{font-weight:700}
+.search li small{color:var(--moraine);font-size:12px}
+.search li .al{margin-top:2px}
+.search li.sh{cursor:default;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--moraine);background:var(--firn)}
+.sstat{margin:8px 0 0;font-size:13px;color:#fff}

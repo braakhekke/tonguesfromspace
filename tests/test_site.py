@@ -861,6 +861,41 @@ class TestPicker(SiteCase):
         self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').innerText"), "figures are Swiss for now, and it says so")
         self.assertEqual(self.errors, [])
 
+    def test_the_search_finds_glaciers_in_any_language_despite_typos_and_selects_with_the_keyboard(self):
+        page = self.picker()
+        page.wait_for_function("typeof REGIONS !== 'undefined' && HOME_GLACIERS.length > 0 && typeof GlacierSearch !== 'undefined'")
+        box = page.locator("#gsearch")
+        box.click()
+        page.wait_for_function("window.GLACIER_ALIASES && Object.keys(window.GLACIER_ALIASES).length > 20", timeout=15000)      # the names in other languages arrive when the box is first used
+        box.fill("Aletch")      # a typo
+        page.wait_for_selector("#gresults [role=option]")
+        self.assertIn("Aletsch", page.locator("#gresults [role=option]").first.inner_text())
+        box.fill("ghiacciaio del Rodano")      # Italian
+        page.wait_for_selector("#gresults [role=option]")
+        first = page.locator("#gresults [role=option]").first.inner_text()
+        self.assertIn("Rhone", first)
+        self.assertIn("also called", first, "it says which name matched")
+        self.assertEqual(page.locator("#gsearch").get_attribute("aria-expanded"), "true")
+        box.press("Enter")      # the first suggestion is chosen: the map and the info card go to it
+        page.wait_for_function("document.getElementById('iName').textContent === 'Rhone'", timeout=10000)
+        self.assertEqual(page.evaluate("location.hash"), "#glacier=rhone")
+        self.assertEqual(page.locator("#gresults").is_hidden(), True)
+        box.fill("Gornergletcher")
+        box.press("ArrowDown")
+        self.assertEqual(page.locator("#gresults [aria-selected=true]").count(), 1)
+        box.press("Escape")
+        self.assertEqual(page.locator("#gresults").is_hidden(), True)
+        box.fill("zqxvw")
+        page.wait_for_function("!document.getElementById('gstat').hidden")
+        self.assertIn("No glacier found", page.locator("#gstat").inner_text())
+        # only glaciers of open regions are offered
+        hidden = page.evaluate("REGIONS.filter(r => r.soon && r.n).map(r => r.id)")
+        if "is-vatnajokull" in hidden:
+            box.fill("Breidamerkurjokull")
+            page.wait_for_function("!document.getElementById('gstat').hidden")
+            self.assertEqual(page.locator("#gresults [role=option]").count(), 0, "a glacier that is not published cannot be found")
+        self.assertEqual(self.errors, [])
+
     def test_a_link_of_the_old_site_goes_to_the_dashboard(self):
         page = self.picker("#g=aletsch&m=compare&a=2016&b=2024")
         page.wait_for_url(lambda u: "g=aletsch" in u and "home" not in u, timeout=15000)

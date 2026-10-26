@@ -96,7 +96,9 @@ Placement comes first: agree the picture box, the 3D strip and the start camera 
 
 Bug reports, ideas, translations, sourced glacier texts and code are welcome; please open an issue first for larger changes.
 
-- **Only documented facts.** If the origin of a name or a number is unknown, say so.
+- **Only documented facts, exactly as the source states them:** no rounding, unit conversion, midpoints or respelling of an external figure; if you cannot read the source, leave the figure out; a value you calculate is labelled as computed. If the origin of a name or a number is unknown, say so.
+- **Glaciological years** are named after the year they end in (2017 = October 2016 to September 2017).
+- **UI text in English;** red accent `#C8322A` for loss, blue for ice and water, Schibsted Grotesk.
 - **Keep it calm and compact:** little text, details behind small "i" buttons.
 - **No CSS or SVG filters on page elements for image effects** (Safari on iPhone ignores them); process pixels in a canvas.
 - After changing how scenes are scored or rendered, raise `CDSE.version` (`js/03-imagery.js`) so browsers drop old images.
