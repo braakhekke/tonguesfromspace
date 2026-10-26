@@ -1,7 +1,19 @@
+import { needsOutline, loadOutline } from './02-glaciers.js';
+import { currentGlacier, OPEN_ON_GLACIER, PLAIN_START, OPEN_3D, glacierPicked } from './04-state.js';
+import { updateCredits, updateSight, updateTrailClip, drawOutlines, focusTongue } from './05-map.js';
+import { checkYears } from './06-scene-search.js';
+import { renderGlacierList, renderYears, renderMode, renderStory, fn, renderOutlineControls } from './07-render.js';
+import { setStatus, updateBoxes, showOverview } from './08-controls.js';
+import { updatePickHint } from './09-phones.js';
+import { setView } from './11-view3d.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'boot', { get: () => boot, configurable: true });
+Object.defineProperty(window, 'bootGlacier', { get: () => bootGlacier, configurable: true });
+// end of bridge
 /* =====================================================================
    9. Boot
    ===================================================================== */
-function boot(){
+export function boot(){
   document.querySelectorAll('[data-fn-slot]').forEach(e => { e.outerHTML = fn(e.dataset.fnSlot); });
   renderGlacierList();
   renderOutlineControls();
@@ -16,7 +28,7 @@ function boot(){
   if (PLAIN_START) document.getElementById('loopToggle').checked = true;      // the landing timelapse repeats
   if (OPEN_3D) setView('3d');      // a shared link to the 3D view
 }
-const bootGlacier = OPEN_ON_GLACIER ? currentGlacier() : null;
+export const bootGlacier = OPEN_ON_GLACIER ? currentGlacier() : null;
 if (needsOutline(bootGlacier)) loadOutline(bootGlacier).then(boot); else boot();      // a link to a glacier waits for the file of its 2023 outline (about 20 to 200 kB)
 /* A link pasted into a tab where the page is already open changes only the part after the #: the browser does not reload, so the page starts again from the new link itself.
    (The page's own updates of the address use history.replaceState, which raises no such event.) */

@@ -1,20 +1,32 @@
+import { asset } from './03-imagery.js';
+import { HASH_AT_LOAD } from './04-state.js';
+import { $ } from './09-phones.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'TEASER_KEY', { get: () => TEASER_KEY, configurable: true });
+Object.defineProperty(window, 'teaserSeen', { get: () => teaserSeen, configurable: true });
+Object.defineProperty(window, 'teaserMarkSeen', { get: () => teaserMarkSeen, configurable: true });
+Object.defineProperty(window, 'teaserWanted', { get: () => teaserWanted, configurable: true });
+Object.defineProperty(window, 'teaserOpen', { get: () => teaserOpen, set: v => { teaserOpen = v; }, configurable: true });
+Object.defineProperty(window, 'openTeaser', { get: () => openTeaser, configurable: true });
+Object.defineProperty(window, 'teaserBtn', { get: () => teaserBtn, configurable: true });
+// end of bridge
 /* =====================================================================
    13. Teaser film: plays over the page at the first visit
    ===================================================================== */
 /* A film of about a minute (teaser/, made by scripts/make_teaser.py from the page itself): timelapse, compare, 3D, old photographs, the downloads and the figures.
    It plays once, on the first visit to the plain address (no link to a glacier, no hash), muted, over the page while the page loads behind it. Skip, Esc or the end leave it.
    Not for people who asked for less motion or less data, On portrait screens the film is shown in the middle, just under full width. "Watch the teaser" in the left panel and the link #teaser play it again. */
-const TEASER_KEY = 'tfs-teaser-seen';
-const teaserSeen = () => { try { return !!localStorage.getItem(TEASER_KEY); } catch { return false; } };
-const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } catch {} };
-function teaserWanted(){
+export const TEASER_KEY = 'tfs-teaser-seen';
+export const teaserSeen = () => { try { return !!localStorage.getItem(TEASER_KEY); } catch { return false; } };
+export const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } catch {} };
+export function teaserWanted(){
   /** @type {any} */
   const c = /** @type {any} */ (navigator).connection || {};
   if (HASH_AT_LOAD === '#teaser') return true;
   return !HASH_AT_LOAD && !teaserSeen() && !matchMedia('(prefers-reduced-motion: reduce)').matches && !c.saveData && !/(^|-)2g$/.test(c.effectiveType || '');
 }
-let teaserOpen = false;
-function openTeaser(auto){
+export let teaserOpen = false;
+export function openTeaser(auto){
   if (teaserOpen) return;
   const base = 'teaser/teaser-wide', before = /** @type {any} */ (document.activeElement);
   teaserOpen = true;
@@ -45,5 +57,5 @@ function openTeaser(auto){
   const p = v.play(); if (p && p.catch) p.catch(() => { if (auto) abort(); else v.controls = true; });
   if (auto) stall = setTimeout(() => { if (v.paused || v.readyState < 3) abort(); }, 6000);      // a slow connection: no film is better than a wait
 }
-const teaserBtn = $('teaserBtn'); if (teaserBtn) teaserBtn.onclick = () => openTeaser(false);
+export const teaserBtn = $('teaserBtn'); if (teaserBtn) teaserBtn.onclick = () => openTeaser(false);
 if (teaserWanted()) openTeaser(HASH_AT_LOAD !== '#teaser');
