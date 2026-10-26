@@ -41,7 +41,7 @@ DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/
 GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
 PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "css/tokens.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -235,7 +235,7 @@ def main():
     code = os.path.join(ROOT, "js")
     named = set()
     for f in sorted(os.listdir(code)):
-        if f in ("regions.js", "00-regions.js"):      # the two classic scripts (the records, and the logic that picks a region and writes the tag of its data file): each is hashed alone
+        if f in ("regions.js", "00-regions.js", "home-link.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
             text = read(f"js/{f}").decode("utf-8")
             # the data files of the regions: their hashed names go into the files that name them
             for plain in DATA_NAMES:

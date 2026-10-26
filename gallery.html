@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gallery - Tongues from Space</title>
 <meta name="description" content="Pictures and animations of glacier tongues made with the Tongues from Space dashboard and shared by visitors.">
+<link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/pages.css">
 <style>
 .filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:0 0 16px}
@@ -39,7 +40,7 @@
 </style>
 </head>
 <body>
-<header class="top"><div class="in"><h1><span class="t1">Tongues from Space</span> Gallery</h1><a class="back" href="index.html">← Back to Tongues from Space</a></div></header>
+<header class="top"><div class="in"><h1><span class="t1">Tongues from Space</span> Gallery</h1><a class="back" data-home href="home.html">← All regions</a></div></header>
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Full size picture"><img alt=""><button type="button" aria-label="Close">×</button></div>
 <main class="wrap">
   <p class="lede">Pictures and animations of glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
@@ -58,6 +59,7 @@
   <p class="note" style="margin-top:24px">Satellite images: contains modified Copernicus Sentinel data, processed via the Copernicus Data Space Ecosystem. Glacier outlines: GLAMOS. Items are shared by visitors; to have one removed, open an issue on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>.</p>
 </main>
 <script src="config.js"></script>
+<script defer src="js/home-link.js"></script>
 <script>
 const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
 const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider' };

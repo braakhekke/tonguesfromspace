@@ -783,6 +783,14 @@ class TestSwissLayers(SiteCase):
 
 class TestPicker(SiteCase):
     """The front page is the world map where a region is chosen; old dashboard links still reach their dashboard."""
+    def picker_at(self, path):
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
+        self.addCleanup(ctx.close)
+        ctx.route("**/*", lambda route: route.continue_() if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
+        page = ctx.new_page()
+        page.goto(self.base + path, wait_until="load")
+        return page
+
     def picker(self, hash=""):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
         self.addCleanup(ctx.close)
@@ -822,6 +830,20 @@ class TestPicker(SiteCase):
         self.assertEqual(page.evaluate("document.querySelectorAll('meta[name=robots]').length"), 0, "no noindex on the front page")
         self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/")
         self.assertIn("preview-social", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
+
+    def test_every_page_has_a_link_back_to_the_picker(self):
+        want = "/" if BUILT else "home.html"
+        page = self.open("#g=aletsch")
+        link = page.locator(".brand .all-regions")
+        self.assertTrue(link.is_visible(), "a clear way back on the dashboard")
+        self.assertEqual(link.get_attribute("href"), want)
+        self.assertEqual(page.locator("#mhead .all-regions").get_attribute("href"), want, "also in the phone header")
+        for path in ("/size.html", "/gallery.html"):
+            page = self.picker_at(path)
+            self.assertEqual(page.locator("a[data-home]").first.get_attribute("href"), want, path)
+        page = self.open("#g=aletsch")
+        page.locator(".brand .all-regions").click()
+        page.wait_for_function("document.title.includes('Glaciers seen from orbit')", timeout=15000)
 
     def test_a_link_of_the_old_site_goes_to_the_dashboard(self):
         page = self.picker("#g=aletsch&m=compare&a=2016&b=2024")

@@ -37,7 +37,7 @@ tests/                                             browser tests (Playwright), W
 docs/                                              reference, setup, sources, how to add a glacier
 ```
 
-**Addresses.** On the public site `/` is the region picker (`home.html`: a world map and a list) and every region has its own page: `/switzerland/`, `/iceland/vatnajokull/`, `/norway/mainland/` and so on. All of them are copies of `index.html` made by `scripts/build_site.py`, one per region in `js/00-regions.js` (`path`). Old links like `/#g=aletsch&m=compare` are sent to the right region page. From the source tree, open `/home.html` for the picker and `/index.html` for the dashboard.
+**Addresses.** On the public site `/` is the region picker (`home.html`: a world map and a list) and every region has its own page: `/switzerland/`, `/iceland/vatnajokull/`, `/norway/mainland/` and so on. All of them are copies of `index.html` made by `scripts/build_site.py`, one per region in `js/00-regions.js` (`path`). Old links like `/#g=aletsch&m=compare` are sent to the right region page. With `scripts/serve.py` `/` is the picker and `/index.html` the dashboard (without Copernicus credentials the pages still load, just without satellite pictures). Every page has an "← All regions" link back to the picker (`js/home-link.js`). Colours and the typeface are in one file, `css/tokens.css`.
 
 Three rules keep the code changeable (details in [docs/REFERENCE.md](docs/REFERENCE.md)):
 
@@ -59,7 +59,7 @@ You need Python 3, Node.js 22 or newer, and a free [Copernicus Data Space](https
    python3 scripts/serve.py    # asks for the client ID and secret; then open http://localhost:8000
    ```
 
-   It also reads `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, or `scripts/.cdse-credentials` (git-ignored). Without credentials `python3 -m http.server` shows the page without satellite pictures.
+   It also reads `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, or `scripts/.cdse-credentials` (git-ignored). Without credentials it still serves the pages, without satellite pictures.
 
 ## Check and test
 

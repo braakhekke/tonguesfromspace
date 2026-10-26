@@ -26,9 +26,10 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
 - One stylesheet per concern: `css/style.css` (dashboard and size page; synced to the sister sites, so not touched),
   `css/pages.css` (tokens and base of the public pages), `css/home.css` (the picker; moved out of the page, checked
   pixel-identical).
+- `css/tokens.css` is the one token file of every page (wins over the copy in the synced `style.css`; a test keeps them equal). Every page has an "← All regions" link to the picker.
 - Not done: a single shared header/footer component. The pages differ by design (dark hero page, light utility
-  gallery, app-like dashboard), and `style.css` and `pages.css` both hold the colour tokens because of the sister-site
-  sync. Retiring that sync would let `pages.css` import one token file; that is a decision for the owner.
+  gallery, app-like dashboard), and `style.css` still holds a copy of the tokens because of the sister-site sync;
+  retiring the sync (LaunchAgent org.tonguesfromspace.stylesync) lets that copy be deleted.
 
 ## Milestone 3: Worker and onboarding
 Port from v2: Worker that builds the Copernicus request itself (`src/shared/copernicus.ts`), `season.ts`

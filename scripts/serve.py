@@ -113,6 +113,8 @@ class Handler(SimpleHTTPRequestHandler):
         return self._send(404, "text/plain", b"Not found") if self._hidden() else super().do_HEAD()
 
     def do_GET(self):
+        if self.path.split("?")[0] == "/":      # the front page of the public site is the region picker; the dashboard is /index.html here
+            self.path = "/home.html" + self.path[1:]
         if self.path == "/cdse/ping":
             return self._send(200, "application/json", b'{"relay":true,"managed":true}')
         if review_lib and self.path.split("?")[0] == "/review/state":          # the review walk-through (scripts/tools/review.html, scripts/review_lib.py)
@@ -160,6 +162,8 @@ class Handler(SimpleHTTPRequestHandler):
         target = ROUTES.get(self.path.split("?")[0])
         if not target:
             return self._send(404, "text/plain", b"Unknown relay path")
+        if TOKEN is None:      # started without credentials: the pages work, the satellite pictures do not
+            return self._send(503, "application/json", json.dumps({"relayError": "serve.py was started without Copernicus credentials: no satellite pictures. Set CDSE_CLIENT_ID and CDSE_CLIENT_SECRET, or run it in a terminal."}).encode())
         body = self.rfile.read(int(self.headers.get("Content-Length") or 0))
         accept = self.headers.get("Accept") or "*/*"
         for attempt in (0, 1):
@@ -201,23 +205,24 @@ def main():
         sys.exit(f"index.html not found in {root}. Keep serve.py in the scripts/ folder of the repository.")
 
     cid, secret = load_credentials(ask=sys.stdin.isatty())
-    if not (cid and secret):
-        sys.exit("No Copernicus credentials. Set CDSE_CLIENT_ID and CDSE_CLIENT_SECRET, or run serve.py in a terminal to enter them.")
-    TOKEN = Token(cid, secret)
-    try:
-        TOKEN.get()
-        print("Logged in to the Copernicus Data Space Ecosystem.")
-    except RuntimeError as e:
-        sys.exit(str(e))
-    except urllib.error.URLError as e:
-        sys.exit(CERT_HELP if "CERTIFICATE_VERIFY_FAILED" in str(e) else f"Could not reach Copernicus: {e.reason}")
+    if cid and secret:
+        TOKEN = Token(cid, secret)
+        try:
+            TOKEN.get()
+            print("Logged in to the Copernicus Data Space Ecosystem.")
+        except RuntimeError as e:
+            sys.exit(str(e))
+        except urllib.error.URLError as e:
+            sys.exit(CERT_HELP if "CERTIFICATE_VERIFY_FAILED" in str(e) else f"Could not reach Copernicus: {e.reason}")
+    else:
+        print("No Copernicus credentials (set CDSE_CLIENT_ID and CDSE_CLIENT_SECRET, or run serve.py in a terminal to enter them):\nserving the pages without the relay, so there are no satellite pictures.")
 
     url = f"http://localhost:{a.port}/"
     try:
         srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     except OSError:
         sys.exit(f"Port {a.port} is in use. Try: python3 scripts/serve.py --port {a.port + 1}")
-    print(f"Swiss Glacier Tongues from Space running at {url}\nPress Ctrl+C to stop.")
+    print(f"Tongues from Space running at {url} (the region picker; the Swiss dashboard is {url}index.html)\nPress Ctrl+C to stop.")
     if not a.no_browser:
         webbrowser.open(url)
     try:
