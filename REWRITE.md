@@ -33,7 +33,7 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
 ## Milestone 3: onboarding and the Worker (state 2026-10-27)
 Done: the walkthrough ported from v2 (`walkthrough/`, `shared/`, docs/WALKTHROUGH.md); records are the source of truth
 (`data/regions/`, importer from the site data, exporter for `data/boxes.js`, `data/scenes.json`, `worker/glacier-index.json`,
-round-trip tests, `export --check` in CI); the Real page tab; phase 2 (elevation model, 3D strip and start camera); the relay
+round-trip tests, `export --check` in CI); the Real page tab; phase 2 (3D strip and start camera, then the elevation model that covers it); the relay
 by meaning in the Worker (`worker/main.ts`, `/api/*`), the old `/cdse/` route untouched; the style sync retired.
 Open: (1) the owner confirms the 52 imported glaciers in the walkthrough (until then every step shows "proposed");
 (2) phases 3 and 4 (content, About and Sources); (3) the page calls `/api/` instead of `/cdse/` (needs the relay to answer

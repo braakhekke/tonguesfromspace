@@ -39,7 +39,7 @@ One command does what a request in chat means: it makes the region and the glaci
 | Balance year and scene rule | copied from the closest glacier already set up, and said so | the records |
 | Map layers | what each provider has over the box, with the licence read from its page | `providers.json` |
 
-A name GLIMS does not know, or knows twice, needs coordinates: `"name@lat,lon"`. RGI 6.0 is the one outline source that answers anywhere; where a national inventory exists it is better (`walkthrough/outline-sources.json` lists what is known and how each is fetched: GLAMOS for Switzerland automatically, the Icelandic, Norwegian and Svalbard inventories through the site's build scripts). RGI 7 is newer but its files need an Earthdata login (HTTP 401 without one, checked 26 Oct 2026). Sources found on the web are added with `npm run walkthrough -- add-source <region> <id> "<name>" <url>`. Not filled in, because it cannot be known without a person or credentials: licences, the unit rule, where the balance-year dates come from, the lowest point of the ice front, the scene review (scans run in the wizard and need Copernicus credentials), the elevation model, the 3D strip and camera.
+A name GLIMS does not know, or knows twice, needs coordinates: `"name@lat,lon"`. RGI 6.0 is the one outline source that answers anywhere; where a national inventory exists it is better (`walkthrough/outline-sources.json` lists what is known and how each is fetched: GLAMOS for Switzerland automatically, the Icelandic, Norwegian and Svalbard inventories through the site's build scripts). RGI 7 is newer but its files need an Earthdata login (HTTP 401 without one, checked 26 Oct 2026). Sources found on the web are added with `npm run walkthrough -- add-source <region> <id> "<name>" <url>`. Not filled in, because it cannot be known without a person or credentials: licences, the unit rule, where the balance-year dates come from, the lowest point of the ice front, the scene review (scans run in the wizard and need Copernicus credentials), the 3D strip and camera, the elevation model that covers the strip.
 
 ## The records are the source of truth
 
@@ -66,7 +66,7 @@ npm run walkthrough -- import-site       # fill the records from the site's curr
 | Phase | Steps | State |
 |---|---|---|
 | 1 Map view | region and unit rule, the glacier, outline, tongue tip and picture box, balance year and scene rule, scene review, map layers | built |
-| 2 3D view | elevation model, 3D strip and start camera (drag the far end, the side and the near handle, or type the numbers; the camera is read from the real 3D view in the Real page tab) | built |
+| 2 3D view | 3D strip and start camera (drag the far end, the side and the near handle, or type the numbers; the camera is read from the real 3D view in the Real page tab), then the elevation model, which has to cover the strip (a changed strip makes it stale) | built |
 | 3 Content | Discover texts, facts, Stats, each fact with its source | listed, not built |
 | 4 About and Sources | generated from what phases 1 to 3 enabled | listed, not built |
 

@@ -12,9 +12,9 @@ const status = (id: string) => progress(loadCtx('ch', 'aletsch')).steps.find((s)
 const ok = (step: string, patch: Record<string, unknown> = {}) => saveCtx(confirm(loadCtx('ch', 'aletsch'), step, patch, 'owner', 'looked at it on the real page', '2026-10-27'));
 
 describe('phase 2: elevation model, 3D strip and start camera', () => {
-  it('both steps are built and wait for the placement', () => {
-    expect(status('glacier.elevation')).toBe('blocked');
+  it('both steps are built and wait for the placement; the elevation model also waits for the strip it has to cover', () => {
     expect(status('glacier.strip')).toBe('blocked');
+    expect(status('glacier.elevation')).toBe('blocked');
   });
   it('the chain confirms in order, and the strip and camera land in the placement', () => {
     ok('region.unit'); ok('glacier.record');
@@ -22,21 +22,26 @@ describe('phase 2: elevation model, 3D strip and start camera', () => {
     ok('glacier.outline', { epochs: shown });
     expect(loadCtx('ch', 'aletsch').outlines!.epochs.every((e) => e.ref && !e.geojson)).toBe(true);
     ok('glacier.placement');
-    expect(status('glacier.elevation')).toBe('todo');      // nothing chosen yet: the person writes it
-    ok('glacier.elevation', { model: 'a national model', resolutionM: 2, yearlySurfaces: true, reason: 'Two dated editions (2019 and 2023) cover the strip; read on the source page.' });
     expect(status('glacier.strip')).toBe('review');      // imported strip, not confirmed
+    expect(status('glacier.elevation')).toBe('blocked');      // it has to cover the strip: waits for it
     const cam = { az: 0.1, el: 0.3, dist: 4000 };
     ok('glacier.strip', { strip3d: { azimuth: 47, half: 2100, back: 1000, up: 6500, cam } });
     expect(status('glacier.strip')).toBe('done');
     expect(loadCtx('ch', 'aletsch').glacier!.placement!.strip3d).toMatchObject({ half: 2100, cam });
+    expect(status('glacier.elevation')).toBe('todo');      // nothing chosen yet: the person writes it
+    ok('glacier.elevation', { model: 'a national model', resolutionM: 2, yearlySurfaces: true, reason: 'Two dated editions (2019 and 2023) cover the strip; read on the source page.' });
+    expect(status('glacier.elevation')).toBe('done');
   });
-  it('changing the strip does not make the placement stale; changing the placement makes the strip and elevation stale', () => {
+  it('changing the strip does not make the placement stale but does make the elevation model stale (it must cover the strip); changing the placement makes the strip stale too', () => {
     ok('glacier.strip', { strip3d: { azimuth: 50, half: 2000, back: 1000, up: 7000 } });
     expect(status('glacier.placement')).toBe('done');
+    expect(status('glacier.elevation')).toBe('stale');
+    ok('glacier.elevation', { model: 'a national model', resolutionM: 2, yearlySurfaces: true, reason: 'Two dated editions (2019 and 2023) cover the longer strip; read on the source page.' });
     expect(status('glacier.elevation')).toBe('done');
     const c = loadCtx('ch', 'aletsch'); c.glacier!.placement!.pictureBox = [[46.3, 7.9], [46.6, 8.2]]; saveCtx(c);
     expect(status('glacier.placement')).toBe('stale');
-    expect(status('glacier.elevation')).toBe('blocked');      // waiting for the placement to be confirmed again
+    expect(status('glacier.strip')).toBe('blocked');      // waiting for the placement to be confirmed again
+    expect(status('glacier.elevation')).toBe('blocked');
   });
   it('a reason that says nothing, or yearly surfaces without a year, are refused', () => {
     expect(() => ok('glacier.elevation', { model: 'm', resolutionM: 2, yearlySurfaces: false, reason: 'short' })).toThrow();

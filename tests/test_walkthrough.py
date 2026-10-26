@@ -119,7 +119,6 @@ class TestWalkthrough(unittest.TestCase):
         ok("region.unit", {}, None); ok("glacier.record", {})
         st = self.call("/__onboard/state?region=ch&glacier=aletsch")
         ok("glacier.outline", {"epochs": st["outlines"]["epochs"]}); ok("glacier.placement", {})
-        ok("glacier.elevation", {"model": "a national model", "resolutionM": 2, "yearlySurfaces": False, "reason": "One composite surface covers the strip; read on the source page."})
         ctx = self.browser.new_context(viewport={"width": 1500, "height": 900})
         self.addCleanup(ctx.close)
         page = ctx.new_page()

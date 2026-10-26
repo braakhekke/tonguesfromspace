@@ -112,7 +112,7 @@ export async function onboard(region: string, specs: Spec[], opts: { regionName?
     `Filled in as proposals (nothing confirmed): ${done.map((p) => `${p.name} (${p.rgiId}, ${p.areaKm2} km²${p.older ? `, old outline ${p.older.date.slice(0, 4)}` : ', no old outline found'})`).join('; ')}.`,
     `Per glacier: record, outline, picture box and tongue tip (first guess), season (${done.map((p) => `${p.name}: ${p.seasonFrom ? `copied from ${p.seasonFrom}` : 'none proposed, no glacier is set up near enough to copy from'}`).join('; ')}), map layers (${Object.entries(layers).map(([k, v]) => `${k}: ${v}`).join('; ') || 'skipped'}).`,
     `Sources proposed: ${[RGI_SOURCE, GLIMS_SOURCE].map((s) => s.name).join('; ')}. Their licences are NOT READ: open the pages and write the licence into each source (region step).`,
-    `Left for you: the region's unit rule (a placeholder), the licences, the tongue tip (southernmost point of the outline is a guess), balance-year dates, scene review (the scans run in the wizard), elevation model, 3D strip and camera.`,
+    `Left for you: the region's unit rule (a placeholder), the licences, the tongue tip (southernmost point of the outline is a guess), balance-year dates, scene review (the scans run in the wizard), 3D strip and camera, then the elevation model that covers the strip.`,
     ...knownSources(done.map((p) => p.centre)),
     `Wizard: ${url}`,
   ];

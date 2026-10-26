@@ -183,24 +183,10 @@ export const STEPS: StepDef[] = [
     },
   },
   {
-    id: 'glacier.elevation', phase: 2, scope: 'glacier', title: 'Elevation model',
-    why: 'Which elevation model covers the area, how fine it is, and whether it has dated surfaces for yearly ice heights. This decides what the 3D view offers: yearly ice surfaces, or one surface for all years.',
-    look: ['Does the model cover the whole strip, including the area above the tongue?', 'Is the resolution the model\'s own figure, as its source states it?', 'Yearly surfaces: are there dated surfaces (several editions, or dated strips), not a single composite?'],
-    needs: ['glacier.placement'], screen: 'elevation', implemented: true,
-    outputs: (c) => pick(c.glacier?.elevation, 'model', 'resolutionM', 'yearlySurfaces', 'reason'),
-    confirmation: (c) => c.glacier?.elevation?.confirmation,
-    problems: (c) => {
-      const e = c.glacier?.elevation;
-      if (!e) return [];
-      return [...(e.reason.trim().length < 20 ? ['The reason is too short: say what was checked (coverage, resolution, dates of the surfaces) and where.'] : []), ...(e.yearlySurfaces && !/\d{4}/.test(e.reason) ? ['Yearly surfaces are claimed: name the years or editions the surfaces come from in the reason.'] : [])];
-    },
-    apply: (c, patch, conf) => ({ ...c, glacier: Glacier.parse({ ...needGlacier(c), elevation: { ...patch, confirmation: conf } }) }),
-  },
-  {
     id: 'glacier.strip', phase: 2, scope: 'glacier', title: '3D strip and start camera',
-    why: 'The strip along the tongue that the 3D view shows, and where its camera starts. Confirmed in the real 3D view.',
-    look: ['Does the strip start below the tip and run up the middle of the glacier, not along a ridge?', 'Is it wide enough for the tongue and the valley walls, and no wider than the elevation data?', 'In the real page (3D): does the start camera show the tongue and the glacier above it, with the picture sharp?'],
-    needs: ['glacier.elevation'], screen: 'strip', implemented: true,
+    why: 'The strip along the tongue that the 3D view shows, and where its camera starts. Confirmed in the real 3D view. The elevation model of the next step has to cover this strip.',
+    look: ['Does the strip start below the tip and run up the middle of the glacier, not along a ridge?', 'Is it wide enough for the tongue and the valley walls, without taking in neighbouring valleys?', 'In the real page (3D): does the start camera show the tongue and the glacier above it, with the picture sharp?'],
+    needs: ['glacier.placement'], screen: 'strip', implemented: true,
     outputs: (c) => c.glacier?.placement?.strip3d,
     confirmation: (c) => c.glacier?.stripConfirmation,
     problems: (c) => {
@@ -213,6 +199,20 @@ export const STEPS: StepDef[] = [
       if (!g.placement) throw new Error('this step needs the placement');
       return { ...c, glacier: Glacier.parse({ ...g, placement: { ...g.placement, strip3d: patch.strip3d }, stripConfirmation: conf }) };
     },
+  },
+  {
+    id: 'glacier.elevation', phase: 2, scope: 'glacier', title: 'Elevation model',
+    why: 'Which elevation model covers the 3D strip, how fine it is, and whether it has dated surfaces for yearly ice heights. This decides what the 3D view offers: yearly ice surfaces, or one surface for all years. It comes after the strip because the model has to cover the strip\'s extent.',
+    look: ['Does the model cover the whole strip as drawn in the previous step, including the area above the tongue and the stretch below the tip?', 'Is the resolution the model\'s own figure, as its source states it?', 'Yearly surfaces: are there dated surfaces (several editions, or dated strips), not a single composite?'],
+    needs: ['glacier.strip'], screen: 'elevation', implemented: true,
+    outputs: (c) => pick(c.glacier?.elevation, 'model', 'resolutionM', 'yearlySurfaces', 'reason'),
+    confirmation: (c) => c.glacier?.elevation?.confirmation,
+    problems: (c) => {
+      const e = c.glacier?.elevation;
+      if (!e) return [];
+      return [...(e.reason.trim().length < 20 ? ['The reason is too short: say what was checked (coverage, resolution, dates of the surfaces) and where.'] : []), ...(e.yearlySurfaces && !/\d{4}/.test(e.reason) ? ['Yearly surfaces are claimed: name the years or editions the surfaces come from in the reason.'] : [])];
+    },
+    apply: (c, patch, conf) => ({ ...c, glacier: Glacier.parse({ ...needGlacier(c), elevation: { ...patch, confirmation: conf } }) }),
   },
   later('glacier.content', 3, 'Discover, facts and stats', 'The texts of the right panel, every fact with its source.', ['glacier.record']),
   later('glacier.about', 4, 'About and Sources', 'Generated from what phases 1 to 3 enabled, then edited by hand.', ['glacier.content', 'glacier.layers']),
