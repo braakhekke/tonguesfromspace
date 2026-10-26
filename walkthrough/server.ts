@@ -22,7 +22,7 @@ import { isProbing, probeGlacierLayers } from './probe-layers';
 import { parseStatistics, statisticsBody, STATS_RES_M } from '../shared/copernicus';
 import type { Env, GlacierIndex } from '../worker/relay/env';
 import { Glacier } from '../shared/schema';
-import { boxesFile, scenesJson, type Draft } from './export';
+import { boxesFile, glacierIndex, scenesJson, type Draft } from './export';
 import { stepById } from './steps';
 import { resolveOutlines } from './site-data';
 
@@ -54,15 +54,8 @@ function devVars(): Record<string, string> {
   return { ...out, ...Object.fromEntries(Object.entries(process.env).filter(([k]) => /^CDSE_/.test(k)) as [string, string][]) };
 }
 
-/** What the relay knows about the glaciers: the ones whose placement and season are confirmed (not a generated file: read from the records, always current). */
-function indexNow(): GlacierIndex {
-  const { regions } = loadAll();
-  const idx: GlacierIndex = {};
-  for (const { region, glaciers } of regions)
-    for (const { glacier: g, scenes } of glaciers)
-      if (g.placement && g.balanceYear && g.sceneRule && g.seasonConfirmation) idx[g.id] = { region: region.id, name: g.name, pictureBox: g.placement.pictureBox, balanceYear: g.balanceYear, sceneRule: g.sceneRule, hasScenes: !!scenes };
-  return idx;
-}
+/** What the relay knows about the glaciers: the same index the production Worker gets (export.ts), so an imported glacier can be looked at before it is confirmed. */
+const indexNow = (): GlacierIndex => glacierIndex() as unknown as GlacierIndex;
 
 /**
  * Who may call this server. It writes files and spends Copernicus quota, and any web page open in the same browser can
@@ -101,11 +94,22 @@ function draftOverlay(): Draft {
   } catch { return {}; }      // a form that is not valid yet shows the saved state
 }
 
+/** key = landsat/<glacier id>/<year>.jpg: the cache first, then the repository's data/landsat/<old site id>/<year>.jpg. */
+function landsatFile(key: string): string | null {
+  const own = join(cacheDir(), key);
+  if (existsSync(own)) return own;
+  const m = /^landsat\/([a-z0-9-]+)\/(\d{4})\.jpg$/.exec(key);
+  if (!m) return null;
+  const g = loadAll().regions.flatMap((r) => r.glaciers).find((x) => x.glacier.id === m[1])?.glacier;
+  const f = join(ROOT, 'data', 'landsat', g?.legacyIds?.[0] ?? m[1]!, `${m[2]}.jpg`);
+  return existsSync(f) ? f : null;
+}
+
 async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
   const p = url.pathname;
   if (p.startsWith('/api/')) {
-    // Landsat pictures come from the R2 bucket in production; locally from .cache/landsat (put there by import-old-scenes)
-    const landsat = { get: async (key: string) => { const f = join(cacheDir(), key); return existsSync(f) ? { body: new Uint8Array(readFileSync(f)), httpEtag: `"dev-${statSync(f).mtimeMs}"` } : null; } };
+    // Landsat pictures come from the R2 bucket in production; here from .cache/landsat, else from the repository's own data/landsat/<site id>/ (the folder of the glacier's old site id)
+    const landsat = { get: async (key: string) => { const f = landsatFile(key); return f ? { body: new Uint8Array(readFileSync(f)), httpEtag: `"dev-${statSync(f).mtimeMs}"` } : null; } };
     const env = { ASSETS: { fetch: async () => new Response('', { status: 404 }) }, CACHE: kv, LANDSAT: landsat, ...devVars() } as unknown as Env;
     const r = await handle(new Request('http://localhost' + req.url, { method: req.method, headers: { 'CF-Connecting-IP': 'dev' } }), env, { index: indexNow(), fetch: (...a) => fetch(...a), now: () => Date.now() });
     res.statusCode = r.status;

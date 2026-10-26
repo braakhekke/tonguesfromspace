@@ -219,3 +219,15 @@
 .wz-real{display:flex;flex-direction:column}
 .wz-real .wz-frame{flex:1;min-height:0}
 .linkish{border:0;background:none;color:var(--crevasse);cursor:pointer;padding:0;text-decoration:underline}
+
+.dated h4{margin:0 0 8px}
+.dated-ramp{height:8px;border-radius:1px}
+.dated-years{display:flex;justify-content:space-between;font-size:11px;color:var(--moraine);margin-top:3px}
+.drow{display:grid;grid-template-columns:14px 1fr 22px 22px;gap:8px;align-items:center;padding:6px 4px;border-top:1px solid var(--rule-2);cursor:default}
+.drow:hover{background:var(--firn)}
+.drow.on .dt b{color:var(--ink)}
+.drow .sw{width:14px;height:14px;border-radius:2px;display:block}
+.drow .sw.none{background:none;border:1px dashed var(--faint)}
+.drow .dt{display:flex;flex-direction:column;min-width:0}
+.drow .dt small{color:var(--moraine);font-size:11px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.drow input{margin:0}

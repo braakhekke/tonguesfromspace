@@ -145,6 +145,30 @@ class TestWalkthrough(unittest.TestCase):
         self.assertTrue(saved["stripConfirmation"]["basedOn"])
         self.assertEqual(errors, [])
 
+    def test_every_dated_outline_is_listed_and_several_can_be_kept(self):
+        self.call("/__onboard/confirm", {"region": "ch", "glacier": None, "step": "region.unit", "patch": {}, "reason": "read the inventory page"})      # (already confirmed by an earlier test is fine)
+        r = self.call("/__onboard/confirm", {"region": "ch", "glacier": "gorner", "step": "glacier.record", "patch": {}, "reason": "name, area and marker are right"})
+        self.assertTrue(r.get("ok") or "error" in r, r)
+        poly = {"type": "Polygon", "coordinates": [[[7.75, 45.92], [7.80, 45.92], [7.80, 45.97], [7.75, 45.92]]]}
+        dated = [{"type": "Feature", "properties": {"date": d, "by": by, "area_km2": a}, "geometry": poly} for d, by, a in (("1850-09-01", "University of Zurich", 90.5), ("1927-08-12", "GLAMOS", 80.25), ("2017-09-01", "GLAMOS", 67.1))]
+        self.call("/__onboard/propose", {"region": "ch", "glacier": "gorner", "step": "glacier.outline", "note": "test", "data": {"dated": dated, "candidates": {"new": [], "old": []}, "preselect": {"new": [], "old": []}, "epochs": {}}})
+        ctx = self.browser.new_context(viewport={"width": 1500, "height": 900})
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(self.base + "/onboard/ch/gorner/glacier.outline")
+        page.wait_for_selector("text=All dated outlines (3)", timeout=15000)
+        self.assertEqual(page.locator(".drow").count(), 4, "three dates and the row 'No past outline'")
+        self.assertIn("1850", page.locator(".dated-years").inner_text())
+        page.locator("input[aria-label='Keep the outline of 1927-08-12']").check()
+        page.locator("input[aria-label='Keep the outline of 2017-09-01']").check()
+        self.assertEqual(page.locator(".drow.on").count(), 2)
+        page.locator("input[aria-label='Use the outline of 1850-09-01 as the past outline']").check()
+        self.assertEqual(page.locator(".drow.on").count(), 3, "the past outline counts as kept, and cannot also be an extra one")
+        self.assertTrue(page.locator("input[aria-label='Keep the outline of 1850-09-01']").is_disabled())
+        self.assertEqual(errors, [])
+
     def test_the_stale_cascade_is_derived_not_stored(self):
         self.call("/__onboard/new-region", {"id": "cascade", "name": "Cascade", "centre": [46.5, 8.2]})
         src = {"id": "inv", "name": "National inventory", "url": "https://example.org/inv", "licence": "CC BY 4.0", "commercialUse": True}

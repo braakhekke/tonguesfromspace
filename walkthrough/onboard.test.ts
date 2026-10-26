@@ -53,7 +53,9 @@ describe('onboard: a chat request turns into records, proposals and a window', (
     const p = readProposals('new-zealand', 'tasman');
     expect(Object.keys(p).sort()).toEqual(['glacier.outline', 'glacier.placement', 'glacier.record', 'region.unit']);      // no season: no glacier set up anywhere near to copy from
     expect(p['glacier.record']!.data).toMatchObject({ inventoryId: 'RGI60-18.02342', areaKm2: 95.216, areaSource: 'rgi-6', rank: 1 });
-    expect(p['glacier.outline']!.data.epochs).toEqual({ new: { year: 1978, source: 'rgi-6' }, old: { year: 1890, source: 'glims' } });
+    expect(p['glacier.outline']!.data.epochs).toMatchObject({ new: { year: 1978, source: 'rgi-6' }, old: { year: 1890, source: 'glims', date: '1890-01-01' } });
+    expect(p['glacier.outline']!.data.dated.map((f: any) => f.properties.date)).toEqual(['1890-01-01', '1978-03-01']);      // every dated outline GLIMS has is offered, oldest first
+    expect(p['glacier.outline']!.data.preselect.old).toEqual([0]);
     expect(p['glacier.outline']!.data.candidates.new).toHaveLength(2);      // the neighbour is shown so parts can be added
     expect(p['glacier.placement']!.note).toMatch(/SOUTHERNMOST.*first guess/);
     const [[s, w], [n, e]] = p['glacier.placement']!.data.pictureBox;

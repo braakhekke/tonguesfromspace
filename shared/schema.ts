@@ -194,7 +194,11 @@ const Feature = z.object({
   properties: z.record(z.string(), z.any()).nullable().optional(),
 });
 export const OutlineEpoch = z.object({
-  kind: z.enum(['old', 'new']),
+  /** old and new are the two the site draws; `other` outlines are kept with the glacier (every dated outline GLIMS holds, say) and shown in the walkthrough */
+  kind: z.enum(['old', 'new', 'other']),
+  /** the day of the outline where its source states one, and who made it */
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+  by: z.string().optional(),
   year: z.number().int().min(1800).max(2100).describe('the year the outline describes, as its source states it'),
   source: z.string().describe('a Source id'),
   /** the geometry itself, or ... */

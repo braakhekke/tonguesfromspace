@@ -845,6 +845,22 @@ class TestPicker(SiteCase):
         page.locator(".brand .all-regions").click()
         page.wait_for_function("document.title.includes('Glaciers seen from orbit')", timeout=15000)
 
+    def test_the_front_page_is_international_counts_what_is_open_and_puts_why_under_the_picker(self):
+        page = self.picker()
+        page.wait_for_function("typeof REGIONS !== 'undefined' && HOME_GLACIERS.length > 0")
+        open_n = page.evaluate("(() => { const o = new Set(REGIONS.filter(r => !r.soon).map(r => r.id)); return HOME_GLACIERS.filter(g => o.has(g.region)).length; })()")
+        self.assertGreaterEqual(open_n, 10)
+        self.assertEqual(page.evaluate("document.getElementById('count').textContent"), f"{open_n} and counting…")
+        text = page.evaluate("document.body.innerText").lower()      # the eyebrows are capitalised by the stylesheet
+        self.assertNotIn("ten largest swiss", text, "the front page is not about Switzerland alone")
+        self.assertNotIn("every summer", text, "the best picture of each year, not a line about every summer")
+        self.assertNotIn("why glaciers", text)
+        self.assertIn("why tongues from space", text)
+        order = page.evaluate("['regions', 'why', 'curated', 'how'].map(id => document.getElementById(id).getBoundingClientRect().top)")
+        self.assertEqual(order, sorted(order), "the picker comes first, then why Tongues from Space under it")
+        self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').innerText"), "figures are Swiss for now, and it says so")
+        self.assertEqual(self.errors, [])
+
     def test_a_link_of_the_old_site_goes_to_the_dashboard(self):
         page = self.picker("#g=aletsch&m=compare&a=2016&b=2024")
         page.wait_for_url(lambda u: "g=aletsch" in u and "home" not in u, timeout=15000)

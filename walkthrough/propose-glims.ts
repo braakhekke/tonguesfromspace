@@ -61,10 +61,13 @@ export async function proposeGlims(region: string, found: { g: Rgi; near: Rgi[];
   const year = yearOf(g.date);
   const oldest = dated[0] ?? null, older = oldest && year !== null && Number(oldest.date.slice(0, 4)) < year - 10 ? oldest : null;
   const feat = (x: Rgi) => ({ type: 'Feature' as const, properties: { 'rgi-id': x.rgiId, name: x.name, area_km2: x.areaKm2, year: yearOf(x.date) }, geometry: slim(x.geometry, x.rgiId === g.rgiId) });
-  writeProposal(region, id, 'glacier.outline', by, `RGI 6.0 outline of ${g.rgiId} (outline date ${g.date || 'not stated'}), ${near.length} glaciers within 10 km shown so you can add parts that belong to this one. ${older ? `The oldest dated GLIMS outline of the same glacier is from ${older.date} (${older.by ?? 'contributor not stated'}); ${dated.length} dates in all.` : dated.length ? `GLIMS has ${dated.length} dated outline(s), none clearly older than the RGI one: no old outline proposed.` : 'GLIMS has no other dated outline of this glacier: no old outline proposed.'}`, {
-    candidates: { new: near.map(feat), old: older ? dated.filter((d) => d.date <= dated[0]!.date.slice(0, 4) + '-12-31').map((d) => ({ type: 'Feature', properties: { date: d.date, by: d.by, area_km2: d.areaKm2 }, geometry: slim(d.geometry as Rgi['geometry'], true) })) : [] },
-    preselect: { new: near.map((x, i) => (x.rgiId === g.rgiId ? i : -1)).filter((i) => i >= 0), old: older ? dated.filter((d) => d.date <= dated[0]!.date.slice(0, 4) + '-12-31').map((_, i) => i) : [] },
-    epochs: { new: { year: year ?? 2000, source: RGI_SOURCE.id }, ...(older ? { old: { year: Number(older.date.slice(0, 4)), source: GLIMS_SOURCE.id } } : {}) },
+  const datedFeats = dated.map((d) => ({ type: 'Feature' as const, properties: { date: d.date, by: d.by, area_km2: d.areaKm2 }, geometry: slim(d.geometry as Rgi['geometry'], false) }));
+  const oldIdx = older ? dated.findIndex((d) => d.date === older.date && d.by === older.by) : -1;
+  writeProposal(region, id, 'glacier.outline', by, `RGI 6.0 outline of ${g.rgiId} (outline date ${g.date || 'not stated'}), ${near.length} glaciers within 10 km shown so you can add parts that belong to this one. GLIMS holds ${dated.length} dated outline${dated.length === 1 ? '' : 's'} of this glacier${dated.length ? ` (${dated[0]!.date.slice(0, 4)} to ${dated[dated.length - 1]!.date.slice(0, 4)})`: ''}: all are listed to choose from${older ? `; the oldest (${older.date}, ${older.by ?? 'contributor not stated'}) is proposed as the past outline` : '; none is clearly older than the RGI one, so no past outline is proposed'}.`, {
+    candidates: { new: near.map(feat), old: older ? [datedFeats[oldIdx]!] : [] },
+    dated: datedFeats,      // every dated outline GLIMS has, oldest first: the screen lists them all, any number can be kept
+    preselect: { new: near.map((x, i) => (x.rgiId === g.rgiId ? i : -1)).filter((i) => i >= 0), old: older ? [0] : [] },
+    epochs: { new: { year: year ?? 2000, source: RGI_SOURCE.id }, ...(older ? { old: { year: Number(older.date.slice(0, 4)), source: GLIMS_SOURCE.id, date: older.date, datedIndex: oldIdx } } : {}) },
   });
 
   writeProposal(region, id, 'glacier.record', by, `From the RGI 6.0 record ${g.rgiId}: area (${g.areaKm2} km²), name and centre are the inventory's own values${g.name ? '' : '; the inventory gives this glacier no name, the name is the one you asked for'}.`, {
