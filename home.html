@@ -1,0 +1,560 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tongues from Space | Glaciers seen from orbit</title>
+<meta name="description" content="The beauty of glaciers, from space: satellite pictures of the ten largest Swiss glaciers, fresh every summer.">
+<meta name="robots" content="noindex">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="css/pages.css">
+<style>
+/* Mock-up of the landing page. Same tokens, font and square corners as the dashboard (css/pages.css). */
+:root{--night:#0E1A22;--night-2:#16252F}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{background:var(--sheet)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+a{color:inherit}
+
+/* ---------- header ---------- */
+.bar{position:absolute;z-index:20;left:0;right:0;top:0;border-top:4px solid var(--accent)}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.brand img{height:25px;width:auto}
+.brand b{font-size:22px;line-height:30px;font-weight:700;letter-spacing:-.018em;white-space:nowrap}
+.bar nav{display:flex;gap:26px;align-items:center}
+.bar nav a{font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none}
+.bar nav a:hover{color:#fff}
+.bar nav a.pill{border:1px solid rgba(255,255,255,.5);padding:7px 12px;color:#fff}
+.bar nav a.pill:hover{background:#fff;color:var(--night)}
+
+/* ---------- hero ---------- */
+.hero{position:relative;background:#070b14 center/cover no-repeat;color:#fff;padding:120px 0 64px;overflow:hidden}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:56px;align-items:center}
+.hero h1{margin:0 0 18px;font-size:clamp(38px,5.4vw,68px);line-height:1.02;font-weight:800;letter-spacing:-.035em}
+.hero h1 em{font-style:normal}
+.hero .lede{font-size:17px;line-height:1.5;color:rgba(255,255,255,.78);max-width:480px;margin:0 0 28px}
+.cta{display:flex;flex-wrap:wrap;gap:12px}
+.btn-red,.btn-ghost{display:inline-flex;align-items:center;gap:9px;padding:13px 20px;font-weight:600;font-size:14px;text-decoration:none;cursor:pointer;border:1px solid var(--accent);border-radius:0}
+.btn-red{background:var(--accent);color:#fff}
+.btn-red:hover{background:#A9261F;border-color:#A9261F}
+.btn-ghost{background:transparent;color:#fff;border-color:rgba(255,255,255,.5)}
+.btn-ghost:hover{background:#fff;color:var(--night)}
+.btn-ghost svg,.btn-red svg{width:14px;height:14px;fill:currentColor;flex:none}
+.hero .small{margin:26px 0 0;font-size:12px;color:rgba(255,255,255,.55)}
+
+/* before / after */
+.ba{position:relative;margin:0;aspect-ratio:782/831;max-height:640px;width:100%;overflow:hidden;background:#000;touch-action:pan-y;user-select:none;-webkit-user-select:none;cursor:ew-resize;--pos:50%;box-shadow:0 24px 60px rgba(0,0,0,.45)}
+.ba img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block;pointer-events:none}
+.ba .top{position:absolute;inset:0;clip-path:inset(0 calc(100% - var(--pos)) 0 0)}
+.ba::before{content:"";position:absolute;left:0;right:0;top:0;height:40%;background:linear-gradient(to bottom,rgba(8,16,22,.6),transparent);z-index:1;pointer-events:none}
+.ba .yr{z-index:2;position:absolute;top:14px;font-size:clamp(40px,6vw,76px);font-weight:800;line-height:1;letter-spacing:-.03em;text-shadow:0 2px 18px rgba(0,0,0,.55);color:#fff}
+.ba .yr.l{left:18px}.ba .yr.r{right:18px;text-align:right}
+.ba .yr small{display:block;margin-top:6px;font-size:12px;font-weight:500;letter-spacing:0;color:rgba(255,255,255,.88)}
+.ba .line{position:absolute;z-index:2;top:0;bottom:0;left:var(--pos);width:2px;margin-left:-1px;background:#fff;box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.ba .knob{position:absolute;z-index:2;top:50%;left:var(--pos);width:44px;height:44px;margin:-22px 0 0 -22px;background:#fff;display:flex;align-items:center;justify-content:center;box-shadow:0 2px 12px rgba(0,0,0,.35);border-radius:50%;pointer-events:none}
+.ba .knob svg{width:20px;height:20px;fill:none;stroke:var(--night);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.ba input{position:absolute;z-index:3;inset:0;width:100%;height:100%;opacity:0;cursor:ew-resize;margin:0}
+.ba:has(input:focus-visible) .knob{outline:2px solid #fff;outline-offset:3px}
+.ba .cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:44px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.62),transparent);font-size:12.5px;color:rgba(255,255,255,.9);pointer-events:none}
+.ba .cap b{font-weight:700;color:#fff}
+
+/* curated */
+.cur{display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:56px;align-items:center}
+.cur h2{margin:0 0 14px;font-size:clamp(26px,3.2vw,38px);line-height:1.08;font-weight:800;letter-spacing:-.03em;color:#0A1B33}
+.cur .lead{margin:0;font-size:15.5px;line-height:1.55;color:var(--moraine);max-width:560px}
+.picks{list-style:none;margin:0;padding:0;border-top:1px solid var(--rule)}
+.picks li{display:grid;gap:3px;padding:16px 0 16px 16px;border-bottom:1px solid var(--rule);box-shadow:inset 3px 0 0 var(--accent)}
+.picks b{font-size:16px;font-weight:700;color:#0A1B33}
+.picks span{font-size:13.5px;color:var(--moraine)}
+
+/* why */
+.why{display:grid;grid-template-columns:repeat(3,1fr);gap:0;border:1px solid var(--rule);background:var(--sheet)}
+.why div{padding:24px 24px 26px;border-right:1px solid var(--rule)}
+.why div:last-child{border:0}
+.why .lab{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent);margin:0 0 10px}
+.why h3{margin:0 0 8px;font-size:19px;line-height:1.2;font-weight:800;letter-spacing:-.02em;color:#0A1B33}
+.why p{margin:0;font-size:13.5px;color:var(--moraine)}
+
+/* ---------- facts ---------- */
+.facts{background:var(--sheet);border-bottom:1px solid var(--rule)}
+.facts .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.facts .f{padding:24px 24px 22px 0;border-right:1px solid var(--rule-2)}
+.facts .f + .f{padding-left:24px}
+.facts .f:last-child{border:0}
+.facts b{display:block;font-size:34px;line-height:1;font-weight:800;letter-spacing:-.03em;color:#0A1B33;font-variant-numeric:tabular-nums}
+.facts span{display:block;margin-top:8px;font-size:12.5px;color:var(--moraine)}
+
+/* ---------- sections ---------- */
+section.s{padding:72px 0}
+section.s.alt{background:var(--firn);border-top:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+.sh{display:flex;align-items:flex-end;justify-content:space-between;gap:24px;flex-wrap:wrap;margin:0 0 26px}
+.sh h2{margin:0;font-size:clamp(26px,3.2vw,38px);line-height:1.08;font-weight:800;letter-spacing:-.03em;color:#0A1B33}
+.sh p{margin:8px 0 0;font-size:15px;color:var(--moraine);max-width:560px}
+.eyebrow{display:flex;align-items:center;gap:8px;margin:0 0 10px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
+.eyebrow .num{color:var(--accent);font-weight:700}
+
+/* map */
+.pickrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.sel{position:relative;min-width:280px}
+.sel select{width:100%;appearance:none;-webkit-appearance:none;border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:12px 38px 12px 14px;font-weight:600;font-size:14px;color:#0A1B33;cursor:pointer}
+.sel select:hover{background:var(--firn)}
+.sel svg{position:absolute;right:11px;top:50%;width:16px;height:16px;margin-top:-8px;fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.mapbox{position:relative;border:1px solid var(--rule);height:clamp(420px,62vh,620px);background:var(--night)}
+#map{position:absolute;inset:0}
+.leaflet-container{font-family:var(--sans);background:var(--night)}
+.leaflet-control-attribution{display:none}
+.credit{position:absolute;z-index:500;right:0;bottom:0;background:rgba(255,255,255,.88);padding:3px 8px;font-size:11px;color:var(--moraine)}
+.credit a{color:inherit}
+.info{position:absolute;z-index:500;left:16px;bottom:16px;width:310px;background:var(--sheet);border:1px solid var(--rule);box-shadow:0 8px 26px rgba(14,26,34,.25);padding:16px 18px;display:flex;flex-direction:column;gap:9px}
+.info .lab{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.info h3{margin:0;font-size:20px;line-height:1.15;font-weight:800;letter-spacing:-.02em;color:#0A1B33}
+.info p{margin:0;font-size:13px;color:var(--moraine)}
+.info .btn-red{align-self:flex-start;padding:9px 14px;font-size:12.5px;margin-top:3px}
+.pin{width:auto;white-space:nowrap}
+.pin span{display:inline-flex;align-items:center;gap:7px;transform:translate(-9px,-50%);background:var(--sheet);border-left:3px solid var(--accent);padding:5px 10px 5px 8px;font-weight:700;font-size:12.5px;color:#0A1B33;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
+.pin span::before{content:"";width:8px;height:8px;background:var(--accent);flex:none}
+.pin span:hover,.pin.on span{background:var(--accent);color:#fff}
+.pin:hover span::before,.pin.on span::before{background:#fff}
+.pin.left span{transform:translate(calc(-100% + 9px),-50%);border-left:0;border-right:3px solid var(--accent);padding:5px 8px 5px 10px}
+.pin.soon span{border-left-color:var(--faint);color:var(--moraine);font-weight:500;opacity:.92}
+.pin.soon span::before{background:var(--faint)}
+.pin.soon span:hover{background:var(--sheet);color:var(--moraine)}
+
+.gl{list-style:none;margin:2px 0 0;padding:0;max-height:196px;overflow:auto;border-top:1px solid var(--rule)}
+.gl button{display:flex;width:100%;justify-content:space-between;gap:10px;border:0;border-bottom:1px solid var(--rule-2);background:none;padding:7px 0;font-size:13px;font-weight:600;color:#0A1B33;text-align:left;cursor:pointer}
+.gl button:hover{color:var(--accent)}
+.gl small{font-weight:500;color:var(--moraine);font-variant-numeric:tabular-nums;white-space:nowrap}
+.info .back{align-self:flex-start;border:0;background:none;padding:0;font-size:12px;font-weight:600;color:var(--crevasse);cursor:pointer}
+.info .back:hover{text-decoration:underline}
+.info .row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.info .btn-line{display:inline-block;border:1px solid var(--rule);padding:8px 12px;font-size:12.5px;font-weight:600;text-decoration:none;color:#0A1B33;background:var(--sheet)}
+.info .btn-line:hover{background:var(--firn)}
+.gdot{width:auto}
+.gdot i{display:block;width:12px;height:12px;margin:-6px 0 0 -6px;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.5);cursor:pointer}
+.gdot:hover i,.gdot.on i{background:#fff;border-color:var(--accent);transform:scale(1.35)}
+.leaflet-tooltip.gtip{background:var(--sheet);border:0;border-left:3px solid var(--accent);border-radius:0;color:#0A1B33;font-weight:700;font-size:12.5px;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:4px 9px}
+.leaflet-tooltip.gtip::before{display:none}
+.tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:14px;border:1px solid var(--rule);background:var(--sheet)}
+.tile{display:flex;flex-direction:column;gap:3px;text-align:left;border:0;border-right:1px solid var(--rule);background:var(--sheet);padding:14px 16px;cursor:pointer}
+.tile:last-child{border-right:0}
+.tile[disabled]{cursor:default;opacity:.55}
+.tile:hover:not([disabled]){background:var(--firn)}
+.tile[aria-current="true"]{box-shadow:inset 0 -3px 0 var(--accent);background:var(--firn)}
+.tile b{font-size:14px;font-weight:700;color:#0A1B33}
+.tile small{font-size:11.5px;color:var(--moraine)}
+.tile .c{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--faint)}
+.soonrow{margin:10px 0 0;font-size:12px;color:var(--moraine)}
+
+/* what you can do: a clip per point */
+.btn-dark{display:inline-flex;align-items:center;gap:9px;padding:11px 16px;border:1px solid #0A1B33;background:var(--sheet);color:#0A1B33;font-weight:600;font-size:13px;cursor:pointer;border-radius:0}
+.btn-dark:hover{background:#0A1B33;color:#fff}
+.btn-dark svg{width:13px;height:13px;fill:currentColor}
+.how{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
+.vstage{position:relative;aspect-ratio:16/9;width:100%;background:var(--night);overflow:hidden;border:1px solid var(--rule)}
+.vstage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s}
+.vstage video.on{opacity:1}
+.feat{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-left:1px solid var(--rule)}
+.feat li{display:flex}
+.feat .film-cell{place-content:center;justify-items:start;gap:10px;background:var(--night);color:#fff;cursor:pointer}
+.feat .film-cell b{color:#fff;font-size:15px}
+.feat .film-cell .t{color:rgba(255,255,255,.7)}
+.feat .film-cell:hover{background:#16202c}
+.feat button{position:relative;display:grid;grid-template-columns:30px 1fr;align-content:start;gap:0 4px;width:100%;text-align:left;border:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);background:none;padding:16px 14px 17px 14px;cursor:pointer;color:inherit}
+.feat .n{grid-row:1/3;padding-top:2px;font-weight:700;font-size:13px;color:var(--faint);font-variant-numeric:tabular-nums}
+.feat b{font-size:16px;font-weight:700;letter-spacing:-.01em;color:#0A1B33}
+.feat .t{font-size:13px;line-height:1.45;color:var(--moraine);margin-top:3px}
+.feat button:hover{background:var(--firn)}
+.feat button[aria-current="true"]{background:var(--firn);box-shadow:inset 0 3px 0 var(--accent)}
+.feat button[aria-current="true"] .n{color:var(--accent)}
+.feat button::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:var(--p,0%);background:var(--accent)}
+
+/* footer */
+footer{background:#070b14 center bottom/cover no-repeat;color:rgba(255,255,255,.7);padding:44px 0 36px;font-size:12.5px}
+footer .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px}
+footer .brand{margin-bottom:12px}
+footer p{margin:0 0 8px;line-height:1.55}
+footer a{color:#fff;text-underline-offset:3px}
+footer .src{font-size:11.5px;color:rgba(255,255,255,.55)}
+
+dialog.player{padding:0;border:0;background:#000;width:min(1100px,94vw);max-height:90vh}
+dialog.player::backdrop{background:rgba(8,14,18,.82)}
+dialog.player video{display:block;width:100%;max-height:90vh}
+dialog.player button{position:absolute;right:0;top:-40px;border:0;background:none;color:#fff;font-weight:600;font-size:13px;cursor:pointer}
+dialog.player{overflow:visible}
+
+@media (max-width:1100px){.feat{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:900px){
+  .hero{padding:104px 0 44px}
+  .hero .wrap{grid-template-columns:1fr;gap:34px}
+  .bar nav a:not(.pill){display:none}
+  .facts .wrap{grid-template-columns:1fr 1fr}
+  .facts .f:nth-child(2){border-right:0}
+  .facts .f:nth-child(3){padding-left:0}
+  .facts .f{border-bottom:1px solid var(--rule-2)}
+  footer .wrap,.cur{grid-template-columns:1fr;gap:28px}
+  .feat{grid-template-columns:1fr}
+  .tiles{grid-template-columns:1fr 1fr}
+  .why{grid-template-columns:1fr}
+  .why div{border-right:0;border-bottom:1px solid var(--rule)}
+  .tile{border-bottom:1px solid var(--rule)}
+  .info{left:0;right:0;bottom:0;width:auto;border-width:1px 0 0}
+  .mapbox{height:520px}
+  section.s{padding:52px 0}
+}
+</style>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#top">
+    <img src="logo/tongues-from-space-logo-plain-white.svg" alt="" width="32" height="30">
+    <b>Tongues from Space</b>
+  </a>
+  <nav>
+    <a href="#regions">Glaciers</a>
+    <a href="#how">What you can do</a>
+    <a href="gallery.html">Gallery</a>
+    <a class="pill" href="#regions">Choose a glacier</a>
+  </nav>
+</div></header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div>
+      <h1>The <em>beauty</em> of glaciers, from space.</h1>
+      <p class="lede">Flowing ice, striped by rock, winding between the peaks: the tongues of the ten largest Swiss glaciers, in fresh satellite pictures every summer. We pick the best picture of every year for you. Explore them on the map, fly over them in 3D and take pictures home.</p>
+      <div class="cta">
+        <a class="btn-red" href="#regions">Choose a glacier
+          <svg viewBox="0 0 24 24"><path d="M12 4l1.4 1.4L8.8 10H20v2H8.8l4.6 4.6L12 18l-8-8z" transform="rotate(180 12 12)"/></svg></a>
+        <button class="btn-ghost" id="watch" type="button">
+          <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the 1-minute teaser</button>
+      </div>
+      
+    </div>
+
+    <figure class="ba" id="ba">
+      <img src="images/home/hero-2026.jpg" alt="Grosser Aletschgletscher, Switzerland, in September 2026" width="1600" height="1701">
+      <div class="top"><img src="images/home/hero-1984.jpg" alt="Grosser Aletschgletscher, Switzerland, in September 1984" width="1600" height="1701"></div>
+      <div class="yr l">1984<small>Landsat 5 · 2 September</small></div>
+      <div class="yr r">2026<small>Sentinel-2 · 12 September</small></div>
+      <div class="line"></div>
+      <input type="range" min="0" max="100" value="50" aria-label="Compare 1984 and 2026">
+      <div class="knob"><svg viewBox="0 0 24 24"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></div>
+      <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland.</b> Drag the line.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<div class="facts"><div class="wrap">
+  <div class="f"><b>10</b><span>of the largest Swiss glaciers</span></div>
+  <div class="f"><b>Every summer</b><span>a new satellite picture of each glacier</span></div>
+  <div class="f"><b>10 m</b><span>per pixel, from free satellite data</span></div>
+  <div class="f"><b>Soon</b><span>Iceland, Norway and more are in the making</span></div>
+</div></div>
+
+<section class="s" id="curated">
+  <div class="wrap cur">
+    <div>
+      <p class="eyebrow">Curated for you</p>
+      <h2>The right picture, already chosen.</h2>
+      <p class="lead">A glacier is photographed from space again and again, and most of those pictures are no use: clouds, shadows, snow. For every glacier and every year we pick the one that shows it best, so you never have to search an archive.</p>
+    </div>
+    <ul class="picks">
+      <li><b>Clear</b><span>Little cloud, and no cloud shadow over the glacier tongue.</span></li>
+      <li><b>Late summer</b><span>The season when winter snow has melted and the ice shows.</span></li>
+      <li><b>Framed for the glacier</b><span>Every picture is cut to the same box around the tongue, so years line up.</span></li>
+    </ul>
+  </div>
+</section>
+
+<section class="s alt" id="why">
+  <div class="wrap">
+    <div class="sh"><div>
+      <p class="eyebrow">Why glaciers</p>
+      <h2>Slow rivers that shape a world.</h2>
+    </div></div>
+    <div class="why">
+      <div><p class="lab">Landscape</p><h3>They carve mountains and valleys</h3><p>Ice grinds rock, pushes moraines and leaves the lakes, ridges and valleys we hike through.</p></div>
+      <div><p class="lab">Water</p><h3>They feed rivers and lakes</h3><p>Meltwater runs from the ice through summer into streams, lakes and the places downstream.</p></div>
+      <div><p class="lab">Wonder</p><h3>They are seen best from above</h3><p>From orbit, flow lines, moraines and meltwater colours show patterns you cannot see from the valley.</p></div>
+    </div>
+  </div>
+</section>
+
+<section class="s" id="regions">
+  <div class="wrap">
+    <div class="sh">
+      <div>
+        <p class="eyebrow"><span class="num">1</span> Choose a glacier</p>
+        <h2>Which glacier do you want to see?</h2>
+        <p>Click Switzerland on the map, then a glacier, or choose one from the list. More regions are in the making.</p>
+      </div>
+      <div class="pickrow">
+        <div class="sel"><select id="pick" aria-label="Glacier"></select>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>
+      </div>
+    </div>
+
+    <div class="mapbox">
+      <div id="map" role="application" aria-label="World map of the regions"></div>
+      <div class="info" id="info" hidden>
+        <button class="back" id="iBack" type="button" hidden></button>
+        <div class="lab" id="iLab"></div>
+        <h3 id="iName"></h3>
+        <p id="iText"></p>
+        <ul class="gl" id="iList"></ul>
+        <div class="row"><a class="btn-red" id="iGo" href="#">Open the dashboard</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
+      </div>
+      <div class="credit">Sentinel-2 cloudless 2024 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <p class="soonrow">Iceland, Norway and more are in the making.</p>
+  </div>
+</section>
+
+<section class="s" id="how">
+  <div class="wrap">
+    <div class="sh">
+      <div>
+        <p class="eyebrow">What you can do</p>
+        <h2>Seven ways to look at a glacier.</h2>
+        <p>Point at one, or tap it, to see it work.</p>
+      </div>
+    </div>
+    <div class="how">
+      <div class="vstage" id="vstage" aria-hidden="true"></div>
+      <ol class="feat" id="feat"></ol>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer><div class="wrap">
+  <div>
+    <a class="brand" href="#top"><img src="logo/tongues-from-space-logo-plain-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
+    <p>Created to increase glacial awareness, by Jochem Braakhekke. Non-commercial. Code MIT, own texts CC BY 4.0.</p>
+  </div>
+  <div class="src">
+    <p>Satellite pictures: contains modified Copernicus Sentinel data (Sentinel-2); older pictures from Landsat 5 and 7, USGS. Glacier statistics: GLAMOS. Background: Sentinel-2 cloudless by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> (CC BY-NC-SA 4.0), © OpenStreetMap contributors.</p>
+  </div>
+</div></footer>
+
+<dialog class="player" id="player">
+  <button type="button" id="closePlayer">Close ✕</button>
+  <video id="vid" controls playsinline muted preload="none" poster="teaser/teaser-wide-poster.jpg">
+    <source src="teaser/teaser-wide.webm" type="video/webm">
+    <source src="teaser/teaser-wide.mp4" type="video/mp4">
+  </video>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="data/home-glaciers.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* Deep space, drawn like the map viewer's backdrop (spaceCanvas in js/05-map.js): dark blue gradient, a soft Milky Way band, nebula glows, small stars. Fixed seed. */
+(() => {
+  const w = 1600, h = 1000, perStar = 1000, scale = 1;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  let seed = 20261009; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04070d'); g.addColorStop(1, '#0a1426'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const glow = (cx, cy, r, rgb, a) => { const q = x.createRadialGradient(cx, cy, 0, cx, cy, r); q.addColorStop(0, `rgba(${rgb},${a})`); q.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = q; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
+  glow(w * .22, h * .28, w * .55, '84,72,170', .11); glow(w * .84, h * .72, w * .5, '38,110,170', .10); glow(w * .5, h * .5, w * .4, '60,70,120', .05);
+  x.save(); x.translate(w / 2, h / 2); x.rotate(-0.38);
+  const band = x.createLinearGradient(0, -h * .22, 0, h * .22); band.addColorStop(0, 'rgba(150,170,230,0)'); band.addColorStop(.5, 'rgba(150,170,230,.055)'); band.addColorStop(1, 'rgba(150,170,230,0)');
+  x.fillStyle = band; x.fillRect(-w, -h * .22, 2 * w, h * .44);
+  for (let i = 0, n = Math.round(w * h / perStar * 1.6); i < n; i++) {
+    const px = (rnd() - .5) * w * 1.5, py = (rnd() + rnd() + rnd() - 1.5) * h * .2, a = 0.12 + rnd() * 0.35;
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.fillRect(px, py, .9 * scale, .9 * scale);
+  }
+  x.restore();
+  for (let i = 0, n = Math.round(w * h / perStar); i < n; i++) {
+    const px = rnd() * w, py = rnd() * h, k = rnd(), bright = k > .975, big = k > .88, r = (0.4 + Math.pow(rnd(), 4) * 1.0) * scale * (bright ? 2.8 : big ? 1.7 : 1), a = bright ? 0.9 : 0.2 + rnd() * 0.5;
+    if (big) glow(px, py, r * (bright ? 7 : 5), '190,210,255', bright ? .3 : .18);
+    if (bright) { x.strokeStyle = 'rgba(225,235,255,.45)'; x.lineWidth = .8 * scale; x.beginPath(); x.moveTo(px - r * 4, py); x.lineTo(px + r * 4, py); x.moveTo(px, py - r * 4); x.lineTo(px, py + r * 4); x.stroke(); }
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+  }
+  c.toBlob(blob => { const u = 'url(' + URL.createObjectURL(blob) + ')'; document.querySelectorAll('.hero, footer').forEach(el => { el.style.backgroundImage = u; }); });
+})();
+
+/* ---------- before / after ---------- */
+(() => {
+  const ba = $('ba'), r = ba.querySelector('input');
+  const set = v => { ba.style.setProperty('--pos', v + '%'); r.value = v; };
+  let stop = false;
+  const halt = () => { stop = true; };
+  r.addEventListener('input', () => { halt(); set(r.value); });
+  ba.addEventListener('pointerdown', halt);
+  if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;
+  const t0 = performance.now() + 900;       // a short pause, then one sweep so the visitor sees it can be dragged
+  const tick = now => {
+    if (stop) return;
+    const t = (now - t0) / 3800;
+    if (t < 0) return requestAnimationFrame(tick);
+    if (t >= 1) return set(50);
+    set(50 + 36 * Math.sin(t * Math.PI * 2) * (1 - t * .3));
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+})();
+
+/* ---------- what you can do: a clip per point (scripts/make_home_clips.py) ---------- */
+(() => {
+  const POINTS = [
+    ['years',   'Watch the years pass',   'Every summer in one loop: snow, ice, lakes and green slopes shifting from year to year.'],
+    ['compare', 'Slide between summers',  'Drag a line across two years and watch one landscape turn into another.'],
+    ['fly',     'Fly over the ice in 3D', 'The satellite picture draped over the terrain: swoop along the glacier and look up at the peaks.'],
+    ['then',    'Step into old photographs', 'Historic photographs of the Swiss glaciers, set into the 3D view where the photographer stood.'],
+    ['numbers', 'Discover and read the numbers', 'What to look for, hikes and bike routes with the trails where the tongue is in view, and the area, length, thickness and volume of every glacier, with their sources.'],
+    ['size',    'Size it up against a city', 'Drag the outline of a glacier onto Zürich, Bern or Basel and see how big it really is.'],
+    ['share',   'Take it with you',       'Download a picture or an animation for your phone, ready to post.']
+  ];
+  const stage = $('vstage'), feat = $('feat'), still = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const vids = [], btns = [];
+  let cur = -1, locked = false, started = false;
+  POINTS.forEach(([k, title, text], i) => {
+    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'metadata'; v.poster = 'images/home/clips/' + k + '.jpg'; v.src = 'images/home/clips/' + k + '.mp4';
+    v.addEventListener('ended', () => { if (!locked) select((i + 1) % POINTS.length); });
+    v.addEventListener('timeupdate', () => { if (v.duration) btns[i].style.setProperty('--p', (100 * v.currentTime / v.duration) + '%'); });
+    stage.appendChild(v); vids.push(v);
+    const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = '<span class="n">' + (i + 1) + '</span><b>' + title + '</b><span class="t">' + text + '</span>';
+    b.onclick = () => { locked = true; select(i, true); };
+    if (matchMedia('(hover:hover)').matches) b.onpointerenter = () => { if (cur !== i) { locked = true; select(i, true); } };
+    li.appendChild(b); feat.appendChild(li); btns.push(b);
+  });
+  function select(i, user) {
+    if (i === cur && !user) return;
+    cur = i;
+    vids.forEach((v, j) => { v.classList.toggle('on', j === i); if (j !== i) { v.pause(); btns[j].style.setProperty('--p', '0%'); } });
+    btns.forEach((b, j) => j === i ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current'));
+    vids[i].loop = locked; vids[i].currentTime = 0; vids[i].play().catch(() => {});
+  }
+  const fc = document.createElement('li'), fb = document.createElement('button'); fb.type = 'button'; fb.className = 'film-cell'; fb.id = 'film';
+  fb.innerHTML = '<span class="n" style="color:#fff">▶</span><b>The whole story</b><span class="t">Watch the 1-minute teaser.</span>'; fc.appendChild(fb); feat.appendChild(fc);
+  // show the first poster at once; start playing when the section scrolls into view
+  vids[0].classList.add('on'); btns[0].setAttribute('aria-current', 'true'); cur = 0;
+  if (!still && 'IntersectionObserver' in window) new IntersectionObserver((es, o) => { if (es[0].isIntersecting && !started) { started = true; if (!locked) select(0, true); o.disconnect(); } }, { threshold: .4 }).observe(stage);
+})();
+
+/* ---------- teaser dialog ---------- */
+const player = $('player'), vid = $('vid');
+const openFilm = () => { player.showModal(); vid.muted = false; vid.play().catch(() => {}); };
+$('watch').onclick = $('film').onclick = openFilm;      // the 'film' button is made by the clip code above
+$('closePlayer').onclick = () => player.close();
+player.addEventListener('close', () => vid.pause());
+player.addEventListener('click', e => { if (e.target === player) player.close(); });
+
+/* ---------- regions: paths are the real addresses of js/00-regions.js ---------- */
+const REGIONS = [
+  { id: 'ch', group: 'Switzerland', name: 'Switzerland', href: './', ll: [46.45, 8.1], zoom: 7,
+    text: 'The ten largest Swiss glaciers, with GLAMOS statistics.', n: 'Ten glaciers' },
+  { id: 'is-vatnajokull', soon: true, group: 'Iceland', name: 'Vatnajökull', href: 'iceland/vatnajokull/', ll: [64.4, -16.8], zoom: 7,
+    text: 'The outlets of the Vatnajökull ice cap.', n: 'In the making' },
+  { id: 'is-rest', soon: true, group: 'Iceland', name: 'Rest of Iceland', href: 'iceland/rest/', ll: [64.9, -19.3], zoom: 7, side: 'left',
+    text: 'The ten largest glaciers and ice caps outside Vatnajökull.', n: 'In the making' },
+  { id: 'no-mainland', soon: true, group: 'Norway', name: 'Mainland Norway', href: 'norway/mainland/', ll: [66.6, 14.0], zoom: 5,
+    text: 'The ten largest main glaciers of mainland Norway.', n: 'In the making' },
+  { id: 'no-svalbard', soon: true, group: 'Norway', name: 'Svalbard', href: 'norway/svalbard/', ll: [78.8, 17.0], zoom: 5,
+    text: 'The ten largest named glacier units of Svalbard.', n: 'In the making' },
+  { id: 'cl', group: 'Chile', name: 'Chile', soon: true, ll: [-49.5, -73.2], zoom: 5 },
+  { id: 'np', group: 'Nepal', name: 'Nepal', soon: true, ll: [28.2, 85.0], zoom: 6 }
+];
+
+const map = L.map('map', { worldCopyJump: true, minZoom: 2, maxZoom: 10, scrollWheelZoom: false }).setView([67, 8], 3);      // the five regions; the planned ones are one zoom out
+map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());
+L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg', { maxNativeZoom: 14, maxZoom: 17 }).addTo(map);
+L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png', { maxNativeZoom: 16, maxZoom: 17, opacity: .9 }).addTo(map);
+
+const pick = $('pick'), tiles = $('tiles'), list = $('iList');
+const byRegion = id => (window.HOME_GLACIERS || []).filter(g => g.region === id);
+const fmtArea = a => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
+const glacierHref = (r, g) => r.href + '#g=' + encodeURIComponent(g.id);
+
+pick.innerHTML = '<option value="">Choose a glacier…</option>';
+let lastGroup = null, grp = null;
+for (const r of REGIONS) {
+  if (r.group !== lastGroup) { lastGroup = r.group; }
+  grp = document.createElement('optgroup'); grp.label = r.group === r.name ? r.name : r.group + ' · ' + r.name; pick.appendChild(grp);
+  const o = new Option(r.soon ? r.name + ' (in the making)' : 'All of ' + r.name, 'r:' + r.id); o.disabled = !!r.soon; grp.appendChild(o);
+  if (!r.soon) for (const g of byRegion(r.id)) grp.appendChild(new Option('\u00A0\u00A0' + g.name, 'g:' + g.id));
+  r.marker = L.marker(r.ll, { icon: L.divIcon({ className: 'pin' + (r.soon ? ' soon' : '') + (r.side ? ' ' + r.side : ''), html: '<span>' + r.name + '</span>', iconSize: [0, 0] }), keyboard: true, title: r.name }).addTo(map);
+  if (r.soon && !r.n) continue;
+  if (!r.soon) r.marker.on('click', () => chooseRegion(r.id));
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'tile'; t.dataset.id = r.id; t.disabled = !!r.soon;
+  t.innerHTML = '<span class="c">' + r.group + '</span><b>' + r.name + '</b><small>' + r.n + '</small>';
+  if (!r.soon) t.onclick = () => chooseRegion(r.id);
+  tiles.appendChild(t);
+}
+
+/* fly to a place, leaving it clear of the card on the left */
+function fly(ll, zoom) {
+  const off = matchMedia('(min-width:901px)').matches ? 170 : 0;
+  const c = map.unproject(map.project(ll, zoom).subtract([off, 0]), zoom);
+  map.flyTo(c, zoom, { duration: 1.1 });
+}
+const glLayer = L.layerGroup().addTo(map);
+let glMarkers = {};
+function drawGlaciers(r) {
+  glLayer.clearLayers(); glMarkers = {};
+  if (!r) return;
+  for (const g of byRegion(r.id)) {
+    const m = L.marker(g.tip, { icon: L.divIcon({ className: 'gdot', html: '<i></i>', iconSize: [0, 0] }), keyboard: true, title: g.name })
+      .bindTooltip(g.name, { direction: 'top', offset: [0, -8], className: 'gtip' }).addTo(glLayer);
+    m.on('click', () => chooseGlacier(g.id)); glMarkers[g.id] = m;
+  }
+}
+
+function clearMarks() {
+  document.querySelectorAll('.pin,.gdot').forEach(p => p.classList.remove('on'));
+  tiles.querySelectorAll('.tile').forEach(b => b.removeAttribute('aria-current'));
+}
+function reset() { clearMarks(); drawGlaciers(null); $('info').hidden = true; pick.value = ''; history.replaceState(null, '', location.pathname); }
+
+function chooseRegion(id, doFly = true) {
+  const r = REGIONS.find(x => x.id === id);
+  if (!r || r.soon) return reset();
+  clearMarks(); drawGlaciers(r);
+  pick.value = 'r:' + id;
+  r.marker.getElement().classList.add('on');
+  tiles.querySelector('[data-id="' + id + '"]').setAttribute('aria-current', 'true');
+  const gs = byRegion(id).slice().sort((a, b) => b.area - a.area);
+  $('iBack').hidden = true;
+  $('iLab').textContent = r.group === r.name ? r.n : r.group + ' · ' + r.n;
+  $('iName').textContent = r.name; $('iText').textContent = r.text;
+  list.hidden = false; list.innerHTML = '';
+  for (const g of gs) { const li = document.createElement('li'); const b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = g.name + '<small>' + fmtArea(g.area) + '</small>'; b.onclick = () => chooseGlacier(g.id);
+    b.onmouseenter = () => glMarkers[g.id] && glMarkers[g.id].openTooltip(); b.onmouseleave = () => glMarkers[g.id] && glMarkers[g.id].closeTooltip();
+    li.appendChild(b); list.appendChild(li); }
+  $('iGo').textContent = 'Open the region'; $('iGo').href = r.href; $('iGo2').hidden = true; $('info').hidden = false;
+  if (doFly) fly(r.ll, r.zoom);
+  history.replaceState(null, '', '#' + id);
+}
+
+function chooseGlacier(gid, doFly = true) {
+  const g = (window.HOME_GLACIERS || []).find(x => x.id === gid); if (!g) return;
+  const r = REGIONS.find(x => x.id === g.region); if (r.soon) return;
+  if (!$('info').dataset.region || $('info').dataset.region !== r.id || !glMarkers[gid]) { clearMarks(); drawGlaciers(r); r.marker.getElement().classList.add('on'); tiles.querySelector('[data-id="' + r.id + '"]').setAttribute('aria-current', 'true'); }
+  $('info').dataset.region = r.id;
+  document.querySelectorAll('.gdot').forEach(p => p.classList.remove('on')); glMarkers[gid].getElement().classList.add('on');
+  pick.value = 'g:' + gid;
+  $('iBack').hidden = false; $('iBack').textContent = '← All of ' + r.name; $('iBack').onclick = () => chooseRegion(r.id);
+  $('iLab').textContent = r.group === r.name ? r.name : r.group + ' · ' + r.name;
+  $('iName').textContent = g.name; $('iText').textContent = 'Area ' + fmtArea(g.area) + '.';
+  list.hidden = true; $('iGo').textContent = 'Open ' + g.name; $('iGo').href = glacierHref(r, g);
+  $('iGo2').hidden = true; $('info').hidden = false;
+  if (doFly) fly(g.tip, r.id === 'ch' ? 11 : 8);
+  glMarkers[gid].openTooltip();
+  history.replaceState(null, '', '#g=' + gid);
+}
+pick.onchange = () => { const [k, id] = pick.value.split(/:(.+)/); if (k === 'r') chooseRegion(id); else if (k === 'g') chooseGlacier(id); else reset(); };
+const start = location.hash.slice(1);
+if (start.startsWith('g=')) chooseGlacier(decodeURIComponent(start.slice(2)));
+else if (REGIONS.some(r => r.id === start && !r.soon)) chooseRegion(start, false);
+</script>
+</body>
+</html>

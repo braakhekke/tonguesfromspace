@@ -1,9 +1,13 @@
+import { FIRST_YEAR, YEARS } from './01-data.js';
+import { SEASON, isLandsat, unifyOrbit, summerStarted, findScene, queued, fmtDM, fmtDate } from './03-imagery.js';
+import { state, okYears, currentGlacier, viewMode } from './04-state.js';
+import { map, updateCredits, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, oldestPair, aerialDesc, tagLine, play } from './05-map.js';
 /* =====================================================================
    6. Scene search: for the selected glacier, the clearest summer scene of every year.
       Years without a usable scene cannot be picked.
    ===================================================================== */
-let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
-async function checkYears(){
+export let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
+export async function checkYears(){
   const gen = ++checkGen, g = currentGlacier();
   if (g && FEATURES.view3d) setTimeout(() => loadBundle(bundleId(g)), 1500);      // the terrain of this glacier comes along while the scenes are searched
   state.checked = false; state.available = {}; state.latest = null; restoreOldest();
@@ -41,7 +45,7 @@ async function checkYears(){
     } else play();
   } }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
 }
-function statusLine(){
+export function statusLine(){
   const lt = state.latest, latestLine = lt && state.available[lt.year] && state.mode !== 'timelapse' && viewMode !== '3d' ? `Latest clear-ish scene: ${fmtDate(state.available[lt.year].date)}.` : '';      // the chosen Latest is named, except in a timelapse and in 3D (neither has it)
   const oa = state.oldestAerial && oldestAerial.get(state.glacier);
   if (oa && state.mode === 'compare') return `First image: the oldest aerial image, ${oldestWhat(oa)}. No Sentinel-2 picture on that side.` + (latestLine ? ' ' + latestLine : '');
@@ -60,7 +64,7 @@ function statusLine(){
   return parts.join(' ');
 }
 /* Year labels on the map: year plus the date of the scene */
-function updateTags(){
+export function updateTags(){
   const sub = y => { const sc = state.available[y]; return sc ? `${fmtDM(sc.date)}${sc.clear ? '' : ', some clouds'}` : 'Sentinel-2'; };
   const scA = state.available[state.a], scB = state.available[state.b];      // the line under a year names its satellite (Landsat before 2016)
   setTag('tagA', state.a); setTag('tagB', state.b);
@@ -69,3 +73,6 @@ function updateTags(){
   if (oldestPair()) { setTag('tagA', flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#tagA small').innerHTML = aerialDesc(state.oldestAerial); }
 }
 
+// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
+Object.assign(window, { checkYears, statusLine, updateTags });
+Object.defineProperty(window, 'checkGen', { get: () => checkGen, set: v => { checkGen = v; }, configurable: true });

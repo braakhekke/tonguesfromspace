@@ -52,4 +52,7 @@ tests/test_board.py
 data/audit-exceptions.json
 _site/
 
+# ITS_LIVE annual mosaics (70 MB per year), see scripts/build_itslive.py
+scripts/.itslive-cache/
+
 node_modules/

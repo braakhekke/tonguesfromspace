@@ -728,3 +728,44 @@ class TestStreetViewData(unittest.TestCase):
                 self.assertTrue((45 < p["lat"] < 48 and 5 < p["lng"] < 11) or (gid == "breidamerkurjokull" and 63.9 < p["lat"] < 64.3 and -16.6 < p["lng"] < -16.0), p["pano"])      # Switzerland, or Iceland (Breiðamerkurjökull)
                 self.assertTrue(0 <= p["heading"] < 360 and -90 <= p["pitch"] <= 90 and 10 <= p["fov"] <= 100, p["pano"])
                 self.assertFalse({"url", "src", "image", "thumb"} & set(p), "Google's pictures must not be stored")
+
+
+class TestIceSpeedData(unittest.TestCase):
+    """data/itslive/<SGI id>.json (scripts/build_itslive.py): the ITS_LIVE speed of each Swiss glacier on a Mercator grid over its picture box."""
+    def test_every_swiss_glacier_has_a_speed_file_that_fits_its_box(self):
+        import base64, json, struct, zlib
+        t = open(os.path.join(ROOT, "data", "boxes.js"), encoding="utf-8").read()
+        boxes = json.loads(t[t.index("{", t.index("GLACIER_BOXES")):t.rindex("}") + 1])["glaciers"]
+        swiss = {k: v for k, v in boxes.items() if v["region"] == "ch"}
+        self.assertEqual(len(swiss), 10)
+        for gid, rec in swiss.items():
+            path = os.path.join(ROOT, "data", "itslive", gid + ".json")
+            self.assertTrue(os.path.exists(path), f"{gid}: no speed file (python3 scripts/build_itslive.py)")
+            with open(path, encoding="utf-8") as fh: f = json.load(fh)
+            x0, y0, x1, y1 = rec["derived"]["bbox"]
+            self.assertLessEqual(abs(f["bbox"][0] - x0), 1, gid); self.assertLessEqual(abs(f["bbox"][3] - y1), 1, gid)      # the box of the page, cut in cells of f["cell"] m
+            self.assertGreaterEqual(f["bbox"][2], x1 - 1, gid); self.assertLessEqual(f["bbox"][1], y0 + 1, gid)
+            self.assertEqual(f["years"], list(range(2013, 2023)), gid)
+            for y in f["years"]:
+                a = struct.unpack(f"<{f['w'] * f['h']}H", zlib.decompress(base64.b64decode(f["data"][str(y)])))
+                vals = [v * f["step"] for v in a if v != f["nodata"]]
+                self.assertGreater(len(vals), 0.8 * len(a), f"{gid} {y}: mostly no data")
+                self.assertLess(max(vals), 1500, f"{gid} {y}: a speed that no glacier here has (m/yr)")
+                self.assertGreater(sum(v > 20 for v in vals), 20, f"{gid} {y}: no moving ice at all")
+
+
+class TestIceSpeedLayer(SiteCase):
+    def test_layer_draws_the_year_on_show_and_says_when_the_year_has_no_data(self):
+        page = self.open("#g=aletsch&m=single&one=2022")
+        page.wait_for_function("state.available && state.available[2022]", timeout=60000)
+        page.evaluate("document.getElementById('speedToggle').click()")
+        page.wait_for_function("speedLayer !== null", timeout=15000)
+        self.assertEqual(page.evaluate("speedKey"), "B36-26|2022")
+        self.assertFalse(page.evaluate("document.getElementById('speedLegend').hidden"))
+        self.assertIn("ITS_LIVE", page.evaluate("document.getElementById('credits').textContent"))
+        page.evaluate("state.mode = 'compare'; state.b = 2024; updateSpeed()")      # the annual maps end in 2022
+        page.wait_for_function("speedLayer === null", timeout=15000)
+        self.assertIn("2013 to 2022", page.evaluate("document.getElementById('speedNote').textContent"))
+        page.evaluate("document.getElementById('speedToggle').click()")
+        self.assertTrue(page.evaluate("document.getElementById('speedLegend').hidden"))
+        self.assertClean()

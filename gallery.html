@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Gallery - Tongues from Space Switzerland</title>
-<meta name="description" content="Pictures and animations of Swiss glacier tongues made with the Tongues from Space Switzerland dashboard and shared by visitors.">
+<title>Gallery - Tongues from Space</title>
+<meta name="description" content="Pictures and animations of glacier tongues made with the Tongues from Space dashboard and shared by visitors.">
 <link rel="stylesheet" href="css/pages.css">
 <style>
 .filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:0 0 16px}
@@ -39,12 +39,13 @@
 </style>
 </head>
 <body>
-<header class="top"><div class="in"><h1><span class="t1">Tongues from Space</span> Switzerland <span class="t1">Gallery</span></h1><a class="back" href="index.html">← Back to the dashboard</a></div></header>
+<header class="top"><div class="in"><h1><span class="t1">Tongues from Space</span> Gallery</h1><a class="back" href="index.html">← Back to the dashboard</a></div></header>
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Full size picture"><img alt=""><button type="button" aria-label="Close">×</button></div>
 <main class="wrap">
-  <p class="lede">Pictures and animations of Swiss glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
+  <p class="lede">Pictures and animations of glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
   <div class="cta"><a class="btn primary" href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Your animation or Your image, then Share it in the gallery.</span></div>
   <div class="filters" role="search" aria-label="Filter the gallery">
+    <label>Region<select id="fRegion"><option value="">All regions</option></select></label>
     <label>Glacier<select id="fGlacier"><option value="">All glaciers</option></select></label>
     <label>Year<select id="fYear"><option value="">All years</option></select></label>
     <label>Type<select id="fType"><option value="">All types</option><option value="still">Image</option><option value="timelapse">Timelapse</option><option value="slider">Slider (before and after)</option><option value="3d">3D view</option></select></label>
@@ -62,6 +63,11 @@ const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/
 const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider' };
 const STYLE = { natural: 'Natural colour', false1: 'False colour 1 (infrared)', false2: 'False colour 2' };
 const FMT = { reel: '9:16', feed: '4:5', wide: '16:9' };
+/*regions:start*/
+const REGIONS = [{"id":"ch","name":"Switzerland","glaciers":["aletsch","gorner","fiescher","unteraar","corbassiere","zmutt","rhone","sgi-B56-03","sgi-B53-04","trift"]},{"id":"is-vatnajokull","name":"Vatnajökull","glaciers":["breidamerkurjokull","skeidararjokull","bruarjokull","dyngjujokull","sidujokull","koldukvislarjokull","tungnaarjokull","heinabergsjokull","hoffellsjokull","svinafellsjokull","sylgjujokull","flaajokull"]},{"id":"is-rest","name":"Rest of Iceland","glaciers":["langjokull","hofsjokull","myrdalsjokull","drangajokull","eyjafjallajokull","tungnafellsjokull","thorisjokull","eiriksjokull","thrandarjokull","tindfjallajokull"]},{"id":"no-mainland","name":"Mainland Norway","glaciers":["jostedalsbreen","vestre-svartisen","sondre-folgefonna","ostre-svartisen","blamannsisen","hardangerjokulen","myklebustbreen","okstindbreen","oksfjordjokelen","nordre-folgefonna"]},{"id":"no-svalbard","name":"Svalbard","glaciers":["storisstraumen","brasvellbreen","negribreen","hinlopenbreen","kvitoyjokulen","etonbreen","stonebreen","hochstetterbreen","schweigaardbreen","monacobreen"]}];
+/*regions:end*/
+const regionOf = it => (REGIONS.find(r => r.glaciers.includes(it.glacier)) || REGIONS[0]).id;      // an item of an unknown glacier is an old Swiss one (inventory ids)
+const regionName = id => (REGIONS.find(r => r.id === id) || {}).name || '';
 const $ = id => document.getElementById(id);
 let items = [], only = '';
 
@@ -82,12 +88,12 @@ function card(it){
   }
   const meta = el('div', 'meta');
   const yrs = it.years.length > 1 ? `${it.years[0]}–${it.years[it.years.length - 1]}` : String(it.years[0]);
-  meta.append(el('p', 'kind', `${it.view === '3d' ? '3D · ' : ''}${TYPE[it.type] || it.type} · ${FMT[it.fmt] || ''}`), el('h2', '', it.name),
+  meta.append(el('p', 'kind', `${regionName(regionOf(it))} · ${it.view === '3d' ? '3D · ' : ''}${TYPE[it.type] || it.type} · ${FMT[it.fmt] || ''}`), el('h2', '', it.name),
     el('p', 'by', [yrs, STYLE[it.style], it.nick && 'by ' + it.nick].filter(Boolean).join(' · ')));
   const dl = el('a', 'btn dl', it.kind === 'video' ? 'Download video' : 'Download image'); dl.href = src + '?download=1'; dl.rel = 'noopener';
   const sh = el('button', 'dl', 'Share'); sh.type = 'button';
   sh.onclick = async () => {
-    const data = { title: `${it.name}, ${yrs}`, text: `${it.name}, ${yrs}: Tongues from Space Switzerland`, url: `${location.origin}${location.pathname}#item=${it.id}` };
+    const data = { title: `${it.name}, ${yrs}`, text: `${it.name}, ${yrs}: Tongues from Space`, url: `${location.origin}${location.pathname}#item=${it.id}` };
     try {
       if (navigator.share) await navigator.share(data);
       else { await navigator.clipboard.writeText(data.url); sh.textContent = 'Link copied'; setTimeout(() => sh.textContent = 'Share', 2000); }
@@ -108,11 +114,11 @@ function fill(sel, values, label){
   sel.value = keep;
 }
 function render(){
-  const f = { glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value };
-  const list = items.filter(it => (!only || it.id === only) && (!f.glacier || it.glacier === f.glacier) && (!f.year || it.years.includes(+f.year)) && (!f.type || (f.type === '3d' ? it.view === '3d' : it.type === f.type)) && (!f.style || it.style === f.style));
+  const f = { region: $('fRegion').value, glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value };
+  const list = items.filter(it => (!only || it.id === only) && (!f.region || regionOf(it) === f.region) && (!f.glacier || it.glacier === f.glacier) && (!f.year || it.years.includes(+f.year)) && (!f.type || (f.type === '3d' ? it.view === '3d' : it.type === f.type)) && (!f.style || it.style === f.style));
   const grid = $('grid'); grid.replaceChildren(...list.map(card));
   $('count').textContent = items.length ? `${list.length} of ${items.length}` : '';
-  $('fReset').hidden = !(only || f.glacier || f.year || f.type || f.style);
+  $('fReset').hidden = !(only || f.region || f.glacier || f.year || f.type || f.style);
   $('fReset').textContent = only ? 'Show all items' : 'Clear filters';
   const none = !list.length;
   $('empty').hidden = !none;
@@ -120,8 +126,9 @@ function render(){
   const p = new URLSearchParams(Object.entries(only ? { item: only } : f).filter(([, v]) => v));
   history.replaceState(null, '', p.toString() ? '#' + p : location.pathname + location.search);
 }
+$('fRegion').onchange = () => { only = ''; fillGlaciers(); render(); };      // the glacier list follows the region
 ['fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).onchange = () => { only = ''; render(); });
-$('fReset').onclick = () => { only = ''; ['fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).value = ''); render(); };
+$('fReset').onclick = () => { only = ''; ['fRegion', 'fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).value = ''); fillGlaciers(); render(); };
 
 (async function boot(){
   if (!RELAY) { $('empty').hidden = false; $('empty').textContent = 'The gallery needs the relay address (config.js), which is written when the site is deployed.'; return; }
@@ -130,18 +137,27 @@ $('fReset').onclick = () => { only = ''; ['fGlacier', 'fYear', 'fType', 'fStyle'
     if (!r.ok) throw new Error(r.status);
     items = (await r.json()).items || [];
   } catch { $('empty').hidden = false; $('empty').textContent = 'The gallery could not be loaded. Please try again later.'; return; }
-  const glaciers = new Map(items.map(it => [it.glacier, it.name])), years = new Set(items.flatMap(it => it.years));
-  fill($('fGlacier'), [...glaciers].sort((a, b) => a[1].localeCompare(b[1])));
+  const years = new Set(items.flatMap(it => it.years)), present = new Set(items.map(regionOf));
+  fill($('fRegion'), REGIONS.filter(r => present.has(r.id)).map(r => [r.id, r.name]));
+  fillGlaciers();
   fill($('fYear'), [...years].sort((a, b) => b - a).map(y => [y, String(y)]));
   applyHash();
   window.addEventListener('hashchange', () => {      // a link pasted into a tab that already shows the gallery changes only the hash
     if (location.hash.slice(1) !== new URLSearchParams(hashState()).toString()) applyHash();
   });
 })();
-function hashState(){ return Object.entries(only ? { item: only } : { glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value }).filter(([, v]) => v); }
+function fillGlaciers(){      // the glaciers of the shared items, only those of the chosen region
+  const sel = $('fGlacier'), keep = sel.value, reg = $('fRegion').value;
+  const glaciers = new Map(items.filter(it => !reg || regionOf(it) === reg).map(it => [it.glacier, it.name]));
+  sel.replaceChildren(Object.assign(el('option', '', 'All glaciers'), { value: '' }));
+  fill(sel, [...glaciers].sort((a, b) => a[1].localeCompare(b[1])));
+  sel.value = glaciers.has(keep) ? keep : '';
+}
+function hashState(){ return Object.entries(only ? { item: only } : { region: $('fRegion').value, glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value }).filter(([, v]) => v); }
 function applyHash(){
   const p = new URLSearchParams(location.hash.slice(1));
   only = /^[a-f0-9]{24}$/.test(p.get('item') || '') ? p.get('item') : '';
+  $('fRegion').value = !only && REGIONS.some(r => r.id === p.get('region')) ? p.get('region') : ''; if ($('fRegion').selectedIndex < 0) $('fRegion').value = ''; fillGlaciers();
   [['glacier', 'fGlacier'], ['year', 'fYear'], ['type', 'fType'], ['style', 'fStyle']].forEach(([k, id]) => { $(id).value = only ? '' : p.get(k) || ''; if ($(id).selectedIndex < 0) $(id).value = ''; });
   render();
 }

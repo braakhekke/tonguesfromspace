@@ -1,7 +1,13 @@
+import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, trailsHtml, GLACIER_INFO } from './01-data.js';
+import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
+import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, isLandsat, LANDSAT_BANDS, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
+import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
+import { map, osm, topo, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, tlLayers } from './05-map.js';
+import { statusLine, updateTags } from './06-scene-search.js';
 /* =====================================================================
    7. Rendering
    ===================================================================== */
-function renderGlacierList(){
+export function renderGlacierList(){
   const ul = document.getElementById('glacierList'); ul.innerHTML = '';
   GLACIERS.forEach((g, i) => {
     const area = rankArea(g);
@@ -24,22 +30,22 @@ function renderGlacierList(){
   if (typeof refreshStreetView === 'function') refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
 }
 /* The outlets of an ice cap (g.subs, scripts/build_cap_images.py): the name rests on the RGI 6.0 or on the sources in `basis`; a name marked approx is inferred, and said so */
-const subTitle = sb => `${sb.approx ? 'Name inferred, not certain. ' : ''}${sb.basis}`;
-let subFocus = null;      // {gid, k}: the outlet of the chosen ice cap that was clicked last; the 3D view then shows a strip along that outlet (v3dGlacier); the Tongue and Whole glacier buttons clear it
-function focusSub(g, k){
+export const subTitle = sb => `${sb.approx ? 'Name inferred, not certain. ' : ''}${sb.basis}`;
+export let subFocus = null;      // {gid, k}: the outlet of the chosen ice cap that was clicked last; the 3D view then shows a strip along that outlet (v3dGlacier); the Tongue and Whole glacier buttons clear it
+export function focusSub(g, k){
   const sb = g.subs[k]; if (!sb) return;
   subFocus = {gid: g.id, k};
   if (viewMode === '3d' && typeof open3D === 'function') return open3D();      // the 3D view moves to the outlet's own strip
   map.fitBounds(L.latLngBounds(sb.bounds), {paddingTopLeft: PHONE.matches ? [24, 64] : [40, 80], paddingBottomRight: PHONE.matches ? [24, 100] : [40, 110], maxZoom: 14});
 }
 /* the title of the layer segment that belongs to the chosen glacier, in the map menu and in the 3D menu */
-function renderLayerTitles(){
+export function renderLayerTitles(){
   const g = glacierPicked ? currentGlacier() : null, t = g ? `For ${g.name}` : 'For this glacier';
   ['lbTitle', 'l3Title'].forEach(id => { const el = document.getElementById(id); if (el) el.textContent = t; });
 }
 
 /* Timelapse: one slider with two handles, the chosen first and last year at its ends. A handle only stops on years that have a picture. */
-function renderYearRange(){
+export function renderYearRange(){
   const box = document.getElementById('yearsRange'), n = YEARS.length - 1;
   const lo = Math.min(state.from, state.to), hi = Math.max(state.from, state.to), i = y => YEARS.indexOf(y);
   box.innerHTML = `<div class="yr-vals"><b id="yrLo">${lo}</b><span>to</span><b id="yrHi">${hi}</b></div>
@@ -60,7 +66,7 @@ function renderYearRange(){
   });
   paint();
 }
-function yearChips(boxId, key, opts = {}){
+export function yearChips(boxId, key, opts = {}){
   const box = document.getElementById(boxId); box.innerHTML = '';
   YEARS.forEach(y => {
     const b = document.createElement('button');
@@ -84,7 +90,7 @@ function yearChips(boxId, key, opts = {}){
   });
 }
 /* The specials row of One year: the oldest aerial image of the glacier's box, the newest scene of the last weeks */
-function specialChips(){
+export function specialChips(){
   const box = document.getElementById('yearsSpecial'), boxC = document.getElementById('yearsSpecialC'); box.innerHTML = ''; boxC.innerHTML = '';      // One year: Oldest and Latest; Slider: Latest on the right side (Oldest is one picture, no pair)
   if (!FEATURES.oldest && !FEATURES.latest) return;      // the chips need data of the region (the oldest aerial picture, the cloud masks of the Latest scene); without both the rows are hidden (applyRegionUi)
   const og = currentGlacier(); if (FEATURES.oldest) ensureOldest(og); const oldest = FEATURES.oldest ? oldestAerial.get(og.id) : null;      // {ed, flown}, null: no aerial image, undefined: still asked
@@ -104,7 +110,7 @@ function specialChips(){
   if (!state.oldestAerial) { l.classList.add('sat-need'); lc.classList.add('sat-need'); }      // Oldest runs without the Sentinel-2 picture: the chips must stay usable then, to leave it
 }
 /* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
-function syncPane(){
+export function syncPane(){
   try {
     if (!$('videoSheet').hidden && !vstate.busy && !v3dBusy) {            // the pane follows the mode buttons: a timelapse is an animation, one year is a picture
       if (state.mode === 'timelapse' && vstate.kind === 'image') return openVideo('video', true);
@@ -115,7 +121,7 @@ function syncPane(){
   } catch {}
 }
 /* Image metadata (dropdown under Image settings): the scene behind every year, the pictures on show marked, and what the pictures are made of */
-function renderMeta(){
+export function renderMeta(){
   const box = document.getElementById('metaBody'); if (!box) return;
   const g = currentGlacier(), ys = okYears();
   if (!g || !state.checked || !ys.length) { box.innerHTML = '<p class="meta-note">Shown when the scenes have been found.</p>'; return; }
@@ -140,8 +146,8 @@ function renderMeta(){
     <p class="meta-note">${noteLs ? `${noteS2 ? '<b>Before 2016:</b> ' : ''}Landsat Collection 2 Level-2 (surface reflectance), ${STYLE_NAME[state.style] || STYLE_NAME.natural} (${LANDSAT_BANDS[state.style] || LANDSAT_BANDS.natural}), 30 m pixels, smoothed when enlarged. The scene is named by its path and row (e.g. P216R015). Gaps in Landsat 7 pictures (2003 to 2012) are filled along the ice flow. ${noteS2 ? '<br><b>Since 2016:</b> ' : ''}` : ''}${noteS2 ? `Sentinel-2 L1C, bands ${bands}, ${state.style === 'false2' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.` : ''}${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
     <button type="button" class="meta-dl" id="metaDl">Download as CSV</button>`;
 }
-let metaCsv = [];      // the rows of the table as shown, with the figures and whole ids the table leaves out
-function downloadMetaCsv(){
+export let metaCsv = [];      // the rows of the table as shown, with the figures and whole ids the table leaves out
+export function downloadMetaCsv(){
   const g = currentGlacier(); if (!g || metaCsv.length < 2) return;
   const q = v => /[",\n]/.test(String(v)) ? '"' + String(v).replace(/"/g, '""') + '"' : String(v);
   const a = document.createElement('a'), url = URL.createObjectURL(new Blob([metaCsv.map(r => r.map(q).join(',')).join('\n') + '\n'], {type: 'text/csv'}));
@@ -150,15 +156,15 @@ function downloadMetaCsv(){
 document.getElementById('metaBox').addEventListener('toggle', renderMeta);      // the catalogue is asked when the table opens
 document.getElementById('metaBody').addEventListener('click', e => { if (e.target.id === 'metaDl') return downloadMetaCsv(); const c = e.target.closest('.copy'); if (!c || !navigator.clipboard) return;
   navigator.clipboard.writeText(c.dataset.copy.replace(/ /g, '\n')).then(() => { const t = c.textContent; c.textContent = 'Copied'; setTimeout(() => { c.textContent = t; }, 1200); }, () => {}); });
-function renderYears(){
+export function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
   renderYearRange(); yearChips('yearsOne', 'one'); specialChips(); renderMeta();
   if (typeof renderMobileBar === 'function') renderMobileBar();
   syncPane();
 }
-function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
+export function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
 
-function renderMode(){
+export function renderMode(){
   const tl = state.mode !== 'compare';          // timelapse and one year both show on the single image pane
   document.getElementById('app').classList.toggle('is-timelapse', tl);
   document.getElementById('app').classList.toggle('photos-ok', state.mode === 'single'); syncFullPlay();      // the old photographs are for one year only
@@ -183,24 +189,24 @@ function renderMode(){
     false2: 'Snow and ice look red, clouds white, rock pale, water black.'
   }[state.style];
 }
-function setStyle(st){
+export function setStyle(st){
   state.style = prefs.style = st; savePrefs();
   renderMode(); renderMeta();      // the image metadata names the bands and pixel size of the style
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
   renderStory(); sync3D();
 }
 /* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Remembered. */
-const BRIGHT_DEFAULT = 1.0;      // the colour process above is already balanced
-const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGHT_DEFAULT;
+export const BRIGHT_DEFAULT = 1.0;      // the colour process above is already balanced
+export const brightness = () => typeof prefs.bright === 'number' ? prefs.bright : BRIGHT_DEFAULT;
 /* Brightness is applied to the image pixels in a canvas (same gamma curve, white stays white).
    CSS/SVG filters on page elements do not work in Safari on iPhone, so no filters are used. */
-const liveImages = new Set();
-const adjCache = new Map();
+export const liveImages = new Set();
+export const adjCache = new Map();
 /* Outside the 1850 outline: the image gets this opacity there (1 = untouched), so the background map shows through. Needs the glacier's outline. */
-const outsideAlpha = () => typeof prefs.outside === 'number' ? prefs.outside : 1;
-const stampOf = (b, o) => b.toFixed(2) + '|' + (o < 0.99 ? o.toFixed(2) : '');
-const outlineGeom = g => g && g.inv && g.inv.oldest ? g.inv.oldest.outline : null;
-function adjustedUrl(orig, b, o, g){
+export const outsideAlpha = () => typeof prefs.outside === 'number' ? prefs.outside : 1;
+export const stampOf = (b, o) => b.toFixed(2) + '|' + (o < 0.99 ? o.toFixed(2) : '');
+export const outlineGeom = g => g && g.inv && g.inv.oldest ? g.inv.oldest.outline : null;
+export function adjustedUrl(orig, b, o, g){
   const geom = o < 0.99 ? outlineGeom(g) : null;
   if (Math.abs(b - 1) < 0.01 && !geom) return Promise.resolve(orig);
   const key = orig + '|' + stampOf(b, o);
@@ -230,7 +236,7 @@ function adjustedUrl(orig, b, o, g){
   })());
   return adjCache.get(key);
 }
-function showImage(ov, orig){
+export function showImage(ov, orig){
   ov._orig = orig; liveImages.add(ov);
   const b = brightness(), o = outsideAlpha(), stamp = stampOf(b, o);
   /* a picture counts as ready when its final image is loaded and decoded (a timelapse waits for this, otherwise the first run flashes blank frames) */
@@ -241,9 +247,9 @@ function showImage(ov, orig){
   };
   adjustedUrl(orig, b, o, ov._g).then(u => { if (ov._orig === orig && stampOf(brightness(), outsideAlpha()) === stamp) { ov._hiStamp = stamp; put(u); } }).catch(() => put(orig));
 }
-let brightTimer = null, refreshGen = 0;
-const visibleOv = ov => ov.options.opacity > 0 && ov.getPane && ov.getPane().style.display !== 'none';
-function refreshImages(){            // after a change of brightness or of the outside opacity: drop old results, redo the pictures on the map (the ones on show first)
+export let brightTimer = null, refreshGen = 0;
+export const visibleOv = ov => ov.options.opacity > 0 && ov.getPane && ov.getPane().style.display !== 'none';
+export function refreshImages(){            // after a change of brightness or of the outside opacity: drop old results, redo the pictures on the map (the ones on show first)
   clearTimeout(brightTimer);
   brightTimer = setTimeout(() => {
     const gen = ++refreshGen, keep = '|' + stampOf(brightness(), outsideAlpha());
@@ -255,8 +261,8 @@ function refreshImages(){            // after a change of brightness or of the o
 }
 /* While the brightness slider moves, the full pictures (up to 2,500 px, a timelapse holds a dozen) are far too much work for every step: each step is shown on small copies of
    the pictures (one pass per screen frame, every frame of a timelapse too), and the full pictures follow when the slider rests (refreshImages). */
-const PREVIEW_PX = 640, smallCache = new Map();      // original url -> small canvas
-function smallOf(orig){
+export const PREVIEW_PX = 640, smallCache = new Map();      // original url -> small canvas
+export function smallOf(orig){
   if (!smallCache.has(orig)) {
     if (smallCache.size >= 40) smallCache.delete(smallCache.keys().next().value);
     smallCache.set(orig, (async () => {
@@ -269,8 +275,8 @@ function smallOf(orig){
   }
   return smallCache.get(orig);
 }
-let previewQueued = false;
-function previewBrightness(){
+export let previewQueued = false;
+export function previewBrightness(){
   if (previewQueued) return;
   previewQueued = true;
   requestAnimationFrame(() => {
@@ -297,13 +303,13 @@ function previewBrightness(){
     });
   });
 }
-function applyBrightness(){
+export function applyBrightness(){
   const b = brightness();
   document.getElementById('brightness').value = b;
   document.getElementById('brightnessOut').textContent = `${Math.round(b * 100)} %`;
   refreshImages();
 }
-function syncOutsideUi(){            // the slider on the map panel and the one in the download pane are one setting
+export function syncOutsideUi(){            // the slider on the map panel and the one in the download pane are one setting
   const o = outsideAlpha(), has = !!outlineGeom(typeof currentGlacier === 'function' ? currentGlacier() : null);
   [['outside', 'outsideOut'], ['vOutside', 'vOutsideOut']].forEach(([id, out]) => {
     const el = document.getElementById(id); if (!el) return;
@@ -317,8 +323,8 @@ function syncOutsideUi(){            // the slider on the map panel and the one 
 ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'aerialToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
 /* While the download pane is open and the picture outside the outline is made transparent, the background layers are switched off: a download has no map underneath, so the preview must not show one.
    They come back when the opacity returns to 100 % or the pane closes (a layer you switched on again yourself stays on). The saved layer settings are not touched. */
-let bgOff = null, labelsAuto = false, trailsAuto = false;
-function syncBackgrounds(){
+export let bgOff = null, labelsAuto = false, trailsAuto = false;
+export function syncBackgrounds(){
   const open = !document.getElementById('videoSheet').hidden, labelsEl = document.getElementById('labelsToggle');
   const flipLabels = on => { labelsEl.checked = on; labelsEl.dispatchEvent(new Event('change')); };
   if (open && labelsEl.checked && !labelsAuto) { labelsAuto = true; flipLabels(false); }              // place labels stay off while a download pane is open
@@ -335,15 +341,15 @@ function syncBackgrounds(){
   prefs.mosaic = keep.mosaic; prefs.osm = keep.osm; prefs.topo = keep.topo; prefs.alti = keep.alti; savePrefs();
 }
 /* Opacity of the whole satellite image (all years, compare and timelapse): the background layers show through. Remembered. */
-const imgOpacity = () => typeof prefs.imgOpacity === 'number' ? prefs.imgOpacity : 1;
-function applyImgOpacity(){
+export const imgOpacity = () => typeof prefs.imgOpacity === 'number' ? prefs.imgOpacity : 1;
+export function applyImgOpacity(){
   const o = imgOpacity();
   ['paneA', 'paneB', 'paneT'].forEach(n => { map.getPane(n).style.opacity = o; });
   ['imgOpacity', 'mapOp'].forEach(id => { document.getElementById(id).value = o; document.getElementById(id + 'Out').textContent = `${Math.round(o * 100)} %`; });
 }
 ['imgOpacity', 'mapOp'].forEach(id => document.getElementById(id).oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } });
 applyImgOpacity();
-const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); if (viewMode === '3d') refresh3D(); };      // the 3D picture is made again too
+export const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); if (viewMode === '3d') refresh3D(); };      // the 3D picture is made again too
 ['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
 syncOutsideUi();
 document.getElementById('brightness').oninput = e => {
@@ -353,11 +359,11 @@ document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
 document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 
-let storyTab = HASH_TAB || (REGION.rgi ? 'look' : 'figures');     // tab in the right panel: Stats on start, then kept when switching glacier
+export let storyTab = HASH_TAB || (REGION.rgi ? 'look' : 'figures');     // tab in the right panel: Stats on start, then kept when switching glacier
 /* The cards of the Switzerland tab: the same stack as in Discover; one open at a time, the choice remembered */
-const scard = (key, icon, title, html, sum = '') => `<details class="card dcard coll" name="swiss" data-card="${key}"${cardOpen(key) ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div>${sum}</summary><div class="dbody">${html}</div></details>`;
+export const scard = (key, icon, title, html, sum = '') => `<details class="card dcard coll" name="swiss" data-card="${key}"${cardOpen(key) ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div>${sum}</summary><div class="dbody">${html}</div></details>`;
 /* The selected glacier against all of Switzerland: its share of the ice (filled in when the volume is known), of the area, and its place among the glaciers of the inventory */
-function shareBody(g){
+export function shareBody(g){
   const inv = DATA && DATA.inventory, count = inv && inv.count, area = g.inv ? g.inv.area_km2 : null, rank = g.inv ? g.inv.rank : null;
   const areaPct = inv && area ? area / inv.area_km2 * 100 : null;
   const place = rank === 1 ? 'the largest' : rank ? `no. ${rank} by area` : '';
@@ -369,14 +375,14 @@ function shareBody(g){
 `;
 }
 /* The cards of the Discover tab lie in a stack, each over the foot of the one before, so only the titles show. A click opens one card (name= makes them exclusive). */
-const dcard = (icon, title, html) => `<details class="card dcard coll" name="discover"><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div></summary><div class="dbody">${html}</div></details>`;
+export const dcard = (icon, title, html) => `<details class="card dcard coll" name="discover"><summary><div class="card-h"><span class="ico">${ICONS[icon]}</span>${title}</div></summary><div class="dbody">${html}</div></details>`;
 /* The identity of a chapter across redraws: its title, not the whole summary (that also holds the headline figure, which changes with the years) */
-const cardKey = d => { const t = d.querySelector('summary h4, summary .card-h'); return (t || d.firstElementChild).textContent.trim(); };
+export const cardKey = d => { const t = d.querySelector('summary h4, summary .card-h'); return (t || d.firstElementChild).textContent.trim(); };
 /* The About block at the foot of the right panel, the same for every region: its chapters (a list of <details>) between the heading and the social links with the invitation to GitHub.
    Switzerland's chapters are aboutChaptersCh(), Iceland's aboutChaptersIc() (js/07a-region-icecaps.js). */
 /* The paragraph on the Landsat pictures before 2016 that every region's chapter The satellite images has (the switch under the years): what they are and how they differ from Sentinel-2 */
-const landsatAbout = rule => `<p><em>Before 2016: Landsat.</em> Sentinel-2 starts in 2016. A switch under the years adds Landsat 5 and 7 pictures (Collection 2 Level-2, 30 m pixels instead of Sentinel-2's 10 m, so with less detail; USGS) for the years from ${REGION.landsat ? REGION.landsat.first : 1985} to 2013, chosen by the same rules: one scene per year, ${rule}, the whole picture covered where there is such a scene. Years without a usable scene have no picture. The three colour styles are available: natural colour (red, green, blue) and the false colour styles from the near infrared and the shortwave infrared bands that Landsat has too (false colour 1: near infrared, red, green; false colour 2: near infrared and the two shortwave infrared bands, the counterparts of Sentinel-2 B8A, B11 and B12). The colours of the years are matched to each other on a patch of ground without ice, so that sensors and seasons look alike, and every picture is shifted onto the Sentinel-2 mosaic where it lies off. Landsat 7 pictures after 2003 have stripes of missing data; these are filled by interpolating along the direction of the ice flow, which is read from the streaks in the picture itself (medial moraines, flow lines). That is a repair of the picture, not data. Landsat 8 (2013 to 2015) is not used: its surface reflectance is not usable over ice, shade and water. The pictures are kept at the real 30 m pixels of Landsat (one picture pixel = one Landsat pixel, cut with nearest neighbour) and shown without smoothing, so no detail is invented. Landsat pictures are not corrected for slope shading. In the 3D view they are draped over the ice surface of their year where the glacier has a terrain file with a surface for each year (before 2011 over the surface of 2011), otherwise over the one elevation model. For a glacier so small that its picture is under 400 Landsat pixels across, the switch says "not recommended".</p>`;
-const aboutFrame = chapters => `    <div class="about-wrap">
+export const landsatAbout = rule => `<p><em>Before 2016: Landsat.</em> Sentinel-2 starts in 2016. A switch under the years adds Landsat 5 and 7 pictures (Collection 2 Level-2, 30 m pixels instead of Sentinel-2's 10 m, so with less detail; USGS) for the years from ${REGION.landsat ? REGION.landsat.first : 1985} to 2013, chosen by the same rules: one scene per year, ${rule}, the whole picture covered where there is such a scene. Years without a usable scene have no picture. The three colour styles are available: natural colour (red, green, blue) and the false colour styles from the near infrared and the shortwave infrared bands that Landsat has too (false colour 1: near infrared, red, green; false colour 2: near infrared and the two shortwave infrared bands, the counterparts of Sentinel-2 B8A, B11 and B12). The colours of the years are matched to each other on a patch of ground without ice, so that sensors and seasons look alike, and every picture is shifted onto the Sentinel-2 mosaic where it lies off. Landsat 7 pictures after 2003 have stripes of missing data; these are filled by interpolating along the direction of the ice flow, which is read from the streaks in the picture itself (medial moraines, flow lines). That is a repair of the picture, not data. Landsat 8 (2013 to 2015) is not used: its surface reflectance is not usable over ice, shade and water. The pictures are kept at the real 30 m pixels of Landsat (one picture pixel = one Landsat pixel, cut with nearest neighbour) and shown without smoothing, so no detail is invented. Landsat pictures are not corrected for slope shading. In the 3D view they are draped over the ice surface of their year where the glacier has a terrain file with a surface for each year (before 2011 over the surface of 2011), otherwise over the one elevation model. For a glacier so small that its picture is under 400 Landsat pixels across, the switch says "not recommended".</p>`;
+export const aboutFrame = chapters => `    <div class="about-wrap">
     <details class="about">
       <summary><svg class="about-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle class="dot" cx="12" cy="7.6" r="1"/></svg> About Tongues from Space</summary>
 ${chapters}
@@ -386,19 +392,19 @@ ${chapters}
       <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span><b>Support the tongues!</b> The code is open: join in, build a dashboard for your own region, or <a href="https://github.com/braakhekke/tonguesfromspace/issues/new" target="_blank" rel="noopener">open an issue</a> to ask for a glacier, a question or your own text on a visual.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/<wbr>tonguesfromspace</a></em></span></div>
     </div>`;
 /* Chapters of About that every region shares (Sentinel-2, the colours); extra: a region's own sentence at the end of the Temporal paragraph */
-const aboutSentinel = extra => `<details class="about-ch" name="aboutch" id="ch-3"><summary>Sentinel-2</summary><div class="about-sec">
+export const aboutSentinel = extra => `<details class="about-ch" name="aboutch" id="ch-3"><summary>Sentinel-2</summary><div class="about-sec">
         <p>Two European satellites of the Copernicus programme (2A since 2015, 2B since 2017), looking straight down on a strip 290 km wide.</p>
         <p><em>Spatial:</em> pixels of 10 m (blue, green, red and near infrared), 20 m (six bands) or 60 m (three). Details under about 10 m are invisible. Natural and False 1 use 10 m bands; False 2 uses 20 m bands and looks softer.</p>
         <p><em>Spectral:</em> 13 bands, from visible light (about 443 nm) to shortwave infrared (about 2190 nm).</p>
         <p><em>Temporal:</em> each satellite returns every 10 days, both together every 5 days at the equator and more often at higher latitudes. ${extra}</p>
       </div></details>`;
-const aboutColours = () => `<details class="about-ch" name="aboutch" id="ch-4"><summary>The colours</summary><div class="about-sec">
+export const aboutColours = () => `<details class="about-ch" name="aboutch" id="ch-4"><summary>The colours</summary><div class="about-sec">
         <p>Each picture combines three bands as red, green and blue. False 1 and False 2 are false colours: the colours are a code, not what you would see.</p>
         <p><em>Natural</em> (B04, B03, B02): as our eyes see it. Snow white, rock grey, plants green.</p>
         <p><em>False 1</em> (B08, B04, B03), infrared: near infrared shown as red. Plants red, snow white, bare ice grey, water dark/blue; this sets bare ice, snow and vegetation apart.</p>
         <p><em>False 2</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental, handy to tell ice from cloud.</p>
       </div></details>`;
-function aboutChaptersCh(){
+export function aboutChaptersCh(){
   return `      <details class="about-ch" name="aboutch" id="ch-1"><summary>Why Tongues from Space</summary><div class="about-sec">
         <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
         <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
@@ -452,7 +458,7 @@ function aboutChaptersCh(){
       </div></details>
 `;
 }
-function renderStory(){
+export function renderStory(){
   if (REGION.rgi) return renderStoryIcecap();      // js/07a-region-icecaps.js
   const g = currentGlacier(); if (typeof updateRightTab === 'function') updateRightTab();
   { const a = document.getElementById('sizeLink'); if (a) a.href = sizeHref(g); }      // the size comparison opens with this glacier picked
@@ -523,13 +529,13 @@ ${aboutFrame(aboutChaptersCh())}`;
 }
 
 /* ---------- Copernicus Browser deep link ---------- */
-function cbYears(){
+export function cbYears(){
   const ys = state.mode !== 'compare'
     ? [tlLayers[state.frame] ? tlLayers[state.frame].yr : state.to]
     : [state.a, state.b];
   return [...new Set(ys.filter(y => y && state.available[y]))].sort();
 }
-function copernicusBrowserUrl(year){
+export function copernicusBrowserUrl(year){
   const c = map.getCenter(), z = Math.round(map.getZoom()), d = state.available[year].date;
   const q = new URLSearchParams({
     zoom: z, lat: c.lat.toFixed(5), lng: c.lng.toFixed(5), themeId: 'DEFAULT-THEME',
@@ -539,7 +545,7 @@ function copernicusBrowserUrl(year){
   return 'https://browser.dataspace.copernicus.eu/?' + q.toString();
 }
 /* the buttons of the Copernicus Browser card: one per scene on show */
-function cbButtonsHtml(){ return cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join(''); }
+export function cbButtonsHtml(){ return cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join(''); }
 /* About closes when another tab or card of the right panel is clicked (a click inside About itself, or on a source number that opens it, leaves it open) */
 document.getElementById('story').addEventListener('click', e => {
   const about = document.querySelector('#story details.about'); if (!about || !about.open) return;
@@ -552,7 +558,7 @@ document.getElementById('story').addEventListener('click', e => {
 });
 
 /* ---------- 8 key figures, the same for every glacier ---------- */
-const ICONS = {
+export const ICONS = {
   area:   '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7l6-3 9 3 1 9-7 4-9-4z"/></svg>',
   length: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12h18M3 8v8M21 8v8M8 12v-2.5M12 12v-3.5M16 12v-2.5"/></svg>',
   change: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l7 7 4-4 7 8M21 11v6h-6"/></svg>',
@@ -576,11 +582,12 @@ ICONS.flag = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 21V4M5 4h1
 ICONS.sum  = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 5H6l6 7-6 7h12"/></svg>';
 ICONS.cal  = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>';
 /* ---------- Sources: one numbered list (About, chapter Sources); the text carries small numbers that jump to the entry ---------- */
-const lnk = (u, t) => `<a href="${u}" target="_blank" rel="noopener">${t || u}</a>`;
-const SOURCES = {
+export const lnk = (u, t) => `<a href="${u}" target="_blank" rel="noopener">${t || u}</a>`;
+export const SOURCES = {
   sgi:    () => `GLAMOS: Swiss Glacier Inventory, editions SGI1850, SGI1973, SGI2016 and SGI2023 (areas, outlines, ranking by area). CC BY 4.0. ${lnk('https://www.glamos.ch', 'glamos.ch')}${DATA ? `. Downloaded for this site on ${DATA.generated}` : ''}.`,
   lc:     () => `GLAMOS: Glacier length change, release 2025. ${lnk('https://doi.org/10.18750/lengthchange.2025.r2025', 'doi:10.18750/lengthchange.2025.r2025')}. Non-commercial use. Length today: GLAMOS, ${lnk('https://doi.glamos.ch/figures/lc_stat_frequency.pdf', 'figure lc_stat_frequency')}.`,
   vc:     () => `GLAMOS: Glacier volume change (comparison of aerial elevation models), release 2025. ${lnk('https://doi.org/10.18750/volumechange.2025.r2025', 'doi:10.18750/volumechange.2025.r2025')}. Non-commercial use. The period of each survey is its own (for example 2015–2023) and is not the period of the image series.`,
+  itslive: () => `ITS_LIVE: annual velocity mosaics v2 (120 m, 2013 to 2022, region RGI11A), NASA MEaSUREs ITS_LIVE project, Gardner et al. ${lnk('https://its-live.jpl.nasa.gov', 'its-live.jpl.nasa.gov')}. CC BY 4.0. Surface speed of the ice, copied from the product; the maps are made from image pairs of Landsat 8/9, Sentinel-2 and Sentinel-1.`,
   swiss:  () => `GLAMOS: Swiss-wide glacier volume and mass balance, release 2025. ${lnk('https://doi.org/10.18750/massbalance.swisswide.2025.r2025', 'doi:10.18750/massbalance.swisswide.2025.r2025')}. Non-commercial use. Years after the last release: GLAMOS and SCNAT annual reports.`,
   mb:     () => `GLAMOS: Glaciological mass balance of single glaciers (Aletsch, Rhone, Corbassière, Findel), release 2025. ${lnk('https://doi.org/10.18750/massbalance.2025.r2025', 'doi:10.18750/massbalance.2025.r2025')}. Non-commercial use.`,
   radar:  () => `GLAMOS: Glacier ice thickness from ground-penetrating radar, release 2020. ${lnk('https://doi.org/10.18750/icethickness.2020.r2020', 'doi:10.18750/icethickness.2020.r2020')}. CC BY 4.0. Measured between 1958 and 2017, depending on the glacier.`,
@@ -608,13 +615,13 @@ const SOURCES = {
   water:  () => `Swiss water supply of about 930 million m³ a year: SVGW (Swiss Gas and Water Industry Association). Other comparisons: Eiffel Tower 330 m with antennas (${lnk('https://www.toureiffel.paris', 'toureiffel.paris')}), football pitch 105 × 68 m, city bus about 12 m, Olympic pool 50 × 25 × 2 m, Lake Zurich 3.9 km³.`,
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`
 };
-const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj)_/.test(k));      // the sources of the region, in the order of the list in About
+export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj)_/.test(k));      // the sources of the region, in the order of the list in About
 /* a small raised number in the text; the click opens About, the chapter Sources and shows the entry (a back-link returns to the text) */
-let fnSeq = 0;
+export let fnSeq = 0;
 /* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
-let dynSources = [];
-const gfn = html => { dynSources.push(html); const n = SOURCE_LIST.length + dynSources.length; return `<sup class="fn"><a href="#fn-g${dynSources.length}" id="fnr-g${dynSources.length}-${++fnSeq}" data-fn="g${dynSources.length}" aria-label="Source ${n}">${n}</a></sup>`; };
-const fn = k => `<sup class="fn"><a href="#fn-${k}" id="fnr-${k}-${++fnSeq}" data-fn="${k}" aria-label="Source ${SOURCE_LIST.indexOf(k) + 1}">${SOURCE_LIST.indexOf(k) + 1}</a></sup>`;
+export let dynSources = [];
+export const gfn = html => { dynSources.push(html); const n = SOURCE_LIST.length + dynSources.length; return `<sup class="fn"><a href="#fn-g${dynSources.length}" id="fnr-g${dynSources.length}-${++fnSeq}" data-fn="g${dynSources.length}" aria-label="Source ${n}">${n}</a></sup>`; };
+export const fn = k => `<sup class="fn"><a href="#fn-${k}" id="fnr-${k}-${++fnSeq}" data-fn="${k}" aria-label="Source ${SOURCE_LIST.indexOf(k) + 1}">${SOURCE_LIST.indexOf(k) + 1}</a></sup>`;
 document.addEventListener('click', e => {
   const a = e.target.closest && e.target.closest('a[data-fn]'); if (!a) return;
   e.preventDefault();
@@ -629,9 +636,9 @@ document.addEventListener('click', e => {
   const li = e.target.closest && e.target.closest('.src-list li[data-back]'); if (!li || e.target.closest('a')) return;
   const back = document.getElementById(li.dataset.back); if (back) back.scrollIntoView({block: 'center', behavior: 'smooth'});
 });
-const ok = v => v != null && !isNaN(v);
-const fmtM = m => ok(m) ? `${m < 0 ? '−' : m > 0 ? '+' : ''}${Math.abs(m).toLocaleString('en').replace(/,/g, '\u202f')} m` : null;
-function stats(g, lo, hi){
+export const ok = v => v != null && !isNaN(v);
+export const fmtM = m => ok(m) ? `${m < 0 ? '−' : m > 0 ? '+' : ''}${Math.abs(m).toLocaleString('en').replace(/,/g, '\u202f')} m` : null;
+export function stats(g, lo, hi){
   const inv = g.inv;
   const a1850 = inv ? (inv.oldest && inv.oldest.area_km2) : g.a1850;
   const aRef = rankArea(g), refY = inv ? (inv.year || rankLabel()) : 2016;
@@ -704,7 +711,7 @@ function stats(g, lo, hi){
 /* Mean ice thickness change per year of one glacier, from the GLAMOS volume surveys (volume.series: [from, to, dV, dh, balance, sigma, covered %]).
    One bar per survey period, as wide as the period. Surveys overlap (the same glacier is compared from several older surveys), so the chain starts at the
    newest survey and goes back, each time taking the shortest survey that ends where the previous one starts. Gaps end the chain. */
-function thinningChain(g){
+export function thinningChain(g){
   const V = g.inv && g.inv.volume, all = V && V.series ? V.series.filter(r => r[6] >= 90 && r[1] > r[0]) : [];
   if (!all.length) return [];
   const chain = [];
@@ -717,21 +724,21 @@ function thinningChain(g){
   }
   return chain.map(r => ({from: r[0], to: r[1], dh: r[3], rate: r[3] / (r[1] - r[0]), bal: r[4], sigma: r[5]}));
 }
-const fmtRate = v => `${v < 0 ? '−' : v > 0 ? '+' : ''}${Math.abs(v).toFixed(2)}`;
+export const fmtRate = v => `${v < 0 ? '−' : v > 0 ? '+' : ''}${Math.abs(v).toFixed(2)}`;
 /* The chart covers the years of the images, FIRST_YEAR to the last year with data. Every year is one slot, centred on its number: the bar of 2019 is the
    hydrological year Oct 2018 - Sep 2019, which ends in the autumn of the 2019 image. The elevation-model surveys (the tiles above the chart) are not drawn here: a survey spans many years and its mean says nothing about single years.
    The years you select in step 2 are marked, and the line below the chart gives their yearly mean (from the yearly values, not from the survey periods). */
 /* Bars as in "Retreat per year": one bar per year, loss red, gain blue, a readout in the corner of the title on hover. items: [{lab, v, t}] */
-const r_in = (y, lo, hi) => y >= Math.min(lo, hi) && y <= Math.max(lo, hi);      // is the year inside the selected years (both ends count)
-function barChart(title, unit, items, aria, extra = ''){
+export const r_in = (y, lo, hi) => y >= Math.min(lo, hi) && y <= Math.max(lo, hi);      // is the year inside the selected years (both ends count)
+export function barChart(title, unit, items, aria, extra = ''){
   const W = 300, H = 120, T = 6, B = 22, mx = Math.max(0, ...items.map(r => r.v ?? 0)), mn = Math.min(0, ...items.map(r => r.v ?? 0)), span = (mx - mn) || 1;
   const Y = v => T + (mx - v) / span * (H - T - B), step = W / items.length, bw = step * 0.62, anySel = items.some(r => r.sel);
   const bars = items.map((r, i) => { const x = i * step + (step - bw) / 2, y0 = Y(0), y1 = Y(r.v ?? 0), dim = anySel && !r.sel, col = r.v < 0 ? 'var(--accent)' : 'var(--crevasse)'; return `<g class="rb${r.sel ? ' sel' : ''}${r.avg ? ' avg' : ''}" data-t="${r.t}"><rect class="hit" x="${(i * step).toFixed(1)}" y="0" width="${step.toFixed(1)}" height="${H}" fill="transparent"/>${r.v == null ? '' : `<rect class="bar-r" x="${x.toFixed(1)}" y="${Math.min(y0, y1).toFixed(1)}" width="${bw.toFixed(1)}" height="${Math.max(1.5, Math.abs(y1 - y0)).toFixed(1)}" fill="${col}"${r.avg ? ` stroke="${col}" stroke-dasharray="2 2"` : ''} fill-opacity="${dim ? (r.avg ? '.18' : '.32') : (r.avg ? '.5' : '1')}"/>`}<text x="${(x + bw / 2).toFixed(1)}" y="${H - 8}" text-anchor="middle"${r.sel ? ' class="sel"' : ''}>${r.lab}</text>${r.sel ? `<rect x="${x.toFixed(1)}" y="${H - 4}" width="${bw.toFixed(1)}" height="2.5" fill="var(--accent)"/>` : ''}</g>`; }).join('');
   return `<div class="chart-t"><span class="ct">${title}</span></div>${extra}<svg class="ch" viewBox="0 0 ${W} ${H}" role="img" aria-label="${aria}"><line x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="var(--rule)"/>${bars}</svg><div class="rb-read" data-def="Hover a bar for its value.">Hover a bar for its value.</div>`;
 }
 /* Ice thickness change of the years in your selection (all years when no range is chosen), per year or added up since the start of the selection. The yearly values are the mass balance as metres of ice. */
-let thinMode = 'year';
-function thinningChart(g, lo, hi){
+export let thinMode = 'year';
+export function thinningChart(g, lo, hi){
   const own = g.inv && g.inv.balance && g.inv.balance.length ? g.inv.balance : null, ann = own || (DATA && DATA.swiss_balance) || [];
   const annLabel = own ? 'this glacier' : 'all Swiss glaciers';
   const last = Math.max(FIRST_YEAR, ...ann.map(r => r[0]));
@@ -761,8 +768,8 @@ document.addEventListener('click', e => {          // "Show on map" in the stats
 });
 /* Symbols that make a loss easy to grasp. Thickness: the Eiffel Tower (330 m) whose top, as many metres as the glacier lost in thickness, is melting away.
    Area: football pitches. Length: city buses end to end. Water: Olympic swimming pools. Sizes: pitch 105 x 68 m, bus 12 m, pool 50 x 25 x 2 m = 2.5 million litres. */
-const TOWER_SHAPE = '<path d="M30 0 C31 55 34 100 41 126 C45 138 52 150 58 160 L46 160 C42 146 36 138 30 138 C24 138 18 146 14 160 L2 160 C8 150 15 138 19 126 C26 100 29 55 30 0 Z"/><rect x="15" y="130.5" width="30" height="3"/><rect x="22" y="101.5" width="16" height="3"/><rect x="26.5" y="24.5" width="7" height="2.5"/>';
-function towerSvg(frac){
+export const TOWER_SHAPE = '<path d="M30 0 C31 55 34 100 41 126 C45 138 52 150 58 160 L46 160 C42 146 36 138 30 138 C24 138 18 146 14 160 L2 160 C8 150 15 138 19 126 C26 100 29 55 30 0 Z"/><rect x="15" y="130.5" width="30" height="3"/><rect x="22" y="101.5" width="16" height="3"/><rect x="26.5" y="24.5" width="7" height="2.5"/>';
+export function towerSvg(frac){
   const cut = (160 * Math.max(0.05, Math.min(0.9, frac))).toFixed(1);
   return `<svg class="sym sym-tower" viewBox="-2 -2 84 166" aria-hidden="true"><defs>
     <linearGradient id="melt" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#C8322A" stop-opacity=".08"/><stop offset="1" stop-color="#C8322A" stop-opacity=".55"/></linearGradient>
@@ -771,19 +778,19 @@ function towerSvg(frac){
     <g fill="url(#melt)" stroke="#C8322A" stroke-width="1.6" stroke-dasharray="3 2.2" clip-path="url(#tw-top)">${TOWER_SHAPE}</g>
     <path d="M68 .5 H74 V${cut} H68" fill="none" stroke="#C8322A" stroke-width="1.4"/></svg>`;
 }
-const SYM_SVG = {
+export const SYM_SVG = {
   pitch: '<svg class="sym sym-pitch" viewBox="0 0 105 68" aria-hidden="true"><rect width="105" height="68" rx="3" fill="#5E9A5B"/><g fill="none" stroke="#fff" stroke-width="1" opacity=".9"><rect x="2.5" y="2.5" width="100" height="63"/><path d="M52.5 2.5v63"/><circle cx="52.5" cy="34" r="9"/><rect x="2.5" y="13.8" width="16.5" height="40.4"/><rect x="86" y="13.8" width="16.5" height="40.4"/><rect x="2.5" y="24.8" width="5.5" height="18.4"/><rect x="97" y="24.8" width="5.5" height="18.4"/></g></svg>',
   bus: '<svg class="sym sym-bus" viewBox="0 0 120 44" aria-hidden="true"><rect x="2" y="4" width="116" height="30" rx="7" fill="#F2C230"/><g fill="#34505E"><rect x="9" y="9" width="14" height="12" rx="2"/><rect x="26" y="9" width="14" height="12" rx="2"/><rect x="43" y="9" width="14" height="12" rx="2"/><rect x="60" y="9" width="14" height="12" rx="2"/><rect x="77" y="9" width="14" height="12" rx="2"/><rect x="96" y="9" width="17" height="14" rx="3"/></g><rect x="2" y="26" width="116" height="3" fill="#C8322A"/><circle cx="28" cy="35" r="7" fill="#2B3A42"/><circle cx="28" cy="35" r="3" fill="#9AA6AC"/><circle cx="92" cy="35" r="7" fill="#2B3A42"/><circle cx="92" cy="35" r="3" fill="#9AA6AC"/></svg>',
   pool: '<svg class="sym sym-pool" viewBox="0 0 100 52" aria-hidden="true"><rect x="1" y="1" width="98" height="50" rx="4" fill="#5FB8D9" stroke="#9AA6AC" stroke-width="2"/><path d="M1 7.25H99M1 13.5H99M1 19.75H99M1 26H99M1 32.25H99M1 38.5H99M1 44.75H99" stroke="#fff" stroke-width="1.2" opacity=".85"/></svg>'
 };
 /* one line under a figure: the symbol, a big "x N" (or text for the tower) and what it counts */
-const symHtml = (y, note) => `<span class="sym-chip">≈ ${y.big ? y.big.replace(/^×\s*/, '') + ' ' : ''}${y.small}${note ? ' · ' + note : ''}</span>`;      /* a plain text chip instead of the drawings */
-const fmtCount = n => n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1000 ? (Math.round(n / 10) * 10).toLocaleString('en') : n >= 10 ? String(Math.round(n)) : n.toFixed(1);
+export const symHtml = (y, note) => `<span class="sym-chip">≈ ${y.big ? y.big.replace(/^×\s*/, '') + ' ' : ''}${y.small}${note ? ' · ' + note : ''}</span>`;      /* a plain text chip instead of the drawings */
+export const fmtCount = n => n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1000 ? (Math.round(n / 10) * 10).toLocaleString('en') : n >= 10 ? String(Math.round(n)) : n.toFixed(1);
 /* The four stat cards (Area, Length, Ice thickness and volume, Ice and water) open and close; closed, each shows its headline figure. The choice is remembered. */
-const maxLinkText = txt => document.getElementById('maxToggle').checked ? 'Close thickest measurement' : `Show thickest measurement on the map: ${txt}`;
+export const maxLinkText = txt => document.getElementById('maxToggle').checked ? 'Close thickest measurement' : `Show thickest measurement on the map: ${txt}`;
 /* A card that opens closes the one above (name="..."), which shifts the page up: put the title of the new card back in view */
-let restoringCards = false;
-function keepTitleVisible(d){
+export let restoringCards = false;
+export function keepTitleVisible(d){
   const sum = d.firstElementChild, story = $('story'), scr = story.scrollHeight > story.clientHeight + 2 && getComputedStyle(story).overflowY !== 'visible' ? story : null;
   const fix = () => {
     const top = scr ? scr.getBoundingClientRect().top : 0, r = sum.getBoundingClientRect().top - top - 8;
@@ -791,7 +798,7 @@ function keepTitleVisible(d){
   };
   requestAnimationFrame(() => requestAnimationFrame(fix));
 }
-const cardOpen = k => !!(prefs.cards && prefs.cards[k]);
+export const cardOpen = k => !!(prefs.cards && prefs.cards[k]);
 document.addEventListener('toggle', e => {
   const d = e.target;
   if (restoringCards) return;
@@ -800,17 +807,17 @@ document.addEventListener('toggle', e => {
   prefs.cards = {...(prefs.cards || {}), [d.dataset.card]: d.open}; savePrefs();
 }, true);
 /* The headline figure of a closed chapter: the number big, its unit small (-40 %, -3060 m, -0.15 km³). */
-const sumInner = text => { const m = String(text).match(/^([−+≈\s]*[\d.,\u202f]*\d(?:\s*%)?)\s*(.*)$/); return m ? `${m[1].trim()}${m[2] ? `<small>${m[2]}</small>` : ''}` : ''; };
-const sumValue = (text, cls, id) => { const h = sumInner(text); return h ? `<span class="sum-v ${cls || ''}"${id ? ` id="${id}"` : ''}>${h}</span>` : ''; };
+export const sumInner = text => { const m = String(text).match(/^([−+≈\s]*[\d.,\u202f]*\d(?:\s*%)?)\s*(.*)$/); return m ? `${m[1].trim()}${m[2] ? `<small>${m[2]}</small>` : ''}` : ''; };
+export const sumValue = (text, cls, id) => { const h = sumInner(text); return h ? `<span class="sum-v ${cls || ''}"${id ? ` id="${id}"` : ''}>${h}</span>` : ''; };
 /* Area of the glacier in the three inventories (1850, 1973, newest), as bars against the 1850 area. */
-function areaBars(g){
+export function areaBars(g){
   const inv = g.inv, a1850 = inv ? (inv.oldest && inv.oldest.area_km2) : g.a1850, a73 = inv && inv.mid && inv.mid.area_km2, aRef = rankArea(g), refY = inv ? (inv.year || rankLabel()) : 2016;
   const rows = [['1850', a1850], ['1973', a73], [String(refY), aRef]].filter(r => ok(r[1]));
   if (rows.length < 2 || !ok(a1850)) return '';
   return `<div class="area">${rows.map((r, i) => `<div><span>${r[0]}</span><i class="a${i}" style="width:${r[1] / a1850 * 100}%"></i><b>${r[1].toFixed(1)} km²</b></div>`).join('')}</div>`;
 }
 /* Length change of every year up to the chosen years (the GLAMOS series), as bars labelled by the year they end in: the bar of the first year (2015-2016) is what the summer picture of that year shows. Loss red, advance blue. */
-function retreatChart(g, lo, hi){
+export function retreatChart(g, lo, hi){
   const L = g.inv && g.inv.length, ser = L && L.series ? L.series.filter(r => r[1] > r[0] && r[1] >= FIRST_YEAR) : [];
   if (!ser.length) return '';
   const first = FIRST_YEAR, last = Math.max(...ser.map(r => r[1])), items = [];
@@ -824,8 +831,8 @@ function retreatChart(g, lo, hi){
   return barChart('Retreat per year', 'm', items, `Length change per year, ${first} to ${last}`) + (items.some(i => i.avg) ? '<p class="chart-note">Dashed bars: GLAMOS measured these years only together, so the change is spread evenly over them.</p>' : '') + (items.some(i => i.v == null) ? '<p class="chart-note">Empty years have no length survey.</p>' : '');
 }
 /* The size comparison page (size.html): the glacier is passed by its inventory id (the SGI code, glaciers.js `inv.id`). */
-const sizeHref = g => 'size.html' + (g && g.inv && g.inv.id ? '#g=' + g.inv.id : '');
-function renderStats(g, lo, hi){
+export const sizeHref = g => 'size.html' + (g && g.inv && g.inv.id ? '#g=' + g.inv.id : '');
+export function renderStats(g, lo, hi){
   const S = stats(g, lo, hi);
   const group = (key, title) => { return `
     <details class="stat-group dcard coll" name="stats" data-card="${key}"${cardOpen(key) ? ' open' : ''}>
@@ -850,7 +857,7 @@ function renderStats(g, lo, hi){
    The page asks that service for the glacier at its tongue and keeps a value only if
    - the returned glacier name matches the selected glacier,
    - the volume, read as km³ / million m³ / m³ by its size, gives a mean thickness of 10-500 m for the area. */
-const glacierVolume = (() => {
+export const glacierVolume = (() => {
   const cache = new Map();
   const pickNum = (attrs, re) => { for (const [k, v] of Object.entries(attrs)) if (re.test(k) && Number.isFinite(+v) && +v > 0) return +v; return null; };
   const toKm3 = v => v < 100 ? v : v < 1e6 ? v / 1000 : v / 1e9;
@@ -890,7 +897,7 @@ const glacierVolume = (() => {
 })();
 /* Grab et al. (2021) give the ice of each glacier around 2016. The national yearly losses (GLAMOS) tell how much of the Swiss ice is left
    since then. Applied to one glacier this is an estimate: single glaciers lose more or less than the average. */
-const iceShareLeft = () => iceVolume(VOLUME_LOSS[VOLUME_LOSS.length - 1].y) / iceVolume(2016);
+export const iceShareLeft = () => iceVolume(VOLUME_LOSS[VOLUME_LOSS.length - 1].y) / iceVolume(2016);
 /* The ice of one glacier in autumn `year`, in km³. v is its volume from the Grab et al. (2021) map (glacierVolume), the state of year R (v.yr, 2016 if unknown).
    Three measurements are combined:
    - the GLAMOS volume survey of this glacier (g.inv.volume: from, to, dV_km3): how much ice it really lost in that period;
@@ -899,8 +906,8 @@ const iceShareLeft = () => iceVolume(VOLUME_LOSS[VOLUME_LOSS.length - 1].y) / ic
    The survey says how much ice one metre of balance is worth for this glacier: c = dV / (sum of the balances in the survey period), in km³ per m w.e. Every
    other year is then loss = c x balance of that year, counted from R forwards or backwards. After the last year with a balance (the newest autumn) the Swiss
    volume curve continues. Without a survey the 2016 volume is scaled with the Swiss ice of that year, as before. Either way an estimate. */
-const volumeSurvey = g => { const V = g && g.inv && g.inv.volume; return V && V.covered_pct >= 90 && V.dV_km3 < 0 ? V : null; };
-function balanceModel(g){          // {bal(year) in m w.e. or undefined, own: this glacier's own series is used, c: km³ ice per m w.e.} or null
+export const volumeSurvey = g => { const V = g && g.inv && g.inv.volume; return V && V.covered_pct >= 90 && V.dV_km3 < 0 ? V : null; };
+export function balanceModel(g){          // {bal(year) in m w.e. or undefined, own: this glacier's own series is used, c: km³ ice per m w.e.} or null
   const V = volumeSurvey(g), swiss = DATA && DATA.swiss_balance;
   if (!V || !swiss || !swiss.length) return null;
   const sm = new Map(swiss), own = g.inv.balance ? new Map(g.inv.balance) : null;
@@ -912,7 +919,7 @@ function balanceModel(g){          // {bal(year) in m w.e. or undefined, own: th
   if (!(S > 0)) return null;
   return { bal, own: useOwn, c: -V.dV_km3 / S };
 }
-function glacierIceAt(g, v, year){
+export function glacierIceAt(g, v, year){
   const R = v.yr || 2016, M = balanceModel(g);
   if (!M) return v.km3 * iceVolume(year) / iceVolume(R);
   let vol = v.km3;
@@ -920,14 +927,14 @@ function glacierIceAt(g, v, year){
   else for (let t = year + 1; t <= R; t++) { const b = M.bal(t); if (b !== undefined) vol -= M.c * b; }
   return Math.max(0, vol);
 }
-const iceSource = g => { const V = volumeSurvey(g), M = balanceModel(g);
+export const iceSource = g => { const V = volumeSurvey(g), M = balanceModel(g);
   return M ? `Estimate: Grab et al. 2021, the GLAMOS volume survey ${V.from}–${V.to} and the yearly mass balance of ${M.own ? 'this glacier' : 'all Swiss glaciers'} (GLAMOS)`
            : 'Estimate: Grab et al. 2021 (ice around 2016), scaled with the yearly Swiss loss (GLAMOS)'; };
 /* The selected glacier's part of the Swiss ice, as a line above the figures of the Switzerland tab: its measured volume around 2016
    (Grab et al. 2021, via swisstopo), the latest volume survey, against the national ice of that year. */
-const shareText = sh => `${sh * 100 < 10 ? (sh * 100).toFixed(1) : Math.round(sh * 100)} %`;
+export const shareText = sh => `${sh * 100 < 10 ? (sh * 100).toFixed(1) : Math.round(sh * 100)} %`;
 /* "Thickest ice": the map of Grab et al. (2021), around 2016, replaces the radar maximum once swisstopo has answered; the radar value (older, often 1958-2012) moves to the note */
-function fillThickness(){
+export function fillThickness(){
   const g = currentGlacier(), tile = document.querySelector('.stat[data-slot="thick"]');
   if (!tile) return;
   glacierVolume(g).then(v => {
@@ -940,7 +947,7 @@ function fillThickness(){
     if (R && R.max_at && !tile.querySelector('.tile-link')) tile.insertAdjacentHTML('beforeend', `<button type="button" class="tile-link" data-act="radar-max" data-text="${R.max_m} m in ${R.max_year || 'the survey'} (radar)"><span class="tl-t">${maxLinkText(`${R.max_m} m in ${R.max_year || 'the survey'} (radar)`)}</span>${fn('radar')}</button>`);
   }).catch(() => {});
 }
-function renderShare(){
+export function renderShare(){
   const g = currentGlacier(), big = document.getElementById('shIce');
   if (!big) return;
   glacierVolume(g).then(v => {
@@ -952,7 +959,7 @@ function renderShare(){
     document.getElementById('shNote').innerHTML = `${v.km3.toFixed(1)} of ${total.toFixed(1)} km³${fn('grab')}${fn('swiss')}`;
   }).catch(() => {});
 }
-function renderGlacierWater(){
+export function renderGlacierWater(){
   const g = currentGlacier(), slot = document.getElementById('gWater');
   if (!slot) return;
   glacierVolume(g).then(v => {
@@ -975,15 +982,15 @@ function renderGlacierWater(){
 }
 
 /* ---------- "How much water?" ---------- */
-const fmtN = (n, d = 1) => n >= 1e12 ? `${(n / 1e12).toFixed(d)} trillion` : n >= 1e9 ? `${(n / 1e9).toFixed(d)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(d)} million` : Math.round(n).toLocaleString('en');
+export const fmtN = (n, d = 1) => n >= 1e12 ? `${(n / 1e12).toFixed(d)} trillion` : n >= 1e9 ? `${(n / 1e9).toFixed(d)} billion` : n >= 1e6 ? `${(n / 1e6).toFixed(d)} million` : Math.round(n).toLocaleString('en');
 /* Ice left in all Swiss glaciers since autumn 2016.
    Base: autumn 2016, the first year of the images. Counting back from GLAMOS (46.4 km³ at the end of 2024)
    gives 58.8 km³; an independent radar survey (Grab et al. 2021) measured 58.7 ± 2.5 km³ for 2016.
    The axis starts at 0 so the decline is shown at its true size. */
-const CUM_BASE_YEAR = 2016;
+export const CUM_BASE_YEAR = 2016;
 /* "How much ice is left?": what remains of the Swiss glacier ice, first as a share and in km³, then year by year (the ice left at the end of each year, or the share lost in each year), with your selected years marked. */
-let leftMode = 'left';
-function cumulativeChart(lo, hi){
+export let leftMode = 'left';
+export function cumulativeChart(lo, hi){
   const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, years = [];
   for (let y = CUM_BASE_YEAR; y <= last; y++) years.push(y);
   const vols = years.map(iceVolume), base = vols[0], end = vols[vols.length - 1];
@@ -1007,7 +1014,7 @@ function cumulativeChart(lo, hi){
     <figcaption>${selYears.length ? `Selected ${selLab}: Swiss glaciers lost <b>${selPct.toFixed(1)} %</b> of their ice, <b>${selLost.toFixed(1)} km³</b>, from autumn ${selYears[0] - 1} to autumn ${selYears[selYears.length - 1]}. ` : ''}</figcaption>
   </figure>`;
 }
-function waterSection(lo, hi){
+export function waterSection(lo, hi){
   const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last);
   if (!(lo && hi) || to < lo) return '<p class="sub-note">Choose a year or two in step 2 to see how much water melted from all Swiss glaciers.</p>';
   const litres = (iceVolume(lo - 1) - iceVolume(to)) * 0.9 * 1e12, km3 = litres / 1e12;
@@ -1025,8 +1032,8 @@ function waterSection(lo, hi){
   <div class="w-live" id="wLive"></div></div>`;
 }
 /* after each story render: count up the headline figure, start the live counter */
-let liveStart = Date.now(), liveTimer = null, lastCounted = null;
-function wireWater(){
+export let liveStart = Date.now(), liveTimer = null, lastCounted = null;
+export function wireWater(){
   const box = document.getElementById('waterBox');
   clearInterval(liveTimer);
   if (!box) return;
@@ -1045,7 +1052,7 @@ function wireWater(){
 }
 
 
-function renderOutlineControls(){
+export function renderOutlineControls(){
   if (REGION.rgi) {      // the outlines of the region's institute, cut to the glacier: the old one and the newest
     document.getElementById('oldLabel').textContent = `Outline ${REGION.outlines.old}`; document.getElementById('newLabel').textContent = `Outline ${REGION.outlines.new}`;
     document.getElementById('vOutlineLabel').textContent = `Show ${REGION.outlines.old} outline`;
@@ -1060,7 +1067,7 @@ function renderOutlineControls(){
   document.getElementById('outlineNote').textContent = has ? '' : 'Outlines appear once the glacier data (glaciers.js) has been built.';
 }
 
-function refreshAll(){
+export function refreshAll(){
   if (state.oldestAerial && state.oldestMode !== state.mode) {      // Oldest was picked in another mode: the pictures differ (one aerial image alone, or the slider's first side)
     if (state.mode === 'timelapse') restoreOldest(); else { restoreOldest(); if (state.mode === 'compare') { const ys = YEARS.filter(y => state.available[y]); if (ys.length && state.b === ys[0]) state.b = ys[ys.length - 1]; } return showOldest(); }
   }
@@ -1075,3 +1082,23 @@ function refreshAll(){
 /* hovering (or tabbing to) a bar of "Retreat per year" reads out its period and value in the corner of the chart title */
 document.addEventListener('mouseover', e => { const g = e.target.closest && e.target.closest('.rb'); if (!g) return; const c = g.closest('.stat-row') ? null : g.closest('.dbody'); const em = c && c.querySelector('.rb-read'); if (!em) return; em.textContent = g.dataset.t; g.parentNode.querySelectorAll('.rb').forEach(x => x.classList.toggle('on', x === g)); });
 document.addEventListener('mouseout', e => { const g = e.target.closest && e.target.closest('.rb'); if (!g || (e.relatedTarget && g.contains(e.relatedTarget))) return; const c = g.closest('.dbody'), em = c && c.querySelector('.rb-read'); if (em) em.textContent = em.dataset.def || ''; g.parentNode.querySelectorAll('.rb.on').forEach(x => x.classList.remove('on')); });
+
+// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
+Object.assign(window, { renderGlacierList, subTitle, focusSub, renderLayerTitles, renderYearRange, yearChips, specialChips, syncPane, renderMeta, downloadMetaCsv, renderYears, setTag, renderMode, setStyle, BRIGHT_DEFAULT, brightness, liveImages, adjCache, outsideAlpha, stampOf, outlineGeom, adjustedUrl, showImage, visibleOv, refreshImages, PREVIEW_PX, smallCache, smallOf, previewBrightness, applyBrightness, syncOutsideUi, syncBackgrounds, imgOpacity, applyImgOpacity, setOutside, scard, shareBody, dcard, cardKey, landsatAbout, aboutFrame, aboutSentinel, aboutColours, aboutChaptersCh, renderStory, cbYears, copernicusBrowserUrl, cbButtonsHtml, ICONS, lnk, SOURCES, SOURCE_LIST, gfn, fn, ok, fmtM, stats, thinningChain, fmtRate, r_in, barChart, thinningChart, TOWER_SHAPE, towerSvg, SYM_SVG, symHtml, fmtCount, maxLinkText, keepTitleVisible, cardOpen, sumInner, sumValue, areaBars, retreatChart, sizeHref, renderStats, glacierVolume, iceShareLeft, volumeSurvey, balanceModel, glacierIceAt, iceSource, shareText, fillThickness, renderShare, renderGlacierWater, fmtN, CUM_BASE_YEAR, cumulativeChart, waterSection, wireWater, renderOutlineControls, refreshAll });
+Object.defineProperty(window, 'subFocus', { get: () => subFocus, set: v => { subFocus = v; }, configurable: true });
+Object.defineProperty(window, 'metaCsv', { get: () => metaCsv, set: v => { metaCsv = v; }, configurable: true });
+Object.defineProperty(window, 'brightTimer', { get: () => brightTimer, set: v => { brightTimer = v; }, configurable: true });
+Object.defineProperty(window, 'refreshGen', { get: () => refreshGen, set: v => { refreshGen = v; }, configurable: true });
+Object.defineProperty(window, 'previewQueued', { get: () => previewQueued, set: v => { previewQueued = v; }, configurable: true });
+Object.defineProperty(window, 'bgOff', { get: () => bgOff, set: v => { bgOff = v; }, configurable: true });
+Object.defineProperty(window, 'labelsAuto', { get: () => labelsAuto, set: v => { labelsAuto = v; }, configurable: true });
+Object.defineProperty(window, 'trailsAuto', { get: () => trailsAuto, set: v => { trailsAuto = v; }, configurable: true });
+Object.defineProperty(window, 'storyTab', { get: () => storyTab, set: v => { storyTab = v; }, configurable: true });
+Object.defineProperty(window, 'fnSeq', { get: () => fnSeq, set: v => { fnSeq = v; }, configurable: true });
+Object.defineProperty(window, 'dynSources', { get: () => dynSources, set: v => { dynSources = v; }, configurable: true });
+Object.defineProperty(window, 'thinMode', { get: () => thinMode, set: v => { thinMode = v; }, configurable: true });
+Object.defineProperty(window, 'restoringCards', { get: () => restoringCards, set: v => { restoringCards = v; }, configurable: true });
+Object.defineProperty(window, 'leftMode', { get: () => leftMode, set: v => { leftMode = v; }, configurable: true });
+Object.defineProperty(window, 'liveStart', { get: () => liveStart, set: v => { liveStart = v; }, configurable: true });
+Object.defineProperty(window, 'liveTimer', { get: () => liveTimer, set: v => { liveTimer = v; }, configurable: true });
+Object.defineProperty(window, 'lastCounted', { get: () => lastCounted, set: v => { lastCounted = v; }, configurable: true });

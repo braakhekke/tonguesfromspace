@@ -81,7 +81,7 @@ def main():
             problems.append(f"{os.path.relpath(py, ROOT)}: {e.msg.strip()}")
         checked += 1
 
-    for pattern in ("data/scenes.json", "data/cloudmasks.json", "data/terrain/manifest.json", "data/demchange/*.json"):
+    for pattern in ("data/scenes.json", "data/cloudmasks.json", "data/terrain/manifest.json", "data/demchange/*.json", "data/itslive/*.json"):
         for path in sorted(glob.glob(os.path.join(ROOT, pattern))):
             try:
                 json.load(open(path, encoding="utf-8"))

@@ -1,16 +1,20 @@
+import { YEARS } from './01-data.js';
+import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, GLACIERS } from './02-glaciers.js';
+import { prefs, savePrefs, isLandsat, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, setLoading, fmtDM, latestBusy } from './03-imagery.js';
+import { state, okYears, currentGlacier, viewMode, glacierPicked } from './04-state.js';
 /* =====================================================================
    5. Map
    ===================================================================== */
-const TWO_FINGER = matchMedia('(pointer:coarse)').matches;   // touch screens: one finger scrolls the page, two move the map
-const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:120, dragging: !TWO_FINGER});      // fine zoom steps: quarter levels, half a level per button press
-[['bgPane',205],['siA',207],['siB',208],['siT',209],['thickPane',300],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['sightPane',440],['labels',450],['measure',620]].forEach(([n,z]) => {
+export const TWO_FINGER = matchMedia('(pointer:coarse)').matches;   // touch screens: one finger scrolls the page, two move the map
+export const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:120, dragging: !TWO_FINGER});      // fine zoom steps: quarter levels, half a level per button press
+[['bgPane',205],['siA',207],['siB',208],['siT',209],['thickPane',300],['speedPane',310],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['sightPane',440],['labels',450],['measure',620]].forEach(([n,z]) => {
   map.createPane(n); map.getPane(n).style.zIndex = z;
 });
 map.getPane('bgPane').style.filter = 'brightness(1.12) saturate(1)';   // background a little brighter than the plain tiles
 map.getPane('labels').style.pointerEvents = 'none';
 /* The scale bar: a white bar with a tick at each end and its length written centred above, the same as the scale bar of the map key on the downloads. It sits where Leaflet's own scale sat (same class, so the
    margins of the toolbar rules still apply). */
-const NiceScale = L.Control.extend({
+export const NiceScale = L.Control.extend({
   options: {position: 'bottomright', maxPx: 150},
   onAdd(map){
     const el = L.DomUtil.create('div', 'leaflet-control-scale tfs-scale'); this._el = el;
@@ -28,9 +32,9 @@ const NiceScale = L.Control.extend({
     el.querySelector('.ts-l1').textContent = fmt(m);
   }
 });
-const scaleCtl = new NiceScale().addTo(map);
+export const scaleCtl = new NiceScale().addTo(map);
 /* On bigger screens the scale bar sits beside the LAYERS button (to its left, level with it, wherever that button is for the mode); on phones it stays at the bottom right. */
-function placeScale(){
+export function placeScale(){
   const el = scaleCtl._el, lb = document.getElementById('layerbox'), st = document.getElementById('stage'); if (!el || !lb || !st) return;
   const desk = matchMedia('(min-width:721px) and (min-height:521px)').matches && lb.offsetWidth > 0;
   if (!desk) { if (el.parentNode === st) { map._controlCorners.bottomright.appendChild(el); el.classList.remove('at-layers'); el.style.top = el.style.right = ''; } return; }
@@ -41,7 +45,7 @@ function placeScale(){
 { const lb = document.getElementById('layerbox'), st = document.getElementById('stage'), re = new ResizeObserver(() => placeScale()); re.observe(lb); re.observe(st);
   new MutationObserver(() => placeScale()).observe(document.getElementById('app'), {attributes: true, attributeFilter: ['class']}); addEventListener('resize', placeScale); placeScale(); }
 
-function updateCredits(){
+export function updateCredits(){
   if (typeof viewMode !== 'undefined' && viewMode === '3d' && typeof updateCredits3D === 'function') return updateCredits3D();      // the 3D view names its sources in the same bar
   const yrs = state.mode !== 'compare'
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
@@ -61,6 +65,7 @@ function updateCredits(){
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
+  if (speedLayer) parts.push('Ice speed: <a href="https://its-live.jpl.nasa.gov" target="_blank" rel="noopener">ITS_LIVE</a> annual velocity mosaics, NASA MEaSUREs (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (typeof svActive === 'function' && svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
   document.getElementById('credits').innerHTML = parts.join(' · ');
@@ -70,8 +75,8 @@ function updateCredits(){
   c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } }; })();
 /* Deep space: the calm backdrop where no base map shows. A dark blue gradient, many small faint stars, a soft Milky Way band and nebula glows.
    Everything comes from a fixed seed, so every frame, picture and visit looks the same. */
-const spaceCache = new Map();
-function spaceCanvas(w, h, perStar = 20000, scale = 1){
+export const spaceCache = new Map();
+export function spaceCanvas(w, h, perStar = 20000, scale = 1){
   const key = `${w}x${h}|${perStar}|${scale}`; if (spaceCache.has(key)) return spaceCache.get(key);
   const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'), m = Math.min(w, h);
   let seed = 20261009; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
@@ -95,23 +100,23 @@ function spaceCanvas(w, h, perStar = 20000, scale = 1){
   }
   spaceCache.set(key, c); return c;
 }
-const mapEl = document.getElementById('map');
+export const mapEl = document.getElementById('map');
 mapEl.style.backgroundImage = `url(${spaceCanvas(1600, 1000, 1000).toDataURL('image/png')})`;
 mapEl.style.backgroundSize = 'cover'; mapEl.style.backgroundPosition = 'center'; mapEl.style.backgroundRepeat = 'no-repeat';
-const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+export const osm = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
   {maxZoom:17, maxNativeZoom:19, attribution:'© OpenStreetMap contributors'});
 if (prefs.osm === true) osm.addTo(map);
 /* swisstopo's colour topographic map (Pixelkarte farbe), free to use with a source reference */
-const topo = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',
+export const topo = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',
   {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo'});
 if (prefs.topo === true) topo.addTo(map);
 /* swisstopo's relief shading of the swissALTI3D elevation model */
-const alti = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/{z}/{x}/{y}.png',
+export const alti = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/{z}/{x}/{y}.png',
   {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo (swissALTI3D)'});
 if (prefs.alti === true) alti.addTo(map);
 /* swisstopo's hiking trails (swissTLM3D), just the trails, as a transparent overlay on the imagery. They are drawn only inside the image area of the glacier (the red box);
    tiles that lie wholly outside it are not even fetched. The tiles come one zoom level finer and are shown at half size, so the lines are half as thick. */
-const TrailsLayer = L.TileLayer.extend({
+export const TrailsLayer = L.TileLayer.extend({
   _clip: null,            // null until the first glacier choice: the whole tile is drawn, then the layer is redrawn clipped
   setClip(list){ this._clip = list; if (this._map) this.redraw(); },
   createTile(coords, done){
@@ -129,7 +134,7 @@ const TrailsLayer = L.TileLayer.extend({
   }
 });
 /* Iceland has no trail tiles: its footpaths and tracks are lines (OpenStreetMap, data/trails-is.js), drawn by this layer with the same switch and legend: footpaths yellow, tracks red */
-const TrailsVector = L.LayerGroup.extend({
+export const TrailsVector = L.LayerGroup.extend({
   setClip(){ if (this._map) this.draw(); },            // the lines are cut to the picture area already; another glacier: its lines
   onAdd(m){ L.LayerGroup.prototype.onAdd.call(this, m); this.draw(); },
   draw(){
@@ -139,28 +144,28 @@ const TrailsVector = L.LayerGroup.extend({
       mk(d.tracks, '#FF0000', 2); mk(d.paths, '#FDC200', 3); });
   }
 });
-const trails = REGION.id === 'ch' ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
+export const trails = REGION.id === 'ch' ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
   {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'}) : new TrailsVector();
-const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
+export const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
 /* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a wide violet band with a white edge under the trail lines */
-let sightTried = false, sightLoad = null;
-const ensureSight = () => sightLoad || (sightLoad = new Promise(res => {      // the file (Switzerland: sightline.js, all glaciers, 135 kB; Iceland: trails-is.js) is fetched when the trails are on, not at the start; everyone who asks waits for the same load
+export let sightTried = false, sightLoad = null;
+export const ensureSight = () => sightLoad || (sightLoad = new Promise(res => {      // the file (Switzerland: sightline.js, all glaciers, 135 kB; Iceland: trails-is.js) is fetched when the trails are on, not at the start; everyone who asks waits for the same load
   if (window.GLACIER_SIGHT) { sightTried = true; return res(); }
   sightTried = true;
   const files = [].concat(REGION.trailsFile); let left = files.length;      // one file, or several (Vatnajökull: Breiðamerkurjökull has its own)
   files.forEach(f => { const sc = document.createElement('script'); sc.src = asset(f); sc.onload = sc.onerror = () => { if (--left === 0) res(); }; document.head.appendChild(sc); });
 }));
-const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && bundleId(g)]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
-let sightLayer = null;
-function updateSight(){
+export const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && bundleId(g)]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
+export let sightLayer = null;
+export function updateSight(){
   if (sightLayer) { map.removeLayer(sightLayer); sightLayer = null; }
   if (!window.GLACIER_SIGHT && document.getElementById('trailsToggle').checked) { ensureSight().then(() => { updateSight(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } }); return; }      // the file is on its way: the layer is drawn when it arrives
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, d = picked ? sightFor(currentGlacier()) : null, on = document.getElementById('trailsToggle').checked && !!d;
   document.getElementById('sightLegend').hidden = !on;
   if (on) sightLayer = L.layerGroup([['#fff', 12, .85], ['#7B2CFF', 7, .9]].flatMap(([color, weight, opacity]) => d.lines.map(l => L.polyline(l, {pane: 'sightPane', color, weight, opacity, lineCap: 'round', lineJoin: 'round', interactive: false})))).addTo(map);      // all the white edges first, then the violet cores
 }
-let trailClipKey = '';
-function updateTrailClip(){          // the selected glacier's image area; before one is chosen, the ten image areas of the overview
+export let trailClipKey = '';
+export function updateTrailClip(){          // the selected glacier's image area; before one is chosen, the ten image areas of the overview
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, list = picked ? [currentGlacier()] : GLACIERS, key = picked ? state.glacier : '*';
   if (key === trailClipKey) return; trailClipKey = key;
   trails.setClip(list.map(g => L.latLngBounds(imageFootprint(g).bounds)));
@@ -168,8 +173,8 @@ function updateTrailClip(){          // the selected glacier's image area; befor
 if (prefs.trails === true) trails.addTo(map);
 /* The map's place labels are raster tiles, so one label cannot be switched off. The blue glacier names that EOX writes along the Aletsch glacier lie over its tongue: inside the Aletsch picture
    box, the tiles are redrawn with the area of every blue (glacier name) label wiped. Other tiles are plain. If the tile cannot be read pixel by pixel (no CORS), it is shown as it is. */
-const HIDE_LABELS = ['B36-26', 'aletsch'];
-const LabelsLayer = L.TileLayer.extend({
+export const HIDE_LABELS = ['B36-26', 'aletsch'];
+export const LabelsLayer = L.TileLayer.extend({
   createTile(coords, done){
     const size = this.getTileSize(), origin = coords.scaleBy(size), boxes = GLACIERS.filter(g => HIDE_LABELS.includes(g.id)).map(g => L.latLngBounds(imageFootprint(g).bounds));
     const rects = boxes.map(b => { const a = this._map.project(b.getNorthWest(), coords.z).subtract(origin), c = this._map.project(b.getSouthEast(), coords.z).subtract(origin);
@@ -194,16 +199,16 @@ const LabelsLayer = L.TileLayer.extend({
     return tile;
   }
 });
-const labels = new LabelsLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
+export const labels = new LabelsLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png',
   {pane:'labels', maxNativeZoom:16, maxZoom:17, opacity:.9, attribution:'Labels © OpenStreetMap contributors, rendering EOX'}).addTo(map);
 
-const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+export const BLANK = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
 
 /* ---------- background: one static Sentinel-2 mosaic for the whole region (EOX Sentinel-2 cloudless; Switzerland 2024) ---------- */
-const BG_YEAR = (REGION.background && REGION.background.mosaicYear) || 2024;      // the mosaic year of the region (Iceland: 2025)
-const bgTiles = L.tileLayer(`https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-${BG_YEAR}_3857/default/g/{z}/{y}/{x}.jpg`,
+export const BG_YEAR = (REGION.background && REGION.background.mosaicYear) || 2024;      // the mosaic year of the region (Iceland: 2025)
+export const bgTiles = L.tileLayer(`https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-${BG_YEAR}_3857/default/g/{z}/{y}/{x}.jpg`,
   {pane:'bgPane', maxNativeZoom:14, maxZoom:17, attribution:`Sentinel-2 cloudless ${BG_YEAR} by EOX`});
-function setBackground(){
+export function setBackground(){
   const on = document.getElementById('mosaicToggle').checked;
   if (on && !map.hasLayer(bgTiles)) bgTiles.addTo(map);
   if (!on && map.hasLayer(bgTiles)) map.removeLayer(bgTiles);
@@ -213,22 +218,22 @@ function setBackground(){
    Shown only inside the image box of the chosen glacier (the TrailsLayer clip), under the Sentinel-2 pictures. One layer per picture slot: compare uses the years of the left and right
    side (panes siA and siB, clipped by the slider like the satellite panes), a timelapse the newest year of its range, one year its year. The time dimension of
    ch.swisstopo.swissimage-product is the edition year; 2025 is the newest, later years show 2025. */
-const SI_LAST = 2025;
-const aerial = {A: null, B: null, T: null};      // slot -> {yr, layer}
-const siYear = y => Math.min(y, SI_LAST);
-function aerialWanted(){          // slot -> year
+export const SI_LAST = 2025;
+export const aerial = {A: null, B: null, T: null};      // slot -> {yr, layer}
+export const siYear = y => Math.min(y, SI_LAST);
+export function aerialWanted(){          // slot -> year
   return document.getElementById('aerialToggle').checked ? aerialSlots() : {};
 }
-function aerialSlots(){          // slot -> year, whether the layer is on or not
+export function aerialSlots(){          // slot -> year, whether the layer is on or not
   if (state.mode === 'compare') return state.oldestAerial ? {A: state.oldestAerial} : {A: state.a, B: state.b};
   if (state.mode === 'single') return {T: state.oldestAerial || state.one};
   const f = tlFrames(); return {T: f.length ? f[f.length - 1] : state.to};      // timelapse: the newest year of the range
 }
 /* SWISSIMAGE editions are mosaics: the edition year (the time dimension of the layer) is not the year the photographs were taken. swisstopo's metadata layer says which year was flown
    at a place (edition 2025 here: flown 2023, 2022: 2020, 2019: 2017, 2016: 2014). It is asked once per glacier and edition, and the viewer names that year. */
-const aerialFlown = new Map();      // "<glacier>|<edition>" -> "2023" (empty while unknown)
-const flownYear = (g, ed) => (g && aerialFlown.get(g.id + '|' + ed)) || '';
-function ensureFlown(g, ed){
+export const aerialFlown = new Map();      // "<glacier>|<edition>" -> "2023" (empty while unknown)
+export const flownYear = (g, ed) => (g && aerialFlown.get(g.id + '|' + ed)) || '';
+export function ensureFlown(g, ed){
   const key = g.id + '|' + ed; if (aerialFlown.has(key)) return; aerialFlown.set(key, '');
   const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
   fetch(`https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&layers=all:ch.swisstopo.swissimage-product.metadata&mapExtent=${lon - .01},${lat - .01},${lon + .01},${lat + .01}&imageDisplay=500,500,96&tolerance=1&sr=4326&timeInstant=${ed}&returnGeometry=false`)
@@ -240,17 +245,17 @@ function ensureFlown(g, ed){
 }
 /* "Oldest" in the specials row: the oldest SWISSIMAGE edition that covers the glacier's image box. The identify service lists, without a time, every aerial survey at a place
    (flightyear = the year flown, bgdi_flugjahr = the edition that first shows it); the oldest edition is asked once per glacier, at the middle of the box. */
-const oldestAerial = new Map();      // glacier id -> {ed, flown} | null (none) ; absent while not asked
+export const oldestAerial = new Map();      // glacier id -> {ed, flown} | null (none) ; absent while not asked
 /* Iceland: the oldest picture is one static file (data/oldest/<outlet>.webp, scripts/build_oldest_iceland.py): the historic aerial mosaics of 1980 and 1982 of Náttúrufræðistofnun Íslands, in Web Mercator over the picture box */
-function ensureOldestIs(g){
+export function ensureOldestIs(g){
   fetch(asset(`data/oldest/${g.id}.json`)).then(r => r.ok ? r.json() : null).then(m => {
     if (!m) { oldestAerial.set(g.id, null); return; }
     aerialFlown.set(`${g.id}|${m.years[0]}`, m.label);      // the name of the year in the tags and the menu: 1980/82
     oldestAerial.set(g.id, {ed: m.years[0], flown: m.label, img: asset(`data/oldest/${g.id}.webp`), bbox: m.bbox, source: m.source});
   }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof statusLine === 'function') setStatus(statusLine()); });
 }
-const oldestWhat = o => REGION.id === 'ch' ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
-function ensureOldest(g){
+export const oldestWhat = o => REGION.id === 'ch' ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
+export function ensureOldest(g){
   if (!g || oldestAerial.has(g.id)) return; oldestAerial.set(g.id, undefined);
   if (REGION.id !== 'ch') return ensureOldestIs(g);
   const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
@@ -262,7 +267,7 @@ function ensureOldest(g){
       oldestAerial.set(g.id, {ed: +first.bgdi_flugjahr, flown: +first.flightyear});
     }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof statusLine === 'function') setStatus(statusLine()); });
 }
-function showOldest(){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being
+export function showOldest(){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being
   const o = oldestAerial.get(state.glacier); if (!o) return;
   restoreLatest();
   if (!state.oldestAerial) state.oldestSaved = {sat: $('satToggle').checked, aerial: $('aerialToggle').checked};
@@ -273,13 +278,13 @@ function showOldest(){            // the oldest aerial image alone on the map (a
   $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change'));
   refreshAll(); setStatus(statusLine());
 }
-function restoreOldest(){
+export function restoreOldest(){
   if (!state.oldestAerial) return;
   const s = state.oldestSaved || {sat: true, aerial: false}; state.oldestAerial = null; state.oldestSaved = null;
   $('satToggle').checked = s.sat; $('aerialToggle').checked = s.aerial; applySatVisibility(); $('aerialToggle').dispatchEvent(new Event('change')); updateCredits(); setStatus(statusLine());
 }
-const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
-function updateAerial(){
+export const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
+export function updateAerial(){
   const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
   if (cg && REGION.id === 'ch') eds.forEach(ed => ensureFlown(cg, ed));
   const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
@@ -298,29 +303,29 @@ function updateAerial(){
     }
     else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(boxes); }      // another glacier was chosen
   });
-  clip(); updateCredits();
+  clip(); updateCredits(); updateSpeed();
 }
-const satOn = () => document.getElementById('satToggle').checked;
+export const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
-const oldestPair = () => !!state.oldestAerial && state.mode === 'compare';      // the slider with the oldest aerial image as its first picture and a Sentinel-2 year as the other
-const satShown = () => glacierPicked && satOn() && !oldestPair();
-const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 image layer in the layer menu.';
-const OLDEST_MSG = 'The oldest aerial image has no Sentinel-2 picture, so this is not available. Pick a year to go back to the satellite pictures.';
-const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : SAT_MSG;
-function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
+export const oldestPair = () => !!state.oldestAerial && state.mode === 'compare';      // the slider with the oldest aerial image as its first picture and a Sentinel-2 year as the other
+export const satShown = () => glacierPicked && satOn() && !oldestPair();
+export const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 image layer in the layer menu.';
+export const OLDEST_MSG = 'The oldest aerial image has no Sentinel-2 picture, so this is not available. Pick a year to go back to the satellite pictures.';
+export const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : SAT_MSG;
+export function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
   const ed = siYear(yr), fy = flownYear(glacierPicked ? currentGlacier() : null, ed);      // the year the photographs were taken, then the edition of the layer
   if (REGION.id !== 'ch') return `<span class="nw">Aerial image ${fy || yr}</span> · <span class="nw">Náttúrufræðistofnun Íslands</span>`;
   return `<span class="nw">Aerial image ${fy || ed}</span> · <span class="nw">swisstopo SWISSIMAGE ${ed}</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
 }
-function applySatVisibility(){          // the Sentinel-2 pictures can be switched off, so the aerial images or a base map show alone
+export function applySatVisibility(){          // the Sentinel-2 pictures can be switched off, so the aerial images or a base map show alone
   const on = document.getElementById('satToggle').checked;
   document.getElementById('map').classList.toggle('sat-off', !on);      // a class, not the panes' own display: syncPane sets that on every year change
   document.getElementById('mapOp').disabled = !on;
   syncSatUi(); updateTags(); if (tlLayers.length) showFrame(state.frame);
   if (!satShown() && !document.getElementById('videoSheet').hidden) closeVideo();      // a download pane needs the picture
 }
-function imageryLayer(yr, pane, opacity=1){
+export function imageryLayer(yr, pane, opacity=1){
   const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className: 'scene-img'});
   ov._g = g;
   const fail = e => { setStatus(e.message); showNotice(e.message); };
@@ -333,12 +338,12 @@ function imageryLayer(yr, pane, opacity=1){
   if (viewMode === '3d') deferredLoads.push([ov, load]); else load();      // the map is not on show in the 3D view: its pictures wait (that view asks for its own, much smaller ones)
   return ov;
 }
-const deferredLoads = [];
-function loadDeferred(){ deferredLoads.splice(0).forEach(([ov, load]) => { if (ov._map) load(); }); }      // back on the map: the layers that are still on it get their pictures
+export const deferredLoads = [];
+export function loadDeferred(){ deferredLoads.splice(0).forEach(([ov, load]) => { if (ov._map) load(); }); }      // back on the map: the layers that are still on it get their pictures
 
 /* ---------- compare (swipe) ---------- */
-let layerA = null, layerB = null;
-function setCompareLayers(){
+export let layerA = null, layerB = null;
+export function setCompareLayers(){
   [layerA, layerB].forEach(l => l && map.removeLayer(l));
   layerA = layerB = null;
   if (!glacierPicked) return;      // the start shows only the background, no glacier picture yet
@@ -349,15 +354,15 @@ function setCompareLayers(){
 }
 /* The slider: split is 0..1 of the map width (vertical divider) or height (horizontal divider). The horizontal one keeps
    the year label of the upper image fully visible and the handle clear of the toolbar. */
-const horiz = () => prefs.orient !== 'v';        // stacked images (top and bottom) unless the visitor chose side by side
-function splitRange(){
+export const horiz = () => prefs.orient !== 'v';        // stacked images (top and bottom) unless the visitor chose side by side
+export function splitRange(){
   if (!horiz()) return [.02, .98];
   const size = map.getSize(), tag = document.getElementById('tagA');
   const st = document.getElementById('stage').getBoundingClientRect(), bar = document.querySelector('.mapbar').getBoundingClientRect();
   const free = bar.height ? (bar.top - st.top - 34) / size.y : 1 - 104 / size.y;           // the handle stops above the toolbar, also when it has two rows
   return [Math.min(.4, ((tag ? tag.offsetHeight : 90) + 22) / size.y), Math.max(.5, Math.min(.92, free))];
 }
-function clip(){
+export function clip(){
   const size = map.getSize(), [lo, hi] = splitRange();
   state.split = Math.min(hi, Math.max(lo, state.split));
   const nw = map.containerPointToLayerPoint([0,0]), se = map.containerPointToLayerPoint(size);
@@ -381,7 +386,7 @@ function clip(){
 }
 map.on('move zoom resize', clip);
 
-let sliderHintDone = false;      // the hint beside the handle shows until the slider has been used once (on the map or in the 3D view)
+export let sliderHintDone = false;      // the hint beside the handle shows until the slider has been used once (on the map or in the 3D view)
 (function swipe(){
   const handle = document.getElementById('handle'), stage = document.getElementById('stage');
   let dragging = false; const used = () => { sliderHintDone = true; handle.classList.add('used'); };
@@ -400,9 +405,9 @@ let sliderHintDone = false;      // the hint beside the handle shows until the s
 })();
 
 /* ---------- timelapse ---------- */
-let tlLayers = [];   // [{yr, layer}]
-const tlFrames = () => state.mode === 'single' ? okYears().filter(y => y === state.one) : okYears().filter(y => y >= state.from && y <= state.to);
-function buildTimelapse(){
+export let tlLayers = [];   // [{yr, layer}]
+export const tlFrames = () => state.mode === 'single' ? okYears().filter(y => y === state.one) : okYears().filter(y => y >= state.from && y <= state.to);
+export function buildTimelapse(){
   stopPlay(); updateAerial();
   tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
   if (state.mode === 'compare' || !glacierPicked) { document.getElementById('tlDots').innerHTML = ''; document.getElementById('v3dTlLine').innerHTML = ''; return; }      // no timeline left over on the map or in the 3D view when the mode leaves Timelapse      // before a glacier is chosen no picture is drawn
@@ -415,11 +420,11 @@ function buildTimelapse(){
   showFrame(state.frame);
 }
 /* the line under a year on the map: the date, then what the picture is, on one row; it only breaks between the two parts */
-function tagLine(el, first, sc){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style, sc)}</span>`; }
-function showFrame(i){
+export function tagLine(el, first, sc){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style, sc)}</span>`; }
+export function showFrame(i){
   if (!tlLayers.length) { setTag('tagT', '–'); return; }
   state.frame = i;
-  tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0));
+  tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0)); updateSpeed();
   const off = !satOn(), yShown = off && (state.mode === 'timelapse' || state.oldestAerial) && aerialWanted().T ? aerialWanted().T : tlLayers[i].yr;      // no Sentinel-2 picture: a timelapse shows its newest aerial year, not the frames
   setTag('tagT', yShown);
   const sc = state.available[tlLayers[i].yr];
@@ -436,29 +441,29 @@ function showFrame(i){
   const cb = document.querySelector('.cb-links');
   if (cb) cb.innerHTML = cbButtonsHtml();
 }
-const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Play';
-const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg>Pause';
+export const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Play';
+export const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg>Pause';
 document.getElementById('playBtn').innerHTML = PLAY_ICON;
-const SPEED_MS = [2200, 1200, 600, 300, 150], SPEED_FPS = ['0.5', '1', '2', '4', '8'];      // the slider steps: delay per frame, and the label
-const speedMs = () => typeof vPrev !== 'undefined' && vPrev.on && vstate.type !== 'swipe' ? perSec(tlLayers.length) * 1000 : SPEED_MS[+document.getElementById('speedSel').value];      // the preview in the animation pane runs at the pane's "Seconds per year"
-function updateSpeedIcon(){                 // the needle of the little gauge and the label follow the chosen speed
+export const SPEED_MS = [2200, 1200, 600, 300, 150], SPEED_FPS = ['0.5', '1', '2', '4', '8'];      // the slider steps: delay per frame, and the label
+export const speedMs = () => typeof vPrev !== 'undefined' && vPrev.on && vstate.type !== 'swipe' ? perSec(tlLayers.length) * 1000 : SPEED_MS[+document.getElementById('speedSel').value];      // the preview in the animation pane runs at the pane's "Seconds per year"
+export function updateSpeedIcon(){                 // the needle of the little gauge and the label follow the chosen speed
   const i = +document.getElementById('speedSel').value;
   document.getElementById('speedNeedle').setAttribute('transform', `rotate(${-60 + i * 30} 12 18)`);
   document.getElementById('speedOut').textContent = `${SPEED_FPS[i]} fps`;
 }
 document.getElementById('speedSel').oninput = updateSpeedIcon; updateSpeedIcon();
-const FULL_ICONS = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.500v14H7zM13.500 5H17v14h-3.500z"/></svg>'};
-function syncDock(){          // phones: while a timelapse plays, the dock keeps only the timeline and the play button; the "…" button in the timeline brings the tools back (style.css, .tl-live)
+export const FULL_ICONS = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 5h3.500v14H7zM13.500 5H17v14h-3.500z"/></svg>'};
+export function syncDock(){          // phones: while a timelapse plays, the dock keeps only the timeline and the play button; the "…" button in the timeline brings the tools back (style.css, .tl-live)
   [document.querySelector('.mapbar'), document.getElementById('v3dMeasure')].forEach(d => { if (!d) return; d.classList.toggle('tl-live', !!state.playing); d.classList.toggle('tools-open', !!state.dockOpen); });
   document.querySelectorAll('.tl-tools').forEach(b => b.setAttribute('aria-expanded', !!state.dockOpen));
 }
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.tl-tools'); if (b) { state.dockOpen = !state.dockOpen; syncDock(); } });
-function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
+export function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
   if (!state.playing) state.dockOpen = false;
   syncDock();
   document.querySelectorAll('.tl-play').forEach(b => { b.innerHTML = state.playing ? FULL_ICONS.pause : FULL_ICONS.play; b.setAttribute('aria-label', state.playing ? 'Pause' : 'Play'); });
 }
-function play(){
+export function play(){
   if (tlLayers.length < 2) return;
   state.playing = true; document.getElementById('playBtn').innerHTML = PAUSE_ICON; syncFullPlay();
   const begun = Date.now();
@@ -494,7 +499,7 @@ function play(){
   };
   wait();
 }
-function stopPlay(){
+export function stopPlay(){
   clearTimeout(state.timer); state.playing = false;
   document.getElementById('playBtn').innerHTML = PLAY_ICON; syncFullPlay();
 }
@@ -520,8 +525,8 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
 document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
 
 /* ---------- outlines ---------- */
-const outlineLayers = {old: null, new: null};
-function geodesicArea(ring){ // ring: [[lng,lat],...] -> m²
+export const outlineLayers = {old: null, new: null};
+export function geodesicArea(ring){ // ring: [[lng,lat],...] -> m²
   const R = 6378137, rad = d => d * Math.PI / 180; let a = 0;
   for (let i = 0; i < ring.length; i++) {
     const p1 = ring[i], p2 = ring[(i + 1) % ring.length];
@@ -529,8 +534,8 @@ function geodesicArea(ring){ // ring: [[lng,lat],...] -> m²
   }
   return Math.abs(a * R * R / 2);
 }
-const multiArea = geom => geom.coordinates.reduce((s, poly) => s + geodesicArea(poly[0]) - poly.slice(1).reduce((h, r) => h + geodesicArea(r), 0), 0);
-function drawOutlines(){
+export const multiArea = geom => geom.coordinates.reduce((s, poly) => s + geodesicArea(poly[0]) - poly.slice(1).reduce((h, r) => h + geodesicArea(r), 0), 0);
+export function drawOutlines(){
   Object.values(outlineLayers).forEach(l => l && map.removeLayer(l));
   outlineLayers.old = outlineLayers.new = null;
   drawRadar();
@@ -561,19 +566,19 @@ function drawOutlines(){
     outlineLayers.new = mk(g.inv.outline, getVar('--new'), null, `${g.name}, ${DATA.latest_label}${g.inv.year ? ' ('+g.inv.year+')' : ''}`, g.inv.area_km2).addTo(map);
   updateCredits();
 }
-const getVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
+export const getVar = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 
 /* ---------- modelled ice thickness 2016 (Grab et al. 2021), swisstopo WMS ----------
    One WMS picture per image box (the area of the satellite scene), so the layer shows only inside the boxes: the selected glacier's box, or all ten
    before a glacier is chosen. Transparent where there is no glacier. Not a measurement: radar lines plus an ice-flow model. */
-const THICK_LAYER = 'ch.swisstopo.geologie-gletschermaechtigkeit';
-let thickImgs = [], thickKey = '';
-function thicknessUrl(fp){
+export const THICK_LAYER = 'ch.swisstopo.geologie-gletschermaechtigkeit';
+export let thickImgs = [], thickKey = '';
+export function thicknessUrl(fp){
   const k = Math.min(1, 2000 / Math.max(fp.w, fp.h));
   return 'https://wms.geo.admin.ch/?' + new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.3.0', REQUEST: 'GetMap', LAYERS: THICK_LAYER, STYLES: '',
     CRS: 'EPSG:3857', BBOX: fp.bbox.join(','), WIDTH: Math.round(fp.w * k), HEIGHT: Math.round(fp.h * k), FORMAT: 'image/png', TRANSPARENT: 'TRUE' });
 }
-function setThickness(){
+export function setThickness(){
   const on = document.getElementById('thickToggle').checked, box = document.getElementById('thickLegendBox'), img = document.getElementById('thickLegendImg');
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, key = on ? (picked ? state.glacier : '*') : '';
   if (key !== thickKey) {
@@ -589,8 +594,8 @@ function setThickness(){
    thickness.js (made by build_outlines.py) holds one mean value per 50 m cell for each of the ten glaciers; it is loaded only when the layer is switched on.
    The surveys are old (see glaciers.js, radar.years), so the dots show the ice as it was then, not today. */
 /** @type {[number, number[]][]} */
-const RADAR_STOPS = [[0,[191,227,242]],[200,[63,155,196]],[400,[42,42,107]],[600,[90,31,99]]];
-function radarColor(m){
+export const RADAR_STOPS = [[0,[191,227,242]],[200,[63,155,196]],[400,[42,42,107]],[600,[90,31,99]]];
+export function radarColor(m){
   const t = Math.max(0, Math.min(600, m));
   for (let i = 1; i < RADAR_STOPS.length; i++) if (t <= RADAR_STOPS[i][0]) {
     const [t0, c0] = RADAR_STOPS[i - 1], [t1, c1] = RADAR_STOPS[i], f = (t - t0) / (t1 - t0);
@@ -598,12 +603,12 @@ function radarColor(m){
   }
   return 'rgb(90,31,99)';
 }
-const radarPopup = (m, y, all) => all      // the text of a radar point, on the map and on the pins of the 3D view
+export const radarPopup = (m, y, all) => all      // the text of a radar point, on the map and on the pins of the 3D view
   ? `<strong>Measured ${all.length} times by radar</strong><br>${all.slice().reverse().map(([yy, mm]) => `${yy || 'year unknown'}: <b>${mm} m</b>`).join('<br>')}`
   : `<strong>${m} m</strong> of ice<br>measured by radar${y ? ` in ${y}` : ''}`;
-let radarLayer = null, radarLoad = null, radarGen = 0, maxMarker = null;
-const radarRenderer = L.canvas({pane:'outlines', padding:0.3});
-function loadRadar(){
+export let radarLayer = null, radarLoad = null, radarGen = 0, maxMarker = null;
+export const radarRenderer = L.canvas({pane:'outlines', padding:0.3});
+export function loadRadar(){
   if (window.GLACIER_THICKNESS) return Promise.resolve();
   return radarLoad || (radarLoad = new Promise((ok, fail) => {
     const sc = document.createElement('script'); sc.src = asset('data/thickness.js') + (!ASSETS['data/thickness.js'] && DATA && DATA.thickness_id ? `?v=${DATA.thickness_id}` : '');
@@ -611,7 +616,7 @@ function loadRadar(){
     document.head.appendChild(sc);
   }));
 }
-async function drawRadar(){
+export async function drawRadar(){
   if (viewMode === '3d') return;      // the map is not on show: the layer is drawn when it comes back (the 3D view has its own pins from the baked file)
   const gen = ++radarGen, on = document.getElementById('radarToggle').checked, legend = document.getElementById('radarLegend'), note = document.getElementById('radarNote');
   if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
@@ -633,8 +638,59 @@ async function drawRadar(){
   updateCredits();
 }
 map.on('zoomend', () => { if (radarLayer) drawRadar(); capCheckFine(); });
+/* ---------- ice speed (ITS_LIVE annual velocity mosaics) ----------
+   data/itslive/<SGI id>.json (made by scripts/build_itslive.py) holds, per year 2013 to 2022, the speed of the surface in 0.1 m/yr steps on a Web Mercator grid over the picture box
+   of the glacier. The values are ITS_LIVE's `v`, copied. The layer shows the year of the picture on the map (one year: that year; Compare: the right-hand year; Timelapse: the frame).
+   Years without data (2023 on) show nothing and say so. Values under SPEED_MIN m/yr are the noise floor of the product (rock beside the glaciers reads 1 to 2 m/yr) and stay clear. */
+export const SPEED_MIN = 5, SPEED_MAX = 150;
+/** @type {[number, number[]][]} */
+export const SPEED_STOPS = [[0,[70,98,215]],[.2,[54,170,249]],[.38,[26,228,182]],[.55,[114,254,94]],[.68,[199,239,52]],[.8,[250,187,57]],[.9,[245,105,24]],[1,[203,42,4]]];
+export const SPEED_LUT = Array.from({length: 256}, (_, i) => {
+  const t = i / 255; let k = 1; while (k < SPEED_STOPS.length - 1 && t > SPEED_STOPS[k][0]) k++;
+  const [t0, c0] = SPEED_STOPS[k - 1], [t1, c1] = SPEED_STOPS[k], f = (t - t0) / (t1 - t0); return c0.map((c, j) => Math.round(c + (c1[j] - c) * f));
+});
+export let speedLayer = null, speedKey = '', speedGen = 0;
+export const speedFiles = new Map(), speedArrays = new Map();      // glacier id -> the file; "id|year" -> Float of m/yr
+export const loadSpeedFile = id => { if (!speedFiles.has(id)) speedFiles.set(id, fetch(asset(`data/itslive/${id}.json`)).then(r => r.ok ? r.json() : null).catch(() => null)); return speedFiles.get(id); };
+export async function speedArray(f, year){
+  const key = f.id + '|' + year; if (speedArrays.has(key)) return speedArrays.get(key);
+  const bin = Uint8Array.from(atob(f.data[year]), c => c.charCodeAt(0));
+  const a = new Uint16Array(await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+  speedArrays.set(key, a); return a;
+}
+export function speedYear(){
+  if (state.mode === 'compare') return state.b;
+  return tlLayers[state.frame] ? tlLayers[state.frame].yr : (state.one || state.to);
+}
+export function speedCanvas(f, a){
+  const c = document.createElement('canvas'); c.width = f.w; c.height = f.h; const x = c.getContext('2d'), im = x.createImageData(f.w, f.h);
+  for (let i = 0; i < a.length; i++) {
+    if (a[i] === f.nodata) continue; const v = a[i] * f.step; if (v < SPEED_MIN) continue;
+    const col = SPEED_LUT[Math.min(255, Math.round((v - SPEED_MIN) / (SPEED_MAX - SPEED_MIN) * 255))], o = i * 4;
+    im.data[o] = col[0]; im.data[o + 1] = col[1]; im.data[o + 2] = col[2]; im.data[o + 3] = Math.round(Math.min(1, (v - SPEED_MIN) / 20) * 230);      // fades in over 20 m/yr: no hard edge at the noise floor
+  }
+  x.putImageData(im, 0, 0);
+  const big = document.createElement('canvas'); big.width = f.w * 4; big.height = f.h * 4;      // the 120 m cells, smoothed (the browser blends premultiplied colours, so no dark rim where the layer fades out)
+  const bx = big.getContext('2d'); bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high'; bx.drawImage(c, 0, 0, big.width, big.height); return big;
+}
+export async function updateSpeed(){
+  const gen = ++speedGen, on = document.getElementById('speedToggle').checked && glacierPicked && viewMode !== '3d' && REGION.id === 'ch', legend = document.getElementById('speedLegend'), note = document.getElementById('speedNote');
+  legend.hidden = !document.getElementById('speedToggle').checked || REGION.id !== 'ch';
+  const drop = () => { if (speedLayer) { map.removeLayer(speedLayer); speedLayer = null; speedKey = ''; updateCredits(); } };
+  if (!on) return drop();
+  const g = currentGlacier(), id = g.inv && g.inv.id, yr = speedYear();
+  const f = id && await loadSpeedFile(id); if (gen !== speedGen) return;
+  if (!f) { note.textContent = 'No ice speed data for this glacier.'; return drop(); }
+  if (!f.years.includes(yr)) { note.textContent = `${yr ? `No ice speed for ${yr}: ` : ''}the ITS_LIVE annual maps cover ${f.years[0]} to ${f.years[f.years.length - 1]}.`; return drop(); }
+  note.textContent = `Mean surface speed in ${yr}${state.mode === 'compare' ? ' (right-hand picture)' : ''}, ITS_LIVE. Under 5 m/yr is not told apart from rock, so it stays clear.`;
+  const key = id + '|' + yr; if (speedLayer && speedKey === key) return;
+  const a = await speedArray(f, yr); if (gen !== speedGen) return;
+  const [x0, y0, x1, y1] = f.bbox, sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1));
+  const layer = L.imageOverlay(speedCanvas(f, a).toDataURL(), [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'speedPane', opacity: .9, interactive: false, className: 'speed-img'});
+  if (speedLayer) map.removeLayer(speedLayer); speedLayer = layer.addTo(map); speedKey = key; updateCredits();
+}
 /* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map */
-function drawMax(){
+export function drawMax(){
   if (maxMarker) { map.removeLayer(maxMarker); maxMarker = null; }
   const on = document.getElementById('maxToggle').checked, g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier(), R = g && g.inv && g.inv.radar;
   if (on && R && R.max_at) {
@@ -646,13 +702,13 @@ function drawMax(){
 }
 
 /* ---------- measuring ---------- */
-const M = {mode:null, pts:[], temp:null, group:L.layerGroup().addTo(map)};
-const fmtLen = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(m < 10000 ? 2 : 1)} km`;
-const fmtArea = m2 => m2 < 1e5 ? `${Math.round(m2).toLocaleString('en')} m²` : `${(m2/1e6).toFixed(2)} km²`;
-const pathLen = pts => pts.reduce((s, p, i) => i ? s + map.distance(pts[i-1], p) : 0, 0);
-const ringOf = pts => pts.map(p => [p.lng, p.lat]);
-const updateClear = () => { document.getElementById('measureClear').hidden = !M.group.getLayers().length; };   // hide the eraser until something is drawn
-function startMeasure(mode){
+export const M = {mode:null, pts:[], temp:null, group:L.layerGroup().addTo(map)};
+export const fmtLen = m => m < 1000 ? `${Math.round(m)} m` : `${(m/1000).toFixed(m < 10000 ? 2 : 1)} km`;
+export const fmtArea = m2 => m2 < 1e5 ? `${Math.round(m2).toLocaleString('en')} m²` : `${(m2/1e6).toFixed(2)} km²`;
+export const pathLen = pts => pts.reduce((s, p, i) => i ? s + map.distance(pts[i-1], p) : 0, 0);
+export const ringOf = pts => pts.map(p => [p.lng, p.lat]);
+export const updateClear = () => { document.getElementById('measureClear').hidden = !M.group.getLayers().length; };   // hide the eraser until something is drawn
+export function startMeasure(mode){
   cancelMeasure();
   M.mode = mode; map.doubleClickZoom.disable();
   document.getElementById('app').classList.add('measuring');
@@ -660,14 +716,14 @@ function startMeasure(mode){
   document.getElementById('measureHint').classList.add('show');
   updateMeasureText();
 }
-function updateMeasureText(cursor){
+export function updateMeasureText(cursor){
   const pts = cursor ? [...M.pts, cursor] : M.pts, el = document.getElementById('measureText');
   const phone = COARSE, tap = phone ? 'Tap' : 'Click';          // on phones the hint stays short: it sits on the picture
   if (!pts.length) el.textContent = M.mode === 'dist' ? `${tap} the map to start a line.` : `${tap} the map to start an area.`;
   else if (M.mode === 'dist') el.textContent = `Length ${fmtLen(pathLen(pts))}.${phone ? '' : ' Double-click or press Finish.'}`;
   else el.textContent = pts.length < 3 ? (phone ? 'Add 3 points.' : 'Add at least three points.') : `Area ${fmtArea(geodesicArea(ringOf(pts)))}.${phone ? '' : ' Double-click or press Finish.'}`;
 }
-function drawTemp(cursor){
+export function drawTemp(cursor){
   if (M.temp) M.group.removeLayer(M.temp);
   const pts = cursor ? [...M.pts, cursor] : M.pts;
   const style = {pane:'measure', color:getVar('--measure'), weight:3, dashArray:'6 5', fillOpacity:.15, interactive:false};
@@ -677,7 +733,7 @@ function drawTemp(cursor){
 map.on('click', e => { if (!M.mode) return; M.pts.push(e.latlng); drawTemp(); });
 map.on('mousemove', e => { if (M.mode && M.pts.length) drawTemp(e.latlng); });
 map.on('dblclick', () => M.mode && finishMeasure());
-function finishMeasure(){
+export function finishMeasure(){
   // a double-click adds the same point twice; drop near-duplicates
   M.pts = M.pts.filter((p, i) => i === 0 || map.distance(p, M.pts[i-1]) > 0.5);
   const need = M.mode === 'dist' ? 2 : 3;
@@ -690,8 +746,8 @@ function finishMeasure(){
   shape.addTo(M.group).bindTooltip(label, {permanent:true, direction:'center', className:'m-label'});
   const mode = M.mode; M.temp = null; endMeasure(); startMeasure(mode);   // stay in the tool for the next shape
 }
-function cancelMeasure(){ if (M.temp) M.group.removeLayer(M.temp); M.temp = null; endMeasure(); }
-function endMeasure(){
+export function cancelMeasure(){ if (M.temp) M.group.removeLayer(M.temp); M.temp = null; endMeasure(); }
+export function endMeasure(){
   M.mode = null; M.pts = []; map.doubleClickZoom.enable();
   document.getElementById('app').classList.remove('measuring');
   ['measureDist','measureArea'].forEach(id => document.getElementById(id).setAttribute('aria-pressed','false'));
@@ -719,15 +775,15 @@ document.getElementById('labelsToggle').onchange = e => { e.target.checked ? lab
 document.getElementById('oldToggle').checked = prefs.old === true;      // the 1850 outline is off until it is switched on
 document.getElementById('oldToggle').onchange = () => { prefs.old = document.getElementById('oldToggle').checked; savePrefs(); drawOutlines(); };
 document.getElementById('newToggle').onchange = drawOutlines;
-function fitGlacier(animate = true){ if (typeof subFocus !== 'undefined') subFocus = null; map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
-const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
+export function fitGlacier(animate = true){ if (typeof subFocus !== 'undefined') subFocus = null; map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
+export const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
 /* The tip of the tongue is the lowest point of the newest outline (found by build_outlines.py with the swisstopo height service).
    The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
    so the tip sits near the middle of the screen with room around it, whatever the window size. */
-const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way from the tip to the middle of that stretch
-const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: -800}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.8 km east; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
-const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
-function tongueBounds(g){
+export const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way from the tip to the middle of that stretch
+export const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: -800}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.8 km east; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
+export const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
+export function tongueBounds(g){
   if (g.half) return L.latLngBounds(g.box);      // Iceland: the tongue view shows the picture box (the big glaciers are pictured only where the tongue is)
   const geom = g.inv && g.inv.outline, T = g.inv && g.inv.terminus;
   if (!geom || !T) return null;
@@ -744,8 +800,8 @@ function tongueBounds(g){
   return L.latLngBounds([c.lat - dLat + dN, c.lng - dLng - dW], [c.lat + dLat + dN, c.lng + dLng - dW]);    // symmetric around c
 }
 /* Tongue indication: a ring with a label at the tip (lowest point of the outline), switched on in the layer box */
-let tonguePin = null;
-function drawTonguePin(){
+export let tonguePin = null;
+export function drawTonguePin(){
   if (tonguePin) map.removeLayer(tonguePin);
   tonguePin = null;
   const g = currentGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue;
@@ -753,9 +809,9 @@ function drawTonguePin(){
   tonguePin = L.marker(at, {icon: L.divIcon({className: '', html: '<div class="tongue-pin"><span>Tongue</span></div>', iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false}).addTo(map);
 }
 /* The tongue view is always closer than the whole-glacier view: at least TONGUE_CLOSER zoom levels more. */
-const TONGUE_CLOSER = 1;
-function wholeGlacierZoom(g){ return map.getBoundsZoom(g.bounds, false, L.point(40, 40)); }
-function tongueView(){          // {center, zoom} the Tongue button goes to, or null
+export const TONGUE_CLOSER = 1;
+export function wholeGlacierZoom(g){ return map.getBoundsZoom(g.bounds, false, L.point(40, 40)); }
+export function tongueView(){          // {center, zoom} the Tongue button goes to, or null
   const g = currentGlacier(), b = tongueBounds(g), small = matchMedia('(max-width:720px)').matches;
   if (g.half) { const pad = small ? [24, 64] : [40, 80]; return map._getBoundsCenterZoom(b, {paddingTopLeft: pad, paddingBottomRight: small ? [24, 100] : [40, 110]}); }      // exactly the picture box
   if (b) {
@@ -768,15 +824,15 @@ function tongueView(){          // {center, zoom} the Tongue button goes to, or 
   }
   return g.tongue ? {center: L.latLng(g.tongue), zoom: g.tz || TONGUE_ZOOM} : null;
 }
-function focusTongue(animate = true){
+export function focusTongue(animate = true){
   if (typeof subFocus !== 'undefined') subFocus = null;
   const v = tongueView();
   if (v) map.setView(v.center, v.zoom, {animate});
   else fitGlacier(animate);
 }
-function wholeView(){ return map._getBoundsCenterZoom(currentGlacier().bounds, {padding: [20, 20]}); }
+export function wholeView(){ return map._getBoundsCenterZoom(currentGlacier().bounds, {padding: [20, 20]}); }
 /* the Tongue and Whole glacier buttons grey out while the map already shows their view (within 3 px) */
-function syncViewButtons(){
+export function syncViewButtons(){
   if (!map || !currentGlacier()) return;
   const here = (v) => v && Math.abs(map.getZoom() - v.zoom) < 0.02 && map.project(map.getCenter(), v.zoom).distanceTo(map.project(v.center, v.zoom)) < 3;
   const t = document.getElementById('tongueBtn'), f = document.getElementById('fitBtn');
@@ -786,3 +842,23 @@ function syncViewButtons(){
 map.on('moveend zoomend resize', syncViewButtons);
 document.getElementById('tongueBtn').onclick = () => focusTongue();
 
+// Bridge while other scripts are still classic scripts (delete when none is left). `let` names get an accessor so both sides see one variable.
+Object.assign(window, { TWO_FINGER, map, NiceScale, scaleCtl, placeScale, updateCredits, spaceCache, spaceCanvas, mapEl, osm, topo, alti, TrailsLayer, TrailsVector, trails, trailsFor, ensureSight, sightFor, updateSight, updateTrailClip, HIDE_LABELS, LabelsLayer, labels, BLANK, BG_YEAR, bgTiles, setBackground, SI_LAST, aerial, siYear, aerialWanted, aerialSlots, aerialFlown, flownYear, ensureFlown, oldestAerial, ensureOldestIs, oldestWhat, ensureOldest, showOldest, restoreOldest, aerialYears, updateAerial, satOn, oldestPair, satShown, SAT_MSG, OLDEST_MSG, satMsg, aerialDesc, applySatVisibility, imageryLayer, deferredLoads, loadDeferred, setCompareLayers, horiz, splitRange, clip, tlFrames, buildTimelapse, tagLine, showFrame, PLAY_ICON, PAUSE_ICON, SPEED_MS, SPEED_FPS, speedMs, updateSpeedIcon, FULL_ICONS, syncDock, syncFullPlay, play, stopPlay, outlineLayers, geodesicArea, multiArea, drawOutlines, getVar, THICK_LAYER, thicknessUrl, setThickness, RADAR_STOPS, radarColor, radarPopup, radarRenderer, loadRadar, drawRadar, SPEED_MIN, SPEED_MAX, SPEED_STOPS, SPEED_LUT, speedFiles, speedArrays, loadSpeedFile, speedArray, speedYear, speedCanvas, updateSpeed, drawMax, M, fmtLen, fmtArea, pathLen, ringOf, updateClear, startMeasure, updateMeasureText, drawTemp, finishMeasure, cancelMeasure, endMeasure, fitGlacier, TONGUE_ZOOM, TONGUE_REACH, TONGUE_SHIFT, TONGUE_VIEW, TONGUE_ZOOM_OUT, tongueBounds, drawTonguePin, TONGUE_CLOSER, wholeGlacierZoom, tongueView, focusTongue, wholeView, syncViewButtons });
+Object.defineProperty(window, 'sightTried', { get: () => sightTried, set: v => { sightTried = v; }, configurable: true });
+Object.defineProperty(window, 'sightLoad', { get: () => sightLoad, set: v => { sightLoad = v; }, configurable: true });
+Object.defineProperty(window, 'sightLayer', { get: () => sightLayer, set: v => { sightLayer = v; }, configurable: true });
+Object.defineProperty(window, 'trailClipKey', { get: () => trailClipKey, set: v => { trailClipKey = v; }, configurable: true });
+Object.defineProperty(window, 'layerA', { get: () => layerA, set: v => { layerA = v; }, configurable: true });
+Object.defineProperty(window, 'layerB', { get: () => layerB, set: v => { layerB = v; }, configurable: true });
+Object.defineProperty(window, 'sliderHintDone', { get: () => sliderHintDone, set: v => { sliderHintDone = v; }, configurable: true });
+Object.defineProperty(window, 'tlLayers', { get: () => tlLayers, set: v => { tlLayers = v; }, configurable: true });
+Object.defineProperty(window, 'thickImgs', { get: () => thickImgs, set: v => { thickImgs = v; }, configurable: true });
+Object.defineProperty(window, 'thickKey', { get: () => thickKey, set: v => { thickKey = v; }, configurable: true });
+Object.defineProperty(window, 'radarLayer', { get: () => radarLayer, set: v => { radarLayer = v; }, configurable: true });
+Object.defineProperty(window, 'radarLoad', { get: () => radarLoad, set: v => { radarLoad = v; }, configurable: true });
+Object.defineProperty(window, 'radarGen', { get: () => radarGen, set: v => { radarGen = v; }, configurable: true });
+Object.defineProperty(window, 'maxMarker', { get: () => maxMarker, set: v => { maxMarker = v; }, configurable: true });
+Object.defineProperty(window, 'speedLayer', { get: () => speedLayer, set: v => { speedLayer = v; }, configurable: true });
+Object.defineProperty(window, 'speedKey', { get: () => speedKey, set: v => { speedKey = v; }, configurable: true });
+Object.defineProperty(window, 'speedGen', { get: () => speedGen, set: v => { speedGen = v; }, configurable: true });
+Object.defineProperty(window, 'tonguePin', { get: () => tonguePin, set: v => { tonguePin = v; }, configurable: true });

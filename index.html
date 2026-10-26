@@ -39,6 +39,7 @@
 -->
 <link rel="stylesheet" href="css/style.css">
 <style>
+.speed-img{image-rendering:auto}.speed-sw{display:block;width:22px;height:8px;border-radius:4px;background:linear-gradient(90deg,#30123b,#36aaf9,#72fe5e,#fabb39,#cb2a04)}#speedRamp{background:linear-gradient(90deg,#4662d7,#36aaf9 20%,#1ae4b6 38%,#72fe5e 55%,#c7ef34 68%,#fabb39 80%,#f56918 90%,#cb2a04)}
 .space-sw{display:block;width:26px;height:16px;border-radius:3px;background:radial-gradient(1px 1px at 5px 4px,#fff,transparent),radial-gradient(1px 1px at 15px 11px,#fff,transparent),radial-gradient(1.2px 1.2px at 21px 5px,#e8e0cc,transparent),linear-gradient(#0b1230,#04070f)}
 .sub-pin{position:relative;width:10px;height:10px;border-radius:50%;border:2px solid #fff;background:rgba(200,50,42,.55);box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:pointer;transition:transform .12s}
 .sub-pin:hover{transform:scale(1.35);background:var(--accent)}
@@ -230,6 +231,8 @@
       <div class="trail-legend radar-legend gl-only" id="thickLegendBox" hidden><img id="thickLegendImg" alt="Legend: modelled ice thickness in metres" width="105"><small>Model result, not a measurement <span data-fn-slot="grab"></span>, state around 2016. The green lines are the radar surveys it is based on.</small></div>
       <label class="toggle gl-only" title="Ice thickness measured by ground-penetrating radar"><input type="checkbox" id="radarToggle"> <span><span class="sym"><i class="dots-sw"><b></b><b></b><b></b></i></span>Radar points</span></label>
       <div class="trail-legend radar-legend gl-only" id="radarLegend" hidden><i class="ramp" id="radarRamp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="radarNote"></small><span class="multi-row"><b class="multi-dot"></b>Measured in several years; click to see all</span><small>Each dot is the mean of the radar points in a 50 m cell.</small></div>
+      <label class="toggle gl-only" id="speedRow" title="How fast the ice moves: yearly mean surface speed from satellite image pairs (ITS_LIVE). Shows the year of the picture on the map."><input type="checkbox" id="speedToggle"> <span><span class="sym"><i class="speed-sw"></i></span>Ice speed</span></label>
+      <div class="trail-legend radar-legend gl-only" id="speedLegend" hidden><i class="ramp" id="speedRamp"></i><span class="ticks"><b>5 m/yr</b><b>50</b><b>100</b><b>150+</b></span><small id="speedNote"></small></div>
       <label class="toggle gl-only" title="Hiking trails"><input type="checkbox" id="trailsToggle"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
       <div class="trail-legend gl-only" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="sightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
       <label class="toggle gl-only" id="svRow" title="Panoramas: the best Street View panoramas of this glacier (Google)" hidden><input type="checkbox" id="svToggle"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Panoramas</span></label>
@@ -398,9 +401,9 @@
 <script type="module" src="js/02-glaciers.js"></script>
 <script type="module" src="js/03-imagery.js"></script>
 <script type="module" src="js/04-state.js"></script>
-<script defer src="js/05-map.js"></script>
-<script defer src="js/06-scene-search.js"></script>
-<script defer src="js/07-render.js"></script>
+<script type="module" src="js/05-map.js"></script>
+<script type="module" src="js/06-scene-search.js"></script>
+<script type="module" src="js/07-render.js"></script>
 <script defer src="js/07a-region-icecaps.js"></script>
 <script defer src="js/07b-icecap-texts.js"></script>
 <script defer src="js/08-controls.js"></script>

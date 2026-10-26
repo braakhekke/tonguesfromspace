@@ -114,6 +114,7 @@ def masks_for(rings, tip, bbox, n=207, radius=3000.0):
     return glac, tong
 
 
+SLC_OFF = '2003-05-31'      # Landsat 7's scan line corrector failed: its scenes from this day on have stripes of no data
 REJECT = set()      # dates of scenes not to use for this glacier (scripts/landsat-rejects.json: chosen by looking at the pictures)
 
 
@@ -251,16 +252,15 @@ def shifted(a, w, h, sx, sy):
     return out
 
 
-def render(a, w, h, cal):
-    """cal: per band the QUANT levels the picture is matched to (the average of Landsat 5 and 7): a gain and an offset per band, so that the years look alike. Returns the pictures of the three
-    colour styles (STYLES) and the share of the picture that was interpolated."""
+def paint(a, w, h, cal):
+    """the three colour styles of one scene (cal: the levels the scene is matched to) and the mask of its no-data pixels (1)"""
     px = w * h; sat = TC['sat']; lev = land_levels(a, w, h)
     gains = [((cal[c][1] - cal[c][0]) / (lev[c][1] - lev[c][0]) if lev[c][1] - lev[c][0] > 1e-4 else 1.0, lev[c][0], cal[c][0]) for c in range(MASK)] if not NOMATCH else [(1.0, 0.0, 0.0)] * MASK
     lut = {}
     def ch(v, c):      # surface reflectance = DN * 0.0000275 - 0.2 (Collection 2 Level-2), matched to the reference ground
         if (v, c) not in lut: g, l0, r0 = gains[c]; lut[(v, c)] = sadj(max(r0 + (v * 0.0000275 - 0.2 - l0) * g, 0))
         return lut[(v, c)]
-    bufs = {k: bytearray(px * 3) for k in STYLES}; out = bufs['natural']; hole = bytearray(px)
+    bufs = {k: bytearray(px * 3) for k in STYLES}; hole = bytearray(px)
     for i in range(px):
         if a[MASK * px + i] == 0 or a[i] == 0:
             hole[i] = 1; continue
@@ -268,10 +268,39 @@ def render(a, w, h, cal):
         for k, idx in STYLES.items():
             r, g, b = (lv[j] for j in idx); avg = (r + g + b) / 3 * (1 - sat)
             bufs[k][3 * i:3 * i + 3] = bytes(int(round(255 * srgb(min(max(avg + c * sat, 0), 1)))) for c in (r, g, b))
-    # Landsat 7 after May 2003: diagonal stripes of no data inside the scene. The ice flows along its streaks (medial moraines, flow lines, crevasse trains), so a hole is first filled by
-    # interpolating along the local direction of those streaks: the orientation comes from the structure tensor of the picture's brightness (gradients only where the picture is whole),
-    # summed over blocks of BLK pixels and their neighbours; the streaks run at right angles to the dominant gradient. Where there is no clear direction (coherence under 0.3: rock, sea) or no picture
-    # within FLOW_REACH pixels on both sides along it, the holes are closed along the rows and columns below.
+    return bufs, hole
+
+
+def render(a, w, h, cal, donor=None):
+    """cal: per band the QUANT levels the picture is matched to (the average of Landsat 5 and 7): a gain and an offset per band, so that the years look alike. donor: a second scene (same layout,
+    registered) whose pixels fill the stripes of Landsat 7 first. Returns the pictures of the three colour styles (STYLES) and the share of the picture that was interpolated."""
+    px = w * h
+    bufs, hole = paint(a, w, h, cal); out = bufs['natural']; dn = 0
+    if donor is not None:
+        dbufs, dhole = paint(donor, w, h, cal)      # its own gain and offset: the colours of the two scenes meet without a seam
+        # the land patch alone does not make the two sensors agree on bright snow and ice (Landsat 5 and 7, other day): every channel of the second scene is mapped, by quantiles, onto the
+        # first one over the pixels where both have a picture, so that the patches that fill the stripes do not show as stripes on the snow
+        both = [i for i in range(0, px, 3) if not hole[i] and not dhole[i]]
+        if len(both) > 2000:
+            QN = [q / 64 for q in range(65)]
+            for k in bufs:
+                for c in range(3):
+                    b = sorted(bufs[k][3 * i + c] for i in both); d = sorted(dbufs[k][3 * i + c] for i in both)
+                    xs = [d[int(q * (len(d) - 1))] for q in QN]; ys = [b[int(q * (len(b) - 1))] for q in QN]; lut = []
+                    for v in range(256):
+                        j = max(0, min(63, sum(1 for x in xs[1:-1] if x <= v)))
+                        x0, x1 = xs[j], xs[j + 1]; lut.append(int(round(min(255, max(0, ys[j] + (v - x0) / (x1 - x0) * (ys[j + 1] - ys[j]) if x1 > x0 else ys[j])))))
+                    for i in range(px):
+                        if dhole[i] == 0 and hole[i]: dbufs[k][3 * i + c] = lut[dbufs[k][3 * i + c]]
+        for i in range(px):
+            if hole[i] and not dhole[i]:
+                for k in bufs: bufs[k][3 * i:3 * i + 3] = dbufs[k][3 * i:3 * i + 3]
+                hole[i] = 0; dn += 1
+        print(f'    gaps: {dn} pixels taken from the second scene')
+    # Landsat 7 after May 2003: diagonal stripes of no data inside the scene. Without a second scene, or where it has gaps too, the ice flows along its streaks (medial moraines, flow lines,
+    # crevasse trains), so a hole is first filled by interpolating along the local direction of those streaks: the orientation comes from the structure tensor of the picture's brightness
+    # (gradients only where the picture is whole), summed over blocks of BLK pixels and their neighbours; the streaks run at right angles to the dominant gradient. Where there is no clear
+    # direction (coherence under 0.3: rock, sea) or no picture within FLOW_REACH pixels on both sides along it, the holes are closed along the rows and columns below.
     BLK, FLOW_REACH = 40, 60; nbx, nby = (w + BLK - 1) // BLK, (h + BLK - 1) // BLK
     lum = [(out[3 * i] + out[3 * i + 1] + out[3 * i + 2]) / 3 for i in range(px)]
     jxx = [0.0] * (nbx * nby); jyy = [0.0] * (nbx * nby); jxy = [0.0] * (nbx * nby)
@@ -282,7 +311,9 @@ def render(a, w, h, cal):
             if hole[i] or hole[i - 2] or hole[i + 2] or hole[i - 2 * w] or hole[i + 2 * w] or hole[i - 1] or hole[i + 1] or hole[i - w] or hole[i + w]: continue
             gx, gy = lum[i + 1] - lum[i - 1], lum[i + w] - lum[i - w]; b = (y // BLK) * nbx + x // BLK
             jxx[b] += gx * gx; jyy[b] += gy * gy; jxy[b] += gx * gy
-    flow = {}      # block -> unit vector along the streaks
+    # The tensor sums sit at the block centres and are interpolated bilinearly, so the direction changes smoothly across the picture (one direction per block gave kinks where
+    # neighbouring blocks disagreed), and a bridge is traced along the changing direction (it follows a bend of the glacier) instead of along one straight line, which landed on the wrong moraine.
+    sm = {}
     for by in range(nby):
         for bx in range(nbx):
             a = bb = c = 0.0
@@ -290,22 +321,38 @@ def render(a, w, h, cal):
                 for dx in (-1, 0, 1):
                     X, Y = bx + dx, by + dy
                     if 0 <= X < nbx and 0 <= Y < nby: k = Y * nbx + X; a += jxx[k]; bb += jyy[k]; c += jxy[k]
-            tot = a + bb
-            if tot < 1e-6: continue
-            if math.hypot(a - bb, 2 * c) / tot < 0.3: continue      # no clear direction
+            sm[(bx, by)] = (a, bb, c)
+    dcache = {}
+    def flow_at(x, y):      # unit vector along the streaks at (x, y), or None where there is no clear direction
+        key = (int(x) // 4, int(y) // 4)
+        if key in dcache: return dcache[key]
+        fx, fy = (key[0] * 4 + 2) / BLK - 0.5, (key[1] * 4 + 2) / BLK - 0.5
+        x0, y0 = math.floor(fx), math.floor(fy); tx, ty = fx - x0, fy - y0; a = bb = c = 0.0
+        for X, Y, wt in ((x0, y0, (1 - tx) * (1 - ty)), (x0 + 1, y0, tx * (1 - ty)), (x0, y0 + 1, (1 - tx) * ty), (x0 + 1, y0 + 1, tx * ty)):
+            s = sm.get((min(max(X, 0), nbx - 1), min(max(Y, 0), nby - 1)))
+            a += s[0] * wt; bb += s[1] * wt; c += s[2] * wt
+        tot = a + bb; r = None
+        if tot >= 1e-6 and math.hypot(a - bb, 2 * c) / tot >= 0.3:      # else no clear direction
             th = 0.5 * math.atan2(2 * c, a - bb) + math.pi / 2      # gradient direction + 90 degrees = along the streaks
-            flow[by * nbx + bx] = (math.cos(th), math.sin(th))
+            r = (math.cos(th), math.sin(th))
+        dcache[key] = r
+        return r
     src = bytes(hole); fl = 0
     for i in range(px):
         if not src[i]: continue
-        y, x = divmod(i, w); d = flow.get((y // BLK) * nbx + x // BLK)
-        if not d: continue
+        y, x = divmod(i, w); d0 = flow_at(x, y)
+        if not d0: continue
         found = []
         for sgn in (1, -1):
+            d = (sgn * d0[0], sgn * d0[1]); fx, fy = float(x), float(y)
             for t in range(1, FLOW_REACH + 1):
-                X, Y = int(round(x + sgn * d[0] * t)), int(round(y + sgn * d[1] * t))
+                fx += d[0]; fy += d[1]; X, Y = int(round(fx)), int(round(fy))
                 if not (0 <= X < w and 0 <= Y < h): break
                 if not src[Y * w + X]: found.append((t, Y * w + X)); break
+                nd = flow_at(fx, fy)
+                if not nd: break
+                if nd[0] * d[0] + nd[1] * d[1] < 0: nd = (-nd[0], -nd[1])      # keep going the same way
+                d = nd
         if len(found) == 2:
             (t1, p1), (t2, p2) = found; u = t1 / (t1 + t2)
             for ob in bufs.values():
@@ -338,7 +385,7 @@ def render(a, w, h, cal):
     for i in range(px):
         if hole[i]:
             for ob in bufs.values(): ob[3 * i:3 * i + 3] = bytes((28, 41, 48))      # no data
-    return {k: Image.frombytes('RGB', (w, h), bytes(ob)) for k, ob in bufs.items()}, (filled + fl) / px
+    return {k: Image.frombytes('RGB', (w, h), bytes(ob)) for k, ob in bufs.items()}, (filled + fl + dn) / px
 
 
 def auto_land(rings, bounds, z, size=0.2, min_h=30):
@@ -372,6 +419,29 @@ FOOTPRINTS = os.path.join(ROOT, 'scripts', '.footprints-ch.json')      # the pic
 
 
 def unmerc(x, y): return math.degrees(2 * math.atan(math.exp(y / R)) - math.pi / 2), math.degrees(x / R)
+
+
+def find_donor(best, year, bounds, bbox, masks, refs, W, H):
+    """a scene without stripes to fill those of a Landsat 7 scene taken after its scan line corrector failed (31 May 2003): not Landsat 7 after that day, clear over the glacier, whole picture,
+    the closest to the date of `best` in the season (day of the year) and in years (at most 3 years apart); registered onto the Sentinel-2 mosaic like every scene. Returns the bands or None."""
+    import datetime
+    d0 = datetime.date.fromisoformat(best['date']); found = []
+    for y in range(year - 3, year + 4):
+        for f in candidates(bounds, y):
+            p = f['properties']; day = p['datetime'][:10]
+            if f['id'] == best['id'] or day in REJECT or p['platform'] in EXCLUDE or (p['platform'] == 'landsat-7' and day >= SLC_OFF): continue
+            try: sc = score(f, bbox, masks)
+            except Exception: continue
+            if sc['cover'] < 0.9 or sc['cloud'] > 0.1 or sc['tcloud'] > 0.05 or sc['snow'] > best['snow'] + 0.15: continue
+            dd = datetime.date.fromisoformat(day); doy = abs((dd.replace(year=d0.year) - d0).days)
+            if doy > 45: continue
+            found.append((doy + 120 * abs(y - year) + 200 * sc['cloud'] + 100 * sc['snow'], day, p['platform'], f))
+    for _, day, plat, f in sorted(found, key=lambda t: t[0]):
+        arr = bands(f, bbox, W, H); sx, sy, c, c0 = register(refs, arr, W, H)
+        if (sx, sy) != (0, 0) and c - c0 >= 0.03: arr = shifted(arr, W, H, sx, sy)
+        elif c0 < 0.12: continue
+        print(f'    second scene {day} {plat} (correlation {max(c, c0):.2f})'); return arr, {'date': day, 'id': f['id'], 'sat': plat}
+    return None, None
 
 
 def find_outlet(oid):
@@ -452,10 +522,13 @@ def main():
             if good: break
         else: print(f'  {year}: no scene with a confirmed position'); continue
         if ok: shifts[year] = (sx, sy); arr = shifted(arr, W, H, sx, sy)
-        imgs, filled = render(arr, W, H, cal)
+        donor = dinfo = None
+        if best['sat'] == 'landsat-7' and best['date'] >= SLC_OFF: donor, dinfo = find_donor(best, year, (s, w, n, e), bbox, masks, refs, W, H)
+        imgs, filled = render(arr, W, H, cal, donor)
         for k, img in imgs.items(): img.save(os.path.join(out, a.outlet, f'{year}{FILE_SUFFIX[k]}.jpg'), quality=88, optimize=True, progressive=True)
         scenes[year] = {k: round(best[k], 3) if isinstance(best[k], float) else best[k] for k in ('date', 'id', 'sat', 'path', 'row', 'time', 'sun', 'cloud', 'tcloud', 'snow', 'clear', 'cover')}
         if shifts.get(year) and shifts[year] != (0, 0): scenes[year]['shiftM'] = [round(shifts[year][0] * mpp), round(shifts[year][1] * mpp)]      # how far the scene lay east and south of the reference, in metres: corrected
+        if dinfo: scenes[year]['fill'] = dinfo      # the second scene whose pixels fill the stripes
         if filled > 0.002: scenes[year]['filled'] = round(filled, 3)      # the share of the picture interpolated across the stripes of Landsat 7
     mp = os.path.join(out, a.outlet + '.json'); old = {}
     if os.path.exists(mp) and a.years:
