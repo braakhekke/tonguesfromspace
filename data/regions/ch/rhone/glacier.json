@@ -1,0 +1,59 @@
+{
+  "id": "rhone",
+  "region": "ch",
+  "name": "Rhonegletscher",
+  "inventoryId": "B43-03",
+  "dataKey": "B43-03",
+  "imported": {
+    "from": "the data files of the site",
+    "at": "2026-10-26",
+    "note": "Picture box, tip and 3D strip from data/boxes.js; 35 scenes from data/scenes.json and data/landsat/; season from js/regions.js."
+  },
+  "rank": 7,
+  "areaKm2": 13.58,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.61777,
+    8.39798
+  ],
+  "placement": {
+    "tip": [
+      46.582186,
+      8.387842
+    ],
+    "pictureBox": [
+      [
+        46.5343064,
+        8.320376907153385
+      ],
+      [
+        46.6835736,
+        8.467103092846616
+      ]
+    ],
+    "strip3d": {
+      "azimuth": 351.13738149109275,
+      "half": 2000,
+      "back": 1000,
+      "up": 6500
+    }
+  },
+  "balanceYear": {
+    "start": "10-01",
+    "end": "09-30",
+    "label": "ends-in",
+    "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+    "daysBeforeEnd": 91,
+    "daysAfterEnd": 4,
+    "maxCloud": 0.05,
+    "maxCloudTongue": 0.05,
+    "maxSnow": 1,
+    "fallbackCloud": 0.3,
+    "minCoverage": 1,
+    "noDataMarginM": 1000,
+    "oneOrbit": false,
+    "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 35 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  }
+}

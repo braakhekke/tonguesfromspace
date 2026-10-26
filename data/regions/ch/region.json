@@ -1,0 +1,23 @@
+{
+  "id": "ch",
+  "name": "Switzerland",
+  "status": "live",
+  "centre": [
+    46.45,
+    8.1
+  ],
+  "zoom": 7,
+  "blurb": "The ten largest Swiss glaciers, with GLAMOS statistics.",
+  "unitRule": "The ten largest Swiss glaciers by area in the newest Swiss Glacier Inventory (SGI2023, GLAMOS).",
+  "count": 10,
+  "sources": [
+    {
+      "id": "glamos-sgi",
+      "name": "GLAMOS Swiss Glacier Inventory SGI2023",
+      "url": "https://doi.glamos.ch/data/inventory/inventory_sgi2023_r2026.zip",
+      "licence": "The site's own statement: GLAMOS Swiss Glacier Inventories, Ice Thickness (CC BY 4.0); GLAMOS Swiss Glacier Length Change, Volume Change, Mass Balance and Swisswide Mass Balance (scientific and non-commercial use, cite GLAMOS)",
+      "commercialUse": false,
+      "citation": "https://doi.glamos.ch/data/inventory/inventory_sgi2023_r2026.zip https://doi.glamos.ch/data/inventory/inventory_sgi1850_r1992.zip https://doi.glamos.ch/data/inventory/inventory_sgi1973_r1976.zip https://doi.glamos.ch/data/lengthchange/lengthchange.csv https://doi.glamos.ch/data/volumechange/volumechange.csv https://doi.glamos.ch/data/massbalance_swisswide/massbalance_swisswide_2025_r2025.zip https://doi.glamos.ch/data/icethickness/icethickness_2020_r2020.zip https://doi.glamos.ch/data/massbalance/massbalance_2025_r2025.zip"
+    }
+  ]
+}

@@ -22,6 +22,7 @@ import { isProbing, probeGlacierLayers } from './probe-layers';
 import { parseStatistics, statisticsBody, STATS_RES_M } from './shared/copernicus';
 import type { Env, GlacierIndex } from './relay/env';
 import { Glacier } from './shared/schema';
+import { resolveOutlines } from './site-data';
 
 const PORT = Number(process.env.TFS_WALKTHROUGH_PORT ?? 5174);
 const cacheDir = () => process.env.TFS_CACHE ?? join(ROOT, '.cache');
@@ -107,7 +108,7 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
   if (p === '/__onboard/state') {
     const c = loadCtx(url.searchParams.get('region')!, url.searchParams.get('glacier'));
     const pr = progress(c);
-    return send(res, 200, { region: c.region, glacier: c.glacier, scenes: c.scenes, outlines: c.outlines, proposals: Object.fromEntries(Object.entries(readProposals(c.region.id, c.glacier?.id ?? null)).map(([k, v]) => [k, { at: v.at, by: v.by, note: v.note, data: JSON.stringify(v.data).length < 20_000 ? v.data : null, heavy: JSON.stringify(v.data).length >= 20_000 }])), probing: c.glacier ? isProbing(c.region.id, c.glacier.id) : false, steps: pr.steps, next: pr.next, done: pr.done, total: pr.total });
+    return send(res, 200, { region: c.region, glacier: c.glacier, scenes: c.scenes, outlines: c.outlines ? resolveOutlines(c.outlines) : null, proposals: Object.fromEntries(Object.entries(readProposals(c.region.id, c.glacier?.id ?? null)).map(([k, v]) => [k, { at: v.at, by: v.by, note: v.note, data: JSON.stringify(v.data).length < 20_000 ? v.data : null, heavy: JSON.stringify(v.data).length >= 20_000 }])), probing: c.glacier ? isProbing(c.region.id, c.glacier.id) : false, steps: pr.steps, next: pr.next, done: pr.done, total: pr.total });
   }
   if (p === '/__onboard/confirm' && req.method === 'POST') {
     const b = await body(req);
@@ -139,7 +140,7 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     if (!box) throw new Error('this glacier has no picture box yet');
     if (!/^\d{4}-\d{2}-\d{2}$/.test(from) || !/^\d{4}-\d{2}-\d{2}$/.test(to) || from > to || to < first || to > today || Date.parse(to) - Date.parse(from) > 400 * 864e5) throw new Error(`a window from ${first} to today is needed (from=YYYY-MM-DD&to=YYYY-MM-DD, at most 400 days)`);
     const start = from < first ? first : from;
-    const marginM = Number(url.searchParams.get('margin') ?? 0) || 0, outline = c.outlines?.epochs.find((e) => e.kind === 'new')?.geojson.features.map((f) => f.geometry as { type: string; coordinates: any });
+    const marginM = Number(url.searchParams.get('margin') ?? 0) || 0, outline = c.outlines?.epochs.find((e) => e.kind === 'new')?.geojson?.features.map((f) => f.geometry as { type: string; coordinates: any });
     if (landsat) return send(res, 200, { year, from: start, to, candidates: await searchLandsat(box, start, to, fetch, { outline, marginM }) });
     const g = imageGrid(box), lat = (box[0][0] + box[1][0]) / 2;
     const key = `scan:${c.glacier!.id}:${start}:${to}`;

@@ -1,0 +1,82 @@
+{
+  "years": {
+    "1987": {
+      "chosen": {
+        "sensor": "landsat-5",
+        "date": "1987-08-07",
+        "id": "LT05_L2SP_221015_19870807_02_T1",
+        "cloud": 0.005,
+        "snow": 0.335,
+        "coverage": 1
+      },
+      "status": "auto",
+      "note": "Landsat scene as the site's script (scripts/build_landsat.py) chose it; not looked at by a person yet.",
+      "discarded": []
+    },
+    "1989": {
+      "chosen": {
+        "sensor": "landsat-5",
+        "date": "1989-08-14",
+        "id": "LT05_L2SP_219015_19890814_02_T1",
+        "cloud": 0.002,
+        "snow": 0.548,
+        "coverage": 1
+      },
+      "status": "auto",
+      "note": "Landsat scene as the site's script (scripts/build_landsat.py) chose it; not looked at by a person yet.",
+      "discarded": []
+    },
+    "1992": {
+      "chosen": {
+        "sensor": "landsat-5",
+        "date": "1992-09-21",
+        "id": "LT05_L2SP_221015_19920921_02_T1",
+        "cloud": 0.001,
+        "snow": 0.446,
+        "coverage": 1
+      },
+      "status": "auto",
+      "note": "Landsat scene as the site's script (scripts/build_landsat.py) chose it; not looked at by a person yet.",
+      "discarded": []
+    },
+    "1993": {
+      "chosen": {
+        "sensor": "landsat-5",
+        "date": "1993-08-23",
+        "id": "LT05_L2SP_221015_19930823_02_T1",
+        "cloud": 0.001,
+        "snow": 0.485,
+        "coverage": 1
+      },
+      "status": "auto",
+      "note": "Landsat scene as the site's script (scripts/build_landsat.py) chose it; not looked at by a person yet.",
+      "discarded": []
+    },
+    "1994": {
+      "chosen": {
+        "sensor": "landsat-5",
+        "date": "1994-09-11",
+        "id": "LT05_L2SP_221015_19940911_02_T1",
+        "cloud": 0.002,
+        "snow": 0.31,
+        "coverage": 1
+      },
+      "status": "auto",
+      "note": "Landsat scene as the site's script (scripts/build_landsat.py) chose it; not looked at by a person yet.",
+      "discarded": []
+    },
+    "1995": {
+      "chosen": {
+        "sensor": "landsat-5",
+        "date": "1995-08-06",
+        "id": "LT05_L2SP_220015_19950806_02_T1",
+        "cloud": 0.006,
+        "snow": 0.315,
+        "coverage": 1
+      },
+      "status": "auto",
+      "note": "Landsat scene as the site's script (scripts/build_landsat.py) chose it; not looked at by a person yet.",
+      "discarded": []
+    }
+  }
+}

@@ -1,0 +1,24 @@
+{
+  "epochs": [
+    {
+      "kind": "old",
+      "year": 1966,
+      "source": "npi-inventory",
+      "ref": {
+        "file": "data/svalbard.js",
+        "id": "hochstetterbreen",
+        "field": "outlines.lia"
+      }
+    },
+    {
+      "kind": "new",
+      "year": 2020,
+      "source": "npi-inventory",
+      "ref": {
+        "file": "data/svalbard.js",
+        "id": "hochstetterbreen",
+        "field": "outlines.latest"
+      }
+    }
+  ]
+}

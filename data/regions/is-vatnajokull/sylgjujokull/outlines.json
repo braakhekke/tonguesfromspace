@@ -1,0 +1,24 @@
+{
+  "epochs": [
+    {
+      "kind": "old",
+      "year": 1890,
+      "source": "rgi-6-iceland",
+      "ref": {
+        "file": "data/vatnajokull.js",
+        "id": "sylgjujokull",
+        "field": "outlines.lia"
+      }
+    },
+    {
+      "kind": "new",
+      "year": 2025,
+      "source": "rgi-6-iceland",
+      "ref": {
+        "file": "data/vatnajokull.js",
+        "id": "sylgjujokull",
+        "field": "outlines.latest"
+      }
+    }
+  ]
+}

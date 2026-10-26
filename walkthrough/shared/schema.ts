@@ -89,8 +89,18 @@ export const Placement = z.object({
   tip: LatLon,
   pictureBox: Bounds,
   /** 3D strip: azimuth in degrees from tip up the glacier, half width / back / up in metres */
-  strip3d: z.object({ azimuth: z.number(), half: z.number().positive(), back: z.number().min(0), up: z.number().positive() }).optional(),
-  confirmation: Confirmation,
+  strip3d: z.object({
+    azimuth: z.number(), half: z.number().positive(), back: z.number().min(0), up: z.number().positive(),
+    /** grid cell of the 3D terrain in metres where the region does not use the default */
+    cell: z.number().positive().optional(),
+    /** a hand-set start camera: azimuth and elevation in radians, distance in metres */
+    cam: z.object({ az: z.number(), el: z.number(), dist: z.number().positive() }).optional(),
+  }).optional(),
+  /** hand-placed boxes of the outlets of an ice cap that are not glaciers of the list yet (records of their box and strip only); the site's data/boxes.js keeps them under `parent` */
+  subs: z.array(z.object({ dataKey: z.string(), name: z.string(), pictureBox: Bounds, tip: LatLon, strip3d: z.object({ azimuth: z.number(), half: z.number().positive(), back: z.number().min(0), up: z.number().positive(), cell: z.number().positive().optional() }) })).optional(),
+  /** 'cap': the picture is the whole ice cap (the picture of the region's data file), not the picture box */
+  imageFrom: z.literal('cap').optional(),
+  confirmation: Confirmation.optional().describe('absent while the placement is imported from the site and not looked at in the walkthrough yet'),
 });
 
 export const Glacier = z.object({
@@ -98,6 +108,10 @@ export const Glacier = z.object({
   region: z.string().regex(/^[a-z0-9-]+$/),
   name: z.string(),
   inventoryId: z.string(),
+  /** the key of this glacier in the site's data files (data/boxes.js, data/scenes.json); the inventory id for Swiss glaciers, the id elsewhere */
+  dataKey: z.string().optional(),
+  /** filled from the site's existing data by `npm run walkthrough -- import-site`, not by a person: published as it is, shown as "proposed" until confirmed here */
+  imported: z.object({ from: z.string(), at: isoDay, note: z.string() }).optional(),
   /** ids this glacier had on the old site (#g=aletsch): old shared links are redirected through them */
   legacyIds: z.array(z.string()).optional(),
   rank: z.number().int().positive(),
@@ -175,15 +189,19 @@ export type ScenesFile = z.infer<typeof ScenesFile>;
 /** Polygons only, and only the ones chosen as "the glacier": a candidate file can be large, the choice is small. */
 const Feature = z.object({
   type: z.literal('Feature'),
-  geometry: z.object({ type: z.enum(['Polygon', 'MultiPolygon']), coordinates: z.array(z.any()) }),
+  /** polygons (inventories) or lines (the Icelandic Met Office outlines are open lines cut to an outlet) */
+  geometry: z.object({ type: z.enum(['Polygon', 'MultiPolygon', 'LineString', 'MultiLineString']), coordinates: z.array(z.any()) }),
   properties: z.record(z.string(), z.any()).nullable().optional(),
 });
 export const OutlineEpoch = z.object({
   kind: z.enum(['old', 'new']),
   year: z.number().int().min(1800).max(2100).describe('the year the outline describes, as its source states it'),
   source: z.string().describe('a Source id'),
-  geojson: z.object({ type: z.literal('FeatureCollection'), features: z.array(Feature).min(1) }),
-});
+  /** the geometry itself, or ... */
+  geojson: z.object({ type: z.literal('FeatureCollection'), features: z.array(Feature).min(1) }).optional(),
+  /** ... where the site's data file holds it (outlines made by the build scripts from the inventories are not copied into the records): file, glacier id in it, field path */
+  ref: z.object({ file: z.string(), id: z.string(), field: z.string() }).optional(),
+}).refine((e) => !!e.geojson !== !!e.ref, 'an outline is given either as geojson or as a reference into a data file');
 export type OutlineEpoch = z.infer<typeof OutlineEpoch>;
 
 /** data/regions/<region>/<glacier>/outlines.json */

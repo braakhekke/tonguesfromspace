@@ -1,0 +1,24 @@
+{
+  "epochs": [
+    {
+      "kind": "old",
+      "year": 1966,
+      "source": "nve-inventory",
+      "ref": {
+        "file": "data/norway.js",
+        "id": "vestre-svartisen",
+        "field": "outlines.lia"
+      }
+    },
+    {
+      "kind": "new",
+      "year": 2019,
+      "source": "nve-inventory",
+      "ref": {
+        "file": "data/norway.js",
+        "id": "vestre-svartisen",
+        "field": "outlines.latest"
+      }
+    }
+  ]
+}

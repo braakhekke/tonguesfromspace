@@ -1,0 +1,60 @@
+{
+  "id": "stonebreen",
+  "region": "no-svalbard",
+  "name": "Stonebreen",
+  "inventoryId": "NPI 31318",
+  "dataKey": "stonebreen",
+  "imported": {
+    "from": "the data files of the site",
+    "at": "2026-10-26",
+    "note": "Picture box, tip and 3D strip from data/boxes.js; 5 scenes from data/scenes.json and data/landsat/; season from js/regions.js."
+  },
+  "rank": 7,
+  "areaKm2": 536.7,
+  "areaSource": "npi-inventory",
+  "centre": [
+    77.7381,
+    24.0524
+  ],
+  "placement": {
+    "tip": [
+      77.72671,
+      24.22378
+    ],
+    "pictureBox": [
+      [
+        77.67162497305067,
+        23.73940052318732
+      ],
+      [
+        77.80457502694934,
+        24.365399476812676
+      ]
+    ],
+    "strip3d": {
+      "azimuth": 287,
+      "half": 4300,
+      "back": 1500,
+      "up": 10000,
+      "cell": 26
+    }
+  },
+  "balanceYear": {
+    "start": "10-01",
+    "end": "09-30",
+    "label": "ends-in",
+    "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+    "daysBeforeEnd": 72,
+    "daysAfterEnd": 0,
+    "maxCloud": 0.05,
+    "maxCloudTongue": 0.05,
+    "maxSnow": 1,
+    "fallbackCloud": 0.3,
+    "minCoverage": 1,
+    "noDataMarginM": 1000,
+    "oneOrbit": true,
+    "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 5 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  }
+}

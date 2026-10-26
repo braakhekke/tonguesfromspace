@@ -25,7 +25,7 @@ const proposal = (c: LatLon, outline?: { geometry: { type: string; coordinates: 
 export function PlacementScreen({ st, step, setPatch, setBlock }: ScreenProps) {
   const g = st.glacier!;
   const tool = g.placement ? null : st.proposals?.[step.id]?.data; // a tool's tip and box, unless already confirmed
-  const cur = st.outlines?.epochs.find((e) => e.kind === 'new')?.geojson.features;
+  const cur = st.outlines?.epochs.find((e) => e.kind === 'new')?.geojson?.features;
   const prop = tool ? { box: tool.pictureBox as Bounds, tip: tool.tip as LatLon } : proposal(g.centre, cur);
   const start = g.placement ?? prop;
   const offered = g.placement ? st.proposals?.[step.id]?.data : null; // a proposal that arrived after this step was confirmed

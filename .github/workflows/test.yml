@@ -34,6 +34,7 @@ jobs:
       - name: Walkthrough tool, types and unit tests
         run: |
           npm run types:walkthrough
+          npm run check:data      # data/boxes.js and data/scenes.json are what the records of data/regions say
           npm run test:walkthrough
       - name: Install the test browser
         run: |

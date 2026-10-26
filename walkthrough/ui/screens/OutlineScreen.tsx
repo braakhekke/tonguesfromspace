@@ -31,7 +31,7 @@ export function OutlineScreen({ st, step, setPatch, setBlock }: ScreenProps) {
   useEffect(() => { if (hasProposal && !prop) api.proposal(st.region.id, g.id, step.id).then(setProp).catch(() => {}); }, []);
   const saved = (k: 'old' | 'new'): Epoch | null => {
     const e = st.outlines?.epochs.find((x) => x.kind === k);
-    return e ? { kind: k, year: String(e.year), source: e.source, candidates: e.geojson.features as Feat[], chosen: new Set(e.geojson.features.map((_, i) => i)), file: 'saved selection' } : null;
+    return e ? { kind: k, year: String(e.year), source: e.source, candidates: (e.geojson?.features ?? []) as Feat[], chosen: new Set((e.geojson?.features ?? []).map((_, i) => i)), file: 'saved selection' } : null;
   };
   const proposed = (k: 'old' | 'new'): Epoch | null =>
     prop?.candidates?.[k]?.length ? { kind: k, year: String(prop.epochs[k].year), source: prop.epochs[k].source, candidates: prop.candidates[k], chosen: new Set<number>(prop.preselect[k]), file: `proposed: ${prop.candidates[k].length} polygons nearby` } : null;

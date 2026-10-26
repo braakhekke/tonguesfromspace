@@ -1,0 +1,60 @@
+{
+  "id": "breidamerkurjokull",
+  "region": "is-vatnajokull",
+  "name": "Breiðamerkurjökull",
+  "inventoryId": "RGI60-06.00483",
+  "dataKey": "breidamerkurjokull",
+  "imported": {
+    "from": "the data files of the site",
+    "at": "2026-10-26",
+    "note": "Picture box, tip and 3D strip from data/boxes.js; 16 scenes from data/scenes.json and data/landsat/; season from js/regions.js."
+  },
+  "rank": 3,
+  "areaKm2": 1067.7,
+  "areaSource": "rgi-6-iceland",
+  "centre": [
+    64.095,
+    -16.305
+  ],
+  "placement": {
+    "tip": [
+      64.06564,
+      -16.24333
+    ],
+    "pictureBox": [
+      [
+        63.983609414301114,
+        -16.55996821160496
+      ],
+      [
+        64.20639058569888,
+        -16.05003178839504
+      ]
+    ],
+    "strip3d": {
+      "azimuth": 318,
+      "half": 9000,
+      "back": 1500,
+      "up": 10200,
+      "cell": 36
+    }
+  },
+  "balanceYear": {
+    "start": "10-01",
+    "end": "09-30",
+    "label": "ends-in",
+    "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+    "daysBeforeEnd": 60,
+    "daysAfterEnd": 15,
+    "maxCloud": 0.05,
+    "maxCloudTongue": 0.05,
+    "maxSnow": 1,
+    "fallbackCloud": 0.3,
+    "minCoverage": 1,
+    "noDataMarginM": 1000,
+    "oneOrbit": true,
+    "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  }
+}

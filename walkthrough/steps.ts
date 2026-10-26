@@ -86,7 +86,7 @@ export const STEPS: StepDef[] = [
       const cur = o.epochs.find((e) => e.kind === 'new');
       if (!cur) out.push('There is no current ("new") outline.');
       for (const e of o.epochs) if (!c.region.sources.some((s) => s.id === e.source)) out.push(`The ${e.kind} outline names source "${e.source}", which is not a source of the region.`);
-      if (cur && c.glacier) {
+      if (cur?.geojson && c.glacier && cur.geojson.features.every((f) => f.geometry.type === 'Polygon' || f.geometry.type === 'MultiPolygon')) {      // lines and referenced outlines have no area to compare
         const km2 = cur.geojson.features.reduce((a, f) => a + areaKm2(f.geometry), 0);
         const off = Math.abs(km2 - c.glacier.areaKm2) / c.glacier.areaKm2;
         if (off > 0.25) out.push(`The selected outline is ${km2.toFixed(2)} km², ${(off * 100).toFixed(0)} % away from the record (${c.glacier.areaKm2} km²). Select the missing parts or correct the record.`);

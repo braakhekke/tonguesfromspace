@@ -57,7 +57,7 @@ export function loadAll(): Loaded {
       if (!gp.success) { fail(`${rid}/${gid}/glacier.json`, gp.error); continue; }
       const glacier = gp.data;
       const where = `${rid}/${gid}`;
-      if (!glacier.recordConfirmation) { drafts.push(where); continue; }
+      if (!glacier.recordConfirmation && !glacier.imported) { drafts.push(where); continue; }      // an imported record is published as it is; it shows as "proposed" in the walkthrough until a person confirms it
       if (glacier.id !== gid) problems.push(`${where}: id "${glacier.id}" must equal the folder name`);
       if (glacier.region !== rid) problems.push(`${where}: region "${glacier.region}" must equal the folder name`);
       if (ids.has(glacier.id)) problems.push(`${where}: id is used twice (ids are global: they are the URL)`);

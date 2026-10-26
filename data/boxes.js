@@ -1,6 +1,6 @@
-// picture box, tongue tip and 3D strip of every glacier (see CLAUDE.md, data/boxes.js); edited with scripts/tools/box-editor.html, 'derived' is what the page makes of the box: never edit it by hand
+// picture box, tongue tip and 3D strip of every glacier. GENERATED from the records of data/regions/ by `npm run walkthrough -- export`: change them in the walkthrough, not here (see docs/WALKTHROUGH.md)
 window.GLACIER_BOXES = {
- "_doc": "Picture box, tongue tip and 3D strip of every glacier; see scripts/freeze_boxes.py and CLAUDE.md. 'derived' is what the page makes of the box: never edit it by hand.",
+ "_doc": "Picture box, tongue tip and 3D strip of every glacier; generated from data/regions/ (npm run walkthrough -- export). 'derived' is what the page makes of the box: never edit it by hand.",
  "version": 1,
  "glaciers": {
   "B36-26": {
@@ -363,43 +363,6 @@ window.GLACIER_BOXES = {
     "h": 1301
    }
   },
-  "breidamerkurjokull": {
-   "name": "Breiðamerkurjökull",
-   "region": "is-vatnajokull",
-   "box": {
-    "bounds": [
-     [
-      63.983609414301114,
-      -16.55996821160496
-     ],
-     [
-      64.20639058569888,
-      -16.05003178839504
-     ]
-    ]
-   },
-   "tip": [
-    64.06564,
-    -16.24333
-   ],
-   "strip3d": {
-    "azimuth": 318,
-    "half": 9000,
-    "back": 1500,
-    "up": 10200,
-    "cell": 36
-   },
-   "derived": {
-    "bbox": [
-     -1843447,
-     9345603,
-     -1786681,
-     9402369
-    ],
-    "w": 2480,
-    "h": 2480
-   }
-  },
   "skeidararjokull": {
    "name": "Skeiðarárjökull",
    "region": "is-vatnajokull",
@@ -472,6 +435,43 @@ window.GLACIER_BOXES = {
     ],
     "w": 2020,
     "h": 2020
+   }
+  },
+  "breidamerkurjokull": {
+   "name": "Breiðamerkurjökull",
+   "region": "is-vatnajokull",
+   "box": {
+    "bounds": [
+     [
+      63.983609414301114,
+      -16.55996821160496
+     ],
+     [
+      64.20639058569888,
+      -16.05003178839504
+     ]
+    ]
+   },
+   "tip": [
+    64.06564,
+    -16.24333
+   ],
+   "strip3d": {
+    "azimuth": 318,
+    "half": 9000,
+    "back": 1500,
+    "up": 10200,
+    "cell": 36
+   },
+   "derived": {
+    "bbox": [
+     -1843447,
+     9345603,
+     -1786681,
+     9402369
+    ],
+    "w": 2480,
+    "h": 2480
    }
   },
   "dyngjujokull": {
@@ -622,43 +622,6 @@ window.GLACIER_BOXES = {
     "h": 1580
    }
   },
-  "heinabergsjokull": {
-   "name": "Heinabergsjökull and Skálafellsjökull",
-   "region": "is-vatnajokull",
-   "box": {
-    "bounds": [
-     [
-      64.22491484010061,
-      -15.895388388524085
-     ],
-     [
-      64.3470851598994,
-      -15.613811611475915
-     ]
-    ]
-   },
-   "tip": [
-    64.27566,
-    -15.66989
-   ],
-   "strip3d": {
-    "azimuth": 286,
-    "half": 2100,
-    "back": 1500,
-    "up": 10000,
-    "cell": 18
-   },
-   "derived": {
-    "bbox": [
-     -1769467,
-     9407110,
-     -1738122,
-     9438455
-    ],
-    "w": 1360,
-    "h": 1360
-   }
-  },
   "hoffellsjokull": {
    "name": "Hoffellsjökull",
    "region": "is-vatnajokull",
@@ -696,27 +659,27 @@ window.GLACIER_BOXES = {
     "h": 1380
    }
   },
-  "svinafellsjokull": {
-   "name": "Svínafellsjökull",
+  "heinabergsjokull": {
+   "name": "Heinabergsjökull and Skálafellsjökull",
    "region": "is-vatnajokull",
    "box": {
     "bounds": [
      [
-      63.949311462450595,
-      -16.92798899004307
+      64.22491484010061,
+      -15.895388388524085
      ],
      [
-      64.06788853754941,
-      -16.65741100995693
+      64.3470851598994,
+      -15.613811611475915
      ]
     ]
    },
    "tip": [
-    64.00361,
-    -16.87905
+    64.27566,
+    -15.66989
    ],
    "strip3d": {
-    "azimuth": 82,
+    "azimuth": 286,
     "half": 2100,
     "back": 1500,
     "up": 10000,
@@ -724,13 +687,50 @@ window.GLACIER_BOXES = {
    },
    "derived": {
     "bbox": [
-     -1884415,
-     9336904,
-     -1854295,
-     9367025
+     -1769467,
+     9407110,
+     -1738122,
+     9438455
     ],
-    "w": 1320,
-    "h": 1320
+    "w": 1360,
+    "h": 1360
+   }
+  },
+  "flaajokull": {
+   "name": "Fláajökull",
+   "region": "is-vatnajokull",
+   "box": {
+    "bounds": [
+     [
+      64.28112159540065,
+      -15.775393922292198
+     ],
+     [
+      64.41047840459935,
+      -15.476606077707801
+     ]
+    ]
+   },
+   "tip": [
+    64.33051,
+    -15.54524
+   ],
+   "strip3d": {
+    "azimuth": 294,
+    "half": 3100,
+    "back": 1500,
+    "up": 10000,
+    "cell": 22
+   },
+   "derived": {
+    "bbox": [
+     -1756109,
+     9421514,
+     -1722848,
+     9454775
+    ],
+    "w": 1440,
+    "h": 1440
    }
   },
   "sylgjujokull": {
@@ -770,41 +770,41 @@ window.GLACIER_BOXES = {
     "h": 1440
    }
   },
-  "flaajokull": {
-   "name": "Fláajökull",
+  "svinafellsjokull": {
+   "name": "Svínafellsjökull",
    "region": "is-vatnajokull",
    "box": {
     "bounds": [
      [
-      64.28112159540065,
-      -15.775393922292198
+      63.949311462450595,
+      -16.92798899004307
      ],
      [
-      64.41047840459935,
-      -15.476606077707801
+      64.06788853754941,
+      -16.65741100995693
      ]
     ]
    },
    "tip": [
-    64.33051,
-    -15.54524
+    64.00361,
+    -16.87905
    ],
    "strip3d": {
-    "azimuth": 294,
-    "half": 3100,
+    "azimuth": 82,
+    "half": 2100,
     "back": 1500,
     "up": 10000,
-    "cell": 22
+    "cell": 18
    },
    "derived": {
     "bbox": [
-     -1756109,
-     9421514,
-     -1722848,
-     9454775
+     -1884415,
+     9336904,
+     -1854295,
+     9367025
     ],
-    "w": 1440,
-    "h": 1440
+    "w": 1320,
+    "h": 1320
    }
   },
   "langjokull": {
@@ -881,6 +881,82 @@ window.GLACIER_BOXES = {
     "h": 4350
    },
    "imageFrom": "cap"
+  },
+  "hofsjokull~Þjórsárjökull": {
+   "name": "Þjórsárjökull",
+   "region": "is-rest",
+   "box": {
+    "bounds": [
+     [
+      64.67226279195113,
+      -18.733566680149398
+     ],
+     [
+      64.89863720804887,
+      -18.438353319850602
+     ]
+    ]
+   },
+   "tip": [
+    64.76683,
+    -18.46166
+   ],
+   "strip3d": {
+    "azimuth": 286,
+    "half": 11600,
+    "back": 1500,
+    "up": 10000,
+    "cell": 24
+   },
+   "derived": {
+    "bbox": [
+     -2085411,
+     9522569,
+     -2052548,
+     9581723
+    ],
+    "w": 1389,
+    "h": 2500
+   },
+   "parent": "hofsjokull"
+  },
+  "hofsjokull~Blöndujökull / Kvíslajökull": {
+   "name": "Blöndujökull / Kvíslajökull",
+   "region": "is-rest",
+   "box": {
+    "bounds": [
+     [
+      64.73709692777578,
+      -19.232071929633296
+     ],
+     [
+      64.89340307222423,
+      -18.970308070366702
+     ]
+    ]
+   },
+   "tip": [
+    64.83048,
+    -19.19761
+   ],
+   "strip3d": {
+    "azimuth": 105,
+    "half": 7400,
+    "back": 1500,
+    "up": 7400,
+    "cell": 24
+   },
+   "derived": {
+    "bbox": [
+     -2140904,
+     9539460,
+     -2111765,
+     9580349
+    ],
+    "w": 1240,
+    "h": 1740
+   },
+   "parent": "hofsjokull"
   },
   "myrdalsjokull": {
    "name": "Mýrdalsjökull",
@@ -1176,82 +1252,6 @@ window.GLACIER_BOXES = {
     ],
     "w": 980,
     "h": 980
-   }
-  },
-  "hofsjokull~Þjórsárjökull": {
-   "name": "Þjórsárjökull",
-   "region": "is-rest",
-   "parent": "hofsjokull",
-   "box": {
-    "bounds": [
-     [
-      64.67226279195113,
-      -18.733566680149398
-     ],
-     [
-      64.89863720804887,
-      -18.438353319850602
-     ]
-    ]
-   },
-   "tip": [
-    64.76683,
-    -18.46166
-   ],
-   "strip3d": {
-    "azimuth": 286,
-    "half": 11600,
-    "back": 1500,
-    "up": 10000,
-    "cell": 24
-   },
-   "derived": {
-    "bbox": [
-     -2085411,
-     9522569,
-     -2052548,
-     9581723
-    ],
-    "w": 1389,
-    "h": 2500
-   }
-  },
-  "hofsjokull~Blöndujökull / Kvíslajökull": {
-   "name": "Blöndujökull / Kvíslajökull",
-   "region": "is-rest",
-   "parent": "hofsjokull",
-   "box": {
-    "bounds": [
-     [
-      64.73709692777578,
-      -19.232071929633296
-     ],
-     [
-      64.89340307222423,
-      -18.970308070366702
-     ]
-    ]
-   },
-   "tip": [
-    64.83048,
-    -19.19761
-   ],
-   "strip3d": {
-    "azimuth": 105,
-    "half": 7400,
-    "back": 1500,
-    "up": 7400,
-    "cell": 24
-   },
-   "derived": {
-    "bbox": [
-     -2140904,
-     9539460,
-     -2111765,
-     9580349
-    ],
-    "w": 1240,
-    "h": 1740
    }
   },
   "jostedalsbreen": {

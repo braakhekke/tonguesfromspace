@@ -1,0 +1,24 @@
+{
+  "epochs": [
+    {
+      "kind": "old",
+      "year": 1850,
+      "source": "glamos-sgi",
+      "ref": {
+        "file": "data/glaciers.js",
+        "id": "B56-07",
+        "field": "oldest.outline"
+      }
+    },
+    {
+      "kind": "new",
+      "year": 2023,
+      "source": "glamos-sgi",
+      "ref": {
+        "file": "data/glaciers.js",
+        "id": "B56-07",
+        "field": "outline"
+      }
+    }
+  ]
+}

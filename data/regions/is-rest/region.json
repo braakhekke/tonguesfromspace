@@ -1,0 +1,22 @@
+{
+  "id": "is-rest",
+  "name": "Rest of Iceland",
+  "status": "live",
+  "centre": [
+    64.9,
+    -19.3
+  ],
+  "zoom": 7,
+  "blurb": "The ten largest glaciers and ice caps outside Vatnajökull.",
+  "unitRule": "The ten largest glaciers and ice caps of Iceland outside Vatnajökull: RGI 6.0 basins that touch form one ice cap, named by anchors (scripts/build_regions.py).",
+  "count": 10,
+  "sources": [
+    {
+      "id": "rgi-6-iceland",
+      "name": "Randolph Glacier Inventory 6.0, region 06 Iceland (RGI Consortium 2017), via GLIMS; outlines from about 2000 (Vatnajökull is a region of its own)",
+      "url": "https://www.glims.org/RGI/",
+      "licence": "NOT READ: open the source, find its licence and write it here (the page credits it in js/regions.js).",
+      "commercialUse": true
+    }
+  ]
+}

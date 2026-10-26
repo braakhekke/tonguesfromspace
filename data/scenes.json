@@ -3,13 +3,6 @@
  "glaciers": {
   "B36-26": {
    "name": "Grosser Aletschgletscher",
-   "orbit": "R108",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-22"
-   },
-   "savedAt": "2026-10-09T18:57:38.031Z",
    "picks": {
     "2016": {
      "date": "2016-08-23",
@@ -61,13 +54,6 @@
   },
   "B56-07": {
    "name": "Gornergletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-29",
@@ -126,13 +112,6 @@
   },
   "B40-07": {
    "name": "Fieschergletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-29",
@@ -183,13 +162,6 @@
   },
   "A54g-11": {
    "name": "Unteraargletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-09",
@@ -247,13 +219,6 @@
   },
   "B83-03": {
    "name": "Glacier de Corbassière",
-   "orbit": "R108",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-22",
@@ -312,13 +277,6 @@
   },
   "B57-05": {
    "name": "Zmuttgletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-29",
@@ -377,13 +335,6 @@
   },
   "B43-03": {
    "name": "Rhonegletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-29",
@@ -435,13 +386,6 @@
   },
   "B56-03": {
    "name": "Findelgletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-29",
@@ -499,13 +443,6 @@
   },
   "B53-04": {
    "name": "Feegletscher",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-29",
@@ -557,13 +494,6 @@
   },
   "A54e-24": {
    "name": "Triftgletscher (BE)",
-   "orbit": "R065",
-   "window": {
-    "radiusKm": 3,
-    "from": "08-01",
-    "to": "10-15"
-   },
-   "savedAt": "2026-10-10T09:54:32.000Z",
    "picks": {
     "2016": {
      "date": "2016-09-09",
@@ -624,7 +554,6 @@
   },
   "breidamerkurjokull": {
    "name": "Breiðamerkurjökull",
-   "note": "2023: the automatic pick (13 Oct) was mostly snow; the 12 Sep and 7 Oct R052 scenes do not cover the whole box.",
    "picks": {
     "2023": {
      "date": "2023-09-15",
@@ -632,6 +561,5 @@
     }
    }
   }
- },
- "generated": "2026-10-10T09:54:32.000Z"
+ }
 }

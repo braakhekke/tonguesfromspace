@@ -4,6 +4,8 @@
  *   next [region] [glacier]              the next step and the address to open it
  *   new-region <id> <name> <lat> <lon>
  *   new-glacier <region> <id> <name> <lat> <lon>
+ *   import-site [region]               fill the records from the site's own data (boxes, scenes, regions): proposals, nothing confirmed
+ *   export [--check]                   write data/boxes.js and data/scenes.json from the records; --check only compares (CI runs it)
  *   import-old-scenes <region> <glacier> <old repo> <old scene key> <old landsat id>   the previous site's scenes, as proposals
  *   refill-landsat <region> <glacier>   fill the stripes of the Landsat 7 pictures along the flow (from the original renders)
  *   propose-box <region> <glacier> <S> <W> <N> <E> "<why>"   a box you already know, as the placement proposal
@@ -17,6 +19,8 @@ import { loadCtx, newGlacier, newRegion, progress, type Status } from './engine'
 import { proposeGlamos } from './propose-glamos';
 import { proposeBox } from './propose-box';
 import { importOldScenes } from './import-old';
+import { importSite } from './import-site';
+import { check as checkExport, exportAll } from './export';
 import { refillScene } from './landsat/refill';
 import { readProposals } from './proposals';
 
@@ -52,6 +56,15 @@ try {
     const { drafts, problems } = loadAll();
     if (drafts.length) console.log(C.dim(`\ndrafts (record not confirmed yet): ${drafts.join(', ')}`));
     if (problems.length) { console.log(C.red('\nDATA PROBLEMS:\n' + problems.map((p) => '  - ' + p).join('\n'))); process.exitCode = 1; }
+  } else if (cmd === 'import-site') {
+    const r = importSite(a[0]);
+    console.log(`Imported ${r.glaciers} glaciers of ${r.regions} regions (${r.scenes} scenes). Nothing is confirmed: open the walkthrough and look at each step.`);
+    for (const x of r.skipped) console.log(C.dim('  skipped: ' + x));
+  } else if (cmd === 'export') {
+    if (a.includes('--check')) {
+      const bad = checkExport();
+      if (bad.length) { console.log(C.red(bad.map((b) => '  - ' + b).join('\n'))); process.exitCode = 1; } else console.log(C.green('the site files are what the records say'));
+    } else console.log('written: ' + exportAll().join(', '));
   } else if (cmd === 'new-region') {
     const [id, name, lat, lon] = a;
     if (!id || !name || !lat || !lon) throw new Error('usage: new-region <id> <name> <lat> <lon>');

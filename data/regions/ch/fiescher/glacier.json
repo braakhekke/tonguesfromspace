@@ -1,0 +1,59 @@
+{
+  "id": "fiescher",
+  "region": "ch",
+  "name": "Fieschergletscher",
+  "inventoryId": "B40-07",
+  "dataKey": "B40-07",
+  "imported": {
+    "from": "the data files of the site",
+    "at": "2026-10-26",
+    "note": "Picture box, tip and 3D strip from data/boxes.js; 40 scenes from data/scenes.json and data/landsat/; season from js/regions.js."
+  },
+  "rank": 3,
+  "areaKm2": 28.51,
+  "areaSource": "glamos-sgi",
+  "centre": [
+    46.50659,
+    8.12563
+  ],
+  "placement": {
+    "tip": [
+      46.458359,
+      8.132402
+    ],
+    "pictureBox": [
+      [
+        46.3969009,
+        8.0193568
+      ],
+      [
+        46.594889099999996,
+        8.2319032
+      ]
+    ],
+    "strip3d": {
+      "azimuth": 17.683580088894132,
+      "half": 2000,
+      "back": 1000,
+      "up": 6500
+    }
+  },
+  "balanceYear": {
+    "start": "10-01",
+    "end": "09-30",
+    "label": "ends-in",
+    "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+    "daysBeforeEnd": 91,
+    "daysAfterEnd": 14,
+    "maxCloud": 0.05,
+    "maxCloudTongue": 0.05,
+    "maxSnow": 1,
+    "fallbackCloud": 0.3,
+    "minCoverage": 1,
+    "noDataMarginM": 1000,
+    "oneOrbit": false,
+    "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 40 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  }
+}
