@@ -155,7 +155,7 @@ class TestLoading(SiteCase):
         self.assertClean()
 
 
-ICELAND_HIDDEN = os.path.isfile(os.path.join(SITE, "config.js")) and not os.path.isfile(os.path.join(SITE, "iceland", "vatnajokull", "index.html"))      # a built site made without PUBLISH_ICELAND=1
+ICELAND_HIDDEN = bool(os.environ.get("TFS_SITE_DIR")) and not os.path.isfile(os.path.join(SITE, "iceland", "vatnajokull", "index.html"))      # a built site (TFS_SITE_DIR) made without PUBLISH_ICELAND=1; the source tree always has every region
 
 
 @unittest.skipIf(ICELAND_HIDDEN, "built site without Iceland (PUBLISH_ICELAND is not 1)")
