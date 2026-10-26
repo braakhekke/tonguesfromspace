@@ -20,6 +20,8 @@ jobs:
       - uses: actions/setup-node@v4          # only for `node --check` in scripts/check_syntax.py
         with:
           node-version: "22"
+      - name: Install the build tools (esbuild, TypeScript)
+        run: npm ci
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"

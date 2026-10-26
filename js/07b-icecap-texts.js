@@ -1,3 +1,14 @@
+import { lnk, gfn, fn } from './07-render.js';
+// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
+Object.defineProperty(window, 'wpLink', { get: () => wpLink, configurable: true });
+Object.defineProperty(window, 'wp', { get: () => wp, configurable: true });
+Object.defineProperty(window, 'doiSrc', { get: () => doiSrc, configurable: true });
+Object.defineProperty(window, 'IS_WIKI_BR', { get: () => IS_WIKI_BR, configurable: true });
+Object.defineProperty(window, 'IS_WIKI_JL', { get: () => IS_WIKI_JL, configurable: true });
+Object.defineProperty(window, 'JOKULL_2020', { get: () => JOKULL_2020, configurable: true });
+Object.defineProperty(window, 'IC_INFO', { get: () => IC_INFO, configurable: true });
+Object.defineProperty(window, 'NPI_NAMES_SRC', { get: () => NPI_NAMES_SRC, configurable: true });
+// end of bridge
 /* =====================================================================
    7b. The texts of the glaciers of the ice-cap regions (Vatnajökull, the rest of Iceland, Svalbard, mainland Norway)
        One record per glacier, shown by renderStoryIcecap (js/07a-region-icecaps.js): lede (the line under the name), look (What to look for), news (In the news), fact (Did you know?),
@@ -5,13 +16,13 @@
        gfn); a record has only the parts that could be documented, the page leaves out the rest. Wikipedia is quoted with its licence (CC BY-SA 4.0) and "with the sources named there".
        Figures that come from the data files of the page (area, length, heights, the lowest point) are not repeated here: the Stats tab and the automatic part of What to look for show them.
    ===================================================================== */
-const wpLink = (page, label) => `<a href="https://en.wikipedia.org/wiki/${encodeURI(page.replace(/ /g, '_'))}" target="_blank" rel="noopener">${label || page}</a>`;
-const wp = (...pages) => gfn(`Wikipedia, ${pages.map(p => Array.isArray(p) ? wpLink(p[0], p[1]) : wpLink(p)).join(' and ')} (CC BY-SA 4.0), with the sources named there`);
-const doiSrc = (cite, doi) => gfn(`${cite} ${lnk('https://doi.org/' + doi, 'doi:' + doi)}`);
-const IS_WIKI_BR = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Brei%C3%B0amerkurj%C3%B6kull" target="_blank" rel="noopener">Breiðamerkurjökull</a> (CC BY-SA 4.0), with the sources named there';
-const IS_WIKI_JL = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/J%C3%B6kuls%C3%A1rl%C3%B3n" target="_blank" rel="noopener">Jökulsárlón</a> (CC BY-SA 4.0), with the sources named there';
-const JOKULL_2020 = () => gfn(`Jökull (the journal of the Icelandic Glaciological Society and the Geoscience Society of Iceland), 2020, on the surges of Brúarjökull and Dyngjujökull: ${lnk('https://timarit.is/page/7864182', 'timarit.is')}`);
-const IC_INFO = {
+export const wpLink = (page, label) => `<a href="https://en.wikipedia.org/wiki/${encodeURI(page.replace(/ /g, '_'))}" target="_blank" rel="noopener">${label || page}</a>`;
+export const wp = (...pages) => gfn(`Wikipedia, ${pages.map(p => Array.isArray(p) ? wpLink(p[0], p[1]) : wpLink(p)).join(' and ')} (CC BY-SA 4.0), with the sources named there`);
+export const doiSrc = (cite, doi) => gfn(`${cite} ${lnk('https://doi.org/' + doi, 'doi:' + doi)}`);
+export const IS_WIKI_BR = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Brei%C3%B0amerkurj%C3%B6kull" target="_blank" rel="noopener">Breiðamerkurjökull</a> (CC BY-SA 4.0), with the sources named there';
+export const IS_WIKI_JL = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/J%C3%B6kuls%C3%A1rl%C3%B3n" target="_blank" rel="noopener">Jökulsárlón</a> (CC BY-SA 4.0), with the sources named there';
+export const JOKULL_2020 = () => gfn(`Jökull (the journal of the Icelandic Glaciological Society and the Geoscience Society of Iceland), 2020, on the surges of Brúarjökull and Dyngjujökull: ${lnk('https://timarit.is/page/7864182', 'timarit.is')}`);
+export const IC_INFO = {
   /* ---------------- Vatnajökull ---------------- */
   breidamerkurjokull: {
     lede: () => 'The big outlet of the Vatnajökull ice cap that ends in the glacier lagoon Jökulsárlón. Its front has pulled back 4 to 7 km since about 1890, and the lagoon has grown in its place.',
@@ -237,4 +248,4 @@ const IC_INFO = {
     look: () => `Earlier names of the glacier were Glacier de Monaco and Liefde Bay-bræ${wp('Monacobreen')}.`
   }
 };
-const NPI_NAMES_SRC = `Norwegian Polar Institute, ${lnk('https://placenames.npolar.no', 'Place names of Svalbard')} (CC BY 4.0): name, definition and origin of each glacier${' ('}${lnk('https://api.npolar.no/placename/', 'api.npolar.no/placename')})`;
+export const NPI_NAMES_SRC = `Norwegian Polar Institute, ${lnk('https://placenames.npolar.no', 'Place names of Svalbard')} (CC BY 4.0): name, definition and origin of each glacier${' ('}${lnk('https://api.npolar.no/placename/', 'api.npolar.no/placename')})`;

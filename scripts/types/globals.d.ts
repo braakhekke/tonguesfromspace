@@ -853,3 +853,31 @@ declare const fmtMonth: typeof import('../../js/14-streetview.js').fmtMonth;
 declare const svFullScreen: typeof import('../../js/14-streetview.js').svFullScreen;
 declare const closeStreetView: typeof import('../../js/14-streetview.js').closeStreetView;
 declare const refreshStreetView: typeof import('../../js/14-streetview.js').refreshStreetView;
+
+// Names exported by js/07a-region-icecaps.js (a module), read as globals by classic scripts.
+declare const nfIs: typeof import('../../js/07a-region-icecaps.js').nfIs;
+declare const IS_CHANGE: typeof import('../../js/07a-region-icecaps.js').IS_CHANGE;
+declare const IC_REGION: typeof import('../../js/07a-region-icecaps.js').IC_REGION;
+declare const statGroupIs: typeof import('../../js/07a-region-icecaps.js').statGroupIs;
+declare const minus: typeof import('../../js/07a-region-icecaps.js').minus;
+declare const lookAuto: typeof import('../../js/07a-region-icecaps.js').lookAuto;
+declare const renderStoryIcecap: typeof import('../../js/07a-region-icecaps.js').renderStoryIcecap;
+declare const placenameText: typeof import('../../js/07a-region-icecaps.js').placenameText;
+declare const fillStrips: typeof import('../../js/07a-region-icecaps.js').fillStrips;
+declare const IC_WHY: typeof import('../../js/07a-region-icecaps.js').IC_WHY;
+declare const icSeasonText: typeof import('../../js/07a-region-icecaps.js').icSeasonText;
+declare const icWhyOnly: typeof import('../../js/07a-region-icecaps.js').icWhyOnly;
+declare const icFigures: typeof import('../../js/07a-region-icecaps.js').icFigures;
+declare const icView3d: typeof import('../../js/07a-region-icecaps.js').icView3d;
+declare const icOutdoors: typeof import('../../js/07a-region-icecaps.js').icOutdoors;
+declare const aboutChaptersIc: typeof import('../../js/07a-region-icecaps.js').aboutChaptersIc;
+
+// Names exported by js/07b-icecap-texts.js (a module), read as globals by classic scripts.
+declare const wpLink: typeof import('../../js/07b-icecap-texts.js').wpLink;
+declare const wp: typeof import('../../js/07b-icecap-texts.js').wp;
+declare const doiSrc: typeof import('../../js/07b-icecap-texts.js').doiSrc;
+declare const IS_WIKI_BR: typeof import('../../js/07b-icecap-texts.js').IS_WIKI_BR;
+declare const IS_WIKI_JL: typeof import('../../js/07b-icecap-texts.js').IS_WIKI_JL;
+declare const JOKULL_2020: typeof import('../../js/07b-icecap-texts.js').JOKULL_2020;
+declare const IC_INFO: typeof import('../../js/07b-icecap-texts.js').IC_INFO;
+declare const NPI_NAMES_SRC: typeof import('../../js/07b-icecap-texts.js').NPI_NAMES_SRC;

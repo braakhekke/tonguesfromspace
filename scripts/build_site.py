@@ -28,7 +28,7 @@ What it does, besides copying:
 Standard library only. Every replacement in the HTML must find its target, otherwise the script stops: a deploy with
 a broken page is worse than no deploy.
 """
-import hashlib, json, os, re, shutil, sys
+import hashlib, json, os, re, shutil, subprocess, sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
@@ -218,32 +218,35 @@ def main():
             print(f"no {name}: the matching feature shows nothing")
     code = os.path.join(ROOT, "js")
     for f in sorted(os.listdir(code)):
-        if f.endswith(".js"):
+        if f == "00-regions.js":      # the one classic script: it writes the tag of the region's data file, so it is hashed alone
             data = read(f"js/{f}")
-            if f == "00-regions.js":      # the data files of the regions: their hashed names go into the file that loads them
-                text = data.decode("utf-8")
-                for plain in ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"):
-                    if plain in assets:
-                        if f"'{plain}'" not in text:
-                            sys.exit(f"js/00-regions.js does not name '{plain}' any more: nothing was rewritten")
-                        text = text.replace(f"'{plain}'", f"'{assets[plain]}'")
-                if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
-                    text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
-                hidden = [r for r in ("is-vatnajokull", "is-rest", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
-                if "/*hidden-regions*/" not in text:
-                    sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
-                text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
-                data = text.encode("utf-8")
-            if b"from './" in data:      # ES modules import each other by plain name; imports only look back in load order, so the hashed names exist already
-                def imported(m):
-                    target = assets.get("js/" + m.group(1))
-                    if not target:
-                        sys.exit(f"js/{f} imports './{m.group(1)}', which is not hashed before it (imports must look back in load order)")
-                    return "from './" + os.path.basename(target) + "'"
-                data = re.sub(r"from '\./([\w.-]+\.js)'", imported, data.decode("utf-8")).encode("utf-8")
+            # the data files of the regions: their hashed names go into the file that loads them
+            text = data.decode("utf-8")
+            for plain in ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"):
+                if plain in assets:
+                    if f"'{plain}'" not in text:
+                        sys.exit(f"js/00-regions.js does not name '{plain}' any more: nothing was rewritten")
+                    text = text.replace(f"'{plain}'", f"'{assets[plain]}'")
+            if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
+                text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
+            hidden = [r for r in ("is-vatnajokull", "is-rest", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+            if "/*hidden-regions*/" not in text:
+                sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
+            text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
+            data = text.encode("utf-8")
             rel = hashed_name(f"js/{f}", data)
             write(out, rel, data)
             assets[f"js/{f}"] = rel
+    # everything else is ES modules (js/main.js imports them in load order, with import cycles): one bundle, hashed
+    esbuild = os.path.join(ROOT, "node_modules", ".bin", "esbuild")
+    if not os.path.exists(esbuild):
+        sys.exit("esbuild is missing: run `npm ci` first")
+    bundle = subprocess.run([esbuild, "js/main.js", "--bundle", "--format=esm", "--target=es2022", "--minify-whitespace", "--minify-syntax", "--legal-comments=none"], cwd=ROOT, capture_output=True)
+    if bundle.returncode:
+        sys.exit("esbuild failed:\n" + bundle.stderr.decode())
+    rel = hashed_name("js/app.js", bundle.stdout)
+    write(out, rel, bundle.stdout)
+    assets["js/main.js"] = rel
     dem = os.path.join(ROOT, "data", "demchange")
     if os.path.isdir(dem):
         for f in sorted(os.listdir(dem)):

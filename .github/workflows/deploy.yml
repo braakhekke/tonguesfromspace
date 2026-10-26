@@ -49,6 +49,11 @@ jobs:
             git push
           fi
 
+      - uses: actions/setup-node@v4          # the page's bundle (esbuild) and `node --check` in scripts/check_syntax.py
+        with:
+          node-version: "22"
+      - name: Install the build tools (esbuild, TypeScript)
+        run: npm ci
       - name: Collect site files (split glaciers.js, content hashes, config.js)
         env:
           CDSE_RELAY_URL: ${{ vars.CDSE_RELAY_URL }}   # Settings -> Secrets and variables -> Actions -> Variables
@@ -61,9 +66,6 @@ jobs:
           cat _site/config.js | head -c 400; echo
 
       # Nothing is published unless these pass: they look at exactly the files that would go live.
-      - uses: actions/setup-node@v4          # only for `node --check` in scripts/check_syntax.py
-        with:
-          node-version: "22"
       - name: Syntax of the scripts, pages, Worker and data files
         run: python scripts/check_syntax.py
       - name: Names, properties and argument counts (TypeScript, no types to write)
