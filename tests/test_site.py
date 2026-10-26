@@ -805,6 +805,18 @@ class TestPicker(SiteCase):
         self.assertEqual(page.evaluate("location.hash"), "#glacier=gorner", "the picker's own link does not look like a dashboard link")
         self.assertEqual(self.errors, [])
 
+    def test_the_picker_lists_the_region_records_and_marks_the_unpublished_ones(self):
+        page = self.picker()
+        page.wait_for_function("typeof REGIONS !== 'undefined' && REGIONS.length > 0")
+        rows = page.evaluate("REGIONS.map(r => [r.id, r.soon, r.href || ''])")
+        self.assertEqual([r[0] for r in rows], ["ch", "is-vatnajokull", "is-rest", "no-mainland", "no-svalbard", "cl", "np"])
+        hidden = page.evaluate("HIDDEN_REGIONS")
+        for rid, soon, href in rows:
+            if rid in ("cl", "np"): self.assertTrue(soon, rid)      # planned: no records yet
+            else: self.assertEqual(soon, rid in hidden, rid)      # a published region can be opened, one the build left out is "in the making"
+        self.assertFalse([r for r in rows if r[0] == "ch" and r[1]], "Switzerland is always open")
+        self.assertEqual(self.errors, [])
+
     def test_a_link_of_the_old_site_goes_to_the_dashboard(self):
         page = self.picker("#g=aletsch&m=compare&a=2016&b=2024")
         page.wait_for_url(lambda u: "g=aletsch" in u and "home" not in u, timeout=15000)

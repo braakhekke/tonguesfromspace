@@ -351,6 +351,7 @@ dialog.player{overflow:visible}
 </dialog>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="js/regions.js"></script>
 <script src="data/home-glaciers.js"></script>
 <script>
 const $ = id => document.getElementById(id);
@@ -358,7 +359,7 @@ const $ = id => document.getElementById(id);
 /* The picker is the front page (/); the dashboards live at the address of their region (js/00-regions.js, `path`).
    Opened as /home.html (local use from the source tree) its links go to the local dashboard, index.html. */
 const LOCAL = /home\.html$/.test(location.pathname);
-const REGION_PATH = { ch: 'switzerland', 'is-vatnajokull': 'iceland/vatnajokull', 'is-rest': 'iceland/rest', 'no-mainland': 'norway/mainland', 'no-svalbard': 'norway/svalbard' };
+const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r]).filter(c => c.path).map(c => [c.id, c.path]));
 /* Links of the old site: /#g=aletsch&m=compare opened the Swiss dashboard at the root. Any hash that names a dashboard setting goes to the dashboard of its region. */
 (() => {
   const h = location.hash.slice(1), q = new URLSearchParams(h);
@@ -462,20 +463,10 @@ player.addEventListener('close', () => vid.pause());
 player.addEventListener('click', e => { if (e.target === player) player.close(); });
 
 /* ---------- regions: paths are the real addresses of js/00-regions.js ---------- */
-const REGIONS = [
-  { id: 'ch', group: 'Switzerland', name: 'Switzerland', href: 'switzerland/', ll: [46.45, 8.1], zoom: 7,
-    text: 'The ten largest Swiss glaciers, with GLAMOS statistics.', n: 'Ten glaciers' },
-  { id: 'is-vatnajokull', soon: true, group: 'Iceland', name: 'Vatnajökull', href: 'iceland/vatnajokull/', ll: [64.4, -16.8], zoom: 7,
-    text: 'The outlets of the Vatnajökull ice cap.', n: 'In the making' },
-  { id: 'is-rest', soon: true, group: 'Iceland', name: 'Rest of Iceland', href: 'iceland/rest/', ll: [64.9, -19.3], zoom: 7, side: 'left',
-    text: 'The ten largest glaciers and ice caps outside Vatnajökull.', n: 'In the making' },
-  { id: 'no-mainland', soon: true, group: 'Norway', name: 'Mainland Norway', href: 'norway/mainland/', ll: [66.6, 14.0], zoom: 5,
-    text: 'The ten largest main glaciers of mainland Norway.', n: 'In the making' },
-  { id: 'no-svalbard', soon: true, group: 'Norway', name: 'Svalbard', href: 'norway/svalbard/', ll: [78.8, 17.0], zoom: 5,
-    text: 'The ten largest named glacier units of Svalbard.', n: 'In the making' },
-  { id: 'cl', group: 'Chile', name: 'Chile', soon: true, ll: [-49.5, -73.2], zoom: 5 },
-  { id: 'np', group: 'Nepal', name: 'Nepal', soon: true, ll: [28.2, 85.0], zoom: 6 }
-];
+const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picker).map(c => {      // the records of js/regions.js: the same list as the dashboard's region menu, plus the planned regions
+  const soon = !c.ready || HIDDEN_REGIONS.includes(c.id);      // not published (yet): shown, not clickable
+  return { id: c.id, group: r.name, name: c.name, soon, href: c.path ? c.path + '/' : undefined, ...c.picker, n: c.ready ? (soon ? 'In the making' : 'Ten glaciers') : undefined };
+}));
 
 const map = L.map('map', { worldCopyJump: true, minZoom: 2, maxZoom: 10, scrollWheelZoom: false }).setView([67, 8], 3);      // the five regions; the planned ones are one zoom out
 map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());

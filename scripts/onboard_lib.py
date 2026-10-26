@@ -110,7 +110,7 @@ def lookup(job, target):
     notes = sorted(os.listdir(rd)) if os.path.isdir(rd) else []
     _add(job, "Region notes (docs/regions/): %s" % (", ".join(notes) if notes else "none yet"))
     try:
-        with open(os.path.join(ROOT, "js", "00-regions.js"), encoding="utf-8") as f:
+        with open(os.path.join(ROOT, "js", "regions.js"), encoding="utf-8") as f:
             ids = re.findall(r"\bid:\s*'([\w\-]+)'", f.read())
         _add(job, "Regions on the site: %s" % ", ".join(ids))
     except OSError:

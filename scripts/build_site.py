@@ -37,6 +37,7 @@ HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html"]      # ind
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for mainland Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
+DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
 GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
 PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
@@ -232,26 +233,29 @@ def main():
         else:
             print(f"no {name}: the matching feature shows nothing")
     code = os.path.join(ROOT, "js")
+    named = set()
     for f in sorted(os.listdir(code)):
-        if f == "00-regions.js":      # the one classic script: it writes the tag of the region's data file, so it is hashed alone
-            data = read(f"js/{f}")
-            # the data files of the regions: their hashed names go into the file that loads them
-            text = data.decode("utf-8")
-            for plain in ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"):
-                if plain in assets:
-                    if f"'{plain}'" not in text:
-                        sys.exit(f"js/00-regions.js does not name '{plain}' any more: nothing was rewritten")
+        if f in ("regions.js", "00-regions.js"):      # the two classic scripts (the records, and the logic that picks a region and writes the tag of its data file): each is hashed alone
+            text = read(f"js/{f}").decode("utf-8")
+            # the data files of the regions: their hashed names go into the files that name them
+            for plain in DATA_NAMES:
+                if plain in assets and f"'{plain}'" in text:
                     text = text.replace(f"'{plain}'", f"'{assets[plain]}'")
-            if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
-                text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
-            hidden = [r for r in ("is-vatnajokull", "is-rest", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
-            if "/*hidden-regions*/" not in text:
-                sys.exit("js/00-regions.js lost the marker /*hidden-regions*/")
-            text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
+                    named.add(plain)
+            if f == "regions.js":
+                if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
+                    text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
+                hidden = [r for r in ("is-vatnajokull", "is-rest", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+                if "/*hidden-regions*/" not in text:
+                    sys.exit("js/regions.js lost the marker /*hidden-regions*/")
+                text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
             data = text.encode("utf-8")
             rel = hashed_name(f"js/{f}", data)
             write(out, rel, data)
             assets[f"js/{f}"] = rel
+    for plain in DATA_NAMES:
+        if plain in assets and plain not in named:
+            sys.exit(f"js/regions.js and js/00-regions.js do not name '{plain}' any more: nothing was rewritten")
     # everything else is ES modules (js/main.js imports them in load order, with import cycles): one bundle, hashed
     esbuild = os.path.join(ROOT, "node_modules", ".bin", "esbuild")
     if not os.path.exists(esbuild):
