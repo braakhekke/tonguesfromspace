@@ -51,3 +51,5 @@ scripts/tools/review.html
 tests/test_board.py
 data/audit-exceptions.json
 _site/
+
+node_modules/

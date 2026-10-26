@@ -1,0 +1,14 @@
+{
+  "name": "tonguesfromspace",
+  "private": true,
+  "type": "module",
+  "license": "MIT",
+  "scripts": {
+    "check": "python3 scripts/check_syntax.py && npm run types",
+    "types": "python3 scripts/check_types.py",
+    "test": "python3 -m unittest discover -s tests -v"
+  },
+  "devDependencies": {
+    "typescript": "5.9.3"
+  }
+}
