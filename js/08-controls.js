@@ -195,7 +195,7 @@ document.getElementById('altiToggle').checked = prefs.alti === true;
 document.getElementById('altiToggle').onchange = e => {
   if (e.target.checked) onlyBase('altiToggle');
   prefs.alti = e.target.checked; savePrefs();
-  if (REGION.id === 'ch') e.target.checked ? alti.addTo(map) : map.removeLayer(alti);      // elsewhere the hillshade is drawn in 3D from the heights (the switch is the 3D menu's)
+  if (FEATURES.swisstopo) e.target.checked ? alti.addTo(map) : map.removeLayer(alti);      // elsewhere the hillshade is drawn in 3D from the heights (the switch is the 3D menu's)
   updateCredits();
 };
 /* swisstopo aerial images of the picked year(s): a background that, unlike the other base maps, can be on beside them (it only shows inside the ten image boxes, over the base map) */
@@ -229,12 +229,12 @@ export function applyRegionUi(){
   document.title = REGION.docTitle;
   /* what the region has no data for is taken off the page: each switch of `features` hides its controls */
   const off = (feature, ...ids) => { if (!FEATURES[feature]) ids.forEach(id => { const el = document.getElementById(id), box = el && (el.closest('label') || el); if (box) box.style.display = 'none'; }); };
-  off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swissBase', 'topoToggle', 'altiToggle', 'l3Topo'); if (!FEATURES.swissBase) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
-  off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); if (REGION.id !== 'ch') document.getElementById('speedRow').style.display = 'none';      // ice speed: the ten Swiss glaciers so far off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('teaser', 'teaserBtn'); off('sizeTool', 'sizeLink');
+  off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swisstopo', 'topoToggle', 'altiToggle', 'l3Topo'); if (!FEATURES.swisstopo) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
+  off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); if (!FEATURES.swisstopo) document.getElementById('speedRow').style.display = 'none';      // ice speed: the ten Swiss glaciers so far off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('teaser', 'teaserBtn'); off('sizeTool', 'sizeLink');
   if (!FEATURES.glamos && !GLACIERS[0].tongue) off('glamos', 'tongueBtn');      // the Tongue button needs a tongue tip (Iceland has one from the outlet data)
   if (!FEATURES.oldest && !FEATURES.latest) document.querySelectorAll('.spec-row').forEach(e => { e.style.display = 'none'; });
   if (!FEATURES.glamos) document.querySelectorAll('label[for="outside"]').forEach(e => { e.style.display = 'none'; });
-  if (REGION.id !== 'ch' && FEATURES.trails) {      // the legend of the paths: footpaths and tracks, and the stretches from where the ice front is in view
+  if (!FEATURES.swisstopo && FEATURES.trails) {      // the legend of the paths: footpaths and tracks, and the stretches from where the ice front is in view
     const sight = id => `<span id="${id}" hidden title="Where the line of sight from eye height 1.7 m to the ice front is free (trees and buildings not counted)"><i class="sight-sw"></i>Ice front in view (1.7 m)</span>`;
     document.getElementById('trailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('sightLegend')}`;
     document.getElementById('l3TrailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('l3SightLegend')}`;
@@ -247,8 +247,8 @@ export function applyRegionUi(){
     else document.getElementById('vFacts').checked = false;
     const end = document.getElementById('vEnd'); end.value = 'loop'; end.closest('label').style.display = 'none';
   }
-  if (!FEATURES.swissBase) { prefs.topo = prefs.alti = false; }
-  if (REGION.id !== 'ch') {
+  if (!FEATURES.swisstopo) { prefs.topo = prefs.alti = false; }
+  if (!FEATURES.swisstopo) {
     if (GLACIERS[0].half) { document.getElementById('tongueBtn').title = 'Zoom to the picture area (the tongue)'; document.getElementById('fitBtn').title = 'Fit the whole glacier'; }
     document.getElementById('boxToggle').closest('label').title = `The ${REGION.units} you can choose, as red outlines you can click. Switched off when you choose one.`;
     document.getElementById('boxToggle').parentElement.lastElementChild.lastChild.textContent = `Selectable ${REGION.units}`;

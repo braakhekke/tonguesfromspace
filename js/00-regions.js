@@ -20,6 +20,7 @@ const REGIONS_ALL = [
     data: 'data/glaciers.js',                  // window.GLACIER_DATA, made by scripts/build_outlines.py (GLAMOS)
     docTitle: 'Tongues from Space | Interactive Glaciers',
     brandLede: 'Discover the ten largest Swiss glaciers. Compare, create and share your visuals.',
+    streetviewIn: 'Aletsch',                   // what the Street View credit names
     overviewName: 'Switzerland',               // the button and texts that lead back to the overview of the region
     shareTitle: 'Tongues from Space - Switzerland',
     landing: 'glacier3d',                      // the plain address opens on a 3D timelapse of the biggest glacier; 'overview' opens on the overview of the region
@@ -29,10 +30,10 @@ const REGIONS_ALL = [
     landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
     terrain: { short: 'swisstopo · Mapterhorn', html: 'swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> via <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a>' },
     trailsFile: 'data/sightline.js',      // the line-of-sight stretches of the hiking trails (the trails themselves are swisstopo tiles)
-    features: { facts: true, latest: true, oldest: true, view3d: true, photos: true, streetview: true, trails: true, aerial: true, swissBase: true, radar: true, glamos: true, teaser: true, swissTab: true, sizeTool: true } },
+    features: { facts: true, latest: true, oldest: true, view3d: true, photos: true, streetview: true, trails: true, aerial: true, swisstopo: true, speed: true, radar: true, glamos: true, teaser: true, swissTab: true, sizeTool: true } },
   { id: 'is', name: 'Iceland', adj: 'Icelandic',
     children: [
-      { id: 'is-vatnajokull', name: 'Vatnajökull', adj: 'Icelandic', ready: true, rgi: true,
+      { id: 'is-vatnajokull', name: 'Vatnajökull', adj: 'Icelandic', ready: true, rgi: true, streetviewIn: 'Breiðamerkurjökull',
         path: 'iceland/vatnajokull', pathAlso: ['iceland'],      // the address on the public site: /iceland/vatnajokull/ (and /iceland/); build_site.py writes a page for each
         data: 'data/vatnajokull.js',            // window.REGION_ICE, made by scripts/build_vatnajokull.py (RGI 6.0)
         docTitle: 'Tongues from Space | Vatnajökull, Iceland',
@@ -57,7 +58,7 @@ const REGIONS_ALL = [
         /* Landsat before Sentinel-2: static pictures of the picture box (data/landsat/<outlet>.json and <outlet>/<year>.jpg, scripts/build_landsat.py), years from `from` up to the first Sentinel-2 year; a switch under the years adds them (prefs.landsat), off at first */
         landsat: { from: 1984, first: 1985 },      // from: the first year asked for; first: the first year that has a picture (the switch says it)
         background: { mosaicYear: 2025 },      // EOX Sentinel-2 cloudless of this year is the base picture of the overview
-        features: { facts: true, latest: true, oldest: true, view3d: true, photos: false, streetview: true, trails: true, aerial: false, swissBase: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
+        features: { facts: true, latest: true, oldest: true, view3d: true, photos: false, streetview: true, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
       { id: 'is-rest', name: 'Rest of Iceland', adj: 'Icelandic', ready: true, rgi: true,
         path: 'iceland/rest',
         data: 'data/iceland.js',               // window.REGION_ICE, made by scripts/build_regions.py iceland (RGI 6.0, Icelandic Met Office)
@@ -78,7 +79,7 @@ const REGIONS_ALL = [
         terrainZoom: 12,
         landsat: { from: 1984, first: 1985 },      // as Vatnajökull: Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
         background: { mosaicYear: 2025 },
-        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swissBase: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
+        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
     ] },
   { id: 'no', name: 'Norway', adj: 'Norwegian',
     children: [
@@ -104,7 +105,7 @@ const REGIONS_ALL = [
         terrainZoom: 13,
         landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
         background: { mosaicYear: 2025 },
-        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swissBase: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
+        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
       { id: 'no-svalbard', name: 'Svalbard', adj: 'Norwegian', ready: true, rgi: true,
         path: 'norway/svalbard',
         data: 'data/svalbard.js',              // window.REGION_ICE, made by scripts/build_regions.py svalbard (Norwegian Polar Institute)
@@ -126,7 +127,7 @@ const REGIONS_ALL = [
         terrainZoom: 12,
         landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
         background: { mosaicYear: 2025 },
-        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swissBase: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
+        features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } }
     ] },
   { id: 'cl', name: 'Chile', adj: 'Chilean' },
   { id: 'np', name: 'Nepal', adj: 'Nepalese' }

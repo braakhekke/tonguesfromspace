@@ -165,6 +165,7 @@ class TestRegions(SiteCase):
         seen = []
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
         self.addCleanup(ctx.close)
+        ctx.add_init_script("window.TFS_EXPOSE = true")
         ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")
         ctx.route("**/*", lambda route: (seen.append(route.request.url), route.continue_())[1] if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
         page = ctx.new_page()
@@ -753,6 +754,14 @@ class TestIceSpeedData(unittest.TestCase):
                 self.assertGreater(len(vals), 0.8 * len(a), f"{gid} {y}: mostly no data")
                 self.assertLess(max(vals), 1500, f"{gid} {y}: a speed that no glacier here has (m/yr)")
                 self.assertGreater(sum(v > 20 for v in vals), 20, f"{gid} {y}: no moving ice at all")
+
+
+class TestSwissLayers(SiteCase):
+    def test_switzerland_offers_the_swisstopo_layers(self):
+        page = self.open("#g=aletsch")
+        for sel in ("#aerialToggle", "#topoToggle", "#altiToggle", "#radarToggle", "#speedToggle"):
+            self.assertNotEqual(page.locator(sel).evaluate("e => (e.closest('label') || e).style.display"), "none", sel + " should be offered")
+        self.assertTrue(page.evaluate("FEATURES.swisstopo && FEATURES.speed"))
 
 
 class TestIceSpeedLayer(SiteCase):

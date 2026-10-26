@@ -57,13 +57,13 @@ export function updateCredits(){
   const s2Yrs = yrs.filter(y => !isLandsat(state.available[y])), lsYrs = yrs.filter(y => isLandsat(state.available[y]));      // Landsat years (Iceland, before 2016) are credited to the USGS
   const parts = s2Yrs.length && sat ? [`Contains modified Copernicus Sentinel data ${s2Yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
   if (lsYrs.length && sat) parts.push(`${lsYrs.join(' and ')}: ${LANDSAT_CREDIT}`);
-  if (REGION.id !== 'ch' && document.getElementById('aerialToggle').checked && state.oldestAerial) parts.push(`Aerial image ${flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial}: <a href="https://gatt.lmi.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0)`);
+  if (!FEATURES.swisstopo && document.getElementById('aerialToggle').checked && state.oldestAerial) parts.push(`Aerial image ${flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial}: <a href="https://gatt.lmi.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0)`);
   else if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].map(ed => ed + (flownYear(glacierPicked ? currentGlacier() : null, ed) ? ` (flown ${flownYear(currentGlacier(), ed)})` : '')).join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
-  if (document.getElementById('trailsToggle').checked) parts.push((REGION.id === 'ch' ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
-  if (REGION.id === 'ch' && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
+  if (document.getElementById('trailsToggle').checked) parts.push((FEATURES.swisstopo ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
+  if (FEATURES.swisstopo && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
@@ -147,7 +147,7 @@ export const TrailsVector = L.LayerGroup.extend({
       mk(d.tracks, '#FF0000', 2); mk(d.paths, '#FDC200', 3); });
   }
 });
-export const trails = REGION.id === 'ch' ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
+export const trails = FEATURES.swisstopo ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
   {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'}) : new TrailsVector();
 export const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && wire.bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
 /* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a wide violet band with a white edge under the trail lines */
@@ -257,10 +257,10 @@ export function ensureOldestIs(g){
     oldestAerial.set(g.id, {ed: m.years[0], flown: m.label, img: asset(`data/oldest/${g.id}.webp`), bbox: m.bbox, source: m.source});
   }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine()); });
 }
-export const oldestWhat = o => REGION.id === 'ch' ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
+export const oldestWhat = o => FEATURES.swisstopo ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
 export function ensureOldest(g){
   if (!g || oldestAerial.has(g.id)) return; oldestAerial.set(g.id, undefined);
-  if (REGION.id !== 'ch') return ensureOldestIs(g);
+  if (!FEATURES.swisstopo) return ensureOldestIs(g);
   const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
   fetch(`https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&layers=all:ch.swisstopo.swissimage-product.metadata&mapExtent=${lon - .01},${lat - .01},${lon + .01},${lat + .01}&imageDisplay=500,500,96&tolerance=1&sr=4326&returnGeometry=false`)
     .then(r => r.json()).then(j => {
@@ -289,16 +289,16 @@ export function restoreOldest(){
 export const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 export function updateAerial(){
   const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
-  if (cg && REGION.id === 'ch') eds.forEach(ed => ensureFlown(cg, ed));
+  if (cg && FEATURES.swisstopo) eds.forEach(ed => ensureFlown(cg, ed));
   const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
-  document.getElementById('aerialLabel').textContent = (REGION.id === 'ch' ? 'swisstopo aerial' : 'Historic aerial') + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
+  document.getElementById('aerialLabel').textContent = (FEATURES.swisstopo ? 'swisstopo aerial' : 'Historic aerial') + (ys.length ? ' ' + [...new Set(ys)].join(' / ') : '');
   const want = aerialWanted(), boxes = (cg ? [cg] : GLACIERS).map(g => L.latLngBounds(imageFootprint(g).bounds)), key = cg ? cg.id : '*';      // only the box of the chosen glacier
   ['A', 'B', 'T'].forEach(k => {
     const yr = want[k] || null;
     if (aerial[k] && aerial[k].yr !== yr) { map.removeLayer(aerial[k].layer); aerial[k] = null; }
     if (yr && !aerial[k]) {
       let layer;
-      if (REGION.id === 'ch') layer = new TrailsLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(yr)}/3857/{z}/{x}/{y}.jpeg`,
+      if (FEATURES.swisstopo) layer = new TrailsLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(yr)}/3857/{z}/{x}/{y}.jpeg`,
         {pane: 'si' + k, maxZoom: 17, maxNativeZoom: 18, attribution: '© swisstopo (SWISSIMAGE)'});
       else { const o = cg && oldestAerial.get(cg.id); if (!o || !o.img) return; const [x0, y0, x1, y1] = o.bbox, sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1));
         layer = L.imageOverlay(o.img, [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'si' + k, interactive: false, className: 'scene-img'}); layer._clip = boxes; layer._key = key; layer.setClip = () => {}; }
@@ -318,7 +318,7 @@ export const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : S
 export function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
   const ed = siYear(yr), fy = flownYear(glacierPicked ? currentGlacier() : null, ed);      // the year the photographs were taken, then the edition of the layer
-  if (REGION.id !== 'ch') return `<span class="nw">Aerial image ${fy || yr}</span> · <span class="nw">Náttúrufræðistofnun Íslands</span>`;
+  if (!FEATURES.swisstopo) return `<span class="nw">Aerial image ${fy || yr}</span> · <span class="nw">Náttúrufræðistofnun Íslands</span>`;
   return `<span class="nw">Aerial image ${fy || ed}</span> · <span class="nw">swisstopo SWISSIMAGE ${ed}</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
 }
 export function applySatVisibility(){          // the Sentinel-2 pictures can be switched off, so the aerial images or a base map show alone
@@ -677,8 +677,8 @@ export function speedCanvas(f, a){
   const bx = big.getContext('2d'); bx.imageSmoothingEnabled = true; bx.imageSmoothingQuality = 'high'; bx.drawImage(c, 0, 0, big.width, big.height); return big;
 }
 export async function updateSpeed(){
-  const gen = ++speedGen, on = document.getElementById('speedToggle').checked && glacierPicked && viewMode !== '3d' && REGION.id === 'ch', legend = document.getElementById('speedLegend'), note = document.getElementById('speedNote');
-  legend.hidden = !document.getElementById('speedToggle').checked || REGION.id !== 'ch';
+  const gen = ++speedGen, on = document.getElementById('speedToggle').checked && glacierPicked && viewMode !== '3d' && FEATURES.speed, legend = document.getElementById('speedLegend'), note = document.getElementById('speedNote');
+  legend.hidden = !document.getElementById('speedToggle').checked || !FEATURES.speed;
   const drop = () => { if (speedLayer) { map.removeLayer(speedLayer); speedLayer = null; speedKey = ''; updateCredits(); } };
   if (!on) return drop();
   const g = currentGlacier(), id = g.inv && g.inv.id, yr = speedYear();
