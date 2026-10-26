@@ -65,6 +65,7 @@ export function updateCredits(){
   if (document.getElementById('trailsToggle').checked) parts.push((FEATURES.swisstopo ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
   if (FEATURES.swisstopo && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
+  if (document.getElementById('namesToggle').checked && map.hasLayer(namesLayer)) parts.push('Glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0 via <a href="https://www.glims.org/RGI/" target="_blank" rel="noopener">GLIMS</a>');
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
@@ -306,7 +307,7 @@ export function updateAerial(){
     }
     else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(boxes); }      // another glacier was chosen
   });
-  clip(); updateCredits(); updateSpeed();
+  clip(); updateCredits(); updateSpeed(); updateNames();
 }
 export const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
@@ -652,6 +653,30 @@ export const SPEED_LUT = Array.from({length: 256}, (_, i) => {
   const t = i / 255; let k = 1; while (k < SPEED_STOPS.length - 1 && t > SPEED_STOPS[k][0]) k++;
   const [t0, c0] = SPEED_STOPS[k - 1], [t1, c1] = SPEED_STOPS[k], f = (t - t0) / (t1 - t0); return c0.map((c, j) => Math.round(c + (c1[j] - c) * f));
 });
+/* ---------- glacier names: the glaciers named in the picture of the chosen glacier, drawn on the map. data/glacier-names.js is made by `npm run walkthrough -- names` (Wikidata and the
+   Randolph Glacier Inventory); the chosen glacier first, then the others nearest first. Labels that would overlap one already placed are hidden, so zooming in shows more. ---------- */
+export const namesLayer = L.layerGroup();
+let namesFile = null, namesGen = 0;
+const namesData = () => namesFile || (namesFile = new Promise(res => { const sc = document.createElement('script'); sc.src = asset('data/glacier-names.js'); sc.onload = () => res(window.GLACIER_NAMES || {}); sc.onerror = () => res({}); document.head.appendChild(sc); }));
+const escName = t => String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
+export function declutterNames(){
+  const placed = [];
+  namesLayer.eachLayer(m => {
+    const el = m.getElement(); if (!el) return;
+    const p = map.latLngToContainerPoint(m.getLatLng()), w = el.textContent.length * (el.classList.contains('self') ? 8 : 6.6) + 12, h = el.classList.contains('self') ? 20 : 16, b = {x: p.x - w / 2, y: p.y - h / 2, w, h};
+    const clash = placed.some(o => b.x < o.x + o.w && b.x + b.w > o.x && b.y < o.y + o.h && b.y + b.h > o.y);
+    el.style.visibility = clash ? 'hidden' : 'visible'; if (!clash) placed.push(b);
+  });
+}
+export async function updateNames(){
+  const gen = ++namesGen, on = document.getElementById('namesToggle').checked && glacierPicked && viewMode !== '3d';
+  namesLayer.clearLayers();
+  if (!on) { map.removeLayer(namesLayer); updateCredits(); return; }
+  const g = currentGlacier(), all = await namesData(); if (gen !== namesGen) return;
+  (all[g.inv ? g.inv.id : g.id] || []).forEach(n => L.marker([n.la, n.lo], {pane: 'labels', interactive: false, keyboard: false, icon: L.divIcon({className: 'gname' + (n.self ? ' self' : ''), html: '<span>' + escName(n.n) + '</span>', iconSize: [0, 0]})}).addTo(namesLayer));
+  namesLayer.addTo(map); declutterNames(); updateCredits();
+}
+map.on('zoomend moveend', () => { if (map.hasLayer(namesLayer)) declutterNames(); });
 export let speedLayer = null, speedKey = '', speedGen = 0;
 export const speedFiles = new Map(), speedArrays = new Map();      // glacier id -> the file; "id|year" -> Float of m/yr
 export const loadSpeedFile = id => { if (!speedFiles.has(id)) speedFiles.set(id, fetch(asset(`data/itslive/${id}.json`)).then(r => r.ok ? r.json() : null).catch(() => null)); return speedFiles.get(id); };

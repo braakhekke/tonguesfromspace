@@ -65,6 +65,10 @@ npm run walkthrough -- import-site       # fill the records from the site's curr
 
 `npm run walkthrough -- aliases` writes `data/glacier-aliases.js`: for every glacier the labels and aliases of its Wikidata item in every language (Wikidata's data is CC0, from its own licensing page), so the search on the front page (`js/search.js`) finds a glacier by its name in any language. An item counts only when it is a glacier (a subclass of Q35666) near the glacier's centre **and** one of its names says the glacier's name (the glacier itself before its firn or neighbour); a glacier with no such item (three of 52 today: Sylgjujökull, Jostedalsbreen, Storisstraumen) is still found by the name the site has. Run it by hand when glaciers are added and commit the file. The search folds accents (ð d, þ th, ß ss ...), ignores the word for "glacier" in many languages, forgives a wrong, missing, extra or swapped letter, finds half-typed names and two words written as one, and offers "Did you mean…" when it is unsure. Only glaciers of open regions are offered.
 
+## Names of the neighbouring glaciers (the layer "Glacier names")
+
+`npm run walkthrough -- names` writes `data/glacier-names.js`: for every glacier, the glaciers whose position lies inside its picture box, with their names. Wikidata (CC0) is the main source (a name in the language of the place first: German, French, Italian ... for Switzerland, Icelandic, Norwegian), the Randolph Glacier Inventory 6.0 via GLIMS fills in names Wikidata lacks nearby; the glacier itself carries the name the site uses and is drawn larger. The dashboard's layer menu has a row "Glacier names" (off at first, remembered); labels that would overlap are hidden, so zooming in shows more. Map only: the 3D view does not draw them. Run by hand when glaciers or boxes change and commit the file.
+
 ## Phases
 
 | Phase | Steps | State |

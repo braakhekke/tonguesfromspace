@@ -9,6 +9,7 @@ interface Window {
   GLACIER_SIGHT: any;         // sightline.js (scripts/build_sightline.py)
   GLACIER_BOXES: any;         // boxes.js (scripts/tools/box-editor.html)
   GLACIER_THICKNESS: any;     // thickness.js
+  GLACIER_NAMES: any;         // glacier-names.js (npm run walkthrough -- names)
   TFS_CONFIG: { relay?: string; assets?: Record<string, string>; streetViewKey?: string };      // config.js, written by the deploy workflow
 }
 

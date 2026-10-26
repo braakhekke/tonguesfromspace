@@ -907,6 +907,30 @@ class TestPicker(SiteCase):
         self.assertIn("/iceland/rest/" if BUILT else "#r=is-rest", page.url)
 
 
+class TestGlacierNames(SiteCase):
+    def test_the_layer_names_the_glacier_and_the_other_glaciers_in_its_picture(self):
+        page = self.open("#g=aletsch&m=single&one=2022")
+        page.wait_for_function("state.available && state.available[2022]", timeout=60000)
+        self.assertEqual(page.locator("#namesToggle").is_checked(), False, "off at first")
+        self.assertEqual(page.locator(".gname").count(), 0)
+        page.evaluate("document.getElementById('namesToggle').click()")
+        page.wait_for_selector(".gname.self", state="attached", timeout=15000)      # (the anchor has no size: the text is drawn inside it)
+        self.assertIn("Aletsch", page.locator(".gname.self").text_content())
+        n = page.locator(".gname").count()
+        self.assertGreater(n, 5, "other glaciers of the picture have names too")
+        shown = page.evaluate("[...document.querySelectorAll('.gname')].filter(e => e.style.visibility !== 'hidden').length")
+        self.assertGreaterEqual(shown, 3)
+        self.assertLess(shown, n + 1)
+        self.assertIn("Glacier names", page.evaluate("document.getElementById('credits').textContent"))
+        # another glacier: its own picture and names
+        page.evaluate("chooseGlacier('gorner')")
+        page.wait_for_function("document.querySelector('.gname.self') && /Gorner/.test(document.querySelector('.gname.self').textContent)", timeout=15000)
+        self.assertEqual(page.evaluate("JSON.parse(localStorage.getItem('glacierPrefs')).names"), True, "remembered")
+        page.evaluate("document.getElementById('namesToggle').click()")
+        page.wait_for_function("document.querySelectorAll('.gname').length === 0")
+        self.assertClean()
+
+
 class TestIceSpeedLayer(SiteCase):
     def test_layer_draws_the_year_on_show_and_says_when_the_year_has_no_data(self):
         page = self.open("#g=aletsch&m=single&one=2022")

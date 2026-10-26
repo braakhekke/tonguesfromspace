@@ -65,6 +65,10 @@
 .all-regions:hover{text-decoration:underline}
 .mhead .all-regions{display:block;margin:6px 0 0;color:var(--ice)}
 @media (max-width:720px) and (orientation:portrait){.brand .all-regions{display:none}}
+/* the layer "Glacier names" (js/05-map.js, updateNames): a label stands on its glacier, the chosen glacier larger */
+.gname span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font:600 12px var(--sans);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 1px 2px rgba(0,0,0,.9);letter-spacing:.01em}
+.gname.self span{font-size:14px;font-weight:800}
+.names-sw{display:block;font:italic 700 11px var(--sans);color:var(--ink);line-height:1;letter-spacing:-.02em}
 /* the link from the Area card to the size comparison (size.html) */
 .size-link{display:block;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--crevasse)}
   .landsat-opt{align-items:flex-start;margin:8px 0 4px}
@@ -242,6 +246,7 @@
       <div class="trail-legend radar-legend gl-only" id="radarLegend" hidden><i class="ramp" id="radarRamp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="radarNote"></small><span class="multi-row"><b class="multi-dot"></b>Measured in several years; click to see all</span><small>Each dot is the mean of the radar points in a 50 m cell.</small></div>
       <label class="toggle gl-only" id="speedRow" title="How fast the ice moves: yearly mean surface speed from satellite image pairs (ITS_LIVE). Shows the year of the picture on the map."><input type="checkbox" id="speedToggle"> <span><span class="sym"><i class="speed-sw"></i></span>Ice speed</span></label>
       <div class="trail-legend radar-legend gl-only" id="speedLegend" hidden><i class="ramp" id="speedRamp"></i><span class="ticks"><b>5 m/yr</b><b>50</b><b>100</b><b>150+</b></span><small id="speedNote"></small></div>
+      <label class="toggle gl-only" id="namesRow" title="The names of this glacier and of the other glaciers inside its picture (Wikidata and the Randolph Glacier Inventory)"><input type="checkbox" id="namesToggle"> <span><span class="sym"><i class="names-sw">Ab</i></span>Glacier names</span></label>
       <label class="toggle gl-only" title="Hiking trails"><input type="checkbox" id="trailsToggle"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
       <div class="trail-legend gl-only" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="sightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
       <label class="toggle gl-only" id="svRow" title="Panoramas: the best Street View panoramas of this glacier (Google)" hidden><input type="checkbox" id="svToggle"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Panoramas</span></label>

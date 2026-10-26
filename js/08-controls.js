@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, LANDSAT_YEARS, $ } from './01-data.js';
 import { ICECAP, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, restoreLatest } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
-import { map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
+import { updateNames, map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
 import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
 import { focusSub, syncPane, outlineGeom, maxLinkText, refreshAll } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
@@ -155,6 +155,8 @@ document.getElementById('radarToggle').checked = prefs.radar === true;
 document.getElementById('radarToggle').onchange = e => { prefs.radar = e.target.checked; savePrefs(); drawRadar(); };
 document.getElementById('speedToggle').checked = prefs.speed === true;
 document.getElementById('speedToggle').onchange = e => { prefs.speed = e.target.checked; savePrefs(); updateSpeed(); };
+document.getElementById('namesToggle').checked = prefs.names === true;
+document.getElementById('namesToggle').onchange = e => { prefs.names = e.target.checked; savePrefs(); updateNames(); };
 document.getElementById('boxToggle').checked = !OPEN_ON_GLACIER;      // on at the start; off as soon as a glacier is chosen (or the link opens on one)
 document.getElementById('boxToggle').onchange = e => { prefs.boxes = e.target.checked; savePrefs(); updateBoxes(); };
 drawBoxes(); drawTonguePin();

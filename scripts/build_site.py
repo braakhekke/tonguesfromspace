@@ -41,7 +41,7 @@ DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/vatnajokull.js", "data/
 GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
 PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "css/tokens.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
