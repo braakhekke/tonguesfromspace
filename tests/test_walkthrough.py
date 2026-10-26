@@ -168,6 +168,28 @@ class TestWalkthrough(unittest.TestCase):
         self.assertTrue(page.locator("input[aria-label='Keep the outline of 1850-09-01']").is_disabled())
         self.assertEqual(errors, [])
 
+    def test_the_scene_picker_shows_that_pictures_are_loading(self):
+        ctx = self.browser.new_context(viewport={"width": 1500, "height": 900})
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        hold = []
+        # the pictures wait until the test lets them go: a slow relay, as with a Sentinel-2 picture Copernicus has to make
+        def slow(route):
+            hold.append(route)
+        page.route("**/api/image/**", slow)
+        page.route("**/api/landsat/**", slow)
+        page.goto(self.base + "/onboard/is-vatnajokull/breidamerkurjokull/glacier.scenes")
+        page.wait_for_selector(".sc", timeout=20000)
+        page.wait_for_selector(".loadbar", timeout=20000)
+        bar = page.locator(".loadbar").inner_text()
+        self.assertIn("Sentinel-2:", bar)
+        self.assertIn("Landsat:", bar)
+        self.assertGreater(page.locator(".sc .th .spin.big").count(), 0, "every tile whose picture has not arrived has its own spinner")
+        for r in list(hold):      # now the pictures arrive (any answer ends the wait)
+            r.abort()
+        page.wait_for_function("document.querySelectorAll('.loadbar').length === 0", timeout=20000)
+        self.assertEqual(page.locator(".sc .th .spin.big").count(), 0)
+
     def test_the_stale_cascade_is_derived_not_stored(self):
         self.call("/__onboard/new-region", {"id": "cascade", "name": "Cascade", "centre": [46.5, 8.2]})
         src = {"id": "inv", "name": "National inventory", "url": "https://example.org/inv", "licence": "CC BY 4.0", "commercialUse": True}

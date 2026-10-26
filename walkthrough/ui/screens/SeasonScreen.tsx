@@ -180,7 +180,7 @@ export function SeasonScreen({ st, step, setPatch, setBlock }: ScreenProps) {
           <label class="field" style="margin:0"><span>Years to look at ({years.length})</span><input value={yearsText} onInput={(e) => setYearsText((e.target as HTMLInputElement).value)} style="width:230px" placeholder="1980-2026, or 2016, 2020-2022" /></label>
           <button type="button" class="btn" disabled={!!busy || nS2 === 0} onClick={scanS2}>{`Scan ${nS2} Sentinel-2 years`}</button>
           <button type="button" class="btn" disabled={!!busy || nLs === 0} onClick={scanLs}>{`Scan ${nLs} Landsat years`}</button>
-          {busy && <span class="note" style="margin:0 0 10px">Asking {busy}…</span>}
+          {busy && <span class="note" role="status" aria-live="polite" style="margin:0 0 10px;display:inline-flex;align-items:center;gap:8px"><span class="spin" /> Asking {busy}…</span>}
         </div>
         {err && <div class="warn" style="margin-top:10px">{err}{/credential|account|502/i.test(err) ? ' Run `npm run credentials` in the project folder: it asks for your Copernicus client id and secret and checks them.' : ''}</div>}
         <p class="note">Sentinel-2 starts in 2015, Landsat in 1972 (before 1984 only as Level-1, and the 1970s Landsat 1 to 3 are MSS: 60 m, no blue band). Cloud, snow and coverage are measured over the picture box, not the whole scene. A hollow mark is a scene that cannot be used: it does not cover the whole box, or its sensor is not usable yet. Each year is scanned for exactly its scene window (above), and the limits decide how every scene found is classified and picked.</p>

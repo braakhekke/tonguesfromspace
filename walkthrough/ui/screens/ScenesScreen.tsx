@@ -158,6 +158,10 @@ function Review({ st, step, setPatch, setBlock, by, rule, unconfirmedSeason }: S
   const shownAlts = ranked.slice(0, more);
   const altSrc = (c: Ranked['scene']) => (cur === null ? '' : imageOf(g.id, cur, asRef(c)));
   const altLoading = shownAlts.filter((a) => !loaded.has(altSrc(a.scene))).length;
+  // what is still on its way: every year's picture, Sentinel-2 (made by Copernicus on the first request) and Landsat (a file) counted apart
+  const tiles = years.filter((y) => rows[y]!.chosen && !failed.has(y)).map((y) => ({ y, src: imageOf(g.id, y, rows[y]!.chosen!), landsat: rows[y]!.chosen!.sensor.startsWith('landsat') }));
+  const nS2 = tiles.filter((t) => !t.landsat).length, nLs = tiles.length - nS2;
+  const waitS2 = tiles.filter((t) => !t.landsat && !loaded.has(t.src)).length, waitLs = tiles.filter((t) => t.landsat && !loaded.has(t.src)).length;
   const altsRef = useRef<Ranked[]>([]);
   altsRef.current = shownAlts;
 
@@ -205,6 +209,14 @@ function Review({ st, step, setPatch, setBlock, by, rule, unconfirmedSeason }: S
         <button type="button" class="btn" style="padding:7px 14px" disabled={!!busy} onClick={load}>{busy ?? (years.length ? 'Score again' : 'Score the scenes')}</button>
         {years.length > 0 && <><span><b style="color:var(--rock)">{reviewed}</b> of {years.length} reviewed</span><span><kbd>←</kbd><kbd>→</kbd>move</span><span><kbd>A</kbd>approve</span><span><kbd>D</kbd>discard, next best</span><span><kbd>Space</kbd>enlarge the selected picture</span><span><kbd>N</kbd>no usable picture</span><span><kbd>1</kbd><kbd>2</kbd><kbd>3</kbd>take a next-best scene</span></>}
       </div>
+      {(busy || waitS2 > 0 || waitLs > 0) && (
+        <div class="loadbar" role="status" aria-live="polite">
+          {busy && <span class="ld"><span class="spin" /> {busy}</span>}
+          {waitS2 > 0 && <span class="ld"><span class="spin" /> Sentinel-2: {nS2 - waitS2} of {nS2} pictures<i><b style={`width:${Math.round((100 * (nS2 - waitS2)) / nS2)}%`} /></i></span>}
+          {waitLs > 0 && <span class="ld"><span class="spin" /> Landsat: {nLs - waitLs} of {nLs} pictures<i><b style={`width:${Math.round((100 * (nLs - waitLs)) / nLs)}%`} /></i></span>}
+          {waitS2 > 0 && <small>A Sentinel-2 picture the relay has not made before is requested from Copernicus: that takes a while the first time.</small>}
+        </div>
+      )}
       {err && <div class="warn" style="margin:16px 24px">{err}{/credential|account|502/i.test(err) ? ' Run `npm run credentials` in the project folder: it asks for your Copernicus client id and secret and checks them.' : ''}</div>}
       {years.length === 0 && !err && <div class="wz-pad"><div class="cardx"><h4>Nothing scored yet</h4><p style="margin:0">Scoring asks Copernicus for the scenes of every year from 2016 to {lastYear} over this glacier's picture box and picks the best one per year by the rule you confirmed. Then you look at every one.</p></div></div>}
       <div class="sheet" ref={grid}>
@@ -213,7 +225,8 @@ function Review({ st, step, setPatch, setBlock, by, rule, unconfirmedSeason }: S
           const card = (
             <div key={y} class={'sc' + (cur === y ? ' cur' : '')} tabIndex={0} onClick={() => setCur(y)} onFocus={() => setCur(y)}>
               <div class="th">
-                {c && !failed.has(y) ? <img loading="lazy" alt={`${g.name} ${y}`} src={imageOf(g.id, y, c)} onError={() => setFailed((f) => new Set(f).add(y))} /> : <div class="none">{c ? 'Picture cannot be loaded' : 'No usable picture'}</div>}
+                {c && !failed.has(y) ? <img loading="lazy" alt={`${g.name} ${y}`} src={imageOf(g.id, y, c)} onLoad={() => setLoaded((l) => new Set(l).add(imageOf(g.id, y, c)))} onError={() => setFailed((f) => new Set(f).add(y))} /> : <div class="none">{c ? 'Picture cannot be loaded' : 'No usable picture'}</div>}
+                {c && !failed.has(y) && !loaded.has(imageOf(g.id, y, c)) && <span class="spin big" role="status" aria-label={`Loading the ${SENSOR[c.sensor]} picture of ${y}`} />}
                 <span class="yr">{y}</span>
                 {c && !failed.has(y) && zoom(String(y), imageOf(g.id, y, c), capOf(y, c))}
               </div>
@@ -244,7 +257,8 @@ function Review({ st, step, setPatch, setBlock, by, rule, unconfirmedSeason }: S
         const c = rows[cur]!.chosen, size = Math.min(760, innerHeight - 150);
         return (
           <div class="hovercard peek" role="dialog" aria-label={`The picture of ${cur}, enlarged`} style={`width:${size}px;left:${(innerWidth - size) / 2}px;top:${Math.max(12, (innerHeight - size - 80) / 2)}px`}>
-            {c && !failed.has(cur) ? <img src={imageOf(g.id, cur, c)} alt="" style={`width:${size}px;height:${size}px`} /> : <div style={`width:${size}px;height:${size}px;display:grid;place-items:center;color:#fff`}>{c ? 'The picture cannot be loaded' : 'No usable picture for this year'}</div>}
+            {c && !failed.has(cur) && !loaded.has(imageOf(g.id, cur, c)) && <span class="spin big" role="status" aria-label="Loading the picture" />}
+            {c && !failed.has(cur) ? <img src={imageOf(g.id, cur, c)} alt="" onLoad={() => setLoaded((l) => new Set(l).add(imageOf(g.id, cur, c)))} style={`width:${size}px;height:${size}px`} /> : <div style={`width:${size}px;height:${size}px;display:grid;place-items:center;color:#fff`}>{c ? 'The picture cannot be loaded' : 'No usable picture for this year'}</div>}
             <div class="cap">{c ? capOf(cur, c) : String(cur)}<span class="peekkeys">Space or Esc closes · ← → other years</span></div>
           </div>
         );
