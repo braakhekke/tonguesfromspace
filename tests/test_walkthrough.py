@@ -1,5 +1,5 @@
 """The walkthrough (walkthrough/): the real server on temporary folders, and the wizard in a real browser. Unit tests of the engine, steps, season rule and sources are in walkthrough/**/*.test.ts (npm run test:walkthrough)."""
-import json, os, shutil, socket, subprocess, tempfile, time, unittest
+import json, os, shutil, signal, socket, subprocess, tempfile, time, unittest
 import urllib.request
 from playwright.sync_api import sync_playwright
 
@@ -20,7 +20,8 @@ class TestWalkthrough(unittest.TestCase):
         cls.tmp = tempfile.mkdtemp(prefix="tfs-wt-")
         cls.port = free_port()
         env = dict(os.environ, TFS_DATA=os.path.join(cls.tmp, "data"), TFS_CACHE=os.path.join(cls.tmp, "cache"), TFS_WALKTHROUGH_PORT=str(cls.port))
-        cls.srv = subprocess.Popen([os.path.join(ROOT, "node_modules", ".bin", "tsx"), "walkthrough/server.ts"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        subprocess.run([os.path.join(ROOT, "node_modules", ".bin", "tsx"), "walkthrough/cli.ts", "import-site"], cwd=ROOT, env=env, check=True, stdout=subprocess.DEVNULL)      # the records of the site, as the wizard shows them
+        cls.srv = subprocess.Popen([os.path.join(ROOT, "node_modules", ".bin", "tsx"), "walkthrough/server.ts"], cwd=ROOT, env=env, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, start_new_session=True)      # its own process group: tsx starts node as a child, and both must go
         cls.base = f"http://localhost:{cls.port}"
         for _ in range(100):
             try:
@@ -29,14 +30,17 @@ class TestWalkthrough(unittest.TestCase):
             except Exception:
                 time.sleep(0.2)
         else:
-            cls.srv.kill()
+            os.killpg(os.getpgid(cls.srv.pid), signal.SIGTERM)
             raise RuntimeError("the walkthrough server did not start")
         cls.pw = sync_playwright().start()
         cls.browser = cls.pw.chromium.launch()
 
     @classmethod
     def tearDownClass(cls):
-        cls.browser.close(); cls.pw.stop(); cls.srv.kill(); cls.srv.wait()
+        cls.browser.close(); cls.pw.stop()
+        try: os.killpg(os.getpgid(cls.srv.pid), signal.SIGTERM)
+        except ProcessLookupError: pass
+        cls.srv.wait()
         shutil.rmtree(cls.tmp, ignore_errors=True)
 
     def call(self, path, body=None):
@@ -77,6 +81,35 @@ class TestWalkthrough(unittest.TestCase):
         self.assertTrue(page.locator("text=What counts as").first.is_visible())
         page.goto(self.base + "/onboard")
         page.wait_for_selector("text=Testland", timeout=15000)
+        self.assertEqual(errors, [])
+
+    def boxes(self):
+        text = urllib.request.urlopen(self.base + "/site/data/boxes.js", timeout=20).read().decode()
+        return json.loads(text[text.index("{"):text.rindex("}") + 1])["glaciers"]
+
+    def test_the_real_page_shows_the_draft_before_anything_is_saved(self):
+        saved = self.boxes()["B36-26"]["box"]["bounds"]
+        self.assertEqual(saved[0][0], 46.35728576470588, "unchanged: the record's own box")
+        draft = {"region": "ch", "glacier": "aletsch", "step": "glacier.placement", "patch": {"tip": [46.40297, 8.03359], "pictureBox": [[46.30, 7.90], [46.60, 8.20]]}}
+        self.assertEqual(self.call("/__onboard/draft", draft), {"ok": True})
+        self.assertEqual(self.boxes()["B36-26"]["box"]["bounds"], [[46.30, 7.90], [46.60, 8.20]], "the page is handed the box that is only in the form")
+        on_disk = json.load(open(os.path.join(self.tmp, "data", "ch", "aletsch", "glacier.json")))
+        self.assertEqual(on_disk["placement"]["pictureBox"], saved, "nothing was saved")
+        self.call("/__onboard/draft", {**draft, "step": None})
+        self.assertEqual(self.boxes()["B36-26"]["box"]["bounds"], saved, "no draft: the saved box again")
+
+    def test_the_real_dashboard_opens_in_the_wizard_for_an_imported_glacier(self):
+        ctx = self.browser.new_context(viewport={"width": 1500, "height": 900})
+        self.addCleanup(ctx.close)
+        page = ctx.new_page()
+        errors = []
+        page.on("pageerror", lambda e: errors.append(str(e)))
+        page.goto(self.base + "/onboard/ch/aletsch/glacier.placement")
+        page.wait_for_selector("role=tab[name='Real page']", timeout=15000)
+        page.click("role=tab[name='Real page']")
+        frame = page.frame_locator("iframe.wz-frame")
+        frame.locator("#story[data-glacier]").wait_for(timeout=30000)      # the glacier is chosen and its panel drawn
+        self.assertIn("Aletsch", frame.locator("#story").inner_text(timeout=30000))
         self.assertEqual(errors, [])
 
     def test_the_stale_cascade_is_derived_not_stored(self):

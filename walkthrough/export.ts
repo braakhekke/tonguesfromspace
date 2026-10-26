@@ -13,7 +13,7 @@ import { join } from 'node:path';
 import { ROOT, loadAll } from './data';
 import { siteEntry, siteFileExists, siteJson, siteScript } from './site-data';
 import { regionRecords } from './import-site';
-import type { Glacier } from './shared/schema';
+import type { Glacier, ScenesFile } from './shared/schema';
 
 const SITE = () => process.env.TFS_SITE ?? ROOT;
 export const GROUND_RES = 10;      // CDSE.groundRes in js/03-imagery.js
@@ -41,18 +41,20 @@ export function shortName(n: string): string {
 const HEADER = "// picture box, tongue tip and 3D strip of every glacier. GENERATED from the records of data/regions/ by `npm run walkthrough -- export`: change them in the walkthrough, not here (see docs/WALKTHROUGH.md)\n";
 const DOC = "Picture box, tongue tip and 3D strip of every glacier; generated from data/regions/ (npm run walkthrough -- export). 'derived' is what the page makes of the box: never edit it by hand.";
 
-type Placed = { g: Glacier; region: string };
-function placed(): Placed[] {
+/** What the files are made from: the records on disk, with the choices of a step that is being edited (not confirmed, not saved) laid over them. The real-page preview uses the same code as the export. */
+export type Draft = Record<string, { glacier?: Glacier; scenes?: ScenesFile | null }>;
+type Placed = { g: Glacier; region: string; scenes: ScenesFile | null };
+function placed(draft: Draft = {}): Placed[] {
   const order = regionRecords().map((r) => r.id as string);
-  return loadAll().regions.flatMap((r) => r.glaciers.map((x) => ({ g: x.glacier, region: r.region.id })))
+  return loadAll().regions.flatMap((r) => r.glaciers.map((x) => { const d = draft[x.glacier.id]; return { g: d?.glacier ?? x.glacier, region: r.region.id, scenes: d && 'scenes' in d ? d.scenes ?? null : x.scenes }; }))
     .filter((x) => x.g.placement)
     .sort((a, b) => order.indexOf(a.region) - order.indexOf(b.region) || a.g.rank - b.g.rank);
 }
 
-export function boxesObject() {
+export function boxesObject(draft: Draft = {}) {
   const out: Record<string, unknown> = {};
   const dataFiles: Record<string, string> = { 'is-vatnajokull': 'data/vatnajokull.js', 'is-rest': 'data/iceland.js', 'no-mainland': 'data/norway.js', 'no-svalbard': 'data/svalbard.js' };
-  for (const { g, region } of placed()) {
+  for (const { g, region } of placed(draft)) {
     const p = g.placement!, key = g.dataKey ?? g.id;
     let derived: Record<string, unknown>;
     if (p.imageFrom === 'cap') { const im = siteEntry(dataFiles[region]!, key).image; derived = { bbox: im.bbox, w: im.w, h: im.h }; }
@@ -62,14 +64,12 @@ export function boxesObject() {
   }
   return out;
 }
-export const boxesFile = () => HEADER + 'window.GLACIER_BOXES = ' + JSON.stringify({ _doc: DOC, version: 1, glaciers: boxesObject() }, null, 1) + ';\n';
+export const boxesFile = (draft: Draft = {}) => HEADER + 'window.GLACIER_BOXES = ' + JSON.stringify({ _doc: DOC, version: 1, glaciers: boxesObject(draft) }, null, 1) + ';\n';
 
 /** data/scenes.json: the Sentinel-2 scenes a person pinned or approved (the page reads `picks` only). Years without one are chosen by the page, as before. */
-export function scenesObject() {
+export function scenesObject(draft: Draft = {}) {
   const glaciers: Record<string, unknown> = {};
-  for (const { g } of placed()) {
-    const { regions } = loadAll();
-    const sc = regions.flatMap((r) => r.glaciers).find((x) => x.glacier.id === g.id)?.scenes;
+  for (const { g, scenes: sc } of placed(draft)) {
     const picks: Record<string, { date: string; orbit: string; relaxed?: boolean }> = {};
     for (const [y, v] of Object.entries(sc?.years ?? {})) if (v.chosen?.sensor === 'sentinel-2' && (v.status === 'pinned' || v.status === 'approved') && v.chosen.orbit) picks[y] = { date: v.chosen.date, orbit: v.chosen.orbit, ...(/relaxed/.test(v.note ?? '') ? { relaxed: true } : {}) };
     if (!Object.keys(picks).length) continue;
@@ -77,7 +77,7 @@ export function scenesObject() {
   }
   return { version: 1, glaciers };
 }
-export const scenesJson = () => JSON.stringify(scenesObject(), null, 1) + '\n';
+export const scenesJson = (draft: Draft = {}) => JSON.stringify(scenesObject(draft), null, 1) + '\n';
 
 export type Generated = { file: string; text: string };
 export const generated = (): Generated[] => [{ file: 'data/boxes.js', text: boxesFile() }, { file: 'data/scenes.json', text: scenesJson() }];

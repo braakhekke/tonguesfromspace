@@ -24,3 +24,6 @@ export const proposal = (region: string, glacier: string | null, step: string) =
 export type LandsatCand = { sensor: string; date: string; id: string; path: string; row: string; level: 'L2' | 'L1'; usable: boolean; why?: string; gaps?: 'slc-off' | 'outside-glacier'; cloud: number; shadow: number; snow: number; coverage: number; basis: 'box' | 'scene' };
 export const landsatScan = (region: string, glacier: string, year: number, from: string, to: string, margin: number) => call<{ year: number; candidates: LandsatCand[] }>(`/__onboard/landsat-scan?region=${region}&glacier=${glacier}&year=${year}&from=${from}&to=${to}&margin=${margin}`);
 export const probeLayers = (region: string, glacier: string) => call<{ ok: true }>('/__onboard/probe-layers', { region, glacier });
+
+/** What the form of the step holds right now, so the real page can show it before anything is saved. */
+export const draft = (region: string, glacier: string, step: string | null, patch: unknown) => call<{ ok: true }>('/__onboard/draft', { region, glacier, step, patch });

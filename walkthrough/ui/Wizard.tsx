@@ -84,6 +84,8 @@ type FrameProps = { st: State; step: Step; region: string; glacier: string | nul
 
 function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) {
   const [patch, setPatch] = useState<any>(null);
+  const [tab, setTab] = useState<'edit' | 'page'>('edit');
+  const [frame, setFrame] = useState<string | null>(null);
   const [block, setBlock] = useState<string | null>(null);
   const [reason, setReason] = useState('');
   const [seen, setSeen] = useState<Record<number, boolean>>({});
@@ -109,6 +111,15 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
     return () => removeEventListener('keydown', k);
   }, []);
 
+  /** The page for this glacier opens on the draft: the form is handed to the server first, then the frame loads (the page asks the server for boxes.js and scenes.json). */
+  const openPage = async () => {
+    if (!st.glacier) return;
+    await api.draft(st.region.id, st.glacier.id, step.id, patch).catch(() => {});
+    const site = st.glacier.legacyIds?.[0] ?? st.glacier.id;
+    setFrame(`/site/index.html?v=${Date.now()}#${st.region.id === 'ch' ? '' : `r=${st.region.id}&`}g=${encodeURIComponent(site)}&m=single`);
+    setTab('page');
+  };
+  useEffect(() => { return () => { api.draft(region, glacier ?? '', null, null).catch(() => {}); }; }, []);
   const props: ScreenProps = { st, step, patch, setPatch, setBlock };
   const Screen = { region: RegionScreen, record: RecordScreen, outline: OutlineScreen, placement: PlacementScreen, season: SeasonScreen, scenes: ScenesScreen, layers: LayersScreen, later: LaterScreen }[step.screen as 'region'] ?? LaterScreen;
 
@@ -123,7 +134,16 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
             <p class="proposal"><b>Proposal ready.</b> {st.proposals[step.id]!.note} Nothing is saved until you confirm; change anything that looks wrong.</p>
           )}
         </div>
-        <div class="wz-stage"><Screen {...props} /></div>
+        {st.glacier && step.screen !== 'later' && (
+          <div class="wz-tabs" role="tablist">
+            <button type="button" role="tab" aria-selected={tab === 'edit'} onClick={() => setTab('edit')}>Edit</button>
+            <button type="button" role="tab" aria-selected={tab === 'page'} onClick={() => openPage()}>Real page</button>
+            <small>{tab === 'page' ? 'The dashboard as a visitor sees it, drawn from your current choices (confirmed or not).' : 'Steer here, then check it on the real page.'}</small>
+          </div>
+        )}
+        {/* the editor stays mounted while the real page is shown, so nothing typed or dragged is lost */}
+        <div class="wz-stage" style={tab === 'page' ? 'display:none' : ''}><Screen {...props} /></div>
+        {tab === 'page' && frame && <div class="wz-stage wz-real"><iframe class="wz-frame" title="The real page" src={frame} /></div>}
       </main>
 
       <aside class="wz-side">

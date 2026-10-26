@@ -22,6 +22,8 @@ import { isProbing, probeGlacierLayers } from './probe-layers';
 import { parseStatistics, statisticsBody, STATS_RES_M } from './shared/copernicus';
 import type { Env, GlacierIndex } from './relay/env';
 import { Glacier } from './shared/schema';
+import { boxesFile, scenesJson, type Draft } from './export';
+import { stepById } from './steps';
 import { resolveOutlines } from './site-data';
 
 const PORT = Number(process.env.TFS_WALKTHROUGH_PORT ?? 5174);
@@ -74,7 +76,9 @@ export function allowed(req: Pick<IncomingMessage, 'headers' | 'method'>): strin
   if (!/^(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(String(h.host ?? ''))) return 'local only';
   if (h['sec-fetch-site'] === 'cross-site') return 'cross-site requests are refused';
   if (req.method === 'POST') {
-    if (h['x-onboard'] !== '1') return 'missing X-Onboard header';
+    // the wizard sends X-Onboard; the real page in its frame (which asks /cdse/ for pictures) cannot, but the browser marks its requests same-origin, and a page on another site cannot fake that
+    const ownPage = h['sec-fetch-site'] === 'same-origin';
+    if (h['x-onboard'] !== '1' && !ownPage) return 'missing X-Onboard header';
     if (h.origin && new URL(String(h.origin)).host !== h.host) return 'the origin is not this server';
   }
   return null;
@@ -84,6 +88,18 @@ const body = async (req: IncomingMessage) => { const c: Buffer[] = []; for await
 const dirsOf = (p: string) => (existsSync(p) ? readdirSync(p, { withFileTypes: true }).filter((d) => d.isDirectory()).map((d) => d.name).sort() : []);
 
 const kv = new FileKV();
+
+/** The step the wizard is editing right now, with what is in its form: the real page shows it before anything is confirmed or saved. */
+let draft: { region: string; glacier: string; step: string; patch: unknown } | null = null;
+function draftOverlay(): Draft {
+  if (!draft) return {};
+  try {
+    const step = stepById(draft.step);
+    if (!step?.implemented) return {};
+    const next = step.apply(loadCtx(draft.region, draft.glacier), (draft.patch ?? {}) as Record<string, unknown>, { at: '2000-01-01', by: 'draft', reason: 'draft', basedOn: '' });
+    return next.glacier ? { [next.glacier.id]: { glacier: next.glacier, scenes: next.scenes } } : {};
+  } catch { return {}; }      // a form that is not valid yet shows the saved state
+}
 
 async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
   const p = url.pathname;
@@ -119,6 +135,7 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     if (b.step === 'glacier.placement' && b.glacier) void probeGlacierLayers(b.region, b.glacier, fetch, (m) => console.log(`[layers ${b.glacier}] ${m}`)).catch((e) => console.error(`[layers ${b.glacier}] ${e.message}`));
     return send(res, 200, { ok: true, staled: before });
   }
+  if (p === '/__onboard/draft' && req.method === 'POST') { const b = await body(req); draft = b.step ? { region: b.region, glacier: b.glacier, step: b.step, patch: b.patch } : null; return send(res, 200, { ok: true }); }
   if (p === '/__onboard/proposal') return send(res, 200, readProposals(url.searchParams.get('region')!, url.searchParams.get('glacier'))[url.searchParams.get('step')!]?.data ?? null);
   if (p === '/__onboard/propose' && req.method === 'POST') { const b = await body(req); writeProposal(b.region, b.glacier ?? null, b.step, b.by || 'tool', b.note || '', b.data); return send(res, 200, { ok: true }); }
   if (p === '/__onboard/probe-layers' && req.method === 'POST') { const b = await body(req); void probeGlacierLayers(b.region, b.glacier, fetch).catch((e) => console.error(`[layers ${b.glacier}] ${e.message}`)); return send(res, 200, { ok: true }); }
@@ -155,7 +172,7 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
   return send(res, 404, { error: 'unknown call' });
 }
 
-const MIME: Record<string, string> = { '.css': 'text/css', '.woff2': 'font/woff2', '.js': 'text/javascript', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg' };
+const MIME: Record<string, string> = { '.css': 'text/css', '.woff2': 'font/woff2', '.js': 'text/javascript', '.json': 'application/json', '.html': 'text/html', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg', '.webp': 'image/webp', '.mp4': 'video/mp4', '.webm': 'video/webm', '.bin': 'application/octet-stream' };
 const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="robots" content="noindex"><title>Walkthrough | Tongues from Space</title>
 <link rel="stylesheet" href="/css/tokens.css"><link rel="stylesheet" href="/__ui/main.css"></head><body><div id="app"></div><script type="module" src="/__ui/main.js"></script></body></html>`;
 
@@ -163,6 +180,18 @@ const PAGE = `<!doctype html><html lang="en"><head><meta charset="utf-8"><meta n
 async function bundle() {
   const r = await build({ entryPoints: [join(ROOT, 'walkthrough', 'ui', 'main.tsx')], bundle: true, write: false, outdir: 'out', format: 'esm', target: 'es2022', jsx: 'automatic', jsxImportSource: 'preact', sourcemap: 'inline', loader: { '.png': 'dataurl', '.svg': 'dataurl' }, logLevel: 'silent' });
   return Object.fromEntries(r.outputFiles.map((f) => [f.path.split('/').pop()!, f.text]));
+}
+
+/** The real site, from the source tree, under /site/: the dashboard as a visitor sees it, with the data files generated from the records and the draft. */
+function realSite(res: ServerResponse, rel: string) {
+  const text = (t: string, type: string) => { res.setHeader('Content-Type', type); res.setHeader('Cache-Control', 'no-store'); res.end(t); };
+  if (rel === 'config.js') return text('window.TFS_CONFIG = { relay: "" };', 'text/javascript');
+  if (rel === 'data/boxes.js') return text(boxesFile(draftOverlay()), 'text/javascript');
+  if (rel === 'data/scenes.json') return text(scenesJson(draftOverlay()), 'application/json');
+  const f = normalize(join(ROOT, rel)), top = rel.split('/')[0]!;
+  if (!f.startsWith(ROOT) || rel.split('/').some((x) => x.startsWith('.')) || ['scripts', 'walkthrough', 'node_modules', 'worker', 'tests'].includes(top) || rel.startsWith('data/regions') || !existsSync(f) || !statSync(f).isFile()) return send(res, 404, { error: 'not found' });
+  res.setHeader('Content-Type', MIME[extname(f)] ?? 'application/octet-stream'); res.setHeader('Cache-Control', 'no-store');
+  res.end(readFileSync(f));
 }
 
 export function start(port = PORT) {
@@ -173,6 +202,14 @@ export function start(port = PORT) {
       const refused = allowed(req);
       if (refused) return send(res, 403, { error: refused });
       if (p.startsWith('/__onboard/') || p.startsWith('/api/')) return await api(req, res, url);
+      if (p === '/cdse/ping') return send(res, 200, { relay: true, managed: true });
+      if ((p === '/cdse/statistics' || p === '/cdse/process') && req.method === 'POST') {      // the raw relay the real page uses (the public Worker's /cdse/ route), here with this computer's credentials
+        const r = await callCdse({ ...devVars() } as unknown as Env, fetch, Date.now(), p === '/cdse/process' ? '/api/v1/process' : '/api/v1/statistics', await body(req), String(req.headers.accept ?? '*/*'));
+        res.statusCode = r.status; res.setHeader('Content-Type', r.headers.get('Content-Type') ?? 'application/octet-stream');
+        return void res.end(Buffer.from(await r.arrayBuffer()));
+      }
+      if (p === '/site') { res.statusCode = 302; res.setHeader('Location', '/site/'); return void res.end(); }
+      if (p.startsWith('/site/')) return realSite(res, decodeURIComponent(p.slice(6)) || 'index.html');
       if (p === '/__ui/main.js' || p === '/__ui/main.css') {
         const out = await bundle();
         res.setHeader('Content-Type', MIME[extname(p)]!); res.setHeader('Cache-Control', 'no-store');
