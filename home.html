@@ -209,7 +209,7 @@ dialog.player{overflow:visible}
 
 <header class="bar"><div class="wrap">
   <a class="brand" href="#top">
-    <img src="logo/tongues-from-space-logo-plain-white.svg" alt="" width="32" height="30">
+    <img src="images/home/logo-white.svg" alt="" width="32" height="30">
     <b>Tongues from Space</b>
   </a>
   <nav>
@@ -334,7 +334,7 @@ dialog.player{overflow:visible}
 
 <footer><div class="wrap">
   <div>
-    <a class="brand" href="#top"><img src="logo/tongues-from-space-logo-plain-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
+    <a class="brand" href="#top"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
     <p>Created to increase glacial awareness, by Jochem Braakhekke. Non-commercial. Code MIT, own texts CC BY 4.0.</p>
   </div>
   <div class="src">
@@ -354,6 +354,19 @@ dialog.player{overflow:visible}
 <script src="data/home-glaciers.js"></script>
 <script>
 const $ = id => document.getElementById(id);
+
+/* The picker is the front page (/); the dashboards live at the address of their region (js/00-regions.js, `path`).
+   Opened as /home.html (local use from the source tree) its links go to the local dashboard, index.html. */
+const LOCAL = /home\.html$/.test(location.pathname);
+const REGION_PATH = { ch: 'switzerland', 'is-vatnajokull': 'iceland/vatnajokull', 'is-rest': 'iceland/rest', 'no-mainland': 'norway/mainland', 'no-svalbard': 'norway/svalbard' };
+/* Links of the old site: /#g=aletsch&m=compare opened the Swiss dashboard at the root. Any hash that names a dashboard setting goes to the dashboard of its region. */
+(() => {
+  const h = location.hash.slice(1), q = new URLSearchParams(h);
+  if (!['g', 'm', 'a', 'b', 'from', 'to', 'one', 's', 'ol', 't', 'r', 'fun'].some(k => q.has(k))) return;
+  const region = q.get('r') || 'ch'; q.delete('r');
+  const rest = q.toString();
+  location.replace(LOCAL ? 'index.html#' + h : (REGION_PATH[region] || REGION_PATH.ch) + '/' + (rest ? '#' + rest : ''));
+})();
 
 /* Deep space, drawn like the map viewer's backdrop (spaceCanvas in js/05-map.js): dark blue gradient, a soft Milky Way band, nebula glows, small stars. Fixed seed. */
 (() => {
@@ -450,7 +463,7 @@ player.addEventListener('click', e => { if (e.target === player) player.close();
 
 /* ---------- regions: paths are the real addresses of js/00-regions.js ---------- */
 const REGIONS = [
-  { id: 'ch', group: 'Switzerland', name: 'Switzerland', href: './', ll: [46.45, 8.1], zoom: 7,
+  { id: 'ch', group: 'Switzerland', name: 'Switzerland', href: 'switzerland/', ll: [46.45, 8.1], zoom: 7,
     text: 'The ten largest Swiss glaciers, with GLAMOS statistics.', n: 'Ten glaciers' },
   { id: 'is-vatnajokull', soon: true, group: 'Iceland', name: 'Vatnajökull', href: 'iceland/vatnajokull/', ll: [64.4, -16.8], zoom: 7,
     text: 'The outlets of the Vatnajökull ice cap.', n: 'In the making' },
@@ -472,7 +485,8 @@ L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/
 const pick = $('pick'), tiles = $('tiles'), list = $('iList');
 const byRegion = id => (window.HOME_GLACIERS || []).filter(g => g.region === id);
 const fmtArea = a => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
-const glacierHref = (r, g) => r.href + '#g=' + encodeURIComponent(g.id);
+const regionHref = r => LOCAL ? 'index.html' + (r.id === 'ch' ? '' : '#r=' + r.id) : r.href;
+const glacierHref = (r, g) => LOCAL ? 'index.html#' + (r.id === 'ch' ? '' : 'r=' + r.id + '&') + 'g=' + encodeURIComponent(g.id) : r.href + '#g=' + encodeURIComponent(g.id);
 
 pick.innerHTML = '<option value="">Choose a glacier…</option>';
 let lastGroup = null, grp = null;
@@ -530,7 +544,7 @@ function chooseRegion(id, doFly = true) {
     b.innerHTML = g.name + '<small>' + fmtArea(g.area) + '</small>'; b.onclick = () => chooseGlacier(g.id);
     b.onmouseenter = () => glMarkers[g.id] && glMarkers[g.id].openTooltip(); b.onmouseleave = () => glMarkers[g.id] && glMarkers[g.id].closeTooltip();
     li.appendChild(b); list.appendChild(li); }
-  $('iGo').textContent = 'Open the region'; $('iGo').href = r.href; $('iGo2').hidden = true; $('info').hidden = false;
+  $('iGo').textContent = 'Open the region'; $('iGo').href = regionHref(r); $('iGo2').hidden = true; $('info').hidden = false;
   if (doFly) fly(r.ll, r.zoom);
   history.replaceState(null, '', '#' + id);
 }
@@ -549,11 +563,11 @@ function chooseGlacier(gid, doFly = true) {
   $('iGo2').hidden = true; $('info').hidden = false;
   if (doFly) fly(g.tip, r.id === 'ch' ? 11 : 8);
   glMarkers[gid].openTooltip();
-  history.replaceState(null, '', '#g=' + gid);
+  history.replaceState(null, '', '#glacier=' + gid);      // the picker's own link; #g= is a dashboard link
 }
 pick.onchange = () => { const [k, id] = pick.value.split(/:(.+)/); if (k === 'r') chooseRegion(id); else if (k === 'g') chooseGlacier(id); else reset(); };
 const start = location.hash.slice(1);
-if (start.startsWith('g=')) chooseGlacier(decodeURIComponent(start.slice(2)));
+if (start.startsWith('glacier=')) chooseGlacier(decodeURIComponent(start.slice(8)));
 else if (REGIONS.some(r => r.id === start && !r.soon)) chooseRegion(start, false);
 </script>
 </body>

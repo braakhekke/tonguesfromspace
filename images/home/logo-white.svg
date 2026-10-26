@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 190" width="800" height="760" role="img" aria-label="Tongues from Space logo">
+<title>Tongues from Space</title>
+<defs>
+<mask id="mouthcut" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240">
+<rect x="-20" y="-20" width="240" height="240" fill="#fff"/>
+<ellipse cx="100" cy="88" rx="48" ry="24" fill="#000"/>
+</mask>
+<mask id="groovecut" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240">
+<rect x="-20" y="-20" width="240" height="240" fill="#fff"/>
+<path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/>
+</mask>
+</defs>
+<g fill="#FFFFFF">
+<path d="M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z" mask="url(#mouthcut)"/>
+<path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#groovecut)"/>
+<path d="M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z"/>
+</g>
+</svg>

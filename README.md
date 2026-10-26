@@ -37,6 +37,8 @@ tests/                                             browser tests (Playwright), W
 docs/                                              reference, setup, sources, how to add a glacier
 ```
 
+**Addresses.** On the public site `/` is the region picker (`home.html`: a world map and a list) and every region has its own page: `/switzerland/`, `/iceland/vatnajokull/`, `/norway/mainland/` and so on. All of them are copies of `index.html` made by `scripts/build_site.py`, one per region in `js/00-regions.js` (`path`). Old links like `/#g=aletsch&m=compare` are sent to the right region page. From the source tree, open `/home.html` for the picker and `/index.html` for the dashboard.
+
 Three rules keep the code changeable (details in [docs/REFERENCE.md](docs/REFERENCE.md)):
 
 1. **A file imports from files with a lower number.** Going up the order, use `wire.name`. There are no import cycles, so the files load in the order of their numbers.

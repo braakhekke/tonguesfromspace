@@ -11,12 +11,26 @@ through page.evaluate: the same code as in the browser, without a copy.
 What is checked: no uncaught error while loading, choosing each of the ten glaciers, the tabs, a link that names a glacier, a phone-size window; the pure
 functions (naming rule, scene choice, bounding box, ice estimate, MP4 packer); with the built site, that the 2023 outline is loaded when a glacier is chosen and not before.
 """
-import functools, http.server, os, socketserver, threading, unittest
+import functools, http.server, os, re, socketserver, threading, unittest
 from playwright.sync_api import sync_playwright
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.abspath(os.environ.get("TFS_SITE_DIR", ROOT))
 ALLOWED_EXTERNAL = ("https://cdnjs.cloudflare.com/",)
+BUILT = bool(os.environ.get("TFS_SITE_DIR"))
+DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss dashboard: on the built site at its region address (the front page / is the region picker)
+REGION_PATHS = {"is-vatnajokull": "iceland/vatnajokull", "is-rest": "iceland/rest", "no-mainland": "norway/mainland", "no-svalbard": "norway/svalbard"}
+
+
+def where(path, hash):
+    """On the built site a region is opened at its address, not with #r=: translate the hash of a local link."""
+    m = re.match(r"#r=([\w-]+)&?(.*)", hash or "")
+    if BUILT and m and m.group(1) in REGION_PATHS and os.path.isfile(os.path.join(SITE, REGION_PATHS[m.group(1)], "index.html")):      # a region that is not on this build keeps the Swiss page (its tests then skip)
+        return "/" + REGION_PATHS[m.group(1)] + "/", ("#" + m.group(2) if m.group(2) else "")
+    return path, hash
+
+
+PICKER = "/" if BUILT else "/home.html"      # the region picker (home.html)
 IGNORED_CONSOLE = ("Failed to load resource", "net::ERR")      # blocked tiles, a missing config.js
 
 
@@ -46,7 +60,8 @@ class SiteCase(unittest.TestCase):
         cls.pw.stop()
         cls.srv.shutdown()
 
-    def open(self, hash="", viewport=None, fresh=False, path="/index.html", **ctx_args):      # fresh: a first visit (the film plays); otherwise the film counts as seen
+    def open(self, hash="", viewport=None, fresh=False, path=None, **ctx_args):      # fresh: a first visit (the film plays); otherwise the film counts as seen
+        path, hash = where(path or DASHBOARD, hash)
         ctx = self.browser.new_context(viewport=viewport or {"width": 1280, "height": 860}, **ctx_args)
         self.addCleanup(ctx.close)
         ctx.route("**/*", lambda route: route.continue_() if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
@@ -166,12 +181,13 @@ class TestRegions(SiteCase):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
         self.addCleanup(ctx.close)
         ctx.add_init_script("window.TFS_EXPOSE = true")
+        ctx.add_init_script("try{if(!localStorage.getItem('glacierPrefs'))localStorage.setItem('glacierPrefs','{\"hideR\":false}')}catch(e){}")      # the right panel starts collapsed on a first visit; these tests read it
         ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")
         ctx.route("**/*", lambda route: (seen.append(route.request.url), route.continue_())[1] if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
         page = ctx.new_page()
         self.errors = []
         page.on("pageerror", lambda e: self.errors.append(f"pageerror: {e}"))
-        page.goto(self.base + "/index.html" + page_hash, wait_until="load")
+        page.goto(self.base + "".join(where(DASHBOARD, page_hash)), wait_until="load")
         page.wait_for_function("typeof L !== 'undefined' && document.getElementById('story') && document.getElementById('story').dataset.glacier", timeout=30000)
         return page, seen
 
@@ -206,6 +222,7 @@ class TestRegions(SiteCase):
                 for gid in page.evaluate("GLACIERS.map(g => g.id)"):
                     page.evaluate(f"chooseGlacier('{gid}')")
                     page.wait_for_function(f"document.getElementById('story').dataset.glacier === '{gid}'", timeout=15000)
+                    page.wait_for_function("document.getElementById('story').innerText.toLowerCase().includes('what to look for')", timeout=15000)      # the panel is drawn a moment after the glacier is chosen
                     text = page.evaluate("document.getElementById('story').innerText")
                     self.assertIn("what to look for", text.lower(), gid)
                     self.assertTrue(page.evaluate("(() => { const g = currentGlacier(); return g.rgi.areaKm2 > 5 && !!g.tongue && !!newOutlineGeom(g) && g.box.length === 2; })()"), gid)
@@ -321,16 +338,16 @@ class TestRegions(SiteCase):
             self.assertNotIn("r=", page.evaluate("location.hash"), "the address names the region, not the hash")
             self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/iceland/vatnajokull/")
             self.assertIn("preview-iceland", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
-            self.assertEqual(page.evaluate("[regionLink('ch'), regionLink('is-vatnajokull')]"), ["/", "/iceland/vatnajokull/"])
+            self.assertEqual(page.evaluate("[regionLink('ch'), regionLink('is-vatnajokull')]"), ["/switzerland/", "/iceland/vatnajokull/"])
             self.assertClean()
         page.click("#regionBtn")
         with page.expect_navigation():
             page.click("#regionMenu li[data-id=ch]")
         page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'ch'")
-        self.assertEqual(page.evaluate("location.pathname"), "/")
+        self.assertEqual(page.evaluate("location.pathname"), "/switzerland/")
         page = self.open()
-        self.assertIn("Interactive Glaciers", page.evaluate("document.title"))
-        self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/")
+        self.assertIn("Swiss glaciers", page.evaluate("document.title"))
+        self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/switzerland/")
 
     def test_vatnajokull_hides_what_has_no_data_and_choosing_the_outlet_works(self):
         page = self.open("#r=is-vatnajokull")
@@ -762,6 +779,41 @@ class TestSwissLayers(SiteCase):
         for sel in ("#aerialToggle", "#topoToggle", "#altiToggle", "#radarToggle", "#speedToggle"):
             self.assertNotEqual(page.locator(sel).evaluate("e => (e.closest('label') || e).style.display"), "none", sel + " should be offered")
         self.assertTrue(page.evaluate("FEATURES.swisstopo && FEATURES.speed"))
+
+
+class TestPicker(SiteCase):
+    """The front page is the world map where a region is chosen; old dashboard links still reach their dashboard."""
+    def picker(self, hash=""):
+        ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
+        self.addCleanup(ctx.close)
+        ctx.route("**/*", lambda route: route.continue_() if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
+        page = ctx.new_page()
+        self.errors = []
+        page.on("pageerror", lambda e: self.errors.append(f"pageerror: {e}"))
+        page.goto(self.base + PICKER + hash, wait_until="load")
+        return page
+
+    def test_the_picker_offers_the_regions_and_opens_the_dashboard_of_the_chosen_one(self):
+        page = self.picker()
+        page.wait_for_function("typeof chooseRegion === 'function' && window.HOME_GLACIERS && HOME_GLACIERS.length >= 10")
+        self.assertGreaterEqual(page.locator("#pick option").count(), 10, "the dropdown lists the glaciers")
+        page.evaluate("chooseRegion('ch')")
+        href = page.evaluate("document.getElementById('iGo').getAttribute('href')")
+        self.assertEqual(href, "switzerland/" if BUILT else "index.html")
+        page.evaluate("chooseGlacier('gorner')")
+        self.assertEqual(page.evaluate("document.getElementById('iGo').getAttribute('href')"), ("switzerland/#g=gorner" if BUILT else "index.html#g=gorner"))
+        self.assertEqual(page.evaluate("location.hash"), "#glacier=gorner", "the picker's own link does not look like a dashboard link")
+        self.assertEqual(self.errors, [])
+
+    def test_a_link_of_the_old_site_goes_to_the_dashboard(self):
+        page = self.picker("#g=aletsch&m=compare&a=2016&b=2024")
+        page.wait_for_url(lambda u: "g=aletsch" in u and "home" not in u, timeout=15000)
+        url = page.url
+        self.assertIn("/switzerland/" if BUILT else "/index.html", url)
+        self.assertIn("#g=aletsch&m=compare&a=2016&b=2024", url)      # the dashboard adds its own defaults after it
+        page = self.picker("#r=is-rest&g=hofsjokull")
+        page.wait_for_url(lambda u: "g=hofsjokull" in u, timeout=15000)
+        self.assertIn("/iceland/rest/" if BUILT else "#r=is-rest", page.url)
 
 
 class TestIceSpeedLayer(SiteCase):

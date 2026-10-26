@@ -17,8 +17,9 @@ const NO_OUTLINE_CREDIT = 'Outlines: <a href="https://www.nve.no/hydrology/glaci
 const SV_OUTLINE_CREDIT = 'Outlines: <a href="https://geodata.npolar.no" target="_blank" rel="noopener">Norwegian Polar Institute</a> (glacier outlines 1936–1972 and 2020, CC BY 4.0)';
 const REGIONS_ALL = [
   { id: 'ch', name: 'Switzerland', adj: 'Swiss', ready: true,
+    path: 'switzerland',                         // the address on the public site: /switzerland/ (the front page / is the region picker, home.html)
     data: 'data/glaciers.js',                  // window.GLACIER_DATA, made by scripts/build_outlines.py (GLAMOS)
-    docTitle: 'Tongues from Space | Interactive Glaciers',
+    docTitle: 'Tongues from Space | Swiss glaciers',
     brandLede: 'Discover the ten largest Swiss glaciers. Compare, create and share your visuals.',
     streetviewIn: 'Aletsch',                   // what the Street View credit names
     overviewName: 'Switzerland',               // the button and texts that lead back to the overview of the region

@@ -19,7 +19,11 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
 5. **Docs. (done)** `README.md` is 100 lines; the file table and `js/` map moved to `docs/REFERENCE.md` (corrected for modules), setup to `docs/SETUP.md`, sources to `docs/SOURCES.md`; `CLAUDE.md` keeps the wiring rules, `Rules`, style and testing.
 
 ## Milestone 2: routes and landing
-`/` world map + dropdown, `/<region>` equal pages, one shared layout (`Shell`), old links redirected by data.
+Picker done (2026-10-26): `/` is `home.html` (world map + list), every region including Switzerland has a page at its
+`path` (`/switzerland/`, `/iceland/vatnajokull/`, ...), old `/#g=...` links are redirected by the picker, the build
+and the health check know the new addresses. Still to do: one shared `Shell` for all pages (dashboard, picker, gallery,
+size), the picker listing regions from the region records instead of its own `REGIONS` table, the data-driven redirect
+of old links.
 
 ## Milestone 3: Worker and onboarding
 Port from v2: Worker that builds the Copernicus request itself (`src/shared/copernicus.ts`), `season.ts`

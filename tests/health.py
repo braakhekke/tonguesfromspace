@@ -19,6 +19,7 @@ Needs only the standard library for 1 to 4; Playwright for 5 (skipped with a war
 import json, os, re, sys, time, urllib.error, urllib.request
 
 SITE = os.environ.get("TFS_LIVE_URL", "https://tonguesfromspace.org/").rstrip("/") + "/"
+DASH = SITE + "switzerland/"      # the Swiss dashboard; the front page SITE is the region picker
 YEAR = int(os.environ.get("TFS_LIVE_YEAR", "2023"))
 results = []
 
@@ -48,11 +49,19 @@ def check(name, needs=()):
     return wrap
 
 
-@check("page is reachable")
+@check("front page (region picker) is reachable")
 def _():
     status, body = get(SITE)
     text = body.decode("utf-8", "replace")
-    assert status == 200 and "Tongues from Space" in text, f"HTTP {status}, title missing"
+    assert status == 200 and "Tongues from Space" in text and 'id="pick"' in text, f"HTTP {status}, title or picker missing"
+    return f"{len(body) // 1024} kB"
+
+
+@check("the Swiss dashboard page is reachable")
+def _():
+    status, body = get(DASH)
+    text = body.decode("utf-8", "replace")
+    assert status == 200 and "Tongues from Space" in text and "story" in text, f"HTTP {status}, title missing"
     state["html"] = text
     return f"{len(body) // 1024} kB"
 
@@ -130,9 +139,10 @@ def browser_check():
         page = browser.new_page(viewport={"width": 1280, "height": 860})
         errors = []
         page.on("pageerror", lambda e: errors.append(str(e)))
-        page.goto(SITE, wait_until="load")
+        page.add_init_script("window.TFS_EXPOSE = true")      # js/devtools.js: the names of the page are readable here
+        page.goto(DASH, wait_until="load")
         gid = page.evaluate("GLACIERS[0].id")      # the id used in links (not the inventory id)
-        page.goto(f"{SITE}#g={gid}&m=single&one={YEAR}", wait_until="load")
+        page.goto(f"{DASH}#g={gid}&m=single&one={YEAR}", wait_until="load")
         page.wait_for_load_state("load")      # the page restarts itself when the hash changes (hashchange in 12-boot.js)
         page.wait_for_function("typeof state !== 'undefined' && state.checked === true", timeout=90000)      # the scene search is done
         found = page.evaluate("y => !!(state.available && state.available[y])", YEAR)

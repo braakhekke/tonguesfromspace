@@ -33,12 +33,12 @@ import hashlib, json, os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
-HTML_FILES = ["index.html", "gallery.html", "size.html"]
+HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for mainland Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
-GROUP_ON = {"iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
-PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml"]                 # copied as they are (missing ones are skipped)
+GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
+PLAIN_FILES = ["css/pages.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
 HASHED_FILES = ["css/style.css", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/vatnajokull.js", "data/iceland.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
@@ -96,8 +96,15 @@ def split_glaciers(out, assets):
 
 SITE = "https://tonguesfromspace.org"
 # What differs on the page of a region with its own address. Keys are the texts of index.html that are replaced (each must be found).
-REGION_GROUP = {"is-vatnajokull": "iceland", "is-rest": "iceland", "no-mainland": "norway", "no-svalbard": "norway"}
+REGION_GROUP = {"ch": "switzerland", "is-vatnajokull": "iceland", "is-rest": "iceland", "no-mainland": "norway", "no-svalbard": "norway"}
 REGION_PAGES = [
+    {"path": "switzerland", "canonical": "switzerland/", "group": "switzerland",
+     "title": "Tongues from Space | Swiss glaciers",
+     "description": "Explore the ten largest Swiss glaciers through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - Swiss glaciers",
+     "og_description": "Watch the ten largest Swiss glaciers retreat: Sentinel-2 satellite images since 2016 and 3D terrain.",
+     "image": "images/preview-social.jpg", "image_w": "1200", "image_h": "589",
+     "image_alt": "Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2024, and glacier figures"},
     {"path": "iceland/vatnajokull", "canonical": "iceland/vatnajokull/", "group": "iceland",
      "title": "Tongues from Space | Vatnajökull, Iceland",
      "description": "Explore the outlet glaciers of Vatnajökull, Iceland’s largest ice cap, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
@@ -167,7 +174,7 @@ def rewrite_html(out, assets, relay):
             continue
         html = read(name).decode("utf-8")
         for plain, hashed in assets.items():
-            pattern = re.compile(r'((?:src|href)=")' + re.escape(plain) + r'(")')
+            pattern = re.compile(r'((?:src|href|poster)=")' + re.escape(plain) + r'(")')
             html, n = pattern.subn(r"\g<1>" + hashed + r"\g<2>", html)
             if n:
                 print(f"{name}: {plain} -> {hashed} ({n}x)")
@@ -177,7 +184,11 @@ def rewrite_html(out, assets, relay):
                 sys.exit("index.html lost the marker <!--relay-preconnect-->")
             tag = f'<link rel="preconnect" href="{relay}" crossorigin>' if relay.startswith("http") else ""
             html = html.replace(marker, tag)
-        write(out, name, html.encode("utf-8"))
+        if name == "home.html":      # the region picker is the front page
+            write(out, "index.html", html.encode("utf-8"))
+            continue
+        if name != "index.html":      # the dashboard itself has no address of its own: only its region pages are written
+            write(out, name, html.encode("utf-8"))
         if name == "index.html":
             for page in [p for p in REGION_PAGES if GROUP_ON[p["group"]]]:
                 write(out, f"{page['path']}/index.html", region_page(html, page).encode("utf-8"))
@@ -201,6 +212,10 @@ def main():
                     if not on:
                         data = re.sub(rb"\s*<url>\s*<loc>[^<]*/" + group.encode() + rb"/[^<]*</loc>\s*</url>", b"", data)
             write(out, name, data)
+    for folder, _, files in os.walk(os.path.join(ROOT, "images", "home")):      # the pictures and clips of the front page (the clips are named in its script, so they keep their names)
+        for f in sorted(files):
+            rel = os.path.relpath(os.path.join(folder, f), ROOT)
+            write(out, rel, read(rel))
     fonts = os.path.join(ROOT, "fonts")
     for f in sorted(os.listdir(fonts)):
         if f.endswith(".woff2") or f == "OFL.txt":
