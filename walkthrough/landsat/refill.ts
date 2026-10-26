@@ -6,7 +6,7 @@
  */
 import { copyFileSync, existsSync, readFileSync, writeFileSync } from 'node:fs';
 import jpeg from 'jpeg-js';
-import type { Bounds } from '../shared/schema';
+import type { Bounds } from '../../shared/schema';
 import { readNpyBands } from '../sources/landsat';
 import { fillGaps, type FillOptions } from './gapfill';
 

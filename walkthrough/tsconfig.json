@@ -19,9 +19,13 @@
     "types": [
       "node",
       "@cloudflare/workers-types"
-    ]
+    ],
+    "allowJs": true,
+    "checkJs": false
   },
   "include": [
-    "."
+    ".",
+    "../shared",
+    "../worker/relay"
   ]
 }

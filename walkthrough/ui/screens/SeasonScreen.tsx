@@ -4,8 +4,8 @@ import * as api from '../api';
 import { parseYears } from '../years';
 import { ruleDiff } from '../rules';
 import { axisTicks, dayDiff, fmtDay, isoAt, ranges, sceneLabel, scanRange } from '../axis';
-import { balanceYearEnd, pickScene, sceneWindow, type Candidate } from '../../shared/season';
-import type { BalanceYear, SceneRule } from '../../shared/schema';
+import { balanceYearEnd, pickScene, sceneWindow, type Candidate } from '../../../shared/season';
+import type { BalanceYear, SceneRule } from '../../../shared/schema';
 
 const PRESETS: Record<string, { label: string; by: Omit<BalanceYear, 'source'>; warn?: string }> = {
   north: { label: 'Northern hemisphere: 1 October to 30 September', by: { start: '10-01', end: '09-30', label: 'ends-in' } },

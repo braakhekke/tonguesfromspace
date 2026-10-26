@@ -8,7 +8,7 @@ import { join } from 'node:path';
 import proj4 from 'proj4';
 import { ROOT } from '../data';
 import { readDbf, readShp, type Polygon } from './shapefile';
-import { areaKm2 } from '../shared/geo';
+import { areaKm2 } from '../../shared/geo';
 
 /** EPSG:2056 as the files' own .prj states it (oblique Mercator on Bessel 1841, centre 46.95240555555556 N 7.439583333333333 E), with the usual 3-parameter datum shift (good to about a metre; proj4js returns NaN for a 6-zero 7-parameter form). */
 const LV95 = '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346 +units=m +no_defs';

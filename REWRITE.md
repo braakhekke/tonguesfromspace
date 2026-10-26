@@ -30,10 +30,13 @@ Baseline before any change: `check_syntax.py` ok, 74 tests, 22 skipped (the non-
 - Not done: a single shared header/footer component. The pages differ by design (dark hero page, light utility
   gallery, app-like dashboard), the style sync (LaunchAgent) is retired, so the tokens exist once.
 
-## Milestone 3: Worker and onboarding (in progress)
-Walkthrough: ported from v2 as the preferred one (`walkthrough/`, docs/WALKTHROUGH.md). Done: the schema, season rule,
-engine, steps (phase 1), CLI, local server and wizard, local relay by meaning; 119 unit tests and browser tests.
-Next: (1) exporter from confirmed records to the site's data files, and importer from the site's data to proposals,
-so every existing glacier is confirmed instead of re-typed; (2) the "Real page" tab on top of the exporter;
-(3) retire `scripts/tools/onboard.html` and the box/3D/scene editors once the walkthrough covers them; (4) phases 2 to 4;
-(5) the public Worker moves to the relay by meaning (request validated against the glacier record, no raw bodies).
+## Milestone 3: onboarding and the Worker (state 2026-10-27)
+Done: the walkthrough ported from v2 (`walkthrough/`, `shared/`, docs/WALKTHROUGH.md); records are the source of truth
+(`data/regions/`, importer from the site data, exporter for `data/boxes.js`, `data/scenes.json`, `worker/glacier-index.json`,
+round-trip tests, `export --check` in CI); the Real page tab; phase 2 (elevation model, 3D strip and start camera); the relay
+by meaning in the Worker (`worker/main.ts`, `/api/*`), the old `/cdse/` route untouched; the style sync retired.
+Open: (1) the owner confirms the 52 imported glaciers in the walkthrough (until then every step shows "proposed");
+(2) phases 3 and 4 (content, About and Sources); (3) the page calls `/api/` instead of `/cdse/` (needs the relay to answer
+strip pictures, whole-cap tiles and Latest first), then the raw route and its checks go; (4) retire the old editors and
+`scripts/tools/onboard.html` after the first real use; (5) the exporter learns the region record (season, sources) so
+`js/regions.js` is generated too.

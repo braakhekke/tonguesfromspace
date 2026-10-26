@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { areaKm2, simplifyRing, featuresBounds, imageGrid, MAX_TILE_PX, southernmost } from '../shared/geo';
+import { areaKm2, simplifyRing, featuresBounds, imageGrid, MAX_TILE_PX, southernmost } from '../../shared/geo';
 
 describe('imageGrid', () => {
   it('Aletsch\'s box (23.5 x 24.9 km, 2345 x 2493 px) is ONE request: 2,493 px is under the API limit of 2,500', () => {
@@ -76,7 +76,7 @@ describe('simplifying a closed ring', () => {
   });
 });
 
-import { bearingFrom, stripCorners, stripLocal, stripPoint } from '../shared/geo';
+import { bearingFrom, stripCorners, stripLocal, stripPoint } from '../../shared/geo';
 describe('the 3D strip on the ground', () => {
   const tip: [number, number] = [46.4, 8.03];
   it('azimuth 0 runs north, 90 east; across is to the right of that direction', () => {

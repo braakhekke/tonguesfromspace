@@ -29,8 +29,8 @@ export function ranges(years: number[]): string {
   return out.join(', ');
 }
 
-import { sceneWindow } from '../shared/season';
-import type { BalanceYear, SceneRule } from '../shared/schema';
+import { sceneWindow } from '../../shared/season';
+import type { BalanceYear, SceneRule } from '../../shared/schema';
 
 /**
  * The days a scan of one balance year looks at: that year's scene window (days before and after ITS OWN year end, from the rule),

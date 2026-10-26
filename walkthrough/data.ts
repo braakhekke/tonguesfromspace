@@ -4,7 +4,7 @@
  */
 import { readdirSync, readFileSync, existsSync, writeFileSync, mkdirSync } from 'node:fs';
 import { join, dirname } from 'node:path';
-import { Glacier, Region, ScenesFile } from './shared/schema';
+import { Glacier, Region, ScenesFile } from '../shared/schema';
 
 export const ROOT = join(import.meta.dirname, '..');
 /** Read at call time, so tests and fixture builds can point at another folder with TFS_DATA / TFS_GENERATED. */

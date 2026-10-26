@@ -1,5 +1,5 @@
 /** Small checks the walkthrough screens share, kept here so they can be tested without a browser. */
-import type { SceneRule } from '../shared/schema';
+import type { SceneRule } from '../../shared/schema';
 
 /** Years whose chosen scene is allowed below 100 % only because of a margin the confirmed rule does not have. */
 export function needsMargin(years: Record<string, { chosen?: { gaps?: string } | null }>, rule: Pick<SceneRule, 'noDataMarginM'>): string[] {

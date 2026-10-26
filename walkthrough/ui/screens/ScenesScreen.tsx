@@ -1,8 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import type { ScreenProps } from '../Wizard';
 import * as api from '../api';
-import { pickYears, rankScenes, sceneKey, sceneWindow, type Candidate, type Ranked } from '../../shared/season';
-import type { BalanceYear, SceneRef, SceneRule } from '../../shared/schema';
+import { pickYears, rankScenes, sceneKey, sceneWindow, type Candidate, type Ranked } from '../../../shared/season';
+import type { BalanceYear, SceneRef, SceneRule } from '../../../shared/schema';
 import { needsMargin } from '../rules';
 import { go } from '../nav';
 

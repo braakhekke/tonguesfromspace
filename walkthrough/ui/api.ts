@@ -1,5 +1,5 @@
 /** Talks to the dev server (onboard/server.ts). */
-import type { Glacier, OutlinesFile, Region, ScenesFile, Confirmation } from '../shared/schema';
+import type { Glacier, OutlinesFile, Region, ScenesFile, Confirmation } from '../../shared/schema';
 
 export type Status = 'done' | 'todo' | 'review' | 'stale' | 'blocked' | 'attention' | 'unavailable';
 export type Step = { id: string; phase: number; scope: 'region' | 'glacier'; title: string; why: string; look: string[]; screen: string; status: Status; problems: string[]; blockedBy: string[]; confirmation: Confirmation | null };

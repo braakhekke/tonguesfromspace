@@ -1,6 +1,6 @@
 /** Heights from the swisstopo height service (swissALTI3D, public, no key). Used to find the lowest point of an ice front. */
 import proj4 from 'proj4';
-import { simplifyRing } from '../shared/geo';
+import { simplifyRing } from '../../shared/geo';
 
 const LV95 = '+proj=somerc +lat_0=46.95240555555556 +lon_0=7.439583333333333 +k_0=1 +x_0=2600000 +y_0=1200000 +ellps=bessel +towgs84=674.374,15.056,405.346 +units=m +no_defs';
 export const toLv95 = (lon: number, lat: number): [number, number] => proj4('WGS84', LV95, [lon, lat]) as [number, number];

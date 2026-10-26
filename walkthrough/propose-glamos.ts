@@ -8,7 +8,7 @@ import { glacierFile } from './data';
 import { loadCtx, newGlacier } from './engine';
 import { writeProposal } from './proposals';
 import { centreOf, fetchInventory, idOf, loadInventory, locationOf, rankByArea, SGI, type SgiFeature } from './sources/glamos';
-import { featuresBounds, km, simplifyRing } from './shared/geo';
+import { featuresBounds, km, simplifyRing } from '../shared/geo';
 import { lowestPoint } from './sources/swisstopo';
 
 /** The citation and licence exactly as the DOI landing pages state them (read 22 Oct 2026). */

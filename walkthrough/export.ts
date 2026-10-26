@@ -3,6 +3,7 @@
  *
  *   data/boxes.js    picture box, tongue tip and 3D strip of every glacier   <- placement of the records
  *   data/scenes.json the scenes a person pinned or approved, per glacier     <- scenes of the records
+ *   worker/glacier-index.json what the relay may be asked for                <- placement and season of the records
  *
  * The records are the source of truth; these files are generated and carry a header that says so. `derived` is what the page makes of a box,
  * worked out here by the page's own rule (Leaflet's EPSG:3857, 10 m ground pixels, rounded) and checked against the page by tests/test_boxes.py.
@@ -13,7 +14,7 @@ import { join } from 'node:path';
 import { ROOT, loadAll } from './data';
 import { siteEntry, siteFileExists, siteJson, siteScript } from './site-data';
 import { regionRecords } from './import-site';
-import type { Glacier, ScenesFile } from './shared/schema';
+import type { Glacier, ScenesFile } from '../shared/schema';
 
 const SITE = () => process.env.TFS_SITE ?? ROOT;
 export const GROUND_RES = 10;      // CDSE.groundRes in js/03-imagery.js
@@ -79,8 +80,19 @@ export function scenesObject(draft: Draft = {}) {
 }
 export const scenesJson = (draft: Draft = {}) => JSON.stringify(scenesObject(draft), null, 1) + '\n';
 
+/**
+ * worker/glacier-index.json: what the relay may be asked for. A glacier is in it when its placement and season are set and either confirmed or imported from the site's own data
+ * (published as it is); the relay builds every Copernicus request from this entry, so a glacier that is not here cannot be asked for.
+ */
+export function glacierIndex(draft: Draft = {}) {
+  const out: Record<string, unknown> = {};
+  for (const { g, region, scenes } of placed(draft))
+    if (g.balanceYear && g.sceneRule && (g.seasonConfirmation || g.imported)) out[g.id] = { region, name: g.name, pictureBox: g.placement!.pictureBox, balanceYear: g.balanceYear, sceneRule: g.sceneRule, hasScenes: !!scenes };
+  return out;
+}
+
 export type Generated = { file: string; text: string };
-export const generated = (): Generated[] => [{ file: 'data/boxes.js', text: boxesFile() }, { file: 'data/scenes.json', text: scenesJson() }];
+export const generated = (): Generated[] => [{ file: 'data/boxes.js', text: boxesFile() }, { file: 'data/scenes.json', text: scenesJson() }, { file: 'worker/glacier-index.json', text: JSON.stringify(glacierIndex(), null, 1) + '\n' }];
 
 /** `--check`: the committed files are what the records say. Compared as data, not as bytes, so the formatting of a tool never fails it. */
 export function check(): string[] {

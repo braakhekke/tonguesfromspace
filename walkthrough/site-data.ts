@@ -6,7 +6,7 @@ import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
 import { ROOT } from './data';
-import type { OutlinesFile } from './shared/schema';
+import type { OutlinesFile } from '../shared/schema';
 
 const cache = new Map<string, { m: number; value: any }>();
 

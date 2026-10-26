@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { ScreenProps } from '../Wizard';
-import { LAYERS, type LayerId, type Source } from '../../shared/schema';
+import { LAYERS, type LayerId, type Source } from '../../../shared/schema';
 import * as api from '../api';
 
 type Row = { state: 'enabled' | 'unavailable' | null; provider: string; reason: string };

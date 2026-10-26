@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'preact/hooks';
 import type { ScreenProps } from '../Wizard';
-import type { Source } from '../../shared/schema';
+import type { Source } from '../../../shared/schema';
 
 const blank = (): Source => ({ id: '', name: '', url: 'https://', licence: '', commercialUse: true });
 

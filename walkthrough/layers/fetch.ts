@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { z } from 'zod';
-import { LAYERS, type Bounds, type LayerId, type Source } from '../shared/schema';
+import { LAYERS, type Bounds, type LayerId, type Source } from '../../shared/schema';
 import { ROOT } from '../data';
 
 const Licence = z.object({

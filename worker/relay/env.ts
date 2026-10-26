@@ -1,6 +1,6 @@
 /// <reference types="@cloudflare/workers-types" />
-import type { BalanceYear, SceneRule } from '../shared/schema';
-import type { Bounds } from '../shared/schema';
+import type { BalanceYear, SceneRule } from '../../shared/schema';
+import type { Bounds } from '../../shared/schema';
 
 export interface Env {
   ASSETS: Fetcher;

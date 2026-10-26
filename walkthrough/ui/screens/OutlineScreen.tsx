@@ -2,7 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ScreenProps } from '../Wizard';
-import { areaKm2 } from '../../shared/geo';
+import { areaKm2 } from '../../../shared/geo';
 import * as api from '../api';
 
 const BASE = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg';

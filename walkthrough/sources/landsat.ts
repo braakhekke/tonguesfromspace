@@ -8,8 +8,8 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { Bounds } from '../shared/schema';
-import { simplifyRing } from '../shared/geo';
+import type { Bounds } from '../../shared/schema';
+import { simplifyRing } from '../../shared/geo';
 import { ROOT } from '../data';
 
 const STAC = 'https://planetarycomputer.microsoft.com/api/stac/v1/search';

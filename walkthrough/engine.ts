@@ -4,7 +4,7 @@
  * of everything upstream, so changing an earlier result marks every later step stale by itself.
  */
 import { existsSync, readFileSync } from 'node:fs';
-import { Glacier, OutlinesFile, Region, ScenesFile, type Confirmation } from './shared/schema';
+import { Glacier, OutlinesFile, Region, ScenesFile, type Confirmation } from '../shared/schema';
 import { glacierFile, outlinesFile, regionFile, scenesFile, writeJson } from './data';
 import { hash } from './hash';
 import { STEPS, stepById, type Ctx, type Patch, type StepDef } from './steps';

@@ -4,8 +4,8 @@
  */
 import { loadCtx } from './engine';
 import { readProposals, writeProposal } from './proposals';
-import { Bounds } from './shared/schema';
-import { imageGrid } from './shared/geo';
+import { Bounds } from '../shared/schema';
+import { imageGrid } from '../shared/geo';
 
 export function proposeBox(region: string, glacier: string, box: [[number, number], [number, number]], note: string, tip?: [number, number]) {
   const b = Bounds.parse(box); // south < north, west < east, within range

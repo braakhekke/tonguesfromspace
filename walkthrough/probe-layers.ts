@@ -8,7 +8,7 @@
 import { loadCtx } from './engine';
 import { readProposals, writeProposal } from './proposals';
 import { fetchLayers } from './layers/fetch';
-import type { Source } from './shared/schema';
+import type { Source } from '../shared/schema';
 
 const running = new Set<string>();
 export const isProbing = (region: string, glacier: string) => running.has(`${region}/${glacier}`);

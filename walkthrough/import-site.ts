@@ -15,7 +15,7 @@ import { existsSync, readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
 import vm from 'node:vm';
 import { ROOT, dataRoot, glacierFile, outlinesFile, regionFile, scenesFile, writeJson } from './data';
-import { Glacier, OutlinesFile, Region, ScenesFile, type Source } from './shared/schema';
+import { Glacier, OutlinesFile, Region, ScenesFile, type Source } from '../shared/schema';
 import { siteFileExists, siteJson, siteScript } from './site-data';
 
 /** The site ids of the ten Swiss glaciers (what `#g=` names). The page builds them from its list of defaults; they are fixed here so links stay valid. */

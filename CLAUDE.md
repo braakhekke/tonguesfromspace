@@ -11,6 +11,7 @@ Short version:
 - **Pages:** `index.html` (the dashboard), `home.html`, `gallery.html`, `size.html`; colours and typeface are only in `css/tokens.css` (the style sync to the sister sites is retired).
 - **Code:** `js/main.js` imports the sections `js/01-…14-*.js` in order; they are ES modules, bundled by esbuild in `scripts/build_site.py`. `js/regions.js` (the region records, data only) and `js/00-regions.js` (picks the region, writes the data tags) are the two classic scripts.
 - **Wiring rules (keep them when you edit):** import from files with a lower number; for something in a higher-numbered file use `wire.name` (`js/wire.js`; the owner registers it at its top); to assign a variable that lives in another file use its `setX()`; differences between regions are `features` flags in `00-regions.js`, never `REGION.id === ...`; new helpers go in the lowest file that needs them.
+- **Records are the source of truth** for what a glacier is, where its box, strip and camera are, and which scenes are pinned: `data/regions/` (walkthrough, `npm run walkthrough:serve`; docs/WALKTHROUGH.md). `data/boxes.js`, `data/scenes.json` and `worker/glacier-index.json` are generated from them: never edit these by hand; `npm run check` fails if they differ.
 - **Data** in `data/` (generated or hand-made), **tooling** in `scripts/`, the Worker in `worker/`, tests in `tests/`.
 - **Checks:** `npm ci`, then `npm run check` (syntax + types) and `npm test`.
 

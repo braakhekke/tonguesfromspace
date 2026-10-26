@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ScreenProps } from '../Wizard';
-import { featuresBounds, imageGrid, km, southernmost } from '../../shared/geo';
-import type { Bounds, LatLon } from '../../shared/schema';
+import { featuresBounds, imageGrid, km, southernmost } from '../../../shared/geo';
+import type { Bounds, LatLon } from '../../../shared/schema';
 
 /** Leave room for the readout on the right and the tools on the top left, so no handle sits under them. */
 const FIT: L.FitBoundsOptions = { paddingTopLeft: [70, 70], paddingBottomRight: [330, 70] };

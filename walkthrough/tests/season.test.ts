@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { balanceYearEnd, pickScene, pickYears, rankScenes, sceneWindow, yearOfScene, type Candidate } from '../shared/season';
-import type { BalanceYear, SceneRule } from '../shared/schema';
+import { balanceYearEnd, pickScene, pickYears, rankScenes, sceneWindow, yearOfScene, type Candidate } from '../../shared/season';
+import type { BalanceYear, SceneRule } from '../../shared/schema';
 
 const north: BalanceYear = { start: '10-01', end: '09-30', label: 'ends-in', source: 'test' };
 const rule: SceneRule = {
@@ -49,7 +49,7 @@ describe('100 % of the picture box must be covered', () => {
     expect(pickScene([c('2016-09-29', { coverage: 0.97 }), c('2016-09-10', { cloud: 0.04 })], 2016, north, rule)?.scene.date).toBe('2016-09-10');
   });
   it('the rule itself cannot be loosened: the schema refuses a minCoverage below 1', async () => {
-    const { SceneRule } = await import('../shared/schema');
+    const { SceneRule } = await import('../../shared/schema');
     expect(SceneRule.safeParse({ ...rule, minCoverage: 0.95 }).success).toBe(false);
     expect(SceneRule.safeParse(rule).success).toBe(true);
   });

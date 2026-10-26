@@ -2,9 +2,9 @@
  * The walkthrough as data. Each step says what it produces, what it needs, what to look at and how it is checked.
  * Nothing here is stored as "progress": status is DERIVED from the data files (see engine.ts).
  */
-import { Glacier, LAYERS, OutlinesFile, Region, ScenesFile, type Confirmation, type Source } from './shared/schema';
-import { areaKm2, boxAreaKm2 } from './shared/geo';
-import { yearOfScene } from './shared/season';
+import { Glacier, LAYERS, OutlinesFile, Region, ScenesFile, type Confirmation, type Source } from '../shared/schema';
+import { areaKm2, boxAreaKm2 } from '../shared/geo';
+import { yearOfScene } from '../shared/season';
 
 export type Ctx = { region: Region; glacier: Glacier | null; scenes: ScenesFile | null; outlines: OutlinesFile | null };
 export type Patch = Record<string, unknown>;

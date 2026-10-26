@@ -3,9 +3,9 @@
  * this file builds the Copernicus request from the glacier record. There is nothing to validate in a
  * request body because there is no request body.
  */
-import { imageGrid } from '../shared/geo';
-import { processBody, parseStatistics, statisticsBody, STATS_RES_M, STYLES, RENDER_FINGERPRINT_SOURCE, type Style } from '../shared/copernicus';
-import { sceneWindow, yearOfScene } from '../shared/season';
+import { imageGrid } from '../../shared/geo';
+import { processBody, parseStatistics, statisticsBody, STATS_RES_M, STYLES, RENDER_FINGERPRINT_SOURCE, type Style } from '../../shared/copernicus';
+import { sceneWindow, yearOfScene } from '../../shared/season';
 import { callCdse, hasAccounts } from './cdse';
 import { kvGet, kvPut, overLimit, sha } from './cache';
 import type { Deps, Env, IndexEntry } from './env';
@@ -52,9 +52,9 @@ function entryOf(deps: Deps, id: string): IndexEntry | Response {
 }
 
 export async function candidates(env: Env, deps: Deps, id: string, period: string, ip: string): Promise<Response> {
-  if (!hasAccounts(env)) return fail(502, 'The relay has no Copernicus credentials yet.');
   const e = entryOf(deps, id);
   if (e instanceof Response) return e;
+  if (!hasAccounts(env)) return fail(502, 'The relay has no Copernicus credentials yet.');
   const now = deps.now(), t = today(now);
   let from: string, to: string, ttl = DAY;
   if (period === 'latest') {
@@ -90,9 +90,9 @@ export function dateAllowed(date: string, e: IndexEntry, now: number): boolean {
 }
 
 export async function image(env: Env, deps: Deps, id: string, date: string, style: string, tile: string, orbit: string | null, ip: string): Promise<Response> {
-  if (!hasAccounts(env)) return fail(502, 'The relay has no Copernicus credentials yet.');
   const e = entryOf(deps, id);
   if (e instanceof Response) return e;
+  if (!hasAccounts(env)) return fail(502, 'The relay has no Copernicus credentials yet.');
   if (!(STYLES as readonly string[]).includes(style)) return fail(400, 'style');
   if (orbit !== null && !/^R\d{3}$/.test(orbit)) return fail(400, 'orbit');
   if (!dateAllowed(date, e, deps.now())) return fail(400, 'date is outside every scene window of this glacier');

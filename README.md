@@ -32,13 +32,17 @@ js/01-data … 14-streetview.js                      the dashboard, one ES modul
 js/wire.js  js/devtools.js                         calls up the load order; test/debug hook
 data/                                              generated or hand-made data, one folder per kind
 scripts/                                           data builders (Python, standard library) and local tools
-worker/                                            the Cloudflare Worker (relay, gallery, static assets)
+worker/                                            the Cloudflare Worker: main.ts, the relay by meaning (relay/), worker.js (raw relay, gallery)
 tests/                                             browser tests (Playwright), Worker tests, health check
-walkthrough/                                       the onboarding walkthrough: engine, wizard, local relay (TypeScript, dev only)
+walkthrough/                                       the onboarding walkthrough: engine, wizard, local server (TypeScript, dev only)
+shared/                                            what the walkthrough and the Worker share: schema, season rule, geometry, Copernicus request builder
+data/regions/                                      the records: what has been decided about each region and glacier (the source of truth)
 docs/                                              reference, setup, sources, how to add a glacier
 ```
 
 **Addresses.** On the public site `/` is the region picker (`home.html`: a world map and a list) and every region has its own page: `/switzerland/`, `/iceland/vatnajokull/`, `/norway/mainland/` and so on. All of them are copies of `index.html` made by `scripts/build_site.py`, one per region in `js/00-regions.js` (`path`). Old links like `/#g=aletsch&m=compare` are sent to the right region page. With `scripts/serve.py` `/` is the picker and `/index.html` the dashboard (without Copernicus credentials the pages still load, just without satellite pictures). Every page has an "← All regions" link back to the picker (`js/home-link.js`). Colours and the typeface are in one file, `css/tokens.css`.
+
+**Generated files.** `data/boxes.js`, `data/scenes.json` and `worker/glacier-index.json` are made from the records in `data/regions/` by `npm run walkthrough -- export`; do not edit them by hand (`npm run check` fails if they differ).
 
 Three rules keep the code changeable (details in [docs/REFERENCE.md](docs/REFERENCE.md)):
 

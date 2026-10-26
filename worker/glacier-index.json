@@ -1,0 +1,1718 @@
+{
+ "aletsch": {
+  "region": "ch",
+  "name": "Grosser Aletschgletscher",
+  "pictureBox": [
+   [
+    46.35728576470588,
+    7.8781889000000005
+   ],
+   [
+    46.58120341176471,
+    8.184029341122477
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 17,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 39 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "gorner": {
+  "region": "ch",
+  "name": "Gornergletscher",
+  "pictureBox": [
+   [
+    45.8888787,
+    7.6499521999999995
+   ],
+   [
+    46.027671299999994,
+    7.9398878
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 9,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 42 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "fiescher": {
+  "region": "ch",
+  "name": "Fieschergletscher",
+  "pictureBox": [
+   [
+    46.3969009,
+    8.0193568
+   ],
+   [
+    46.594889099999996,
+    8.2319032
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 14,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 40 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "unteraar": {
+  "region": "ch",
+  "name": "Unteraargletscher",
+  "pictureBox": [
+   [
+    46.504298299999995,
+    8.056005400000002
+   ],
+   [
+    46.637911700000004,
+    8.337574599999998
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 35 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "corbassiere": {
+  "region": "ch",
+  "name": "Glacier de Corbassière",
+  "pictureBox": [
+   [
+    45.90438949999999,
+    7.2443992999999995
+   ],
+   [
+    46.065160500000005,
+    7.338670700000001
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 7,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 34 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "zmutt": {
+  "region": "ch",
+  "name": "Zmuttgletscher",
+  "pictureBox": [
+   [
+    45.9493523,
+    7.538659599999999
+   ],
+   [
+    46.0500977,
+    7.722720400000001
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 37 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "rhone": {
+  "region": "ch",
+  "name": "Rhonegletscher",
+  "pictureBox": [
+   [
+    46.5343064,
+    8.320376907153385
+   ],
+   [
+    46.6835736,
+    8.467103092846616
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 4,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 35 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "sgi-b56-03": {
+  "region": "ch",
+  "name": "Findelgletscher",
+  "pictureBox": [
+   [
+    45.9580018,
+    7.736331600000001
+   ],
+   [
+    46.04684666,
+    7.9512684
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 14,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 41 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "sgi-b53-04": {
+  "region": "ch",
+  "name": "Feegletscher",
+  "pictureBox": [
+   [
+    46.025880199999996,
+    7.8345819
+   ],
+   [
+    46.1255798,
+    7.9517281
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 13,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 39 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "trift": {
+  "region": "ch",
+  "name": "Triftgletscher (BE)",
+  "pictureBox": [
+   [
+    46.60955810000001,
+    8.3050173
+   ],
+   [
+    46.72647189999999,
+    8.433152699999999
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": false,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 41 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "skeidararjokull": {
+  "region": "is-vatnajokull",
+  "name": "Skeiðarárjökull",
+  "pictureBox": [
+   [
+    63.943957459576005,
+    -17.497017537730418
+   ],
+   [
+    64.14338254042401,
+    -17.041382462269585
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 20 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "bruarjokull": {
+  "region": "is-vatnajokull",
+  "name": "Brúarjökull",
+  "pictureBox": [
+   [
+    64.6266705713259,
+    -16.167539661761104
+   ],
+   [
+    64.80812942867409,
+    -15.742660338238894
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 14 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "breidamerkurjokull": {
+  "region": "is-vatnajokull",
+  "name": "Breiðamerkurjökull",
+  "pictureBox": [
+   [
+    63.983609414301114,
+    -16.55996821160496
+   ],
+   [
+    64.20639058569888,
+    -16.05003178839504
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "dyngjujokull": {
+  "region": "is-vatnajokull",
+  "name": "Dyngjujökull",
+  "pictureBox": [
+   [
+    64.71573679482573,
+    -16.923121327260002
+   ],
+   [
+    64.86126320517427,
+    -16.58147867274
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 15 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "sidujokull": {
+  "region": "is-vatnajokull",
+  "name": "Síðujökull",
+  "pictureBox": [
+   [
+    64.06050977362558,
+    -17.968967591126077
+   ],
+   [
+    64.17729022637441,
+    -17.701432408873924
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 6 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "koldukvislarjokull": {
+  "region": "is-vatnajokull",
+  "name": "Köldukvíslarjökull",
+  "pictureBox": [
+   [
+    64.47531990657565,
+    -18.03416200900147
+   ],
+   [
+    64.60288009342436,
+    -17.73743799099853
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "tungnaarjokull": {
+  "region": "is-vatnajokull",
+  "name": "Tungnaárjökull",
+  "pictureBox": [
+   [
+    64.21143341717571,
+    -18.248241643281833
+   ],
+   [
+    64.35336658282428,
+    -17.92115835671817
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "hoffellsjokull": {
+  "region": "is-vatnajokull",
+  "name": "Hoffellsjökull",
+  "pictureBox": [
+   [
+    64.39831652892562,
+    -15.644867662355797
+   ],
+   [
+    64.52228347107439,
+    -15.357332337644202
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 6 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "heinabergsjokull": {
+  "region": "is-vatnajokull",
+  "name": "Heinabergsjökull and Skálafellsjökull",
+  "pictureBox": [
+   [
+    64.22491484010061,
+    -15.895388388524085
+   ],
+   [
+    64.3470851598994,
+    -15.613811611475915
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 14 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "flaajokull": {
+  "region": "is-vatnajokull",
+  "name": "Fláajökull",
+  "pictureBox": [
+   [
+    64.28112159540065,
+    -15.775393922292198
+   ],
+   [
+    64.41047840459935,
+    -15.476606077707801
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 13 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "sylgjujokull": {
+  "region": "is-vatnajokull",
+  "name": "Sylgjujökull",
+  "pictureBox": [
+   [
+    64.35872159540065,
+    -18.10371653483507
+   ],
+   [
+    64.48807840459935,
+    -17.804083465164933
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 19 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "svinafellsjokull": {
+  "region": "is-vatnajokull",
+  "name": "Svínafellsjökull",
+  "pictureBox": [
+   [
+    63.949311462450595,
+    -16.92798899004307
+   ],
+   [
+    64.06788853754941,
+    -16.65741100995693
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 21 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "langjokull": {
+  "region": "is-rest",
+  "name": "Langjökull",
+  "pictureBox": [
+   [
+    64.59282666187568,
+    -20.12391957411379
+   ],
+   [
+    64.72757333812433,
+    -19.80908042588621
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "hofsjokull": {
+  "region": "is-rest",
+  "name": "Hofsjökull",
+  "pictureBox": [
+   [
+    64.61166647502695,
+    -19.2707397367232
+   ],
+   [
+    65.00153352497306,
+    -18.354860263276798
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "myrdalsjokull": {
+  "region": "is-rest",
+  "name": "Mýrdalsjökull",
+  "pictureBox": [
+   [
+    63.4921131512756,
+    -19.433035728540222
+   ],
+   [
+    63.6124868487244,
+    -19.162764271459775
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "drangajokull": {
+  "region": "is-rest",
+  "name": "Drangajökull",
+  "pictureBox": [
+   [
+    66.04638408192598,
+    -22.47050570116716
+   ],
+   [
+    66.24221591807402,
+    -21.986294298832842
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "eyjafjallajokull": {
+  "region": "is-rest",
+  "name": "Eyjafjallajökull",
+  "pictureBox": [
+   [
+    63.581309773625584,
+    -19.75600524267211
+   ],
+   [
+    63.69809022637441,
+    -19.492994757327892
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 13 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "tungnafellsjokull": {
+  "region": "is-rest",
+  "name": "Tungnafellsjökull",
+  "pictureBox": [
+   [
+    64.69112497305066,
+    -18.081380453774862
+   ],
+   [
+    64.82407502694933,
+    -17.769619546225137
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 7 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "thorisjokull": {
+  "region": "is-rest",
+  "name": "Þórisjökull",
+  "pictureBox": [
+   [
+    64.49589795185052,
+    -20.824736687578987
+   ],
+   [
+    64.60010204814948,
+    -20.58226331242101
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 6 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "eiriksjokull": {
+  "region": "is-rest",
+  "name": "Eiríksjökull",
+  "pictureBox": [
+   [
+    64.7343928853755,
+    -20.499969584793597
+   ],
+   [
+    64.8332071146245,
+    -20.268030415206404
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 15 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "thrandarjokull": {
+  "region": "is-rest",
+  "name": "Þrándarjökull",
+  "pictureBox": [
+   [
+    64.66178275242544,
+    -15.025020629697899
+   ],
+   [
+    64.74981724757455,
+    -14.818979370302102
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "tindfjallajokull": {
+  "region": "is-rest",
+  "name": "Tindfjallajökull",
+  "pictureBox": [
+   [
+    63.75318275242544,
+    -19.658788092907113
+   ],
+   [
+    63.841217247574555,
+    -19.45941190709289
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 60,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 3 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "jostedalsbreen": {
+  "region": "no-mainland",
+  "name": "Jostedalsbreen",
+  "pictureBox": [
+   [
+    61.53337563780094,
+    6.815405166544267
+   ],
+   [
+    61.72022436219907,
+    7.208594833455732
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 26 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "vestre-svartisen": {
+  "region": "no-mainland",
+  "name": "Vestre Svartisen",
+  "pictureBox": [
+   [
+    66.5765486166008,
+    13.621304821164916
+   ],
+   [
+    66.73465138339921,
+    14.020295178835084
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 28 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "sondre-folgefonna": {
+  "region": "no-mainland",
+  "name": "Søndre Folgefonna",
+  "pictureBox": [
+   [
+    59.98500470715056,
+    6.239672166726045
+   ],
+   [
+    60.096395292849444,
+    6.462727833273956
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 26 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "ostre-svartisen": {
+  "region": "no-mainland",
+  "name": "Østre Svartisen",
+  "pictureBox": [
+   [
+    66.4948148401006,
+    13.961263437882488
+   ],
+   [
+    66.61698515989939,
+    14.268336562117513
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 23 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "blamannsisen": {
+  "region": "no-mainland",
+  "name": "Blåmannsisen",
+  "pictureBox": [
+   [
+    67.21212328422565,
+    15.863028720088138
+   ],
+   [
+    67.34327671577434,
+    16.202571279911865
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "hardangerjokulen": {
+  "region": "no-mainland",
+  "name": "Hardangerjøkulen",
+  "pictureBox": [
+   [
+    60.479311462450596,
+    7.257354928313331
+   ],
+   [
+    60.59788853754941,
+    7.498445071686669
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 19 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "myklebustbreen": {
+  "region": "no-mainland",
+  "name": "Myklebustbreen",
+  "pictureBox": [
+   [
+    61.6195945742005,
+    6.589493568870171
+   ],
+   [
+    61.7202054257995,
+    6.8015064311298294
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 21 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "okstindbreen": {
+  "region": "no-mainland",
+  "name": "Okstindbreen",
+  "pictureBox": [
+   [
+    65.95460977362559,
+    14.118868979132692
+   ],
+   [
+    66.07139022637442,
+    14.406131020867306
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "oksfjordjokelen": {
+  "region": "no-mainland",
+  "name": "Øksfjordjøkelen",
+  "pictureBox": [
+   [
+    70.11732497305067,
+    21.842810750909397
+   ],
+   [
+    70.25027502694934,
+    22.234989249090606
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 24 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "nordre-folgefonna": {
+  "region": "no-mainland",
+  "name": "Nordre Folgefonna",
+  "pictureBox": [
+   [
+    60.14161146245059,
+    6.3444976453575315
+   ],
+   [
+    60.2601885375494,
+    6.5831023546424685
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 25 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "storisstraumen": {
+  "region": "no-svalbard",
+  "name": "Storisstraumen",
+  "pictureBox": [
+   [
+    79.30109083722603,
+    24.951940026514922
+   ],
+   [
+    79.50410916277399,
+    26.05585997348508
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 4 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "brasvellbreen": {
+  "region": "no-svalbard",
+  "name": "Bråsvellbreen",
+  "pictureBox": [
+   [
+    79.21773341717572,
+    22.624772666271753
+   ],
+   [
+    79.35966658282429,
+    23.388427333728245
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "negribreen": {
+  "region": "no-svalbard",
+  "name": "Negribreen",
+  "pictureBox": [
+   [
+    78.51234017247575,
+    18.656309639994962
+   ],
+   [
+    78.66145982752425,
+    19.40989036000504
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 9 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "hinlopenbreen": {
+  "region": "no-svalbard",
+  "name": "Hinlopenbreen",
+  "pictureBox": [
+   [
+    79.01881652892561,
+    18.75248005546949
+   ],
+   [
+    79.14278347107438,
+    19.406919944530507
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": false
+ },
+ "kvitoyjokulen": {
+  "region": "no-svalbard",
+  "name": "Kvitøyjøkulen",
+  "pictureBox": [
+   [
+    79.99349083722602,
+    31.221582141360035
+   ],
+   [
+    80.19650916277398,
+    32.401817858639966
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 14 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "etonbreen": {
+  "region": "no-svalbard",
+  "name": "Etonbreen",
+  "pictureBox": [
+   [
+    79.68990977362559,
+    21.69621477996127
+   ],
+   [
+    79.80669022637441,
+    22.35238522003873
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 18 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "stonebreen": {
+  "region": "no-svalbard",
+  "name": "Stonebreen",
+  "pictureBox": [
+   [
+    77.67162497305067,
+    23.73940052318732
+   ],
+   [
+    77.80457502694934,
+    24.365399476812676
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 5 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "hochstetterbreen": {
+  "region": "no-svalbard",
+  "name": "Hochstetterbreen",
+  "pictureBox": [
+   [
+    78.83333341717572,
+    19.896543429244574
+   ],
+   [
+    78.97526658282429,
+    20.634056570755426
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 10 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "schweigaardbreen": {
+  "region": "no-svalbard",
+  "name": "Schweigaardbreen",
+  "pictureBox": [
+   [
+    80.13772159540065,
+    24.562514907100628
+   ],
+   [
+    80.26707840459935,
+    25.32268509289937
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 17 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ },
+ "monacobreen": {
+  "region": "no-svalbard",
+  "name": "Monacobreen",
+  "pictureBox": [
+   [
+    79.42311652892562,
+    12.169248199235245
+   ],
+   [
+    79.54708347107439,
+    12.848551800764756
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 72,
+   "daysAfterEnd": 0,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "noDataMarginM": 1000,
+   "oneOrbit": true,
+   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 18 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "hasScenes": true
+ }
+}

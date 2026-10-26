@@ -2,8 +2,8 @@ import { useEffect, useRef, useState } from 'preact/hooks';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { ScreenProps } from '../Wizard';
-import { bearingFrom, stripCorners, stripLocal, stripPoint, type Strip } from '../../shared/geo';
-import type { LatLon } from '../../shared/schema';
+import { bearingFrom, stripCorners, stripLocal, stripPoint, type Strip } from '../../../shared/geo';
+import type { LatLon } from '../../../shared/schema';
 
 const BASE = 'https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg';
 const icon = (cls: string) => L.divIcon({ className: '', html: `<div class="${cls}"></div>`, iconSize: [0, 0] });
