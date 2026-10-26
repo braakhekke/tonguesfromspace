@@ -1,15 +1,9 @@
+import { wire } from './wire.js';
+import { $ } from './01-data.js';
 import { asset } from './03-imagery.js';
 import { HASH_AT_LOAD } from './04-state.js';
-import { $ } from './09-phones.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'TEASER_KEY', { get: () => TEASER_KEY, configurable: true });
-Object.defineProperty(window, 'teaserSeen', { get: () => teaserSeen, configurable: true });
-Object.defineProperty(window, 'teaserMarkSeen', { get: () => teaserMarkSeen, configurable: true });
-Object.defineProperty(window, 'teaserWanted', { get: () => teaserWanted, configurable: true });
-Object.defineProperty(window, 'teaserOpen', { get: () => teaserOpen, set: v => { teaserOpen = v; }, configurable: true });
-Object.defineProperty(window, 'openTeaser', { get: () => openTeaser, configurable: true });
-Object.defineProperty(window, 'teaserBtn', { get: () => teaserBtn, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'teaserOpen', { get: () => teaserOpen, configurable: true });
 /* =====================================================================
    13. Teaser film: plays over the page at the first visit
    ===================================================================== */

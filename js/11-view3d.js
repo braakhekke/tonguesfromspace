@@ -1,196 +1,34 @@
-import { FIRST_YEAR, VOLUME_LOSS, lv95 } from './01-data.js';
+import { wire } from './wire.js';
+import { FIRST_YEAR, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
-import { state, writeHash, currentGlacier, PLAIN_START } from './04-state.js';
-import { map, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure } from './05-map.js';
+import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode } from './04-state.js';
+import { map, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
-import { COARSE, $, setLayers } from './09-phones.js';
-import { VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4 } from './10-animation.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'V3D', { get: () => V3D, configurable: true });
-Object.defineProperty(window, 'LANDING_CAM', { get: () => LANDING_CAM, configurable: true });
-Object.defineProperty(window, 'ARCTIC_HTML', { get: () => ARCTIC_HTML, configurable: true });
-Object.defineProperty(window, 'terrainHtml', { get: () => terrainHtml, configurable: true });
-Object.defineProperty(window, 'bundleId', { get: () => bundleId, configurable: true });
-Object.defineProperty(window, 'V3D_VIEW', { get: () => V3D_VIEW, configurable: true });
-Object.defineProperty(window, 'terrainTile', { get: () => terrainTile, configurable: true });
-Object.defineProperty(window, 'stripFor', { get: () => stripFor, configurable: true });
-Object.defineProperty(window, 'loadHeights', { get: () => loadHeights, configurable: true });
-Object.defineProperty(window, 'm4', { get: () => m4, configurable: true });
-Object.defineProperty(window, 'V3D_VS', { get: () => V3D_VS, configurable: true });
-Object.defineProperty(window, 'V3D_FS', { get: () => V3D_FS, configurable: true });
-Object.defineProperty(window, 'v3d', { get: () => v3d, set: v => { v3d = v; }, configurable: true });
-Object.defineProperty(window, 'meshWideOk', { get: () => meshWideOk, set: v => { meshWideOk = v; }, configurable: true });
-Object.defineProperty(window, 'meshWide', { get: () => meshWide, configurable: true });
-Object.defineProperty(window, 'startViewer', { get: () => startViewer, configurable: true });
-Object.defineProperty(window, 'v3dCtx', { get: () => v3dCtx, set: v => { v3dCtx = v; }, configurable: true });
-Object.defineProperty(window, 'v3dBusy', { get: () => v3dBusy, set: v => { v3dBusy = v; }, configurable: true });
-Object.defineProperty(window, 'v3dSplit', { get: () => v3dSplit, set: v => { v3dSplit = v; }, configurable: true });
-Object.defineProperty(window, 'setSplit3D', { get: () => setSplit3D, configurable: true });
-Object.defineProperty(window, 'showDivider3D', { get: () => showDivider3D, configurable: true });
-Object.defineProperty(window, 'hideDivider3D', { get: () => hideDivider3D, configurable: true });
-Object.defineProperty(window, 'v3dRun', { get: () => v3dRun, set: v => { v3dRun = v; }, configurable: true });
-Object.defineProperty(window, 'v3dTerrain', { get: () => v3dTerrain, set: v => { v3dTerrain = v; }, configurable: true });
-Object.defineProperty(window, 'v3dCamId', { get: () => v3dCamId, set: v => { v3dCamId = v; }, configurable: true });
-Object.defineProperty(window, 'setTitle3D', { get: () => setTitle3D, configurable: true });
-Object.defineProperty(window, 'sync3D', { get: () => sync3D, configurable: true });
-Object.defineProperty(window, 'close3D', { get: () => close3D, configurable: true });
-Object.defineProperty(window, 'tileCache', { get: () => tileCache, configurable: true });
-Object.defineProperty(window, 'tileBitmap', { get: () => tileBitmap, configurable: true });
-Object.defineProperty(window, 'V3D_BASES', { get: () => V3D_BASES, configurable: true });
-Object.defineProperty(window, 'V3D_TRAILS', { get: () => V3D_TRAILS, configurable: true });
-Object.defineProperty(window, 'baseKeys', { get: () => baseKeys, configurable: true });
-Object.defineProperty(window, 'drawTiles', { get: () => drawTiles, configurable: true });
-Object.defineProperty(window, 'detectTrails', { get: () => detectTrails, configurable: true });
-Object.defineProperty(window, 'outline3D', { get: () => outline3D, configurable: true });
-Object.defineProperty(window, 'outlineNew3D', { get: () => outlineNew3D, configurable: true });
-Object.defineProperty(window, 'radar3D', { get: () => radar3D, configurable: true });
-Object.defineProperty(window, 'layerCreditNames', { get: () => layerCreditNames, configurable: true });
-Object.defineProperty(window, 'layersCredit', { get: () => layersCredit, configurable: true });
-Object.defineProperty(window, 'layersCreditText', { get: () => layersCreditText, configurable: true });
-Object.defineProperty(window, 'stripImageSpec', { get: () => stripImageSpec, configurable: true });
-Object.defineProperty(window, 'stripSpecFor', { get: () => stripSpecFor, configurable: true });
-Object.defineProperty(window, 'loadStripPicture', { get: () => loadStripPicture, configurable: true });
-Object.defineProperty(window, 'stripPicturesOff', { get: () => stripPicturesOff, set: v => { stripPicturesOff = v; }, configurable: true });
-Object.defineProperty(window, 'oldestBitmaps', { get: () => oldestBitmaps, configurable: true });
-Object.defineProperty(window, 'drawOldestImage', { get: () => drawOldestImage, configurable: true });
-Object.defineProperty(window, 'drawHillshade', { get: () => drawHillshade, configurable: true });
-Object.defineProperty(window, 'strip3DTexture', { get: () => strip3DTexture, configurable: true });
-Object.defineProperty(window, 'v3dDem', { get: () => v3dDem, set: v => { v3dDem = v; }, configurable: true });
-Object.defineProperty(window, 'loadDemChange', { get: () => loadDemChange, configurable: true });
-Object.defineProperty(window, 'iceChangeGrid', { get: () => iceChangeGrid, configurable: true });
-Object.defineProperty(window, 'iceShare', { get: () => iceShare, configurable: true });
-Object.defineProperty(window, 'LAKE_GLACIERS', { get: () => LAKE_GLACIERS, configurable: true });
-Object.defineProperty(window, 'lakeMasks', { get: () => lakeMasks, configurable: true });
-Object.defineProperty(window, 'isWaterRGB', { get: () => isWaterRGB, configurable: true });
-Object.defineProperty(window, 'lakeMaskFrom', { get: () => lakeMaskFrom, configurable: true });
-Object.defineProperty(window, 'flattenLakes', { get: () => flattenLakes, configurable: true });
-Object.defineProperty(window, 'lakeFlat', { get: () => lakeFlat, configurable: true });
-Object.defineProperty(window, 'surfaceFor', { get: () => surfaceFor, configurable: true });
-Object.defineProperty(window, 'terrainManifest', { get: () => terrainManifest, set: v => { terrainManifest = v; }, configurable: true });
-Object.defineProperty(window, 'loadManifest', { get: () => loadManifest, configurable: true });
-Object.defineProperty(window, 'parseBundle', { get: () => parseBundle, configurable: true });
-Object.defineProperty(window, 'loadBundle', { get: () => loadBundle, configurable: true });
-Object.defineProperty(window, 'stripOf', { get: () => stripOf, configurable: true });
-Object.defineProperty(window, 'coarseBundle', { get: () => coarseBundle, configurable: true });
-Object.defineProperty(window, 'shortLayerNames', { get: () => shortLayerNames, configurable: true });
-Object.defineProperty(window, 'KIND_TEXT', { get: () => KIND_TEXT, configurable: true });
-Object.defineProperty(window, 'yearNote', { get: () => yearNote, configurable: true });
-Object.defineProperty(window, 'note3DHtml', { get: () => note3DHtml, configurable: true });
-Object.defineProperty(window, 'subGlaciers', { get: () => subGlaciers, configurable: true });
-Object.defineProperty(window, 'nearestSub', { get: () => nearestSub, configurable: true });
-Object.defineProperty(window, 'v3dGlacier', { get: () => v3dGlacier, configurable: true });
-Object.defineProperty(window, 'subGlacier', { get: () => subGlacier, configurable: true });
-Object.defineProperty(window, 'open3D', { get: () => open3D, configurable: true });
-Object.defineProperty(window, 'photosFile', { get: () => photosFile, set: v => { photosFile = v; }, configurable: true });
-Object.defineProperty(window, 'photoOn', { get: () => photoOn, set: v => { photoOn = v; }, configurable: true });
-Object.defineProperty(window, 'photoRun', { get: () => photoRun, set: v => { photoRun = v; }, configurable: true });
-Object.defineProperty(window, 'loadPhotos', { get: () => loadPhotos, configurable: true });
-Object.defineProperty(window, 'tongueCentres', { get: () => tongueCentres, configurable: true });
-Object.defineProperty(window, 'rodAt', { get: () => rodAt, configurable: true });
-Object.defineProperty(window, 'tongueCentre', { get: () => tongueCentre, configurable: true });
-Object.defineProperty(window, 'rodSpot', { get: () => rodSpot, configurable: true });
-Object.defineProperty(window, 'tongueLowering', { get: () => tongueLowering, configurable: true });
-Object.defineProperty(window, 'latestOffset', { get: () => latestOffset, configurable: true });
-Object.defineProperty(window, 'iceLevel', { get: () => iceLevel, configurable: true });
-Object.defineProperty(window, 'photosSeen', { get: () => photosSeen, set: v => { photosSeen = v; }, configurable: true });
-Object.defineProperty(window, 'placeDrop', { get: () => placeDrop, configurable: true });
-Object.defineProperty(window, 'syncPhotoToggle', { get: () => syncPhotoToggle, configurable: true });
-Object.defineProperty(window, 'resetPhotos', { get: () => resetPhotos, configurable: true });
-Object.defineProperty(window, 'setupPhotos', { get: () => setupPhotos, configurable: true });
-Object.defineProperty(window, 'photoLayout', { get: () => photoLayout, configurable: true });
-Object.defineProperty(window, 'photoPose', { get: () => photoPose, configurable: true });
-Object.defineProperty(window, 'clipPhoto', { get: () => clipPhoto, configurable: true });
-Object.defineProperty(window, 'placePhotoLabels', { get: () => placePhotoLabels, configurable: true });
-Object.defineProperty(window, 'placePhoto', { get: () => placePhoto, configurable: true });
-Object.defineProperty(window, 'clearPhotoLabels', { get: () => clearPhotoLabels, configurable: true });
-Object.defineProperty(window, 'licShort', { get: () => licShort, configurable: true });
-Object.defineProperty(window, 'round10', { get: () => round10, configurable: true });
-Object.defineProperty(window, 'rodText', { get: () => rodText, configurable: true });
-Object.defineProperty(window, 'photoButtons', { get: () => photoButtons, configurable: true });
-Object.defineProperty(window, 'photoCaption', { get: () => photoCaption, configurable: true });
-Object.defineProperty(window, 'enterPhoto', { get: () => enterPhoto, configurable: true });
-Object.defineProperty(window, 'leavePhoto', { get: () => leavePhoto, configurable: true });
-Object.defineProperty(window, 'relayoutPhoto', { get: () => relayoutPhoto, configurable: true });
-Object.defineProperty(window, 'TUNE_POSE', { get: () => TUNE_POSE, configurable: true });
-Object.defineProperty(window, 'TUNE_ROWS', { get: () => TUNE_ROWS, configurable: true });
-Object.defineProperty(window, 'tunedPhoto', { get: () => tunedPhoto, configurable: true });
-Object.defineProperty(window, 'openTune', { get: () => openTune, configurable: true });
-Object.defineProperty(window, 'closeTune', { get: () => closeTune, configurable: true });
-Object.defineProperty(window, 'setView', { get: () => setView, configurable: true });
-Object.defineProperty(window, 'L3', { get: () => L3, configurable: true });
-Object.defineProperty(window, 'sync3DMenu', { get: () => sync3DMenu, configurable: true });
-Object.defineProperty(window, 'PIN_LIFT', { get: () => PIN_LIFT, configurable: true });
-Object.defineProperty(window, 'NAME_KINDS', { get: () => NAME_KINDS, configurable: true });
-Object.defineProperty(window, 'stripXZ', { get: () => stripXZ, configurable: true });
-Object.defineProperty(window, 'pinData', { get: () => pinData, configurable: true });
-Object.defineProperty(window, 'tipData', { get: () => tipData, configurable: true });
-Object.defineProperty(window, 'namesCache', { get: () => namesCache, configurable: true });
-Object.defineProperty(window, 'namesFor', { get: () => namesFor, configurable: true });
-Object.defineProperty(window, 'pickNames', { get: () => pickNames, configurable: true });
-Object.defineProperty(window, 'ensureNames', { get: () => ensureNames, configurable: true });
-Object.defineProperty(window, 'markItems', { get: () => markItems, configurable: true });
-Object.defineProperty(window, 'projectMarks', { get: () => projectMarks, configurable: true });
-Object.defineProperty(window, 'drawMarks3D', { get: () => drawMarks3D, configurable: true });
-Object.defineProperty(window, 'drawRod3D', { get: () => drawRod3D, configurable: true });
-Object.defineProperty(window, 'drawPin3D', { get: () => drawPin3D, configurable: true });
-Object.defineProperty(window, 'RADAR_LIFT', { get: () => RADAR_LIFT, configurable: true });
-Object.defineProperty(window, 'radarHover', { get: () => radarHover, set: v => { radarHover = v; }, configurable: true });
-Object.defineProperty(window, 'radarSel', { get: () => radarSel, set: v => { radarSel = v; }, configurable: true });
-Object.defineProperty(window, 'radarHits', { get: () => radarHits, set: v => { radarHits = v; }, configurable: true });
-Object.defineProperty(window, 'relevantPins', { get: () => relevantPins, configurable: true });
-Object.defineProperty(window, 'radarPinsFor', { get: () => radarPinsFor, configurable: true });
-Object.defineProperty(window, 'drawRadarPin', { get: () => drawRadarPin, configurable: true });
-Object.defineProperty(window, 'drawRadarPins', { get: () => drawRadarPins, configurable: true });
-Object.defineProperty(window, 'placeRadarTip', { get: () => placeRadarTip, configurable: true });
-Object.defineProperty(window, 'bindRadarPicking', { get: () => bindRadarPicking, configurable: true });
-Object.defineProperty(window, 'CAM_LIFT', { get: () => CAM_LIFT, configurable: true });
-Object.defineProperty(window, 'CAM_LEN', { get: () => CAM_LEN, configurable: true });
-Object.defineProperty(window, 'camHover', { get: () => camHover, set: v => { camHover = v; }, configurable: true });
-Object.defineProperty(window, 'camSel', { get: () => camSel, set: v => { camSel = v; }, configurable: true });
-Object.defineProperty(window, 'camHits', { get: () => camHits, set: v => { camHits = v; }, configurable: true });
-Object.defineProperty(window, 'listHover', { get: () => listHover, set: v => { listHover = v; }, configurable: true });
-Object.defineProperty(window, 'camsOn', { get: () => camsOn, configurable: true });
-Object.defineProperty(window, 'camGeo', { get: () => camGeo, configurable: true });
-Object.defineProperty(window, 'drawCamWedge', { get: () => drawCamWedge, configurable: true });
-Object.defineProperty(window, 'drawCamSymbol', { get: () => drawCamSymbol, configurable: true });
-Object.defineProperty(window, 'drawPhotoCams', { get: () => drawPhotoCams, configurable: true });
-Object.defineProperty(window, 'placeCamTip', { get: () => placeCamTip, configurable: true });
-Object.defineProperty(window, 'bindCamPicking', { get: () => bindCamPicking, configurable: true });
-Object.defineProperty(window, 'pinRun', { get: () => pinRun, set: v => { pinRun = v; }, configurable: true });
-Object.defineProperty(window, 'marksOn', { get: () => marksOn, configurable: true });
-Object.defineProperty(window, 'M3', { get: () => M3, configurable: true });
-Object.defineProperty(window, 'measureOn3', { get: () => measureOn3, configurable: true });
-Object.defineProperty(window, 'dist3', { get: () => dist3, configurable: true });
-Object.defineProperty(window, 'len3', { get: () => len3, configurable: true });
-Object.defineProperty(window, 'area3', { get: () => area3, configurable: true });
-Object.defineProperty(window, 'update3Measure', { get: () => update3Measure, configurable: true });
-Object.defineProperty(window, 'start3Measure', { get: () => start3Measure, configurable: true });
-Object.defineProperty(window, 'cancel3Measure', { get: () => cancel3Measure, configurable: true });
-Object.defineProperty(window, 'finish3Measure', { get: () => finish3Measure, configurable: true });
-Object.defineProperty(window, 'clear3Measure', { get: () => clear3Measure, configurable: true });
-Object.defineProperty(window, 'm3Down', { get: () => m3Down, set: v => { m3Down = v; }, configurable: true });
-Object.defineProperty(window, 'drawMeasure3D', { get: () => drawMeasure3D, configurable: true });
-Object.defineProperty(window, 'pinLoop', { get: () => pinLoop, configurable: true });
-Object.defineProperty(window, 'refresh3DTimer', { get: () => refresh3DTimer, set: v => { refresh3DTimer = v; }, configurable: true });
-Object.defineProperty(window, 'refresh3D', { get: () => refresh3D, configurable: true });
-Object.defineProperty(window, 'draw3DLabels', { get: () => draw3DLabels, configurable: true });
-Object.defineProperty(window, 'logoSide', { get: () => logoSide, set: v => { logoSide = v; }, configurable: true });
-Object.defineProperty(window, 'drawLogo3DAt', { get: () => drawLogo3DAt, configurable: true });
-Object.defineProperty(window, 'A_SWT', { get: () => A_SWT, configurable: true });
-Object.defineProperty(window, 'updateCredits3D', { get: () => updateCredits3D, configurable: true });
-Object.defineProperty(window, 'credit3D', { get: () => credit3D, configurable: true });
-Object.defineProperty(window, 'labels3D', { get: () => labels3D, configurable: true });
-Object.defineProperty(window, 'drawPreview3D', { get: () => drawPreview3D, configurable: true });
-Object.defineProperty(window, 'info3D', { get: () => info3D, configurable: true });
-Object.defineProperty(window, 'plan3D', { get: () => plan3D, configurable: true });
-Object.defineProperty(window, 'info3DBase', { get: () => info3DBase, set: v => { info3DBase = v; }, configurable: true });
-Object.defineProperty(window, 'hint3D', { get: () => hint3D, configurable: true });
-Object.defineProperty(window, 'update3DInfo', { get: () => update3DInfo, configurable: true });
-Object.defineProperty(window, 'download3D', { get: () => download3D, configurable: true });
-// end of bridge
+import { setLayers } from './09-phones.js';
+import { VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'bundleId', { get: () => bundleId, configurable: true });
+Object.defineProperty(wire, 'download3D', { get: () => download3D, configurable: true });
+Object.defineProperty(wire, 'drawLogo3DAt', { get: () => drawLogo3DAt, configurable: true });
+Object.defineProperty(wire, 'drawPreview3D', { get: () => drawPreview3D, configurable: true });
+Object.defineProperty(wire, 'leavePhoto', { get: () => leavePhoto, configurable: true });
+Object.defineProperty(wire, 'loadBundle', { get: () => loadBundle, configurable: true });
+Object.defineProperty(wire, 'open3D', { get: () => open3D, configurable: true });
+Object.defineProperty(wire, 'refresh3D', { get: () => refresh3D, configurable: true });
+Object.defineProperty(wire, 'setSplit3D', { get: () => setSplit3D, configurable: true });
+Object.defineProperty(wire, 'stripImageSpec', { get: () => stripImageSpec, configurable: true });
+Object.defineProperty(wire, 'stripPicturesOff', { get: () => stripPicturesOff, configurable: true });
+Object.defineProperty(wire, 'sync3D', { get: () => sync3D, configurable: true });
+Object.defineProperty(wire, 'sync3DMenu', { get: () => sync3DMenu, configurable: true });
+Object.defineProperty(wire, 'update3DInfo', { get: () => update3DInfo, configurable: true });
+Object.defineProperty(wire, 'updateCredits3D', { get: () => updateCredits3D, configurable: true });
+Object.defineProperty(wire, 'v3d', { get: () => v3d, configurable: true });
+Object.defineProperty(wire, 'v3dBusy', { get: () => v3dBusy, configurable: true });
+Object.defineProperty(wire, 'v3dCtx', { get: () => v3dCtx, configurable: true });
+Object.defineProperty(wire, 'v3dSplit', { get: () => v3dSplit, configurable: true });
 /* =====================================================================
    12. 3D view of the tongue
    A restricted view: a strip along the glacier, 1 km below the tongue tip and several km up the glacier, about 4 km wide. The camera starts below the tip and looks up the glacier
@@ -449,9 +287,9 @@ export function showDivider3D(cmp, hz){            // compare mode: a line on th
 export function hideDivider3D(){ clearPhotoLabels(); $('v3dDiv').hidden = $('v3dLabA').hidden = $('v3dLabB').hidden = true; $('v3d').classList.remove('cmp-h', 'cmp-v'); }
 (() => {
   const d = $('v3dDiv'), at = e => { const r = $('v3dCanvas').getBoundingClientRect(); setSplit3D(v3dCtx && v3dCtx.hz && !photoOn ? (e.clientY - r.top) / r.height : (e.clientX - r.left) / r.width); };
-  d.addEventListener('pointerdown', e => { d.setPointerCapture(e.pointerId); d.classList.add('used'); sliderHintDone = true; $('handle').classList.add('used'); at(e); e.preventDefault(); });
+  d.addEventListener('pointerdown', e => { d.setPointerCapture(e.pointerId); d.classList.add('used'); setSliderHintDone(true); $('handle').classList.add('used'); at(e); e.preventDefault(); });
   d.addEventListener('pointermove', e => { if (d.hasPointerCapture(e.pointerId)) at(e); });
-  d.addEventListener('keydown', e => { const k = {ArrowLeft: -.03, ArrowUp: -.03, ArrowRight: .03, ArrowDown: .03}[e.key]; if (k) { setSplit3D(v3dSplit + k); d.classList.add('used'); sliderHintDone = true; $('handle').classList.add('used'); e.preventDefault(); } });
+  d.addEventListener('keydown', e => { const k = {ArrowLeft: -.03, ArrowUp: -.03, ArrowRight: .03, ArrowDown: .03}[e.key]; if (k) { setSplit3D(v3dSplit + k); d.classList.add('used'); setSliderHintDone(true); $('handle').classList.add('used'); e.preventDefault(); } });
 })();
 export let v3dRun = 0, v3dTerrain = null, v3dCamId = null;      // v3dTerrain: heights of the last glacier, kept so that switching mode or year does not fetch them again
 export function setTitle3D(g, yearText, extra){            // the year tag of the 3D view, as on the map: the year(s) big, the glacier small under it (extra: what a special is, from the specials row)
@@ -1029,7 +867,7 @@ export function setView(v){            // the stage shows the map or the 3D view
   if (vstate.busy || v3dBusy) return;
   if (!$('videoSheet').hidden) closeVideo();
   if (v === '3d' && (state.oldestAerial || state.latest)) { restoreOldest(); restoreLatest(); refreshAll(); }      // the specials are for the map: 3D shows the normal year
-  viewMode = v; $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); if (state.checked && !latestBusy) setStatus(statusLine()); writeHash(); updateCredits();
+  setViewMode(v); $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); if (state.checked && !latestBusy) setStatus(statusLine()); writeHash(); updateCredits();
   $('viewMap').setAttribute('aria-pressed', v === 'map'); $('view3dBtn').setAttribute('aria-pressed', v === '3d');
   setLayers(false); if (v === '3d') cancelMeasure(); else cancel3Measure();      // one measuring tool at a time
   if (v === '3d') { stopPlay(); open3D(); } else { close3D(); drawRadar(); loadDeferred(); }      // back on the map: its radar layer, if it was switched on or off meanwhile
@@ -1514,11 +1352,11 @@ export function drawPreview3D(){            // placeholder labels over the frame
   const cv = $('vfPreview'), c = v3dCtx, F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = 0.5;
   cv.width = Math.round(W * q); cv.height = Math.round(H * q);
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
-  if (!logoImg && !logoAsked) { logoAsked = true; loadLogo().then(() => drawPreview3D()); }      // the logo is part of every picture
+  if (!logoImg && !logoAsked) { setLogoAsked(true); loadLogo().then(() => drawPreview3D()); }      // the logo is part of every picture
   if (!c) return;
   const S = marginsFor(vstate.kind, vstate.fmt), facts = !c.cmp && $('vFacts').checked ? {set: $('vFactSet').value, base: vstate.kind === 'image' || !c.years.length ? FIRST_YEAR : Math.min(...c.years)} : null;
   if (facts) loadFacts(c.g);
-  ctx.save(); ctx.scale(q, q); brandMotion = vstate.kind !== 'image' ? {cam: vPrev.on && vPrev.cam ? vPrev.cam : {az: 0, el: 0}, cam0: vPrev.on && vPrev.cam0 ? vPrev.cam0 : {az: 0, el: 0}} : null; try { draw3DLabels(ctx, W, H, S, labels3D(c, facts)); } finally { brandMotion = null; } ctx.restore();
+  ctx.save(); ctx.scale(q, q); setBrandMotion(vstate.kind !== 'image' ? {cam: vPrev.on && vPrev.cam ? vPrev.cam : {az: 0, el: 0}, cam0: vPrev.on && vPrev.cam0 ? vPrev.cam0 : {az: 0, el: 0}} : null); try { draw3DLabels(ctx, W, H, S, labels3D(c, facts)); } finally { setBrandMotion(null); } ctx.restore();
 }
 export const info3D = (c, ys, outline) => {            // the facts the fact card of the map videos needs
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
@@ -1623,7 +1461,7 @@ export async function download3D(kind){
         if (te >= 0) {          // the fact card, on the last view: the last frame fades out under it
           if (te < 0.4) { ctx.save(); ctx.globalAlpha = 1 - easeIO(te / 0.4); draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year}); ctx.restore(); }
           drawEndSlide(ctx, W, H, S, info, te);
-        } else { brandMotion = {cam: camAt, cam0}; try { draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year, hA: easeIO(t / 0.5)}); } finally { brandMotion = null; } }
+        } else { setBrandMotion({cam: camAt, cam0}); try { draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year, hA: easeIO(t / 0.5)}); } finally { setBrandMotion(null); } }
         const vf = new VideoFrame(out, {timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps)});
         enc.encode(vf, {keyFrame: i % (fps * 2) === 0}); vf.close();
         while (enc.encodeQueueSize > 6) await new Promise(r => setTimeout(r, 4));
@@ -1633,7 +1471,7 @@ export async function download3D(kind){
       file = new File([muxMp4({width: W, height: H, fps, avcC: desc, samples: chunks})], `tonguesfromspace-${shortSlug(g.name)}-3d-${c.cmp ? 'slider' : tl ? 'timelapse' : 'orbit'}-${ys[0]}${ys.length > 1 ? '-' + ys[ys.length - 1] : ''}-${FMT_SUFFIX[fmt]}.mp4`, {type: 'video/mp4'});
     }
     if (!ok()) return;
-    lastExport = {file, sig: exportSignature(), meta: {type: kind === 'image' ? 'still' : c.cmp ? 'slider' : 'timelapse', view: '3d', years, fmt, style: state.style, glacier: g.id, name: g.name}};
+    setLastExport({file, sig: exportSignature(), meta: {type: kind === 'image' ? 'still' : c.cmp ? 'slider' : 'timelapse', view: '3d', years, fmt, style: state.style, glacier: g.id, name: g.name}});
     if (shareOnly) { /* for the gallery: no download */ }
     else if (COARSE && navigator.canShare && navigator.canShare({files: [file]})) {
       try { await navigator.share({files: [file], title: `${g.name} in 3D`}); } catch (e) { if (e.name !== 'AbortError') downloadFile(file); }

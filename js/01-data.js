@@ -1,28 +1,3 @@
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'FIRST_YEAR', { get: () => FIRST_YEAR, configurable: true });
-Object.defineProperty(window, 'CURRENT_YEAR', { get: () => CURRENT_YEAR, configurable: true });
-Object.defineProperty(window, 'YEARS', { get: () => YEARS, configurable: true });
-Object.defineProperty(window, 'LANDSAT_YEARS', { get: () => LANDSAT_YEARS, configurable: true });
-Object.defineProperty(window, 'SWISS_SERIES', { get: () => SWISS_SERIES, configurable: true });
-Object.defineProperty(window, 'ICE_2024', { get: () => ICE_2024, configurable: true });
-Object.defineProperty(window, 'iceVolume', { get: () => iceVolume, configurable: true });
-Object.defineProperty(window, 'EIFFEL_M', { get: () => EIFFEL_M, configurable: true });
-Object.defineProperty(window, 'PITCH_M2', { get: () => PITCH_M2, configurable: true });
-Object.defineProperty(window, 'BUS_M', { get: () => BUS_M, configurable: true });
-Object.defineProperty(window, 'LAKE_ZURICH_KM3', { get: () => LAKE_ZURICH_KM3, configurable: true });
-Object.defineProperty(window, 'POOL_L', { get: () => POOL_L, configurable: true });
-Object.defineProperty(window, 'SWISS_SUPPLY_KM3', { get: () => SWISS_SUPPLY_KM3, configurable: true });
-Object.defineProperty(window, 'HOUSEHOLD_L_DAY', { get: () => HOUSEHOLD_L_DAY, configurable: true });
-Object.defineProperty(window, 'SWISS_POP', { get: () => SWISS_POP, configurable: true });
-Object.defineProperty(window, 'VOLUME_LOSS', { get: () => VOLUME_LOSS, configurable: true });
-Object.defineProperty(window, 'DEFAULTS', { get: () => DEFAULTS, configurable: true });
-Object.defineProperty(window, 'TRAILS', { get: () => TRAILS, configurable: true });
-Object.defineProperty(window, 'lv95', { get: () => lv95, configurable: true });
-Object.defineProperty(window, 'TRAIL_LAYERS', { get: () => TRAIL_LAYERS, configurable: true });
-Object.defineProperty(window, 'trailMaps', { get: () => trailMaps, configurable: true });
-Object.defineProperty(window, 'trailsHtml', { get: () => trailsHtml, configurable: true });
-Object.defineProperty(window, 'GLACIER_INFO', { get: () => GLACIER_INFO, configurable: true });
-// end of bridge
 /* =====================================================================
    1. Static data
    ===================================================================== */
@@ -158,19 +133,6 @@ export const lv95 = (lon, lat) => {
   return [2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3,
           1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3].map(Math.round);
 };
-export const TRAIL_LAYERS = { wander: 'Wanderland', velo: 'Veloland', mtb: 'Mountainbikeland' };
-export function trailMaps(g, kind){       // the SchweizMobil map around the tongue, with the route layer on
-  const at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue; if (!at) return '';
-  const [E, N] = lv95(at[1], at[0]);
-  return `<span class="tr-maps"><a href="https://map.schweizmobil.ch/?lang=en&amp;E=${E}&amp;N=${N}&amp;resolution=25&amp;layers=${TRAIL_LAYERS[kind]}" target="_blank" rel="noopener">SchweizMobil map</a></span>`;
-}
-export function trailsHtml(g, key){
-  const t = TRAILS[key]; if (!t) return '';
-  const row = (label, r, kindFallback) => r
-    ? `<div class="tr-row"><b>${label}</b> ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>` : r.title}${typeof gfn === 'function' ? (r.url ? gfn(`${label} route: <a href="${r.url}" target="_blank" rel="noopener">${new URL(r.url).hostname.replace(/^www\./, '')}</a> (${r.title}); route data of SchweizMobil / swisstopo`) : fn('routes')) : ''}<span class="tr-t">${r.text}</span>${trailMaps(g, r.kind)}</div>`
-    : `<div class="tr-row"><b>${label}</b><span class="tr-t">No marked bike route within about 3 km of the tongue.</span>${trailMaps(g, kindFallback)}</div>`;
-  return `${row('Hike', t.hike, 'wander')}${row('Bike', t.bike, 'velo')}`;
-}
 export const GLACIER_INFO = {
  "aletsch": {
   "fact": "The Aletsch region has its own legend: the Rollibock, a huge goat-like creature with long horns, fiery eyes and icicles for fur, who lives in the ice of the glacier. He appears when people harm nature. In one story he drowns a poacher in Lake Märjelen, the glacier lake beside the ice whose floods once devastated the valleys below, which people explained with an angry Rollibock. Today he is the mascot of the Aletsch Arena and stands for respect for nature.",
@@ -245,3 +207,8 @@ export const GLACIER_INFO = {
   "src": "Wikipedia (Findeln)"
  }
 };
+
+// small helpers every section uses
+export const COARSE = matchMedia('(pointer:coarse)').matches;
+export const $ = id => document.getElementById(id);
+export const PHONE = matchMedia('(max-width:720px) and (orientation:portrait)');

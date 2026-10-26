@@ -17,3 +17,4 @@ import './11-view3d.js';
 import './12-boot.js';
 import './13-teaser.js';
 import './14-streetview.js';
+import './devtools.js';

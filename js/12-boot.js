@@ -6,10 +6,6 @@ import { renderGlacierList, renderYears, renderMode, renderStory, fn, renderOutl
 import { setStatus, updateBoxes, showOverview } from './08-controls.js';
 import { updatePickHint } from './09-phones.js';
 import { setView } from './11-view3d.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'boot', { get: () => boot, configurable: true });
-Object.defineProperty(window, 'bootGlacier', { get: () => bootGlacier, configurable: true });
-// end of bridge
 /* =====================================================================
    9. Boot
    ===================================================================== */

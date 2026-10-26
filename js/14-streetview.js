@@ -1,26 +1,12 @@
+import { wire } from './wire.js';
+import { $ } from './01-data.js';
 import { ASSETS, asset } from './03-imagery.js';
 import { currentGlacier, viewMode, glacierPicked } from './04-state.js';
 import { map, updateCredits } from './05-map.js';
-import { $ } from './09-phones.js';
 import { bundleId } from './11-view3d.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'SV_KEY', { get: () => SV_KEY, configurable: true });
-Object.defineProperty(window, 'svFile', { get: () => svFile, set: v => { svFile = v; }, configurable: true });
-Object.defineProperty(window, 'svList', { get: () => svList, set: v => { svList = v; }, configurable: true });
-Object.defineProperty(window, 'svMarkers', { get: () => svMarkers, set: v => { svMarkers = v; }, configurable: true });
-Object.defineProperty(window, 'svIndex', { get: () => svIndex, set: v => { svIndex = v; }, configurable: true });
-Object.defineProperty(window, 'svGen', { get: () => svGen, set: v => { svGen = v; }, configurable: true });
-Object.defineProperty(window, 'loadStreetViewFile', { get: () => loadStreetViewFile, configurable: true });
-Object.defineProperty(window, 'svEmbedUrl', { get: () => svEmbedUrl, configurable: true });
-Object.defineProperty(window, 'svMapsUrl', { get: () => svMapsUrl, configurable: true });
-Object.defineProperty(window, 'svActive', { get: () => svActive, configurable: true });
-Object.defineProperty(window, 'drawStreetView', { get: () => drawStreetView, configurable: true });
-Object.defineProperty(window, 'openStreetView', { get: () => openStreetView, configurable: true });
-Object.defineProperty(window, 'fmtMonth', { get: () => fmtMonth, configurable: true });
-Object.defineProperty(window, 'svFullScreen', { get: () => svFullScreen, configurable: true });
-Object.defineProperty(window, 'closeStreetView', { get: () => closeStreetView, configurable: true });
-Object.defineProperty(window, 'refreshStreetView', { get: () => refreshStreetView, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'refreshStreetView', { get: () => refreshStreetView, configurable: true });
+Object.defineProperty(wire, 'svActive', { get: () => svActive, configurable: true });
 /* =====================================================================
    14. Street View: the best panoramas of a glacier (Google)
    ===================================================================== */

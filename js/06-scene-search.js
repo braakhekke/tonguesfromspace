@@ -1,13 +1,12 @@
+import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS } from './01-data.js';
-import { SEASON, isLandsat, unifyOrbit, summerStarted, findScene, queued, fmtDM, fmtDate } from './03-imagery.js';
-import { state, okYears, currentGlacier, viewMode } from './04-state.js';
-import { map, updateCredits, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, oldestPair, aerialDesc, tagLine, play } from './05-map.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'checkYears', { get: () => checkYears, configurable: true });
-Object.defineProperty(window, 'statusLine', { get: () => statusLine, configurable: true });
-Object.defineProperty(window, 'updateTags', { get: () => updateTags, configurable: true });
-Object.defineProperty(window, 'checkGen', { get: () => checkGen, set: v => { checkGen = v; }, configurable: true });
-// end of bridge
+import { SEASON, isLandsat, unifyOrbit, summerStarted, findScene, queued, fmtDM, fmtDate, capWaiting } from './03-imagery.js';
+import { state, okYears, currentGlacier, viewMode, AUTOPLAY, setAUTOPLAY } from './04-state.js';
+import { map, updateCredits, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, oldestPair, aerialDesc, tagLine, play, layerA, setLayerA, setLayerB, layerB } from './05-map.js';
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'checkGen', { get: () => checkGen, configurable: true });
+Object.defineProperty(wire, 'statusLine', { get: () => statusLine, configurable: true });
+Object.defineProperty(wire, 'updateTags', { get: () => updateTags, configurable: true });
 /* =====================================================================
    6. Scene search: for the selected glacier, the clearest summer scene of every year.
       Years without a usable scene cannot be picked.
@@ -15,19 +14,19 @@ Object.defineProperty(window, 'checkGen', { get: () => checkGen, set: v => { che
 export let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
 export async function checkYears(){
   const gen = ++checkGen, g = currentGlacier();
-  if (g && FEATURES.view3d) setTimeout(() => loadBundle(bundleId(g)), 1500);      // the terrain of this glacier comes along while the scenes are searched
+  if (g && FEATURES.view3d) setTimeout(() => wire.loadBundle(wire.bundleId(g)), 1500);      // the terrain of this glacier comes along while the scenes are searched
   state.checked = false; state.available = {}; state.latest = null; restoreOldest();
-  if (viewMode === '3d') open3D();      // the 3D view of the old glacier goes and waits for the search
-  [layerA, layerB].forEach(l => l && map.removeLayer(l)); layerA = layerB = null;
-  renderYears(); updateTags();
+  if (viewMode === '3d') wire.open3D();      // the 3D view of the old glacier goes and waits for the search
+  [layerA, layerB].forEach(l => l && map.removeLayer(l)); setLayerA(setLayerB(null));
+  wire.renderYears(); updateTags();
   /** @type {any} */
   let firstError = null;      // the first error of the year searches; assigned inside callbacks
   let done = 0;
-  setStatus(`Finding the clearest summer scene of each year (0 of ${YEARS.length})…`);
+  wire.setStatus(`Finding the clearest summer scene of each year (0 of ${YEARS.length})…`);
   const avail = {};
   await Promise.all(YEARS.map(y => queued(() => findScene(g, y))
     .then(sc => { avail[y] = sc; }, e => { avail[y] = null; firstError = firstError || e; })
-    .finally(() => { if (gen === checkGen) setStatus(`Finding the clearest summer scene of each year (${++done} of ${YEARS.length})…`); })));
+    .finally(() => { if (gen === checkGen) wire.setStatus(`Finding the clearest summer scene of each year (${++done} of ${YEARS.length})…`); })));
   if (gen !== checkGen) return;
   if (SEASON.oneOrbit) unifyOrbit(g, avail);      // Iceland: the same orbit for all years where it can be
   state.available = avail;
@@ -35,18 +34,18 @@ export async function checkYears(){
   const ok = okYears();
   if (!ok.length) {
     const msg = firstError ? firstError.message : 'Copernicus found no usable summer scene for this glacier.';
-    setStatus(msg); showNotice(msg); renderYears(); updateTags(); updateCredits(); renderStory(); if (viewMode === '3d') open3D(); return;
+    wire.setStatus(msg); wire.showNotice(msg); wire.renderYears(); updateTags(); updateCredits(); wire.renderStory(); if (viewMode === '3d') wire.open3D(); return;
   }
-  if (firstError) showNotice('Some years could not be checked: ' + firstError.message);
+  if (firstError) wire.showNotice('Some years could not be checked: ' + firstError.message);
   const fix = (k, fallback) => { if (!state.available[state[k]]) state[k] = fallback;  };
   const start = ok.find(y => y >= FIRST_YEAR) || ok[0];      // the pictures open on the Sentinel-2 years; the Landsat years before them are one click away
   fix('a', start); fix('b', ok[ok.length - 1]); fix('from', start); fix('to', ok[ok.length - 1]); fix('one', ok[ok.length - 1]);
   if (state.a === state.b && ok.length > 1) { state.a = start; state.b = ok[ok.length - 1]; }
-  setStatus(statusLine());
-  refreshAll();
-  if (AUTOPLAY) { AUTOPLAY = false; if (state.mode === 'timelapse' && !state.playing && !teaserOpen) {
-    if (viewMode === '3d' && !(v3dCtx && v3dCtx.S)) {      // the 3D view is still being built: its strip pictures are what plays, so wait until it is there
-      const t0 = Date.now(), start = () => { if (state.playing || viewMode !== '3d') return; if (v3dCtx && v3dCtx.S) play(); else if (Date.now() - t0 < 60000) setTimeout(start, 300); };
+  wire.setStatus(statusLine());
+  wire.refreshAll();
+  if (AUTOPLAY) { setAUTOPLAY(false); if (state.mode === 'timelapse' && !state.playing && !wire.teaserOpen) {
+    if (viewMode === '3d' && !(wire.v3dCtx && wire.v3dCtx.S)) {      // the 3D view is still being built: its strip pictures are what plays, so wait until it is there
+      const t0 = Date.now(), start = () => { if (state.playing || viewMode !== '3d') return; if (wire.v3dCtx && wire.v3dCtx.S) play(); else if (Date.now() - t0 < 60000) setTimeout(start, 300); };
       start();
     } else play();
   } }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
@@ -73,8 +72,8 @@ export function statusLine(){
 export function updateTags(){
   const sub = y => { const sc = state.available[y]; return sc ? `${fmtDM(sc.date)}${sc.clear ? '' : ', some clouds'}` : 'Sentinel-2'; };
   const scA = state.available[state.a], scB = state.available[state.b];      // the line under a year names its satellite (Landsat before 2016)
-  setTag('tagA', state.a); setTag('tagB', state.b);
+  wire.setTag('tagA', state.a); wire.setTag('tagB', state.b);
   if (!satOn()) { document.querySelector('#tagA small').innerHTML = aerialDesc(state.a); document.querySelector('#tagB small').innerHTML = aerialDesc(state.b); return; }
   tagLine(document.querySelector('#tagA small'), sub(state.a), scA); tagLine(document.querySelector('#tagB small'), sub(state.b), scB);
-  if (oldestPair()) { setTag('tagA', flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#tagA small').innerHTML = aerialDesc(state.oldestAerial); }
+  if (oldestPair()) { wire.setTag('tagA', flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#tagA small').innerHTML = aerialDesc(state.oldestAerial); }
 }

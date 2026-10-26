@@ -1,57 +1,24 @@
+import { wire } from './wire.js';
+import { $, COARSE, PHONE } from './01-data.js';
 import { needsOutline, loadOutline, rankArea, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs } from './03-imagery.js';
-import { state, writeHash, currentGlacier, viewMode } from './04-state.js';
+import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPicked } from './04-state.js';
 import { map, updateSight, updateTrailClip, updateAerial, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
 import { checkYears, checkGen } from './06-scene-search.js';
 import { renderGlacierList, subTitle, focusSub, renderStory } from './07-render.js';
 import { showNotice, drawBoxes, updateBoxes, glaciersExtent, syncSatUi } from './08-controls.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'COARSE', { get: () => COARSE, configurable: true });
-Object.defineProperty(window, '$', { get: () => $, configurable: true });
-Object.defineProperty(window, 'START_ZOOM', { get: () => START_ZOOM, configurable: true });
-Object.defineProperty(window, 'updatePickHint', { get: () => updatePickHint, configurable: true });
-Object.defineProperty(window, 'setPanel', { get: () => setPanel, configurable: true });
-Object.defineProperty(window, 'updateRightTab', { get: () => updateRightTab, configurable: true });
-Object.defineProperty(window, 'PHONE', { get: () => PHONE, configurable: true });
-Object.defineProperty(window, 'fullState', { get: () => fullState, configurable: true });
-Object.defineProperty(window, 'setFull', { get: () => setFull, configurable: true });
-Object.defineProperty(window, 'isFull', { get: () => isFull, configurable: true });
-Object.defineProperty(window, 'miniClosed', { get: () => miniClosed, set: v => { miniClosed = v; }, configurable: true });
-Object.defineProperty(window, 'setMini', { get: () => setMini, configurable: true });
-Object.defineProperty(window, 'evalMini', { get: () => evalMini, configurable: true });
-Object.defineProperty(window, 'miniBack', { get: () => miniBack, configurable: true });
-Object.defineProperty(window, 'SW_PALETTE', { get: () => SW_PALETTE, configurable: true });
-Object.defineProperty(window, 'swatchSvg', { get: () => swatchSvg, configurable: true });
-Object.defineProperty(window, 'pendingChoice', { get: () => pendingChoice, set: v => { pendingChoice = v; }, configurable: true });
-Object.defineProperty(window, 'chooseGlacier', { get: () => chooseGlacier, configurable: true });
-Object.defineProperty(window, 'MP_CHEV', { get: () => MP_CHEV, configurable: true });
-Object.defineProperty(window, 'gSheet', { get: () => gSheet, set: v => { gSheet = v; }, configurable: true });
-Object.defineProperty(window, 'glacierSheet', { get: () => glacierSheet, configurable: true });
-Object.defineProperty(window, 'setGlacierSheet', { get: () => setGlacierSheet, configurable: true });
-Object.defineProperty(window, 'renderMobileBar', { get: () => renderMobileBar, configurable: true });
-Object.defineProperty(window, 'setMore', { get: () => setMore, configurable: true });
-Object.defineProperty(window, 'layerBoxNow', { get: () => layerBoxNow, configurable: true });
-Object.defineProperty(window, 'setLayers', { get: () => setLayers, configurable: true });
-Object.defineProperty(window, 'updateLayerMore', { get: () => updateLayerMore, configurable: true });
-Object.defineProperty(window, 'FYI', { get: () => FYI, configurable: true });
-Object.defineProperty(window, 'FYI_HOME', { get: () => FYI_HOME, configurable: true });
-Object.defineProperty(window, 'FYI_PHONE', { get: () => FYI_PHONE, configurable: true });
-Object.defineProperty(window, 'FYI_BY', { get: () => FYI_BY, configurable: true });
-Object.defineProperty(window, 'placeFyi', { get: () => placeFyi, configurable: true });
-Object.defineProperty(window, 'placeLayers', { get: () => placeLayers, configurable: true });
-Object.defineProperty(window, 'LAND', { get: () => LAND, configurable: true });
-Object.defineProperty(window, 'shareView', { get: () => shareView, configurable: true });
-Object.defineProperty(window, 'dataNoteShown', { get: () => dataNoteShown, set: v => { dataNoteShown = v; }, configurable: true });
-Object.defineProperty(window, 'mobileDataNote', { get: () => mobileDataNote, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'chooseGlacier', { get: () => chooseGlacier, configurable: true });
+Object.defineProperty(wire, 'mobileDataNote', { get: () => mobileDataNote, configurable: true });
+Object.defineProperty(wire, 'renderMobileBar', { get: () => renderMobileBar, configurable: true });
+Object.defineProperty(wire, 'updateRightTab', { get: () => updateRightTab, configurable: true });
 /* =====================================================================
    10. Phones: control bar under the map, map tools, two-finger map, sharing
    ===================================================================== */
-export const COARSE = matchMedia('(pointer:coarse)').matches;
 /** @type {(id: string) => any} */
-export const $ = id => document.getElementById(id);
 
 /* Pick-a-glacier message: at the start until a glacier is chosen, and again whenever the map is zoomed out beyond the first view */
+/** @type {() => number} */
 export const START_ZOOM = () => map.getBoundsZoom(glaciersExtent(), false, L.point(80, 80));
 export function updatePickHint(){
   const far = map.getZoom() < START_ZOOM() - 0.5, el = $('pickHint'), show = !glacierPicked || far;
@@ -77,7 +44,7 @@ export function setPanel(side, hidden, save = true){
   $(side === 'left' ? 'toggleLeft' : 'toggleRight').setAttribute('aria-expanded', !hidden);
   if (save) { prefs[side === 'left' ? 'hideL' : 'hideR'] = hidden; savePrefs(); }
   map.invalidateSize({pan:false});
-  setTimeout(() => { if (typeof v3d !== 'undefined' && v3d && v3d.resize) try { v3d.resize(); } catch {} }, 380);      // the 3D view follows the new width once the panel has slid
+  setTimeout(() => { if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);      // the 3D view follows the new width once the panel has slid
 }
 /* The panels slide for 0.35 s, so the map's box changes size over several frames. Leaflet only learns of it when told: follow every change of the box, keeping the centre in the middle of
    the visible map (the glacier stays centred while a panel closes or opens), and load the tiles of the area that comes into view. */
@@ -95,7 +62,6 @@ export function updateRightTab(){
 
 
 /* ---------- Full screen (visual only) and the small floating window (phones) ---------- */
-export const PHONE = matchMedia('(max-width:720px) and (orientation:portrait)');
 export const fullState = {saved: null};
 export function setFull(on){
   const stage = $('stage'), app = $('app');
@@ -113,7 +79,7 @@ export function setFull(on){
     app.classList.toggle('visual-only', on);
   }
   ['fsBtn', 'v3dFs'].forEach(id => { const b = $(id); if (b) { const t = on ? 'Exit full screen (Esc)' : 'Full screen, visual only'; b.setAttribute('aria-label', t); b.title = t; } });      // the buttons show only an icon: the words are in the tooltip and for screen readers
-  setTimeout(() => { map.invalidateSize({pan: false}); if (typeof v3d !== 'undefined' && v3d && v3d.resize) try { v3d.resize(); } catch {} }, 380);
+  setTimeout(() => { map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);
 }
 export const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
 document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click', e => {      // the title leads back to the start: no glacier chosen, the overview of Switzerland
@@ -183,7 +149,7 @@ export function chooseGlacier(id){
   if (needsOutline(next)) { pendingChoice = id; loadOutline(next).then(() => { if (pendingChoice === id) chooseGlacier(id); }); return; }      // the 2023 outline comes first (a file per glacier); then the choice is made as usual. A later click on another glacier wins
   pendingChoice = null;
   const first = !glacierPicked;
-  glacierPicked = true; updatePickHint();
+  setGlacierPicked(true); updatePickHint();
   const sat = $('satToggle'); if (!sat.checked) { sat.checked = true; sat.dispatchEvent(new Event('change')); }      // choosing a glacier switches the Sentinel-2 picture on (it may have been switched off in the layer menu)
   if (first) { const bt = $('boxToggle'); if (bt.checked) { bt.checked = false; bt.dispatchEvent(new Event('change')); } }      // the selectable-glacier layer goes off with the first choice
   if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines

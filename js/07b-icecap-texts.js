@@ -1,14 +1,8 @@
+import { wire } from './wire.js';
 import { lnk, gfn, fn } from './07-render.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'wpLink', { get: () => wpLink, configurable: true });
-Object.defineProperty(window, 'wp', { get: () => wp, configurable: true });
-Object.defineProperty(window, 'doiSrc', { get: () => doiSrc, configurable: true });
-Object.defineProperty(window, 'IS_WIKI_BR', { get: () => IS_WIKI_BR, configurable: true });
-Object.defineProperty(window, 'IS_WIKI_JL', { get: () => IS_WIKI_JL, configurable: true });
-Object.defineProperty(window, 'JOKULL_2020', { get: () => JOKULL_2020, configurable: true });
-Object.defineProperty(window, 'IC_INFO', { get: () => IC_INFO, configurable: true });
-Object.defineProperty(window, 'NPI_NAMES_SRC', { get: () => NPI_NAMES_SRC, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'IC_INFO', { get: () => IC_INFO, configurable: true });
+Object.defineProperty(wire, 'NPI_NAMES_SRC', { get: () => NPI_NAMES_SRC, configurable: true });
 /* =====================================================================
    7b. The texts of the glaciers of the ice-cap regions (Vatnajökull, the rest of Iceland, Svalbard, mainland Norway)
        One record per glacier, shown by renderStoryIcecap (js/07a-region-icecaps.js): lede (the line under the name), look (What to look for), news (In the news), fact (Did you know?),

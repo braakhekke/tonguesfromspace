@@ -1,121 +1,22 @@
-import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, trailsHtml, GLACIER_INFO } from './01-data.js';
+import { wire } from './wire.js';
+import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, GLACIER_INFO, lv95, $, PHONE } from './01-data.js';
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, isLandsat, LANDSAT_BANDS, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
 import { map, osm, topo, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, tlLayers } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'renderGlacierList', { get: () => renderGlacierList, configurable: true });
-Object.defineProperty(window, 'subTitle', { get: () => subTitle, configurable: true });
-Object.defineProperty(window, 'focusSub', { get: () => focusSub, configurable: true });
-Object.defineProperty(window, 'renderLayerTitles', { get: () => renderLayerTitles, configurable: true });
-Object.defineProperty(window, 'renderYearRange', { get: () => renderYearRange, configurable: true });
-Object.defineProperty(window, 'yearChips', { get: () => yearChips, configurable: true });
-Object.defineProperty(window, 'specialChips', { get: () => specialChips, configurable: true });
-Object.defineProperty(window, 'syncPane', { get: () => syncPane, configurable: true });
-Object.defineProperty(window, 'renderMeta', { get: () => renderMeta, configurable: true });
-Object.defineProperty(window, 'downloadMetaCsv', { get: () => downloadMetaCsv, configurable: true });
-Object.defineProperty(window, 'renderYears', { get: () => renderYears, configurable: true });
-Object.defineProperty(window, 'setTag', { get: () => setTag, configurable: true });
-Object.defineProperty(window, 'renderMode', { get: () => renderMode, configurable: true });
-Object.defineProperty(window, 'setStyle', { get: () => setStyle, configurable: true });
-Object.defineProperty(window, 'BRIGHT_DEFAULT', { get: () => BRIGHT_DEFAULT, configurable: true });
-Object.defineProperty(window, 'brightness', { get: () => brightness, configurable: true });
-Object.defineProperty(window, 'liveImages', { get: () => liveImages, configurable: true });
-Object.defineProperty(window, 'adjCache', { get: () => adjCache, configurable: true });
-Object.defineProperty(window, 'outsideAlpha', { get: () => outsideAlpha, configurable: true });
-Object.defineProperty(window, 'stampOf', { get: () => stampOf, configurable: true });
-Object.defineProperty(window, 'outlineGeom', { get: () => outlineGeom, configurable: true });
-Object.defineProperty(window, 'adjustedUrl', { get: () => adjustedUrl, configurable: true });
-Object.defineProperty(window, 'showImage', { get: () => showImage, configurable: true });
-Object.defineProperty(window, 'visibleOv', { get: () => visibleOv, configurable: true });
-Object.defineProperty(window, 'refreshImages', { get: () => refreshImages, configurable: true });
-Object.defineProperty(window, 'PREVIEW_PX', { get: () => PREVIEW_PX, configurable: true });
-Object.defineProperty(window, 'smallCache', { get: () => smallCache, configurable: true });
-Object.defineProperty(window, 'smallOf', { get: () => smallOf, configurable: true });
-Object.defineProperty(window, 'previewBrightness', { get: () => previewBrightness, configurable: true });
-Object.defineProperty(window, 'applyBrightness', { get: () => applyBrightness, configurable: true });
-Object.defineProperty(window, 'syncOutsideUi', { get: () => syncOutsideUi, configurable: true });
-Object.defineProperty(window, 'syncBackgrounds', { get: () => syncBackgrounds, configurable: true });
-Object.defineProperty(window, 'imgOpacity', { get: () => imgOpacity, configurable: true });
-Object.defineProperty(window, 'applyImgOpacity', { get: () => applyImgOpacity, configurable: true });
-Object.defineProperty(window, 'setOutside', { get: () => setOutside, configurable: true });
-Object.defineProperty(window, 'scard', { get: () => scard, configurable: true });
-Object.defineProperty(window, 'shareBody', { get: () => shareBody, configurable: true });
-Object.defineProperty(window, 'dcard', { get: () => dcard, configurable: true });
-Object.defineProperty(window, 'cardKey', { get: () => cardKey, configurable: true });
-Object.defineProperty(window, 'landsatAbout', { get: () => landsatAbout, configurable: true });
-Object.defineProperty(window, 'aboutFrame', { get: () => aboutFrame, configurable: true });
-Object.defineProperty(window, 'aboutSentinel', { get: () => aboutSentinel, configurable: true });
-Object.defineProperty(window, 'aboutColours', { get: () => aboutColours, configurable: true });
-Object.defineProperty(window, 'aboutChaptersCh', { get: () => aboutChaptersCh, configurable: true });
-Object.defineProperty(window, 'renderStory', { get: () => renderStory, configurable: true });
-Object.defineProperty(window, 'cbYears', { get: () => cbYears, configurable: true });
-Object.defineProperty(window, 'copernicusBrowserUrl', { get: () => copernicusBrowserUrl, configurable: true });
-Object.defineProperty(window, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
-Object.defineProperty(window, 'ICONS', { get: () => ICONS, configurable: true });
-Object.defineProperty(window, 'lnk', { get: () => lnk, configurable: true });
-Object.defineProperty(window, 'SOURCES', { get: () => SOURCES, configurable: true });
-Object.defineProperty(window, 'SOURCE_LIST', { get: () => SOURCE_LIST, configurable: true });
-Object.defineProperty(window, 'gfn', { get: () => gfn, configurable: true });
-Object.defineProperty(window, 'fn', { get: () => fn, configurable: true });
-Object.defineProperty(window, 'ok', { get: () => ok, configurable: true });
-Object.defineProperty(window, 'fmtM', { get: () => fmtM, configurable: true });
-Object.defineProperty(window, 'stats', { get: () => stats, configurable: true });
-Object.defineProperty(window, 'thinningChain', { get: () => thinningChain, configurable: true });
-Object.defineProperty(window, 'fmtRate', { get: () => fmtRate, configurable: true });
-Object.defineProperty(window, 'r_in', { get: () => r_in, configurable: true });
-Object.defineProperty(window, 'barChart', { get: () => barChart, configurable: true });
-Object.defineProperty(window, 'thinningChart', { get: () => thinningChart, configurable: true });
-Object.defineProperty(window, 'TOWER_SHAPE', { get: () => TOWER_SHAPE, configurable: true });
-Object.defineProperty(window, 'towerSvg', { get: () => towerSvg, configurable: true });
-Object.defineProperty(window, 'SYM_SVG', { get: () => SYM_SVG, configurable: true });
-Object.defineProperty(window, 'symHtml', { get: () => symHtml, configurable: true });
-Object.defineProperty(window, 'fmtCount', { get: () => fmtCount, configurable: true });
-Object.defineProperty(window, 'maxLinkText', { get: () => maxLinkText, configurable: true });
-Object.defineProperty(window, 'keepTitleVisible', { get: () => keepTitleVisible, configurable: true });
-Object.defineProperty(window, 'cardOpen', { get: () => cardOpen, configurable: true });
-Object.defineProperty(window, 'sumInner', { get: () => sumInner, configurable: true });
-Object.defineProperty(window, 'sumValue', { get: () => sumValue, configurable: true });
-Object.defineProperty(window, 'areaBars', { get: () => areaBars, configurable: true });
-Object.defineProperty(window, 'retreatChart', { get: () => retreatChart, configurable: true });
-Object.defineProperty(window, 'sizeHref', { get: () => sizeHref, configurable: true });
-Object.defineProperty(window, 'renderStats', { get: () => renderStats, configurable: true });
-Object.defineProperty(window, 'glacierVolume', { get: () => glacierVolume, configurable: true });
-Object.defineProperty(window, 'iceShareLeft', { get: () => iceShareLeft, configurable: true });
-Object.defineProperty(window, 'volumeSurvey', { get: () => volumeSurvey, configurable: true });
-Object.defineProperty(window, 'balanceModel', { get: () => balanceModel, configurable: true });
-Object.defineProperty(window, 'glacierIceAt', { get: () => glacierIceAt, configurable: true });
-Object.defineProperty(window, 'iceSource', { get: () => iceSource, configurable: true });
-Object.defineProperty(window, 'shareText', { get: () => shareText, configurable: true });
-Object.defineProperty(window, 'fillThickness', { get: () => fillThickness, configurable: true });
-Object.defineProperty(window, 'renderShare', { get: () => renderShare, configurable: true });
-Object.defineProperty(window, 'renderGlacierWater', { get: () => renderGlacierWater, configurable: true });
-Object.defineProperty(window, 'fmtN', { get: () => fmtN, configurable: true });
-Object.defineProperty(window, 'CUM_BASE_YEAR', { get: () => CUM_BASE_YEAR, configurable: true });
-Object.defineProperty(window, 'cumulativeChart', { get: () => cumulativeChart, configurable: true });
-Object.defineProperty(window, 'waterSection', { get: () => waterSection, configurable: true });
-Object.defineProperty(window, 'wireWater', { get: () => wireWater, configurable: true });
-Object.defineProperty(window, 'renderOutlineControls', { get: () => renderOutlineControls, configurable: true });
-Object.defineProperty(window, 'refreshAll', { get: () => refreshAll, configurable: true });
-Object.defineProperty(window, 'subFocus', { get: () => subFocus, set: v => { subFocus = v; }, configurable: true });
-Object.defineProperty(window, 'metaCsv', { get: () => metaCsv, set: v => { metaCsv = v; }, configurable: true });
-Object.defineProperty(window, 'brightTimer', { get: () => brightTimer, set: v => { brightTimer = v; }, configurable: true });
-Object.defineProperty(window, 'refreshGen', { get: () => refreshGen, set: v => { refreshGen = v; }, configurable: true });
-Object.defineProperty(window, 'previewQueued', { get: () => previewQueued, set: v => { previewQueued = v; }, configurable: true });
-Object.defineProperty(window, 'bgOff', { get: () => bgOff, set: v => { bgOff = v; }, configurable: true });
-Object.defineProperty(window, 'labelsAuto', { get: () => labelsAuto, set: v => { labelsAuto = v; }, configurable: true });
-Object.defineProperty(window, 'trailsAuto', { get: () => trailsAuto, set: v => { trailsAuto = v; }, configurable: true });
-Object.defineProperty(window, 'storyTab', { get: () => storyTab, set: v => { storyTab = v; }, configurable: true });
-Object.defineProperty(window, 'fnSeq', { get: () => fnSeq, set: v => { fnSeq = v; }, configurable: true });
-Object.defineProperty(window, 'dynSources', { get: () => dynSources, set: v => { dynSources = v; }, configurable: true });
-Object.defineProperty(window, 'thinMode', { get: () => thinMode, set: v => { thinMode = v; }, configurable: true });
-Object.defineProperty(window, 'restoringCards', { get: () => restoringCards, set: v => { restoringCards = v; }, configurable: true });
-Object.defineProperty(window, 'leftMode', { get: () => leftMode, set: v => { leftMode = v; }, configurable: true });
-Object.defineProperty(window, 'liveStart', { get: () => liveStart, set: v => { liveStart = v; }, configurable: true });
-Object.defineProperty(window, 'liveTimer', { get: () => liveTimer, set: v => { liveTimer = v; }, configurable: true });
-Object.defineProperty(window, 'lastCounted', { get: () => lastCounted, set: v => { lastCounted = v; }, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
+Object.defineProperty(wire, 'refreshAll', { get: () => refreshAll, configurable: true });
+Object.defineProperty(wire, 'renderMeta', { get: () => renderMeta, configurable: true });
+Object.defineProperty(wire, 'renderStory', { get: () => renderStory, configurable: true });
+Object.defineProperty(wire, 'renderYears', { get: () => renderYears, configurable: true });
+Object.defineProperty(wire, 'setSubFocus', { get: () => setSubFocus, configurable: true });
+Object.defineProperty(wire, 'setTag', { get: () => setTag, configurable: true });
+Object.defineProperty(wire, 'showImage', { get: () => showImage, configurable: true });
+Object.defineProperty(wire, 'subFocus', { get: () => subFocus, configurable: true });
+Object.defineProperty(wire, 'syncOutsideUi', { get: () => syncOutsideUi, configurable: true });
+Object.defineProperty(wire, 'syncPane', { get: () => syncPane, configurable: true });
 /* =====================================================================
    7. Rendering
    ===================================================================== */
@@ -126,7 +27,7 @@ export function renderGlacierList(){
     const li = document.createElement('li'), b = document.createElement('button');
     b.type = 'button'; b.setAttribute('aria-pressed', glacierPicked && g.id === state.glacier);      // nothing is highlighted before the first choice
     b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${areaText(g, 2)} km²</span>`;
-    b.onclick = () => chooseGlacier(g.id);
+    b.onclick = () => wire.chooseGlacier(g.id);
     li.appendChild(b); ul.appendChild(li);
     if (g.subs && glacierPicked && g.id === state.glacier) g.subs.forEach((sb, k) => {      // the outlets of the chosen ice cap, as sub-items: a click zooms to the outlet
       const sl = document.createElement('li'), sbtn = document.createElement('button');
@@ -138,8 +39,8 @@ export function renderGlacierList(){
   });
   document.getElementById('rankNote').innerHTML = REGION.rgi ? REGION.rankNote : `Ranked by area${fn('sgi')}`;
   renderLayerTitles();
-  if (typeof updateLandsatRow === 'function') updateLandsatRow();
-  if (typeof refreshStreetView === 'function') refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
+  if (typeof wire.updateLandsatRow === 'function') wire.updateLandsatRow();
+  if (typeof wire.refreshStreetView === 'function') wire.refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
 }
 /* The outlets of an ice cap (g.subs, scripts/build_cap_images.py): the name rests on the RGI 6.0 or on the sources in `basis`; a name marked approx is inferred, and said so */
 export const subTitle = sb => `${sb.approx ? 'Name inferred, not certain. ' : ''}${sb.basis}`;
@@ -147,7 +48,7 @@ export let subFocus = null;      // {gid, k}: the outlet of the chosen ice cap t
 export function focusSub(g, k){
   const sb = g.subs[k]; if (!sb) return;
   subFocus = {gid: g.id, k};
-  if (viewMode === '3d' && typeof open3D === 'function') return open3D();      // the 3D view moves to the outlet's own strip
+  if (viewMode === '3d' && typeof wire.open3D === 'function') return wire.open3D();      // the 3D view moves to the outlet's own strip
   map.fitBounds(L.latLngBounds(sb.bounds), {paddingTopLeft: PHONE.matches ? [24, 64] : [40, 80], paddingBottomRight: PHONE.matches ? [24, 100] : [40, 110], maxZoom: 14});
 }
 /* the title of the layer segment that belongs to the chosen glacier, in the map menu and in the 3D menu */
@@ -224,12 +125,12 @@ export function specialChips(){
 /* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
 export function syncPane(){
   try {
-    if (!$('videoSheet').hidden && !vstate.busy && !v3dBusy) {            // the pane follows the mode buttons: a timelapse is an animation, one year is a picture
-      if (state.mode === 'timelapse' && vstate.kind === 'image') return openVideo('video', true);
-      if (state.mode === 'single' && vstate.kind === 'video' && viewMode !== '3d') return openVideo('image', true);      // in 3D one year can still be a camera flight
+    if (!$('videoSheet').hidden && !wire.vstate.busy && !wire.v3dBusy) {            // the pane follows the mode buttons: a timelapse is an animation, one year is a picture
+      if (state.mode === 'timelapse' && wire.vstate.kind === 'image') return wire.openVideo('video', true);
+      if (state.mode === 'single' && wire.vstate.kind === 'video' && viewMode !== '3d') return wire.openVideo('image', true);      // in 3D one year can still be a camera flight
     }
-    if (!$('videoSheet').hidden && viewMode !== '3d' && vstate.kind === 'video' && state.mode !== 'single') { const t = state.mode === 'compare' ? 'swipe' : 'timelapse'; if (vstate.type !== t) setType(t); }   // the pane follows the mode buttons
-    updateFrame();
+    if (!$('videoSheet').hidden && viewMode !== '3d' && wire.vstate.kind === 'video' && state.mode !== 'single') { const t = state.mode === 'compare' ? 'swipe' : 'timelapse'; if (wire.vstate.type !== t) wire.setType(t); }   // the pane follows the mode buttons
+    wire.updateFrame();
   } catch {}
 }
 /* Image metadata (dropdown under Image settings): the scene behind every year, the pictures on show marked, and what the pictures are made of */
@@ -271,7 +172,7 @@ document.getElementById('metaBody').addEventListener('click', e => { if (e.targe
 export function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
   renderYearRange(); yearChips('yearsOne', 'one'); specialChips(); renderMeta();
-  if (typeof renderMobileBar === 'function') renderMobileBar();
+  if (typeof wire.renderMobileBar === 'function') wire.renderMobileBar();
   syncPane();
 }
 export function setTag(id, yr){ document.getElementById(id).firstChild.nodeValue = yr ?? '–'; }
@@ -290,7 +191,7 @@ export function renderMode(){
   document.getElementById('timelapseControls').hidden = state.mode !== 'timelapse';
   ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl || (p === 'paneA' && oldestPair()) ? 'none' : '');
   map.getPane('paneT').style.display = tl ? '' : 'none';
-  updateTags(); syncSatUi();
+  updateTags(); wire.syncSatUi();
   document.getElementById('styleNatural').setAttribute('aria-pressed', state.style === 'natural');
   document.getElementById('styleFalse1').setAttribute('aria-pressed', state.style === 'false1');
   document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
@@ -305,7 +206,7 @@ export function setStyle(st){
   state.style = prefs.style = st; savePrefs();
   renderMode(); renderMeta();      // the image metadata names the bands and pixel size of the style
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
-  renderStory(); sync3D();
+  renderStory(); wire.sync3D();
 }
 /* Brightness: gamma curve on the imagery panes (exponent = 1 / brightness). Remembered. */
 export const BRIGHT_DEFAULT = 1.0;      // the colour process above is already balanced
@@ -444,7 +345,7 @@ export function syncBackgrounds(){
   const trailsEl = document.getElementById('trailsToggle'), flipTrails = on => { const keepPref = prefs.trails; trailsEl.checked = on; trailsEl.dispatchEvent(new Event('change')); prefs.trails = keepPref; savePrefs(); };      // your saved choice is not touched
   if (open && trailsEl.checked && !trailsAuto) { trailsAuto = true; flipTrails(false); }                 // the hiking trails are not in the downloads either
   else if (!open && trailsAuto) { trailsAuto = false; if (!trailsEl.checked) flipTrails(true); }
-  const low = open && ((outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier())) || frameExceedsImage());      // reaching beyond the picture: space, no map and no other glaciers
+  const low = open && ((outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier())) || wire.frameExceedsImage());      // reaching beyond the picture: space, no map and no other glaciers
   const ids = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle', 'aerialToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm, topo: prefs.topo, alti: prefs.alti };
   const flip = (id, on) => { const el = document.getElementById(id); el.checked = on; el.dispatchEvent(new Event('change')); };
   if (low && !bgOff) { bgOff = ids.filter(id => document.getElementById(id).checked); bgOff.forEach(id => flip(id, false)); }
@@ -459,9 +360,9 @@ export function applyImgOpacity(){
   ['paneA', 'paneB', 'paneT'].forEach(n => { map.getPane(n).style.opacity = o; });
   ['imgOpacity', 'mapOp'].forEach(id => { document.getElementById(id).value = o; document.getElementById(id + 'Out').textContent = `${Math.round(o * 100)} %`; });
 }
-['imgOpacity', 'mapOp'].forEach(id => document.getElementById(id).oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } });
+['imgOpacity', 'mapOp'].forEach(id => document.getElementById(id).oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } });
 applyImgOpacity();
-export const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); if (viewMode === '3d') refresh3D(); };      // the 3D picture is made again too
+export const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); if (viewMode === '3d') wire.refresh3D(); };      // the 3D picture is made again too
 ['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
 syncOutsideUi();
 document.getElementById('brightness').oninput = e => {
@@ -571,8 +472,8 @@ export function aboutChaptersCh(){
 `;
 }
 export function renderStory(){
-  if (REGION.rgi) return renderStoryIcecap();      // js/07a-region-icecaps.js
-  const g = currentGlacier(); if (typeof updateRightTab === 'function') updateRightTab();
+  if (REGION.rgi) return wire.renderStoryIcecap();      // js/07a-region-icecaps.js
+  const g = currentGlacier(); if (typeof wire.updateRightTab === 'function') wire.updateRightTab();
   { const a = document.getElementById('sizeLink'); if (a) a.href = sizeHref(g); }      // the size comparison opens with this glacier picked
   const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
     : state.mode === 'timelapse' ? [Math.min(state.from, state.to), Math.max(state.from, state.to)]
@@ -584,7 +485,7 @@ export function renderStory(){
   dynSources = [];
   const statsHtml = renderStats(g, lo, hi);
 
-  const info = GLACIER_INFO[g.id] || GLACIER_INFO[shortSlug(g.name)];
+  const info = GLACIER_INFO[g.id] || GLACIER_INFO[wire.shortSlug(g.name)];
   const tab = t => `role="tab" data-tab="${t}" aria-selected="${storyTab === t}"`;
   const storyEl = document.getElementById('story'), aboutOpen = !!(storyEl.querySelector('details.about') || {}).open, keepScroll = storyEl.scrollTop, sameGlacier = storyEl.dataset.glacier === g.id;
   storyEl.dataset.glacier = g.id; storyEl.classList.toggle('empty', !glacierPicked);
@@ -607,7 +508,7 @@ export function renderStory(){
         g.note ? dcard('news', 'In the news', `<p>${g.note.replace(/<small class="srcline">Source:\s*(.*?)<\/small>/, (m, src) => gfn(src))}</p>`) : '',      // a "Source:" line in the note becomes a numbered source like the others
         info && info.fact ? dcard('bulb', 'Did you know?', `<p>${info.fact}${info.factSrc ? gfn(info.factSrc) : ''}</p>`) : '',
         info && info.name ? dcard('tag', 'The name', `<p>${info.name}${info.src ? gfn(info.src) : ''}</p>`) : '',
-        (() => { const h = trailsHtml(g, TRAILS[g.id] ? g.id : shortSlug(g.name)); return h ? dcard('route', 'Hike and bike', h) : ''; })(),      // made once: it adds its sources to the list
+        (() => { const h = trailsHtml(g, TRAILS[g.id] ? g.id : wire.shortSlug(g.name)); return h ? dcard('route', 'Hike and bike', h) : ''; })(),      // made once: it adds its sources to the list
 
         cbYears().length ? dcard('scene', 'Copernicus Browser', `<p>These are the satellite scenes on the map${fn('s2')}. Open one in the Copernicus Browser, the free viewer of the Copernicus Data Space Ecosystem, to zoom in, try other band combinations or look at neighbouring dates.</p><div class="cb-links">${cbButtonsHtml()}</div>`) : ''
       ].join('')}
@@ -732,6 +633,19 @@ export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).fi
 export let fnSeq = 0;
 /* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
 export let dynSources = [];
+export const TRAIL_LAYERS = { wander: 'Wanderland', velo: 'Veloland', mtb: 'Mountainbikeland' };
+export function trailMaps(g, kind){       // the SchweizMobil map around the tongue, with the route layer on
+  const at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue; if (!at) return '';
+  const [E, N] = lv95(at[1], at[0]);
+  return `<span class="tr-maps"><a href="https://map.schweizmobil.ch/?lang=en&amp;E=${E}&amp;N=${N}&amp;resolution=25&amp;layers=${TRAIL_LAYERS[kind]}" target="_blank" rel="noopener">SchweizMobil map</a></span>`;
+}
+export function trailsHtml(g, key){
+  const t = TRAILS[key]; if (!t) return '';
+  const row = (label, r, kindFallback) => r
+    ? `<div class="tr-row"><b>${label}</b> ${r.url ? `<a href="${r.url}" target="_blank" rel="noopener">${r.title}</a>` : r.title}${typeof gfn === 'function' ? (r.url ? gfn(`${label} route: <a href="${r.url}" target="_blank" rel="noopener">${new URL(r.url).hostname.replace(/^www\./, '')}</a> (${r.title}); route data of SchweizMobil / swisstopo`) : fn('routes')) : ''}<span class="tr-t">${r.text}</span>${trailMaps(g, r.kind)}</div>`
+    : `<div class="tr-row"><b>${label}</b><span class="tr-t">No marked bike route within about 3 km of the tongue.</span>${trailMaps(g, kindFallback)}</div>`;
+  return `${row('Hike', t.hike, 'wander')}${row('Bike', t.bike, 'velo')}`;
+}
 export const gfn = html => { dynSources.push(html); const n = SOURCE_LIST.length + dynSources.length; return `<sup class="fn"><a href="#fn-g${dynSources.length}" id="fnr-g${dynSources.length}-${++fnSeq}" data-fn="g${dynSources.length}" aria-label="Source ${n}">${n}</a></sup>`; };
 export const fn = k => `<sup class="fn"><a href="#fn-${k}" id="fnr-${k}-${++fnSeq}" data-fn="${k}" aria-label="Source ${SOURCE_LIST.indexOf(k) + 1}">${SOURCE_LIST.indexOf(k) + 1}</a></sup>`;
 document.addEventListener('click', e => {
@@ -1077,7 +991,7 @@ export function renderGlacierWater(){
   glacierVolume(g).then(v => {
     if (!v || currentGlacier() !== g) return;
     const lastY = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, estKm3 = glacierIceAt(g, v, lastY), litres = estKm3 * 0.9 * 1e12;
-    const N = waterNumbers(estKm3), V = volumeSurvey(g), M = balanceModel(g), R0 = v.yr || 2016;
+    const N = wire.waterNumbers(estKm3), V = volumeSurvey(g), M = balanceModel(g), R0 = v.yr || 2016;
     const nationalLossPct = Math.round((1 - iceShareLeft()) * 100);
     slot.innerHTML = `<details class="card gwater dcard coll" name="stats" data-card="water"${cardOpen('water') ? ' open' : ''}><summary><div class="card-h"><span class="ico">${ICONS.drop}</span>Water storage</div>${sumValue(N.litresText + ' L')}</summary><div class="dbody">
       <div class="stat-row">
@@ -1186,11 +1100,15 @@ export function refreshAll(){
   if (state.latest && (state.mode === 'timelapse' || (state.mode === 'compare' && state.a !== state.latest.year && state.b !== state.latest.year))) restoreLatest();        // the latest image belongs to One year, or to a side of the slider
   renderMode(); renderYears();
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
-  renderStory(); writeHash(); sync3D();
-  if (state.checked && !latestBusy) setStatus(statusLine());      // the status box follows the choice: a year after Latest drops its "Latest clear-ish scene" line
+  renderStory(); writeHash(); wire.sync3D();
+  if (state.checked && !latestBusy) wire.setStatus(statusLine());      // the status box follows the choice: a year after Latest drops its "Latest clear-ish scene" line
 }
 
 
 /* hovering (or tabbing to) a bar of "Retreat per year" reads out its period and value in the corner of the chart title */
 document.addEventListener('mouseover', e => { const g = e.target.closest && e.target.closest('.rb'); if (!g) return; const c = g.closest('.stat-row') ? null : g.closest('.dbody'); const em = c && c.querySelector('.rb-read'); if (!em) return; em.textContent = g.dataset.t; g.parentNode.querySelectorAll('.rb').forEach(x => x.classList.toggle('on', x === g)); });
 document.addEventListener('mouseout', e => { const g = e.target.closest && e.target.closest('.rb'); if (!g || (e.relatedTarget && g.contains(e.relatedTarget))) return; const c = g.closest('.dbody'), em = c && c.querySelector('.rb-read'); if (em) em.textContent = em.dataset.def || ''; g.parentNode.querySelectorAll('.rb.on').forEach(x => x.classList.remove('on')); });
+export function setSubFocus(v){ return subFocus = v; }      // the other files may not assign to an imported variable
+export function setRestoringCards(v){ return restoringCards = v; }      // the other files may not assign to an imported variable
+export function setStoryTab(v){ return storyTab = v; }      // the other files may not assign to an imported variable
+export function setDynSources(v){ return dynSources = v; }      // the other files may not assign to an imported variable

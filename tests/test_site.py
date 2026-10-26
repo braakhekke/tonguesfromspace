@@ -50,6 +50,7 @@ class SiteCase(unittest.TestCase):
         ctx = self.browser.new_context(viewport=viewport or {"width": 1280, "height": 860}, **ctx_args)
         self.addCleanup(ctx.close)
         ctx.route("**/*", lambda route: route.continue_() if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
+        ctx.add_init_script("window.TFS_EXPOSE = true")      # js/devtools.js: the sections' names are readable on window for page.evaluate
         ctx.add_init_script("try{if(!localStorage.getItem('glacierPrefs'))localStorage.setItem('glacierPrefs','{\"hideR\":false}')}catch(e){}")      # the right panel starts collapsed on a first visit; the tests need it open
         if not fresh:
             ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")      # the film of the first visit would cover the page
@@ -375,7 +376,7 @@ class TestRelayCalls(SiteCase):
         page.wait_for_timeout(1500)      # the page starts its own scene search at once (no relay here); let its failure message come first
         r = page.evaluate("""async () => {
           document.getElementById('notice').textContent = '';
-          relayCheck = Promise.resolve({relay: true});      // as if the relay had answered its ping
+          setRelayCheck(Promise.resolve({relay: true}));      // as if the relay had answered its ping
           let n = 0;
           const real = window.fetch;
           window.fetch = async (url, init) => init && init.body === '{}' ? (++n === 1 ? new Response('busy', {status: 503}) : new Response('{"ok":true}', {status: 200})) : real(url, init);      // only this test's own request is answered
@@ -388,7 +389,7 @@ class TestRelayCalls(SiteCase):
 
     def test_a_missing_relay_gives_a_readable_message(self):
         page = self.open()
-        msg = page.evaluate("""async () => { relayCheck = Promise.resolve({relay: false}); try { await cdse('statistics', {}, 'application/json'); return 'no error'; } catch (e) { return e.message; } }""")
+        msg = page.evaluate("""async () => { setRelayCheck(Promise.resolve({relay: false})); try { await cdse('statistics', {}, 'application/json'); return 'no error'; } catch (e) { return e.message; } }""")
         self.assertNotEqual(msg, "no error")
         self.assertTrue(msg.startswith(("To load the satellite images", "This site has no connection", "The connection to Copernicus")), msg)
 
@@ -569,7 +570,7 @@ class TestIcecapImagery(SiteCase):
             return route.fulfill(status=404, body="{}", headers=cors)
         ctx.route("**/cdse/*", relay)
         self.tiles = page.evaluate("currentGlacier().cap.tiles")
-        page.evaluate("relayCheck = null")
+        page.evaluate("setRelayCheck(null)")
         return page
 
     def test_data_of_the_cap(self):

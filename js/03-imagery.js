@@ -1,85 +1,6 @@
+import { wire } from './wire.js';
 import { FIRST_YEAR, CURRENT_YEAR, YEARS } from './01-data.js';
 import { boxRecord } from './02-glaciers.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'prefs', { get: () => prefs, configurable: true });
-Object.defineProperty(window, 'savePrefs', { get: () => savePrefs, configurable: true });
-Object.defineProperty(window, 'SEASON', { get: () => SEASON, configurable: true });
-Object.defineProperty(window, 'CDSE', { get: () => CDSE, configurable: true });
-Object.defineProperty(window, 'LAST_DAY', { get: () => LAST_DAY, configurable: true });
-Object.defineProperty(window, 'lastDay', { get: () => lastDay, configurable: true });
-Object.defineProperty(window, 'ONE_ORBIT', { get: () => ONE_ORBIT, configurable: true });
-Object.defineProperty(window, 'orbitFilter', { get: () => orbitFilter, configurable: true });
-Object.defineProperty(window, 'SCENE_EVALSCRIPT', { get: () => SCENE_EVALSCRIPT, configurable: true });
-Object.defineProperty(window, 'TRUE_COLOR', { get: () => TRUE_COLOR, configurable: true });
-Object.defineProperty(window, 'STYLE_BANDS', { get: () => STYLE_BANDS, configurable: true });
-Object.defineProperty(window, 'STYLE_NAME', { get: () => STYLE_NAME, configurable: true });
-Object.defineProperty(window, 'isLandsat', { get: () => isLandsat, configurable: true });
-Object.defineProperty(window, 'landsatName', { get: () => landsatName, configurable: true });
-Object.defineProperty(window, 'LANDSAT_CREDIT', { get: () => LANDSAT_CREDIT, configurable: true });
-Object.defineProperty(window, 'sensorName', { get: () => sensorName, configurable: true });
-Object.defineProperty(window, 'LANDSAT_BANDS', { get: () => LANDSAT_BANDS, configurable: true });
-Object.defineProperty(window, 'styleLine', { get: () => styleLine, configurable: true });
-Object.defineProperty(window, 'IMAGE_COLLECTION', { get: () => IMAGE_COLLECTION, configurable: true });
-Object.defineProperty(window, 'evalscriptFor', { get: () => evalscriptFor, configurable: true });
-Object.defineProperty(window, 'RELAY_BASE', { get: () => RELAY_BASE, configurable: true });
-Object.defineProperty(window, 'ASSETS', { get: () => ASSETS, configurable: true });
-Object.defineProperty(window, 'asset', { get: () => asset, configurable: true });
-Object.defineProperty(window, 'relayRoot', { get: () => relayRoot, configurable: true });
-Object.defineProperty(window, 'relayInfo', { get: () => relayInfo, configurable: true });
-Object.defineProperty(window, 'LOCAL', { get: () => LOCAL, configurable: true });
-Object.defineProperty(window, 'NO_RELAY', { get: () => NO_RELAY, configurable: true });
-Object.defineProperty(window, 'errorText', { get: () => errorText, configurable: true });
-Object.defineProperty(window, 'cdse', { get: () => cdse, configurable: true });
-Object.defineProperty(window, 'memCache', { get: () => memCache, configurable: true });
-Object.defineProperty(window, 'IMG_CAP', { get: () => IMG_CAP, configurable: true });
-Object.defineProperty(window, 'idb', { get: () => idb, configurable: true });
-Object.defineProperty(window, 'boxEntry', { get: () => boxEntry, configurable: true });
-Object.defineProperty(window, 'imageFootprint', { get: () => imageFootprint, configurable: true });
-Object.defineProperty(window, 'capFootprint', { get: () => capFootprint, configurable: true });
-Object.defineProperty(window, 'imageBox', { get: () => imageBox, configurable: true });
-Object.defineProperty(window, 'CRS3857', { get: () => CRS3857, configurable: true });
-Object.defineProperty(window, 'SNOW_TIE', { get: () => SNOW_TIE, configurable: true });
-Object.defineProperty(window, 'SNOW_SLACK', { get: () => SNOW_SLACK, configurable: true });
-Object.defineProperty(window, 'pickScene', { get: () => pickScene, configurable: true });
-Object.defineProperty(window, 'unifyOrbit', { get: () => unifyOrbit, configurable: true });
-Object.defineProperty(window, 'sceneDays', { get: () => sceneDays, configurable: true });
-Object.defineProperty(window, 'SCENES_FILE', { get: () => SCENES_FILE, configurable: true });
-Object.defineProperty(window, 'curatedScene', { get: () => curatedScene, configurable: true });
-Object.defineProperty(window, 'summerStarted', { get: () => summerStarted, configurable: true });
-Object.defineProperty(window, 'landsatFiles', { get: () => landsatFiles, configurable: true });
-Object.defineProperty(window, 'landsatFile', { get: () => landsatFile, configurable: true });
-Object.defineProperty(window, 'landsatScene', { get: () => landsatScene, configurable: true });
-Object.defineProperty(window, 'findScene', { get: () => findScene, configurable: true });
-Object.defineProperty(window, 'LATEST', { get: () => LATEST, configurable: true });
-Object.defineProperty(window, 'MASKS', { get: () => MASKS, configurable: true });
-Object.defineProperty(window, 'cloudByDay', { get: () => cloudByDay, configurable: true });
-Object.defineProperty(window, 'findLatest', { get: () => findLatest, configurable: true });
-Object.defineProperty(window, 'restoreLatest', { get: () => restoreLatest, configurable: true });
-Object.defineProperty(window, 'showLatest', { get: () => showLatest, configurable: true });
-Object.defineProperty(window, 'runQueue', { get: () => runQueue, configurable: true });
-Object.defineProperty(window, 'queued', { get: () => queued, configurable: true });
-Object.defineProperty(window, 'imageKey', { get: () => imageKey, configurable: true });
-Object.defineProperty(window, 'footprintRes', { get: () => footprintRes, configurable: true });
-Object.defineProperty(window, 'imageHere', { get: () => imageHere, configurable: true });
-Object.defineProperty(window, 'smallDevice', { get: () => smallDevice, configurable: true });
-Object.defineProperty(window, 'capLevel', { get: () => capLevel, configurable: true });
-Object.defineProperty(window, 'loadCapImage', { get: () => loadCapImage, configurable: true });
-Object.defineProperty(window, 'CAP_FINE_MPP', { get: () => CAP_FINE_MPP, configurable: true });
-Object.defineProperty(window, 'capWaiting', { get: () => capWaiting, configurable: true });
-Object.defineProperty(window, 'capWantsFine', { get: () => capWantsFine, configurable: true });
-Object.defineProperty(window, 'capCheckFine', { get: () => capCheckFine, configurable: true });
-Object.defineProperty(window, 'loadImage', { get: () => loadImage, configurable: true });
-Object.defineProperty(window, 'setLoading', { get: () => setLoading, configurable: true });
-Object.defineProperty(window, 'STAC_URL', { get: () => STAC_URL, configurable: true });
-Object.defineProperty(window, 'stacDone', { get: () => stacDone, configurable: true });
-Object.defineProperty(window, 'sceneProducts', { get: () => sceneProducts, configurable: true });
-Object.defineProperty(window, 'fmtDM', { get: () => fmtDM, configurable: true });
-Object.defineProperty(window, 'fmtDate', { get: () => fmtDate, configurable: true });
-Object.defineProperty(window, 'relayCheck', { get: () => relayCheck, set: v => { relayCheck = v; }, configurable: true });
-Object.defineProperty(window, 'masksFile', { get: () => masksFile, set: v => { masksFile = v; }, configurable: true });
-Object.defineProperty(window, 'latestBusy', { get: () => latestBusy, set: v => { latestBusy = v; }, configurable: true });
-Object.defineProperty(window, 'pending', { get: () => pending, set: v => { pending = v; }, configurable: true });
-// end of bridge
 /* =====================================================================
    3. Imagery: the clearest summer scene of each year
       Copernicus Sentinel-2 L2A via the Copernicus Data Space Ecosystem.
@@ -178,6 +99,7 @@ export const ASSETS = (window.TFS_CONFIG && window.TFS_CONFIG.assets) || {};
 export const asset = name => siteFile(ASSETS[name] || name);
 export const relayRoot = () => RELAY_BASE ? RELAY_BASE + '/cdse' : '/cdse';
 export let relayCheck = null;
+export function setRelayCheck(v){ return relayCheck = v; }      // for tests/test_site.py: they stand in for the relay's answer
 export const relayInfo = () => relayCheck || (relayCheck = (RELAY_BASE || location.protocol.startsWith('http'))
   ? fetch(relayRoot() + '/ping', {cache:'no-store', signal: AbortSignal.timeout ? AbortSignal.timeout(6000) : undefined})
       .then(r => r.ok ? r.json() : null).then(j => ({relay: !!(j && j.relay === true)})).catch(() => ({relay:false}))
@@ -211,13 +133,13 @@ export async function cdse(route, body, accept, label = ''){
     try {
       r = await fetch(relayRoot() + '/' + route, {method:'POST', body:JSON.stringify(body), headers:{'Content-Type':'application/json', 'Accept':accept}});
     } catch {
-      if (attempt < 2) { if (!attempt) showNotice('Copernicus is not answering, trying again…'); await new Promise(res => setTimeout(res, 1500 * (attempt + 1))); continue; }
+      if (attempt < 2) { if (!attempt) wire.showNotice('Copernicus is not answering, trying again…'); await new Promise(res => setTimeout(res, 1500 * (attempt + 1))); continue; }
       throw new Error('The connection to Copernicus is not responding. Try again later.');
     }
     if (r.ok) return r;
     const msg = await errorText(r);
     console.error(`Copernicus ${what} ${label} failed: HTTP ${r.status}`, msg, body);
-    if ((r.status >= 500 || r.status === 429) && attempt < 2) { if (!attempt) showNotice('Copernicus is busy, trying again…'); await new Promise(res => setTimeout(res, 2000 * (attempt + 1))); continue; }
+    if ((r.status >= 500 || r.status === 429) && attempt < 2) { if (!attempt) wire.showNotice('Copernicus is busy, trying again…'); await new Promise(res => setTimeout(res, 2000 * (attempt + 1))); continue; }
     if (r.status === 429) throw new Error('Too many requests in a short time, or Copernicus is busy. Wait a minute and try again.');
     throw new Error(`Copernicus ${what}${label ? ' for ' + label : ''} failed (HTTP ${r.status})${msg ? ': ' + msg : ''}.`);
   }
@@ -411,7 +333,7 @@ export async function cloudByDay(area, from, to, label){
   return rows.map(r => ({...r, cover: full ? r.cover / full : 0}));
 }
 export async function findLatest(g){
-  const masks = await MASKS(), m = masks && masks.glaciers && masks.glaciers[bundleId(g)];
+  const masks = await MASKS(), m = masks && masks.glaciers && masks.glaciers[wire.bundleId(g)];
   if (!m) throw new Error('The areas for the latest image (cloudmasks.json) are not available.');
   const now = new Date(), end = Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1);
   const iso = t => new Date(t).toISOString().slice(0, 10) + 'T00:00:00Z', from = iso(end - LATEST.days * 864e5), to = iso(end);
@@ -434,49 +356,49 @@ export async function findLatest(g){
   return p;
 }
 export function restoreLatest(){            // back to the normal scene of that year
-  const l = state.latest; if (!l) return;
-  state.latest = null;
-  if (l.saved) state.available[l.year] = l.saved; else delete state.available[l.year];
-  const ys = YEARS.filter(y => state.available[y]);      // a side that showed the latest scene goes to the newest year left
-  if (ys.length) ['a', 'b', 'one'].forEach(k => { if (!state.available[state[k]]) state[k] = ys[ys.length - 1]; });
+  const l = wire.state.latest; if (!l) return;
+  wire.state.latest = null;
+  if (l.saved) wire.state.available[l.year] = l.saved; else delete wire.state.available[l.year];
+  const ys = YEARS.filter(y => wire.state.available[y]);      // a side that showed the latest scene goes to the newest year left
+  if (ys.length) ['a', 'b', 'one'].forEach(k => { if (!wire.state.available[wire.state[k]]) wire.state[k] = ys[ys.length - 1]; });
 }
 export let latestBusy = false;
 export async function showLatest(){
-  if (latestBusy || !state.checked) return;
-  const g = currentGlacier(), gen = checkGen; latestBusy = true;
-  setStatus('Looking for the latest clear-ish scene…'); renderYears();
+  if (latestBusy || !wire.state.checked) return;
+  const g = wire.currentGlacier(), gen = wire.checkGen; latestBusy = true;
+  wire.setStatus('Looking for the latest clear-ish scene…'); wire.renderYears();
   let sc = null, err = null;
   try { sc = await findLatest(g); } catch (e) { err = e; }
   latestBusy = false;
-  if (gen !== checkGen || g.id !== state.glacier) return;
+  if (gen !== wire.checkGen || g.id !== wire.state.glacier) return;
   if (err || !sc) {
-    setStatus(statusLine()); renderYears();
-    showNotice(err ? err.message : `No clear-ish scene in the last ${LATEST.days} days: none has at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue.`);
+    wire.setStatus(wire.statusLine()); wire.renderYears();
+    wire.showNotice(err ? err.message : `No clear-ish scene in the last ${LATEST.days} days: none has at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue.`);
     return;
   }
   restoreLatest();
   const year = +sc.date.slice(0, 4);
-  state.latest = {year, saved: state.available[year] || null};
-  state.available[year] = sc; state.frame = 0;
-  if (state.mode === 'compare') state.b = year; else { state.one = year; state.mode = 'single'; }      // in the slider the latest scene is the right side
-  setStatus(statusLine()); refreshAll();
+  wire.state.latest = {year, saved: wire.state.available[year] || null};
+  wire.state.available[year] = sc; wire.state.frame = 0;
+  if (wire.state.mode === 'compare') wire.state.b = year; else { wire.state.one = year; wire.state.mode = 'single'; }      // in the slider the latest scene is the right side
+  wire.setStatus(wire.statusLine()); wire.refreshAll();
 }
 
 /* ---------- images ---------- */
 export let pending = 0, pendingLs = 0, active = 0; const queue = [];      // pictures on their way: from Copernicus, and Landsat files of this site
 export const runQueue = () => { while (active < 3 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
 export const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
-export const imageKey = (g, yr, fp, strip, level) => { const sc = state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${state.style}|${g.id}|${sc.date}|${sc.id}${sc.fill ? '|' + sc.fill.date : ''}` : `${CDSE.version}|img|${(STYLE_BANDS[state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}${level && level !== 1 ? '|L' + level : ''}`; };      // a Landsat picture is one file whatever the colour style or the strip
+export const imageKey = (g, yr, fp, strip, level) => { const sc = wire.state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${wire.state.style}|${g.id}|${sc.date}|${sc.id}${sc.fill ? '|' + sc.fill.date : ''}` : `${CDSE.version}|img|${(STYLE_BANDS[wire.state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}${level && level !== 1 ? '|L' + level : ''}`; };      // a Landsat picture is one file whatever the colour style or the strip
 export const footprintRes = g => { const fp = imageFootprint(g), bb = fp.bbox; return Math.max((bb[2] - bb[0]), (bb[3] - bb[1]) * fp.w / fp.h) / fp.w * Math.cos(Math.atan(Math.sinh((bb[1] + bb[3]) / 2 / 6378137))); };      // ground metres per pixel of the picture of the whole glacier area (10 unless it was cut down to the 2,500 px limit)
-export const imageHere = (g, yr) => isLandsat(state.available[yr]) || (footprintRes(g) <= CDSE.groundRes * 1.02 && memCache.has(imageKey(g, yr, imageFootprint(g), false)));      // a Landsat picture is the whole picture box in one file: the 3D view cuts its strip out of it      // the whole picture is already on its way or here, and has the full resolution
+export const imageHere = (g, yr) => isLandsat(wire.state.available[yr]) || (footprintRes(g) <= CDSE.groundRes * 1.02 && memCache.has(imageKey(g, yr, imageFootprint(g), false)));      // a Landsat picture is the whole picture box in one file: the 3D view cuts its strip out of it      // the whole picture is already on its way or here, and has the full resolution
 /* The memory budget of a cap picture (a whole ice cap, 18 megapixels at 10 m for Hofsjökull = 70 MB decoded, and a phone's canvas holds 16.7 megapixels): a timelapse keeps one picture per
    year, so it and every small device get half the resolution (20 m), a single year or a comparison on a computer the full 10 m. `level` is the share of the full resolution. */
 export const smallDevice = () => matchMedia('(pointer: coarse)').matches || innerWidth < 800 || (navigator.deviceMemory && navigator.deviceMemory <= 4);
-export const capLevel = () => state.mode === 'timelapse' || smallDevice() ? 0.5 : 1;
+export const capLevel = () => wire.state.mode === 'timelapse' || smallDevice() ? 0.5 : 1;
 /* The picture of a whole ice cap: its tiles (g.cap.tiles, each at most 2,490 px, the same requests for every visitor so the relay's cache serves them) are asked for one by one at the
    same scene and drawn side by side into one picture, so the rest of the page sees one image per year as everywhere else. */
 export function loadCapImage(g, yr, fp, level){
-  const sc = state.available[yr], style = state.style, key = imageKey(g, yr, fp, false, level);
+  const sc = wire.state.available[yr], style = wire.state.style, key = imageKey(g, yr, fp, false, level);
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
@@ -509,7 +431,7 @@ export function loadCapImage(g, yr, fp, level){
    wait for zoom; capLoads = the tile loads on their way, for the status line. */
 export const CAP_FINE_MPP = 30;
 export const capWaiting = new Set(), capLoads = new Set();
-export const capWantsFine = () => 156543.03 * Math.cos(map.getCenter().lat * Math.PI / 180) / 2 ** map.getZoom() / (devicePixelRatio || 1) < CAP_FINE_MPP;
+export const capWantsFine = () => 156543.03 * Math.cos(wire.map.getCenter().lat * Math.PI / 180) / 2 ** wire.map.getZoom() / (devicePixelRatio || 1) < CAP_FINE_MPP;
 export function capCheckFine(){          // after a zoom: the layers that were waiting get their 10 m picture now
   let changed = false;
   for (const ov of [...capWaiting]) {
@@ -519,7 +441,7 @@ export function capCheckFine(){          // after a zoom: the layers that were w
   if (changed) setLoading();
 }
 export function loadImage(g, yr, strip, level){            // strip: {bbox, w, h} of a strip picture for the 3D view (stripImageSpec); without it the picture of the whole glacier area, as the map shows it; level: a cap's share of the full resolution
-  const sc = state.available[yr], style = state.style, fp = isLandsat(sc) ? imageFootprint(g) : strip || imageFootprint(g);      // Landsat: always the whole picture box, drawn in the same Mercator box as the Sentinel-2 pictures
+  const sc = wire.state.available[yr], style = wire.state.style, fp = isLandsat(sc) ? imageFootprint(g) : strip || imageFootprint(g);      // Landsat: always the whole picture box, drawn in the same Mercator box as the Sentinel-2 pictures
   strip = isLandsat(sc) ? null : strip;
   if (fp.tiles && !strip && !isLandsat(sc)) return loadCapImage(g, yr, fp, level || capLevel());
   const key = imageKey(g, yr, fp, !!strip);
@@ -545,10 +467,10 @@ export function loadImage(g, yr, strip, level){            // strip: {bbox, w, h
   return p;
 }
 export function setLoading(){
-  if (!state.checked) return;
+  if (!wire.state.checked) return;
   const caps = [...capLoads], fine = caps.filter(p => p.level === 1), plain = pending - fine.length;      // plain: Copernicus pictures other than the 10 m picture of an ice cap, which shows its tiles
   const parts = [plain > 0 && `${plain} satellite image${plain > 1 ? 's' : ''} from Copernicus`, fine.length && `the 10 m picture of the ice cap (${fine.reduce((a, p) => a + p.done, 0)} of ${fine.reduce((a, p) => a + p.total, 0)} tiles)`, pendingLs && `${pendingLs} Landsat image${pendingLs > 1 ? 's' : ''}`].filter(Boolean);
-  setStatus(parts.length ? `Loading ${parts.join(' and ')}…` : statusLine());
+  wire.setStatus(parts.length ? `Loading ${parts.join(' and ')}…` : wire.statusLine());
 }
 /* The products behind a scene (image id, satellite, tile, time, sun): the public Copernicus STAC catalogue, open to browsers, no relay and no login.
    The picture is made from the products of one orbit that touch its footprint (more than one when the area spans two tiles). Past days never change. */
@@ -571,7 +493,7 @@ export function sceneProducts(g, sc){
       return products;
     })();
     memCache.set(key, p);
-    p.then(v => stacDone.set(key, v), () => { stacDone.set(key, null); memCache.delete(key); setTimeout(() => stacDone.delete(key), 30000); }).then(() => { if (typeof renderMeta === 'function') renderMeta(); });
+    p.then(v => stacDone.set(key, v), () => { stacDone.set(key, null); memCache.delete(key); setTimeout(() => stacDone.delete(key), 30000); }).then(() => { if (typeof wire.renderMeta === 'function') wire.renderMeta(); });
   }
   return undefined;      // still on its way: renderMeta draws again when it arrives
 }

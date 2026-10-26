@@ -1,144 +1,26 @@
-import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS } from './01-data.js';
+import { wire } from './wire.js';
+import { IC_INFO } from './07b-icecap-texts.js';
+import { IS_CHANGE } from './07a-region-icecaps.js';
+import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS, $, COARSE, PHONE } from './01-data.js';
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
 import { STYLE_NAME, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
-import { map, spaceCanvas, horiz, clip, tlFrames, SPEED_FPS, updateSpeedIcon, play, stopPlay, drawOutlines, M, cancelMeasure, tongueBounds, tlLayers } from './05-map.js';
+import { map, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
 import { showNotice } from './08-controls.js';
-import { COARSE, $, PHONE, setFull, setMini, evalMini, setLayers } from './09-phones.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'VIDEO', { get: () => VIDEO, configurable: true });
-Object.defineProperty(window, 'STILL_MARGINS', { get: () => STILL_MARGINS, configurable: true });
-Object.defineProperty(window, 'marginsFor', { get: () => marginsFor, configurable: true });
-Object.defineProperty(window, 'FMT_SUFFIX', { get: () => FMT_SUFFIX, configurable: true });
-Object.defineProperty(window, 'vstate', { get: () => vstate, configurable: true });
-Object.defineProperty(window, 'SWIPE_KEYS', { get: () => SWIPE_KEYS, configurable: true });
-Object.defineProperty(window, 'swipeLength', { get: () => swipeLength, configurable: true });
-Object.defineProperty(window, 'stillYear', { get: () => stillYear, configurable: true });
-Object.defineProperty(window, 'imgCompare', { get: () => imgCompare, configurable: true });
-Object.defineProperty(window, 'videoYears', { get: () => videoYears, configurable: true });
-Object.defineProperty(window, 'FONT', { get: () => FONT, configurable: true });
-Object.defineProperty(window, 'sheetOverlap', { get: () => sheetOverlap, set: v => { sheetOverlap = v; }, configurable: true });
-Object.defineProperty(window, 'measureSheetOverlap', { get: () => measureSheetOverlap, configurable: true });
-Object.defineProperty(window, 'stageSize', { get: () => stageSize, configurable: true });
-Object.defineProperty(window, 'visibleBox', { get: () => visibleBox, configurable: true });
-Object.defineProperty(window, 'frameRect', { get: () => frameRect, configurable: true });
-Object.defineProperty(window, 'frameSplit', { get: () => frameSplit, configurable: true });
-Object.defineProperty(window, 'frameGroundRes', { get: () => frameGroundRes, configurable: true });
-Object.defineProperty(window, 'logoAsked', { get: () => logoAsked, set: v => { logoAsked = v; }, configurable: true });
-Object.defineProperty(window, 'drawPreview', { get: () => drawPreview, configurable: true });
-Object.defineProperty(window, 'vPrev', { get: () => vPrev, configurable: true });
-Object.defineProperty(window, 'PV_ICON', { get: () => PV_ICON, configurable: true });
-Object.defineProperty(window, 'stopPreview', { get: () => stopPreview, configurable: true });
-Object.defineProperty(window, 'startPreview3D', { get: () => startPreview3D, configurable: true });
-Object.defineProperty(window, 'startPreview', { get: () => startPreview, configurable: true });
-Object.defineProperty(window, 'guideText', { get: () => guideText, configurable: true });
-Object.defineProperty(window, 'placeFrame', { get: () => placeFrame, configurable: true });
-Object.defineProperty(window, 'zoomLimitKey', { get: () => zoomLimitKey, set: v => { zoomLimitKey = v; }, configurable: true });
-Object.defineProperty(window, 'limitFrameView', { get: () => limitFrameView, configurable: true });
-Object.defineProperty(window, 'areaSel', { get: () => areaSel, set: v => { areaSel = v; }, configurable: true });
-Object.defineProperty(window, 'boxGlacier', { get: () => boxGlacier, set: v => { boxGlacier = v; }, configurable: true });
-Object.defineProperty(window, 'syncAreaButtons', { get: () => syncAreaButtons, configurable: true });
-Object.defineProperty(window, 'markArea', { get: () => markArea, configurable: true });
-Object.defineProperty(window, 'checkAreaSel', { get: () => checkAreaSel, configurable: true });
-Object.defineProperty(window, 'frameTo', { get: () => frameTo, configurable: true });
-Object.defineProperty(window, 'frameExceedsImage', { get: () => frameExceedsImage, configurable: true });
-Object.defineProperty(window, 'earlyNote', { get: () => earlyNote, configurable: true });
-Object.defineProperty(window, 'updateFrame', { get: () => updateFrame, configurable: true });
-Object.defineProperty(window, 'endLen', { get: () => endLen, configurable: true });
-Object.defineProperty(window, 'tailLength', { get: () => tailLength, configurable: true });
-Object.defineProperty(window, 'perSec', { get: () => perSec, configurable: true });
-Object.defineProperty(window, 'loopSeq', { get: () => loopSeq, configurable: true });
-Object.defineProperty(window, 'videoDuration', { get: () => videoDuration, configurable: true });
-Object.defineProperty(window, 'frameScrollRaf', { get: () => frameScrollRaf, set: v => { frameScrollRaf = v; }, configurable: true });
-Object.defineProperty(window, 'openVideo', { get: () => openVideo, configurable: true });
-Object.defineProperty(window, 'centre3D', { get: () => centre3D, configurable: true });
-Object.defineProperty(window, 'paneCentred', { get: () => paneCentred, set: v => { paneCentred = v; }, configurable: true });
-Object.defineProperty(window, 'paneAnchor', { get: () => paneAnchor, set: v => { paneAnchor = v; }, configurable: true });
-Object.defineProperty(window, 'reanchoring', { get: () => reanchoring, set: v => { reanchoring = v; }, configurable: true });
-Object.defineProperty(window, 'frameCentre', { get: () => frameCentre, configurable: true });
-Object.defineProperty(window, 'centreInFrame', { get: () => centreInFrame, configurable: true });
-Object.defineProperty(window, 'bringVisualIntoView', { get: () => bringVisualIntoView, configurable: true });
-Object.defineProperty(window, 'closeVideo', { get: () => closeVideo, configurable: true });
-Object.defineProperty(window, 'FMT_BTN', { get: () => FMT_BTN, configurable: true });
-Object.defineProperty(window, 'setFmt', { get: () => setFmt, configurable: true });
-Object.defineProperty(window, 'syncSpeed', { get: () => syncSpeed, configurable: true });
-Object.defineProperty(window, 'syncLoops', { get: () => syncLoops, configurable: true });
-Object.defineProperty(window, 'syncModeToPane', { get: () => syncModeToPane, configurable: true });
-Object.defineProperty(window, 'setType', { get: () => setType, configurable: true });
-Object.defineProperty(window, 'progress', { get: () => progress, configurable: true });
-Object.defineProperty(window, 'niceScale', { get: () => niceScale, configurable: true });
-Object.defineProperty(window, 'fitText', { get: () => fitText, configurable: true });
-Object.defineProperty(window, 'shadowText', { get: () => shadowText, configurable: true });
-Object.defineProperty(window, 'buildBase', { get: () => buildBase, configurable: true });
-Object.defineProperty(window, 'shade', { get: () => shade, configurable: true });
-Object.defineProperty(window, 'LOGO_URL', { get: () => LOGO_URL, configurable: true });
-Object.defineProperty(window, 'logoImg', { get: () => logoImg, set: v => { logoImg = v; }, configurable: true });
-Object.defineProperty(window, 'loadLogo', { get: () => loadLogo, configurable: true });
-Object.defineProperty(window, 'FACT_BLUE', { get: () => FACT_BLUE, configurable: true });
-Object.defineProperty(window, 'FACT_RED', { get: () => FACT_RED, configurable: true });
-Object.defineProperty(window, 'MINUS_SIGN', { get: () => MINUS_SIGN, configurable: true });
-Object.defineProperty(window, 'easeIO', { get: () => easeIO, configurable: true });
-Object.defineProperty(window, 'placeOf', { get: () => placeOf, configurable: true });
-Object.defineProperty(window, 'shortCredit', { get: () => shortCredit, configurable: true });
-Object.defineProperty(window, 'SITE_LOGO_H', { get: () => SITE_LOGO_H, configurable: true });
-Object.defineProperty(window, 'siteLogoW', { get: () => siteLogoW, configurable: true });
-Object.defineProperty(window, 'siteLine', { get: () => siteLine, configurable: true });
-Object.defineProperty(window, 'siteLineW', { get: () => siteLineW, configurable: true });
-Object.defineProperty(window, 'creditYears', { get: () => creditYears, configurable: true });
-Object.defineProperty(window, 'brandMotion', { get: () => brandMotion, set: v => { brandMotion = v; }, configurable: true });
-Object.defineProperty(window, 'brandCorner', { get: () => brandCorner, configurable: true });
-Object.defineProperty(window, 'minimalOn', { get: () => minimalOn, configurable: true });
-Object.defineProperty(window, 'minimalLabels', { get: () => minimalLabels, configurable: true });
-Object.defineProperty(window, 'mapKeySize', { get: () => mapKeySize, configurable: true });
-Object.defineProperty(window, 'mapKey', { get: () => mapKey, configurable: true });
-Object.defineProperty(window, 'YEAR_PX', { get: () => YEAR_PX, configurable: true });
-Object.defineProperty(window, 'NAME_PX', { get: () => NAME_PX, configurable: true });
-Object.defineProperty(window, 'SUB_PX', { get: () => SUB_PX, configurable: true });
-Object.defineProperty(window, 'heroBase', { get: () => heroBase, configurable: true });
-Object.defineProperty(window, 'drawHeader', { get: () => drawHeader, configurable: true });
-Object.defineProperty(window, 'drawFactTiles', { get: () => drawFactTiles, configurable: true });
-Object.defineProperty(window, 'drawTimeline', { get: () => drawTimeline, configurable: true });
-Object.defineProperty(window, 'drawBottom', { get: () => drawBottom, configurable: true });
-Object.defineProperty(window, 'drawSwipeLabels', { get: () => drawSwipeLabels, configurable: true });
-Object.defineProperty(window, 'drawYearFrame', { get: () => drawYearFrame, configurable: true });
-Object.defineProperty(window, 'drawLabels', { get: () => drawLabels, configurable: true });
-Object.defineProperty(window, 'drawStill', { get: () => drawStill, configurable: true });
-Object.defineProperty(window, 'drawEndSlide', { get: () => drawEndSlide, configurable: true });
-Object.defineProperty(window, 'wrap', { get: () => wrap, configurable: true });
-Object.defineProperty(window, 'pickCodec', { get: () => pickCodec, configurable: true });
-Object.defineProperty(window, 'frameBases', { get: () => frameBases, configurable: true });
-Object.defineProperty(window, 'fmtPools', { get: () => fmtPools, configurable: true });
-Object.defineProperty(window, 'waterNumbers', { get: () => waterNumbers, configurable: true });
-Object.defineProperty(window, 'SITE_NAME', { get: () => SITE_NAME, configurable: true });
-Object.defineProperty(window, 'stillName', { get: () => stillName, configurable: true });
-Object.defineProperty(window, 'factCache', { get: () => factCache, configurable: true });
-Object.defineProperty(window, 'loadFacts', { get: () => loadFacts, configurable: true });
-Object.defineProperty(window, 'factSetOn', { get: () => factSetOn, configurable: true });
-Object.defineProperty(window, 'poolsShort', { get: () => poolsShort, configurable: true });
-Object.defineProperty(window, 'metres', { get: () => metres, configurable: true });
-Object.defineProperty(window, 'lengthSince', { get: () => lengthSince, configurable: true });
-Object.defineProperty(window, 'thinning', { get: () => thinning, configurable: true });
-Object.defineProperty(window, 'factTilesIs', { get: () => factTilesIs, configurable: true });
-Object.defineProperty(window, 'factTiles', { get: () => factTiles, configurable: true });
-Object.defineProperty(window, 'makeImage', { get: () => makeImage, configurable: true });
-Object.defineProperty(window, 'endInfo', { get: () => endInfo, configurable: true });
-Object.defineProperty(window, 'makeVideo', { get: () => makeVideo, configurable: true });
-Object.defineProperty(window, 'shortSlug', { get: () => shortSlug, configurable: true });
-Object.defineProperty(window, 'downloadFile', { get: () => downloadFile, configurable: true });
-Object.defineProperty(window, 'lastExport', { get: () => lastExport, set: v => { lastExport = v; }, configurable: true });
-Object.defineProperty(window, 'galleryConfig', { get: () => galleryConfig, set: v => { galleryConfig = v; }, configurable: true });
-Object.defineProperty(window, 'turnstileToken', { get: () => turnstileToken, set: v => { turnstileToken = v; }, configurable: true });
-Object.defineProperty(window, 'turnstileId', { get: () => turnstileId, set: v => { turnstileId = v; }, configurable: true });
-Object.defineProperty(window, 'galleryInfo', { get: () => galleryInfo, configurable: true });
-Object.defineProperty(window, 'offerShare', { get: () => offerShare, configurable: true });
-Object.defineProperty(window, 'shareOnly', { get: () => shareOnly, set: v => { shareOnly = v; }, configurable: true });
-Object.defineProperty(window, 'exportSignature', { get: () => exportSignature, configurable: true });
-Object.defineProperty(window, 'makeForShare', { get: () => makeForShare, configurable: true });
-Object.defineProperty(window, 'fitTurnstile', { get: () => fitTurnstile, configurable: true });
-Object.defineProperty(window, 'loadTurnstile', { get: () => loadTurnstile, configurable: true });
-Object.defineProperty(window, 'muxMp4', { get: () => muxMp4, configurable: true });
-// end of bridge
+import { setFull, setMini, evalMini, setLayers } from './09-phones.js';
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'closeVideo', { get: () => closeVideo, configurable: true });
+Object.defineProperty(wire, 'drawPreview', { get: () => drawPreview, configurable: true });
+Object.defineProperty(wire, 'frameExceedsImage', { get: () => frameExceedsImage, configurable: true });
+Object.defineProperty(wire, 'openVideo', { get: () => openVideo, configurable: true });
+Object.defineProperty(wire, 'perSec', { get: () => perSec, configurable: true });
+Object.defineProperty(wire, 'setType', { get: () => setType, configurable: true });
+Object.defineProperty(wire, 'shortSlug', { get: () => shortSlug, configurable: true });
+Object.defineProperty(wire, 'updateFrame', { get: () => updateFrame, configurable: true });
+Object.defineProperty(wire, 'vPrev', { get: () => vPrev, configurable: true });
+Object.defineProperty(wire, 'vstate', { get: () => vstate, configurable: true });
+Object.defineProperty(wire, 'waterNumbers', { get: () => waterNumbers, configurable: true });
 /* =====================================================================
    11. Create animation (video for Instagram, TikTok and others)
        Frames are drawn on a canvas from the images already loaded, encoded to H.264 with the
@@ -219,7 +101,7 @@ export function frameGroundRes(){            // metres of terrain per video pixe
    The end card is left out. */
 export let logoAsked = false;
 export function drawPreview(){
-  if (viewMode === '3d') return drawPreview3D();
+  if (viewMode === '3d') return wire.drawPreview3D();
   if (!logoImg && !logoAsked) { logoAsked = true; loadLogo().then(() => drawPreview()); }      // the logo is part of every picture: the preview shows it as soon as it is decoded
   const cv = $('vfPreview'), F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = 0.5, ys = videoYears();
   cv.width = Math.round(W * q); cv.height = Math.round(H * q);
@@ -241,13 +123,13 @@ export const PV_ICON = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path
 export function stopPreview(){
   if (!vPrev.on) return; vPrev.on = false; cancelAnimationFrame(vPrev.raf);
   if (state.playing) stopPlay();
-  if (viewMode === '3d' && v3d && vPrev.cam0) { v3d.setCam(vPrev.cam0); vPrev.cam = null; if (v3dCtx && v3dCtx.cmp) setSplit3D(vPrev.split0); else if (vPrev.year0 && v3dCtx && v3dCtx.follow) v3dCtx.follow(vPrev.year0); drawPreview3D(); }      // the view, the line and the year come back
+  if (viewMode === '3d' && wire.v3d && vPrev.cam0) { wire.v3d.setCam(vPrev.cam0); vPrev.cam = null; if (wire.v3dCtx && wire.v3dCtx.cmp) wire.setSplit3D(vPrev.split0); else if (vPrev.year0 && wire.v3dCtx && wire.v3dCtx.follow) wire.v3dCtx.follow(vPrev.year0); wire.drawPreview3D(); }      // the view, the line and the year come back
   $('videoFrame').classList.remove('playing'); $('vfPlay').innerHTML = PV_ICON.play; $('vfPlay').setAttribute('aria-label', 'Play a preview');
   if (vstate.kind !== 'image' && vstate.type === 'swipe') { clip(); drawPreview(); }
 }
 export function startPreview3D(){            // the camera swings as in the video, the years change (timelapse) or the line moves (slider); everything is put back when it stops
-  const c = v3dCtx, viewer = v3d; if (!c || !viewer) return;
-  vPrev.applied = null; vPrev.off = {az: 0, el: 0, k: 1}; vPrev.cam0 = viewer.getCam(); vPrev.year0 = c.cmp ? null : c.current(); vPrev.split0 = v3dSplit; vPrev.cam = vPrev.cam0;
+  const c = wire.v3dCtx, viewer = wire.v3d; if (!c || !viewer) return;
+  vPrev.applied = null; vPrev.off = {az: 0, el: 0, k: 1}; vPrev.cam0 = viewer.getCam(); vPrev.year0 = c.cmp ? null : c.current(); vPrev.split0 = wire.v3dSplit; vPrev.cam = vPrev.cam0;
   const t0 = performance.now(), swing = $('vSwing') && $('vSwing').checked, ys = !c.cmp && c.years && c.years.length > 1 ? c.years : null;
   const tick = now => {
     if (!vPrev.on) return; const t = (now - t0) / 1000, u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2;
@@ -257,9 +139,9 @@ export function startPreview3D(){            // the camera swings as in the vide
     }
     const cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
     vPrev.off = off; vPrev.cam = {az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
-    if (c.cmp) setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * t / 6));
+    if (c.cmp) wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * t / 6));
     else if (ys && c.follow) { const y = ys[Math.floor(t / 1.2) % ys.length]; if (y !== c.current()) c.follow(y); }
-    drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
+    wire.drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
   };
   vPrev.raf = requestAnimationFrame(tick);
 }
@@ -349,7 +231,7 @@ export function earlyNote(years){            // years before the Sentinel-2 seri
 }
 export function updateFrame(){
   if ($('videoSheet').hidden) return;
-  if (viewMode === '3d') return update3DInfo();
+  if (viewMode === '3d') return wire.update3DInfo();
   sheetOverlap = measureSheetOverlap();
   if (vstate.fmt === 'box' && boxGlacier !== currentGlacier().id) frameTo('image');      // another glacier: its image box
   syncBackgrounds(); limitFrameView(); checkAreaSel();
@@ -407,16 +289,16 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
   document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Or move and zoom the map yourself, until the frame shows what you want.';
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
     if (vstate.fmt === 'box') setFmt('wide');      // the image box is a map extent: no meaning in 3D
-    if (typeof leavePhoto === 'function') leavePhoto(true);      // a download shows the orbiting camera, not the view of a historic photograph
+    if (typeof wire.leavePhoto === 'function') wire.leavePhoto(true);      // a download shows the orbiting camera, not the view of a historic photograph
     $('videoSheet').hidden = false; $('videoFrame').hidden = false;
     $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
     lastExport = null; $('vsShareBox').hidden = true; $('vsShareForm').hidden = true; offerShare();
     if (image && state.mode === 'timelapse') { const y = stillYear(); if (state.available[y]) state.one = y; $('modeSingle').click(); }      // a picture is of one year: the panel goes to One year, at the year on screen, as in Map view
     const g3 = currentGlacier(), has3 = hasOldOutline(g3); $('vOutline').disabled = !has3;      // a download shows the 1850 outline when the glacier has one
-    if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); sync3DMenu(); refresh3D(); }      // the 1850 outline starts off in a download pane (tick it to add it)
+    if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); wire.sync3DMenu(); wire.refresh3D(); }      // the 1850 outline starts off in a download pane (tick it to add it)
     $('vOutline').checked = has3 && $('oldToggle').checked;
     bringVisualIntoView(stay);
-    update3DInfo(); if (!wasOpen) centre3D();
+    wire.update3DInfo(); if (!wasOpen) centre3D();
     return;
   }
   setType(!image && state.mode === 'compare' ? 'swipe' : 'timelapse');
@@ -435,10 +317,10 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
 }
 /* The pane at the side takes room from the map, so the frame sits off the middle of the stage: the map moves with it, and what was in the middle of the map (the glacier at the landing view) is now in the middle of the frame. Closing the pane moves it back. */
 export function centre3D(){            // 3D: the picture on screen moves so that its middle is the middle of the frame (the pane takes room from the stage); the export crops with the difference
-  if (typeof v3d === 'undefined' || !v3d || !v3d.setShift) return;
-  if (!visibleBox().side) return v3d.setShift(0, 0);
+  if (typeof wire.v3d === 'undefined' || !wire.v3d || !wire.v3d.setShift) return;
+  if (!visibleBox().side) return wire.v3d.setShift(0, 0);
   const cv = $('v3dCanvas'), cw = cv.clientWidth, ch = cv.clientHeight, r = frameRect();
-  v3d.setShift((r.x + r.w / 2 - cw / 2) / (cw / 2), -(r.y + r.h / 2 - ch / 2) / (ch / 2));
+  wire.v3d.setShift((r.x + r.w / 2 - cw / 2) / (cw / 2), -(r.y + r.h / 2 - ch / 2) / (ch / 2));
 }
 export let paneCentred = false, paneAnchor = null, reanchoring = false;      // paneAnchor: the place on the map that sits in the middle of the frame
 export const frameCentre = () => { const r = frameRect(); return L.point(r.x + r.w / 2, r.y + r.h / 2); };
@@ -454,7 +336,7 @@ map.on('resize', () => {            // a side panel folds away or comes back whi
   const c = frameCentre(), p = map.latLngToContainerPoint(paneAnchor);
   reanchoring = true; map.panBy([Math.round(p.x - c.x), Math.round(p.y - c.y)], {animate: false}); reanchoring = false;
 });
-if (window.ResizeObserver) new ResizeObserver(() => { if (viewMode === '3d' && !$('videoSheet').hidden) { centre3D(); update3DInfo(); } }).observe($('v3dCanvas'));      // 3D: the same, as the stage changes size
+if (window.ResizeObserver) new ResizeObserver(() => { if (viewMode === '3d' && !$('videoSheet').hidden) { centre3D(); wire.update3DInfo(); } }).observe($('v3dCanvas'));      // 3D: the same, as the stage changes size
 export function bringVisualIntoView(stay){            // phones: the visual has to be on screen when a download pane opens (the small window gives way to it), in the map and in 3D
   if (stay || !matchMedia('(max-width:720px)').matches) return;
   if ($('stage').classList.contains('is-full')) setFull(false);
@@ -466,11 +348,11 @@ export function closeVideo(){
   let shiftBack = null; if (paneCentred && viewMode !== '3d' && !$('videoSheet').hidden) { const c = frameCentre(), m = map.getSize().divideBy(2); shiftBack = {x: Math.round(c.x - m.x), y: Math.round(c.y - m.y)}; }
   document.body.classList.remove('pane-open'); M.group.addTo(map);
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
-  if (typeof v3d !== 'undefined' && v3d && v3d.setShift) v3d.setShift(0, 0);
+  if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.setShift) wire.v3d.setShift(0, 0);
   if (paneCentred) { paneCentred = false; if (viewMode !== '3d' && shiftBack) map.panBy([shiftBack.x, shiftBack.y], {animate: false}); }      // back to the middle of the whole stage
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
 }
-$('vkImage').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !v3dBusy) openVideo('video'); };      // switch between the two panes without closing
+$('vkImage').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('video'); };      // switch between the two panes without closing
 $('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', box: 'vfBox' };
 export const setFmt = f => {
@@ -492,8 +374,8 @@ $('vSafe').onchange = updateFrame;
 $('vMinimal').onchange = updateFrame; $('vEnd').onchange = updateFrame; $('vFacts').onchange = $('vFactSet').onchange = updateFrame;
 export const syncLoops = () => { $('vBounce').disabled = +$('vLoops').value < 2; updateFrame(); };
 $('vLoops').onchange = syncLoops; $('vBounce').onchange = updateFrame; syncLoops();
-$('vSwing').onchange = () => { if (viewMode === '3d') update3DInfo(); };
-$('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } updateFrame(); };   // show the 1850 outline on the map as well
+$('vSwing').onchange = () => { if (viewMode === '3d') wire.update3DInfo(); };
+$('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } updateFrame(); };   // show the 1850 outline on the map as well
 /* The map behind the pane shows what the pane will make: Timelapse, Compare (the slider) or One year (a single image) */
 export function syncModeToPane(){
   const want = vstate.kind === 'image' ? (state.mode === 'compare' ? 'modeCompare' : 'modeSingle') : vstate.type === 'swipe' ? 'modeCompare' : 'modeTimelapse';
@@ -586,7 +468,7 @@ export const siteLine = (ctx, xRight, y) => {            // "Created on tonguesf
   ctx.font = `600 22px ${FONT}`; shadowText(ctx, `Created on ${SITE_NAME}`, xRight - lw, y, {blur:6, color:'rgba(255,255,255,.9)', align:'right'});
   if (!logoImg) return;
   const lx = xRight - SITE_LOGO_H * 200 / 190, ly = y - SITE_LOGO_H * 0.8;
-  if (brandMotion) drawLogo3DAt(ctx, lx, ly, SITE_LOGO_H, brandMotion.cam, brandMotion.cam0);
+  if (brandMotion) wire.drawLogo3DAt(ctx, lx, ly, SITE_LOGO_H, brandMotion.cam, brandMotion.cam0);
   else { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, lx, ly, SITE_LOGO_H * 200 / 190, SITE_LOGO_H); ctx.restore(); }
 };
 export const siteLineW = ctx => { ctx.save(); ctx.font = `600 22px ${FONT}`; const w = ctx.measureText(`Created on ${SITE_NAME}`).width + (logoImg ? siteLogoW() : 0); ctx.restore(); return w; };
@@ -595,7 +477,7 @@ export const creditYears = info => info.compare ? `${info.years[0]} and ${info.y
 export let brandMotion = null;      // 3D videos: {cam, cam0}, the camera now and at the start; the small logo of the brand corner then turns and tilts with it (set around draw3DLabels in js/11-view3d.js)
 export function brandCorner(ctx, x, y){
   let tx = x; const h = 36;
-  if (logoImg && brandMotion) { drawLogo3DAt(ctx, x, y - h * .8, h, brandMotion.cam, brandMotion.cam0); tx = x + h * 200 / 190 + 12; }
+  if (logoImg && brandMotion) { wire.drawLogo3DAt(ctx, x, y - h * .8, h, brandMotion.cam, brandMotion.cam0); tx = x + h * 200 / 190 + 12; }
   else if (logoImg) { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, x, y - h * .8, h * 200 / 190, h); ctx.restore(); tx = x + h * 200 / 190 + 12; }
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', tx, y, {blur:8, color:'#FF5A4E'});
 }
@@ -848,7 +730,7 @@ export function loadFacts(g){
   let c = factCache[g.id];
   if (!c) {
     c = factCache[g.id] = { done: false, v: null };
-    c.p = (g.rgi ? loadBundle(bundleId(g)).then(b => { if (b && b.change) IS_CHANGE[g.id] = b.change; return null; }) : glacierVolume(g)).catch(() => null).then(v => { c.v = v; c.done = true; if (!$('videoSheet').hidden) { if (viewMode === '3d') update3DInfo(); else drawPreview(); } return c; });
+    c.p = (g.rgi ? wire.loadBundle(wire.bundleId(g)).then(b => { if (b && b.change) IS_CHANGE[g.id] = b.change; return null; }) : glacierVolume(g)).catch(() => null).then(v => { c.v = v; c.done = true; if (!$('videoSheet').hidden) { if (viewMode === '3d') wire.update3DInfo(); else drawPreview(); } return c; });
   }
   return c.p || Promise.resolve(c);
 }
@@ -1054,7 +936,7 @@ export function downloadFile(file){
   const a = document.createElement('a'); a.href = URL.createObjectURL(file); a.download = file.name;
   document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(a.href), 60000);
 }
-$('vsGo').onclick = () => viewMode === '3d' ? download3D(vstate.kind === 'image' ? 'image' : 'video') : vstate.kind === 'image' ? makeImage() : makeVideo();
+$('vsGo').onclick = () => viewMode === '3d' ? wire.download3D(vstate.kind === 'image' ? 'image' : 'video') : vstate.kind === 'image' ? makeImage() : makeVideo();
 
 /* ---- share the finished file in the public gallery (the Worker checks and holds it until it is approved) ---- */
 export let lastExport = null;              // { file, meta: { type, years } } of the picture or video just made
@@ -1074,11 +956,11 @@ export async function offerShare(){            // shown as soon as the download 
 export let shareOnly = false;              // the file is made for the gallery only: no download
 export const exportSignature = () => { try { return JSON.stringify([viewMode, state.glacier, state.mode, state.a, state.b, state.from, state.to, state.one, state.latest && state.latest.year, state.style, state.frame, vstate.kind, vstate.type, vstate.fmt, minimalOn(),
   [...document.querySelectorAll('#videoSheet input, #videoSheet select')].filter(e => !e.closest('#vsShareBox')).map(e => e.type === 'checkbox' ? +e.checked : e.value).join('|'),
-  viewMode === '3d' ? [v3d && v3d.getCam(), v3dSplit, v3dCtx && v3dCtx.current && v3dCtx.current()] : [map.getCenter().lat.toFixed(5), map.getCenter().lng.toFixed(5), map.getZoom(), state.split],
+  viewMode === '3d' ? [wire.v3d && wire.v3d.getCam(), wire.v3dSplit, wire.v3dCtx && wire.v3dCtx.current && wire.v3dCtx.current()] : [map.getCenter().lat.toFixed(5), map.getCenter().lng.toFixed(5), map.getZoom(), state.split],
   [...document.querySelectorAll('.layerbox input[type=checkbox]')].map(e => +e.checked).join(''), brightness(), outsideAlpha(), imgOpacity(), typeof frameRect === 'function' ? frameRect() : null]); } catch { return String(Math.random()); } };      // what the file shows: a file made earlier is reused only when nothing of this has changed
 export async function makeForShare(){
   shareOnly = true;
-  try { if (viewMode === '3d') await download3D(vstate.kind === 'image' ? 'image' : 'video'); else if (vstate.kind === 'image') await makeImage(); else await makeVideo(); }
+  try { if (viewMode === '3d') await wire.download3D(vstate.kind === 'image' ? 'image' : 'video'); else if (vstate.kind === 'image') await makeImage(); else await makeVideo(); }
   finally { shareOnly = false; }
 }
 export function fitTurnstile(){            // the check is 300 px wide: scale it down to the width of the pane
@@ -1171,3 +1053,6 @@ export function muxMp4({ width, height, fps, avcC, samples }){
 
 /* The credits on the preview follow the layers: a switch changed while a download pane is open redraws the frame (outlines, radar, trails, aerial images change the source list) */
 document.addEventListener('change', e => { if (!$('videoSheet').hidden && e.target.closest && e.target.closest('.layerbox, #v3dLayers')) setTimeout(updateFrame, 0); });
+export function setLastExport(v){ return lastExport = v; }      // the other files may not assign to an imported variable
+export function setBrandMotion(v){ return brandMotion = v; }      // the other files may not assign to an imported variable
+export function setLogoAsked(v){ return logoAsked = v; }      // the other files may not assign to an imported variable

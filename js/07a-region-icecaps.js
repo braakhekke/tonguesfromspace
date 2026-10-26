@@ -1,25 +1,10 @@
+import { wire } from './wire.js';
 import { ICECAP, areaSeries, GLACIERS } from './02-glaciers.js';
 import { fmtDate } from './03-imagery.js';
 import { currentGlacier, glacierPicked } from './04-state.js';
-import { dcard, cardKey, landsatAbout, aboutFrame, aboutSentinel, aboutColours, renderStory, cbYears, cbButtonsHtml, ICONS, SOURCES, SOURCE_LIST, gfn, fn, cardOpen } from './07-render.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'nfIs', { get: () => nfIs, configurable: true });
-Object.defineProperty(window, 'IS_CHANGE', { get: () => IS_CHANGE, configurable: true });
-Object.defineProperty(window, 'IC_REGION', { get: () => IC_REGION, configurable: true });
-Object.defineProperty(window, 'statGroupIs', { get: () => statGroupIs, configurable: true });
-Object.defineProperty(window, 'minus', { get: () => minus, configurable: true });
-Object.defineProperty(window, 'lookAuto', { get: () => lookAuto, configurable: true });
-Object.defineProperty(window, 'renderStoryIcecap', { get: () => renderStoryIcecap, configurable: true });
-Object.defineProperty(window, 'placenameText', { get: () => placenameText, configurable: true });
-Object.defineProperty(window, 'fillStrips', { get: () => fillStrips, configurable: true });
-Object.defineProperty(window, 'IC_WHY', { get: () => IC_WHY, configurable: true });
-Object.defineProperty(window, 'icSeasonText', { get: () => icSeasonText, configurable: true });
-Object.defineProperty(window, 'icWhyOnly', { get: () => icWhyOnly, configurable: true });
-Object.defineProperty(window, 'icFigures', { get: () => icFigures, configurable: true });
-Object.defineProperty(window, 'icView3d', { get: () => icView3d, configurable: true });
-Object.defineProperty(window, 'icOutdoors', { get: () => icOutdoors, configurable: true });
-Object.defineProperty(window, 'aboutChaptersIc', { get: () => aboutChaptersIc, configurable: true });
-// end of bridge
+import { dcard, cardKey, landsatAbout, aboutFrame, aboutSentinel, aboutColours, renderStory, cbYears, cbButtonsHtml, ICONS, SOURCES, SOURCE_LIST, gfn, fn, cardOpen, dynSources, restoringCards, storyTab, setDynSources, setRestoringCards, setStoryTab } from './07-render.js';
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'renderStoryIcecap', { get: () => renderStoryIcecap, configurable: true });
 /* =====================================================================
    7a. The right panel of the ice-cap regions (Vatnajökull and the rest of Iceland, Svalbard, mainland Norway)
        The Swiss story (GLAMOS figures, the Switzerland tab, hikes) has no counterpart here, so these regions have their own: Discover (what to look for, news, a fact, the name, the
@@ -54,7 +39,7 @@ export const minus = s => String(s).replace('-', '−');
 /* What to look for, from the data alone: where the tongue is and how the front has moved. Documented text of the glacier (07b) follows it. */
 export function lookAuto(g){
   const ser = areaSeries(g), now = ser[ser.length - 1], then = ser.length > 1 ? ser[0] : null, O = g.outlines || {}, bits = [];
-  const lag = (IC_INFO[g.id] || {}).lowest, low = lag ? lag.text : g.rgi.zmin > 0 ? `at about ${nfIs(g.rgi.zmin)} m above sea level (${REGION.inventory.short} ${REGION.inventory.about}${fn(REGION.inventory.source)})` : `where the ice ends in the sea (${REGION.inventory.short} ${REGION.inventory.about}${fn(REGION.inventory.source)})`;
+  const lag = (wire.IC_INFO[g.id] || {}).lowest, low = lag ? lag.text : g.rgi.zmin > 0 ? `at about ${nfIs(g.rgi.zmin)} m above sea level (${REGION.inventory.short} ${REGION.inventory.about}${fn(REGION.inventory.source)})` : `where the ice ends in the sea (${REGION.inventory.short} ${REGION.inventory.about}${fn(REGION.inventory.source)})`;
   bits.push(`The picture is centred on the tongue of ${g.name}, the lowest ice of the ${g.units > 1 ? 'glacier complex' : 'glacier'}, ${low}. Use the 3D view to see the shape of the valley.`);
   if (g.tongueName) bits.push(`The lowest tongue belongs to ${g.tongueName}${REGION.id === 'no-mainland' ? ` (${REGION.inventory.short}'s name for the glacier unit)` : ''}.`);
   if (then && now && then.km2 > 0) bits.push(`Its area was ${nfIs(then.km2)} km² in ${then.label} and ${nfIs(now.km2)} km² in ${now.label} (${nfIs(100 * Math.abs(now.km2 - then.km2) / then.km2)} % ${now.km2 < then.km2 ? 'less' : 'more'}); switch on the old outline in the Layers menu to see where the ice stood${fn(O.lia && REGION.id === 'no-mainland' ? 'no_old' : REGION.inventory.source)}.`);
@@ -62,12 +47,12 @@ export function lookAuto(g){
 }
 export function renderStoryIcecap(){
   const g = glacierPicked ? currentGlacier() : null, ice = (ICECAP && ICECAP.icecap) || {}, storyEl = document.getElementById('story'), R = IC_REGION[REGION.id];
-  if (typeof updateRightTab === 'function') updateRightTab();
+  if (typeof wire.updateRightTab === 'function') wire.updateRightTab();
   const key = currentGlacier().id + '|' + !!g, keepScroll = storyEl.scrollTop, same = storyEl.dataset.key === key;      // the same glacier (or the same overview) as the last drawing
   const openCards = same ? [...storyEl.querySelectorAll('details.coll[open]')].map(cardKey) : [];
   storyEl.dataset.glacier = currentGlacier().id; storyEl.dataset.key = key; storyEl.classList.remove('empty');
-  dynSources = [];
-  const info = (g && IC_INFO[g.id]) || {}, dcardIc = (title, inner) => `<details class="card dcard coll" name="vat"><summary><div class="card-h">${title}</div></summary><div class="dbody">${inner}</div></details>`;
+  setDynSources([]);
+  const info = (g && wire.IC_INFO[g.id]) || {}, dcardIc = (title, inner) => `<details class="card dcard coll" name="vat"><summary><div class="card-h">${title}</div></summary><div class="dbody">${inner}</div></details>`;
   const own = GLACIERS.map(x => ({name: x.name, areaKm2: x.rgi.areaKm2, id: x.id, pick: true}));
   const all = (REGION.inventory.listAll ? ((ICECAP && ICECAP.basins) || []).map(b => ({...b, pick: false})) : []).concat(own).sort((a, b) => b.areaKm2 - a.areaKm2);
   const largest = dcardIc(R.list, `<ul class="blist">` +
@@ -105,28 +90,28 @@ export function renderStoryIcecap(){
     panel('swiss', `<p class="lede">${lede}</p><div class="stats">${statGroupIs('area', R.h2(ice), '', R.tiles(ice))}</div>` + largest.replace('name="vat"', 'name="vat2"')) +
     aboutFrame(aboutChaptersIc());
   storyEl.querySelectorAll('.tabs button').forEach(bt => bt.onclick = () => {
-    storyTab = bt.dataset.tab;
+    setStoryTab(bt.dataset.tab);
     storyEl.querySelectorAll('.tabs button').forEach(x => x.setAttribute('aria-selected', x === bt));
     storyEl.querySelectorAll('.tab-panel').forEach(pn => pn.hidden = pn.dataset.panel !== storyTab);
   });
-  storyEl.querySelectorAll('.blist li.go').forEach(li => li.onclick = () => chooseGlacier(li.dataset.id));
-  restoringCards = true;
+  storyEl.querySelectorAll('.blist li.go').forEach(li => li.onclick = () => wire.chooseGlacier(li.dataset.id));
+  setRestoringCards(true);
   storyEl.querySelectorAll('details.coll').forEach(d => { if (openCards.includes(cardKey(d))) d.open = true; });
-  setTimeout(() => { restoringCards = false; }, 100);
+  setTimeout(() => { setRestoringCards(false); }, 100);
   storyEl.scrollTop = same ? keepScroll : 0;
-  if (g && !ch && !IS_CHANGE[g.id]) loadBundle(bundleId(g)).then(b => { if (b && b.change) { IS_CHANGE[g.id] = b.change; if (document.getElementById('story').dataset.key === key) renderStory(); } });      // the surface change comes with the terrain file
+  if (g && !ch && !IS_CHANGE[g.id]) wire.loadBundle(wire.bundleId(g)).then(b => { if (b && b.change) { IS_CHANGE[g.id] = b.change; if (document.getElementById('story').dataset.key === key) renderStory(); } });      // the surface change comes with the terrain file
   fillStrips();
 }
 /* The name of a Svalbard glacier: what the Norwegian Polar Institute's place names say (definition and origin) */
 export function placenameText(g){
   const p = g.placename; if (!p) return '';
   const cap = s => s.replace(/\.?$/, '.'), origin = (p.origin || '').replace(/^B\. = /, '');
-  return `${p.definition ? cap(p.definition.trim()) + ' ' : ''}${origin ? `Name origin: ${cap(origin)}` : ''}${gfn(NPI_NAMES_SRC)}`;
+  return `${p.definition ? cap(p.definition.trim()) + ' ' : ''}${origin ? `Name origin: ${cap(origin)}` : ''}${gfn(wire.NPI_NAMES_SRC)}`;
 }
 /* the dates of the ArcticDEM strips, from the header of the terrain file (About, The 3D view) */
 export function fillStrips(){
   const el = document.getElementById('isStrips'); if (!el || !glacierPicked) return;
-  loadBundle(bundleId(currentGlacier())).then(b => { const e2 = document.getElementById('isStrips'); if (e2 && b && b.yearly) e2.innerHTML = b.yearly.strips.map(s => fmtDate(s.date)).join('; '); const n = document.getElementById('isStripsN'); if (n && b && b.yearly) n.textContent = `${b.yearly.strips.length} strips`; });
+  wire.loadBundle(wire.bundleId(currentGlacier())).then(b => { const e2 = document.getElementById('isStrips'); if (e2 && b && b.yearly) e2.innerHTML = b.yearly.strips.map(s => fmtDate(s.date)).join('; '); const n = document.getElementById('isStripsN'); if (n && b && b.yearly) n.textContent = `${b.yearly.strips.length} strips`; });
 }
 
 /* ---------------- About: the chapters of the regions, in the format of the Swiss ones (aboutFrame) ---------------- */

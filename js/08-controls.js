@@ -1,42 +1,16 @@
-import { FIRST_YEAR, YEARS, LANDSAT_YEARS } from './01-data.js';
+import { wire } from './wire.js';
+import { FIRST_YEAR, YEARS, LANDSAT_YEARS, $ } from './01-data.js';
 import { ICECAP, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, restoreLatest } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
-import { map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers } from './05-map.js';
+import { map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
 import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
 import { focusSub, syncPane, outlineGeom, maxLinkText, refreshAll } from './07-render.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'setOrient', { get: () => setOrient, configurable: true });
-Object.defineProperty(window, 'setStatus', { get: () => setStatus, configurable: true });
-Object.defineProperty(window, 'showNotice', { get: () => showNotice, configurable: true });
-Object.defineProperty(window, 'BOX_MAX_ZOOM', { get: () => BOX_MAX_ZOOM, configurable: true });
-Object.defineProperty(window, 'boxLayer', { get: () => boxLayer, configurable: true });
-Object.defineProperty(window, 'otherLayer', { get: () => otherLayer, configurable: true });
-Object.defineProperty(window, 'subLayer', { get: () => subLayer, configurable: true });
-Object.defineProperty(window, 'frameLayer', { get: () => frameLayer, configurable: true });
-Object.defineProperty(window, 'roundedBox', { get: () => roundedBox, configurable: true });
-Object.defineProperty(window, 'glacierBounds', { get: () => glacierBounds, configurable: true });
-Object.defineProperty(window, 'hasOutline', { get: () => hasOutline, configurable: true });
-Object.defineProperty(window, 'badgeLatLng', { get: () => badgeLatLng, configurable: true });
-Object.defineProperty(window, 'boxParts', { get: () => boxParts, configurable: true });
-Object.defineProperty(window, 'drawBoxes', { get: () => drawBoxes, configurable: true });
-Object.defineProperty(window, 'updateBoxes', { get: () => updateBoxes, configurable: true });
-Object.defineProperty(window, 'basinLayer', { get: () => basinLayer, configurable: true });
-Object.defineProperty(window, 'iceCapBounds', { get: () => iceCapBounds, configurable: true });
-Object.defineProperty(window, 'glaciersExtent', { get: () => glaciersExtent, configurable: true });
-Object.defineProperty(window, 'showOverview', { get: () => showOverview, configurable: true });
-Object.defineProperty(window, 'lb', { get: () => lb, configurable: true });
-Object.defineProperty(window, 'BASE_TOGGLES', { get: () => BASE_TOGGLES, configurable: true });
-Object.defineProperty(window, 'onlyBase', { get: () => onlyBase, configurable: true });
-Object.defineProperty(window, 'syncSatUi', { get: () => syncSatUi, configurable: true });
-Object.defineProperty(window, 'applyRegionUi', { get: () => applyRegionUi, configurable: true });
-Object.defineProperty(window, 'regionItem', { get: () => regionItem, configurable: true });
-Object.defineProperty(window, 'renderRegionMenu', { get: () => renderRegionMenu, configurable: true });
-Object.defineProperty(window, 'toggleRegionMenu', { get: () => toggleRegionMenu, configurable: true });
-Object.defineProperty(window, 'setLandsat', { get: () => setLandsat, configurable: true });
-Object.defineProperty(window, 'restoreLatestIfOld', { get: () => restoreLatestIfOld, configurable: true });
-Object.defineProperty(window, 'updateLandsatRow', { get: () => updateLandsatRow, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'setStatus', { get: () => setStatus, configurable: true });
+Object.defineProperty(wire, 'showNotice', { get: () => showNotice, configurable: true });
+Object.defineProperty(wire, 'syncSatUi', { get: () => syncSatUi, configurable: true });
+Object.defineProperty(wire, 'updateLandsatRow', { get: () => updateLandsatRow, configurable: true });
 /* =====================================================================
    8. Controls
    ===================================================================== */
@@ -48,13 +22,13 @@ export function setOrient(o){
   document.getElementById('yearsB').setAttribute('aria-label', o === 'h' ? 'Year for bottom image' : 'Year for right image');
   state.split = .5;
   clip();
-  syncPane(); if (typeof sync3D === 'function') sync3D();           // (the 3D file loads later than this one: not yet there at the first call)
+  syncPane(); if (typeof wire.sync3D === 'function') wire.sync3D();           // (the 3D file loads later than this one: not yet there at the first call)
   // an open download pane shows the new direction
 }
 document.getElementById('orientV').onclick = () => setOrient('v'); document.getElementById('orientH').onclick = () => setOrient('h');
 setOrient(prefs.orient === 'v' ? 'v' : 'h');
 document.getElementById('modeCompare').onclick = () => { state.mode = 'compare'; refreshAll(); };
-document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); mobileDataNote(); };
+document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); wire.mobileDataNote(); };
 document.getElementById('modeSingle').onclick = () => { state.mode = 'single'; state.frame = 0; refreshAll(); };
 
 
@@ -97,11 +71,11 @@ export function boxParts(g, i, sel, flat){
     const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : g.rgi ? L.polygon(g.rgi.outline.map(r => [r]), {...style}) : L.polygon(roundedBox(fp), {...style});
     const tip = `${i + 1}. ${g.name}, ${areaText(g, 1)} km²`;
     const light = on => { const st = {fillOpacity: flat ? 0 : on ? 0.4 : F, weight: on ? 2.2 : W}; shape.setStyle ? shape.setStyle(st) : shape.eachLayer(l => l.setStyle(st)); };      // the polygon lights up under the pointer, also when the pointer is on its number
-    shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false));
+    shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => wire.chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false));
     const tip0 = g.inv && g.inv.terminus && g.inv.terminus.tip || g.tongue;      // the badge sits at the tongue tip, off the ice, with the name beside it
     const num = L.marker(tip0 ? L.latLng(tip0) : has ? badgeLatLng(g) : [fp[1][0], (fp[0][1] + fp[1][1]) / 2], {
       icon: L.divIcon({className: '', html: `<div class="gbox-num${sel ? ' sel' : ''}"><span class="lab"><i>${i + 1}</i>${g.name}</span></div>`, iconSize: [10, 10], iconAnchor: [5, 5]}),
-      keyboard: true}).on('click', () => chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false)).bindTooltip(tip, {direction: 'top', offset: [0, -12], className: 'gbox-tip'});      // the same tooltip over the number
+      keyboard: true}).on('click', () => wire.chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false)).bindTooltip(tip, {direction: 'top', offset: [0, -12], className: 'gbox-tip'});      // the same tooltip over the number
     return [shape, num];
 }
 export function drawBoxes(){
@@ -214,7 +188,7 @@ document.getElementById('topoToggle').onchange = e => {
 document.getElementById('trailsToggle').checked = prefs.trails === true;
 document.getElementById('trailsToggle').onchange = e => {
   prefs.trails = e.target.checked; savePrefs();
-  if (e.target.checked) { trailClipKey = ''; updateTrailClip(); trails.addTo(map); } else map.removeLayer(trails); document.getElementById('trailLegend').hidden = !e.target.checked; updateSight(); updateCredits();
+  if (e.target.checked) { setTrailClipKey(''); updateTrailClip(); trails.addTo(map); } else map.removeLayer(trails); document.getElementById('trailLegend').hidden = !e.target.checked; updateSight(); updateCredits();
 };
 document.getElementById('trailLegend').hidden = !document.getElementById('trailsToggle').checked;
 document.getElementById('altiToggle').checked = prefs.alti === true;

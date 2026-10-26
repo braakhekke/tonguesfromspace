@@ -1,152 +1,10 @@
-import { YEARS } from './01-data.js';
+import { wire } from './wire.js';
+import { YEARS, $, COARSE } from './01-data.js';
 import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, isLandsat, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, setLoading, fmtDM, latestBusy } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, glacierPicked } from './04-state.js';
-// Bridge while other scripts are still classic scripts (delete when none is left): lazy accessors, so a name is readable as soon as the module runs, like a classic script's.
-Object.defineProperty(window, 'TWO_FINGER', { get: () => TWO_FINGER, configurable: true });
-Object.defineProperty(window, 'map', { get: () => map, configurable: true });
-Object.defineProperty(window, 'NiceScale', { get: () => NiceScale, configurable: true });
-Object.defineProperty(window, 'scaleCtl', { get: () => scaleCtl, configurable: true });
-Object.defineProperty(window, 'placeScale', { get: () => placeScale, configurable: true });
-Object.defineProperty(window, 'updateCredits', { get: () => updateCredits, configurable: true });
-Object.defineProperty(window, 'spaceCache', { get: () => spaceCache, configurable: true });
-Object.defineProperty(window, 'spaceCanvas', { get: () => spaceCanvas, configurable: true });
-Object.defineProperty(window, 'mapEl', { get: () => mapEl, configurable: true });
-Object.defineProperty(window, 'osm', { get: () => osm, configurable: true });
-Object.defineProperty(window, 'topo', { get: () => topo, configurable: true });
-Object.defineProperty(window, 'alti', { get: () => alti, configurable: true });
-Object.defineProperty(window, 'TrailsLayer', { get: () => TrailsLayer, configurable: true });
-Object.defineProperty(window, 'TrailsVector', { get: () => TrailsVector, configurable: true });
-Object.defineProperty(window, 'trails', { get: () => trails, configurable: true });
-Object.defineProperty(window, 'trailsFor', { get: () => trailsFor, configurable: true });
-Object.defineProperty(window, 'ensureSight', { get: () => ensureSight, configurable: true });
-Object.defineProperty(window, 'sightFor', { get: () => sightFor, configurable: true });
-Object.defineProperty(window, 'updateSight', { get: () => updateSight, configurable: true });
-Object.defineProperty(window, 'updateTrailClip', { get: () => updateTrailClip, configurable: true });
-Object.defineProperty(window, 'HIDE_LABELS', { get: () => HIDE_LABELS, configurable: true });
-Object.defineProperty(window, 'LabelsLayer', { get: () => LabelsLayer, configurable: true });
-Object.defineProperty(window, 'labels', { get: () => labels, configurable: true });
-Object.defineProperty(window, 'BLANK', { get: () => BLANK, configurable: true });
-Object.defineProperty(window, 'BG_YEAR', { get: () => BG_YEAR, configurable: true });
-Object.defineProperty(window, 'bgTiles', { get: () => bgTiles, configurable: true });
-Object.defineProperty(window, 'setBackground', { get: () => setBackground, configurable: true });
-Object.defineProperty(window, 'SI_LAST', { get: () => SI_LAST, configurable: true });
-Object.defineProperty(window, 'aerial', { get: () => aerial, configurable: true });
-Object.defineProperty(window, 'siYear', { get: () => siYear, configurable: true });
-Object.defineProperty(window, 'aerialWanted', { get: () => aerialWanted, configurable: true });
-Object.defineProperty(window, 'aerialSlots', { get: () => aerialSlots, configurable: true });
-Object.defineProperty(window, 'aerialFlown', { get: () => aerialFlown, configurable: true });
-Object.defineProperty(window, 'flownYear', { get: () => flownYear, configurable: true });
-Object.defineProperty(window, 'ensureFlown', { get: () => ensureFlown, configurable: true });
-Object.defineProperty(window, 'oldestAerial', { get: () => oldestAerial, configurable: true });
-Object.defineProperty(window, 'ensureOldestIs', { get: () => ensureOldestIs, configurable: true });
-Object.defineProperty(window, 'oldestWhat', { get: () => oldestWhat, configurable: true });
-Object.defineProperty(window, 'ensureOldest', { get: () => ensureOldest, configurable: true });
-Object.defineProperty(window, 'showOldest', { get: () => showOldest, configurable: true });
-Object.defineProperty(window, 'restoreOldest', { get: () => restoreOldest, configurable: true });
-Object.defineProperty(window, 'aerialYears', { get: () => aerialYears, configurable: true });
-Object.defineProperty(window, 'updateAerial', { get: () => updateAerial, configurable: true });
-Object.defineProperty(window, 'satOn', { get: () => satOn, configurable: true });
-Object.defineProperty(window, 'oldestPair', { get: () => oldestPair, configurable: true });
-Object.defineProperty(window, 'satShown', { get: () => satShown, configurable: true });
-Object.defineProperty(window, 'SAT_MSG', { get: () => SAT_MSG, configurable: true });
-Object.defineProperty(window, 'OLDEST_MSG', { get: () => OLDEST_MSG, configurable: true });
-Object.defineProperty(window, 'satMsg', { get: () => satMsg, configurable: true });
-Object.defineProperty(window, 'aerialDesc', { get: () => aerialDesc, configurable: true });
-Object.defineProperty(window, 'applySatVisibility', { get: () => applySatVisibility, configurable: true });
-Object.defineProperty(window, 'imageryLayer', { get: () => imageryLayer, configurable: true });
-Object.defineProperty(window, 'deferredLoads', { get: () => deferredLoads, configurable: true });
-Object.defineProperty(window, 'loadDeferred', { get: () => loadDeferred, configurable: true });
-Object.defineProperty(window, 'setCompareLayers', { get: () => setCompareLayers, configurable: true });
-Object.defineProperty(window, 'horiz', { get: () => horiz, configurable: true });
-Object.defineProperty(window, 'splitRange', { get: () => splitRange, configurable: true });
-Object.defineProperty(window, 'clip', { get: () => clip, configurable: true });
-Object.defineProperty(window, 'tlFrames', { get: () => tlFrames, configurable: true });
-Object.defineProperty(window, 'buildTimelapse', { get: () => buildTimelapse, configurable: true });
-Object.defineProperty(window, 'tagLine', { get: () => tagLine, configurable: true });
-Object.defineProperty(window, 'showFrame', { get: () => showFrame, configurable: true });
-Object.defineProperty(window, 'PLAY_ICON', { get: () => PLAY_ICON, configurable: true });
-Object.defineProperty(window, 'PAUSE_ICON', { get: () => PAUSE_ICON, configurable: true });
-Object.defineProperty(window, 'SPEED_MS', { get: () => SPEED_MS, configurable: true });
-Object.defineProperty(window, 'SPEED_FPS', { get: () => SPEED_FPS, configurable: true });
-Object.defineProperty(window, 'speedMs', { get: () => speedMs, configurable: true });
-Object.defineProperty(window, 'updateSpeedIcon', { get: () => updateSpeedIcon, configurable: true });
-Object.defineProperty(window, 'FULL_ICONS', { get: () => FULL_ICONS, configurable: true });
-Object.defineProperty(window, 'syncDock', { get: () => syncDock, configurable: true });
-Object.defineProperty(window, 'syncFullPlay', { get: () => syncFullPlay, configurable: true });
-Object.defineProperty(window, 'play', { get: () => play, configurable: true });
-Object.defineProperty(window, 'stopPlay', { get: () => stopPlay, configurable: true });
-Object.defineProperty(window, 'outlineLayers', { get: () => outlineLayers, configurable: true });
-Object.defineProperty(window, 'geodesicArea', { get: () => geodesicArea, configurable: true });
-Object.defineProperty(window, 'multiArea', { get: () => multiArea, configurable: true });
-Object.defineProperty(window, 'drawOutlines', { get: () => drawOutlines, configurable: true });
-Object.defineProperty(window, 'getVar', { get: () => getVar, configurable: true });
-Object.defineProperty(window, 'THICK_LAYER', { get: () => THICK_LAYER, configurable: true });
-Object.defineProperty(window, 'thicknessUrl', { get: () => thicknessUrl, configurable: true });
-Object.defineProperty(window, 'setThickness', { get: () => setThickness, configurable: true });
-Object.defineProperty(window, 'RADAR_STOPS', { get: () => RADAR_STOPS, configurable: true });
-Object.defineProperty(window, 'radarColor', { get: () => radarColor, configurable: true });
-Object.defineProperty(window, 'radarPopup', { get: () => radarPopup, configurable: true });
-Object.defineProperty(window, 'radarRenderer', { get: () => radarRenderer, configurable: true });
-Object.defineProperty(window, 'loadRadar', { get: () => loadRadar, configurable: true });
-Object.defineProperty(window, 'drawRadar', { get: () => drawRadar, configurable: true });
-Object.defineProperty(window, 'SPEED_MIN', { get: () => SPEED_MIN, configurable: true });
-Object.defineProperty(window, 'SPEED_MAX', { get: () => SPEED_MAX, configurable: true });
-Object.defineProperty(window, 'SPEED_STOPS', { get: () => SPEED_STOPS, configurable: true });
-Object.defineProperty(window, 'SPEED_LUT', { get: () => SPEED_LUT, configurable: true });
-Object.defineProperty(window, 'speedFiles', { get: () => speedFiles, configurable: true });
-Object.defineProperty(window, 'speedArrays', { get: () => speedArrays, configurable: true });
-Object.defineProperty(window, 'loadSpeedFile', { get: () => loadSpeedFile, configurable: true });
-Object.defineProperty(window, 'speedArray', { get: () => speedArray, configurable: true });
-Object.defineProperty(window, 'speedYear', { get: () => speedYear, configurable: true });
-Object.defineProperty(window, 'speedCanvas', { get: () => speedCanvas, configurable: true });
-Object.defineProperty(window, 'updateSpeed', { get: () => updateSpeed, configurable: true });
-Object.defineProperty(window, 'drawMax', { get: () => drawMax, configurable: true });
-Object.defineProperty(window, 'M', { get: () => M, configurable: true });
-Object.defineProperty(window, 'fmtLen', { get: () => fmtLen, configurable: true });
-Object.defineProperty(window, 'fmtArea', { get: () => fmtArea, configurable: true });
-Object.defineProperty(window, 'pathLen', { get: () => pathLen, configurable: true });
-Object.defineProperty(window, 'ringOf', { get: () => ringOf, configurable: true });
-Object.defineProperty(window, 'updateClear', { get: () => updateClear, configurable: true });
-Object.defineProperty(window, 'startMeasure', { get: () => startMeasure, configurable: true });
-Object.defineProperty(window, 'updateMeasureText', { get: () => updateMeasureText, configurable: true });
-Object.defineProperty(window, 'drawTemp', { get: () => drawTemp, configurable: true });
-Object.defineProperty(window, 'finishMeasure', { get: () => finishMeasure, configurable: true });
-Object.defineProperty(window, 'cancelMeasure', { get: () => cancelMeasure, configurable: true });
-Object.defineProperty(window, 'endMeasure', { get: () => endMeasure, configurable: true });
-Object.defineProperty(window, 'fitGlacier', { get: () => fitGlacier, configurable: true });
-Object.defineProperty(window, 'TONGUE_ZOOM', { get: () => TONGUE_ZOOM, configurable: true });
-Object.defineProperty(window, 'TONGUE_REACH', { get: () => TONGUE_REACH, configurable: true });
-Object.defineProperty(window, 'TONGUE_SHIFT', { get: () => TONGUE_SHIFT, configurable: true });
-Object.defineProperty(window, 'TONGUE_VIEW', { get: () => TONGUE_VIEW, configurable: true });
-Object.defineProperty(window, 'TONGUE_ZOOM_OUT', { get: () => TONGUE_ZOOM_OUT, configurable: true });
-Object.defineProperty(window, 'tongueBounds', { get: () => tongueBounds, configurable: true });
-Object.defineProperty(window, 'drawTonguePin', { get: () => drawTonguePin, configurable: true });
-Object.defineProperty(window, 'TONGUE_CLOSER', { get: () => TONGUE_CLOSER, configurable: true });
-Object.defineProperty(window, 'wholeGlacierZoom', { get: () => wholeGlacierZoom, configurable: true });
-Object.defineProperty(window, 'tongueView', { get: () => tongueView, configurable: true });
-Object.defineProperty(window, 'focusTongue', { get: () => focusTongue, configurable: true });
-Object.defineProperty(window, 'wholeView', { get: () => wholeView, configurable: true });
-Object.defineProperty(window, 'syncViewButtons', { get: () => syncViewButtons, configurable: true });
-Object.defineProperty(window, 'sightTried', { get: () => sightTried, set: v => { sightTried = v; }, configurable: true });
-Object.defineProperty(window, 'sightLoad', { get: () => sightLoad, set: v => { sightLoad = v; }, configurable: true });
-Object.defineProperty(window, 'sightLayer', { get: () => sightLayer, set: v => { sightLayer = v; }, configurable: true });
-Object.defineProperty(window, 'trailClipKey', { get: () => trailClipKey, set: v => { trailClipKey = v; }, configurable: true });
-Object.defineProperty(window, 'layerA', { get: () => layerA, set: v => { layerA = v; }, configurable: true });
-Object.defineProperty(window, 'layerB', { get: () => layerB, set: v => { layerB = v; }, configurable: true });
-Object.defineProperty(window, 'sliderHintDone', { get: () => sliderHintDone, set: v => { sliderHintDone = v; }, configurable: true });
-Object.defineProperty(window, 'tlLayers', { get: () => tlLayers, set: v => { tlLayers = v; }, configurable: true });
-Object.defineProperty(window, 'thickImgs', { get: () => thickImgs, set: v => { thickImgs = v; }, configurable: true });
-Object.defineProperty(window, 'thickKey', { get: () => thickKey, set: v => { thickKey = v; }, configurable: true });
-Object.defineProperty(window, 'radarLayer', { get: () => radarLayer, set: v => { radarLayer = v; }, configurable: true });
-Object.defineProperty(window, 'radarLoad', { get: () => radarLoad, set: v => { radarLoad = v; }, configurable: true });
-Object.defineProperty(window, 'radarGen', { get: () => radarGen, set: v => { radarGen = v; }, configurable: true });
-Object.defineProperty(window, 'maxMarker', { get: () => maxMarker, set: v => { maxMarker = v; }, configurable: true });
-Object.defineProperty(window, 'speedLayer', { get: () => speedLayer, set: v => { speedLayer = v; }, configurable: true });
-Object.defineProperty(window, 'speedKey', { get: () => speedKey, set: v => { speedKey = v; }, configurable: true });
-Object.defineProperty(window, 'speedGen', { get: () => speedGen, set: v => { speedGen = v; }, configurable: true });
-Object.defineProperty(window, 'tonguePin', { get: () => tonguePin, set: v => { tonguePin = v; }, configurable: true });
-// end of bridge
+// registered for the files below it in the load order (see wire.js)
+Object.defineProperty(wire, 'map', { get: () => map, configurable: true });
 /* =====================================================================
    5. Map
    ===================================================================== */
@@ -191,7 +49,7 @@ export function placeScale(){
   new MutationObserver(() => placeScale()).observe(document.getElementById('app'), {attributes: true, attributeFilter: ['class']}); addEventListener('resize', placeScale); placeScale(); }
 
 export function updateCredits(){
-  if (typeof viewMode !== 'undefined' && viewMode === '3d' && typeof updateCredits3D === 'function') return updateCredits3D();      // the 3D view names its sources in the same bar
+  if (typeof viewMode !== 'undefined' && viewMode === '3d' && typeof wire.updateCredits3D === 'function') return wire.updateCredits3D();      // the 3D view names its sources in the same bar
   const yrs = state.mode !== 'compare'
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
     : [...new Set([state.a, state.b].filter(y => state.available[y]))].sort();
@@ -212,7 +70,7 @@ export function updateCredits(){
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (speedLayer) parts.push('Ice speed: <a href="https://its-live.jpl.nasa.gov" target="_blank" rel="noopener">ITS_LIVE</a> annual velocity mosaics, NASA MEaSUREs (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
-  if (typeof svActive === 'function' && svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
+  if (typeof wire.svActive === 'function' && wire.svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
   document.getElementById('credits').innerHTML = parts.join(' · ');
 }
 (function(){ const c = document.getElementById('credits');
@@ -291,7 +149,7 @@ export const TrailsVector = L.LayerGroup.extend({
 });
 export const trails = REGION.id === 'ch' ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
   {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'}) : new TrailsVector();
-export const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
+export const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && wire.bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
 /* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a wide violet band with a white edge under the trail lines */
 export let sightTried = false, sightLoad = null;
 export const ensureSight = () => sightLoad || (sightLoad = new Promise(res => {      // the file (Switzerland: sightline.js, all glaciers, 135 kB; Iceland: trails-is.js) is fetched when the trails are on, not at the start; everyone who asks waits for the same load
@@ -300,11 +158,11 @@ export const ensureSight = () => sightLoad || (sightLoad = new Promise(res => { 
   const files = [].concat(REGION.trailsFile); let left = files.length;      // one file, or several (Vatnajökull: Breiðamerkurjökull has its own)
   files.forEach(f => { const sc = document.createElement('script'); sc.src = asset(f); sc.onload = sc.onerror = () => { if (--left === 0) res(); }; document.head.appendChild(sc); });
 }));
-export const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && bundleId(g)]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
+export const sightFor = g => { const d = (window.GLACIER_SIGHT || {})[g && wire.bundleId(g)]; return d && d.lines && d.lines.length ? d : null; };      // violet with a white edge: the trails are yellow, red and blue, and the pictures hold hardly any violet
 export let sightLayer = null;
 export function updateSight(){
   if (sightLayer) { map.removeLayer(sightLayer); sightLayer = null; }
-  if (!window.GLACIER_SIGHT && document.getElementById('trailsToggle').checked) { ensureSight().then(() => { updateSight(); if (viewMode === '3d') { sync3DMenu(); refresh3D(); } }); return; }      // the file is on its way: the layer is drawn when it arrives
+  if (!window.GLACIER_SIGHT && document.getElementById('trailsToggle').checked) { ensureSight().then(() => { updateSight(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } }); return; }      // the file is on its way: the layer is drawn when it arrives
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, d = picked ? sightFor(currentGlacier()) : null, on = document.getElementById('trailsToggle').checked && !!d;
   document.getElementById('sightLegend').hidden = !on;
   if (on) sightLayer = L.layerGroup([['#fff', 12, .85], ['#7B2CFF', 7, .9]].flatMap(([color, weight, opacity]) => d.lines.map(l => L.polyline(l, {pane: 'sightPane', color, weight, opacity, lineCap: 'round', lineJoin: 'round', interactive: false})))).addTo(map);      // all the white edges first, then the violet cores
@@ -385,7 +243,7 @@ export function ensureFlown(g, ed){
     .then(r => r.json()).then(j => {
       const ys = [...new Set((j.results || []).map(r => r.attributes && r.attributes.flightyear).filter(Boolean))].sort();
       if (!ys.length) return; aerialFlown.set(key, ys.join(' / '));
-      updateAerial(); updateTags(); if (tlLayers.length) showFrame(state.frame);
+      updateAerial(); wire.updateTags(); if (tlLayers.length) showFrame(state.frame);
     }).catch(() => {});
 }
 /* "Oldest" in the specials row: the oldest SWISSIMAGE edition that covers the glacier's image box. The identify service lists, without a time, every aerial survey at a place
@@ -397,7 +255,7 @@ export function ensureOldestIs(g){
     if (!m) { oldestAerial.set(g.id, null); return; }
     aerialFlown.set(`${g.id}|${m.years[0]}`, m.label);      // the name of the year in the tags and the menu: 1980/82
     oldestAerial.set(g.id, {ed: m.years[0], flown: m.label, img: asset(`data/oldest/${g.id}.webp`), bbox: m.bbox, source: m.source});
-  }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof statusLine === 'function') setStatus(statusLine()); });
+  }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine()); });
 }
 export const oldestWhat = o => REGION.id === 'ch' ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
 export function ensureOldest(g){
@@ -410,23 +268,23 @@ export function ensureOldest(g){
       if (!rows.length) { oldestAerial.set(g.id, null); return; }
       const first = rows.reduce((a, b) => (b.bgdi_flugjahr < a.bgdi_flugjahr ? b : a));
       oldestAerial.set(g.id, {ed: +first.bgdi_flugjahr, flown: +first.flightyear});
-    }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof renderYears === 'function') renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof statusLine === 'function') setStatus(statusLine()); });
+    }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine()); });
 }
 export function showOldest(){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being
   const o = oldestAerial.get(state.glacier); if (!o) return;
   restoreLatest();
   if (!state.oldestAerial) state.oldestSaved = {sat: $('satToggle').checked, aerial: $('aerialToggle').checked};
   state.oldestAerial = o.ed; state.oldestMode = state.mode;
-  if (state.mode === 'compare') { $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change')); refreshAll(); setStatus(statusLine()); return; }      // the slider keeps the Sentinel-2 picture for its other side
+  if (state.mode === 'compare') { $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change')); wire.refreshAll(); wire.setStatus(wire.statusLine()); return; }      // the slider keeps the Sentinel-2 picture for its other side
   if (!state.available[state.one]) { const ys = YEARS.filter(y => state.available[y]); if (ys.length) state.one = ys[ys.length - 1]; }      // the 3D view needs a year with a scene under it
   $('satToggle').checked = false; applySatVisibility(); updateCredits();      // not through the checkbox's handler: that would be remembered as a choice
   $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change'));
-  refreshAll(); setStatus(statusLine());
+  wire.refreshAll(); wire.setStatus(wire.statusLine());
 }
 export function restoreOldest(){
   if (!state.oldestAerial) return;
   const s = state.oldestSaved || {sat: true, aerial: false}; state.oldestAerial = null; state.oldestSaved = null;
-  $('satToggle').checked = s.sat; $('aerialToggle').checked = s.aerial; applySatVisibility(); $('aerialToggle').dispatchEvent(new Event('change')); updateCredits(); setStatus(statusLine());
+  $('satToggle').checked = s.sat; $('aerialToggle').checked = s.aerial; applySatVisibility(); $('aerialToggle').dispatchEvent(new Event('change')); updateCredits(); wire.setStatus(wire.statusLine());
 }
 export const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 export function updateAerial(){
@@ -467,18 +325,18 @@ export function applySatVisibility(){          // the Sentinel-2 pictures can be
   const on = document.getElementById('satToggle').checked;
   document.getElementById('map').classList.toggle('sat-off', !on);      // a class, not the panes' own display: syncPane sets that on every year change
   document.getElementById('mapOp').disabled = !on;
-  syncSatUi(); updateTags(); if (tlLayers.length) showFrame(state.frame);
-  if (!satShown() && !document.getElementById('videoSheet').hidden) closeVideo();      // a download pane needs the picture
+  wire.syncSatUi(); wire.updateTags(); if (tlLayers.length) showFrame(state.frame);
+  if (!satShown() && !document.getElementById('videoSheet').hidden) wire.closeVideo();      // a download pane needs the picture
 }
 export function imageryLayer(yr, pane, opacity=1){
   const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className: 'scene-img'});
   ov._g = g;
-  const fail = e => { setStatus(e.message); showNotice(e.message); };
+  const fail = e => { wire.setStatus(e.message); wire.showNotice(e.message); };
   const load = () => {
-    const fine = () => loadImage(g, yr).then(url => showImage(ov, url)).catch(fail);
+    const fine = () => loadImage(g, yr).then(url => wire.showImage(ov, url)).catch(fail);
     if (!(g.cap && capLevel() === 1)) return fine();
     ov._loadFine = fine;      // a cap's picture is big: a small copy (40 m) shows first; the 10 m one replaces it at once if the map is zoomed in, else when it is (capCheckFine)
-    loadImage(g, yr, null, 0.25).then(url => { if (!ov._orig) showImage(ov, url); if (capWantsFine()) fine(); else { capWaiting.add(ov); setLoading(); } }).catch(() => fine());
+    loadImage(g, yr, null, 0.25).then(url => { if (!ov._orig) wire.showImage(ov, url); if (capWantsFine()) fine(); else { capWaiting.add(ov); setLoading(); } }).catch(() => fine());
   };
   if (viewMode === '3d') deferredLoads.push([ov, load]); else load();      // the map is not on show in the 3D view: its pictures wait (that view asks for its own, much smaller ones)
   return ov;
@@ -527,7 +385,7 @@ export function clip(){
     h.style.left = px + 'px'; h.style.top = ''; tagB.style.top = '';
   }
   h.setAttribute('aria-valuenow', Math.round(state.split * 100)); h.setAttribute('aria-orientation', horiz() ? 'vertical' : 'horizontal');
-  try { if (!document.getElementById('videoSheet').hidden && vstate.kind === 'image') drawPreview(); } catch {}      // the picture pane shows where the slider is (not yet defined during start-up: ignored)
+  try { if (!document.getElementById('videoSheet').hidden && wire.vstate.kind === 'image') wire.drawPreview(); } catch {}      // the picture pane shows where the slider is (not yet defined during start-up: ignored)
 }
 map.on('move zoom resize', clip);
 
@@ -567,11 +425,11 @@ export function buildTimelapse(){
 /* the line under a year on the map: the date, then what the picture is, on one row; it only breaks between the two parts */
 export function tagLine(el, first, sc){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style, sc)}</span>`; }
 export function showFrame(i){
-  if (!tlLayers.length) { setTag('tagT', '–'); return; }
+  if (!tlLayers.length) { wire.setTag('tagT', '–'); return; }
   state.frame = i;
   tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0)); updateSpeed();
   const off = !satOn(), yShown = off && (state.mode === 'timelapse' || state.oldestAerial) && aerialWanted().T ? aerialWanted().T : tlLayers[i].yr;      // no Sentinel-2 picture: a timelapse shows its newest aerial year, not the frames
-  setTag('tagT', yShown);
+  wire.setTag('tagT', yShown);
   const sc = state.available[tlLayers[i].yr];
   if (off) document.getElementById('tagTsub').innerHTML = aerialDesc(yShown);
   else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`, sc);
@@ -581,16 +439,16 @@ export function showFrame(i){
   document.getElementById('tlDots').innerHTML = tlHtml; document.getElementById('v3dTlLine').innerHTML = tlHtml;      // the same timeline on the map and in the 3D view; in full screen its play button is the way to start and stop
   document.getElementById('frameSlider').value = i;
   updateCredits();
-  if (viewMode === '3d' && v3dCtx && v3dCtx.follow && v3dCtx.years.includes(tlLayers[i].yr)) v3dCtx.follow(tlLayers[i].yr);      // the 3D view shows the frame too
-  syncPane();
+  if (viewMode === '3d' && wire.v3dCtx && wire.v3dCtx.follow && wire.v3dCtx.years.includes(tlLayers[i].yr)) wire.v3dCtx.follow(tlLayers[i].yr);      // the 3D view shows the frame too
+  wire.syncPane();
   const cb = document.querySelector('.cb-links');
-  if (cb) cb.innerHTML = cbButtonsHtml();
+  if (cb) cb.innerHTML = wire.cbButtonsHtml();
 }
 export const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Play';
 export const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg>Pause';
 document.getElementById('playBtn').innerHTML = PLAY_ICON;
 export const SPEED_MS = [2200, 1200, 600, 300, 150], SPEED_FPS = ['0.5', '1', '2', '4', '8'];      // the slider steps: delay per frame, and the label
-export const speedMs = () => typeof vPrev !== 'undefined' && vPrev.on && vstate.type !== 'swipe' ? perSec(tlLayers.length) * 1000 : SPEED_MS[+document.getElementById('speedSel').value];      // the preview in the animation pane runs at the pane's "Seconds per year"
+export const speedMs = () => typeof wire.vPrev !== 'undefined' && wire.vPrev.on && wire.vstate.type !== 'swipe' ? wire.perSec(tlLayers.length) * 1000 : SPEED_MS[+document.getElementById('speedSel').value];      // the preview in the animation pane runs at the pane's "Seconds per year"
 export function updateSpeedIcon(){                 // the needle of the little gauge and the label follow the chosen speed
   const i = +document.getElementById('speedSel').value;
   document.getElementById('speedNeedle').setAttribute('transform', `rotate(${-60 + i * 30} 12 18)`);
@@ -614,9 +472,9 @@ export function play(){
   const begun = Date.now();
   /* In the 3D view the map's own pictures are not loaded (they wait), the strip pictures are what plays: those are fetched here, all years together, so that every frame is quick */
   let n3 = 0, pre3 = false;
-  if (viewMode === '3d' && v3dCtx && v3dCtx.S) {
-    pre3 = true; const c3 = v3dCtx;
-    tlLayers.forEach(t => { const spec = !stripPicturesOff && !imageHere(c3.g, t.yr) ? stripImageSpec(c3.S) : null; (spec ? loadImage(c3.g, t.yr, spec) : loadImage(c3.g, t.yr)).catch(() => {}).then(() => { n3++; }); });
+  if (viewMode === '3d' && wire.v3dCtx && wire.v3dCtx.S) {
+    pre3 = true; const c3 = wire.v3dCtx;
+    tlLayers.forEach(t => { const spec = !wire.stripPicturesOff && !imageHere(c3.g, t.yr) ? wire.stripImageSpec(c3.S) : null; (spec ? loadImage(c3.g, t.yr, spec) : loadImage(c3.g, t.yr)).catch(() => {}).then(() => { n3++; }); });
   }
   const wait = () => {            // the first run: every picture has to be loaded before the years change, else the frames flash
     const ready = pre3 ? n3 : tlLayers.filter(t => t.layer._ready).length;
@@ -686,7 +544,7 @@ export function drawOutlines(){
   drawRadar();
   drawMax();
   if (typeof setThickness === 'function' && document.getElementById('thickToggle')) setThickness();
-  syncOutsideUi();
+  wire.syncOutsideUi();
   if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
   const g = currentGlacier();
   if (g.rgi) {      // a glacier of an ice-cap region: the outlines of the region's institute (lines, cut to the glacier's region)
@@ -697,11 +555,11 @@ export function drawOutlines(){
   }
   if (!g.inv) {
     if (document.getElementById('oldToggle').checked || document.getElementById('newToggle').checked)
-      showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need data/glaciers.js. See the note under "On the map".');
+      wire.showNotice(DATA ? `No inventory outline for ${g.name} in glaciers.js.` : 'Outlines need data/glaciers.js. See the note under "On the map".');
     return;
   }
   if (document.getElementById('oldToggle').checked && !g.inv.oldest)
-    showNotice(`No ${DATA.oldest_label} outline was matched for ${g.name}.`);
+    wire.showNotice(`No ${DATA.oldest_label} outline was matched for ${g.name}.`);
   const mk = (geom, color, dash, title, invArea) => L.geoJSON(geom, {
     pane:'outlines', style:{color, weight:2.5, dashArray:dash, fill:true, fillOpacity:.06, fillColor:color}
   }).bindPopup(`<strong>${title}</strong><br>Inventory area: ${invArea.toFixed(2)} km²<br>Area on this map: ${(multiArea(geom)/1e6).toFixed(2)} km²`);
@@ -914,13 +772,13 @@ document.addEventListener('keydown', e => {
 
 /* ---------- toolbar ---------- */
 document.getElementById('zoomIn').onclick = () => map.zoomIn();
-document.getElementById('zoomOut').onclick = () => { if (!$('videoSheet').hidden && map.getZoom() <= map.getMinZoom() + 0.01) showNotice('Zoomed out as far as the download frame allows: it has to stay near the picture of this glacier.'); map.zoomOut(); };
+document.getElementById('zoomOut').onclick = () => { if (!$('videoSheet').hidden && map.getZoom() <= map.getMinZoom() + 0.01) wire.showNotice('Zoomed out as far as the download frame allows: it has to stay near the picture of this glacier.'); map.zoomOut(); };
 document.getElementById('fitBtn').onclick = () => fitGlacier();
 document.getElementById('labelsToggle').onchange = e => { e.target.checked ? labels.addTo(map) : map.removeLayer(labels); updateCredits(); };
 document.getElementById('oldToggle').checked = prefs.old === true;      // the 1850 outline is off until it is switched on
 document.getElementById('oldToggle').onchange = () => { prefs.old = document.getElementById('oldToggle').checked; savePrefs(); drawOutlines(); };
 document.getElementById('newToggle').onchange = drawOutlines;
-export function fitGlacier(animate = true){ if (typeof subFocus !== 'undefined') subFocus = null; map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
+export function fitGlacier(animate = true){ if (typeof wire.subFocus !== 'undefined') wire.setSubFocus(null); map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
 export const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
 /* The tip of the tongue is the lowest point of the newest outline (found by build_outlines.py with the swisstopo height service).
    The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
@@ -970,7 +828,7 @@ export function tongueView(){          // {center, zoom} the Tongue button goes 
   return g.tongue ? {center: L.latLng(g.tongue), zoom: g.tz || TONGUE_ZOOM} : null;
 }
 export function focusTongue(animate = true){
-  if (typeof subFocus !== 'undefined') subFocus = null;
+  if (typeof wire.subFocus !== 'undefined') wire.setSubFocus(null);
   const v = tongueView();
   if (v) map.setView(v.center, v.zoom, {animate});
   else fitGlacier(animate);
@@ -986,3 +844,7 @@ export function syncViewButtons(){
 }
 map.on('moveend zoomend resize', syncViewButtons);
 document.getElementById('tongueBtn').onclick = () => focusTongue();
+export function setLayerB(v){ return layerB = v; }      // the other files may not assign to an imported variable
+export function setLayerA(v){ return layerA = v; }      // the other files may not assign to an imported variable
+export function setTrailClipKey(v){ return trailClipKey = v; }      // the other files may not assign to an imported variable
+export function setSliderHintDone(v){ return sliderHintDone = v; }      // the other files may not assign to an imported variable
