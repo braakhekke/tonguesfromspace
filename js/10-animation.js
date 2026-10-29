@@ -130,17 +130,17 @@ export function stopPreview(){
 export function startPreview3D(){            // the camera swings as in the video, the years change (timelapse) or the line moves (slider); everything is put back when it stops
   const c = wire.v3dCtx, viewer = wire.v3d; if (!c || !viewer) return;
   vPrev.applied = null; vPrev.off = {az: 0, el: 0, k: 1}; vPrev.cam0 = viewer.getCam(); vPrev.year0 = c.cmp ? null : c.current(); vPrev.split0 = wire.v3dSplit; vPrev.cam = vPrev.cam0;
-  const t0 = performance.now(), swing = $('vSwing') && $('vSwing').checked, ys = !c.cmp && c.years && c.years.length > 1 ? c.years : null;
+  let last = performance.now(), yPh = 0, sPh = 0; const t0 = last, ys = !c.cmp && c.years && c.years.length > 1 ? c.years : null;
   const tick = now => {
-    if (!vPrev.on) return; const t = (now - t0) / 1000, u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2;
+    if (!vPrev.on) return; const t = (now - t0) / 1000, dt = (now - last) / 1000; last = now; const u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2;
     const cur = viewer.getCam(), ap = vPrev.applied;
     if (ap && (Math.abs(cur.az - ap.az) > 1e-4 || Math.abs(cur.el - ap.el) > 1e-4 || Math.abs(cur.dist - ap.dist) > 1e-4 * ap.dist)) {      // the visitor turned, tilted or zoomed: the swing goes on around the new view, which is also what comes back when the preview stops
       const o = vPrev.off; vPrev.cam0 = {...vPrev.cam0, az: cur.az - o.az, el: cur.el - o.el, dist: cur.dist / o.k};
     }
-    const cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
+    const swing = $('vSwing') && $('vSwing').checked, cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
     vPrev.off = off; vPrev.cam = {az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
-    if (c.cmp) wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * t / 6));
-    else if (ys && c.follow) { const y = ys[Math.floor(t / 1.2) % ys.length]; if (y !== c.current()) c.follow(y); }
+    if (c.cmp) { sPh += dt * 1.2 / perSec(0); wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * sPh / 6)); }
+    else if (ys && c.follow) { yPh += dt / perSec(ys.length); const y = ys[Math.floor(yPh) % ys.length]; if (y !== c.current()) c.follow(y); }
     wire.drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
   };
   vPrev.raf = requestAnimationFrame(tick);
@@ -493,7 +493,10 @@ export function minimalLabels(ctx, W, H, S, name, yearText, credit, hA = 1, tile
     else { const tw = (maxW - (tiles.length - 1) * gap) / tiles.length; drawFactTiles(ctx, tiles, S.left, base - th, tw, th, gap); }
   }
   ctx.translate(edge, H - edge); ctx.rotate(-Math.PI / 2);      // reads upwards, from the bottom left corner
-  ctx.font = `500 ${px}px ${FONT}`; shadowText(ctx, `Created on ${SITE_NAME} · ${name} ${yearText} · ${credit}`, 0, 0, {blur: 5, color: 'rgba(255,255,255,.92)'});
+  const line = `Created on ${SITE_NAME} · ${name} ${yearText} · ${credit}`, maxLen = H - 2 * edge;      // the line must stay inside the picture: smaller type until it fits
+  let fs = px; ctx.font = `500 ${fs}px ${FONT}`;
+  while (fs > 6 && ctx.measureText(line).width > maxLen) { fs -= 0.5; ctx.font = `500 ${fs}px ${FONT}`; }
+  shadowText(ctx, line, 0, 0, {blur: 5, color: 'rgba(255,255,255,.92)'});
   ctx.restore();
 }
 /* The map key: north arrow and scale bar side by side at the top right, on two shared lines (the labels on the brand label's baseline, the arrow's foot and the bar below) */

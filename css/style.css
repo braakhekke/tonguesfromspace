@@ -286,6 +286,10 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .mapbar button[aria-pressed="true"]{background:var(--rock);color:#fff}
 .mapbar .zoom{min-width:44px;text-align:center;font-variant-numeric:tabular-nums;font-size:13px;color:var(--moraine)}
 .mapbar .sep{width:1px;height:20px;background:var(--rule);margin:0 4px;flex:none}
+/* hint over the dock (.mapbar), not clickable */
+/* hint under the year and its line, top left; not clickable */
+.tilt-hint{position:absolute;left:14px;top:88px;z-index:650;color:#fff;font-size:12px;font-weight:500;line-height:1.3;text-shadow:0 1px 8px rgba(0,0,0,.7);pointer-events:none;max-width:calc(100% - 140px)}
+.tilt-hint[hidden]{display:none}
 .v3d{position:absolute;inset:0;z-index:700;background:#0b1220;color:#fff}
 .v3d[hidden]{display:none}
 .v3d canvas{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none;cursor:grab}
@@ -1532,3 +1536,15 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .mapbar .tl-prev,.mapbar .tl-next{width:30px;height:30px;min-width:0;padding:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff}
 .mapbar .tl-prev:hover:not(:disabled),.mapbar .tl-next:hover:not(:disabled){background:rgba(255,255,255,.3)}
 .mapbar .tl-prev:disabled,.mapbar .tl-next:disabled{background:rgba(255,255,255,.18);opacity:.35}
+
+.cam-sw{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;display:block}
+
+.no-transition{display:flex;align-items:center;gap:6px;margin-top:6px;font-size:11px;color:var(--muted,#6b7780);cursor:pointer;user-select:none}
+.no-transition input{margin:0;width:13px;height:13px;accent-color:var(--crevasse)}
+
+/* the message while the tongue is rebuilt (flight in from the map), above the dock */
+.tongue-loading{position:absolute;left:50%;bottom:190px;transform:translateX(-50%);z-index:6;display:flex;flex-direction:column;align-items:center;gap:6px;color:#fff;font-size:13px;font-weight:600;text-shadow:0 1px 10px rgba(0,0,0,.7);pointer-events:none;white-space:nowrap;transition:opacity .45s}
+.tongue-loading[hidden]{display:none}
+.tongue-loading.out{opacity:0}
+.tongue-loading em{display:block;width:150px;height:2px;background:rgba(255,255,255,.28);overflow:hidden}
+.tongue-loading i{display:block;height:100%;width:0;background:#fff}

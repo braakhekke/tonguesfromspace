@@ -3,12 +3,12 @@ import { FIRST_YEAR, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode } from './04-state.js';
-import { map, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone } from './05-map.js';
+import { map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
 import { setLayers } from './09-phones.js';
-import { VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
+import { VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'bundleId', { get: () => bundleId, configurable: true });
 Object.defineProperty(wire, 'download3D', { get: () => download3D, configurable: true });
@@ -87,23 +87,42 @@ export const m4 = {
   mul: (a, b) => { const o = new Array(16); for (let c = 0; c < 4; c++) for (let r = 0; r < 4; r++) o[c * 4 + r] = a[r] * b[c * 4] + a[4 + r] * b[c * 4 + 1] + a[8 + r] * b[c * 4 + 2] + a[12 + r] * b[c * 4 + 3]; return o; }
 };
 export const V3D_VS = `attribute vec2 aXZ; attribute float aH; attribute vec2 aG; attribute vec2 aUV; attribute float aH2; attribute vec2 aG2;
-uniform mat4 uM; uniform float uX, uHzV; uniform vec3 uBox, uSplitV; varying vec2 vUV;      /* uSplitV and uHzV: the fragment shader has its own copies, a uniform must have the same precision in both */ varying vec3 vN; varying float vD;
+uniform mat4 uM; uniform float uX, uHzV, uBuildV; uniform vec3 uBox, uSplitV; varying vec2 vUV;      /* uSplitV and uHzV: the fragment shader has its own copies, a uniform must have the same precision in both */ varying vec3 vN; varying float vD, vH;
 void main(){
   bool second = false;      /* compare: the part of the screen that shows the second year also gets the ice surface of that year */
   if (uSplitV.x >= 0.0) { vec4 q = uM * vec4(aXZ.x, aH * uX, aXZ.y, 1.0); vec2 n = q.xy / q.w; second = (uHzV > 0.5 ? 0.5 - 0.5 * n.y : 0.5 + 0.5 * n.x) > uSplitV.x; }
   float h = second ? aH2 : aH; vec2 g = second ? aG2 : aG;
-  vUV = aUV; vN = normalize(vec3(-g.x * uX, 1.0, -g.y * uX)); vD = max(abs(aXZ.x) / uBox.x, abs(aXZ.y - uBox.z) / uBox.y); gl_Position = uM * vec4(aXZ.x, h * uX, aXZ.y, 1.0); }`;
-export const V3D_FS = `precision mediump float; uniform sampler2D uTex; uniform sampler2D uTex2; uniform vec3 uSplit; uniform float uHz; varying vec2 vUV; varying vec3 vN; varying float vD;
+  if (uBuildV < 0.999 && uSplitV.x < 0.0) {      /* the tongue being rebuilt: ahead of the front its surface is rough (the second height, made by setSocket) and smooths into its true height as the front passes */
+    float ahead = clamp((0.9 - aUV.y) / 0.9, 0.0, 1.0) - (uBuildV * 1.25 - 0.1), gm = 1.0 - smoothstep(-0.3, 0.0, ahead);
+    h = mix(aH2, aH, gm); g = mix(aG2, aG, gm);
+  }
+  vUV = aUV; vN = normalize(vec3(-g.x * uX, 1.0, -g.y * uX)); vH = h; vD = max(abs(aXZ.x) / uBox.x, abs(aXZ.y - uBox.z) / uBox.y); gl_Position = uM * vec4(aXZ.x, h * uX, aXZ.y, 1.0); }`;
+export const V3D_FS = `#extension GL_OES_standard_derivatives : enable
+precision mediump float; uniform sampler2D uMask; uniform vec2 uSz; uniform float uBuild; uniform sampler2D uTex; uniform sampler2D uTex2; uniform vec3 uSplit; uniform float uHz; varying vec2 vUV; varying vec3 vN; varying float vD, vH;
 void main(){ float pos = uHz > 0.5 ? uSplit.z - gl_FragCoord.y : gl_FragCoord.x, at = uSplit.x * (uHz > 0.5 ? uSplit.z : uSplit.y); bool right = uSplit.x >= 0.0 && pos > at;      /* stacked: first year on top, second below; else first on the left */ vec3 c = right ? texture2D(uTex2, vUV).rgb : texture2D(uTex, vUV).rgb; float lam = max(dot(normalize(vN), normalize(vec3(0.41, 0.57, 0.71))), 0.0);
   c *= clamp(0.72 + 0.6 * (lam - 0.57), 0.45, 1.15);      /* light from the south-east, like the satellite's morning sun, only a light touch because the picture has its own shadows */
   c = mix(vec3(0.043, 0.071, 0.125), c, smoothstep(1.0, 0.8, vD));
+  if (uBuild < 0.999 && texture2D(uMask, vUV).r > 0.5) {      /* the tongue rebuilt: ahead of the front only the edges of the rough triangles (see-through, no fill, no picture); behind it the picture fills in, dissolving through the gaps, as the surface smooths out */
+    float ahead = clamp((0.9 - vUV.y) / 0.9, 0.0, 1.0) - (uBuild * 1.25 - 0.1), lines = 1.0 - smoothstep(0.0, 0.3, -ahead);
+    vec2 gp = vUV * vec2(64.0, 144.0), f = fract(gp);
+#ifdef GL_OES_standard_derivatives
+    float w = max(fwidth(gp.x), fwidth(gp.y));
+#else
+    float w = 0.05;
+#endif
+    float tri = 1.0 - smoothstep(0.0, 1.0 * w + 0.002, min(min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y)), abs(f.x - f.y) * 0.7071));
+    float rnd = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
+    if (tri < 0.2 && rnd > 1.0 - lines) discard;
+    c = mix(c, vec3(0.8, 0.84, 0.88), step(0.2, tri) * lines);
+    c += vec3(1.0) * (1.0 - smoothstep(0.0, 0.03, abs(ahead))) * 0.2;      /* a soft edge at the front */
+  }
   if (uSplit.x >= 0.0 && abs(pos - at) < 1.5) c = vec3(1.0);      /* the line between the two years */
   gl_FragColor = vec4(c, 1.0); }`;
 export let v3d = null;
 export let meshWideOk;
 export const meshWide = () => meshWideOk !== undefined ? meshWideOk : (meshWideOk = (() => { try { return !!document.createElement('canvas').getContext('webgl').getExtension('OES_element_index_uint'); } catch { return false; } })());      // 32-bit indices: the fine mesh
 export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, distMul = 1, half = V3D.HALF){
-  const HALF = half, SC = HALF / V3D.HALF, gl = canvas.getContext('webgl', {antialias: true});
+  const HALF = half, SC = HALF / V3D.HALF, gl = canvas.getContext('webgl', {antialias: true}); gl.getExtension('OES_standard_derivatives');      // thin contour lines of the tongue loading
   if (!gl) throw new Error('WebGL is not available');
   const sh = (t, s) => { const o = gl.createShader(t); gl.shaderSource(o, s); gl.compileShader(o); if (!gl.getShaderParameter(o, gl.COMPILE_STATUS)) throw new Error(gl.getShaderInfoLog(o)); return o; };
   const pr = gl.createProgram(); gl.attachShader(pr, sh(gl.VERTEX_SHADER, V3D_VS)); gl.attachShader(pr, sh(gl.FRAGMENT_SHADER, V3D_FS)); gl.linkProgram(pr);
@@ -154,9 +173,13 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
     if (an) gl.texParameterf(gl.TEXTURE_2D, an.TEXTURE_MAX_ANISOTROPY_EXT, Math.min(8, gl.getParameter(an.MAX_TEXTURE_MAX_ANISOTROPY_EXT)));
     return t; });
   gl.uniform1i(gl.getUniformLocation(pr, 'uTex'), 0); gl.uniform1i(gl.getUniformLocation(pr, 'uTex2'), 1);
+  const maskTex = gl.createTexture(); gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));      // where the tongue is (unit 2); black until setMask
+  gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+  gl.uniform1i(gl.getUniformLocation(pr, 'uMask'), 2); gl.activeTexture(gl.TEXTURE0);
+  const uB = gl.getUniformLocation(pr, 'uBuild'), uBV = gl.getUniformLocation(pr, 'uBuildV'); let build = 1;      // build: 1 = the finished tongue, less = the tongue being rebuilt
   const uSplit = gl.getUniformLocation(pr, 'uSplit'), uHz = gl.getUniformLocation(pr, 'uHz'), uSplitV = gl.getUniformLocation(pr, 'uSplitV'), uHzV = gl.getUniformLocation(pr, 'uHzV'); let split = -1, hz = 0;      // share of the screen width where the second year starts; -1 = one year only
   const uM = gl.getUniformLocation(pr, 'uM'), uX = gl.getUniformLocation(pr, 'uX');
-  gl.enable(gl.DEPTH_TEST); gl.uniform3f(gl.getUniformLocation(pr, 'uBox'), HALF, len / 2, (BACK - up) / 2);      // half width, half length, z of the middle: the soft edge
+  gl.enable(gl.DEPTH_TEST); gl.uniform3f(gl.getUniformLocation(pr, 'uBox'), HALF, len / 2, (BACK - up) / 2); gl.uniform2f(gl.getUniformLocation(pr, 'uSz'), 2 * HALF, len);      // half width, half length, z of the middle: the soft edge
   const cam = {az: 0, el: SC > 2 ? 0.55 : 0.35, dist: 3400 * distMul * SC * (SC > 2 ? 1.15 : 1), exag: 1}, [E0, E1] = V3D.EL, [D0, D1] = [V3D.DIST[0], V3D.DIST[1] * SC], A = V3D.AZ;      // a wide area (Iceland) is seen from a little higher
   const ground = (x, z) => hh(Math.round((x + HALF) / (2 * HALF) * nB), Math.round((z + up) / len * nA)) * cam.exag;
   const groundNow = (x, z) => hc(Math.round((x + HALF) / (2 * HALF) * nB), Math.round((z + up) / len * nA)) * cam.exag;
@@ -204,7 +227,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disableVertexAttribArray(7); gl.enable(gl.DEPTH_TEST); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.useProgram(pr);
     }
-    gl.uniformMatrix4fv(uM, false, viewM(w, h, view)); gl.uniform1f(uX, cam.exag); gl.uniform3f(uSplit, split, w, h); gl.uniform1f(uHz, hz); gl.uniform3f(uSplitV, split, w, h); gl.uniform1f(uHzV, hz);
+    gl.uniformMatrix4fv(uM, false, viewM(w, h, view)); gl.uniform1f(uX, cam.exag); gl.uniform1f(uB, build); gl.uniform1f(uBV, build); gl.uniform3f(uSplit, split, w, h); gl.uniform1f(uHz, hz); gl.uniform3f(uSplitV, split, w, h); gl.uniform1f(uHzV, hz);
     gl.drawElements(gl.TRIANGLES, idx.length, wide ? gl.UNSIGNED_INT : gl.UNSIGNED_SHORT, 0);
   };
   const draw = () => {
@@ -266,8 +289,26 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
   const setTexture = (c, unit = 0) => { gl.activeTexture(gl.TEXTURE0 + unit); gl.bindTexture(gl.TEXTURE_2D, texs[unit]); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.generateMipmap(gl.TEXTURE_2D); redraw(); };
   const setSpace = on => { space = !!on; redraw(); };
   const setSplit = (f, horizontal) => { split = f; hz = horizontal ? 1 : 0; redraw(); };
-  const setHeights = (h1, h2 = h1) => { fill(h1, h2); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw(); };      // another year's ice surface
-  return {setSpace, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
+  let socketArgs = null;      // while the tongue is rebuilt a new year's surface (timelapse) is sunk the same way
+  const setHeights = (h1, h2 = h1) => { if (socketArgs && h2 === h1) { cur = h1; return applySocket(); } fill(h1, h2); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw(); };      // another year's ice surface
+  const hash2 = (x, y) => { const q = Math.sin(x * 127.1 + y * 311.7) * 43758.5453; return q - Math.floor(q); };
+  const vnoise = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), fx = x - xi, fy = y - yi, u = fx * fx * (3 - 2 * fx), v = fy * fy * (3 - 2 * fy); return (hash2(xi, yi) * (1 - u) + hash2(xi + 1, yi) * u) * (1 - v) + (hash2(xi, yi + 1) * (1 - u) + hash2(xi + 1, yi + 1) * u) * v; };
+  const setSocket = (mask, W2, H2, amp) => { socketArgs = [mask, W2, H2, amp]; applySocket(); };
+  const LX = 64, LY = 144;      // the triangles of the rough surface: a lattice of about 60 m
+  const applySocket = () => {      // the tongue's second heights while it is rebuilt: a rough surface of big flat triangles (the lattice corners lifted or dropped at random, a few metres to amp), softly at the edge of the tongue
+    const [mask, W2, H2, amp] = socketArgs, w = new Float32Array((nA + 1) * W), tmp = new Float32Array((nA + 1) * W), hb = new Float32Array(cur.length), r = 2, node = new Float32Array((LX + 1) * (LY + 1));
+    for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) w[j * W + i] = mask[(Math.min(H2 - 1, Math.round(j / nA * (H2 - 1))) * W2 + Math.min(W2 - 1, Math.round(i / nB * (W2 - 1)))) * 4] > 127 ? 1 : 0;
+    for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) { let t = 0; for (let k = -r; k <= r; k++) t += w[j * W + Math.min(nB, Math.max(0, i + k))]; tmp[j * W + i] = t / (2 * r + 1); }
+    for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) { let t = 0; for (let k = -r; k <= r; k++) t += tmp[Math.min(nA, Math.max(0, j + k)) * W + i]; w[j * W + i] = t / (2 * r + 1); }
+    for (let y = 0; y <= LY; y++) for (let x = 0; x <= LX; x++) node[y * (LX + 1) + x] = cur[Math.round(y / LY * nA) * W + Math.round(x / LX * nB)] + amp * ((hash2(x, y) - 0.5) * 1.6 + (vnoise(x / 3, y / 3) - 0.5) * 1.2);
+    for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) {
+      const gx = i / nB * LX, gy = j / nA * LY, cx = Math.min(LX - 1, Math.floor(gx)), cy = Math.min(LY - 1, Math.floor(gy)), fx = gx - cx, fy = gy - cy, n = (x, y) => node[y * (LX + 1) + x], A = n(cx, cy), B = n(cx + 1, cy), C = n(cx, cy + 1), D = n(cx + 1, cy + 1);
+      const q = j * W + i, rough = fx > fy ? A + (B - A) * fx + (D - B) * fy : A + (D - C) * fx + (C - A) * fy;      // the plane of the triangle the vertex lies in
+      hb[q] = cur[q] + w[q] * (rough - cur[q]);
+    }
+    const h1 = cur; fill(h1, hb); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw();
+  };
+  return {setSpace, setSocket, clearSocket: () => { socketArgs = null; setHeights(cur); }, setBuild: v => { build = v; redraw(); }, setMask: c => { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.activeTexture(gl.TEXTURE0); redraw(); }, poseOf: c => { const keep = {...cam}; Object.assign(cam, c); cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az)); const q = orbitPose(); Object.assign(cam, keep); return q; }, flyMix: (a, b, ep, eo) => { const dy = (((b.yaw - a.yaw + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) - Math.PI, mp = (u, w) => u + (w - u) * ep, mo = (u, w) => u + (w - u) * eo; pose = {x: mp(a.x, b.x), y: mp(a.y, b.y), z: mp(a.z, b.z), yaw: a.yaw + dy * eo, pitch: mo(a.pitch, b.pitch), roll: 0, fovY: mo(a.fovY, b.fovY), view: null}; redraw(); }, endFlight: () => { pose = null; redraw(); }, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, c); clampCam(); }, frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
     gl.deleteBuffer(vb); gl.deleteBuffer(ib); texs.forEach(t => gl.deleteTexture(t)); gl.deleteProgram(pr); const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }};
 }
 export let v3dCtx = null, v3dBusy = false;      // v3dCtx: what the download buttons need from the open 3D view
@@ -587,6 +628,7 @@ export async function open3D(){
     if (run !== v3dRun) return;
     v3d = startViewer($('v3dCanvas'), heights, tc, nA, nB, S.up, S.back, S.dist, S.half); v3d.setSpace(prefs.space3d === true);
     v3d.setExag(+$('v3dExag').value); msg.hidden = true; if (keepCam) v3d.setCam(keepCam); else if (S.cam) v3d.setCam(S.cam); else if (PLAIN_START && FEATURES.swisstopo && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
+    if (tiltEntry) { tiltEntry = false; tiltReady(v3d, v3d.getCam()); }
     v3d.setOnCam(() => { if (!$('videoSheet').hidden) hint3D(); });      // the sharpness hint follows the zoom
     bindRadarPicking($('v3dCanvas')); bindCamPicking($('v3dCanvas'));
     const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null, surfYear = y => !dem ? y : special === 'latest' ? dem.new.year : special === 'oldest' ? dem.old.year : Math.max(y, dem.old.year);      // the specials use the newest / the oldest elevation model as it is
@@ -692,6 +734,7 @@ export async function iceLevel(g, y, c, ctr){            // {low, mid, high (m a
   const M = V.series.find(r => r[0] === V.from && r[1] === V.to), ratio = T !== null && M && M[3] < 0 ? Math.min(6, Math.max(1, T / -M[3])) : 1;
   return {low: mean, mid: mean * Math.sqrt(ratio), high: mean * ratio, how, ratio, first};
 }
+export let thenNowOn = false;      // the layer "Then and now": the dock shows the old photographs, the list open
 export let photosSeen = false;      // the pill pulses until the list has been opened once
 export function placeDrop(){            // the drop-up strip is centred on the 3D picture (not on the button) and never wider than it
   const box = $('v3dPhotos'), d = box && box.querySelector('.ph-drop'); if (!d) return;
@@ -703,7 +746,7 @@ export function placeDrop(){            // the drop-up strip is centred on the 3
 addEventListener('resize', placeDrop); new ResizeObserver(() => placeDrop()).observe(document.getElementById('v3d'));
 export function syncPhotoToggle(){ const t = document.querySelector('#v3dPhotos .ph-toggle'); if (t) t.classList.toggle('on', !!photoOn); }
 document.addEventListener('pointerdown', e => { const b = document.getElementById('v3dPhotos'); if (b && b.classList.contains('open') && !b.contains(e.target)) { b.classList.remove('open'); const t = b.querySelector('.ph-toggle'); if (t) t.setAttribute('aria-expanded', 'false'); } });
-export function resetPhotos(){ closeTune(); $('v3dPhotos').classList.remove('open'); camHover = camSel = listHover = -1; photoOn = null; photoRun++; $('v3d').classList.remove('photo-on'); $('v3dPhoto').hidden = true; $('v3dPhotoCap').hidden = true; $('v3dPhotos').hidden = true; $('v3dPhotos').textContent = ''; }
+export function resetPhotos(){ $('l3PhotosRow').hidden = true; closeTune(); $('v3dPhotos').classList.remove('open'); camHover = camSel = listHover = -1; photoOn = null; photoRun++; $('v3d').classList.remove('photo-on'); $('v3dPhoto').hidden = true; $('v3dPhotoCap').hidden = true; $('v3dPhotos').hidden = true; $('v3dPhotos').textContent = ''; }
 export async function setupPhotos(g, ctx){            // the rail of thumbnails, when this glacier has photographs
   const all = await loadPhotos(), list = all[g.inv && g.inv.id]; if (!list || !list.length || ctx !== v3dCtx) return;
   ctx.photos = list;
@@ -723,8 +766,15 @@ export async function setupPhotos(g, ctx){            // the rail of thumbnails,
   });
   const inside = camGeo(ctx).filter(g => g.inside).length, note = document.createElement('p'); note.className = 'ph-note';
   note.textContent = inside < list.length ? `not all camera positions are visible in the 3D visual (here ${inside} out of ${list.length})` : list.length === 1 ? 'the camera position is visible in the 3D visual' : `all ${list.length} camera positions are visible in the 3D visual`; box.querySelector('.ph-drop').appendChild(note);
-  box.hidden = false; syncPhotoToggle(); pinLoop();
+  $('l3PhotosRow').hidden = false; $('l3Photos').checked = thenNowOn; showThenNow(); syncPhotoToggle(); pinLoop();
 }
+export function showThenNow(){      // the dock's "Then and now" and its thumbnail list follow the layer switch
+  const box = $('v3dPhotos'); if (!box.firstChild) return;
+  box.hidden = !thenNowOn; box.classList.toggle('open', thenNowOn); const t = box.querySelector('.ph-toggle'); if (t) { t.setAttribute('aria-expanded', thenNowOn); if (thenNowOn) { photosSeen = true; t.classList.remove('fresh'); } }
+  if (thenNowOn) { placeDrop(); requestAnimationFrame(placeDrop); } else if (photoOn) leavePhoto(true);
+  camHover = camSel = listHover = -1; pinLoop();
+}
+$('l3Photos').onchange = e => { thenNowOn = e.target.checked; showThenNow(); };
 export function photoLayout(ph){            // where the photograph sits on the screen, and the matching camera: the same field of view as the photograph, its centre where the photograph's centre is
   const cv = $('v3dCanvas'), cw = cv.clientWidth, ch = cv.clientHeight, phone = cw <= 720, left = phone ? 8 : 14, top = phone ? 10 : 56, bottom = phone ? 165 : 150, aw = cw - left - (phone ? 8 : 14), ah = ch - top - bottom;
   const hr = Math.max(60, Math.min(ah, aw / (ph.w / ph.h))), wr = hr * ph.w / ph.h, x = left + (aw - wr) / 2, y = top + (ah - hr) / 2;
@@ -872,7 +922,7 @@ export function setView(v){            // the stage shows the map or the 3D view
   setLayers(false); if (v === '3d') cancelMeasure(); else cancel3Measure();      // one measuring tool at a time
   if (v === '3d') { stopPlay(); open3D(); } else { close3D(); drawRadar(); loadDeferred(); }      // back on the map: its radar layer, if it was switched on or off meanwhile
 }
-$('viewMap').onclick = () => setView('map'); $('view3dBtn').onclick = () => setView('3d');
+$('viewMap').onclick = () => { flyOut(); syncTiltPill(); }; $('view3dBtn').onclick = () => flyIn();
 /* The layer menu of the 3D view: the same switches as on the map (an outline or the radar dots), drawn on the picture that covers the terrain */
 export const L3 = [['l3Osm', 'osmToggle'], ['l3Topo', 'topoToggle'], ['l3Alti', 'altiToggle'], ['l3Aerial', 'aerialToggle'], ['l3Sat', 'satToggle'], ['l3Trails', 'trailsToggle'], ['l3Old', 'oldToggle'], ['l3New', 'newToggle'], ['l3Radar', 'radarToggle'], ['l3Pin', 'pinToggle'], ['l3Max', 'maxToggle']];
 export function sync3DMenu(){
@@ -1089,7 +1139,7 @@ export function bindRadarPicking(cv){            // hovering, clicking and tappi
    on the ground of the strip) and a small card with the picture; a click (on a touch screen: a second tap) opens the photograph as in the rail. Only on screen, not in the downloads, and not while a photograph is open. */
 export const CAM_LIFT = 70, CAM_LEN = 3200;
 export let camHover = -1, camSel = -1, camHits = [], listHover = -1;      // listHover: the thumbnail under the pointer in the "Then and now" list, its camera symbol lights up
-export const camsOn = () => !!(v3dCtx && v3dCtx.photos && v3dCtx.photos.length && !photoOn && state.mode === 'single' && (prefs.camSymbols === true || listHover >= 0));      // the switch "Camera symbols" in the "Then and now" list (off at first); while a thumbnail is hovered its camera shows anyway
+export const camsOn = () => !!(thenNowOn && v3dCtx && v3dCtx.photos && v3dCtx.photos.length && !photoOn && state.mode === 'single' && (prefs.camSymbols === true || listHover >= 0));      // the switch "Camera symbols" in the "Then and now" list (off at first); while a thumbnail is hovered its camera shows anyway
 export function camGeo(c){            // per photograph: the place in the strip, and the ground directions across its field of view (cached for the glacier)
   if (c.camGeo) return c.camGeo;
   return c.camGeo = c.photos.map(ph => {
@@ -1294,7 +1344,7 @@ $('l3Op').oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); appl
 $('v3dLayers').classList.add('min'); $('v3dLbToggle').setAttribute('aria-expanded', 'false');      // closed at the start, like the map's
 $('v3dLbToggle').onclick = () => { const min = $('v3dLayers').classList.toggle('min'); prefs.lb3Min = min; savePrefs(); $('v3dLbToggle').setAttribute('aria-expanded', !min); };
 /* the height exaggeration slider was taken out of the page: v3dExag stays as a hidden input at 1 (no exaggeration), which the code above reads */
-addEventListener('keydown', e => { if (e.key === 'Escape' && viewMode === '3d' && !e.defaultPrevented) { if (photoOn) leavePhoto(); else setView('map'); } });
+addEventListener('keydown', e => { if (e.key === 'Escape' && viewMode === '3d' && !e.defaultPrevented) { if (photoOn) leavePhoto(); else flyOut(); } });
 
 /* ---- download of the 3D view: the picture as it is on screen, or a video in which the camera swings over the terrain (timelapse: the years follow one another, compare: the slider moves) ---- */
 export function draw3DLabels(ctx, W, H, S, L){
@@ -1405,7 +1455,7 @@ export async function download3D(kind){
   const sl = v3dSplit, shownSplit = Math.min(1, Math.max(0, c.hz ? (ch * sl - R.y) / R.h : (cw * sl - R.x) / R.w));      // where the slider sits inside the frame
   const out = document.createElement('canvas'); out.width = W; out.height = H; const ctx = out.getContext('2d');
   const buttons = [$('vsGo')], say = t => { msg.hidden = false; msg.textContent = t; progress(Math.min(1, +(t.match(/\d+(?= %)/) || [0])[0] / 100), t); };
-  v3dBusy = true; stopPlay(); buttons.forEach(b => b.disabled = true);
+  stopPreview(); v3dBusy = true; stopPlay(); buttons.forEach(b => b.disabled = true);      // a running preview would swing the camera under the export and hand it a swung start view
   let failed = false;
   try {
     await ensureNames(c);
@@ -1492,3 +1542,110 @@ export async function download3D(kind){
   }
 }
 
+
+/* From the map into 3D: the footprint of the 3D strip is drawn on the map (dashed) and, when the middle of the map is inside it and the map is zoomed in on the tongue, a "Tilt into 3D" pill offers the switch (click it, or drag it up) */
+const TILT_SPAN = 3, OUTLINE_SPAN = 8;      // the pill shows when the map is at most this many strip lengths wide, the outline when at most OUTLINE_SPAN
+const spanOf = poly => { const c = map.getCenter(), mpp = 40075016.686 * Math.cos(c.lat * Math.PI / 180) / (256 * 2 ** map.getZoom()); return map.getSize().x * mpp / (2 * poly[0].distanceTo(poly[3]) / 2); };      // map width in strip lengths (the strip runs from corner 0 to corner 3 along its length)
+let tiltPill = null, tiltAz = 0, tiltEntry = false;
+function stripPolygon(){
+  const g = viewMode === 'map' ? v3dGlacier() : null, at = g && (g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue); if (!at) return null;
+  const S = stripFor(g, at); tiltAz = Math.atan2(S.ue, S.un) * 180 / Math.PI;
+  return [[-S.back, -S.half], [-S.back, S.half], [S.up, S.half], [S.up, -S.half]].map(([a, b]) => { const m = S.merc(a, b); return L.CRS.EPSG3857.unproject(L.point(m[0], m[1])); });
+}
+function inPolygon(p, poly){      // ray casting on lat/lng; the strip is far smaller than the distortion that would matter
+  let c = false;
+  for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) if ((poly[i].lat > p.lat) !== (poly[j].lat > p.lat) && p.lng < (poly[j].lng - poly[i].lng) * (p.lat - poly[i].lat) / (poly[j].lat - poly[i].lat) + poly[i].lng) c = !c;
+  return c;
+}
+export function syncTiltPill(){
+  const poly = stripPolygon();
+  if (!poly || spanOf(poly) > OUTLINE_SPAN) { tiltPoly = null; if (tiltPill) tiltPill.hidden = true; return; }
+  if (!tiltPill) { tiltPill = document.createElement('div'); tiltPill.className = 'tilt-hint'; $('map').parentNode.appendChild(tiltPill); }
+  tiltPoly = spanOf(poly) <= TILT_SPAN && inPolygon(map.getCenter(), poly) ? poly : null;
+  tiltPill.hidden = !tiltPoly || TWO_FINGER || prefs.noTransition === true; tiltPill.textContent = 'You\u2019ve reached the tongue. Alt (Option) + drag up to see it in 3D.';      // a hint, not a button; phones use the 3D button (two fingers already move the map)
+}
+/* The gesture: Alt-, Shift- or right-button drag upwards while the middle of the map is inside the strip tilts the map like a table; letting go past the threshold opens the 3D view */
+let tiltPoly = null;
+/* From the map into 3D and back: the camera flies, in one smooth glide, between a view straight above what the map shows and the camera of the 3D view; the 3D picture fades over the map at the start (and away at the end). A short Alt-, Shift- or right-button drag up on the strip starts it. Nothing else changes on the way. */
+let tilt = null;      // {t, v (the viewer, once loaded), from, to (free-flying camera poses), committed}
+const smoother = x => x * x * x * (x * (6 * x - 15) + 10);      // zero speed and zero acceleration at both ends
+const smooth = (a, b, x) => { const k = Math.min(1, Math.max(0, (x - a) / (b - a))); return k * k * (3 - 2 * k); };
+function applyTilt(){      // the eye leads and the view turns after it: a swoop that levels out; the 3D picture fades in over the map at the start
+  if (!tilt) return; const t = tilt.t;
+  if (!tilt.v) return;
+  $('v3d').style.opacity = smooth(0, 0.25, t).toFixed(3);
+  tilt.v.flyMix(tilt.from, tilt.to, smoother(t), smoother(Math.min(1, Math.max(0, (t - 0.1) / 0.9))));
+}
+function tiltPoses(v, cam){      // the pose straight above the middle of the map (at its scale) and the pose of the camera given
+  const mpp = 40075016.686 * Math.cos(map.getCenter().lat * Math.PI / 180) / (256 * 2 ** map.getZoom()), H = map.getSize().y * mpp / (2 * Math.tan(0.375)), c = tilt.centre;
+  tilt.v = v; tilt.to = v.poseOf(cam); tilt.from = {x: c.x, y: v.groundY(c.x, c.z) + H, z: c.z, yaw: -tiltAz * Math.PI / 180, pitch: -1.5, roll: 0, fovY: 0.75};      // north up, like the map
+}
+function tongueMask(g, S){      // the ice of the glacier in the texture space of the strip, white on black
+  const W = S.tex[0] / 2, H = S.tex[1] / 2, len = S.up + S.back, c = document.createElement('canvas'); c.width = W; c.height = H;
+  const x = c.getContext('2d'), geom = newOutlineGeom(g) || outlineGeom(g); x.fillStyle = '#000'; x.fillRect(0, 0, W, H); x.fillStyle = '#fff';
+  if (geom) eachPiece(geom, ring => { x.beginPath(); ring.forEach((pt, i) => { const q = L.CRS.EPSG3857.project(L.latLng(pt[1], pt[0])), dx = (q.x - S.P.x) / S.k, dy = (q.y - S.P.y) / S.k, a = dx * S.ue + dy * S.un, b = dx * S.un - dy * S.ue; const X = (b + S.half) / (2 * S.half) * W, Y = (S.up - a) / len * H; i ? x.lineTo(X, Y) : x.moveTo(X, Y); }); x.closePath(); x.fill(); });
+  return c;
+}
+function tongueBuild(v, ms, mask, delay){      // the tongue rebuilt: starts when the flight is almost over (delay after now) and lasts ms, with a message
+  const box = $('tongueLoading'), bar = box.querySelector('i'), t0 = performance.now() + 1 + delay, m = mask.getContext('2d').getImageData(0, 0, mask.width, mask.height);
+  box.classList.remove('out'); box.hidden = true; bar.style.width = '0'; v.setBuild(0);      // until then the tongue waits, sunken, under its contours
+  setTimeout(() => { if (v === v3d) v.setSocket(m.data, mask.width, mask.height, 14); requestAnimationFrame(step); }, 0);      // after open3D has set the heights of the year
+  const step = now => { if (v !== v3d) { box.hidden = true; return; } const k = Math.min(1, Math.max(0, (now - t0) / ms)); if (now >= t0) box.hidden = false; v.setBuild(k >= 1 ? 1 : k); bar.style.width = (k * 100).toFixed(0) + '%';
+    if (k < 1) return requestAnimationFrame(step);
+    v.clearSocket(); box.classList.add('out'); setTimeout(() => { box.hidden = true; }, 500); };
+}
+function tiltReady(v, cam){      // the viewer is loaded: the flight goes from above the map to the camera
+  if (!tilt) return;
+  tiltPoses(v, cam);
+  try { const mk = tongueMask(v3dGlacier(), tiltS); v.setMask(mk); const rest = 3000 * (1 - tilt.t); tongueBuild(v, 0.4 * rest + 1400, mk, 0.6 * rest); } catch (e) { console.warn('tongue build effect:', e); }      // lands just after the flight
+  if (tilt.auto) { tilt.t = 0; applyTilt(); tiltAnimate(1, 3000, tiltFinish); return; }      // the 3D button: the flight plays by itself
+  applyTilt(); if (tilt.committed && tilt.t === 1) tiltFinish();
+}
+function tiltFinish(){      // the 3D view takes over fully, on the stored camera
+  const el = $('v3d'); el.style.opacity = ''; el.style.pointerEvents = ''; tilt.v.endFlight(); tilt = null;
+}
+function tiltAnimate(to, ms, done){      // time runs straight; the easing is in the camera (smoother)
+  const from = tilt.t, t0 = performance.now(), me = tilt, id = me.anim = (me.anim || 0) + 1;      // a newer animation of the same flight replaces the older
+  const step = now => { if (tilt !== me || me.anim !== id) return; const k = Math.min(1, (now - t0) / ms), e = k; me.t = from + (to - from) * e; applyTilt(); if (k < 1) requestAnimationFrame(step); else done(); };
+  requestAnimationFrame(step);
+}
+function tiltCancel(){ const el = $('v3d'); tilt = null; tiltEntry = false; setView('map'); el.style.opacity = ''; el.style.pointerEvents = ''; syncTiltPill(); }
+let tiltS = null;
+function centreOnStrip(){      // the middle of the map in the scene of the 3D view (x right, z towards the tip), kept on the strip
+  const g = v3dGlacier(), S = tiltS = stripFor(g, g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue), m = L.CRS.EPSG3857.project(map.getCenter()), dx = (m.x - S.P.x) / S.k, dy = (m.y - S.P.y) / S.k;
+  return {x: Math.max(-S.half, Math.min(S.half, dx * S.un - dy * S.ue)), z: Math.max(-S.up, Math.min(S.back, -(dx * S.ue + dy * S.un)))};
+}
+function startTilt(auto){      // the 3D view is loaded behind the map while the flight in is driven by the drag (or, with auto, plays by itself)
+  if (tilt || viewMode !== 'map') return;
+  tilt = {t: 0, v: null, from: null, to: null, committed: !!auto, auto: !!auto, centre: centreOnStrip()};
+  tiltEntry = true; setView('3d');
+  if (String(viewMode) !== '3d') { tilt = null; tiltEntry = false; return; }      // refused (no glacier, busy)
+  $('v3d').style.opacity = '0'; $('v3d').style.pointerEvents = 'none';
+}
+function flyIn(){ if (viewMode !== 'map') return; if (prefs.noTransition === true || tilt || !currentGlacier() || vstate.busy || v3dBusy) return setView('3d'); startTilt(true); }      // the 3D button
+function flyOut(){      // the map button and Esc: the flight runs backwards, from the camera as the visitor left it
+  if (viewMode !== '3d') return;
+  if (prefs.noTransition === true || tilt || !v3d || !v3dCtx || photoOn || v3d.hasPose() || vstate.busy || v3dBusy) return setView('map');
+  tilt = {t: 1, v: null, from: null, to: null, committed: false, back: true, centre: centreOnStrip()};
+  tiltPoses(v3d, v3d.getCam()); $('v3d').style.pointerEvents = 'none'; applyTilt(); tiltAnimate(0, 2000, tiltCancel);
+}
+$('map').addEventListener('pointerdown', e => {
+  if (!tiltPoly || prefs.noTransition === true || tilt || viewMode !== 'map' || !(e.altKey || e.shiftKey || e.button === 2)) return;
+  e.stopImmediatePropagation(); e.preventDefault();
+  const y0 = e.clientY, el = $('map'); el.setPointerCapture(e.pointerId); el.style.transition = '';
+  startTilt(); const me = tilt; if (!me) return;
+  const off = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
+  const move = ev => {      // a short drag up (50 px) sets the flight going; from then on it plays by itself, slowly
+    if (tilt !== me) return; const dist = y0 - ev.clientY;
+    me.t = Math.max(0, Math.min(1, dist / 50)) * 0.1; applyTilt();
+    if (dist < 50) { tiltPill.hidden = false; tiltPill.textContent = 'Keep dragging up'; return; }
+    off(); me.committed = true; tiltPill.hidden = true; tiltAnimate(1, 3000, () => { if (tilt.v) tiltFinish(); });      // if the view is still loading it finishes when ready
+  };
+  const up = () => { off(); tiltPill.hidden = true; if (!me.committed) tiltAnimate(0, 400, tiltCancel); };
+  el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+}, true);
+$('map').addEventListener('contextmenu', e => { if (tiltPoly) e.preventDefault(); });
+map.on('moveend zoomend', syncTiltPill);
+
+$('noTransition').checked = prefs.noTransition !== true;      // ticked = the flight is on
+$('noTransition').onchange = e => { prefs.noTransition = !e.target.checked; savePrefs(); syncTiltPill(); };

@@ -127,6 +127,7 @@
           <button type="button" id="viewMap" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5L15 20.5 9 18l-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg><span>Map</span></button>
           <button type="button" id="view3dBtn" aria-pressed="false" title="The tongue in 3D: the satellite picture draped over the terrain"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>3D</span></button>
         </div>
+        <label class="no-transition" title="Fly the camera between the map and the 3D view. Switch off to change at once."><input type="checkbox" id="noTransition" checked> <span>Fly between map and 3D</span></label>
       </div>
       <div id="modeGroup">
         <div class="side-label">Mode</div>
@@ -296,7 +297,8 @@
     <div class="v3d" id="v3d" hidden role="dialog" aria-label="3D view of the tongue">
       <canvas id="v3dCanvas"></canvas>
       <canvas class="v3d-over" id="v3dOver"></canvas>
-      <div class="v3d-top"><div class="year-tag v3d-year" id="v3dTitle">3D view</div><span class="h-full">Drag to turn and tilt, scroll or pinch to zoom.</span><span class="h-short">Drag to turn · pinch to zoom</span></div>
+      <div class="tongue-loading" id="tongueLoading" hidden aria-live="polite"><span>Reconstruction in progress</span><em><i></i></em></div>
+      <div class="v3d-top"><div class="year-tag v3d-year" id="v3dTitle">3D view</div><span class="h-full">Drag to turn and tilt, scroll or pinch to zoom. Esc goes back to the map.</span><span class="h-short">Drag to turn · pinch to zoom</span></div>
       <div class="layerbox v3d-layers" id="v3dLayers" role="group" aria-label="Layers of the 3D view">
         <button type="button" class="lb-head" id="v3dLbToggle" aria-expanded="true"><svg class="lb-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Layers</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
         <div class="lb-body">
@@ -314,6 +316,7 @@
           <div class="trail-legend radar-legend" id="l3RadarLegend" hidden><i class="ramp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="l3RadarNote"></small></div>
           <label class="toggle" title="Hiking trails"><input type="checkbox" id="l3Trails"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
           <div class="trail-legend" id="l3TrailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="l3SightLegend" hidden title="Where the line of sight from eye height 1.7 m to the glacier tongue is free (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view (1.7 m)</span></div>
+          <label class="toggle" id="l3PhotosRow" hidden title="Old photographs of this glacier: switch on to open the list of thumbnails in the dock"><input type="checkbox" id="l3Photos"> <span><span class="sym"><svg class="cam-sw" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5h3l1.5-2.5h7L17 8.5h3v10H4z"/><circle cx="12" cy="13.5" r="3.2"/></svg></span>Then and now</span></label>
           <div class="lb-group">Background</div>
           <label class="toggle"><input type="checkbox" id="l3Osm"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-osm"/></svg></span>OpenStreetMap</span></label>
           <label class="toggle"><input type="checkbox" id="l3Topo"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo"/></svg></span>swisstopo map</span></label>

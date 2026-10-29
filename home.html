@@ -65,7 +65,7 @@
         <source src="images/home/hero-flight.mp4" type="video/mp4">
       </video>
       <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
-      <button class="flight-go" id="flightGo" type="button" hidden aria-label="Try it yourself: take over the 3D view"><span class="pill"><b>Now try it yourself</b><i>Click, then drag to turn and scroll to zoom</i></span></button>
+      <button class="flight-go" id="flightGo" type="button" hidden aria-label="Fly around by yourself: take over the 3D view"><span class="pill"><b>Fly around by yourself</b><i>Click, then drag to turn and scroll to zoom</i></span></button>
       <button class="flight-off" id="flightOff" type="button" hidden aria-label="Stop exploring and scroll the page">&times;</button>
       <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span><small>Contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)</small></figcaption>
     </figure>
@@ -155,16 +155,16 @@
   <div class="wrap">
     <div class="sh"><div>
       <p class="eyebrow">Data and method</p>
-      <h2>Real measurements, from named sources.</h2>
-      <p>Every picture is a satellite scene and every figure comes from a published source. Nothing is drawn in or generated, and what we compute ourselves is labelled as computed.</p>
+      <h2>Measured where we can, estimated where we must, and said so.</h2>
+      <p>Pictures are satellite scenes and figures come from published sources. Where the record has gaps we fill them, with computation and with the help of AI, and we say which is which.</p>
     </div></div>
     <div class="sci">
-      <div><h3>Satellite pictures, not illustrations</h3><p>Each picture is a Sentinel-2 or Landsat scene, shown with its date. We crop it to a fixed frame and render the colours; we do not paint, retouch or generate anything.</p></div>
+      <div><h3>Satellite pictures, shown with their date</h3><p>Each picture is a Sentinel-2 or Landsat scene. We crop it to a fixed frame and render the colours; we do not paint in glaciers or generate scenes.</p></div>
+      <div><h3>Gaps are filled, not hidden</h3><p>Some pictures need repair: Landsat 7 scenes after 2003 have missing stripes that we fill from other scans of the same place. Where no measured surface exists for a year, the 3D view uses an estimate built from published elevation models and mass balance. These are our own computations, not measurements.</p></div>
+      <div><h3>AI helps us build it</h3><p>We use an AI assistant (Claude) to write the code, to search for and read sources, and to draft texts. It is a tool in our hands: a person decides what goes in, and AI output is checked before it is published.</p></div>
       <div><h3>The best picture is picked by a scoring</h3><p>Cloud, cloud shadow and snow over the tongue are scored for every scene in late summer, the same way for every glacier and year.</p></div>
-      <div><h3>Figures as the source states them</h3><p>Lengths, areas, volumes and thicknesses appear as published: no rounding, no unit conversion. A value we calculate is marked as computed and never credited to the source.</p></div>
-      <div><h3>Every figure says where it is from</h3><p>A small source note beside the figures names the dataset it comes from.</p></div>
-      <div><h3>No source, no number</h3><p>Where a figure cannot be read from its source we leave it out, and where the origin of a name is unknown the page says so.</p></div>
-      <div><h3>Reviewed and tested before release</h3><p>Each glacier is reviewed step by step: frame, outline, pictures, 3D view, figures and texts. Figures are compared with their source pages, and automated tests run before every release.</p></div>
+      <div><h3>Figures as the source states them</h3><p>Lengths, areas, volumes and thicknesses appear as published: no rounding, no unit conversion, each with a note on where it is from. A value we calculate is marked as computed and never credited to the source. Where a figure cannot be read from its source we leave it out.</p></div>
+      <div><h3>Reviewed and tested before release</h3><p>Each glacier is reviewed step by step by a person: frame, outline, pictures, 3D view, figures and texts. Figures are compared with their source pages, and automated tests run before every release.</p></div>
     </div>
     <p class="note">The glacier figures are Swiss for now; the other regions show their pictures and, where a source is read, its figures.</p>
   </div>
