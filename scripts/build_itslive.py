@@ -229,12 +229,14 @@ def build(key, bbox, tip, azimuth, years, out):
     for y in ys:
         v = np.where(keep, got[y], np.nan)[r0:r1, c0:c1]
         data[str(y)] = base64.b64encode(zlib.compress(pack(v).tobytes(), 9)).decode()
+    r0, r1, c0, c1 = int(r0), int(r1), int(c0), int(c1)      # numpy integers cannot be written by json.dump (it failed half-way and left a cut-off file)
     cw, ch = c1 - c0, r1 - r0; gx0, gy1 = grid['bbox'][0] + c0 * CELL, grid['bbox'][3] - r0 * CELL
     doc = {'id': key, 'source': f'ITS_LIVE annual mosaics of image pair velocities v{VERSION} ({rgi}, 120 m), NASA MEaSUREs ITS_LIVE', 'rgi': rgi, 'version': VERSION,
            'bbox': [gx0, gy1 - ch * CELL, gx0 + cw * CELL, gy1], 'w': cw, 'h': ch, 'cell': CELL, 'years': ys, 'step': STEP, 'nodata': NODATA, 'flow': flow, 'data': data}
     os.makedirs(out, exist_ok=True)
     path = os.path.join(out, f'{key}.json')
-    with open(path, 'w') as f: json.dump(doc, f, separators=(',', ':'))
+    with open(path + '.tmp', 'w') as f: json.dump(doc, f, separators=(',', ':'))      # whole or not at all
+    os.replace(path + '.tmp', path)
     print(f'{key}: {rgi} {ys[0]}-{ys[-1]} ({len(ys)} years), {cw} x {ch} cells of {w} x {h}, {round(os.path.getsize(path) / 1024)} kB, flowline {len(flow)} points ({len(flow) * FLOW_STEP / 1000:.1f} km)', flush=True)
     return True
 

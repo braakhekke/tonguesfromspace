@@ -271,12 +271,46 @@ def paint(a, w, h, cal):
     return bufs, hole
 
 
-def render(a, w, h, cal, donor=None):
-    """cal: per band the QUANT levels the picture is matched to (the average of Landsat 5 and 7): a gain and an offset per band, so that the years look alike. donor: a second scene (same layout,
-    registered) whose pixels fill the stripes of Landsat 7 first. Returns the pictures of the three colour styles (STYLES) and the share of the picture that was interpolated."""
+LOCAL_R, EDGE_PX = 10, 2
+
+
+def local_match(bufs, dbufs, hole, dhole, w, h):
+    """A donor patch in a stripe is moved, per channel, by the average difference (picture minus donor) over the pixels around it where both scenes have a picture (a window of 2 * LOCAL_R + 1 pixels,
+    not within EDGE_PX of a stripe: the pixels beside a stripe are unreliable). The quantile match over the whole picture is dominated by snow, so on the grey ice of the tongue a patch from another
+    day came out 13 to 15 levels (of 255) too bright and without colour, as white streaks across the tongue; the local difference follows the ground under the patch."""
+    px = w * h; near = bytearray(hole)
+    for _ in range(EDGE_PX):      # the stripes grown by EDGE_PX pixels
+        t = bytearray(near)
+        for i in range(px):
+            if near[i]:
+                x, y = i % w, i // w
+                t[i - (x > 0)] = t[i + (x < w - 1)] = 1; t[i - w * (y > 0)] = t[i + w * (y < h - 1)] = 1
+        near = t
+    ok = [1 if not near[i] and not dhole[i] else 0 for i in range(px)]
+    def integral(v):
+        out = [0] * ((w + 1) * (h + 1))
+        for y in range(h):
+            run = 0; r, q = (y + 1) * (w + 1), y * (w + 1)
+            for x in range(w): run += v[y * w + x]; out[r + x + 1] = out[q + x + 1] + run
+        return out
+    def box(I, x, y):
+        x0, x1, y0, y1 = max(x - LOCAL_R, 0), min(x + LOCAL_R + 1, w), max(y - LOCAL_R, 0), min(y + LOCAL_R + 1, h)
+        return I[y1 * (w + 1) + x1] - I[y0 * (w + 1) + x1] - I[y1 * (w + 1) + x0] + I[y0 * (w + 1) + x0]
+    cnt = integral(ok); todo = [i for i in range(px) if hole[i] and not dhole[i]]
+    for k in bufs:
+        for c in range(3):
+            I = integral([(bufs[k][3 * i + c] - dbufs[k][3 * i + c]) if ok[i] else 0 for i in range(px)])
+            for i in todo:
+                x, y = i % w, i // w; n = box(cnt, x, y)
+                if n >= 30: dbufs[k][3 * i + c] = min(255, max(0, dbufs[k][3 * i + c] + round(box(I, x, y) / n)))
+
+
+def render(a, w, h, cal, donors=()):
+    """cal: per band the QUANT levels the picture is matched to (the average of Landsat 5 and 7): a gain and an offset per band, so that the years look alike. donors: second scenes (same layout,
+    registered, their cloud taken out) whose pixels fill the stripes of Landsat 7 first, the first where it is clear, the next ones what is left. Returns the pictures of the three colour styles (STYLES) and the share of the picture that was interpolated."""
     px = w * h
     bufs, hole = paint(a, w, h, cal); out = bufs['natural']; dn = 0
-    if donor is not None:
+    for donor in donors:
         dbufs, dhole = paint(donor, w, h, cal)      # its own gain and offset: the colours of the two scenes meet without a seam
         # the land patch alone does not make the two sensors agree on bright snow and ice (Landsat 5 and 7, other day): every channel of the second scene is mapped, by quantiles, onto the
         # first one over the pixels where both have a picture, so that the patches that fill the stripes do not show as stripes on the snow
@@ -291,12 +325,13 @@ def render(a, w, h, cal, donor=None):
                         j = max(0, min(63, sum(1 for x in xs[1:-1] if x <= v)))
                         x0, x1 = xs[j], xs[j + 1]; lut.append(int(round(min(255, max(0, ys[j] + (v - x0) / (x1 - x0) * (ys[j + 1] - ys[j]) if x1 > x0 else ys[j])))))
                     for i in range(px):
-                        if dhole[i] == 0 and hole[i]: dbufs[k][3 * i + c] = lut[dbufs[k][3 * i + c]]
+                        if dhole[i] == 0: dbufs[k][3 * i + c] = lut[dbufs[k][3 * i + c]]
+        local_match(bufs, dbufs, hole, dhole, w, h)
         for i in range(px):
             if hole[i] and not dhole[i]:
                 for k in bufs: bufs[k][3 * i:3 * i + 3] = dbufs[k][3 * i:3 * i + 3]
                 hole[i] = 0; dn += 1
-        print(f'    gaps: {dn} pixels taken from the second scene')
+        print(f'    gaps: {dn} pixels taken from the second scenes so far')
     # Landsat 7 after May 2003: diagonal stripes of no data inside the scene. Without a second scene, or where it has gaps too, the ice flows along its streaks (medial moraines, flow lines,
     # crevasse trains), so a hole is first filled by interpolating along the local direction of those streaks: the orientation comes from the structure tensor of the picture's brightness
     # (gradients only where the picture is whole), summed over blocks of BLK pixels and their neighbours; the streaks run at right angles to the dominant gradient. Where there is no clear
@@ -421,9 +456,35 @@ FOOTPRINTS = os.path.join(ROOT, 'scripts', '.footprints-ch.json')      # the pic
 def unmerc(x, y): return math.degrees(2 * math.atan(math.exp(y / R)) - math.pi / 2), math.degrees(x / R)
 
 
-def find_donor(best, year, bounds, bbox, masks, refs, W, H):
-    """a scene without stripes to fill those of a Landsat 7 scene taken after its scan line corrector failed (31 May 2003): not Landsat 7 after that day, clear over the glacier, whole picture,
-    the closest to the date of `best` in the season (day of the year) and in years (at most 3 years apart); registered onto the Sentinel-2 mosaic like every scene. Returns the bands or None."""
+DONOR_CLOUD = 0.25      # a donor may have up to this share of cloud over the glacier and over the tongue (the old gate was 10 % and 5 %, which left glaciers in cloudy valleys, like the Gorner, without any donor): its cloud is taken out pixel by pixel (clear_donor), and the score below prefers the clearer scene
+
+
+def clear_donor(f, arr, bbox, W, H, grow=3):
+    """takes the cloud, cirrus and cloud shadow of a donor scene out of its valid mask (plane MASK), from its own QA_PIXEL at the picture's resolution (cloud medium confidence or more, cirrus
+    medium, the dilated-cloud flag; cloud shadow is not taken out: in the Alps its flag mostly marks the shade of the mountains, a quarter of the picture; never on a pixel flagged snow or ice, as in score()), grown by `grow` pixels (the thin edge of a cloud is not flagged): a cloud in the donor would
+    otherwise be copied into the stripes of the Landsat 7 picture, where it shows as a bright patch. Returns the share of the picture taken out."""
+    px = W * H; qa = cut(f['id'], ['qa_pixel'], bbox, W, H, True)[1]; bad = bytearray(px)
+    for i in range(px):
+        v = qa[i]
+        if qa[px + i] == 0 or v & 1 or v & 0b100000: continue
+        if v & 0b10 or ((v & 0b1000) and ((v >> 8) & 3) >= 2) or ((v & 0b100) and ((v >> 14) & 3) >= 2): bad[i] = 1
+    for _ in range(grow):      # one pixel wider, grow times
+        t = bytearray(bad)
+        for y in range(H):
+            r = y * W
+            for x in range(W):
+                if bad[r + x]: t[r + max(x - 1, 0)] = t[r + min(x + 1, W - 1)] = 1; t[max(y - 1, 0) * W + x] = t[min(y + 1, H - 1) * W + x] = 1
+        bad = t
+    n = 0
+    for i in range(px):
+        if bad[i] and arr[MASK * px + i]: arr[MASK * px + i] = 0; n += 1
+    return n / px
+
+
+def find_donor(best, year, bounds, bbox, masks, refs, W, H, count=3):
+    """a scene without stripes to fill those of a Landsat 7 scene taken after its scan line corrector failed (31 May 2003): not Landsat 7 after that day, not more than DONOR_CLOUD cloud over the glacier and the tongue, whole picture,
+    the closest to the date of `best` in the season (day of the year) and in years (at most 3 years apart); registered onto the Sentinel-2 mosaic like every scene, its own cloud taken out. Returns up to
+    `count` of them, best first, as a list of (bands, info): the first fills the stripes where it is clear, the next ones what is left."""
     import datetime
     d0 = datetime.date.fromisoformat(best['date']); found = []
     for y in range(year - 3, year + 4):
@@ -432,16 +493,18 @@ def find_donor(best, year, bounds, bbox, masks, refs, W, H):
             if f['id'] == best['id'] or day in REJECT or p['platform'] in EXCLUDE or (p['platform'] == 'landsat-7' and day >= SLC_OFF): continue
             try: sc = score(f, bbox, masks)
             except Exception: continue
-            if sc['cover'] < 0.9 or sc['cloud'] > 0.1 or sc['tcloud'] > 0.05 or sc['snow'] > best['snow'] + 0.15: continue
+            if sc['cover'] < 0.9 or sc['cloud'] > DONOR_CLOUD or sc['tcloud'] > DONOR_CLOUD or sc['snow'] > best['snow'] + 0.15: continue
             dd = datetime.date.fromisoformat(day); doy = abs((dd.replace(year=d0.year) - d0).days)
             if doy > 45: continue
             found.append((doy + 120 * abs(y - year) + 200 * sc['cloud'] + 100 * sc['snow'], day, p['platform'], f))
+    donors = []
     for _, day, plat, f in sorted(found, key=lambda t: t[0]):
-        arr = bands(f, bbox, W, H); sx, sy, c, c0 = register(refs, arr, W, H)
+        arr = bands(f, bbox, W, H); gone = clear_donor(f, arr, bbox, W, H); sx, sy, c, c0 = register(refs, arr, W, H)
         if (sx, sy) != (0, 0) and c - c0 >= 0.03: arr = shifted(arr, W, H, sx, sy)
         elif c0 < 0.12: continue
-        print(f'    second scene {day} {plat} (correlation {max(c, c0):.2f})'); return arr, {'date': day, 'id': f['id'], 'sat': plat}
-    return None, None
+        print(f'    donor {day} {plat} (correlation {max(c, c0):.2f}, cloud taken out {gone:.1%})'); donors.append((arr, {'date': day, 'id': f['id'], 'sat': plat}))
+        if len(donors) == count: break
+    return donors
 
 
 def find_outlet(oid):
@@ -551,13 +614,13 @@ def main():
             if good: break
         else: print(f'  {year}: no scene with a confirmed position'); continue
         if ok: shifts[year] = (sx, sy); arr = shifted(arr, W, H, sx, sy)
-        donor = dinfo = None
-        if best['sat'] == 'landsat-7' and best['date'] >= SLC_OFF: donor, dinfo = find_donor(best, year, (s, w, n, e), bbox, masks, refs, W, H)
-        imgs, filled = render(arr, W, H, cal, donor)
+        donors, dinfo = [], None
+        if best['sat'] == 'landsat-7' and best['date'] >= SLC_OFF: found = find_donor(best, year, (s, w, n, e), bbox, masks, refs, W, H); donors = [d for d, _ in found]; dinfo = [i for _, i in found]
+        imgs, filled = render(arr, W, H, cal, donors)
         for k, img in imgs.items(): img.save(os.path.join(out, a.outlet, f'{year}{FILE_SUFFIX[k]}.jpg'), quality=88, optimize=True, progressive=True)
         scenes[year] = {k: round(best[k], 3) if isinstance(best[k], float) else best[k] for k in ('date', 'id', 'sat', 'path', 'row', 'time', 'sun', 'cloud', 'tcloud', 'snow', 'clear', 'cover')}
         if shifts.get(year) and shifts[year] != (0, 0): scenes[year]['shiftM'] = [round(shifts[year][0] * mpp), round(shifts[year][1] * mpp)]      # how far the scene lay east and south of the reference, in metres: corrected
-        if dinfo: scenes[year]['fill'] = dinfo      # the second scene whose pixels fill the stripes
+        if dinfo: scenes[year]['fill'] = dinfo[0]; scenes[year]['fills'] = dinfo      # the second scenes whose pixels fill the stripes (`fill`: the first, which the page's cache key uses)
         if filled > 0.002: scenes[year]['filled'] = round(filled, 3)      # the share of the picture interpolated across the stripes of Landsat 7
     mp = os.path.join(out, a.outlet + '.json'); old = {}
     if os.path.exists(mp) and a.years:

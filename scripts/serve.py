@@ -21,7 +21,7 @@ Credentials, in this order:
 Create the OAuth client at https://shapps.dataspace.copernicus.eu/dashboard/ -> User settings
 -> OAuth clients. The server listens on this computer only (127.0.0.1). Standard library only.
 """
-import argparse, getpass, json, os, ssl, sys, threading, time, urllib.error, urllib.parse, urllib.request, webbrowser
+import argparse, getpass, json, os, re, ssl, sys, threading, time, urllib.error, urllib.parse, urllib.request, webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 try: import review_lib      # local review walk-through; not in the repository
@@ -92,6 +92,7 @@ class Token:
             return self.value
 
 TOKEN = None
+REGION_ADDRESS = {"switzerland": "", "iceland": "#r=is", "iceland/vatnajokull": "#r=is", "iceland/rest": "#r=is", "norway": "#r=no-mainland", "svalbard": "#r=no-svalbard"}      # path: js/regions.js
 
 # ---------------------------------------------------------------- server
 class Handler(SimpleHTTPRequestHandler):
@@ -115,6 +116,12 @@ class Handler(SimpleHTTPRequestHandler):
     def do_GET(self):
         if self.path.split("?")[0] == "/":      # the front page of the public site is the region picker; the dashboard is /index.html here
             self.path = "/home.html" + self.path[1:]
+        # the addresses of the public site (/switzerland/#g=aletsch) exist only in the built site; here they open the dashboard (a #r= is added for the other regions, a link's own # is kept for Switzerland)
+        seg = self.path.split("?")[0].strip("/")
+        if seg in REGION_ADDRESS:
+            self.send_response(302)
+            self.send_header("Location", "/index.html" + ("?" + self.path.split("?", 1)[1] if "?" in self.path else "") + REGION_ADDRESS[seg])
+            return self.end_headers()
         if self.path == "/cdse/ping":
             return self._send(200, "application/json", b'{"relay":true,"managed":true}')
         if review_lib and self.path.split("?")[0] == "/review/state":          # the review walk-through (scripts/tools/review.html, scripts/review_lib.py)
@@ -124,7 +131,29 @@ class Handler(SimpleHTTPRequestHandler):
             return self._onboard()
         if self._hidden():
             return self._send(404, "text/plain", b"Not found")
+        if self.headers.get("Range") and self._range():
+            return
         return super().do_GET()
+
+    def _range(self):
+        """Byte ranges for files (Safari will not play a video from a server that ignores them); True when answered."""
+        m = re.match(r"bytes=(\d*)-(\d*)$", self.headers.get("Range", "").strip())
+        f = self.translate_path(self.path)
+        if not m or not os.path.isfile(f): return False
+        size = os.path.getsize(f)
+        a, b = m.groups()
+        lo, hi = (size - int(b), size - 1) if not a and b else (int(a or 0), min(int(b), size - 1) if b else size - 1)
+        if lo > hi or lo >= size:
+            self.send_response(416); self.send_header("Content-Range", "bytes */%d" % size); self.end_headers(); return True
+        self.send_response(206)
+        self.send_header("Content-Type", self.guess_type(f))
+        self.send_header("Content-Range", "bytes %d-%d/%d" % (lo, hi, size))
+        self.send_header("Content-Length", str(hi - lo + 1))
+        self.send_header("Accept-Ranges", "bytes")
+        self.end_headers()
+        with open(f, "rb") as fh:
+            fh.seek(lo); self.wfile.write(fh.read(hi - lo + 1))
+        return True
 
     def _onboard(self):
         """/onboard/state, /onboard/save, /onboard/run, /onboard/job?id=&since=, /onboard/stop (scripts/onboard_lib.py). Only from this computer's own page:
