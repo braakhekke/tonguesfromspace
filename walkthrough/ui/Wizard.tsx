@@ -117,10 +117,10 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
   const [camHint, setCamHint] = useState<string | null>(null);
   /** The start camera is whatever the real 3D view shows now: read from the frame (same origin) and handed to the strip screen. */
   const useCamera = () => {
-    const w = document.querySelector<HTMLIFrameElement>('iframe.wz-frame')?.contentWindow as (Window & { v3d?: { getCam(): { az: number; el: number; dist: number } } }) | null | undefined;
+    const w = document.querySelector<HTMLIFrameElement>('iframe.wz-frame')?.contentWindow as (Window & { v3d?: { getCam(): { az: number; el: number; dist: number; tx?: number; tz?: number } } }) | null | undefined;
     const cam = w?.v3d?.getCam?.();
     if (!cam) return setCamHint('The 3D view is not open in the page yet: switch View to 3D there first.');
-    dispatchEvent(new CustomEvent('wz-cam', { detail: { az: +cam.az.toFixed(4), el: +cam.el.toFixed(4), dist: Math.round(cam.dist) } }));
+    dispatchEvent(new CustomEvent('wz-cam', { detail: { az: +cam.az.toFixed(4), el: +cam.el.toFixed(4), dist: Math.round(cam.dist), ...(cam.tx || cam.tz ? { tx: cam.tx, tz: cam.tz } : {}) } }));
     setCamHint(null); setTab('edit');
   };
   /** The page for this glacier opens on the draft: the form is handed to the server first, then the frame loads (the page asks the server for boxes.js and scenes.json). */
@@ -160,7 +160,7 @@ function StepFrame({ st, step, region, glacier, onSaved, onError }: FrameProps) 
             {step.id === 'glacier.strip' && (
               <div class="wz-camera">
                 <button type="button" onClick={useCamera}>Use this 3D view as the start camera</button>
-                <small>{camHint ?? 'Open the 3D view (View → 3D) and orbit to where the camera should start.'}</small>
+                <small>{camHint ?? 'Open the 3D view (View → 3D). Drag to turn, hold Shift (or Ctrl/Alt) and drag to move sideways, scroll to zoom.'}</small>
               </div>
             )}
             <iframe class="wz-frame" title="The real page" src={frame} />

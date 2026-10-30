@@ -452,11 +452,18 @@ def read_swisswide(src):
         if y >= 2010: out.append([y, round(v, 3), pct])
     return out, bal
 
+# Profiles that are seismic, not radar. The GLAMOS release says all its observations are ground-penetrating radar, but Aletsch's profile dated 1958 (profile id 19589999) is the seismic survey of
+# Thyssen and Ahmad: GlaThiDa 3.1.0 entry 219 "ALETSCHGLETSCHER" has SURVEY_METHOD "SEI", SURVEY_DATE 19589999 and that reference; the file header says "Farinotti (2009) after Thyssen & Ahmad (1969)".
+# The year of the field work is GlaThiDa's value, not read in the paper (docs/sources/ch-aletsch-radar-surface.md).
+SEISMIC_PROFILES = {("B36-26", "19589999")}
+
 def read_thickness(src, ids, cell=50):
     """GLAMOS radar ice thickness zip (ASCII, one file per glacier and source) -> ({id: summary}, {id: [[lat, lng, thickness m, survey year], ...]}).
     The points of all files of a glacier are thinned to one mean per cell x cell metres so the page can draw them.
     Every profile has its own survey date (first column, yyyymmdd). A cell keeps the mean thickness of each survey year that touched it:
-    [lat, lng, thickness of the newest year, that year, [[year, thickness], ...] only when the cell was measured in more than one year]."""
+    [lat, lng, thickness of the newest year, that year, [[year, thickness, 1 if seismic], ...] when the cell was measured in more than one year else 0, bed elevation m a.s.l. of the newest year, 1 if that thickness is seismic else 0].
+    The bed is the mean of the file's own `bedrock(m)` column (surface at the survey minus the measured thickness), whole metres, null when the file has none; it stays where the radar put it
+    however much the ice has thinned since."""
     zf = load_zip(src)
     wanted = {i: [n for n in zf.namelist() if n.startswith(i + "_") and n.endswith(".txt")] for i in ids}
     summary, points = {}, {}
@@ -476,15 +483,18 @@ def read_thickness(src, ids, cell=50):
                 if y: years.add(y)
                 c = cells.setdefault((int(e // cell), int(nn // cell)), [0.0, 0.0, 0.0, 0, {}])
                 c[0] += e; c[1] += nn; c[2] += th; c[3] += 1
-                t = c[4].setdefault(y or 0, [0.0, 0]); t[0] += th; t[1] += 1
+                seis = 1 if (gid, f[0][:8]) in SEISMIC_PROFILES else 0
+                t = c[4].setdefault((y or 0, seis), [0.0, 0, 0.0, 0]); t[0] += th; t[1] += 1
+                try: bd_ = float(f[7])
+                except ValueError: bd_ = None
+                if bd_ is not None and bd_ > -999 and bd_ == bd_: t[2] += bd_; t[3] += 1
         if not cells: continue
         pts = []
         for c in cells.values():
             lng, lat = to_wgs84(c[0] / c[3], c[1] / c[3])
-            per = sorted((y, round(t[0] / t[1])) for y, t in c[4].items())
-            ny, nm = per[-1]
-            pt = [lat, lng, nm, ny or None]
-            if len(per) > 1: pt.append([[y or None, m] for y, m in per])
+            per = sorted((y, sq, round(t[0] / t[1])) for (y, sq), t in c[4].items())
+            ny, nsq, nm = per[-1]; tn = c[4][(ny, nsq)]
+            pt = [lat, lng, nm, ny or None, [[y or None, m] + ([1] if sq else []) for y, sq, m in per] if len(per) > 1 else 0, round(tn[2] / tn[3]) if tn[3] else None, nsq]
             pts.append(pt)
         pts.sort()
         points[gid] = pts

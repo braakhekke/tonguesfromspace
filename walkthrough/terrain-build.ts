@@ -19,14 +19,14 @@ export type TerrainBuilt = { file: string; built?: string; names: number; namesS
 export type TerrainState = { running: boolean; log: string[]; startedAt?: number; endedAt?: number; code?: number | null; built: TerrainBuilt | null };
 
 /** the file the manifest names for the glacier (under the id the site uses), read back: what it holds and whether its strip is the record's */
-export function builtTerrain(id: string, strip?: { azimuth: number; half: number; back: number; up: number }, root = ROOT): TerrainBuilt | null {
+export function builtTerrain(id: string, strip?: { azimuth: number; half: number; back: number; up: number; shift?: number }, root = ROOT): TerrainBuilt | null {
   const mp = join(root, 'data', 'terrain', 'manifest.json');
   if (!existsSync(mp)) return null;
   const file = (JSON.parse(readFileSync(mp, 'utf8')) as Record<string, string>)[id];
   if (!file || !existsSync(join(root, 'data', 'terrain', file))) return null;
   const b = readFileSync(join(root, 'data', 'terrain', file)), h = JSON.parse(b.subarray(8, 8 + b.readUInt32LE(4)).toString('utf8'));
   const az = (Math.atan2(h.ue, h.un) * 180) / Math.PI;
-  const matches = !strip || (Math.abs(((az - strip.azimuth + 540) % 360) - 180) < 1e-6 && h.up === strip.up && h.back === strip.back && (h.half ?? 2000) === strip.half);
+  const matches = !strip || (Math.abs(((az - strip.azimuth + 540) % 360) - 180) < 1e-6 && h.up === strip.up && h.back === strip.back && (h.half ?? 2000) === strip.half && (h.shift ?? 0) === (strip.shift ?? 0));
   const qp = join(root, 'data', 'terrain', 'quality.json'), q = existsSync(qp) ? (JSON.parse(readFileSync(qp, 'utf8')) as Record<string, TerrainQuality & { file: string }>)[id] : undefined;
   return { file, built: h.built, names: (h.names ?? []).length, namesSource: h.namesSource, yearly: !!h.yearly, matchesStrip: matches, quality: q && q.file === file ? q : null };      // a verdict on another file is no verdict on this one
 }

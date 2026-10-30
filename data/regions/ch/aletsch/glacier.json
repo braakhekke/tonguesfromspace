@@ -9,13 +9,20 @@
     "at": "2026-10-26",
     "note": "Picture box, tip and 3D strip from data/boxes.js; 39 scenes from data/scenes.json and data/landsat/; season from js/regions.js."
   },
+  "legacyIds": [],
   "rank": 1,
   "areaKm2": 75.79,
   "areaSource": "glamos-sgi",
   "centre": [
-    46.48279,
-    8.0104
+    46.50087,
+    8.03598
   ],
+  "recordConfirmation": {
+    "at": "2026-10-30",
+    "by": "owner",
+    "reason": "changed marker",
+    "basedOn": "44a8796f4bab"
+  },
   "placement": {
     "tip": [
       46.402962,
@@ -32,10 +39,22 @@
       ]
     ],
     "strip3d": {
-      "azimuth": 46.980177754196404,
-      "half": 2000,
-      "back": 1000,
-      "up": 6500
+      "azimuth": 358.7,
+      "half": 4248,
+      "back": 2468,
+      "up": 10127,
+      "shift": 2472,
+      "cam": {
+        "az": -0.5403,
+        "el": 0.2833,
+        "dist": 8108
+      }
+    },
+    "confirmation": {
+      "at": "2026-10-30",
+      "by": "owner",
+      "reason": "done",
+      "basedOn": "dd45e3a89ea5"
     }
   },
   "balanceYear": {
@@ -55,5 +74,11 @@
     "noDataMarginM": 1000,
     "oneOrbit": false,
     "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 39 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "stripConfirmation": {
+    "at": "2026-10-30",
+    "by": "owner",
+    "reason": "done",
+    "basedOn": "79dc0dbc2607"
   }
 }

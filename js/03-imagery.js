@@ -24,7 +24,7 @@ export const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v9'        // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v11'        // bump when scoring or rendering changes, to invalidate cached results
 };
 /* latest allowed day per year (MM-DD); default the end of the season (Switzerland 20 September). 2024: heavy snowfall on 15 September. */
 export const LAST_DAY = { default: SEASON.find[1], ...SEASON.lastDay };

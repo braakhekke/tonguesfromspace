@@ -365,7 +365,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .v3d.photo-on .v3d-over{z-index:3}
 .v3d.photo-on .v3d-layers{display:none}
 .v3d.photo-on .v3d-top,.v3d.photo-on .v3d-bottom{display:none!important}      /* the hints (drag, pinch), the year line and the picture note belong to the 3D picture, not to the photograph; its own credit sits under it */
-.v3d.photo-on #v3mDist,.v3d.photo-on #v3mArea,.v3d.photo-on #v3mClear,.v3d.photo-on .v3d-mhint{display:none}      /* the measuring tools need the 3D picture itself, not the photograph over it: the card then holds only the photo buttons */
+.v3d.photo-on #v3mDist,.v3d.photo-on #v3mArea,.v3d.photo-on #v3mClear,.v3d.photo-on #v3mSect,.v3d.photo-on #v3mSect2d,.v3d.photo-on .v3d-sect,.v3d.photo-on .v3d-mhint{display:none}      /* the measuring tools need the 3D picture itself, not the photograph over it: the card then holds only the photo buttons */
 .v3d-photos{display:flex;flex-direction:column;align-items:stretch;margin-top:3px;padding-top:3px;border-top:1px solid var(--rule)}
 .v3d.photo-on .v3d-photos{margin-top:0;padding-top:0;border-top:0}
 .v3d-photos[hidden]{display:none}
@@ -972,7 +972,7 @@ body.has-full{overflow:hidden}
   .stage-slot .stage{height:100%}
   .stage.mini{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(72vw,320px);height:195px!important;min-height:0;z-index:900;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.5);border:2px solid #fff}
   .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d):not(.notice){display:none!important}
-  .stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
+  .stage.mini .v3d-sect,.stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
   .stage.mini .leaflet-control-scale{display:none}
   .stage.mini .notice{width:calc(100% - 16px);padding:8px 10px;font-size:12px;line-height:1.3;text-align:center;z-index:710}      /* a message from the controls below ("turn on the Sentinel-2 layer") shows in the small window too */
   .stage.mini .v3d{pointer-events:none}      /* a touch on the small window scrolls the page, it does not turn the terrain */
@@ -1033,7 +1033,7 @@ body.has-full{overflow:hidden}
 .w-part .fill svg{display:block}
 
 /* while a download pane is open, the 3D view shows only what the download will contain */
-body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photocap,body.pane-open .v3d-measure,body.pane-open .v3d-mhint,body.pane-open .v3d-tip{display:none!important}
+body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photocap,body.pane-open .v3d-measure,body.pane-open .v3d-sect,body.pane-open .v3d-mhint,body.pane-open .v3d-tip{display:none!important}
 .social{display:flex;justify-content:center;gap:6px;margin-top:10px}
 .social a{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;color:var(--moraine);transition:color .15s,background .15s}
 .social a:hover,.social a:focus-visible{color:#fff;background:var(--accent)}
@@ -1169,9 +1169,9 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 @media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:36px}.v3d-photocap{bottom:138px}}
 
 /* the measuring tools show only their symbols, everywhere (the words are in the tooltips and the labels for screen readers) */
-.mapbar .mtool .lbl,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span{display:none!important}
+.mapbar .mtool .lbl,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span,#v3dMeasure #v3mSect span,#v3dMeasure #v3mSect2d span{display:none!important}
 .mapbar .mtool{padding-left:10px;padding-right:10px}
-.v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear{padding:0 10px!important}
+.v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear,.v3d-measure > #v3mSect,.v3d-measure > #v3mSect2d{padding:0 10px!important}
 .mapbar .mtool svg{display:block}      /* on desktop the measuring buttons are now symbols only */
 
 @media (max-width:720px){.tl-row{gap:12px}.tl-row .tl2,.v3d-top .tl2{width:min(300px,calc(100vw - 130px))}.tl-play{width:30px;height:30px;margin-top:8px}}
@@ -1548,3 +1548,63 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .tongue-loading.out{opacity:0}
 .tongue-loading em{display:block;width:150px;height:2px;background:rgba(255,255,255,.28);overflow:hidden}
 .tongue-loading i{display:block;height:100%;width:0;background:#fff}
+
+/* Thickness cross-section (3D view): a line across the glacier; surface from the 3D grid, ice depth from the radar points beside the line */
+.v3d-sect{position:absolute;z-index:6;left:12px;bottom:84px;width:min(560px,calc(100% - 24px));background:var(--sheet);color:var(--ink);border-radius:8px;box-shadow:0 4px 18px rgba(0,0,0,.35);padding:8px 10px 7px;font-size:12px}
+.v3d-sect[hidden]{display:none}
+.v3d-sect .hd{display:flex;align-items:baseline;gap:8px}
+.v3d-sect .hd b{font-weight:600;color:var(--accent);text-transform:uppercase;letter-spacing:.04em;font-size:11px}
+.v3d-sect .hd span{color:var(--moraine);flex:1;min-width:0}
+.v3d-sect .hd button{border:0;background:none;font:inherit;font-size:18px;line-height:1;color:var(--moraine);cursor:pointer;padding:0 2px}
+.v3d-sect svg{display:block;width:100%;height:auto;margin-top:4px;font-family:var(--sans)}
+.v3d-sect .ft{margin-top:3px;font-size:11px;color:var(--moraine);line-height:1.35}
+@media (max-width:720px){.v3d-sect{bottom:140px;left:8px;width:calc(100% - 16px)}}
+
+.v3d-sect .lg{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:5px;font-size:11.5px;color:var(--ink)}
+.v3d-sect .lg span{display:inline-flex;align-items:center;gap:5px}
+.v3d-sect .sw{display:inline-block;flex:none;box-sizing:content-box;height:0;padding:0;margin:0;border:0;border-radius:0;background:none;box-shadow:none}
+.v3d-sect details{margin-top:4px}
+.v3d-sect summary{cursor:pointer;color:var(--moraine);font-size:11px}
+.v3d-sect details ul{margin:4px 0 0;padding-left:16px}
+.v3d-sect details li{margin:2px 0}
+
+/* scientific field notes (3D view): the pill in the top bar links to provenance.html */
+.sci-pill{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 10px 5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(10,16,24,.55);color:#e8f0f6;font:600 12.5px/1 inherit;cursor:pointer;pointer-events:auto}
+.sci-pill svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.sci-pill:hover{background:#C8322A;border-color:#C8322A;color:#fff}
+.sci-pill{text-decoration:none}
+
+/* hover on the wall of the 3D cross-cut: the table of the chart, beside the pointer */
+.v3d-cuttip{max-width:none;padding:6px 9px 5px;font-size:12px}
+.v3d-cuttip table{border-collapse:collapse}
+.v3d-cuttip th{font-size:10px;font-weight:600;text-align:right;padding:0 0 2px 12px;color:var(--moraine)}
+.v3d-cuttip th:first-child,.v3d-cuttip td:first-child{text-align:left;padding-left:0}
+.v3d-cuttip td{text-align:right;padding:1px 0 1px 12px;font-variant-numeric:tabular-nums}
+.v3d-cuttip small{display:block;margin-top:3px;font-size:10px;color:var(--moraine)}
+
+/* 2D chart of the cross-section: export buttons in its header */
+.v3d-sect .hd .ex{flex:none;display:flex;gap:4px;align-self:center}
+.v3d-sect .hd .ex button{font-size:11px;font-weight:600;line-height:1.2;border:1px solid var(--rule);border-radius:5px;padding:2px 7px;color:var(--rock);background:none;cursor:pointer}
+.v3d-sect .hd .ex button:hover{background:var(--firn)}
+
+/* the caption under the cut in the 3D view: line, bed and radar source, and the button for the 2D chart */
+.v3d-cutcap{position:absolute;z-index:6;display:flex;align-items:center;gap:8px;background:rgba(34,49,58,.92);color:#fff;border-radius:6px;padding:4px 5px 4px 9px;line-height:1.35;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.35)}
+.v3d-cutcap[hidden]{display:none}
+.v3d-cutcap .tx b{display:block;font-size:12px;font-weight:600}
+.v3d-cutcap .tx span{display:block;font-size:11px;font-weight:500;opacity:.8}
+.v3d-cutcap button{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:none;color:#fff;cursor:pointer}
+.v3d-cutcap button:hover,.v3d-cutcap button[aria-pressed="true"]{background:rgba(255,255,255,.22)}
+.v3d-cutcap button svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.stage.mini .v3d-cutcap,body.pane-open .v3d-cutcap,.v3d.photo-on .v3d-cutcap{display:none!important}
+.v3d-cuttip th small{display:block;font-size:9.5px;font-weight:500;opacity:.7}
+.v3d-cuttip th{vertical-align:bottom}
+.v3d-cuttip{max-width:340px}
+.v3d-cutcap .tx span.grad,.v3d-cutcap .tx i.grad{display:inline-block;width:26px;height:3px;margin-right:6px;vertical-align:middle;background:linear-gradient(90deg,#C8322A,#3F9BC4)}
+.v3d-cutcap .tx #v3dCutCap3{display:block}
+.v3d-cutcap .tx #v3dCutCap3[hidden]{display:none}
+.v3d-cutcap .tx #v3dCutCap4{display:block;color:#FFD9A0;opacity:1;max-width:460px;white-space:normal}
+.v3d-cutcap .tx #v3dCutCap4[hidden]{display:none}
+.v3d-sect .early{margin-top:4px;font-size:11px;color:var(--accent);line-height:1.35}
+.layerbox .toggle .tx2{display:flex;flex-direction:column;min-width:0}
+#l3SrYears{font-size:11px;font-weight:400;line-height:1.3;opacity:.7}
+#l3SrYears:empty{display:none}

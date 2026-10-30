@@ -45,7 +45,7 @@ def header(name):
 
 def strip_problems(gid, h=None):
     """how the file of a glacier differs from the strip of its record (empty list = equal); the same rule as tests/test_boxes.py"""
-    r = records()[gid]; h = h or header(manifest()[gid]); px, py = merc(*r['tip']); t = r['strip3d']; az = math.radians(t['azimuth']); out = []
+    r = records()[gid]; h = h or header(manifest()[gid]); px, py = merc(*r['tip']); t = r['strip3d']; az = math.radians(t['azimuth']); out = []; sh = t.get('shift', 0); k0 = 1 / math.cos(math.radians(r['tip'][0])); px, py = px + sh * math.cos(az) * k0, py - sh * math.sin(az) * k0
     for what, a, b, tol in (('P.x', h['P'][0], px, 1e-3), ('P.y', h['P'][1], py, 1e-3), ('k', h['k'], 1 / math.cos(math.radians(r['tip'][0])), 1e-9), ('ue', h['ue'], math.sin(az), 1e-9),
                             ('un', h['un'], math.cos(az), 1e-9), ('up', h['up'], t['up'], 1e-6), ('back', h['back'], t['back'], 0), ('half', h.get('half', 2000), t['half'], 0)):
         if abs(a - b) > tol: out.append(f'{what}: file {a}, record {b}')

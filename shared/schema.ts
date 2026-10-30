@@ -91,10 +91,12 @@ export const Placement = z.object({
   /** 3D strip: azimuth in degrees from tip up the glacier, half width / back / up in metres */
   strip3d: z.object({
     azimuth: z.number(), half: z.number().positive(), back: z.number().min(0), up: z.number().positive(),
+    /** metres the strip's centre line lies to the right of the line up the glacier from the tip (negative = left); absent = 0 */
+    shift: z.number().optional(),
     /** grid cell of the 3D terrain in metres where the region does not use the default */
     cell: z.number().positive().optional(),
     /** a hand-set start camera: azimuth and elevation in radians, distance in metres */
-    cam: z.object({ az: z.number(), el: z.number(), dist: z.number().positive() }).optional(),
+    cam: z.object({ az: z.number(), el: z.number(), dist: z.number().positive(), tx: z.number().optional(), tz: z.number().optional() }).optional(),
   }).optional(),
   /** hand-placed boxes of the outlets of an ice cap that are not glaciers of the list yet (records of their box and strip only); the site's data/boxes.js keeps them under `parent` */
   subs: z.array(z.object({ dataKey: z.string(), name: z.string(), pictureBox: Bounds, tip: LatLon, strip3d: z.object({ azimuth: z.number(), half: z.number().positive(), back: z.number().min(0), up: z.number().positive(), cell: z.number().positive().optional() }) })).optional(),

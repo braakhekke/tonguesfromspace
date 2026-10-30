@@ -65,7 +65,7 @@ export function updateCredits(){
   if (document.getElementById('trailsToggle').checked) parts.push((FEATURES.swisstopo ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
   if (FEATURES.swisstopo && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
-  if (document.getElementById('namesToggle').checked && map.hasLayer(namesLayer)) parts.push('Glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0 via <a href="https://www.glims.org/RGI/" target="_blank" rel="noopener">GLIMS</a>');
+  if (document.getElementById('namesToggle').checked && map.hasLayer(namesLayer)) parts.push('Other glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0 via <a href="https://www.glims.org/RGI/" target="_blank" rel="noopener">GLIMS</a>');
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
@@ -613,9 +613,9 @@ export function radarColor(m){
   }
   return 'rgb(90,31,99)';
 }
-export const radarPopup = (m, y, all) => all      // the text of a radar point, on the map and on the pins of the 3D view
-  ? `<strong>Measured ${all.length} times by radar</strong><br>${all.slice().reverse().map(([yy, mm]) => `${yy || 'year unknown'}: <b>${mm} m</b>`).join('<br>')}`
-  : `<strong>${m} m</strong> of ice<br>measured by radar${y ? ` in ${y}` : ''}`;
+export const radarPopup = (m, y, all, seis) => all      // the text of a radar point, on the map and on the pins of the 3D view; seis: a seismic survey, not radar (Aletsch 1958)
+  ? `<strong>Measured ${all.length} times${all.some(e => e[2]) ? ' (radar and seismic)' : ' by radar'}</strong><br>${all.slice().reverse().map(([yy, mm, sq]) => `${yy || 'year unknown'}: <b>${mm} m</b>${sq ? ' (seismic)' : ''}`).join('<br>')}`
+  : `<strong>${m} m</strong> of ice<br>measured by ${seis ? 'a seismic survey' : 'radar'}${y ? ` in ${y}` : ''}`;
 export let radarLayer = null, radarLoad = null, radarGen = 0, maxMarker = null;
 export const radarRenderer = L.canvas({pane:'outlines', padding:0.3});
 export function loadRadar(){
@@ -642,9 +642,9 @@ export async function drawRadar(){
   const r = Math.max(2.5, Math.min(7, (map.getZoom() - 9) * 0.9));
   // [lat, lng, thickness of the newest survey, its year, [[year, thickness], ...] if the spot was measured in several years]
   const popup = radarPopup;
-  radarLayer = L.layerGroup(pts.map(([lat, lng, m, y, all]) => L.circleMarker([lat, lng], {renderer:radarRenderer, radius:r, stroke:true, color: all ? '#C8322A' : '#fff', weight: all ? 1.4 : .6, opacity:.85, fillColor:radarColor(m), fillOpacity:.9})
-    .bindTooltip(popup(m, y, all), {sticky:true, direction:'top', offset:[0, -6], opacity:.96, className:'radar-tip'})        // on hover; a tap or click opens the same text as a popup
-    .bindPopup(popup(m, y, all)).on('popupopen', e => e.target.closeTooltip()))).addTo(map);
+  radarLayer = L.layerGroup(pts.map(([lat, lng, m, y, all, , seis]) => L.circleMarker([lat, lng], {renderer:radarRenderer, radius:r, stroke:true, color: all ? '#C8322A' : '#fff', weight: all ? 1.4 : .6, opacity:.85, fillColor:radarColor(m), fillOpacity:.9})
+    .bindTooltip(popup(m, y, all, seis), {sticky:true, direction:'top', offset:[0, -6], opacity:.96, className:'radar-tip'})        // on hover; a tap or click opens the same text as a popup
+    .bindPopup(popup(m, y, all, seis)).on('popupopen', e => e.target.closeTooltip()))).addTo(map);
   updateCredits();
 }
 map.on('zoomend', () => { if (radarLayer) drawRadar(); capCheckFine(); });

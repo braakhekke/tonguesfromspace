@@ -2,6 +2,8 @@
 
 Written 2026-10-30 from the Aletsch work (`experiments/aletsch-yearly-dem/`, local, gitignored; ledger `LEDGER.md` there). **A recipe, not a product:** every source below must be found again for the glacier at hand (docs/DATA_SEARCH.md), read, and logged as read / NOT READ. Nothing goes into `data/`, `js/` or the dock without the owner's go-ahead.
 
+**Update 2026-10-30 (evening):** the Aletsch yearly surfaces are now on the site (owner go-ahead): see docs/REFERENCE.md, row "data/yearly/B36-26.npz", for the pipeline (`strip_inputs.py` -> `strip_model.py` -> `export_site_yearly.py` -> `scripts/build_terrain_bundle.py`). Run them in that order after the strip changes in the walkthrough (and `npm run walkthrough -- export` first: the bundle builder reads `data/boxes.js`).
+
 ## 0. Rules that came out of the work
 - **Satellite imagery is never altered, covered or super-resolved** (owner, strong). Masks are drawn on copies for checking only; in the viewer's image mode nothing is drawn over the picture. One imagery source per timelapse (the site's pinned Sentinel-2 scene).
 - External numbers as the source states them; figure-read values labelled as read from a plot; computed values labelled computed.

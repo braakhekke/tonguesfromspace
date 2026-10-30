@@ -60,13 +60,14 @@ def tile_zip(year, e, n):                  # path of the cached zip, or None whe
     name, url = tile_url(year, e, n)
     path = os.path.join(CACHE, name + '_2.xyz.zip')
     if os.path.exists(path): return path
+    if os.path.exists(path + '.404'): return None      # asked before: this edition has no such tile
     os.makedirs(CACHE, exist_ok=True)
     try:
         print('  download', name, file=sys.stderr)
         urllib.request.urlretrieve(url, path + '.part'); os.replace(path + '.part', path)
         return path
     except urllib.error.HTTPError as ex:
-        if ex.code in (403, 404): return None
+        if ex.code in (403, 404): open(path + '.404', 'w').close(); return None
         raise
 
 

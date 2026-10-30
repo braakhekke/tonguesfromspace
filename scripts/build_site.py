@@ -33,7 +33,7 @@ import hashlib, json, os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
-HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
+HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
@@ -298,6 +298,15 @@ def main():
             assets[f"data/oldest/{f}"] = rel
     # Landsat pictures before 2016 (Iceland): not in the site bundle. They live in the R2 bucket LANDSAT (scripts/upload_landsat.sh) and the Worker serves
     # them at data/landsat/<outlet>.json and <outlet>/<year>.jpg (plain names, revalidated; `asset()` leaves unlisted names as they are).
+    yearly = os.path.join(ROOT, "data", "yearly")      # how the yearly ice surfaces were made (science mode of the 3D view, provenance.html); the .npz next to them is only for the terrain builder
+    if os.path.isdir(yearly):
+        os.makedirs(os.path.join(out, "data", "yearly"), exist_ok=True)
+        for f in sorted(os.listdir(yearly)):
+            if f.endswith((".json", "-viewer.html")):      # the viewer is the standalone page of the field notes (iframe in provenance.html)
+                shutil.copy(os.path.join(yearly, f), os.path.join(out, "data", "yearly", f))
+    sr = os.path.join(ROOT, "data", "sr")      # super-resolved strip pictures (optional 3D layer; made by experiments/aletsch-sen2sr/run_strip.py): not hashed, the page asks for them by name
+    if os.path.isdir(sr):
+        shutil.copytree(sr, os.path.join(out, "data", "sr"))
     terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "data", "terrain"))

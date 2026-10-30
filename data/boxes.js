@@ -23,10 +23,16 @@ window.GLACIER_BOXES = {
     8.033585
    ],
    "strip3d": {
-    "azimuth": 46.980177754196404,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 358.7,
+    "half": 4248,
+    "back": 2468,
+    "up": 10127,
+    "shift": 2472,
+    "cam": {
+     "az": -0.5403,
+     "el": 0.2833,
+     "dist": 8108
+    }
    },
    "derived": {
     "bbox": [

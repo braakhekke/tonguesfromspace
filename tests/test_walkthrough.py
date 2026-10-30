@@ -127,7 +127,8 @@ class TestWalkthrough(unittest.TestCase):
         page.goto(self.base + "/onboard/ch/aletsch/glacier.strip")
         page.wait_for_selector("text=Azimuth up the glacier", timeout=15000)
         azimuth = page.locator("label:has(span:text-is('Azimuth up the glacier, degrees')) input")
-        self.assertEqual(float(azimuth.input_value()), 46.980177754196404, "the strip of the record, as imported")
+        rec_az = json.load(open(os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "data", "regions", "ch", "aletsch", "glacier.json")))["placement"]["strip3d"]["azimuth"]
+        self.assertEqual(float(azimuth.input_value()), rec_az, "the strip of the record")
         azimuth.fill("50")
         page.fill("label:has(span:text-is('Up the glacier, m')) input", "7000")
         page.fill("textarea", "The strip follows the middle of the tongue; checked on the map.")

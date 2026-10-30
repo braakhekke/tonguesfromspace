@@ -1,16 +1,6 @@
 {
   "epochs": [
     {
-      "kind": "old",
-      "year": 1850,
-      "source": "glamos-sgi",
-      "ref": {
-        "file": "data/glaciers.js",
-        "id": "B36-26",
-        "field": "oldest.outline"
-      }
-    },
-    {
       "kind": "new",
       "year": 2023,
       "source": "glamos-sgi",
@@ -19,6 +9,22 @@
         "id": "B36-26",
         "field": "outline"
       }
+    },
+    {
+      "kind": "old",
+      "year": 1850,
+      "source": "glamos-sgi",
+      "ref": {
+        "file": "data/glaciers.js",
+        "id": "B36-26",
+        "field": "oldest.outline"
+      }
     }
-  ]
+  ],
+  "confirmation": {
+    "at": "2026-10-30",
+    "by": "owner",
+    "reason": "done",
+    "basedOn": "6758b5c650df"
+  }
 }
