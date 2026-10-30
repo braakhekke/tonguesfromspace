@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode } from './04-state.js';
-import { map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone } from './05-map.js';
+import { ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
@@ -18,6 +18,7 @@ Object.defineProperty(wire, 'leavePhoto', { get: () => leavePhoto, configurable:
 Object.defineProperty(wire, 'loadBundle', { get: () => loadBundle, configurable: true });
 Object.defineProperty(wire, 'open3D', { get: () => open3D, configurable: true });
 Object.defineProperty(wire, 'refresh3D', { get: () => refresh3D, configurable: true });
+Object.defineProperty(wire, 'retitle3D', { get: () => retitle3D, configurable: true });
 Object.defineProperty(wire, 'setSplit3D', { get: () => setSplit3D, configurable: true });
 Object.defineProperty(wire, 'stripImageSpec', { get: () => stripImageSpec, configurable: true });
 Object.defineProperty(wire, 'stripPicturesOff', { get: () => stripPicturesOff, configurable: true });
@@ -37,7 +38,7 @@ Object.defineProperty(wire, 'v3dSplit', { get: () => v3dSplit, configurable: tru
    Local frame of the strip: a = metres up the glacier from the tip (negative = below it), b = metres to the right when looking up the glacier; in the 3D scene x = b, z = -a.
    ===================================================================== */
 export const FREE_CAM = location.pathname.startsWith('/site/');      // the page inside the walkthrough (served under /site/): the camera turns all the way round and can be moved sideways (Shift, Ctrl, Alt or Cmd + drag, or the right or middle mouse button), only the height and the distance keep their limits
-export const V3D = {HALF: 2000, BACK: 1000, UP: [2500, 6500], CELL: [14, 28], TEX: [1024, 2048], Z: 13, EL: [0.12, 1.35], DIST: [600, 7500], AZ: 1.3, WM: 20037508.342789244};      // HALF: half width (m); BACK: strip below the tip (m); UP: shortest and longest strip up the glacier (m); CELL: grid spacing (m), the fine one needs 32-bit indices (about 150,000 points), the coarse one is the fallback; TEX: texture width and height; Z: tile zoom; EL / DIST / AZ: tilt, distance and turn limits
+export const V3D = {HALF: 2000, BACK: 1000, UP: [2500, 6500], CELL: [14, 28], TEX: [1024, 2048], Z: 13, EL: [0.02, 1.35], DIST: [600, 7500], AZ: 1.3, WM: 20037508.342789244};      // HALF: half width (m); BACK: strip below the tip (m); UP: shortest and longest strip up the glacier (m); CELL: grid spacing (m), the fine one needs 32-bit indices (about 150,000 points), the coarse one is the fallback; TEX: texture width and height; Z: tile zoom; EL / DIST / AZ: tilt, distance and turn limits
 export const LANDING_CAM = {az: 0.1565, el: 0.3228, dist: 3880};      // the camera of the landing page (plain address, first glacier): azimuth and elevation in radians, distance in metres; read it from a view you like with v3d.getCam() in the console
 /* the credit of the terrain of the open view: the region's, and the ArcticDEM strips when the glacier's terrain file has a surface for every year */
 export const ARCTIC_HTML = 'ArcticDEM strips © <a href="https://www.pgc.umn.edu/data/arcticdem/" target="_blank" rel="noopener">Polar Geospatial Center</a>, University of Minnesota (CC BY 4.0; Maxar WorldView images)';
@@ -130,6 +131,7 @@ void main(){
   if (uSplit.x >= 0.0 && abs(pos - at) < 1.5) c = vec3(1.0);      /* the line between the two years */
   gl_FragColor = vec4(c, 1.0); }`;
 export let v3d = null;
+let v3dHome = null;      // the start camera of the glacier in view (hand-set or the landing page's), null: the viewer's own
 export let meshWideOk;
 export const meshWide = () => meshWideOk !== undefined ? meshWideOk : (meshWideOk = (() => { try { return !!document.createElement('canvas').getContext('webgl').getExtension('OES_element_index_uint'); } catch { return false; } })());      // 32-bit indices: the fine mesh
 export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, distMul = 1, half = V3D.HALF){
@@ -213,7 +215,8 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
   const uM = gl.getUniformLocation(pr, 'uM'), uX = gl.getUniformLocation(pr, 'uX');
   const uCutA = gl.getUniformLocation(pr, 'uCutA'), uCutU = gl.getUniformLocation(pr, 'uCutU'), uCutN = gl.getUniformLocation(pr, 'uCutN'); let cut = null, cutKey = '', cutLive = false;      // cut: {ax, az, ux, uz, L}, the section line; the ground in front of it (the camera's side) is left out of the screen picture, never of a download
   gl.enable(gl.DEPTH_TEST); const uBoxL = gl.getUniformLocation(pr, 'uBox'); gl.uniform3f(uBoxL, HALF, len / 2, (BACK - up) / 2); gl.uniform2f(gl.getUniformLocation(pr, 'uSz'), 2 * HALF, len);      // half width, half length, z of the middle: the soft edge
-  const cam = {az: 0, el: SC > 2 ? 0.55 : 0.35, dist: 3400 * distMul * SC * (SC > 2 ? 1.15 : 1), exag: 1, tx: 0, tz: 0}, [E0, E1] = V3D.EL, [D0, D1] = [V3D.DIST[0], V3D.DIST[1] * SC], A = FREE_CAM ? Infinity : V3D.AZ;      // a wide area (Iceland) is seen from a little higher
+  const cam = {az: 0, el: SC > 2 ? 0.55 : 0.35, dist: 3400 * distMul * SC * (SC > 2 ? 1.15 : 1), exag: 1, tx: 0, tz: 0}, [E0, E1] = V3D.EL, [D0, D1] = [V3D.DIST[0], V3D.DIST[1] * SC], A = Infinity;      // a wide area (Iceland) is seen from a little higher
+  const cam0 = {az: cam.az, el: cam.el, dist: cam.dist, tx: 0, tz: 0};      // the camera the view opened with, for the reset button
   const ground = (x, z) => hh(Math.round((x + HALF) / (2 * HALF) * nB), Math.round((z + up) / len * nA)) * cam.exag;
   const groundNow = (x, z) => hc(Math.round((x + HALF) / (2 * HALF) * nB), Math.round((z + up) / len * nA)) * cam.exag;
   let dirty = true, dead = false, held = false;      // held: an export is drawing at its own size, the screen is left alone
@@ -327,15 +330,18 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
   canvas.onpointerdown = e => { camFly++; canvas.setPointerCapture(e.pointerId); ptrs.set(e.pointerId, [e.clientX, e.clientY]); pinch = 0; };
   canvas.onpointermove = e => {
     const p = ptrs.get(e.pointerId); if (!p || pose) return;
-    if (ptrs.size === 1 && FREE_CAM && ((e.buttons & 6) || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey)) {      // move the point the camera turns around over the ground
-      const s = cam.dist * 0.0012, dx = (e.clientX - p[0]) * s, dy = (e.clientY - p[1]) * s, sa = Math.sin(cam.az), ca = Math.cos(cam.az);
+    const pan = (px, py) => {      // move the point the camera turns around over the ground
+      const s = cam.dist * 0.0012, dx = px * s, dy = py * s, sa = Math.sin(cam.az), ca = Math.cos(cam.az);
       cam.tx = Math.min(HALF, Math.max(-HALF, cam.tx - dx * ca - dy * sa)); cam.tz = Math.min(BACK + 1200 * Math.min(SC, 2.5), Math.max(-up + 1200 * Math.min(SC, 2.5), cam.tz + dx * sa - dy * ca));
-    } else if (ptrs.size === 1) { cam.az -= (e.clientX - p[0]) * 0.006; cam.el += (e.clientY - p[1]) * 0.005; }
+    };
+    if (ptrs.size === 1 && ((e.buttons & 6) || e.shiftKey || e.ctrlKey || e.altKey || e.metaKey)) pan(e.clientX - p[0], e.clientY - p[1]);      // Shift, Ctrl, Alt or Cmd + drag, or the right or middle mouse button
+    else if (ptrs.size === 1) { cam.az -= (e.clientX - p[0]) * 0.006; cam.el += (e.clientY - p[1]) * 0.005; }
+    else if (ptrs.size === 2) pan((e.clientX - p[0]) / 2, (e.clientY - p[1]) / 2);      // two fingers: the middle between them moves the view, the distance between them zooms
     ptrs.set(e.pointerId, [e.clientX, e.clientY]);
     if (ptrs.size === 2) { const [a, b] = [...ptrs.values()], d = Math.hypot(a[0] - b[0], a[1] - b[1]); if (pinch) cam.dist *= pinch / d; pinch = d; }
     clampCam();
   };
-  canvas.oncontextmenu = e => { if (FREE_CAM) e.preventDefault(); };
+  canvas.oncontextmenu = e => e.preventDefault();      // the right mouse button pans
   canvas.onpointerup = canvas.onpointercancel = e => { ptrs.delete(e.pointerId); pinch = 0; };
   canvas.onwheel = e => { e.preventDefault(); if (pose) return; cam.dist *= Math.exp(e.deltaY * 0.0012); clampCam(); };
   const ro = new ResizeObserver(redraw); ro.observe(canvas);
@@ -371,7 +377,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
       const aspect = canvas.clientWidth / Math.max(1, canvas.clientHeight), th = 2 * Math.tan(0.375), to = {az: Math.min(A, Math.max(-A, wrap(near))), el: Math.min(E1, Math.max(E0, 0.3)), dist: Math.min(D1, Math.max(D0, Math.max(f.L * 1.25 / (th * aspect), f.relief * cam.exag * 1.9 / th))), tx: f.x, tz: f.z + k};
       flyCam(to, ms);
     },
-    flyCam: (c, ms = 1000) => flyCam({tx: 0, tz: 0, ...c}, ms), frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, setIce, setBlock, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
+    homeCam: () => ({...cam0}), flyCam: (c, ms = 1000) => flyCam({tx: 0, tz: 0, ...c}, ms), frame, hold, getSplit: () => ({split, hz}), setTexture, setSplit, setHeights, setIce, setBlock, destroy: () => { dead = true; ro.disconnect(); canvas.onpointerdown = canvas.onpointermove = canvas.onpointerup = canvas.onpointercancel = canvas.onwheel = null;
     gl.deleteBuffer(vb); gl.deleteBuffer(ib); texs.forEach(t => gl.deleteTexture(t)); gl.deleteProgram(pr); const x = gl.getExtension('WEBGL_lose_context'); if (x) x.loseContext(); }};
 }
 export let v3dCtx = null, v3dBusy = false;      // v3dCtx: what the download buttons need from the open 3D view
@@ -382,10 +388,22 @@ export function setSplit3D(f){
   if (v3d && v3dCtx && v3dCtx.cmp && !photoOn) v3d.setSplit(v3dSplit, v3dCtx.hz);
   if (photoOn) clipPhoto();
 }
+/* The swisstopo aerial pictures are editions (mosaics) flown in another year than the satellite picture that is chosen. With the satellite picture off or fully transparent the aerial shows alone,
+   so the year tags name the year that was flown and say that it is the closest aerial image in time to the chosen picture. */
+const aerialAlone = () => FEATURES.swisstopo && !state.oldestAerial && $('l3Aerial').checked && (!satOn() || imgOpacity() < 0.01);
+const aerialYear = (g, y) => { const ed = siYear(y); ensureFlown(g, ed); return flownYear(g, ed) || String(ed); };
+const aerialNote = (g, ys) => `Year flown: the closest available aerial image in time to the chosen satellite picture${ys.length > 1 ? 's' : ''} (${ys.join(' and ')})`;      // the tags are the years flown, the brackets the years chosen (not the edition years of SWISSIMAGE)
+const yearTags3D = (g, ys) => aerialAlone() ? {tags: ys.map(y => aerialYear(g, y)), extra: aerialNote(g, ys)} : {tags: ys.map(String), extra: ''};      // what the year tags say for these years
+export function retitle3D(){            // the satellite picture or the aerial layer was switched, or a flight year arrived: the tags follow
+  const c = v3dCtx; if (!c || $('v3d').hidden || photoOn) return;
+  const ys = c.cmp || [c.current()], t = yearTags3D(c.g, ys);
+  if (c.cmp) { $('v3dLabA').textContent = t.tags[0]; $('v3dLabB').textContent = t.tags[1]; }
+  setTitle3D(c.g, t.tags.length > 1 ? `${t.tags[0]} – ${t.tags[1]}` : t.tags[0], t.extra);
+}
 export function showDivider3D(cmp, hz){            // compare mode: a line on the picture with a handle to drag, and the two years beside it
   const d = $('v3dDiv'); d.classList.toggle('hz', hz); d.classList.toggle('used', sliderHintDone); d.hidden = false;
   $('v3d').classList.toggle('cmp-h', hz); $('v3d').classList.toggle('cmp-v', !hz);
-  $('v3dLabA').textContent = cmp[0]; $('v3dLabB').textContent = cmp[1]; $('v3dLabA').hidden = $('v3dLabB').hidden = false;
+  const tg = yearTags3D(v3dGlacier(), cmp).tags; $('v3dLabA').textContent = tg[0]; $('v3dLabB').textContent = tg[1]; $('v3dLabA').hidden = $('v3dLabB').hidden = false;
   setSplit3D(v3dSplit);
 }
 export function hideDivider3D(){ clearPhotoLabels(); $('v3dDiv').hidden = $('v3dLabA').hidden = $('v3dLabB').hidden = true; $('v3d').classList.remove('cmp-h', 'cmp-v'); }
@@ -760,7 +778,7 @@ export async function open3D(){
     if (run !== v3dRun) return;
     v3d = startViewer($('v3dCanvas'), heights, tc, nA, nB, S.up, S.back, S.dist, S.half); v3d.setSpace(prefs.space3d === true);
     const hasBed = !!(bb && bb.bed); $('l3BlockRow').hidden = !hasBed; $('l3Sr').checked = false; $('l3Block').checked = prefs.bedBlock !== false; if (hasBed) v3d.setBlock($('l3Block').checked, bb.bed);      // the bed of the terrain file: cut sides
-    v3d.setExag(+$('v3dExag').value); msg.hidden = true; if (keepCam) v3d.setCam(keepCam); else if (S.cam) v3d.setCam(S.cam); else if (PLAIN_START && FEATURES.swisstopo && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
+    v3d.setExag(+$('v3dExag').value); msg.hidden = true; v3dHome = S.cam || (PLAIN_START && FEATURES.swisstopo && g.id === GLACIERS[0].id ? LANDING_CAM : null); if (keepCam) v3d.setCam(keepCam); else if (S.cam) v3d.setCam(S.cam); else if (PLAIN_START && FEATURES.swisstopo && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
     if (tiltEntry) { tiltEntry = false; tiltReady(v3d, v3d.getCam()); }
     v3d.setOnCam(() => { if (!$('videoSheet').hidden) hint3D(); });      // the sharpness hint follows the zoom
     bindRadarPicking($('v3dCanvas')); bindCamPicking($('v3dCanvas'));
@@ -802,13 +820,13 @@ export async function open3D(){
     update3Measure(); pinLoop(); setupPhotos(g, v3dCtx);
     if (cmp) {
       v3d.setTexture(tc2, 1); showDivider3D(cmp, v3dCtx.hz);      // same direction as chosen for the map: stacked or side by side
-      setTitle3D(g, `${cmp[0]} – ${cmp[1]}`);
+      { const t = yearTags3D(g, cmp); setTitle3D(g, `${t.tags[0]} – ${t.tags[1]}`, t.extra); }
       updateSciPanel(cmp[1]); updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Pictures: ${sensorName(state.available[cmp[0]])}${sensorName(state.available[cmp[1]]) !== sensorName(state.available[cmp[0]]) ? ' and ' + sensorName(state.available[cmp[1]]) : ''}, ${fmtDate(state.available[cmp[0]].date)} and ${fmtDate(state.available[cmp[1]].date)}.`, `${state.available[cmp[0]].date.slice(0, 4)} and ${state.available[cmp[1]].date.slice(0, 4)}`, usesDem, terrainNote, oldNoteFor(cmp));
       return;
     }
     const oldA = special === 'oldest' ? oldestAerial.get(g.id) : null, modelNote = !usesDem || !special ? '' : special === 'latest' ? `newest elevation model (swissALTI3D ${dem.new.year})` : `oldest elevation model (swissALTI3D ${dem.old.year})`;
     const specialTxt = yr => special === 'latest' ? `Latest scene · ${fmtDM(state.available[yr].date)} ${yr}${modelNote ? ' · ' + modelNote : ''}` : oldA ? `Oldest aerial image · ${FEATURES.swisstopo ? 'SWISSIMAGE ' + oldA.ed : oldA.flown}${modelNote ? ' · ' + modelNote : ''}` : '';
-    const note = yr => { updateSciPanel(yr); setTitle3D(g, oldA ? String(oldA.flown) : String(yr), specialTxt(yr)); updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Picture: ${sensorName(state.available[yr])}, ${fmtDate(state.available[yr].date)}${isLandsat(state.available[yr]) ? ' (30 m pixels)' : ''}.`, fmtDM(state.available[yr].date) + ' ' + yr, usesDem, terrainNote + yearNote(yr) + (modelNote ? ` The ice surface is the ${modelNote}, not an estimate for a year.` : ''), oldNoteFor([yr])); };
+    const note = yr => { updateSciPanel(yr); { const t = yearTags3D(g, [yr]); setTitle3D(g, oldA ? String(oldA.flown) : t.tags[0], specialTxt(yr) || t.extra); } updateCredits(); $('v3dNote').innerHTML = note3DHtml(g, `Picture: ${sensorName(state.available[yr])}, ${fmtDate(state.available[yr].date)}${isLandsat(state.available[yr]) ? ' (30 m pixels)' : ''}.`, fmtDM(state.available[yr].date) + ' ' + yr, usesDem, terrainNote + yearNote(yr) + (modelNote ? ` The ice surface is the ${modelNote}, not an estimate for a year.` : ''), oldNoteFor([yr])); };
     note(first);
     const showYear = async y => {      // the year follows the left panel (the frame of the timelapse); the terrain stays and only the picture changes
       current = y;
@@ -1176,7 +1194,7 @@ export function drawMarks3D(ctx, list, t, u){            // t: seconds (the move
   list.filter(m => m.type === 'name').forEach(m => {
     const [gx, gy] = m.g, [hx, hy] = m.h;
     ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 5 * u; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.3 * u; ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(hx, hy); ctx.stroke();
-    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(gx, gy, 2.6 * u, 0, 2 * Math.PI); ctx.fill();
+    ctx.fillStyle = '#fff';
     ctx.font = `600 ${13.5 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
   });
   ctx.restore();
@@ -1440,6 +1458,7 @@ export function focusSection(){            // the camera flies to the section li
 export function clear3Measure(){ if (sectLine() && v3d && sectCamBack) v3d.flyCam(sectCamBack, 900); sectCamBack = null; M3.mode = null; M3.pts = []; M3.shapes = []; update3Measure(); renderSection(); }
 $('v3mOut').onclick = () => { if (v3d) v3d.zoomBy(1.3); };      // the same steps as the minus and plus of the map
 $('v3mIn').onclick = () => { if (v3d) v3d.zoomBy(1 / 1.3); };
+$('v3mHome').onclick = () => { if (v3d) v3d.flyCam({...v3d.homeCam(), ...(v3dHome || {})}, 900); };      // back to the start view
 $('v3mDist').onclick = () => M3.mode === 'dist' ? cancel3Measure() : start3Measure('dist');
 $('v3mArea').onclick = () => M3.mode === 'area' ? cancel3Measure() : start3Measure('area');
 $('v3mSect').onclick = () => M3.mode === 'sect' ? cancel3Measure() : start3Measure('sect');
@@ -1783,7 +1802,7 @@ export function refresh3D(){            // a layer was switched: make the pictur
 L3.forEach(([a, b]) => $(a).onchange = () => {
   $(b).checked = $(a).checked; $(b).dispatchEvent(new Event('change'));      // the map's own handlers keep the setting (and switch the other base maps off)
   if ($(a).checked && V3D_BASES[b] && imgOpacity() > 0.99) { prefs.imgOpacity = 0.5; savePrefs(); applyImgOpacity(); }      // a base map shows through the picture only when that is a little transparent
-  sync3DMenu(); refresh3D();
+  sync3DMenu(); refresh3D(); retitle3D();
 });
 $('l3Sat').addEventListener('change', () => sync3D());      // the caption and the pictures follow
 $('l3Block').onchange = e => { prefs.bedBlock = e.target.checked; savePrefs(); if (v3d) v3d.setBlock(e.target.checked); };      // the sides of the strip cut open: ice above the bed, bedrock below
@@ -1794,7 +1813,7 @@ $('l3Sr').onchange = e => {      // the super-resolved picture on or off: the pi
 };
 $('l3Space').onchange = e => { prefs.space3d = e.target.checked; savePrefs(); sync3DMenu(); };      // the night sky behind the terrain, 3D only
 $('l3Names').onchange = e => { prefs.names3d = e.target.checked; savePrefs(); sync3DMenu(); };      // 3D only: the map's own labels are pictures
-$('l3Op').oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); sync3DMenu(); refresh3D(); };      // the map's own handlers keep the setting
+$('l3Op').oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); sync3DMenu(); refresh3D(); retitle3D(); };      // the map's own handlers keep the setting
 $('v3dLayers').classList.add('min'); $('v3dLbToggle').setAttribute('aria-expanded', 'false');      // closed at the start, like the map's
 $('v3dLbToggle').onclick = () => { const min = $('v3dLayers').classList.toggle('min'); prefs.lb3Min = min; savePrefs(); $('v3dLbToggle').setAttribute('aria-expanded', !min); };
 /* the height exaggeration slider was taken out of the page: v3dExag stays as a hidden input at 1 (no exaggeration), which the code above reads */

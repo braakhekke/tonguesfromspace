@@ -244,7 +244,7 @@ export function ensureFlown(g, ed){
     .then(r => r.json()).then(j => {
       const ys = [...new Set((j.results || []).map(r => r.attributes && r.attributes.flightyear).filter(Boolean))].sort();
       if (!ys.length) return; aerialFlown.set(key, ys.join(' / '));
-      updateAerial(); wire.updateTags(); if (tlLayers.length) showFrame(state.frame);
+      updateAerial(); wire.updateTags(); if (tlLayers.length) showFrame(state.frame); wire.retitle3D();
     }).catch(() => {});
 }
 /* "Oldest" in the specials row: the oldest SWISSIMAGE edition that covers the glacier's image box. The identify service lists, without a time, every aerial survey at a place
