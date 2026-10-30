@@ -68,7 +68,7 @@ export function updateCredits(){
   if (document.getElementById('namesToggle').checked && map.hasLayer(namesLayer)) parts.push('Other glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0 via <a href="https://www.glims.org/RGI/" target="_blank" rel="noopener">GLIMS</a>');
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
-  if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
+  if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0); modelled value at that spot: Grab et al. 2021 via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (speedLayer) parts.push('Ice speed: <a href="https://its-live.jpl.nasa.gov" target="_blank" rel="noopener">ITS_LIVE</a> annual mosaics of image pair velocities v2.1, NASA MEaSUREs (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (typeof wire.svActive === 'function' && wire.svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
@@ -588,12 +588,33 @@ export function thicknessUrl(fp){
   return 'https://wms.geo.admin.ch/?' + new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.3.0', REQUEST: 'GetMap', LAYERS: THICK_LAYER, STYLES: '',
     CRS: 'EPSG:3857', BBOX: fp.bbox.join(','), WIDTH: Math.round(fp.w * k), HEIGHT: Math.round(fp.h * k), FORMAT: 'image/png', TRANSPARENT: 'TRUE' });
 }
+/* The WMS picture covers the whole image box, so it would also paint the neighbouring glaciers inside it. The pixels are masked in a canvas with the outline of the chosen glacier
+   (the latest inventory outline, Mercator pixels of the same bbox); if the picture cannot be read back (no CORS) or the glacier has no polygon outline, the plain picture is shown. */
+async function thicknessClipped(g){
+  const fp = imageFootprint(g), url = thicknessUrl(fp), geom = g.inv && g.inv.outline;
+  if (!geom || geom.type === 'MultiLineString') return url;
+  try {
+    const img = await new Promise((ok, no) => { const i = new Image(); i.crossOrigin = 'anonymous'; i.onload = () => ok(i); i.onerror = no; i.src = url; });
+    const W = img.naturalWidth, H = img.naturalHeight, c = document.createElement('canvas'); c.width = W; c.height = H;
+    const x = c.getContext('2d'), [x0, y0, x1, y1] = fp.bbox, R = 6378137;
+    x.beginPath();
+    eachPiece(geom, ring => ring.forEach(([lng, lat], i) => {
+      const mx = lng * Math.PI / 180 * R, my = Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)) * R, px = (mx - x0) / (x1 - x0) * W, py = (y1 - my) / (y1 - y0) * H;
+      i ? x.lineTo(px, py) : x.moveTo(px, py);
+    }));
+    x.clip('evenodd'); x.drawImage(img, 0, 0);
+    return c.toDataURL('image/png');
+  } catch { return url; }
+}
 export function setThickness(){
   const on = document.getElementById('thickToggle').checked, box = document.getElementById('thickLegendBox'), img = document.getElementById('thickLegendImg');
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, key = on ? (picked ? state.glacier : '*') : '';
   if (key !== thickKey) {
     thickImgs.forEach(l => map.removeLayer(l)); thickImgs = []; thickKey = key;
-    if (on) thickImgs = (picked ? [currentGlacier()] : GLACIERS).map(g => L.imageOverlay(thicknessUrl(imageFootprint(g)), imageFootprint(g).bounds, {pane:'thickPane', opacity:.8, interactive:false}).addTo(map));
+    if (on) (picked ? [currentGlacier()] : GLACIERS).forEach(g => thicknessClipped(g).then(src => {
+      if (thickKey !== key) return;                                  // switched off or another glacier chosen meanwhile
+      thickImgs.push(L.imageOverlay(src, imageFootprint(g).bounds, {pane:'thickPane', opacity:.8, interactive:false}).addTo(map));
+    }));
   }
   box.hidden = !on;
   if (on && !img.src) { img.onerror = () => { img.hidden = true; }; img.src = `https://api3.geo.admin.ch/static/images/legends/${THICK_LAYER}_en.png`; }
@@ -784,12 +805,34 @@ export async function updateSpeed(){
   updateCredits();
 }
 /* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map */
+/* the modelled thickness (Grab et al. 2021, swisstopo ice thickness raster) at one point: WMS GetFeatureInfo, value in metres as the service returns it; null outside Switzerland or without ice */
+const pointThick = new Map();
+export function thicknessAt([lat, lng]){
+  const key = `${lat},${lng}`;
+  if (!pointThick.has(key)) pointThick.set(key, (async () => {
+    const x = lng * 20037508.34 / 180, y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 20037508.34 / Math.PI, b = [x - 500, y - 500, x + 500, y + 500];
+    const url = 'https://wms.geo.admin.ch/?' + new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.3.0', REQUEST: 'GetFeatureInfo', LAYERS: THICK_LAYER, QUERY_LAYERS: THICK_LAYER, STYLES: '',
+      CRS: 'EPSG:3857', BBOX: b.join(','), WIDTH: 101, HEIGHT: 101, I: 50, J: 50, INFO_FORMAT: 'text/plain' });
+    try { const m = /value_0\.name = '([\d.]+)'/.exec(await (await fetch(url)).text()); return m && +m[1] > 0 ? +m[1] : null; } catch { return null; }
+  })());
+  return pointThick.get(key);
+}
+/* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map.
+   When the measurement is older than the thickness map (around 2016), a second line gives the modelled thickness at the same spot with its year. */
 export function drawMax(){
   if (maxMarker) { map.removeLayer(maxMarker); maxMarker = null; }
   const on = document.getElementById('maxToggle').checked, g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier(), R = g && g.inv && g.inv.radar;
   if (on && R && R.max_at) {
     // the same look as the tongue indication: ring with a red label, here "850 m (1958)"; the label keeps the case it is written in
-    maxMarker = L.marker(R.max_at, {icon: L.divIcon({className: '', html: `<div class="tongue-pin max-pin"><span>${R.max_m} m${R.max_year ? ` (${R.max_year})` : ''}</span></div>`, iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false, zIndexOffset: 500}).addTo(map);
+    const first = `${R.max_m} m${R.max_year ? ` (${R.max_year})` : ''}`;
+    const put = extra => {
+      if (maxMarker) map.removeLayer(maxMarker);
+      maxMarker = L.marker(R.max_at, {icon: L.divIcon({className: '', html: `<div class="tongue-pin max-pin"><span>${first}${extra ? `<br><i>${extra}</i>` : ''}</span></div>`, iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false, zIndexOffset: 500}).addTo(map);
+    };
+    put('');
+    if (R.max_year && R.max_year < 2016) Promise.all([thicknessAt(R.max_at), wire.glacierVolume(g).catch(() => null)]).then(([t, v]) => {
+      if (t && document.getElementById('maxToggle').checked && currentGlacier() === g && maxMarker) put(`${Math.round(t)} m (${(v && v.yr) || 2016}, model)`);
+    });
   }
   document.getElementById('maxNote').hidden = !on || !!(R && R.max_at);
   updateCredits();

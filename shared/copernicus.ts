@@ -10,14 +10,15 @@
  */
 import type { Tile } from './geo';
 
-export const STYLES = ['natural', 'false1', 'false2'] as const;
+export const STYLES = ['natural', 'false1', 'false2', 'false3'] as const;
 export type Style = (typeof STYLES)[number];
 export const STYLE_BANDS: Record<Style, [string, string, string]> = {
   natural: ['B04', 'B03', 'B02'],
   false1: ['B08', 'B04', 'B03'], // infrared
   false2: ['B8A', 'B11', 'B12'], // snow in red
+  false3: ['B04', 'B11', 'B02'], // the bands of the Hot picture (red, SWIR, blue): see hotEvalscript
 };
-export const STYLE_LABEL: Record<Style, string> = { natural: 'Natural', false1: 'False 1 (infrared)', false2: 'False 2 (snow in red)' };
+export const STYLE_LABEL: Record<Style, string> = { natural: 'Natural', false1: 'False color 1', false2: 'False color 2', false3: 'False color 3' };
 
 const RENDER = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01 };
 const RAYLEIGH: Record<string, number> = { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0, B8A: 0, B11: 0, B12: 0 };
@@ -31,6 +32,7 @@ const orbitFilter = (orbit?: string) =>
     : `function preProcessScenes(c){ var t = c.scenes.tiles, m = t.length > 1 ? /_R\\d{3}_/.exec(JSON.stringify(t[0])) : null; if (m) c.scenes.tiles = t.filter(function(x){ return JSON.stringify(x).indexOf(m[0]) >= 0; }); return c; }`;
 
 export function imageEvalscript(style: Style, orbit?: string): string {
+  if (style === 'false3') return hotEvalscript(orbit);
   const [r, g, b] = STYLE_BANDS[style];
   const T = RENDER;
   return `//VERSION=3
@@ -51,6 +53,17 @@ function evaluatePixel(ss){
   return [sRGB(clip(avg + lr * sat)), sRGB(clip(avg + lg * sat)), sRGB(clip(avg + lb * sat))];
 }`;
 }
+
+/** False 3 "Hot": not a band triple but a ratio picture. Red = red/SWIR ratio (0 to 2 x th1, th1 = 1.0), green = blue band (0 to 2 x th2, th2 = 0.2 = 2000 in reflectance x 10000), blue = SWIR (0 to 0.35, gamma 1/2.2). The ratio and the blue check are the quantities of the clean-ice rule of Paul et al. 2020, ESSD 12, 1805 ("(red/SWIR)>th1 and blue>th2"); the composite itself and these two settings are ours, not the paper's. */
+export const hotEvalscript = (orbit?: string) => `//VERSION=3
+function setup(){ return { input:["B02","B04","B11","dataMask"], mosaicking:"TILE", output:{ bands:3 } }; }
+${orbitFilter(orbit)}
+function clip(s){ return s < 0 ? 0 : s > 1 ? 1 : s; }
+function evaluatePixel(ss){
+  var p = ss[0] || { dataMask:0 }; for (var i = 0; i < ss.length; i++) if (ss[i].dataMask == 1) { p = ss[i]; break; }
+  if (!p.dataMask) return [0.11, 0.16, 0.19];
+  return [clip(p.B11 > 0 ? p.B04 / p.B11 / 2 : 0), clip(p.B02 / 0.4), Math.pow(clip(p.B11 / 0.35), 0.4545)];
+}`;
 
 /** Per day and orbit (two slots, A and B): cloud/shadow/cirrus share, snow share, valid share, orbit number. */
 export const SCENE_EVALSCRIPT = `//VERSION=3
@@ -123,4 +136,4 @@ export function parseStatistics(j: any): Candidate[] {
 }
 
 /** Cache identity of the rendering: any change to the scripts changes every image key. */
-export const RENDER_FINGERPRINT_SOURCE = [imageEvalscript('natural'), imageEvalscript('false1'), imageEvalscript('false2'), SCENE_EVALSCRIPT].join('\n');
+export const RENDER_FINGERPRINT_SOURCE = [imageEvalscript('natural'), imageEvalscript('false1'), imageEvalscript('false2'), imageEvalscript('false3'), SCENE_EVALSCRIPT].join('\n');

@@ -5,6 +5,7 @@ import { pickYears, rankScenes, sceneKey, sceneWindow, type Candidate, type Rank
 import type { BalanceYear, SceneRef, SceneRule } from '../../../shared/schema';
 import { needsMargin } from '../rules';
 import { go } from '../nav';
+import { LandsatAlternatives } from './LandsatAlternatives';
 
 type Row = { chosen: SceneRef | null; status: 'auto' | 'approved' | 'pinned' | 'none'; discarded: string[]; cands: Candidate[]; note?: string };
 const SENSOR = new Proxy({} as Record<string, string>, { get: (_, k: string) => (k === 'sentinel-2' ? 'Sentinel-2' : 'Landsat ' + k.slice(8)) });
@@ -171,7 +172,7 @@ function Review({ st, step, setPatch, setBlock, by, rule, unconfirmedSeason }: S
       <div class="cardx altcard">
             <h4>Next best scenes for {cur}</h4>
             {altLoading > 0 && <div class="altload" role="status"><span class="spin" /> Loading {altLoading} of {shownAlts.length} pictures…<i><b style={`width:${Math.round(100 * (shownAlts.length - altLoading) / shownAlts.length)}%`} /></i></div>}
-            {rows[cur]!.cands.length === 0 && <p class="note">{cur < 2015 || rows[cur]!.chosen?.sensor.startsWith('landsat') ? 'Alternatives are listed for Sentinel-2 years only for now: a Landsat picture is not rendered until its scene is chosen, so there is nothing to show yet.' : 'Loading the other scenes…'}</p>}
+            {rows[cur]!.cands.length === 0 && (cur < 2016 || rows[cur]!.chosen?.sensor.startsWith('landsat') ? <LandsatAlternatives key={cur} region={st.region.id} glacier={g.id} year={cur} /> : <p class="note">Loading the other scenes…</p>)}
             <div class="altgrid">
               {shownAlts.map((a, k) => {
                 const c = a.scene, ref = asRef(c), src = imageOf(g.id, cur, ref);

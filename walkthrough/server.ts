@@ -18,7 +18,7 @@ import { callCdse } from '../worker/relay/cdse';
 import { sha } from '../worker/relay/cache';
 import { imageGrid } from '../shared/geo';
 import { searchLandsat } from './sources/landsat';
-import { buildState, startBuild } from './landsat-build';
+import { buildState, startBuild, landsatAlts, setLandsatPick } from './landsat-build';
 import { startTerrain, terrainState } from './terrain-build';
 import { isProbing, probeGlacierLayers } from './probe-layers';
 import { parseStatistics, statisticsBody, STATS_RES_M } from '../shared/copernicus';
@@ -163,6 +163,13 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
     res.statusCode = 200; res.setHeader('Content-Type', 'image/png'); return void res.end(readFileSync(f));
   }
   if (p === '/__onboard/terrain-state') return send(res, 200, terrainState(url.searchParams.get('region')!, url.searchParams.get('glacier')!));
+  if (p === '/__onboard/landsat-alts') return send(res, 200, landsatAlts(url.searchParams.get('region')!, url.searchParams.get('glacier')!));
+  if (p === '/__onboard/landsat-alt-img') {      // a preview of one alternative scene (scripts/build_landsat.py --alternatives): .cache/landsat-alts/<outlet>/<year>-<n>.jpg
+    const o = url.searchParams.get('outlet') ?? '', n = url.searchParams.get('name') ?? '', f = join(ROOT, '.cache', 'landsat-alts', o, n);
+    if (!/^[a-z0-9-]+$/.test(o) || !/^\d{4}-\d\.jpg$/.test(n) || !existsSync(f)) return send(res, 404, { error: 'no such picture' });
+    res.statusCode = 200; res.setHeader('Content-Type', 'image/jpeg'); res.setHeader('Cache-Control', 'no-cache'); return void res.end(readFileSync(f));
+  }
+  if (p === '/__onboard/landsat-pick' && req.method === 'POST') { const b = await body(req); return send(res, 200, setLandsatPick(b.region, b.glacier, b.year, b.id ?? null)); }
   if (p === '/__onboard/landsat-state') return send(res, 200, buildState(url.searchParams.get('region')!, url.searchParams.get('glacier')!));
   if (p === '/__onboard/landsat-scan' || p === '/__onboard/scan') {
     // every scene over the picture box in the window the page asks for: the scene window of that year, never a range of our own

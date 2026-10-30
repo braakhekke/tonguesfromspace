@@ -1,12 +1,13 @@
 import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, GLACIER_INFO, lv95, $, PHONE } from './01-data.js';
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
-import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, isLandsat, LANDSAT_BANDS, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
+import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
 import { map, osm, topo, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, SPEED_MIN } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
+Object.defineProperty(wire, 'glacierVolume', { get: () => glacierVolume, configurable: true });
 Object.defineProperty(wire, 'refreshAll', { get: () => refreshAll, configurable: true });
 Object.defineProperty(wire, 'renderMeta', { get: () => renderMeta, configurable: true });
 Object.defineProperty(wire, 'renderStory', { get: () => renderStory, configurable: true });
@@ -161,7 +162,7 @@ export function renderMeta(){
   const bands = (STYLE_BANDS[state.style] || []).join(' · '), old = oldestAerial.get(g.id);
   const noteYs = one ? [lt && lt.year === state.one ? lt.year : state.one] : ys, noteLs = noteYs.some(y => isLandsat(state.available[y])), noteS2 = !noteYs.length || noteYs.some(y => !isLandsat(state.available[y]));      // labels Before / Since 2016 only when both kinds are on show
   box.innerHTML = `<div class="meta-scroll"><table class="meta-table"><thead><tr><th>Year</th><th>Date</th><th>Orbit</th><th>Image</th><th>Time and sun</th></tr></thead><tbody>${top}${rows}${bottom}</tbody></table></div>
-    <p class="meta-note">${noteLs ? `${noteS2 ? '<b>Before 2016:</b> ' : ''}Landsat Collection 2 Level-2 (surface reflectance), ${STYLE_NAME[state.style] || STYLE_NAME.natural} (${LANDSAT_BANDS[state.style] || LANDSAT_BANDS.natural}), 30 m pixels, smoothed when enlarged. The scene is named by its path and row (e.g. P216R015). Gaps in Landsat 7 pictures (2003 to 2012) are filled along the ice flow. ${noteS2 ? '<br><b>Since 2016:</b> ' : ''}` : ''}${noteS2 ? `Sentinel-2 L1C, bands ${bands}, ${state.style === 'false2' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.` : ''}${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
+    <p class="meta-note">${noteLs ? `${noteS2 ? '<b>Before 2016:</b> ' : ''}Landsat Collection 2 Level-2 (surface reflectance), ${styleName(state.style, {sensor: 'landsat'})} (${LANDSAT_BANDS[state.style] || LANDSAT_BANDS.natural}; ${landsatBands(state.style, {sat: 'landsat-5'})}), smoothed when enlarged. The scene is named by its path and row (e.g. P216R015). Gaps in Landsat 7 pictures (2003 to 2012) are filled along the ice flow. ${noteS2 ? '<br><b>Since 2016:</b> ' : ''}` : ''}${noteS2 ? `Sentinel-2 L1C, bands ${bands}${state.style === 'false3' ? ' (Hot: ratio picture)' : ''}, ${state.style === 'false2' || state.style === 'false3' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.` : ''}${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
     <button type="button" class="meta-dl" id="metaDl">Download as CSV</button>`;
 }
 export let metaCsv = [];      // the rows of the table as shown, with the figures and whole ids the table leaves out
@@ -200,11 +201,13 @@ export function renderMode(){
   document.getElementById('styleNatural').setAttribute('aria-pressed', state.style === 'natural');
   document.getElementById('styleFalse1').setAttribute('aria-pressed', state.style === 'false1');
   document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
+  document.getElementById('styleFalse3').setAttribute('aria-pressed', state.style === 'false3');
   applyBrightness();
   document.getElementById('styleNote').textContent = {
     natural: 'As our eyes see it: snow white, rock grey, plants green.',
-    false1: 'Plants look red, snow white, bare ice grey, water dark/blue.',
-    false2: 'Snow and ice look red, clouds white, rock pale, water black.'
+    false1: 'Infra: plants look red, snow white, bare ice grey, water dark/blue.',
+    false2: 'Bloody: snow and ice look red, clouds white, rock pale, water black.',
+    false3: 'Hot?: ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).'
   }[state.style];
 }
 export function setStyle(st){
@@ -376,6 +379,7 @@ document.getElementById('brightness').oninput = e => {
 document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
 document.getElementById('styleFalse2').onclick = () => setStyle('false2');
+document.getElementById('styleFalse3').onclick = () => setStyle('false3');
 
 export let storyTab = HASH_TAB || (REGION.rgi ? 'look' : 'figures');     // tab in the right panel: Stats on start, then kept when switching glacier
 /* The cards of the Switzerland tab: the same stack as in Discover; one open at a time, the choice remembered */

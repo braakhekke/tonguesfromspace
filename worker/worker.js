@@ -426,7 +426,7 @@ async function ask(request, env, url, cors) {
 const GAL = { maxVideo: 15e6, maxImage: 4e6, maxPending: 200, perHour: 4, adminFails: 10 };
 const GAL_FORMATS = { reel: [1080, 1920], feed: [1080, 1350], wide: [1920, 1080] };
 const GAL_TYPES = { still: 'image', timelapse: 'video', slider: 'video' };
-const GAL_STYLES = ['natural', 'false1', 'false2'];
+const GAL_STYLES = ['natural', 'false1', 'false2', 'false3'];
 const galUploads = new Map();                                        // ip -> [timestamps in ms]
 const galFails = new Map();                                          // ip -> [timestamps of wrong admin tokens]
 const overHourly = (map, ip, limit) => {                                    // true if the visitor is over the limit; otherwise counts this one

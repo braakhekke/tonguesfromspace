@@ -4,7 +4,7 @@
  * the pictures themselves are not part of the record, the step's output is only what the build made (how many years, which).
  */
 import { spawn } from 'node:child_process';
-import { existsSync, readFileSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { ROOT } from './data';
 import { loadCtx } from './engine';
@@ -32,6 +32,36 @@ export function buildState(region: string, glacier: string): LandsatState {
   if (!c.glacier) throw new Error('no such glacier');
   const j = jobs.get(`${region}/${glacier}`);
   return { running: !!j?.running, log: j?.log.slice(-60) ?? [], startedAt: j?.startedAt, endedAt: j?.endedAt, code: j?.code, built: builtYears(landsatOutlet(glacier, c.glacier.legacyIds)) };
+}
+
+export type LandsatAlt = { date: string; id: string; sat: string; path: string; row: string; time: string; sun: number; cloud: number; tcloud: number; snow: number; clear: boolean; partial: boolean; cover: number; shiftM: [number, number] | null; positionConfirmed: boolean; current: boolean; img: string };
+export type LandsatAlts = { outlet: string; madeAt?: string; rejected: string[]; picks: Record<string, string>; years: Record<string, LandsatAlt[]> };
+
+const picksFile = (root = ROOT) => join(root, 'scripts', 'landsat-picks.json');
+const readPicks = (outlet: string, root = ROOT): Record<string, string> => (existsSync(picksFile(root)) ? (JSON.parse(readFileSync(picksFile(root), 'utf8'))[outlet] ?? {}) : {});
+
+/** The alternatives of every year (the best three scenes by the scene rule, written by `build_landsat.py --alternatives`) and the owner's picks so far. */
+export function landsatAlts(region: string, glacier: string, root = ROOT): LandsatAlts {
+  const c = loadCtx(region, glacier);
+  if (!c.glacier) throw new Error('no such glacier');
+  const outlet = landsatOutlet(glacier, c.glacier.legacyIds), f = join(root, '.cache', 'landsat-alts', `${outlet}.json`);
+  const made = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null;
+  return { outlet, madeAt: made?.madeAt, rejected: made?.rejected ?? [], picks: readPicks(outlet, root), years: made?.years ?? {} };
+}
+
+/** The owner's choice of a scene for a year (scripts/landsat-picks.json: year -> scene id; the build puts that scene first). id null takes the pick back. Nothing is rebuilt here. */
+export function setLandsatPick(region: string, glacier: string, year: number, id: string | null, root = ROOT) {
+  const c = loadCtx(region, glacier);
+  if (!c.glacier) throw new Error('no such glacier');
+  if (!Number.isInteger(year)) throw new Error('not a year');
+  const outlet = landsatOutlet(glacier, c.glacier.legacyIds), alts = landsatAlts(region, glacier, root);
+  if (id !== null && !(alts.years[String(year)] ?? []).some((a) => a.id === id)) throw new Error('that scene is not one of the alternatives of this year');
+  const all = existsSync(picksFile(root)) ? JSON.parse(readFileSync(picksFile(root), 'utf8')) : {};
+  const mine = { ...(all[outlet] ?? {}) };
+  if (id === null) delete mine[String(year)]; else mine[String(year)] = id;
+  all[outlet] = Object.fromEntries(Object.entries(mine).sort());
+  writeFileSync(picksFile(root), JSON.stringify(all, null, 1) + '\n');
+  return landsatAlts(region, glacier, root);
 }
 
 export function startBuild(region: string, glacier: string, python = 'python3'): LandsatState {

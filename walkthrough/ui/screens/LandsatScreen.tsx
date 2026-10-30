@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'preact/hooks';
 import * as api from '../api';
 import type { ScreenProps } from '../Wizard';
+import { LandsatAlternatives } from './LandsatAlternatives';
 
 /** Builds the Landsat pictures from the confirmed box, outline and scene rule (scripts/build_landsat.py) and lists what it made. Confirming says the years were looked at. */
 export function LandsatScreen({ st, setPatch, setBlock }: ScreenProps) {
@@ -35,6 +36,7 @@ export function LandsatScreen({ st, setPatch, setBlock }: ScreenProps) {
           </tbody></table>
         </div>
       )}
+      <LandsatAlternatives region={st.region.id} glacier={g.id} />
       {s && s.log.length > 0 && <pre class="cardx" style="max-height:260px;overflow:auto;font-size:11.5px;white-space:pre-wrap">{s.log.join('\n')}</pre>}
     </div>
   );

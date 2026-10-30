@@ -38,13 +38,13 @@ export function setStatus(t){             // a message ending in "…" means wor
   el.textContent = t; el.classList.toggle('busy', /…$/.test(t));
   if (viewMode === '3d' && !state.checked) document.getElementById('v3dMsg').textContent = t;      // the 3D view shows the progress of the search too
 }
-/* The status under the years is in the left panel: when it is out of sight (panel scrolled, closed, or below the map on a phone) the same message, with its spinner, shows on the stage. */
+/* The status under the years is in the left panel; the same message, with its spinner, also shows on the stage, so it is seen while looking at the picture. */
 {
   const st = document.getElementById('status'), chip = document.getElementById('stageBusy');
   let seen = true;
   const sync = () => {
     const busy = st.classList.contains('busy') && !!st.textContent.trim(), own3d = viewMode === '3d' && !state.checked;      // the 3D view has its own progress line (#v3dMsg)
-    chip.hidden = !(busy && !seen && !own3d);
+    chip.hidden = !(busy && !own3d);
     if (!chip.hidden) chip.textContent = st.textContent;
   };
   new IntersectionObserver(e => { seen = e[e.length - 1].isIntersecting; sync(); }).observe(st);

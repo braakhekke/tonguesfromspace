@@ -29,8 +29,12 @@ export const probeLayers = (region: string, glacier: string) => call<{ ok: true 
 export const draft = (region: string, glacier: string, step: string | null, patch: unknown) => call<{ ok: true }>('/__onboard/draft', { region, glacier, step, patch });
 
 export type LandsatState = { running: boolean; log: string[]; startedAt?: number; endedAt?: number; code?: number | null; built: { years: number; firstYear?: number; lastYear?: number; list: { year: number; date: string; sat: string; shiftM?: [number, number]; filled?: number }[] } | null };
+export type LandsatAlt = { date: string; id: string; sat: string; path: string; row: string; time: string; sun: number; cloud: number; tcloud: number; snow: number; clear: boolean; partial: boolean; cover: number; shiftM: [number, number] | null; positionConfirmed: boolean; current: boolean; img: string };
+export type LandsatAlts = { outlet: string; madeAt?: string; rejected: string[]; picks: Record<string, string>; years: Record<string, LandsatAlt[]> };
 export const landsatState = (region: string, glacier: string) => call<LandsatState>(`/__onboard/landsat-state?region=${region}&glacier=${glacier}`);
 export type TerrainState = { running: boolean; log: string[]; startedAt?: number; endedAt?: number; code?: number | null; built: { file: string; built?: string; names: number; namesSource?: string; yearly: boolean; matchesStrip: boolean; quality: { status: 'ok' | 'warn'; seams: number; seamsYear: string | null; steep: number; rough: number; why: string[]; relief: string[]; strips: { date: string; blunders: number }[] } | null } | null };
 export const terrainState = (region: string, glacier: string) => call<TerrainState>(`/__onboard/terrain-state?region=${region}&glacier=${glacier}`);
 export const terrainBuild = (region: string, glacier: string) => call<TerrainState>('/__onboard/terrain-build', { region, glacier });
+export const landsatAlts = (region: string, glacier: string) => call<LandsatAlts>(`/__onboard/landsat-alts?region=${region}&glacier=${glacier}`);
+export const landsatPick = (region: string, glacier: string, year: number, id: string | null) => call<LandsatAlts>('/__onboard/landsat-pick', { region, glacier, year, id });
 export const landsatBuild = (region: string, glacier: string) => call<LandsatState>('/__onboard/landsat-build', { region, glacier });

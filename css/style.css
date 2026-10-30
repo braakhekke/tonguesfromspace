@@ -85,8 +85,8 @@ button,select,input{font:inherit;color:inherit}
 body.sheet-open{overflow:hidden}
 .note{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0}
 .note:empty{display:none}
-.swatches{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
-.sw{border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:5px 5px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:12px;font-weight:600;color:var(--rock)}
+.swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.sw{border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:5px 5px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:12px;font-weight:600;color:var(--rock);min-width:0;text-align:center}
 .yr-range{padding:2px 4px 0}
 .yr-vals{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--moraine);padding:0 14%}      /* the two years sit a little in from the ends, nearer the "to" in the middle */
 .yr-vals b{font-size:12px;font-weight:600;color:var(--rock);font-variant-numeric:tabular-nums}
@@ -448,7 +448,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .radar-legend small{font-size:11px;line-height:1.35}
 .radar-tip{font-size:12px;line-height:1.4;padding:5px 8px}
 .tongue-pin.max-pin{background:rgba(45,110,142,.25);box-shadow:0 0 0 2px var(--crevasse),0 2px 8px rgba(0,0,0,.5)}
-.tongue-pin.max-pin span{background:var(--crevasse);text-transform:none;letter-spacing:0;font-size:12.5px}
+.tongue-pin.max-pin span{background:var(--crevasse);text-transform:none;letter-spacing:0;font-size:12.5px;line-height:1.3}
+.tongue-pin.max-pin span i{font-style:normal;font-weight:500;font-size:11.5px;opacity:.95}
 .pin-sw.blue{background:rgba(45,110,142,.25);box-shadow:0 0 0 1.5px var(--crevasse)}
 .pin-sw.amber{background:rgba(245,166,35,.3);box-shadow:0 0 0 1.5px #F5A623}
 .layerbox .toggle[hidden]{display:none}

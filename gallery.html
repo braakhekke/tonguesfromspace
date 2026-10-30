@@ -50,7 +50,7 @@
     <label>Glacier<select id="fGlacier"><option value="">All glaciers</option></select></label>
     <label>Year<select id="fYear"><option value="">All years</option></select></label>
     <label>Type<select id="fType"><option value="">All types</option><option value="still">Image</option><option value="timelapse">Timelapse</option><option value="slider">Slider (before and after)</option><option value="3d">3D view</option></select></label>
-    <label>Bands<select id="fStyle"><option value="">All band combinations</option><option value="natural">Natural colour (B04-B03-B02)</option><option value="false1">False colour 1, infrared (B08-B04-B03)</option><option value="false2">False colour 2 (B8A-B11-B12)</option></select></label>
+    <label>Bands<select id="fStyle"><option value="">All band combinations</option><option value="natural">Natural colour (B04-B03-B02)</option><option value="false1">False colour 1 (B08-B04-B03)</option><option value="false2">False colour 2 (B8A-B11-B12)</option><option value="false3">False colour 3 (red/SWIR ratio)</option></select></label>
     <button type="button" id="fReset" hidden>Clear filters</button>
     <span class="count" id="count" aria-live="polite"></span>
   </div>
@@ -63,7 +63,7 @@
 <script>
 const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
 const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider' };
-const STYLE = { natural: 'Natural colour', false1: 'False colour 1 (infrared)', false2: 'False colour 2' };
+const STYLE = { natural: 'Natural colour', false1: 'False colour 1', false2: 'False colour 2', false3: 'False colour 3' };
 const FMT = { reel: '9:16', feed: '4:5', wide: '16:9' };
 /*regions:start*/
 const REGIONS = [{"id":"ch","name":"Switzerland","glaciers":["aletsch","gorner","fiescher","unteraar","corbassiere","zmutt","rhone","sgi-B56-03","sgi-B53-04","trift"]},{"id":"is","name":"Iceland","glaciers":["breidamerkurjokull","skeidararjokull","bruarjokull","dyngjujokull","sidujokull","koldukvislarjokull","tungnaarjokull","heinabergsjokull","hoffellsjokull","svinafellsjokull","sylgjujokull","flaajokull","langjokull","hofsjokull","myrdalsjokull","drangajokull","eyjafjallajokull","tungnafellsjokull","thorisjokull","eiriksjokull","thrandarjokull","tindfjallajokull"]},{"id":"no-mainland","name":"Norway","glaciers":["jostedalsbreen","vestre-svartisen","sondre-folgefonna","ostre-svartisen","blamannsisen","hardangerjokulen","myklebustbreen","okstindbreen","oksfjordjokelen","nordre-folgefonna"]},{"id":"no-svalbard","name":"Svalbard","glaciers":["storisstraumen","brasvellbreen","negribreen","hinlopenbreen","kvitoyjokulen","etonbreen","stonebreen","hochstetterbreen","schweigaardbreen","monacobreen"]}];

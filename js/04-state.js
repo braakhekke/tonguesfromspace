@@ -14,7 +14,7 @@ export const state = {
   a: null, b: null, from: null, to: null, one: null,
   split: 0.5, available: {}, latest: null, oldestAerial: null, oldestSaved: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
   frame: 0, playing: false, timer: null,
-  style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
+  style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2', 'false3'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
 };
 export let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
 export let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
@@ -33,7 +33,7 @@ export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the has
   }      // no glacier in the link: open on the biggest one as a 3D timelapse that loops, the Switzerland button leads to the overview
   if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
-  if (['natural', 'false1', 'false2'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
+  if (['natural', 'false1', 'false2', 'false3'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
   if (p.get('ol') === '1') prefs.old = true;                                                      // ol=1: show the 1850 outline
   if (REGION.landsat && (prefs.landsat || ['a', 'b', 'from', 'to', 'one'].some(k => +p.get(k) && +p.get(k) < FIRST_YEAR))) { YEARS.unshift(...LANDSAT_YEARS); prefs.landsat = true; }      // Landsat on: saved in an earlier visit, or the link names a year before Sentinel-2
   glacierPicked = OPEN_ON_GLACIER; OPEN_3D = FEATURES.view3d && OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));

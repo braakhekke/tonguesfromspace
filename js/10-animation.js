@@ -3,7 +3,7 @@ import { IC_INFO } from './07b-icecap-texts.js';
 import { IS_CHANGE } from './07a-region-icecaps.js';
 import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS, $, COARSE, PHONE } from './01-data.js';
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
-import { STYLE_NAME, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, fmtDM } from './03-imagery.js';
+import { styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
 import { map, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
@@ -589,7 +589,7 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
   if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(info.glacier), `${info.years[0]} | ${info.years[1]}`, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), info.hA ?? 1);
   shade(ctx, W, H, S, 300);
   const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
-  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`] : null;
+  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${styleName(info.style, sc[k])}`] : null;
   const al = Math.min(1, split / (W * 0.25)), ar = Math.min(1, (W - split) / (W * 0.25));      // a year fades when its image is almost hidden
   drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
     yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []});
@@ -626,7 +626,7 @@ export function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){
   if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(g), String(yr), shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]), hA, info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : []);
   shade(ctx, W, H, S);
   drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : [],
-    date: [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${STYLE_NAME[info.style] || STYLE_NAME.natural}`]});
+    date: [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${styleName(info.style, scene)}`]});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawBottom(ctx, W, H, S, {
     credit: shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]),

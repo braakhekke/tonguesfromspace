@@ -28,8 +28,9 @@ iframe{position:absolute;left:-9999px;width:1200px;height:800px;border:0}
   <label><input type="checkbox" id="k_full" checked> Whole glacier area (map)</label>
   <label><input type="checkbox" id="k_strip" checked> Strip picture (3D view)</label>
   <label><input type="checkbox" id="s_natural" checked> Natural colour</label>
-  <label><input type="checkbox" id="s_false1"> False colour 1 (infrared)</label>
-  <label><input type="checkbox" id="s_false2"> False colour 2</label>
+  <label><input type="checkbox" id="s_false1"> Vegetation (false 1)</label>
+  <label><input type="checkbox" id="s_false2"> Bloody (false 2)</label>
+  <label><input type="checkbox" id="s_false3"> Hot? (false 3)</label>
   <button id="go" disabled>Start</button>
   <button id="stop" disabled>Stop</button>
 </div>
@@ -57,7 +58,7 @@ site.onload = async () => {
 $('stop').onclick = () => { stopped = true; $('stop').disabled = true; };
 $('go').onclick = async () => {
   stopped = false; $('go').disabled = true; $('stop').disabled = false; $('log').textContent = '';
-  const styles = ['natural', 'false1', 'false2'].filter(s => $('s_' + s).checked), kinds = ['full', 'strip'].filter(k => $('k_' + k).checked);
+  const styles = ['natural', 'false1', 'false2', 'false3'].filter(s => $('s_' + s).checked), kinds = ['full', 'strip'].filter(k => $('k_' + k).checked);
   // the list of jobs: glacier x year (with the scene the site would choose) x style
   const jobs = [];
   $('status').textContent = 'Looking up the scenes…';

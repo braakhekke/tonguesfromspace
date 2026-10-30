@@ -129,7 +129,8 @@ $('miniClose').onclick = () => { miniClosed = true; setMini(false); };
 export const SW_PALETTE = {
   natural: {rock: '#8f8679', rock2: '#6e675c', ice: '#d9e5ea', snow: '#fbfdfe', crev: '#aebfca', lake: '#5d8f9f', veg: '#5c8c3a'},
   false1:  {rock: '#857d72', rock2: '#625c53', ice: '#b6c3cc', snow: '#f7fafb', crev: '#8f9fab', lake: '#1d2b3b', veg: '#c22f3f'},
-  false2:  {rock: '#d6cfbf', rock2: '#b9b2a2', ice: '#c9473d', snow: '#f06a5c', crev: '#a53630', lake: '#0b0f14', veg: '#aab59a'}
+  false2:  {rock: '#d6cfbf', rock2: '#b9b2a2', ice: '#c9473d', snow: '#f06a5c', crev: '#a53630', lake: '#0b0f14', veg: '#aab59a'},
+  false3:  {rock: '#2a2fc4', rock2: '#1c1f96', ice: '#f08a2a', snow: '#fff04a', crev: '#e8501f', lake: '#e8601a', veg: '#3a40d8'}      /* Hot: rock blue, ice orange, snow yellow, as the picture (see hotEvalscript) */
 };
 export function swatchSvg(k){
   const c = SW_PALETTE[k];
@@ -141,7 +142,7 @@ export function swatchSvg(k){
     <path d="M40 18l9 3M43 26l11 1M47 33l8-3" stroke="${c.crev}" stroke-width="1.2" fill="none"/>
     <ellipse cx="52" cy="40" rx="9" ry="3.6" fill="${c.lake}"/></svg>`;
 }
-document.querySelectorAll('.sw').forEach(b => { const k = b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : 'false2'; b.querySelector('i').innerHTML = swatchSvg(k); });
+document.querySelectorAll('.sw').forEach(b => { const k = b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : b.id === 'styleFalse2' ? 'false2' : 'false3'; b.querySelector('i').innerHTML = swatchSvg(k); });
 
 export let pendingChoice = null;
 export function chooseGlacier(id){

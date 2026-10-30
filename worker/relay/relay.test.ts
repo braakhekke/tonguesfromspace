@@ -91,7 +91,7 @@ describe('image relay', () => {
     const { get } = setup();
     const dates2024 = Array.from({ length: 61 }, (_, i) => new Date(Date.UTC(2024, 7, 1 + i)).toISOString().slice(0, 10));
     let limited = 0;
-    for (const day of dates2024) for (const s of ['natural', 'false1', 'false2'])
+    for (const day of dates2024) for (const s of ['natural', 'false1', 'false2', 'false3'])
       if ((await get(`/api/image/test-glacier/${day}/${s}/0`, '9.9.9.9')).status === 429) limited++;
     expect(limited).toBeGreaterThan(0);
   });

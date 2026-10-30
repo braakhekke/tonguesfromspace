@@ -24,7 +24,7 @@ export const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v11'        // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v15'        // bump when scoring or rendering changes, to invalidate cached results
 };
 /* latest allowed day per year (MM-DD); default the end of the season (Switzerland 20 September). 2024: heavy snowfall on 15 September. */
 export const LAST_DAY = { default: SEASON.find[1], ...SEASON.lastDay };
@@ -59,17 +59,35 @@ function evaluatePixel(ss){
    maxR 3, midR 0.13, sat 1.3, gamma 2.3, gOff 0.01, ray 0.013 / 0.024 / 0.041 for red / green / blue. */
 export const TRUE_COLOR = { maxR: 3, midR: 0.13, sat: 1.3, gamma: 2.3, gOff: 0.01, ray: { B04: 0.013, B03: 0.024, B02: 0.041, B08: 0, B8A: 0, B11: 0, B12: 0 } };
 /* band combinations as red, green, blue */
-export const STYLE_BANDS = { natural: ['B04','B03','B02'], false1: ['B08','B04','B03'], false2: ['B8A','B11','B12'] };
-export const STYLE_NAME = { natural: 'natural color', false1: 'false color 1', false2: 'false color 2' };
+export const STYLE_BANDS = { natural: ['B04','B03','B02'], false1: ['B08','B04','B03'], false2: ['B8A','B11','B12'], false3: ['B04','B11','B02'] };      // false3: the bands the Hot picture is made from (see hotEvalscript)
+export const STYLE_NAME = { natural: 'natural color', false1: 'false color 1', false2: 'false color 2', false3: 'false color 3' };      // captions and exports; the buttons carry the nicknames (Infra, Bloody, Hot?)
 /* Landsat years (Iceland, before Sentinel-2): a scene of data/landsat/<outlet>.json, {sensor: 'landsat', sat: 'landsat-5', path, row, id, ...}. One picture per year in natural colour only, whatever colour style is chosen. */
 export const isLandsat = sc => !!(sc && sc.sensor === 'landsat');
 export const landsatName = sc => 'Landsat ' + String(sc.sat || '').replace(/\D/g, '');
 export const LANDSAT_CREDIT = 'Landsat data courtesy of the <a href="https://www.usgs.gov/landsat-missions" target="_blank" rel="noopener">U.S. Geological Survey</a> (public domain), via the Microsoft Planetary Computer';
 export const sensorName = sc => isLandsat(sc) ? landsatName(sc) : 'Sentinel-2';
-export const LANDSAT_BANDS = { natural: 'red, green and blue', false1: 'near infrared, red and green', false2: 'near infrared and the two shortwave infrared bands' };
-export const styleLine = (style, sc) => { if (isLandsat(sc)) return `${landsatName(sc)} · ${STYLE_NAME[style] || STYLE_NAME.natural} · 30 m pixels`; const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}`; };   // under every date: what the picture is
+/* A Landsat year of an outlet whose pictures were made before a style existed (no file for it) shows natural colour, and says so. */
+export const landsatStyle = (style, sc) => isLandsat(sc) && style !== 'natural' && sc.files && !sc.files[style] ? 'natural' : style;
+export const styleName = (style, sc) => STYLE_NAME[landsatStyle(style, sc)] || STYLE_NAME.natural;
+export const LANDSAT_BANDS = { natural: 'red, green and blue', false1: 'near infrared, red and green', false2: 'near infrared and the two shortwave infrared bands', false3: 'red, shortwave infrared 1 and blue, as a ratio picture' };
+/* Landsat 5 and 7 (TM, ETM+) band numbers as red, green, blue; Landsat 8 and 9 (OLI) number them one higher in the visible and near infrared */
+export const landsatBands = (style, sc) => { const o = /[89]/.test(String(sc.sat || '')) ? 1 : 0, b = n => 'B' + (n + o), s1 = 'B' + (5 + o), s2 = 'B' + (7 + o); const t = style === 'false1' ? [b(4), b(3), b(2)] : style === 'false2' ? [b(4), s1, s2] : style === 'false3' ? [b(3), s1, b(1)] : [b(3), b(2), b(1)]; return `bands ${t[0]}, ${t[1]} and ${t[2]}`; };
+export const styleLine = (style, sc) => { if (isLandsat(sc)) return `${landsatName(sc)} · ${styleName(style, sc)} · ${landsatBands(landsatStyle(style, sc), sc)}`; const [a, b, c] = STYLE_BANDS[style] || STYLE_BANDS.natural; return `Sentinel-2 · ${STYLE_NAME[style] || STYLE_NAME.natural} · bands ${a}, ${b} and ${c}${style === 'false3' ? ' (ratio picture)' : ''}`; };   // under every date: what the picture is
 export const IMAGE_COLLECTION = 'sentinel-2-l1c';
+/* False 3 "Hot": a ratio picture, not a band triple. Red = red/SWIR (0 to 2 x th1, th1 1.0), green = blue band (0 to 2 x th2, th2 0.2 = 2000 in reflectance x 10000), blue = SWIR (0 to 0.35, gamma 1/2.2). The ratio and the blue check are the quantities of the clean-ice rule of Paul et al. 2020, ESSD 12, 1805 ("(red/SWIR)>th1 and blue>th2"); the composite and these two settings are ours, not the paper's. Same script as hotEvalscript in shared/copernicus.ts. */
+function hotEvalscript(orbit){
+  return `//VERSION=3
+function setup(){ return { input:["B02","B04","B11","dataMask"], mosaicking:"TILE", output:{ bands:3 } }; }
+${orbitFilter(orbit)}
+function clip(s){ return s < 0 ? 0 : s > 1 ? 1 : s; }
+function evaluatePixel(ss){
+  var p = ss[0] || { dataMask:0 }; for (var i = 0; i < ss.length; i++) if (ss[i].dataMask == 1) { p = ss[i]; break; }
+  if (!p.dataMask) return [0.11, 0.16, 0.19];
+  return [clip(p.B11 > 0 ? p.B04 / p.B11 / 2 : 0), clip(p.B02 / 0.4), Math.pow(clip(p.B11 / 0.35), 0.4545)];
+}`;
+}
 export function evalscriptFor(style, orbit){
+  if (style === 'false3') return hotEvalscript(orbit);
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
   const T = TRUE_COLOR;
   return `//VERSION=3
@@ -269,7 +287,7 @@ export const landsatFiles = new Map();      // glacier id -> promise of its file
 export const landsatFile = g => { if (!landsatFiles.has(g.id)) landsatFiles.set(g.id, fetch(asset(`data/landsat/${g.id}.json`), ASSETS[`data/landsat/${g.id}.json`] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : null).catch(() => null)); return landsatFiles.get(g.id); };
 export async function landsatScene(g, yr){
   const f = await landsatFile(g), s = f && f.scenes && f.scenes[yr]; if (!s) return null;
-  return {...s, sensor: 'landsat', cover: s.cover == null ? 1 : s.cover, file: asset(`data/landsat/${g.id}/${yr}.jpg`), files: {natural: asset(`data/landsat/${g.id}/${yr}.jpg`), false1: asset(`data/landsat/${g.id}/${yr}.false1.jpg`), false2: asset(`data/landsat/${g.id}/${yr}.false2.jpg`)}, bbox: f.bbox};
+  return {...s, sensor: 'landsat', cover: s.cover == null ? 1 : s.cover, file: asset(`data/landsat/${g.id}/${yr}.jpg`), files: {natural: asset(`data/landsat/${g.id}/${yr}.jpg`), false1: asset(`data/landsat/${g.id}/${yr}.false1.jpg`), false2: asset(`data/landsat/${g.id}/${yr}.false2.jpg`), ...(f.styles && f.styles.includes('false3') ? {false3: asset(`data/landsat/${g.id}/${yr}.false3.jpg`)} : {})}, bbox: f.bbox};      // false3 (Hot?) only where build_landsat.py has made it (the json lists it in `styles`)
 }
 export async function findScene(g, yr){
   if (yr < FIRST_YEAR) return REGION.landsat ? landsatScene(g, yr) : null;
