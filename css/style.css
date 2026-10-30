@@ -609,6 +609,7 @@ details.about .note,details.about .src{margin:0 0 8px}
 .info-btn{width:20px;height:20px;border-radius:50%;border:1.5px solid var(--accent);background:none;color:var(--accent);font:700 12px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}
 .info-btn[aria-expanded="true"]{background:var(--accent);color:#fff}
 .about-sec{margin:0 0 12px}
+p.about-group{margin:16px 0 2px;font-size:10.5px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--moraine)}
 details.about-ch{border-top:1px solid var(--rule)}
 details.about-ch>summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--rock);padding:12px 0;list-style:none;display:flex;justify-content:space-between;align-items:center}
 details.about-ch>summary::-webkit-details-marker{display:none}
@@ -1049,7 +1050,7 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 .stage.is-full .full-exit,.app.visual-only .full-exit,.app .full-play{background:var(--glass)}
 
 /* "Then and now" and its camera symbols belong to One year: not in Compare and Timelapse */
-.app:not(.photos-ok) .v3d-photos{display:none!important}
+.app:not(.photos-ok) .v3d-photos,.app:not(.photos-ok) #l3PhotosRow{display:none!important}      /* the Layers switch too: it would do nothing here */
 
 /* pose tuning of a photograph (tune=1 in the address, see js/11-view3d.js) */
 .v3d-tune{position:absolute;top:12px;right:12px;z-index:7;width:268px;background:var(--glass);border-radius:8px;padding:10px 12px 11px;font-size:12px;color:var(--rock);box-shadow:0 2px 12px rgba(0,0,0,.35)}
@@ -1064,7 +1065,7 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 /* the arrows that hide the side panels stay in front of the 3D view */
 .is-3d .panel-toggle{z-index:710}
 .is-3d.no-right #toggleRight{z-index:710}
-.is-3d.no-right:has(.v3d-layers:not(.min)) #toggleRight{z-index:699}      /* the open layer menu of the 3D view covers the red tab */
+@media (min-width:721px) and (min-height:521px){.app.no-right .layerbox:not(.min),.app.no-right .v3d .v3d-layers:not(.min){right:56px}}      /* the open layer menu (map and 3D) sits beside the red tab of the closed right panel, not over it */
 
 /* in full screen (visual only) the arrows of the side panels are not shown */
 .app.visual-only .panel-toggle,.stage.is-full .panel-toggle,body.has-full .panel-toggle{display:none!important}

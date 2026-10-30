@@ -28,8 +28,9 @@ export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the has
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
   if (!OPEN_ON_GLACIER && REGION.landing === 'glacier3d') { OPEN_ON_GLACIER = true; state.mode = 'timelapse'; AUTOPLAY = !matchMedia('(prefers-reduced-motion: reduce)').matches; PLAIN_START = true;
     if (FEATURES.swisstopo) { prefs.mosaic = false; prefs.alti = true; }      // the landing view: swisstopo hillshade as the base map (the base maps start afresh at every visit) ...
-    if (typeof prefs.imgOpacity !== 'number' && FEATURES.swisstopo) prefs.imgOpacity = 0.85;      // ... showing through the satellite picture a little, and the peak names on, unless the visitor chose otherwise before
+    if (typeof prefs.imgOpacity !== 'number' && FEATURES.swisstopo) prefs.imgOpacity = 0.8;      // ... showing through the satellite picture a little, and the peak names on, unless the visitor chose otherwise before
     if (typeof prefs.names3d !== 'boolean') prefs.names3d = true;
+    if (typeof prefs.space3d !== 'boolean') prefs.space3d = true;      // the night sky behind the terrain, as on the landing page's first look
   }      // no glacier in the link: open on the biggest one as a 3D timelapse that loops, the Switzerland button leads to the overview
   if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });

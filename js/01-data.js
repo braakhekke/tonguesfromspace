@@ -26,7 +26,7 @@ export const PITCH_M2 = 7140;                       // a football pitch of the u
 export const BUS_M = 12;                            // a standard city bus is about 12 m long (an articulated one 18 m)
 export const LAKE_ZURICH_KM3 = 3.9;                 // volume of Lake Zurich
 export const POOL_L = 2.5e6;                        // Olympic pool, 50 x 25 x 2 m
-export const SWISS_SUPPLY_KM3 = 0.93;               // all drinking and process water supplied in Switzerland per year (SVGW: 900-950 million m³)
+export const SWISS_SUPPLY_KM3 = 0.931;              // 931 million m³, the SVGW figure for 2022: "Insgesamt haben die Wasserversorger 2022 931 Mio. m3 Trink- und Brauchwasser bereitgestellt" (SVGW press release 28 Feb 2024; it also says the yearly supply is "900 - 950 Millionen m3"); years of tap water are computed with it
 export const HOUSEHOLD_L_DAY = 142;                 // household use per person and day (SVGW)
 export const SWISS_POP = 9.0e6;
 export const VOLUME_LOSS = [
@@ -135,7 +135,7 @@ export const lv95 = (lon, lat) => {
 };
 export const GLACIER_INFO = {
  "aletsch": {
-  "fact": "The Aletsch region has its own legend: the Rollibock, a huge goat-like creature with long horns, fiery eyes and icicles for fur, who lives in the ice of the glacier. He appears when people harm nature. In one story he drowns a poacher in Lake Märjelen, the glacier lake beside the ice whose floods once devastated the valleys below, which people explained with an angry Rollibock. Today he is the mascot of the Aletsch Arena and stands for respect for nature.",
+  "fact": "The Aletsch region has its own legend: the Rollibock, a huge goat-like creature with long horns, fiery eyes and icicles for fur, who lives in the ice of the glacier. He appears when people harm nature. In one story a greedy hunter crosses the ice, the glacier opens, his boat sinks in the icy water of Lake Märjelen and he is never seen again. Today he is the mascot of the Aletsch Arena and stands for respect for nature.",
   "name": "Named after the Alp Aletsch below it, first recorded in 1231 as <em>Alech</em>. Where the name itself comes from is unknown.",
   "factSrc": "Bergwelten and Alpenverein (Rollibock legend); Aletsch Arena (Rollibock Club, mascot)",
   "src": "Historical Dictionary of Switzerland (Aletschgletscher)"

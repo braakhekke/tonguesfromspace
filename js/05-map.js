@@ -590,7 +590,7 @@ export function thicknessUrl(fp){
 }
 /* The WMS picture covers the whole image box, so it would also paint the neighbouring glaciers inside it. The pixels are masked in a canvas with the outline of the chosen glacier
    (the latest inventory outline, Mercator pixels of the same bbox); if the picture cannot be read back (no CORS) or the glacier has no polygon outline, the plain picture is shown. */
-async function thicknessClipped(g){
+export async function thicknessClipped(g){
   const fp = imageFootprint(g), url = thicknessUrl(fp), geom = g.inv && g.inv.outline;
   if (!geom || geom.type === 'MultiLineString') return url;
   try {
@@ -684,7 +684,7 @@ export const SPEED_LUT = Array.from({length: 256}, (_, i) => {
    Randolph Glacier Inventory); the chosen glacier first, then the others nearest first. Labels that would overlap one already placed are hidden, so zooming in shows more. ---------- */
 export const namesLayer = L.layerGroup();
 let namesFile = null, namesGen = 0;
-const namesData = () => namesFile || (namesFile = new Promise(res => { const sc = document.createElement('script'); sc.src = asset('data/glacier-names.js'); sc.onload = () => res(window.GLACIER_NAMES || {}); sc.onerror = () => res({}); document.head.appendChild(sc); }));
+export const namesData = () => namesFile || (namesFile = new Promise(res => { const sc = document.createElement('script'); sc.src = asset('data/glacier-names.js'); sc.onload = () => res(window.GLACIER_NAMES || {}); sc.onerror = () => res({}); document.head.appendChild(sc); }));
 const escName = t => String(t).replace(/[&<>"]/g, c => ({'&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;'}[c]));
 export function declutterNames(){
   const placed = [];

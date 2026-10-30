@@ -140,3 +140,5 @@ Circularity note: GLAMOS's reanalysed balances are built from Swiss station weat
 - ERA5 / ERA5-Land: no data pulled. A point extraction for the Aletsch cell needs a free CDS account (you create it; credentials only in your terminal).
 - Paul 2020 Aletsch outline: not compared with SGI2016 or RGI; unit definition (tributaries) not checked; no figure from it is on the site.
 - No figure from this ledger is on the site; every number above is copied from the source as read, and the CryoSat counts (130,000, 1.7 million) come from slides, not from the product.
+
+- **Result (2026-10-30, computed here, local only):** snow-line altitude from the full Sentinel-2 + Landsat catalogue (seasonal maximum, firn class) vs GLAMOS ELA, 40 years: bias +15 m, rmse 163 m, r 0.63. Method, parameters, caveats and rerun commands: experiments/aletsch-snow-melt/PLAN.md (end), snapshot in experiments/aletsch-snow-melt/results_v2/. Not on the site.

@@ -25,7 +25,7 @@ export function boot(){
   updateCredits();
   if (glacierPicked || REGION.landing !== 'overview') checkYears(); else setStatus('Choose an outlet to compare years.');      // a region that opens on its overview searches scenes only for the outlet that is chosen
   updatePickHint();
-  if (PLAIN_START) document.getElementById('loopToggle').checked = true;      // the landing timelapse repeats
+  if (PLAIN_START) { document.getElementById('loopToggle').checked = true; const sp = document.getElementById('speedSel'); sp.value = 3; sp.dispatchEvent(new Event('input')); }      // the landing timelapse repeats, at 4 fps (speed step 3)
   if (OPEN_3D) setView('3d');      // a shared link to the 3D view
 }
 export const bootGlacier = OPEN_ON_GLACIER ? currentGlacier() : null;

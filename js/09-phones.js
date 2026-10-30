@@ -182,7 +182,7 @@ export function setGlacierSheet(open){
 }
 export function renderMobileBar(){                 // phones: the glacier list becomes one card, and a tap opens the sheet with the glaciers
   const btn = $('mGlacier'), g = glacierPicked ? currentGlacier() : null;      // before the first choice nothing is selected: the card asks for one
-  const card = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${areaText(g, 1)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
+  const card = g ? `<span class="mp-rank">${GLACIERS.indexOf(g) + 1}</span><span class="mp-name">${g.name}</span><span class="mp-area">${areaText(g, 2)} km²</span>${MP_CHEV}` : `<span class="mp-name">Tap to choose a glacier</span>${MP_CHEV}`;
   if (btn._card !== card) { btn._card = card; btn.innerHTML = card; }
   btn.classList.toggle('placeholder', !g);
   btn.onclick = () => setGlacierSheet(true);

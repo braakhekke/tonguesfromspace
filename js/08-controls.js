@@ -81,7 +81,7 @@ export function boxParts(g, i, sel, flat){
   const fp = imageFootprint(g).bounds, geom = outlineGeom(g), has = hasOutline(g);
     const W = sel ? 1.6 : 1.1, F = has && !flat ? 0.16 : 0, style = {color: getVar('--accent'), weight: W, opacity: .9, fillColor: getVar('--accent'), fillOpacity: F, className: 'gbox'};      // thin line and a faint fill so the ice stays visible; stronger under the pointer
     const shape = geom ? L.geoJSON({type: 'Feature', geometry: geom}, {style: () => style}) : g.rgi ? L.polygon(g.rgi.outline.map(r => [r]), {...style}) : L.polygon(roundedBox(fp), {...style});
-    const tip = `${i + 1}. ${g.name}, ${areaText(g, 1)} km²`;
+    const tip = `${i + 1}. ${g.name}, ${areaText(g, 2)} km²`;
     const light = on => { const st = {fillOpacity: flat ? 0 : on ? 0.4 : F, weight: on ? 2.2 : W}; shape.setStyle ? shape.setStyle(st) : shape.eachLayer(l => l.setStyle(st)); };      // the polygon lights up under the pointer, also when the pointer is on its number
     shape.bindTooltip(tip, {direction: 'top', sticky: true, className: 'gbox-tip'}).on('click', () => wire.chooseGlacier(g.id)).on('mouseover', () => light(true)).on('mouseout', () => light(false));
     const tip0 = g.inv && g.inv.terminus && g.inv.terminus.tip || g.tongue;      // the badge sits at the tongue tip, off the ice, with the name beside it
