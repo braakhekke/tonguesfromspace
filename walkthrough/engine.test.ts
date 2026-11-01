@@ -76,7 +76,7 @@ describe('the walkthrough', () => {
     saveCtx(c);
     const fresh = loadCtx('landx', 'big');
     expect(status(fresh, 'glacier.season')).toBe('stale');
-    expect(status(fresh, 'glacier.scenes')).toBe('blocked');
+    expect(status(fresh, 'glacier.scenes')).toBe('stale');      // standalone: not blocked by the stale season, but based on it, so it is looked at again
   });
   it('the outline is checked against the area of the record', () => {
     walk();

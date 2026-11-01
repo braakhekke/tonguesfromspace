@@ -32,10 +32,10 @@
       ]
     ],
     "strip3d": {
-      "azimuth": 17.683580088894132,
-      "half": 2000,
-      "back": 1000,
-      "up": 6500
+      "azimuth": 17.6,
+      "half": 2300,
+      "back": 1607,
+      "up": 6791
     }
   },
   "balanceYear": {
@@ -55,5 +55,22 @@
     "noDataMarginM": 1000,
     "oneOrbit": false,
     "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 40 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+  },
+  "stripConfirmation": {
+    "at": "2026-10-31",
+    "by": "owner",
+    "reason": "manual placement",
+    "basedOn": "575c5011df0e"
+  },
+  "landsat": {
+    "years": 29,
+    "firstYear": 1984,
+    "lastYear": 2015,
+    "confirmation": {
+      "at": "2026-11-01",
+      "by": "owner",
+      "reason": "chosen",
+      "basedOn": "bc3c8c1c2a0a"
+    }
   }
 }

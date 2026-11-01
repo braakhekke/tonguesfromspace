@@ -15,12 +15,13 @@ const round = (v: number, d = 0) => +v.toFixed(d);
  * Drag the middle handle (moves the whole strip), the far end (turns and lengthens it), the side handle (width) and the near handle (how far below the tip), or type the numbers.
  * The start camera is taken from the real 3D view in the "Real page" tab: orbit there, press the button above the page.
  */
-export function StripScreen({ st, setPatch, setBlock }: ScreenProps) {
+export function StripScreen({ st, step, setPatch, setBlock }: ScreenProps) {
   const g = st.glacier!, p = g.placement!, tip = p.tip as LatLon;
-  const start = p.strip3d ?? { azimuth: 0, half: 2000, back: 1000, up: 6500, shift: 0 };
+  const offered = st.proposals?.[step.id]?.data?.strip3d as Strip | undefined;      // a strip somebody proposed (e.g. from the box editor): the form starts from it, nothing is confirmed until the button is pressed
+  const start = offered ?? p.strip3d ?? { azimuth: 0, half: 2000, back: 1000, up: 6500, shift: 0 };
   const [s, setS] = useState<Strip>({ azimuth: start.azimuth, half: start.half, back: start.back, up: start.up, shift: start.shift ?? 0 });
   const [cell, setCell] = useState<string>(p.strip3d?.cell ? String(p.strip3d.cell) : '');
-  const [cam, setCam] = useState<Cam | null>(p.strip3d?.cam ?? null);
+  const [cam, setCam] = useState<Cam | null>(p.strip3d?.cam ?? null);      // the camera is the record's own: a proposed strip has none
   const el = useRef<HTMLDivElement>(null);
   const parts = useRef<{ map: L.Map; poly: L.Polygon; far: L.Marker; side: L.Marker; near: L.Marker; mid: L.Marker } | null>(null);
   const live = useRef(s); live.current = s;
@@ -83,6 +84,7 @@ export function StripScreen({ st, setPatch, setBlock }: ScreenProps) {
       <div ref={el} class="wz-map" />
       <div class="wz-readout">
         <h3>3D strip</h3>
+        {offered && <p class="hint"><b>Proposed strip loaded:</b> {st.proposals![step.id]!.note} Not confirmed until you press the button.</p>}
         <label class="field"><span>Azimuth up the glacier, degrees</span>{num('azimuth', 1)}</label>
         <div class="row2">
           <label class="field"><span>Half width, m</span>{num('half')}</label>

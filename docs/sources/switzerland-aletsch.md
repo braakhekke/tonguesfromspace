@@ -142,3 +142,16 @@ Circularity note: GLAMOS's reanalysed balances are built from Swiss station weat
 - No figure from this ledger is on the site; every number above is copied from the source as read, and the CryoSat counts (130,000, 1.7 million) come from slides, not from the product.
 
 - **Result (2026-10-30, computed here, local only):** snow-line altitude from the full Sentinel-2 + Landsat catalogue (seasonal maximum, firn class) vs GLAMOS ELA, 40 years: bias +15 m, rmse 163 m, r 0.63. Method, parameters, caveats and rerun commands: experiments/aletsch-snow-melt/PLAN.md (end), snapshot in experiments/aletsch-snow-melt/results_v2/. Not on the site.
+
+## SGI outlines before 2023, read 2026-10-31 (local copies in experiments/aletsch-yearly-dem/glamos/inv; ReadMe, dbf and shapefiles opened)
+Aletsch is SGI B36-26 in every release. Dates are the releases' own wording; the ReadMes give no licence text (not re-checked against the landing pages; treated as non-commercial, see CLAUDE.md).
+
+| Release | Source wording | Aletsch attributes read | CRS |
+|---|---|---|---|
+| SGI 1850 (r1992) | not re-read here | Shape_Area 105617851.049 (m2, as stored) | LV95 |
+| SGI 1931 (r2022) | "referring to the mean year 1931 ... based on terrestrial images and historical maps (first edition of LK25)"; attribute `date` = "date of the terrestrial image"; cite Mannerfelt et al. 2022, doi 10.5194/tc-16-3249-2022 | `date` = 1926-09-01 | LV03 (shown in the back-cast editor with the plain +2,000,000 / +1,000,000 offset, not the exact swisstopo transformation) |
+| SGI 1973 (r1976) | "referring to the year 1973 ... based on aerial imagery" | Shape_Area 86628451.7189 | LV95 |
+| SGI 2010 (r2010) | "referring to the years 2008-2011 ... based on aerial imagery"; Fischer et al. 2014 | two polygons: Shape_Area 78131532.5259 and 226567.112477 | LV95 |
+| SGI 2016 (r2020) | "referring to the years 2013-2018" | `year_acq` 2017, `area_km2` 78.48888 | LV95 |
+
+No SGI release has an Aletsch outline for 1984, 1995, 2004 or 2011 specifically. 1973 and 2010 bracket those years; the back-cast editor (experiments/aletsch-backcast) draws 1931, 1973 and 2010 as reference layers. Exact flight dates of 1973 and 2010 are not given in the files read.

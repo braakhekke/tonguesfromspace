@@ -84,6 +84,7 @@ const un = (b64, Ctor) => { const bin = atob(b64), n = bin.length, u = new Uint8
 const H = D.H, W = D.W, cell = D.cell, NY = D.years.length, N = H * W;
 const u16 = un(D.u16, Uint16Array), g16 = un(D.g16, Uint16Array), flags = un(D.flags, Uint8Array);
 const hgt = (yi, i) => u16[yi * N + i] / 10 + 1000, gnd = i => g16[i] / 10 + 1000;
+const B0 = D.base ?? 1, BY = D.years[B0], EXT = D.ext || '2017 extent';      // the year the changes are counted from (Aletsch: 2017, the first measured surface); other glaciers set D.base, D.ext, D.title, D.h1
 const isI17 = i => flags[i] & 1, isI23 = i => (flags[i] >> 1) & 1, inBox = i => (flags[i] >> 2) & 1;
 const sigU8 = D.sig ? un(D.sig, Uint8Array) : null, SH = D.sigH, SW = D.sigW, sigAt = (yi, i) => { if (!sigU8) return NaN; const r = Math.min(SH - 1, Math.max(0, Math.round(Math.floor(i / W) * cell / 20))), c = Math.min(SW - 1, Math.max(0, Math.round((i % W) * cell / 20))); return sigU8[yi * SH * SW + r * SW + c] / 10; };
 const u16s = D.u16s ? un(D.u16s, Uint16Array) : null, hgtS = (yi, i) => u16s[yi * N + i] / 10 + 1000, hasS = !!u16s;
@@ -147,7 +148,7 @@ function ramp(t) { // diverging: lower (t<0) red, higher (t>0) blue, 0 white
 const modeEl = document.getElementById('mode');
 renderer.outputEncoding = THREE.sRGBEncoding;
 function update() {
-  const m = modeEl.value, y0 = 1; let prev = Math.max(0, yi - 1);
+  const m = modeEl.value, y0 = B0; let prev = Math.max(0, yi - 1);
   const tx = texs[String(D.years[yi])];
   setPic(mesh, mat, imgMat, m === 'img' && tx ? tx : null); if (m !== 'img' || !tx) { mat.vertexColors = true; mat.needsUpdate = true; }
   mat.needsUpdate = true;
@@ -185,7 +186,7 @@ function update() {
   sgs.sort((a, b) => a - b); const medSig = sgs.length ? sgs[Math.floor(sgs.length / 2)] : 0;
   let nb = 0, sth = 0, gsum = 0; if (hasBed) for (let i = 0; i < N; i++) if (iceAt(yi, i) && isI17(i)) { const b = bedAt(i); if (isNaN(b)) continue; nb++; sth += Math.max(0, hgt(yi, i) - b); gsum += gprAt(i); }
   const km2 = n * cell * cell / 1e6, mean17 = n ? s17 / n : 0, meanp = n ? sp / n : 0;
-  document.getElementById('srows').innerHTML = [['Ice area (2017 extent, still ice)', km2.toFixed(2) + ' km²'], ['Mean change since 2017', mean17.toFixed(1) + ' m'], ['Mean change vs previous year', yi === 0 ? '–' : meanp.toFixed(1) + ' m'], ['Volume change since 2017 (computed)', (mean17 * km2 / 1000).toFixed(3) + ' km³']].concat(sigU8 ? [['Surface uncertainty, median 1σ', medSig.toFixed(1) + ' m']] : []).concat(hasBed && nb ? [['Mean ice thickness above the bed (computed)', (sth / nb).toFixed(0) + ' m'], ['Ice volume above the bed, tongue (computed)', (sth * cell * cell / 1e9).toFixed(2) + ' km³'], ['Mean distance to a GPR measurement', (gsum / nb).toFixed(0) + ' m']] : []).concat(hasS ? [["Site's model: mean change since 2017", (sS / Math.max(n, 1)).toFixed(1) + ' m'], ['New − site: mean / rms', (dS / Math.max(n, 1)).toFixed(1) + ' / ' + Math.sqrt(dS2 / Math.max(n, 1)).toFixed(1) + ' m'], ['Volume difference new − site (computed)', (dS * cell * cell / 1e9).toFixed(3) + ' km³']] : []).map(r => '<div class="row"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('');
+  document.getElementById('srows').innerHTML = [['Ice area (' + EXT + ', still ice)', km2.toFixed(2) + ' km²'], ['Mean change since ' + BY, mean17.toFixed(1) + ' m'], ['Mean change vs previous year', yi === 0 ? '–' : meanp.toFixed(1) + ' m'], ['Volume change since ' + BY + ' (computed)', (mean17 * km2 / 1000).toFixed(3) + ' km³']].concat(sigU8 ? [['Surface uncertainty, median 1σ', medSig.toFixed(1) + ' m']] : []).concat(hasBed && nb ? [['Mean ice thickness above the bed (computed)', (sth / nb).toFixed(0) + ' m'], ['Ice volume above the bed, tongue (computed)', (sth * cell * cell / 1e9).toFixed(2) + ' km³'], ['Mean distance to a GPR measurement', (gsum / nb).toFixed(0) + ' m']] : []).concat(hasS ? [["Site's model: mean change since " + BY, (sS / Math.max(n, 1)).toFixed(1) + ' m'], ['New − site: mean / rms', (dS / Math.max(n, 1)).toFixed(1) + ' / ' + Math.sqrt(dS2 / Math.max(n, 1)).toFixed(1) + ' m'], ['Volume difference new − site (computed)', (dS * cell * cell / 1e9).toFixed(3) + ' km³']] : []).map(r => '<div class="row"><span>' + r[0] + '</span><span>' + r[1] + '</span></div>').join('');
   const L = document.getElementById('legend'), bar = document.getElementById('bar');
   if (m === 'dnew') { document.getElementById('ltitle').textContent = 'New minus the site\'s model (m)'; bar.style.background = 'linear-gradient(90deg,#d97060,#fff,#4f8dff)'; l0.textContent = '−10'; l1.textContent = '0'; l2.textContent = '+10'; }
   else if (m === 'unc') { document.getElementById('ltitle').textContent = 'Uncertainty of the surface, 1σ (m)'; bar.style.background = 'linear-gradient(90deg,#ffedb3,#d9731a,#730d1a)'; l0.textContent = '0'; l1.textContent = '2.5'; l2.textContent = '5+'; }
@@ -194,7 +195,7 @@ function update() {
   else if (m === 'gprd') { document.getElementById('ltitle').textContent = 'Distance to nearest GPR measurement (m): the bed is least certain where it is large'; bar.style.background = 'linear-gradient(90deg,#ffedb3,#d9731a,#99260f)'; l0.textContent = '0'; l1.textContent = '500'; l2.textContent = '1000+'; }
   else if (m === 'img') { document.getElementById('ltitle').textContent = 'Sentinel-2, as delivered (not sharpened)'; bar.style.background = 'linear-gradient(90deg,#222,#888,#fff)'; l0.textContent = ''; l1.textContent = ''; l2.textContent = ''; }
   else if (m === 'surf') { document.getElementById('ltitle').textContent = 'Surface'; bar.style.background = 'linear-gradient(90deg,#6b6355,#9e9486,#c7dbed,#eef3f8)'; l0.textContent = 'rock'; l1.textContent = ''; l2.textContent = 'ice'; }
-  else { const sc = m === 'd17' ? 50 : 12; document.getElementById('ltitle').textContent = m === 'd17' ? 'Change since 2017 (m)' : 'Change vs previous year (m)'; bar.style.background = 'linear-gradient(90deg,#d97060,#fff,#4f8dff)'; l0.textContent = '−' + sc; l1.textContent = '0'; l2.textContent = '+' + sc; }
+  else { const sc = m === 'd17' ? 50 : 12; document.getElementById('ltitle').textContent = m === 'd17' ? 'Change since ' + BY + ' (m)' : 'Change vs previous year (m)'; bar.style.background = 'linear-gradient(90deg,#d97060,#fff,#4f8dff)'; l0.textContent = '−' + sc; l1.textContent = '0'; l2.textContent = '+' + sc; }
   updatePts(); updateStk(); updateWater();
 }
 function updateStk() {
@@ -237,6 +238,9 @@ function occluded(pos, ignoreR) {                      // is the terrain between
 }
 // ---- UI
 if (D.foot) document.getElementById('foot').textContent = D.foot;
+if (D.bednote) document.getElementById('bednote').textContent = D.bednote;
+if (!(D.stakes || []).length) document.getElementById('stk').parentElement.style.display = 'none';      // a glacier without stake readings has no stakes row
+document.querySelector('#mode option[value=d17]').textContent = 'Change since ' + BY; if (D.title) { document.title = D.title; document.querySelector('#top .hd h1').textContent = D.h1 || D.title; }
 const slider = document.getElementById('slider'); slider.max = NY - 1; slider.value = yi;
 document.getElementById('ticks').innerHTML = D.years.map(y => '<span>' + y + '</span>').join('');
 let pending = false; const go = () => { if (!pending) { pending = true; requestAnimationFrame(() => { pending = false; update(); }); } };
@@ -271,7 +275,7 @@ renderer.domElement.addEventListener('mousemove', e => {
       const dayTxt = dy === 0 ? 'on 30 Sep' : ad + (ad === 1 ? ' day ' : ' days ') + (dy < 0 ? 'before' : 'after') + ' 30 Sep';
       const ratio = Math.abs(p[5]) >= 0.05 ? Math.round(Math.abs(sh) / Math.abs(p[5]) * 100) : null;
       box.innerHTML = '<b>ICESat-2 ATL06 shot</b>' + H('When and where') + R('Date', p[3]) + R('Beam', p[6]) + R('Height (LN02, datum-fitted)', p[2].toFixed(1) + ' m')
-        + H('Against the model') + R('Observed change since 2017', sg(p[4])) + R('Modelled change at the shot date', sg(model)) + R('Observed − model', '<b>' + sg(p[5]) + '</b>')
+        + H('Against the model') + R('Observed change since ' + BY, sg(p[4])) + R('Modelled change at the shot date', sg(model)) + R('Observed − model', '<b>' + sg(p[5]) + '</b>')
         + H('Timing') + '<div style="font-size:11px;line-height:1.4">This shot is <b>' + dayTxt + '</b>. In the model that moves the surface by <b>' + sg(sh) + '</b> compared with 30 Sep (the surface the slider shows)' + (dy > 0 ? ', assuming melt goes on to 15 Oct at the late-September rate (an assumption; the model itself stops at 30 Sep)' : '') + '. The actual difference between model and shot is <b>' + sg(p[5]) + '</b>' + (ratio === null ? '.' : (ratio <= 100 ? ', so the timing explains about ' + ratio + ' % of it.' : ', so the timing alone is larger than the difference (' + ratio + ' %).')) + '</div>'
         + H('Quality') + R('Photons in fit / SNR', p[10] + ' / ' + p[11]) + R('Height uncertainty', '± ' + p[8] + ' m') + R('Granule', p[7], 'font-size:10px')
         + (p[9] ? '<div class="row" style="color:#C8322A"><b>Rejected: not a surface return</b></div><div style="font-size:11px;color:var(--muted)">The height is outside the physical envelope (more than 15 m above the 2017 surface, or lower than twice the whole 2017 to 2023 thinning minus 10 m), here ' + (p[4] / 1).toFixed(0) + ' m from the 2017 surface. It passes ATL06\'s own quality flag but has few photons and a low signal to noise ratio.</div>' : (Math.abs(p[5]) > 15 ? '<div class="row" style="color:#C8322A"><b>Suspect</b></div><div style="font-size:11px;color:var(--muted)">Large difference to the model (' + p[5].toFixed(1) + ' m); kept, not proven wrong.</div>' : ''));
@@ -280,13 +284,14 @@ renderer.domElement.addEventListener('mousemove', e => {
   }
   ray.setFromCamera(mouse, camera); const hit = ray.intersectObject(mesh)[0];
   if (!hit) return; const c = Math.round(hit.point.x / cell), r = Math.round(-hit.point.z / cell); if (c < 0 || c >= W || r < 0 || r >= H) return; const i = r * W + c;
-  box.innerHTML = '<b>' + D.years[yi] + '</b><div class="row"><span>Elevation (LN02)</span><span>' + hgt(yi, i).toFixed(1) + ' m</span></div><div class="row"><span>Since 2017</span><span>' + (hgt(yi, i) - hgt(1, i)).toFixed(1) + ' m</span></div><div class="row"><span>vs previous year</span><span>' + (yi ? (hgt(yi, i) - hgt(yi - 1, i)).toFixed(1) + ' m' : '–') + '</span></div><div class="row"><span>Ice</span><span>' + (isLake(yi, i) ? 'no: lake (flat; level assumed from the 2023 DEM, ±10–15 m)' : (iceAt(yi, i) ? 'yes' : 'no')) + '</span></div>' + (hasS ? '<div class="row"><span>Site model elevation</span><span>' + hgtS(yi, i).toFixed(1) + ' m (new − site ' + (hgt(yi, i) - hgtS(yi, i)).toFixed(1) + ' m)</span></div>' : '') + (hasBed && !isNaN(bedAt(i)) && inBox(i) && (isI17(i) || isI23(i)) ? '<div class="row"><span>Bed elevation (swissBEDROCK)</span><span>' + bedAt(i).toFixed(1) + ' m</span></div><div class="row"><span>Ice thickness this year (surface − bed)</span><span>' + Math.max(0, hgt(yi, i) - bedAt(i)).toFixed(0) + ' m</span></div><div class="row"><span>Nearest GPR measurement</span><span>' + gprAt(i) + ' m away</span></div>' : '') + (sigU8 && iceAt(yi, i) ? '<div class="row"><span>Uncertainty (1σ)</span><span>± ' + sigAt(yi, i).toFixed(1) + ' m</span></div>' : '');
+  box.innerHTML = '<b>' + D.years[yi] + '</b><div class="row"><span>Elevation (LN02)</span><span>' + hgt(yi, i).toFixed(1) + ' m</span></div><div class="row"><span>Since ' + BY + '</span><span>' + (hgt(yi, i) - hgt(B0, i)).toFixed(1) + ' m</span></div><div class="row"><span>vs previous year</span><span>' + (yi ? (hgt(yi, i) - hgt(yi - 1, i)).toFixed(1) + ' m' : '–') + '</span></div><div class="row"><span>Ice</span><span>' + (isLake(yi, i) ? 'no: lake (flat; level assumed from the 2023 DEM, ±10–15 m)' : (iceAt(yi, i) ? 'yes' : 'no')) + '</span></div>' + (hasS ? '<div class="row"><span>Site model elevation</span><span>' + hgtS(yi, i).toFixed(1) + ' m (new − site ' + (hgt(yi, i) - hgtS(yi, i)).toFixed(1) + ' m)</span></div>' : '') + (hasBed && !isNaN(bedAt(i)) && inBox(i) && (isI17(i) || isI23(i)) ? '<div class="row"><span>Bed elevation (swissBEDROCK)</span><span>' + bedAt(i).toFixed(1) + ' m</span></div><div class="row"><span>Ice thickness this year (surface − bed)</span><span>' + Math.max(0, hgt(yi, i) - bedAt(i)).toFixed(0) + ' m</span></div><div class="row"><span>Nearest GPR measurement</span><span>' + gprAt(i) + ' m away</span></div>' : '') + (sigU8 && iceAt(yi, i) ? '<div class="row"><span>Uncertainty (1σ)</span><span>± ' + sigAt(yi, i).toFixed(1) + ' m</span></div>' : '');
 });
 // ---- camera: from the tip, looking up the tongue
 function frame() {
   let sx = 0, sz = 0, n = 0, zmax = -1e9; for (let i = 0; i < N; i += 7) if (inBox(i)) { sx += pos[3 * i]; sz += pos[3 * i + 2]; n++; }
-  const cx = sx / n, cz = sz / n; controls.target.set(cx, (2100 - z0) * exag, cz);
-  camera.position.set(cx - 2600, (4300 - z0) * exag, cz + 6800); controls.update();
+  const cx = sx / n, cz = sz / n; const C = D.cam || { ty: 2100, dx: -2600, dy: 4300, dz: 6800 };      // target height, then the camera's offset from the centre (east, height, south) in metres; Aletsch's by default
+  controls.target.set(cx, (C.ty - z0) * exag, cz);
+  camera.position.set(cx + C.dx, (C.dy - z0) * exag, cz + C.dz); controls.update();
 }
 function resize() { const w = el.clientWidth, h = el.clientHeight; renderer.setSize(w, h); camera.aspect = w / h; camera.updateProjectionMatrix(); }
 addEventListener('resize', resize); resize();

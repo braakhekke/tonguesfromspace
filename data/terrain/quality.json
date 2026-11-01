@@ -1,131 +1,132 @@
 {
  "A54e-24": {
-  "file": "A54e-24.d912d2db.bin",
+  "file": "A54e-24.7f989df1.bin",
   "relief": [
    "A54e-24-base.png"
   ],
-  "rough": 2.56,
+  "rough": 2.69,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0362,
+  "steep": 0.0374,
   "strips": [],
   "why": []
  },
  "A54g-11": {
-  "file": "A54g-11.0eb80933.bin",
+  "file": "A54g-11.a1e9d272.bin",
   "relief": [
    "A54g-11-base.png"
   ],
-  "rough": 2.88,
+  "rough": 2.89,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0459,
+  "steep": 0.0494,
   "strips": [],
   "why": []
  },
  "B36-26": {
-  "file": "B36-26.1b9561b8.bin",
+  "file": "B36-26.e6ba230d.bin",
   "relief": [
-   "B36-26-base.png"
+   "B36-26-base.png",
+   "B36-26-2018.png"
   ],
-  "rough": 2.4,
+  "rough": 2.58,
   "seams": 0.0,
-  "seamsYear": null,
+  "seamsYear": "2018",
   "status": "ok",
-  "steep": 0.0125,
+  "steep": 0.0283,
   "strips": [],
   "why": []
  },
  "B40-07": {
-  "file": "B40-07.f8c02b69.bin",
+  "file": "B40-07.3cd64a9c.bin",
   "relief": [
    "B40-07-base.png"
   ],
-  "rough": 3.5,
+  "rough": 3.33,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0746,
+  "steep": 0.0656,
   "strips": [],
   "why": []
  },
  "B43-03": {
-  "file": "B43-03.a15fbbc7.bin",
+  "file": "B43-03.ae7b06e1.bin",
   "relief": [
    "B43-03-base.png"
   ],
-  "rough": 2.43,
+  "rough": 2.52,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0313,
+  "steep": 0.0343,
   "strips": [],
   "why": []
  },
  "B53-04": {
-  "file": "B53-04.d559e907.bin",
+  "file": "B53-04.a56dd270.bin",
   "relief": [
    "B53-04-base.png"
   ],
-  "rough": 2.92,
+  "rough": 2.95,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0536,
+  "steep": 0.0582,
   "strips": [],
   "why": []
  },
  "B56-03": {
-  "file": "B56-03.c688f3f1.bin",
+  "file": "B56-03.d2903483.bin",
   "relief": [
    "B56-03-base.png"
   ],
-  "rough": 1.89,
+  "rough": 2.15,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0264,
+  "steep": 0.0346,
   "strips": [],
   "why": []
  },
  "B56-07": {
-  "file": "B56-07.c244799d.bin",
+  "file": "B56-07.1a08b8e7.bin",
   "relief": [
    "B56-07-base.png"
   ],
-  "rough": 2.24,
+  "rough": 2.42,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0189,
+  "steep": 0.0241,
   "strips": [],
   "why": []
  },
  "B57-05": {
-  "file": "B57-05.3c1502f2.bin",
+  "file": "B57-05.b86407d0.bin",
   "relief": [
    "B57-05-base.png"
   ],
-  "rough": 2.9,
+  "rough": 2.8,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0624,
+  "steep": 0.0535,
   "strips": [],
   "why": []
  },
  "B83-03": {
-  "file": "B83-03.d62414fa.bin",
+  "file": "B83-03.93374a20.bin",
   "relief": [
    "B83-03-base.png"
   ],
-  "rough": 3.42,
+  "rough": 3.18,
   "seams": 0.0,
   "seamsYear": null,
   "status": "ok",
-  "steep": 0.0605,
+  "steep": 0.0563,
   "strips": [],
   "why": []
  },

@@ -502,7 +502,9 @@ export function drawHillshade(ctx, S, h, nA, nB, TEX){            // a base map 
   }
   c.getContext('2d').putImageData(im, 0, 0); ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(c, 0, 0, TEX[0], TEX[1]); ctx.restore();
 }
+export let speedPin3D = null;      // the fastest ice of the year of the picture as a mark in the scene ({x, z, text}), set with the speed colours below; null when the layer is off, has no map for the year, or the point lies outside the strip
 export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the satellite picture of a year, turned so that up the glacier is up, as the texture of the strip
+  speedPin3D = null;
   if ($('trailsToggle').checked) await ensureSight();
   const HALF = S.half, TEX = S.tex, len = S.up + S.back; let bb = imageFootprint(g).bbox, u = null;
   const noSat = !satOn();      // the picture is switched off in the layer menu: no image is fetched, the terrain shows the base map (or the dark ground) alone
@@ -540,9 +542,10 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the
   if ($('speedToggle').checked && FEATURES.speed) {            // ice speed of the year of the picture (ITS_LIVE, copied): the colours of the map layer, drawn on the picture; years without a map show nothing
     const f = await loadSpeedFile(speedId(g));
     if (f && f.years.includes(yr)) {
-      const sc = speedCanvas(f, await speedArray(f, yr), speedMask(f, g)), [x0, y0, x1, y1] = f.bbox, q0 = toTexM(x0, y1), q1 = toTexM(x1, y1), q2 = toTexM(x0, y0);
+      const sa = await speedArray(f, yr), sc = speedCanvas(f, sa, speedMask(f, g)), pk = speedPeak(f, sa, speedMask(f, g)), [x0, y0, x1, y1] = f.bbox, q0 = toTexM(x0, y1), q1 = toTexM(x1, y1), q2 = toTexM(x0, y0);
       ctx.save(); ctx.globalAlpha = .9; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
       ctx.setTransform((q1[0] - q0[0]) / sc.width, (q1[1] - q0[1]) / sc.width, (q2[0] - q0[0]) / sc.height, (q2[1] - q0[1]) / sc.height, q0[0], q0[1]); ctx.drawImage(sc, 0, 0); ctx.restore();
+      if (pk) { const p = stripXZ(S, pk.xy[0], pk.xy[1]); if (p.inside) speedPin3D = {x: p.x, z: p.z, text: `${Math.round(pk.v)} m/yr (${yr})`}; }      // the same point and label as the pin on the map
     }
   }
   const sight = $('trailsToggle').checked && sightFor(g);
@@ -734,9 +737,13 @@ export function rockLook(src, surf, bed, nA, nB, cellM){
 /* ---- Scientific field notes (the pill in the 3D top bar) ----
    The pill is a link to provenance.html, which holds everything about how the view was made (pictures, terrain, ice surface, measured surfaces, checks, licences). The link carries the page
    to come back to and the year on screen. */
+export function provenancePage(){      // the field notes of the glacier on screen: one page for every glacier with yearly surfaces, chosen by ?id= (without it the page is the overview of all of them)
+  const p = v3dCtx && v3dCtx.bundle && v3dCtx.bundle.yearly && v3dCtx.bundle.yearly.provenance, m = p && p.match(/yearly\/(.+)\.json$/);
+  return `/provenance.html?id=${m ? m[1] : 'B36-26'}&`;
+}
 export function updateSciPanel(yr){
   const c = v3dCtx, y = yr || (c && ((c.current && c.current()) || (c.cmp && c.cmp[1]))) || '';
-  $('v3dSci').href = `/provenance.html?${y ? `year=${y}&` : ''}back=${encodeURIComponent(location.href)}`;
+  $('v3dSci').href = `${provenancePage()}${y ? `year=${y}&` : ''}back=${encodeURIComponent(location.href)}`;
 }
 document.documentElement.classList.remove('science');
 
@@ -804,7 +811,7 @@ export async function open3D(){
     const oldNoteFor = ys => { if (!usesDem) return {short: 'one terrain model for all years', full: 'This glacier has a single elevation model, used for every year: the ice surface is not adjusted to the year, so pictures of other years are draped on the same terrain.'}; const early = elevFirst && ys.some(y => y < elevFirst || special === 'oldest'); return early ? {short: `terrain as of ${elevFirst}`, full: `The oldest ${elevName} elevation model for this glacier is from ${elevFirst}: pictures of earlier years are draped on the ${elevFirst} terrain and surface, which is not extrapolated further back.`} : null; };
     const lastStrip = yearly && !swissYearly ? yearly.yearly.strips[yearly.yearly.strips.length - 1].date : '';
     const fmtMD = md => { const [m, d] = md.split('-').map(Number); return `${d} ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m - 1]}`; };
-    const terrainNote = swissYearly ? ` Ice surface of each year ${yearLo} to ${yearHi}, on 30 September: a model with three measured surfaces (swissALTI3D 2017, swissSURFACE3D lidar 2021, swissALTI3D 2023) and the GLAMOS mass balance per elevation band for the years between and after them. Pictures of years before ${yearLo} use the ${yearLo} surface. <a href="/provenance.html?back=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">How each year was made</a>.` : yearly ? ` Ice surface of each year: ArcticDEM strips (2 m, ${yearly.yearly.strips.length} dated models since ${yearly.yearly.strips[0].date.slice(0, 4)}), set onto ${yearly.yearly.reference || 'ÍslandsDEM'} with the ground beside the glacier. Each year is the surface on ${fmtMD(yearly.yearly.day || '09-15')}: measured where a summer strip lies within 45 days, interpolated in time between strips otherwise, and after the last strip (${fmtDate(lastStrip)}) the surface of that strip, unchanged.${Math.max(0, ...Object.values(yearly.yearly.estimated || {})) >= 0.005 ? ' Where no recent strip covers the ice (up to ' + Math.round(100 * Math.max(...Object.values(yearly.yearly.estimated))) + ' % of the strip in a year) the surface is the last strip plus the thinning measured on the ice around it between the same days: an estimate.' : ''} Strips of the winter months carry some snow.` : usesDem ? ` Ice surface of each year: estimate from the swissALTI3D editions ${dem.old.edition} and ${dem.new.edition} (surveys ${dem.old.year}${dem.old.assumed ? ', assumed,' : ''} and ${dem.new.year}; the years after ${dem.new.year} are extrapolated; for the years before ${dem.old.year} the surface of ${dem.old.year} is used) and the yearly mass balance (GLAMOS); after the last measured year it stays as it was.` : ' The terrain model is older than the picture, so the ice sits a little lower today.';
+    const terrainNote = swissYearly ? ` Ice surface of each year ${yearLo} to ${yearHi}, on 30 September: ${g.id === 'aletsch' ? 'a model with three measured surfaces (swissALTI3D 2017, swissSURFACE3D lidar 2021, swissALTI3D 2023) and the GLAMOS mass balance per elevation band for the years between and after them' : 'a model between and beyond swisstopo surveys (swissALTI3D, swissSURFACE3D lidar) following the lowering of the ice by elevation band; measured only where a survey lies, see the field notes'}. Pictures of years before ${yearLo} use the ${yearLo} surface. <a href="${provenancePage()}?back=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">How each year was made</a>.` : yearly ? ` Ice surface of each year: ArcticDEM strips (2 m, ${yearly.yearly.strips.length} dated models since ${yearly.yearly.strips[0].date.slice(0, 4)}), set onto ${yearly.yearly.reference || 'ÍslandsDEM'} with the ground beside the glacier. Each year is the surface on ${fmtMD(yearly.yearly.day || '09-15')}: measured where a summer strip lies within 45 days, interpolated in time between strips otherwise, and after the last strip (${fmtDate(lastStrip)}) the surface of that strip, unchanged.${Math.max(0, ...Object.values(yearly.yearly.estimated || {})) >= 0.005 ? ' Where no recent strip covers the ice (up to ' + Math.round(100 * Math.max(...Object.values(yearly.yearly.estimated))) + ' % of the strip in a year) the surface is the last strip plus the thinning measured on the ice around it between the same days: an estimate.' : ''} Strips of the winter months carry some snow.` : usesDem ? ` Ice surface of each year: estimate from the swissALTI3D editions ${dem.old.edition} and ${dem.new.edition} (surveys ${dem.old.year}${dem.old.assumed ? ', assumed,' : ''} and ${dem.new.year}; the years after ${dem.new.year} are extrapolated; for the years before ${dem.old.year} the surface of ${dem.old.year} is used) and the yearly mass balance (GLAMOS); after the last measured year it stays as it was.` : ' The terrain model is older than the picture, so the ice sits a little lower today.';
     if (usesDem) { if (cmp) v3d.setHeights(hy(cmp[0]), hy(cmp[1])); else v3d.setHeights(hy(first)); }
     let current = first;      // declared before the context: the download pane reads it as soon as the context exists
     const rockCache = new Map(), srCache = new Map();      // year -> the picture with the rock look (ice off); year -> the super-resolved picture
@@ -1203,6 +1210,7 @@ export function markItems(c){
   if ($('l3Names').checked && c.names) c.names.forEach(n => m.push({type: 'name', ...n}));
   if ($('pinToggle').checked && c.tip) m.push({type: 'tip', ...c.tip});
   if ($('maxToggle').checked && c.pin) m.push({type: 'max', ...c.pin});
+  if ($('speedToggle').checked && FEATURES.speed && speedPin3D) m.push({type: 'speed', ...speedPin3D});
   if (photoOn && photoOn.rod && photoOn.rodOn) m.push({type: 'rod', ...photoOn.rod});      // the ice level of an old photograph, estimated
   return m;
 }
@@ -1464,7 +1472,7 @@ export function bindCamPicking(cv){            // hovering, clicking and tapping
 }
 
 export let pinRun = 0;
-export const marksOn = () => photoOn ? !!(photoOn.rod && photoOn.rodOn) : $('pinToggle').checked || $('maxToggle').checked || $('l3Names').checked || $('l3GNames').checked || !!(v3dCtx && radar3D(v3dCtx.g));
+export const marksOn = () => photoOn ? !!(photoOn.rod && photoOn.rodOn) : $('pinToggle').checked || $('maxToggle').checked || ($('speedToggle').checked && FEATURES.speed) || $('l3Names').checked || $('l3GNames').checked || !!(v3dCtx && radar3D(v3dCtx.g));
 /* ---------- measuring in the 3D view: length of a line and area of a shape on the terrain (ground distances, as on the map) ----------
    A tap puts a point on the terrain (viewer.pick), the lines follow the ground and are drawn on the overlay with the other marks. Drags still turn the camera. */
 export const M3 = {mode: null, pts: [], shapes: [], gid: null};      // points are [x, z] of the strip scene, in ground metres

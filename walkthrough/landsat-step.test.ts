@@ -13,8 +13,8 @@ const status = (id: string) => progress(loadCtx('ch', 'aletsch')).steps.find((s)
 const ok = (step: string, patch: Record<string, unknown> = {}) => saveCtx(confirm(loadCtx('ch', 'aletsch'), step, patch, 'owner', 'looked at it', '2026-10-27'));
 
 describe('Landsat step', () => {
-  it('waits for the scene review, then takes what the build made, and a changed box makes it stale', () => {
-    expect(status('glacier.landsat')).toBe('blocked');
+  it('is standalone (not held back by open steps), takes what the build made, and a changed box makes it stale', () => {
+    expect(status('glacier.landsat')).toBe('todo');
     ok('region.unit'); ok('glacier.record');
     ok('glacier.outline', { epochs: loadCtx('ch', 'aletsch').outlines!.epochs.map((e) => ({ ...e, geojson: { type: 'FeatureCollection', features: [{ type: 'Feature', geometry: { type: 'Polygon', coordinates: [] } }] } })) });
     ok('glacier.placement'); ok('glacier.season');

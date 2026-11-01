@@ -65,10 +65,10 @@ window.GLACIER_BOXES = {
     7.750152
    ],
    "strip3d": {
-    "azimuth": 99.1167810813455,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 105.5,
+    "half": 2481,
+    "back": 1685,
+    "up": 6517
    },
    "derived": {
     "bbox": [
@@ -101,10 +101,10 @@ window.GLACIER_BOXES = {
     8.132402
    ],
    "strip3d": {
-    "azimuth": 17.683580088894132,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 17.6,
+    "half": 2300,
+    "back": 1607,
+    "up": 6791
    },
    "derived": {
     "bbox": [
@@ -137,10 +137,10 @@ window.GLACIER_BOXES = {
     8.244976
    ],
    "strip3d": {
-    "azimuth": 271.97117249070635,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 271.9,
+    "half": 2507,
+    "back": 2435,
+    "up": 6657
    },
    "derived": {
     "bbox": [
@@ -173,10 +173,10 @@ window.GLACIER_BOXES = {
     7.28858
    ],
    "strip3d": {
-    "azimuth": 157.3834957609995,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 166.2,
+    "half": 2281,
+    "back": 1792,
+    "up": 6862
    },
    "derived": {
     "bbox": [
@@ -209,10 +209,10 @@ window.GLACIER_BOXES = {
     7.652429
    ],
    "strip3d": {
-    "azimuth": 252.05504800656757,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 253.2,
+    "half": 2219,
+    "back": 3081,
+    "up": 5141
    },
    "derived": {
     "bbox": [
@@ -245,10 +245,10 @@ window.GLACIER_BOXES = {
     8.387842
    ],
    "strip3d": {
-    "azimuth": 351.13738149109275,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 4.3,
+    "half": 2267,
+    "back": 1658,
+    "up": 6113
    },
    "derived": {
     "bbox": [
@@ -281,10 +281,10 @@ window.GLACIER_BOXES = {
     7.829459
    ],
    "strip3d": {
-    "azimuth": 136.16069364495286,
-    "half": 2000,
-    "back": 1000,
-    "up": 6500
+    "azimuth": 122.5,
+    "half": 2036,
+    "back": 2305,
+    "up": 6734
    },
    "derived": {
     "bbox": [
@@ -317,10 +317,10 @@ window.GLACIER_BOXES = {
     7.895585
    ],
    "strip3d": {
-    "azimuth": 212.0503121030364,
-    "half": 2000,
-    "back": 1000,
-    "up": 5839.215669387182
+    "azimuth": 213.2,
+    "half": 2935,
+    "back": 1186,
+    "up": 3938
    },
    "derived": {
     "bbox": [
@@ -353,10 +353,10 @@ window.GLACIER_BOXES = {
     8.366447
    ],
    "strip3d": {
-    "azimuth": 170.2407109211225,
-    "half": 2000,
-    "back": 2000,
-    "up": 5623.204748653419
+    "azimuth": 166.5,
+    "half": 1944,
+    "back": 3016,
+    "up": 5054
    },
    "derived": {
     "bbox": [

@@ -20,6 +20,8 @@ export type StepDef = {
   /** what the person should look at before confirming */
   look: string[];
   needs: string[];
+  /** the step can be confirmed while the steps it needs are still open (it still reads their data, and a confirmation is still based on them, so it turns stale when they change) */
+  standalone?: boolean;
   screen: Screen;
   implemented: boolean;
   /** what the step produced, without its confirmation; undefined = nothing yet */
@@ -139,7 +141,7 @@ export const STEPS: StepDef[] = [
     id: 'glacier.scenes', phase: 1, scope: 'glacier', title: 'Scene review',
     why: 'Every automatically chosen picture is looked at by a person: approved, swapped, discarded or pinned. This is the checkpoint that keeps cloudy pictures off the site.',
     look: ['Cloud or cloud shadow over the tongue?', 'Snow still covering the ice that is normally bare?', 'Do neighbouring years look like the same season?'],
-    needs: ['glacier.season'], screen: 'scenes', implemented: true,
+    needs: ['glacier.season'], standalone: true, screen: 'scenes', implemented: true,
     outputs: (c) => (c.scenes ? Object.fromEntries(Object.entries(c.scenes.years).map(([y, v]) => [y, { chosen: v.chosen, status: v.status, discarded: v.discarded }])) : undefined),
     confirmation: (c) => c.scenes?.confirmation,
     problems: (c) => {
@@ -186,7 +188,7 @@ export const STEPS: StepDef[] = [
     id: 'glacier.landsat', phase: 1, scope: 'glacier', title: 'Landsat before 2016',
     why: 'One clear late-summer Landsat picture per year before Sentinel-2, cut to the picture box and colour-matched to each other on one patch of bare rock, so the years look alike. It is built from the confirmed box, outline and scene rule: a changed box makes it stale.',
     look: ['Are the years steady against each other: the same rock colour, no jump in position (a shift over 150 m is listed with its year)?', 'Is there cloud or snow on the tongue in any year? Leave such a year out (LEAVE_OUT_BY_OUTLET in scripts/build_landsat.py) and build again.', 'Is the colour reference patch on bare rock, not snow, ice or water?'],
-    needs: ['glacier.scenes'], screen: 'landsat', implemented: true,
+    needs: ['glacier.scenes'], standalone: true, screen: 'landsat', implemented: true,
     outputs: (c) => pick(c.glacier?.landsat, 'years', 'firstYear', 'lastYear'),
     confirmation: (c) => c.glacier?.landsat?.confirmation,
     problems: (c) => (c.glacier?.landsat?.years === 0 ? ['The build made no picture. If no clear scene exists before 2016, the glacier is excused in data/audit-exceptions.json with the reason; otherwise look at the scene rule and the picture box.'] : []),
@@ -196,7 +198,7 @@ export const STEPS: StepDef[] = [
     id: 'glacier.strip', phase: 2, scope: 'glacier', title: '3D strip and start camera',
     why: 'The strip along the tongue that the 3D view shows, and where its camera starts. Confirmed in the real 3D view. The elevation model of the next step has to cover this strip.',
     look: ['Does the strip start below the tip and run up the middle of the glacier, not along a ridge?', 'Is it wide enough for the tongue and the valley walls, without taking in neighbouring valleys?', 'In the real page (3D): does the start camera show the tongue and the glacier above it, with the picture sharp?'],
-    needs: ['glacier.placement'], screen: 'strip', implemented: true,
+    needs: ['glacier.placement'], standalone: true, screen: 'strip', implemented: true,
     outputs: (c) => c.glacier?.placement?.strip3d,
     confirmation: (c) => c.glacier?.stripConfirmation,
     problems: (c) => {

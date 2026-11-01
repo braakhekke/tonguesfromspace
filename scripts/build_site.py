@@ -188,6 +188,17 @@ def rewrite_html(out, assets, relay):
                 write(out, f"{page['path']}/index.html", region_page(html, page).encode("utf-8"))
 
 
+def write_yearly_index(yearly):
+    """data/yearly/index.json: the glaciers that have field notes (a yearly json with a 'page' block); provenance.html without ?id= lists them."""
+    items = []
+    for f in sorted(os.listdir(yearly)):
+        if f.endswith(".json") and f != "index.json":
+            d = json.load(open(os.path.join(yearly, f)))
+            if "page" in d:
+                items.append({"id": d["glacier"], "name": d["name"], "short": d["page"]["short"], "years": [d["years"][0], d["years"][-1]], "kinds": sorted(set(d["kind"].values())), "built": d["built"]})
+    json.dump(items, open(os.path.join(yearly, "index.json"), "w"), indent=1, ensure_ascii=False)
+
+
 def main():
     if len(sys.argv) != 2:
         sys.exit(__doc__)
@@ -300,6 +311,7 @@ def main():
     # them at data/landsat/<outlet>.json and <outlet>/<year>.jpg (plain names, revalidated; `asset()` leaves unlisted names as they are).
     yearly = os.path.join(ROOT, "data", "yearly")      # how the yearly ice surfaces were made (science mode of the 3D view, provenance.html); the .npz next to them is only for the terrain builder
     if os.path.isdir(yearly):
+        write_yearly_index(yearly)
         os.makedirs(os.path.join(out, "data", "yearly"), exist_ok=True)
         for f in sorted(os.listdir(yearly)):
             if f.endswith((".json", "-viewer.html")):      # the viewer is the standalone page of the field notes (iframe in provenance.html)

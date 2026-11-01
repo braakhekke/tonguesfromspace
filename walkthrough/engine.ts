@@ -67,7 +67,7 @@ export function progress(c: Ctx): Progress {
     let status: Status;
     if (!s.implemented) status = 'unavailable';
     else {
-      const open = s.needs.map((n) => resolve(stepById(n)!)).filter((d) => d.status !== 'done');
+      const open = s.standalone ? [] : s.needs.map((n) => resolve(stepById(n)!)).filter((d) => d.status !== 'done');      // a standalone step (the 3D strip) is not held back by open earlier steps
       base.blockedBy = open.map((d) => d.id);
       const out = s.outputs(c);
       base.problems = out === undefined ? [] : s.problems(c);

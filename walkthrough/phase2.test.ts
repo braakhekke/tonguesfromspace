@@ -12,8 +12,8 @@ const status = (id: string) => progress(loadCtx('ch', 'aletsch')).steps.find((s)
 const ok = (step: string, patch: Record<string, unknown> = {}) => saveCtx(confirm(loadCtx('ch', 'aletsch'), step, patch, 'owner', 'looked at it on the real page', '2026-10-27'));
 
 describe('phase 2: elevation model, 3D strip and start camera', () => {
-  it('both steps are built and wait for the placement; the elevation model also waits for the strip it has to cover', () => {
-    expect(status('glacier.strip')).toBe('blocked');
+  it('the strip is standalone: it can be looked at and confirmed while the earlier steps are open; the elevation model still waits for the strip it has to cover', () => {
+    expect(status('glacier.strip')).toBe('review');      // not held back by the open record, outline and placement (it stays based on them: it turns stale when they change)
     expect(status('glacier.elevation')).toBe('blocked');
   });
   it('the chain confirms in order, and the strip and camera land in the placement', () => {
@@ -40,7 +40,7 @@ describe('phase 2: elevation model, 3D strip and start camera', () => {
     expect(status('glacier.elevation')).toBe('done');
     const c = loadCtx('ch', 'aletsch'); c.glacier!.placement!.pictureBox = [[46.3, 7.9], [46.6, 8.2]]; saveCtx(c);
     expect(status('glacier.placement')).toBe('stale');
-    expect(status('glacier.strip')).toBe('blocked');      // waiting for the placement to be confirmed again
+    expect(status('glacier.strip')).toBe('stale');      // standalone: not blocked, but based on the placement, so it is to be looked at again
     expect(status('glacier.elevation')).toBe('blocked');
   });
   it('a reason that says nothing, or yearly surfaces without a year, are refused', () => {
