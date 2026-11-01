@@ -16,6 +16,38 @@
   "built": "2026-10-30"
  },
  {
+  "id": "B40-07",
+  "name": "Fieschergletscher",
+  "short": "Fieschergletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "interpolated",
+   "measured"
+  ],
+  "built": "2026-11-01"
+ },
+ {
+  "id": "B43-03",
+  "name": "Rhonegletscher",
+  "short": "Rhonegletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "interpolated",
+   "measured"
+  ],
+  "built": "2026-11-02"
+ },
+ {
   "id": "B56-07",
   "name": "Gornergletscher",
   "short": "Gornergletscher",
