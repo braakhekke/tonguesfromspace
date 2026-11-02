@@ -28,7 +28,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 39 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -61,7 +61,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 42 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -94,7 +94,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 40 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -127,7 +127,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 35 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -160,7 +160,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 34 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -193,7 +193,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 37 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -226,7 +226,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 35 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -259,7 +259,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 41 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -292,7 +292,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 39 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -325,7 +325,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": false,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-01 to 09-20, September first, then August, then July; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 95 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 41 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -358,7 +358,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 20 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -391,7 +391,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 14 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -424,7 +424,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -457,7 +457,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 15 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -490,7 +490,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 6 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -523,7 +523,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -556,7 +556,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -589,7 +589,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 6 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -622,7 +622,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 14 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -655,7 +655,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 13 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -688,7 +688,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 19 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -721,7 +721,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 21 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -754,7 +754,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": false
  },
@@ -787,7 +787,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -820,7 +820,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -853,7 +853,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": false
  },
@@ -886,7 +886,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 16 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -919,7 +919,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -952,7 +952,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 13 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -985,7 +985,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 7 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1018,7 +1018,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 6 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1051,7 +1051,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 15 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1084,7 +1084,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1117,7 +1117,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 08-01 to 10-15, the clear one closest to 09-30; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 3 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1150,7 +1150,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 26 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1183,7 +1183,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 28 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1216,7 +1216,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 26 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1249,7 +1249,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 23 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1282,7 +1282,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1315,7 +1315,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 19 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1348,7 +1348,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 21 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1381,7 +1381,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 11 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1414,7 +1414,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 24 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1447,7 +1447,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-30, the clear one closest to 09-01; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 25 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1480,7 +1480,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 4 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1513,7 +1513,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 12 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1546,7 +1546,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 9 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1579,7 +1579,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": false
  },
@@ -1612,7 +1612,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 14 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1645,7 +1645,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 18 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1678,7 +1678,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 5 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1711,7 +1711,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 10 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1744,7 +1744,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 17 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  },
@@ -1777,7 +1777,7 @@
    "minCoverage": 1,
    "noDataMarginM": 1000,
    "oneOrbit": true,
-   "note": "Imported from the site's season rule (js/regions.js): scenes 07-20 to 09-15, the clear one closest to 08-25; at most 5 % cloud, else the least cloudy up to 30 %; the site asks for 100 % cover of the picture, this rule requires 100 %. The window here is measured from the end of the balance year (30 September) and cannot end before it, so a site window that ends earlier is widened to 30 September; it also holds the 18 scenes the site already has. The site's target day has no field in this rule yet. Check all of it against the scene statistics of this place."
+   "note": ""
   },
   "hasScenes": true
  }

@@ -85,12 +85,12 @@ export const scenesJson = (draft: Draft = {}) => JSON.stringify(scenesObject(dra
 
 /**
  * worker/glacier-index.json: what the relay may be asked for. A glacier is in it when its placement and season are set and either confirmed or imported from the site's own data
- * (published as it is); the relay builds every Copernicus request from this entry, so a glacier that is not here cannot be asked for.
+ * (published as it is); the relay builds every Copernicus request from this entry, so a glacier that is not here cannot be asked for. The free-text note of the scene rule is left out (the relay does not read it, and it can count files that are not in the repository).
  */
 export function glacierIndex(draft: Draft = {}) {
   const out: Record<string, unknown> = {};
   for (const { g, region, scenes } of placed(draft))
-    if (g.balanceYear && g.sceneRule && (g.seasonConfirmation || g.imported)) out[g.id] = { region, name: g.name, pictureBox: g.placement!.pictureBox, balanceYear: g.balanceYear, sceneRule: g.sceneRule, hasScenes: !!scenes };
+    if (g.balanceYear && g.sceneRule && (g.seasonConfirmation || g.imported)) out[g.id] = { region, name: g.name, pictureBox: g.placement!.pictureBox, balanceYear: g.balanceYear, sceneRule: { ...g.sceneRule, note: '' }, hasScenes: !!scenes };
   return out;
 }
 
