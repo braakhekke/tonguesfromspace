@@ -90,7 +90,7 @@ export const scenesJson = (draft: Draft = {}) => JSON.stringify(scenesObject(dra
 export function glacierIndex(draft: Draft = {}) {
   const out: Record<string, unknown> = {};
   for (const { g, region, scenes } of placed(draft))
-    if (g.balanceYear && g.sceneRule && (g.seasonConfirmation || g.imported)) out[g.id] = { region, name: g.name, pictureBox: g.placement!.pictureBox, balanceYear: g.balanceYear, sceneRule: (({ note, noDataMarginM, ...rule }) => ({ ...rule, note: '' }))(g.sceneRule), hasScenes: !!scenes };
+    if (g.balanceYear && g.sceneRule && (g.seasonConfirmation || g.imported)) out[g.id] = { region, name: g.name, pictureBox: g.placement!.pictureBox, balanceYear: g.balanceYear, sceneRule: (({ note, noDataMarginM, ...rule }) => ({ ...rule, note: '' }))(g.sceneRule), hasScenes: !!scenes && Object.values(scenes.years).some((y: any) => y.chosen?.sensor === 'sentinel-2') };
   return out;
 }
 
