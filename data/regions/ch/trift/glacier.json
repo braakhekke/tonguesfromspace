@@ -61,5 +61,16 @@
     "by": "owner",
     "reason": "manual placement",
     "basedOn": "8a5b8b230811"
+  },
+  "landsat": {
+    "years": 30,
+    "firstYear": 1984,
+    "lastYear": 2015,
+    "confirmation": {
+      "at": "2026-11-02",
+      "by": "owner",
+      "reason": "chosen",
+      "basedOn": "0e2f3fdb04e6"
+    }
   }
 }

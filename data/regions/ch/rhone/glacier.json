@@ -63,14 +63,14 @@
     "basedOn": "ab7fa1616897"
   },
   "landsat": {
-    "years": 24,
+    "years": 23,
     "firstYear": 1984,
     "lastYear": 2015,
     "confirmation": {
-      "at": "2026-11-01",
+      "at": "2026-11-02",
       "by": "owner",
-      "reason": "chosen",
-      "basedOn": "c37076bccc6b"
+      "reason": "1986 in now",
+      "basedOn": "1397310ea507"
     }
   }
 }

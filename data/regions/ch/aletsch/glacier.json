@@ -80,5 +80,16 @@
     "by": "owner",
     "reason": "done",
     "basedOn": "79dc0dbc2607"
+  },
+  "landsat": {
+    "years": 27,
+    "firstYear": 1984,
+    "lastYear": 2015,
+    "confirmation": {
+      "at": "2026-11-02",
+      "by": "owner",
+      "reason": "1986 in now",
+      "basedOn": "e9d51986b4a2"
+    }
   }
 }

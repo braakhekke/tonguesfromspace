@@ -8,7 +8,7 @@ export function LandsatAlternatives({ region, glacier, year }: { region: string;
   const pick = (y: number, id: string | null) => api.landsatPick(region, glacier, y, id).then(setAlts).catch((e) => setErr(e.message));
   const years = alts ? Object.entries(alts.years).filter(([y]) => year === undefined || Number(y) === year) : [];
   if (!alts) return null;
-  if (!years.length) return year === undefined ? null : <p class="note">No Landsat alternatives were made for {year}: no scene passes the scene rule, or the list has not been made (python3 scripts/build_landsat.py --outlet {alts.outlet} --alternatives).</p>;
+  if (!years.length) return year === undefined ? null : <p class="note">No Landsat alternatives were made for {year}: {alts.reasons?.[String(year)] ?? 'no scene passes the scene rule, or the list has not been made'} (python3 scripts/build_landsat.py --outlet {alts.outlet} --alternatives).</p>;
   return (
     <div class={year === undefined ? 'cardx' : ''} style={year === undefined ? 'margin-bottom:16px' : ''}>
       <h4>{year === undefined ? 'Choose the scene of each year' : `Landsat scenes for ${year}`}</h4>
@@ -18,6 +18,7 @@ export function LandsatAlternatives({ region, glacier, year }: { region: string;
         <div key={y} style="margin:0 0 14px">
           {year === undefined && <div style="font-weight:600;margin:0 0 4px">{y}</div>}
           {alts.picks[y] && <div class="note" style="margin:0 0 4px">Your pick: {list.find((a) => a.id === alts.picks[y])?.date ?? alts.picks[y]} <a href="#" onClick={(e) => { e.preventDefault(); pick(Number(y), null); }}>take back</a></div>}
+          {alts.reasons?.[y] && <div class="note" style="margin:0 0 4px"><b>{list.length ? `Only ${list.length} scene${list.length > 1 ? 's' : ''}:` : 'No scenes:'}</b> {alts.reasons[y]}</div>}
           <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px">
             {list.map((a, n) => {
               const mine = alts.picks[y] === a.id, on = mine || (!alts.picks[y] && n === 0);

@@ -166,7 +166,7 @@ async function api(req: IncomingMessage, res: ServerResponse, url: URL) {
   if (p === '/__onboard/landsat-alts') return send(res, 200, landsatAlts(url.searchParams.get('region')!, url.searchParams.get('glacier')!));
   if (p === '/__onboard/landsat-alt-img') {      // a preview of one alternative scene (scripts/build_landsat.py --alternatives): .cache/landsat-alts/<outlet>/<year>-<n>.jpg
     const o = url.searchParams.get('outlet') ?? '', n = url.searchParams.get('name') ?? '', f = join(ROOT, '.cache', 'landsat-alts', o, n);
-    if (!/^[a-z0-9-]+$/.test(o) || !/^\d{4}-\d\.jpg$/.test(n) || !existsSync(f)) return send(res, 404, { error: 'no such picture' });
+    if (!/^[A-Za-z0-9-]+$/.test(o) || !/^\d{4}-\d\.jpg$/.test(n) || !existsSync(f)) return send(res, 404, { error: 'no such picture' });
     res.statusCode = 200; res.setHeader('Content-Type', 'image/jpeg'); res.setHeader('Cache-Control', 'no-cache'); return void res.end(readFileSync(f));
   }
   if (p === '/__onboard/landsat-pick' && req.method === 'POST') { const b = await body(req); return send(res, 200, setLandsatPick(b.region, b.glacier, b.year, b.id ?? null)); }

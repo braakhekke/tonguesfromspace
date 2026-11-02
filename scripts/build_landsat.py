@@ -27,8 +27,9 @@ CACHE = os.path.join(ROOT, 'scripts', '.landsat-cache')
 STAC = 'https://planetarycomputer.microsoft.com/api/stac/v1/search'
 DATA = 'https://planetarycomputer.microsoft.com/api/data/v1/item/bbox'
 R = 6378137.0
-LEAVE_OUT_YEARS = (1986,)      # years with a picture that jumps against its neighbours (the scene lies badly on the others), left out by hand
-LEAVE_OUT_BY_OUTLET = {'aletsch': (1985, 1991), 'breidamerkurjokull': (1997, 2001, 2009), 'gorner': (1985, 2002, 2005, 2012, 2015), 'fiescher': (1991, 2002, 2005, 2012, 2015), 'rhone': (1997,)}      # per glacier, with the reason: Aletsch 1985 (26 July, Landsat 5) lay 766 m off the Sentinel-2 mosaic and came out warped (owner's review note, 2026-10-20), 1991 slightly warped (owner, 2026-10-30); Breiðamerkurjökull 1997 (cloud on the tongue), 2001 (position off), 2009 (cloud on the tongue): no better scene exists under the rules, dropped on the owner's decision 2026-10-21; Gorner 2002 (2 Aug, Landsat 7): thin cloud over the high snow (23.6 % cloud, 6.6 % snow), no other scene passes the scene rule, dropped on the owner's decision 2026-11-01; Gorner 1985 (position off), 2005 (Landsat 7 stripes, smeared snow and a cloud in the scene), 2012 and 2015 dropped on the owner's decision 2026-11-01 (2012: Landsat 7 stripes, 2015: Landsat 8, not good enough); Fiescher 1991 and 2005 (no pick in the owner's scene review, one candidate each), 2002 and 2012 (no scene passes the scene rule), 2015 (Landsat 8, colour off against the neighbours, owner's decision), 2026-11-01; Rhone 1997 (21 Aug, Landsat 5; shifted 510 m to register, gaps filled) taken out on the owner's decision 2026-11-01
+LEAVE_OUT_YEARS = (1986,)      # years with a picture that jumps against its neighbours (the scene lies badly on the others), left out by hand, except for the outlets in LEAVE_OUT_YEARS_OPEN
+LEAVE_OUT_YEARS_OPEN = ('aletsch', 'gorner', 'fiescher', 'rhone', 'unteraar', 'corbassiere', 'zmutt', 'sgi-B56-03', 'sgi-B53-04', 'trift')      # 1986 is looked at again for these (owner, 2026-11-02): its candidates are in the scene picker
+LEAVE_OUT_BY_OUTLET = {'aletsch': (1985, 1991), 'breidamerkurjokull': (1997, 2001, 2009), 'gorner': (1985, 2002, 2005, 2012, 2015), 'fiescher': (1991, 2002, 2005, 2012, 2015), 'rhone': (1997,), 'unteraar': (2000,), 'corbassiere': (1997, 2014), 'zmutt': (2014, 2015)}      # per glacier, with the reason: Aletsch 1985 (26 July, Landsat 5) lay 766 m off the Sentinel-2 mosaic and came out warped (owner's review note, 2026-10-20), 1991 slightly warped (owner, 2026-10-30); Breiðamerkurjökull 1997 (cloud on the tongue), 2001 (position off), 2009 (cloud on the tongue): no better scene exists under the rules, dropped on the owner's decision 2026-10-21; Gorner 2002 (2 Aug, Landsat 7): thin cloud over the high snow (23.6 % cloud, 6.6 % snow), no other scene passes the scene rule, dropped on the owner's decision 2026-11-01; Gorner 1985 (position off), 2005 (Landsat 7 stripes, smeared snow and a cloud in the scene), 2012 and 2015 dropped on the owner's decision 2026-11-01 (2012: Landsat 7 stripes, 2015: Landsat 8, not good enough); Fiescher 1991 and 2005 (no pick in the owner's scene review, one candidate each), 2002 and 2012 (no scene passes the scene rule), 2015 (Landsat 8, colour off against the neighbours, owner's decision), 2026-11-01; Rhone 1997 (21 Aug, Landsat 5; shifted 510 m to register, gaps filled) taken out on the owner's decision 2026-11-01; Unteraar 2000, Corbassiere 1997 and 2014, Zmutt 2014 and 2015 taken out on the owner's decision 2026-11-02
 DONOR_PREFER = {}      # (outlet, year) -> donor scenes (dates) tried first, before the ranking by date and cloud (none in use: Gorner 2005 had one, then the year was left out)
 EXCLUDE = ('landsat-8',)      # Landsat 8 Level-2 surface reflectance is over-corrected over Iceland's ice, shade and water (values at or below zero: green ice, purple ground, black sea); no top-of-atmosphere product is on the catalogue, so 2013 to 2015 have no Landsat picture
 SEASON = ('08-01', '10-15', '09-30')      # find from, find to, target day: set from the region in main() (SEASONS)
@@ -117,6 +118,8 @@ def masks_for(rings, tip, bbox, n=207, radius=3000.0):
 
 
 SLC_OFF = '2003-05-31'      # Landsat 7's scan line corrector failed: its scenes from this day on have stripes of no data
+PICKS_ONLY = ('aletsch', 'gorner', 'fiescher', 'rhone', 'unteraar', 'corbassiere', 'zmutt', 'sgi-B56-03', 'sgi-B53-04', 'trift')      # the ten Swiss glaciers: the owner chooses the years one by one in the scene picker, and a year without a pick is not built (a year the owner did not pick must not appear; owner, 2026-11-02). Applies as soon as the glacier has any pick (none yet: all years are built, as before). To do for other regions the same way: add the outlet here
+ALLDAYS = {}      # year -> every scene found for it (before the scene rule), for the reasons in the scene picker
 REJECT = set()      # dates of scenes not to use for this glacier (scripts/landsat-rejects.json: chosen by looking at the pictures)
 
 
@@ -716,28 +719,51 @@ def find_record(oid):
     return o, rec['region'], rings, 12 if rec['region'].startswith('is') else 13, [round(x0), round(y0), round(x1), round(y1)]
 
 
-def write_alternatives(a, o, bbox, W, H, mpp, refs, cal, cands, chosen, masks):
-    """the best a.alternatives scenes of every year, each registered on the Sentinel-2 mosaic like the real build and painted plainly (natural colours, the same colour matching; Landsat 7 stripes are
-    left as no data, no fill: a preview to compare scenes, not the picture of the site) -> .cache/landsat-alts/<outlet>/<year>-<n>.jpg and .cache/landsat-alts/<outlet>.json"""
+def why_few(year, days, n, outlet):
+    """why a year has no scene or fewer than three in the scene picker: said in words with the counts (the picker shows it; owner's rule 2026-11-02, always state it)"""
+    if year in LEAVE_OUT_BY_OUTLET.get(outlet, ()) or (year in LEAVE_OUT_YEARS and outlet not in LEAVE_OUT_YEARS_OPEN): return 'Left out by hand for this glacier (LEAVE_OUT_YEARS / LEAVE_OUT_BY_OUTLET in scripts/build_landsat.py; the reason is in the comment there).'
+    win = f'{SEASON[0]} to {SEASON[1]}'
+    if not days: return f'No Landsat 5/7 scene over the picture box between {win} in the catalogue (Landsat 8 is not used: it is over-corrected). Nothing to choose from.'
+    rej = [d for d in days if d['date'] in REJECT]; rest = [d for d in days if d['date'] not in REJECT]
+    gap = [d for d in rest if d['cover'] < MIN_PARTIAL]; cl = [d for d in rest if d['cover'] >= MIN_PARTIAL and not (d['cloud'] <= FALLBACK_CLOUD and d.get('tcloud', d['cloud']) <= 0.20)]
+    parts = [f'{len(days)} scene{"s" if len(days) != 1 else ""} found between {win}']
+    if rej: parts.append(f'{len(rej)} rejected by hand (scripts/landsat-rejects.json)')
+    if gap: parts.append(f'{len(gap)} cover less than {round(MIN_PARTIAL * 100)} % of the picture box ({", ".join(sorted(d["date"] for d in gap))})')
+    if cl: parts.append(f'{len(cl)} too cloudy (over {round(FALLBACK_CLOUD * 100)} % cloud on the glacier or over 20 % on the tongue: {", ".join(sorted(d["date"] for d in cl))})')
+    return '; '.join(parts) + f'. {n} left for the picker.'
+
+
+def write_alternatives(a, o, bbox, W, H, mpp, refs, cal, cands, chosen, masks, bounds, guide):
+    """the best a.alternatives scenes of every year, each registered on the Sentinel-2 mosaic like the real build and painted as the build paints them (natural colours, the same colour matching, the Landsat 8 fixes, and the stripes of Landsat 7 / edge gaps filled from donor scenes: what you pick is what you see; written 2026-11-02) -> .cache/landsat-alts/<outlet>/<year>-<n>.jpg and .cache/landsat-alts/<outlet>.json"""
     d = os.path.join(ROOT, '.cache', 'landsat-alts'); os.makedirs(os.path.join(d, a.outlet), exist_ok=True)
     try: cur = json.load(open(os.path.join(ROOT, 'data', 'landsat', a.outlet + '.json')))['scenes']
     except Exception: cur = {}
-    years = {}; tw = min(W, 640); th = round(H * tw / W)
+    years = {}; reasons = {}; tw = min(W, 640); th = round(H * tw / W)
     for year in sorted(cands):
         out = []
         for n, c in enumerate(cands[year][:a.alternatives]):
             arr = bands(c['item'], bbox, W, H); sx, sy, cc, c0 = register(refs, arr, W, H); dist = math.hypot(sx, sy) * mpp
             ok = (sx, sy) != (0, 0) and cc - c0 >= 0.03 and (dist <= 150 or (cc - c0 >= 0.08 and cc >= 0.2 and dist <= 1500)); good = (ok and cc >= 0.12) or (not ok and c0 >= 0.12)
             if ok: arr = shifted(arr, W, H, sx, sy)
-            bufs, hole = paint(arr, W, H, cal, qmap_for(arr, W, H, masks[0]) if c['sat'] == 'landsat-8' else None)
-            for i in range(W * H):
-                if hole[i]: bufs['natural'][3 * i:3 * i + 3] = bytes((28, 41, 48))
-            Image.frombytes('RGB', (W, H), bytes(bufs['natural'])).resize((tw, th), Image.LANCZOS).save(os.path.join(d, a.outlet, f'{year}-{n}.jpg'), quality=84, optimize=True)
+            if c['sat'] == 'landsat-8': fix_l8_blue(arr, W, H); mark_l8_dark(arr, W, H)
+            hole = bytearray(0 if arr[MASK * W * H + i] else 1 for i in range(W * H)); donors = []
+            if (c['sat'] == 'landsat-7' and c['date'] >= SLC_OFF) or c['cover'] < 0.98 or sum(hole) > 0.002 * W * H:      # the same rule as the build: stripes or a run off the edge of the scene are filled from donors
+                try: donors = [d for d, _ in find_donor(c, year, bounds, bbox, masks, refs, W, H, hole=hole, prefer=DONOR_PREFER.get((a.outlet, year), ()))]
+                except Exception as ex: print('  donor', year, ex)
+            imgs, _ = render(arr, W, H, cal, donors, guide, qmap_for(arr, W, H, masks[0]) if c['sat'] == 'landsat-8' else None)
+            imgs['natural'].resize((tw, th), Image.LANCZOS).save(os.path.join(d, a.outlet, f'{year}-{n}.jpg'), quality=84, optimize=True)
             out.append({**{k: round(c[k], 3) if isinstance(c[k], float) else c[k] for k in ('date', 'id', 'sat', 'path', 'row', 'time', 'sun', 'cloud', 'tcloud', 'snow', 'clear', 'partial', 'cover')},
                         'shiftM': [round(sx * mpp), round(sy * mpp)] if ok else None, 'positionConfirmed': bool(good), 'current': cur.get(str(year), {}).get('id') == c['id'], 'img': f'{year}-{n}.jpg'})
             print(f'  {year} #{n + 1}: {c["date"]} {c["sat"]} cloud {c["cloud"]:.0%} tongue {c.get("tcloud", 0):.0%} cover {c["cover"]:.0%}{"  (current)" if out[-1]["current"] else ""}{"" if good else "  position not confirmed"}')
         years[str(year)] = out
-    with open(os.path.join(d, a.outlet + '.json'), 'w', encoding='utf-8') as f: json.dump({'outlet': a.outlet, 'w': tw, 'h': th, 'years': years, 'rejected': sorted(REJECT), 'madeAt': time.strftime('%Y-%m-%d %H:%M')}, f, indent=1)
+        if len(out) < 3: reasons[str(year)] = why_few(year, ALLDAYS.get(year, []), len(out), a.outlet)
+    for year in (a.years or range(a.y0, a.y1 + 1)):
+        if year not in cands: years[str(year)] = []; reasons[str(year)] = why_few(year, [], 0, a.outlet)
+    years = dict(sorted(years.items()))
+    if a.years:      # only some years were made: the other years of the earlier list stay
+        try: years = {**json.load(open(os.path.join(d, a.outlet + '.json')))['years'], **years}; years = dict(sorted(years.items()))
+        except Exception: pass
+    with open(os.path.join(d, a.outlet + '.json'), 'w', encoding='utf-8') as f: json.dump({'outlet': a.outlet, 'w': tw, 'h': th, 'years': years, 'reasons': reasons, 'rejected': sorted(REJECT), 'madeAt': time.strftime('%Y-%m-%d %H:%M')}, f, indent=1)
     print('wrote', os.path.join(d, a.outlet + '.json'))
 
 
@@ -803,14 +829,14 @@ def main():
     out = os.path.join(ROOT, 'data', 'landsat'); os.makedirs(os.path.join(out, a.outlet), exist_ok=True)
     if a.styles: return restyle(a, o, W, H, bbox, out)
     scenes = {}; chosen = {}; cands = {}
-    for year in [y for y in (a.years or range(a.y0, a.y1 + 1)) if y not in LEAVE_OUT_YEARS + LEAVE_OUT_BY_OUTLET.get(a.outlet, ())]:
+    for year in [y for y in (a.years or range(a.y0, a.y1 + 1)) if y not in (() if a.outlet in LEAVE_OUT_YEARS_OPEN else LEAVE_OUT_YEARS) + LEAVE_OUT_BY_OUTLET.get(a.outlet, ()) and not (a.outlet in PICKS_ONLY and PICKS and str(y) not in PICKS)]:
         days = []
         for f in candidates((s, w, n, e), year):
             p = f['properties']
             try: sc = score(f, bbox, masks)
             except Exception as ex: print(f'  {f["id"]}: {ex}'); continue
             days.append({**sc, 'date': p['datetime'][:10], 'id': f['id'], 'sat': p['platform'], 'path': p['landsat:wrs_path'], 'row': p['landsat:wrs_row'], 'time': p['datetime'][11:16], 'sun': round(p.get('view:sun_elevation', 0), 1), 'item': f})
-        cands[year] = ranked(days, year)
+        cands[year] = ranked(days, year); ALLDAYS[year] = days
         if str(year) in PICKS: cands[year].sort(key=lambda d: d['id'] != PICKS[str(year)])      # stable: the owner's pick first, the rest in the order of the rule
         best = cands[year][0] if cands[year] else None
         print(year, f'{len(days)} scenes', '->', best and f'{best["date"]} {best["sat"]} cloud {best["cloud"]:.0%} tongue {best.get("tcloud", 0):.0%} snow {best["snow"]:.0%} cover {best["cover"]:.0%}' or 'none')
@@ -835,8 +861,9 @@ def main():
     # the pictures are registered onto the Sentinel-2 mosaic: a scene can lie tens of metres off, which makes a timelapse jump
     mpp = (bbox[2] - bbox[0]) / W * math.cos(math.radians(o['lat'])); shifts = {}
     sref = sentinel_reference(bbox, W, H); guide = site_guide(o, bbox, W, H) or list(sref[:W * H]); refs = {f: edge_image(sref, W, H, f) for f in (8, 2, 1)}
-    if a.alternatives: return write_alternatives(a, o, bbox, W, H, mpp, refs, cal, cands, chosen, masks)
+    if a.alternatives: return write_alternatives(a, o, bbox, W, H, mpp, refs, cal, cands, chosen, masks, (s, w, n, e), guide)
     for year in sorted(chosen):
+        unchecked = False
         for best in cands[year]:      # the best scene first; one whose position cannot be checked (the picture matches the Sentinel-2 mosaic nowhere) or is far off is passed over for the next
             arr = bands(best['item'], bbox, W, H)
             sx, sy, c, c0 = register(refs, arr, W, H)
@@ -845,7 +872,11 @@ def main():
             good = (ok and c >= 0.12) or (not ok and c0 >= 0.12)
             print(f'  {year} {best["date"]}: lies {sx * mpp:+.0f} m east, {sy * mpp:+.0f} m south of the Sentinel-2 mosaic (correlation {c:.2f}, {c0:.2f} unshifted){"  -> shifted" if ok else ""}{"" if good else "  -> position not confirmed: next scene"}')
             if good: break
-        else: print(f'  {year}: no scene with a confirmed position'); continue
+        else:
+            if str(year) in PICKS and cands[year] and cands[year][0]['id'] == PICKS[str(year)]:      # the owner picked this scene by looking at it: where the check finds no match at all (a narrow box, little contrast: all correlations under 0.12, the 'shifts' are noise), the scene keeps its own georeferencing, unshifted, and the json says it was not checked (owner, 2026-11-02)
+                best = cands[year][0]; arr = bands(best['item'], bbox, W, H); ok = False; unchecked = True
+                print(f'  {year}: no scene with a confirmed position; the picked scene {best["date"]} is used unshifted (position not checked)')
+            else: print(f'  {year}: no scene with a confirmed position'); continue
         if ok: shifts[year] = (sx, sy); arr = shifted(arr, W, H, sx, sy)
         if best['sat'] == 'landsat-8': fix_l8_blue(arr, W, H); mark_l8_dark(arr, W, H)
         hole = bytearray(0 if arr[MASK * W * H + i] else 1 for i in range(W * H))      # what the scene lacks after its shift: stripes, or the edge of its swath (a shifted scene opens a margin the cover figure does not show)
@@ -855,6 +886,7 @@ def main():
         imgs, filled = render(arr, W, H, cal, donors, guide, qmap_for(arr, W, H, masks[0]) if best['sat'] == 'landsat-8' else None)
         for k, img in imgs.items(): img.save(os.path.join(out, a.outlet, f'{year}{FILE_SUFFIX[k]}.jpg'), quality=88, optimize=True, progressive=True)
         scenes[year] = {k: round(best[k], 3) if isinstance(best[k], float) else best[k] for k in ('date', 'id', 'sat', 'path', 'row', 'time', 'sun', 'cloud', 'tcloud', 'snow', 'clear', 'cover')}
+        if unchecked: scenes[year]['positionChecked'] = False      # kept at the scene's own georeferencing: no match with the Sentinel-2 mosaic could be found
         if shifts.get(year) and shifts[year] != (0, 0): scenes[year]['shiftM'] = [round(shifts[year][0] * mpp), round(shifts[year][1] * mpp)]      # how far the scene lay east and south of the reference, in metres: corrected
         if dinfo: scenes[year]['fill'] = dinfo[0]; scenes[year]['fills'] = dinfo      # the second scenes whose pixels fill the stripes (`fill`: the first, which the page's cache key uses)
         if filled > 0.002: scenes[year]['filled'] = round(filled, 3)      # the share of the picture interpolated across the stripes of Landsat 7

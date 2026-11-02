@@ -35,7 +35,7 @@ export function buildState(region: string, glacier: string): LandsatState {
 }
 
 export type LandsatAlt = { date: string; id: string; sat: string; path: string; row: string; time: string; sun: number; cloud: number; tcloud: number; snow: number; clear: boolean; partial: boolean; cover: number; shiftM: [number, number] | null; positionConfirmed: boolean; current: boolean; img: string };
-export type LandsatAlts = { outlet: string; madeAt?: string; rejected: string[]; picks: Record<string, string>; years: Record<string, LandsatAlt[]> };
+export type LandsatAlts = { outlet: string; madeAt?: string; rejected: string[]; picks: Record<string, string>; years: Record<string, LandsatAlt[]>; reasons: Record<string, string> };
 
 const picksFile = (root = ROOT) => join(root, 'scripts', 'landsat-picks.json');
 const readPicks = (outlet: string, root = ROOT): Record<string, string> => (existsSync(picksFile(root)) ? (JSON.parse(readFileSync(picksFile(root), 'utf8'))[outlet] ?? {}) : {});
@@ -46,7 +46,7 @@ export function landsatAlts(region: string, glacier: string, root = ROOT): Lands
   if (!c.glacier) throw new Error('no such glacier');
   const outlet = landsatOutlet(glacier, c.glacier.legacyIds), f = join(root, '.cache', 'landsat-alts', `${outlet}.json`);
   const made = existsSync(f) ? JSON.parse(readFileSync(f, 'utf8')) : null;
-  return { outlet, madeAt: made?.madeAt, rejected: made?.rejected ?? [], picks: readPicks(outlet, root), years: made?.years ?? {} };
+  return { outlet, madeAt: made?.madeAt, rejected: made?.rejected ?? [], picks: readPicks(outlet, root), years: made?.years ?? {}, reasons: made?.reasons ?? {} };
 }
 
 /** The owner's choice of a scene for a year (scripts/landsat-picks.json: year -> scene id; the build puts that scene first). id null takes the pick back. Nothing is rebuilt here. */

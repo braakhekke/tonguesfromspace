@@ -101,3 +101,5 @@ npm run walkthrough -- import-site       # fill the records from the site's curr
 - v2's own app (Explorer, landing page, gallery) is not ported: this repo has them. The Real page tab shows this site's dashboard.
 - Shared code lives at the repo level (`shared/`: schema, season rule, geometry, Copernicus request builder), because the Worker, the walkthrough and their tests all use it.
 - `providers.json` (which services are asked for each map layer) lives in `walkthrough/`.
+
+Note (2026-11-02): the Landsat scene picker previews are drawn with the real build's fixes (Landsat 7 stripe fill, Landsat 8 colour); so far only for the Swiss glaciers. Doing the same for all other glaciers and regions is open: see the end of `.claude/skills/landsat-slc-gap-fill/SKILL.md`.
