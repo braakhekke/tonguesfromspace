@@ -33,7 +33,7 @@ import hashlib, json, os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
-HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
+HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html", "404.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
@@ -185,6 +185,8 @@ def rewrite_html(out, assets, relay):
         if name == "home.html":      # the region picker is the front page
             write(out, "index.html", html.encode("utf-8"))
             continue
+        if name == "404.html":      # shown at any missing address, also deep ones: its files are named from the root
+            html = re.sub(r'((?:src|href)=")((?:css|fonts|js|images)/)', r"\g<1>/\g<2>", html)
         if name != "index.html":      # the dashboard itself has no address of its own: only its region pages are written
             write(out, name, html.encode("utf-8"))
         if name == "index.html":
