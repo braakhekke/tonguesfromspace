@@ -741,14 +741,19 @@ export function rockLook(src, surf, bed, nA, nB, cellM){
 /* ---- Scientific field notes (the pill in the 3D top bar) ----
    The pill is a link to provenance.html, which holds everything about how the view was made (pictures, terrain, ice surface, measured surfaces, checks, licences). The link carries the page
    to come back to and the year on screen. */
-export function provenancePage(){      // the field notes of the glacier on screen: one page for every glacier with yearly surfaces, chosen by ?id= (without it the page is the overview of all of them)
+export function provenanceId(){      // the id of the glacier on screen if it has field notes, else ''
   const p = v3dCtx && v3dCtx.bundle && v3dCtx.bundle.yearly && v3dCtx.bundle.yearly.provenance, m = p && p.match(/yearly\/(.+)\.json$/);
-  return `/provenance.html?id=${m ? m[1] : 'B36-26'}&`;
+  return m ? m[1] : '';
+}
+export function provenancePage(){      // the field notes of the glacier on screen: one page for every glacier with yearly surfaces, chosen by ?id= (without it the page is the overview of all of them)
+  return `/provenance.html?id=${provenanceId() || 'B36-26'}&`;
 }
 export function updateSciPanel(yr){
-  const c = v3dCtx, y = yr || (c && ((c.current && c.current()) || (c.cmp && c.cmp[1]))) || '';
-  $('v3dSci').href = `${provenancePage()}${y ? `year=${y}&` : ''}back=${encodeURIComponent(location.href)}`;
+  const c = v3dCtx, y = yr || (c && ((c.current && c.current()) || (c.cmp && c.cmp[1]))) || '', pill = $('v3dSci'), has = !!provenanceId();
+  pill.classList.toggle('none', !has); $('v3dSciNo').hidden = true;      // a glacier without field notes: the pill is not a link, a click says so
+  if (has) pill.href = `${provenancePage()}${y ? `year=${y}&` : ''}back=${encodeURIComponent(location.href)}`; else pill.removeAttribute('href');
 }
+$('v3dSci').addEventListener('click', e => { if (!provenanceId()) { e.preventDefault(); $('v3dSciNo').hidden = false; } });
 document.documentElement.classList.remove('science');
 
 export function note3DHtml(g, picture, when, usesDem, terrainNote, oldNote){

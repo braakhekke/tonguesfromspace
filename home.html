@@ -101,7 +101,7 @@
       <div>
         <p class="eyebrow">Choose a glacier</p>
         <h3 class="pick-h">Which glacier do you want to see?</h3>
-        <p>Click a region on the map, then a glacier, or choose one from the list. More regions are in the making.</p>
+        <p>Click a region on the map, then a glacier, or choose one from the list. Iceland, Norway and Svalbard are in the making: you can fly to their glaciers, but they cannot be opened yet.</p>
       </div>
       <div class="pickrow">
         <div class="search" role="search">
@@ -126,12 +126,14 @@
         <h3 id="iName"></h3>
         <p id="iText"></p>
         <ul class="gl" id="iList"></ul>
+        <p class="making" id="iMaking" hidden><b>In the making.</b> You can fly to these glaciers, but their pictures are not open yet.</p>
         <div class="row"><a class="btn-red" id="iGo" href="#">Open the dashboard</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
+        <p class="notready" id="iNot" role="status" hidden>This tongue isn't ready for Space yet.</p>
       </div>
       <div class="credit">Sentinel-2 cloudless 2024 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
     </div>
     <div class="tiles" id="tiles"></div>
-    <p class="soonrow">Iceland, Norway and beyond are in the making.</p>
+    <p class="soonrow">Iceland, Norway and Svalbard are in the making. Their glaciers can be visited on the map, but not opened yet.</p>
   </div></div>
 </section>
 
@@ -212,6 +214,7 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
   const h = location.hash.slice(1), q = new URLSearchParams(h);
   if (!['g', 'm', 'a', 'b', 'from', 'to', 'one', 's', 'ol', 't', 'r', 'fun'].some(k => q.has(k))) return;
   const region = q.get('r') || 'ch'; q.delete('r');
+  if (!LOCAL && REGIONS_ALL.flatMap(r => r.children || [r]).some(c => HIDDEN_REGIONS.includes(c.id) && [c.id, ...(c.aliases || [])].includes(region))) { history.replaceState(null, '', location.pathname); return; }      // a region in the making has no address: stay on the front page
   const rest = q.toString();
   location.replace(LOCAL ? 'index.html#' + h : (REGION_PATH[region] || REGION_PATH.ch) + '/' + (rest ? '#' + rest : ''));
 })();
@@ -337,7 +340,8 @@ player.addEventListener('click', e => { if (e.target === player) player.close();
 const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picker).map(c => {      // the records of js/regions.js: the same list as the dashboard's region menu, plus the planned regions
   const soon = !c.ready || HIDDEN_REGIONS.includes(c.id);      // not published (yet): shown, not clickable
   const n = (window.HOME_GLACIERS || []).filter((g) => g.region === c.id && !g.parent).length;      // glaciers the data holds for the region
-  return { id: c.id, group: r.name, name: c.name, soon, href: c.path ? c.path + '/' : undefined, ...c.picker, n: c.ready ? (soon ? 'In the making' : `${n} glaciers`) : undefined };
+  const making = soon && c.ready && n > 0;      // in the making: the map flies to its glaciers, but they cannot be opened
+  return { id: c.id, group: r.name, name: c.name, soon, making, href: c.path ? c.path + '/' : undefined, ...c.picker, n: c.ready ? (soon ? (making ? `In the making · ${n} glaciers` : 'In the making') : `${n} glaciers`) : undefined };
 }));
 
 
@@ -360,14 +364,14 @@ let lastGroup = null, grp = null;
 for (const r of REGIONS) {
   if (r.group !== lastGroup) { lastGroup = r.group; }
   grp = document.createElement('optgroup'); grp.label = r.group === r.name ? r.name : r.group + ' · ' + r.name; pick.appendChild(grp);
-  const o = new Option(r.soon ? r.name + ' (in the making)' : 'All of ' + r.name, 'r:' + r.id); o.disabled = !!r.soon; grp.appendChild(o);
-  if (!r.soon) for (const g of ordered(r.id)) grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id));
+  const o = new Option(r.soon ? r.name + ' (in the making)' : 'All of ' + r.name, 'r:' + r.id); o.disabled = r.soon && !r.making; grp.appendChild(o);
+  if (!r.soon || r.making) for (const g of ordered(r.id)) grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id));
   r.marker = L.marker(r.ll, { icon: L.divIcon({ className: 'pin' + (r.soon ? ' soon' : '') + (r.side ? ' ' + r.side : ''), html: '<span>' + r.name + '</span>', iconSize: [0, 0] }), keyboard: true, title: r.name }).addTo(map);
   if (r.soon && !r.n) continue;
-  if (!r.soon) r.marker.on('click', () => chooseRegion(r.id));
-  const t = document.createElement('button'); t.type = 'button'; t.className = 'tile'; t.dataset.id = r.id; t.disabled = !!r.soon;
+  if (!r.soon || r.making) r.marker.on('click', () => chooseRegion(r.id));
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'tile' + (r.making ? ' making' : ''); t.dataset.id = r.id; t.disabled = r.soon && !r.making;
   t.innerHTML = '<span class="c">' + r.group + '</span><b>' + r.name + '</b><small>' + r.n + '</small>';
-  if (!r.soon) t.onclick = () => chooseRegion(r.id);
+  if (!r.soon || r.making) t.onclick = () => chooseRegion(r.id);
   tiles.appendChild(t);
 }
 
@@ -408,11 +412,12 @@ function clearMarks() {
   document.querySelectorAll('.pin,.gdot').forEach(p => p.classList.remove('on'));
   tiles.querySelectorAll('.tile').forEach(b => b.removeAttribute('aria-current'));
 }
-function reset() { showOutline(null); clearMarks(); drawGlaciers(null); $('info').hidden = true; pick.value = ''; history.replaceState(null, '', location.pathname); }
+function reset() { showOutline(null); clearMarks(); drawGlaciers(null); $('info').hidden = true; $('iNot').hidden = true; pick.value = ''; history.replaceState(null, '', location.pathname); }
 
 function chooseRegion(id, doFly = true) {
   const r = REGIONS.find(x => x.id === id);
-  if (!r || r.soon) return reset();
+  if (!r || (r.soon && !r.making)) return reset();
+  $('iNot').hidden = true; $('iMaking').hidden = !r.making;
   showOutline(null); clearMarks(); drawGlaciers(r);
   pick.value = 'r:' + id;
   r.marker.getElement().classList.add('on');
@@ -426,14 +431,14 @@ function chooseRegion(id, doFly = true) {
     b.innerHTML = nameOf(g) + '<small>' + fmtArea(g.area) + '</small>'; b.onclick = () => chooseGlacier(g.id);
     b.onmouseenter = () => glMarkers[g.id] && glMarkers[g.id].openTooltip(); b.onmouseleave = () => glMarkers[g.id] && glMarkers[g.id].closeTooltip();
     li.appendChild(b); list.appendChild(li); }
-  $('iGo').textContent = 'Open the region'; $('iGo').href = regionHref(r); $('iGo2').hidden = true; $('info').hidden = false;
+  $('iGo').textContent = 'Open the region'; $('iGo').href = regionHref(r); $('iGo').hidden = !!r.making; $('iGo2').hidden = true; $('info').hidden = false;
   if (doFly) fly(r.ll, r.zoom);
   history.replaceState(null, '', '#' + id);
 }
 
 function chooseGlacier(gid, doFly = true) {
   const g = (window.HOME_GLACIERS || []).find(x => x.id === gid); if (!g) return;
-  const r = REGIONS.find(x => x.id === g.region); if (r.soon) return;
+  const r = REGIONS.find(x => x.id === g.region); if (!r || (r.soon && !r.making)) return;
   if (!$('info').dataset.region || $('info').dataset.region !== r.id || !glMarkers[gid]) { clearMarks(); drawGlaciers(r); r.marker.getElement().classList.add('on'); tiles.querySelector('[data-id="' + r.id + '"]').setAttribute('aria-current', 'true'); }
   $('info').dataset.region = r.id;
   document.querySelectorAll('.gdot').forEach(p => p.classList.remove('on')); glMarkers[gid].getElement().classList.add('on');
@@ -442,7 +447,9 @@ function chooseGlacier(gid, doFly = true) {
   $('iLab').textContent = r.group === r.name ? r.name : r.group + ' · ' + r.name;
   const parent = g.parent && (window.HOME_GLACIERS || []).find(x => x.id === g.parent);
   $('iName').textContent = g.name; $('iText').textContent = (parent ? 'Outlet of ' + parent.name + '. ' : '') + 'Area ' + fmtArea(g.area) + '.';
-  list.hidden = true; $('iGo').textContent = 'Open ' + g.name; $('iGo').href = glacierHref(r, g);
+  list.hidden = true; $('iGo').textContent = 'Open ' + g.name; $('iGo').href = r.making ? '#' : glacierHref(r, g); $('iGo').hidden = false;
+  $('iMaking').hidden = !r.making; $('iNot').hidden = true;      // a glacier of a region in the making: the button only says so
+  $('iGo').onclick = r.making ? e => { e.preventDefault(); $('iNot').hidden = false; } : null;
   $('iGo2').hidden = true; $('info').hidden = false;
   if (doFly) fly(g.tip, g.parent ? 11 : r.id === 'ch' ? 10 : 8);      // an outlet of an ice cap: close in on its tongue; (the map's zoom limit used to cap Switzerland at 10)
   glMarkers[gid].openTooltip();
@@ -452,7 +459,7 @@ function chooseGlacier(gid, doFly = true) {
 pick.onchange = () => { const [k, id] = pick.value.split(/:(.+)/); if (k === 'r') chooseRegion(id); else if (k === 'g') chooseGlacier(id); else reset(); };
 const start = location.hash.slice(1);
 if (start.startsWith('glacier=')) chooseGlacier(decodeURIComponent(start.slice(8)));
-else if (REGIONS.some(r => r.id === start && !r.soon)) chooseRegion(start, false);
+else if (REGIONS.some(r => r.id === start && (!r.soon || r.making))) chooseRegion(start, false);
 </script>
 <script>
 /* ---------- search: any language, forgiving of typos (js/search.js); the names in other languages (data/glacier-aliases.js, Wikidata, CC0) load when the box is first used.

@@ -1575,6 +1575,8 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .sci-pill svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .sci-pill:hover{background:#C8322A;border-color:#C8322A;color:#fff}
 .sci-pill{text-decoration:none}
+.sci-pill.none{opacity:.75}
+.sci-no{display:block;max-width:260px;margin-top:6px;padding:6px 9px;border-radius:8px;background:rgba(10,16,24,.8);color:#e8f0f6;font:500 12px/1.35 inherit;pointer-events:auto}
 
 /* hover on the wall of the 3D cross-cut: the table of the chart, beside the pointer */
 .v3d-cuttip{max-width:none;padding:6px 9px 5px;font-size:12px}
