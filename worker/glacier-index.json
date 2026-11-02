@@ -26,7 +26,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -59,7 +58,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -92,7 +90,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -125,7 +122,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -158,7 +154,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -191,7 +186,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -224,7 +218,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -257,7 +250,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -290,7 +282,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -323,7 +314,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": false,
    "note": ""
   },
@@ -356,7 +346,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -389,7 +378,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -422,7 +410,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -455,7 +442,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -488,7 +474,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -521,7 +506,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -554,7 +538,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -587,7 +570,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -620,7 +602,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -653,7 +634,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -686,7 +666,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -719,7 +698,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -752,7 +730,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -785,7 +762,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -818,7 +794,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -851,7 +826,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -884,7 +858,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -917,7 +890,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -950,7 +922,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -983,7 +954,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1016,7 +986,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1049,7 +1018,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1082,7 +1050,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1115,7 +1082,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1148,7 +1114,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1181,7 +1146,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1214,7 +1178,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1247,7 +1210,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1280,7 +1242,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1313,7 +1274,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1346,7 +1306,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1379,7 +1338,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1412,7 +1370,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1445,7 +1402,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1478,7 +1434,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1511,7 +1466,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1544,7 +1498,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1577,7 +1530,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1610,7 +1562,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1643,7 +1594,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1676,7 +1626,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1709,7 +1658,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1742,7 +1690,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },
@@ -1775,7 +1722,6 @@
    "maxSnow": 1,
    "fallbackCloud": 0.3,
    "minCoverage": 1,
-   "noDataMarginM": 1000,
    "oneOrbit": true,
    "note": ""
   },

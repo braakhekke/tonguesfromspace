@@ -1,8 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { loadAll } from './data';
+import { ROOT, loadAll } from './data';
 import { loadCtx, progress } from './engine';
 import { importSite } from './import-site';
 
