@@ -169,18 +169,28 @@ export function placeFrame(){
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
 }
-/* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine) */
-export let zoomLimitKey = '';
+/* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine).
+   The limit is on the middle of the frame, not on the map view (Leaflet's maxBounds limits the whole view, which is far bigger than the frame, so it kept pulling the map back to the side). */
+export let zoomLimitKey = '', frameLimit = null;
 export function limitFrameView(){
   const on = !$('videoSheet').hidden && viewMode !== '3d';
-  if (!on) { if (zoomLimitKey) { zoomLimitKey = ''; map.setMinZoom(8); map.setMaxBounds(null); } return; }
+  if (!on) { if (zoomLimitKey) { zoomLimitKey = ''; frameLimit = null; map.setMinZoom(8); } return; }
   const g = currentGlacier(), r = frameRect(), fp = imageFootprint(g).bounds, key = g.id + '|' + Math.round(r.w) + 'x' + Math.round(r.h);
   if (key === zoomLimitKey) return; zoomLimitKey = key;
   const a = map.project([fp[1][0], fp[0][1]], 0), c = map.project([fp[0][0], fp[1][1]], 0);
   const zIn = Math.log2(Math.max(r.w / (c.x - a.x), r.h / (c.y - a.y)));            // the zoom at which the frame just fits the picture
   map.setMinZoom(Math.max(8, Math.floor((zIn - 0.7) * 4) / 4));                       // the frame may reach about 1.6 times beyond the picture, no more
-  map.options.maxBoundsViscosity = 1; map.setMaxBounds(L.latLngBounds(fp).pad(0.6));
+  frameLimit = L.latLngBounds(fp).pad(0.3);                                           // the middle of the frame stays inside the picture plus a margin
 }
+export function clampFrameToLimit(){
+  if (!frameLimit || $('videoSheet').hidden || viewMode === '3d') return;
+  const r = frameRect(), mid = map.containerPointToLatLng(L.point(r.x + r.w / 2, r.y + r.h / 2));
+  if (frameLimit.contains(mid)) return;
+  const want = L.latLng(Math.min(Math.max(mid.lat, frameLimit.getSouth()), frameLimit.getNorth()), Math.min(Math.max(mid.lng, frameLimit.getWest()), frameLimit.getEast()));
+  const d = map.latLngToContainerPoint(want).subtract(map.latLngToContainerPoint(mid));
+  map.panBy(d.multiplyBy(-1), {animate: true, duration: 0.25});
+}
+map.on('moveend', clampFrameToLimit);
 /* Frame areas: the frame on the map fitted to the tongue or to the whole glacier */
 /* "Tongue" and "Whole glacier" light up when pressed and go out again as soon as the frame is changed: another ratio, or moving or zooming the map */
 export let areaSel = null, boxGlacier = '';
