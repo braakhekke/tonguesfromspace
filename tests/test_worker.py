@@ -187,6 +187,18 @@ class TestRelay(WorkerCase):
         self.assertEqual(r["status"], 200)
         self.assertIn('"relay":true', r["text"])
 
+    def test_landsat_pictures_are_served_for_swiss_glaciers_only(self):
+        r = self.run_js("""
+          const hits = [];
+          const LANDSAT = { async get(k) { hits.push(k); return { body: 'x', httpEtag: 'e' }; }, async head(k) { hits.push(k); return { httpEtag: 'e' }; } };
+          const get = async p => (await W.fetch(req(p, 'GET', '', 'http://t.test'), {...env, LANDSAT}, {})).status;
+          return { swiss: await get('/data/landsat/aletsch/1984.jpg'), swissJson: await get('/data/landsat/aletsch.json'),
+                   iceland: await get('/data/landsat/hofsjokull/1985.jpg'), icelandJson: await get('/data/landsat/hofsjokull.json'), hits };
+        """)
+        self.assertEqual((r["swiss"], r["swissJson"]), (200, 200))
+        self.assertEqual((r["iceland"], r["icelandJson"]), (404, 404))
+        self.assertNotIn("data/landsat/hofsjokull/1985.jpg", r["hits"], "the bucket is not even asked")
+
 
 if __name__ == "__main__":
     unittest.main()

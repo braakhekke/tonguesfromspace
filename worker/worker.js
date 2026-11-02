@@ -134,11 +134,15 @@ export default {
 };
 
 /* ---------- Landsat pictures (R2 bucket LANDSAT, same paths as data/landsat/ in the working copy; not in the repository) ---------- */
+/* Only the glaciers of regions that are public are served. The bucket also holds the Landsat pictures of Iceland and Norway; add a glacier here when its region goes public. */
+const LANDSAT_PUBLIC = new Set(['aletsch', 'corbassiere', 'fiescher', 'gorner', 'rhone', 'trift', 'unteraar', 'zmutt', 'sgi-B53-04', 'sgi-B56-03']);
 async function landsat(request, env, url) {
   if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Use GET', { status: 405 });
   if (!env.LANDSAT) return new Response('Not found', { status: 404 });
   const key = decodeURIComponent(url.pathname.slice(1));
   if (key.includes('..') || !/\.(jpg|json)$/.test(key)) return new Response('Not found', { status: 404 });
+  const glacier = key.replace(/^data\/landsat\//, '').split('/')[0].replace(/\.json$/, '');
+  if (!LANDSAT_PUBLIC.has(glacier)) return new Response('Not found', { status: 404 });
   const obj = request.method === 'HEAD' ? await env.LANDSAT.head(key) : await env.LANDSAT.get(key);
   if (!obj) return new Response('Not found', { status: 404 });
   const h = new Headers({ 'Content-Type': key.endsWith('.json') ? 'application/json' : 'image/jpeg', 'ETag': obj.httpEtag, 'Cache-Control': 'public, max-age=86400' });
