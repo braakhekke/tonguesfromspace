@@ -861,8 +861,8 @@ class TestPicker(SiteCase):
         self.assertNotIn("every summer", text, "the best picture of each year, not a line about every summer")
         self.assertNotIn("why glaciers", text)
         self.assertIn("why tongues from space", text)
-        order = page.evaluate("['regions', 'why', 'how'].map(id => document.getElementById(id).getBoundingClientRect().top)")
-        self.assertEqual(order, sorted(order), "the picker comes first, then why Tongues from Space under it")
+        order = page.evaluate("['why', 'regions', 'how'].map(id => document.getElementById(id).getBoundingClientRect().top)")
+        self.assertEqual(order, sorted(order), "why Tongues from Space comes first, then the picker")
         self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').innerText"), "figures are Swiss for now, and it says so")
         self.assertEqual(self.errors, [])
 
@@ -907,9 +907,10 @@ class TestPicker(SiteCase):
         url = page.url
         self.assertIn("/switzerland/" if BUILT else "/index.html", url)
         self.assertIn("#g=aletsch&m=compare&a=2016&b=2024", url)      # the dashboard adds its own defaults after it
-        page = self.picker("#r=is&g=hofsjokull")
-        page.wait_for_url(lambda u: "g=hofsjokull" in u, timeout=15000)
-        self.assertIn("/iceland/" if BUILT else "#r=is", page.url)
+        if not BUILT or os.environ.get("PUBLISH_ICELAND") == "1":      # on the public site Iceland is not published yet: it has no address
+            page = self.picker("#r=is&g=hofsjokull")
+            page.wait_for_url(lambda u: "g=hofsjokull" in u, timeout=15000)
+            self.assertIn("/iceland/" if BUILT else "#r=is", page.url)
 
 
 class TestGlacierNames(SiteCase):
@@ -926,7 +927,7 @@ class TestGlacierNames(SiteCase):
         shown = page.evaluate("[...document.querySelectorAll('.gname')].filter(e => e.style.visibility !== 'hidden').length")
         self.assertGreaterEqual(shown, 3)
         self.assertLess(shown, n + 1)
-        self.assertIn("Glacier names", page.evaluate("document.getElementById('credits').textContent"))
+        self.assertIn("Other glacier names", page.evaluate("document.getElementById('credits').textContent"))
         # another glacier: its own picture and names
         page.evaluate("chooseGlacier('gorner')")
         page.wait_for_function("document.querySelector('.gname.self') && /Gorner/.test(document.querySelector('.gname.self').textContent)", timeout=15000)
@@ -972,7 +973,7 @@ class TestIceSpeedLayer(SiteCase):
         page.wait_for_selector("#gSpeed details[data-card='speed']", timeout=60000)
         self.assertIn("Ice speed", page.evaluate("document.querySelector('#gSpeed summary').textContent"))
         self.assertEqual(page.evaluate("document.querySelectorAll('#gSpeed .stat').length"), 3)
-        self.assertEqual(page.evaluate("document.querySelectorAll('#gSpeed .rb').length"), 10)
+        self.assertEqual(page.evaluate("document.querySelectorAll('#gSpeed .rb').length"), 12)      # one bar per year of the ITS_LIVE series (2013 to 2024)
         self.assertNotIn("available for", page.evaluate("document.querySelector('#gSpeed figcaption').textContent"))
         page.evaluate("document.querySelector('#gSpeed [data-act=speed-toggle]').click()")
         page.wait_for_selector(".max-pin", timeout=15000)

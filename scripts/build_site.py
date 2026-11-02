@@ -39,6 +39,10 @@ PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repo
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
 DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
 GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
+GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js"),
+              "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js")}      # data files that belong to one group of regions
+GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-"}      # the records in data/regions/ of that group start with this
+HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
 PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
 HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
@@ -199,6 +203,42 @@ def write_yearly_index(yearly):
     json.dump(items, open(os.path.join(yearly, "index.json"), "w"), indent=1, ensure_ascii=False)
 
 
+def hidden_glacier_ids():
+    """Ids of the glaciers (and their sub-items `<id>~<n>`) of the groups that are not published, from the records in data/regions/."""
+    ids = set()
+    for group, prefix in GROUP_REGION_PREFIX.items():
+        if GROUP_ON[group]:
+            continue
+        base = os.path.join(ROOT, "data", "regions")
+        for region in sorted(os.listdir(base)):
+            if region.startswith(prefix) and os.path.isdir(os.path.join(base, region)):
+                ids.update(os.listdir(os.path.join(base, region)))
+    return ids
+
+
+def prune_hidden_glaciers(out):
+    """Takes the per-glacier files of unpublished regions (terrain, ice speed, yearly, strip pictures, oldest aerial) out of the site, so they cannot be fetched by address."""
+    ids = hidden_glacier_ids()
+    if not ids:
+        return
+    removed = 0
+    for sub in ("terrain", "itslive", "yearly", "sr", "oldest", "demchange"):
+        folder = os.path.join(out, "data", sub)
+        if not os.path.isdir(folder):
+            continue
+        for f in sorted(os.listdir(folder)):
+            stem = re.split(r"[.]|-viewer", f)[0].split("~")[0]
+            if stem in ids:
+                path = os.path.join(folder, f)
+                shutil.rmtree(path) if os.path.isdir(path) else os.remove(path)
+                removed += 1
+    mf = os.path.join(out, "data", "terrain", "manifest.json")
+    if os.path.isfile(mf):
+        names = json.load(open(mf))
+        json.dump({k: v for k, v in names.items() if k.split("~")[0] not in ids}, open(mf, "w"), indent=1)
+    print(f"unpublished regions: {removed} per-glacier files left out")
+
+
 def main():
     if len(sys.argv) != 2:
         sys.exit(__doc__)
@@ -213,9 +253,9 @@ def main():
         if exists(name):
             data = read(name)
             if name == "sitemap.xml":
-                for group, on in GROUP_ON.items():
-                    if not on:
-                        data = re.sub(rb"\s*<url>\s*<loc>[^<]*/" + group.encode() + rb"/[^<]*</loc>\s*</url>", b"", data)
+                for page in REGION_PAGES:      # the address of every page of a group that is not published (/svalbard/ belongs to the group "norway", so the group's name is not in it)
+                    if not GROUP_ON[page["group"]]:
+                        data = re.sub(rb"\s*<url>\s*<loc>[^<]*/" + re.escape(page["path"]).encode() + rb"/?</loc>\s*</url>", b"", data)
             write(out, name, data)
     for folder, _, files in os.walk(os.path.join(ROOT, "images", "home")):      # the pictures and clips of the front page (the clips are named in its script, so they keep their names)
         for f in sorted(files):
@@ -229,6 +269,8 @@ def main():
     split_glaciers(out, assets)
 
     for name in HASHED_FILES:
+        if name in HIDDEN_DATA:      # a group that is not published has no data on the public site
+            continue
         if exists(name):
             data = read(name)
             rel = hashed_name(name, data)
@@ -340,6 +382,7 @@ def main():
     else:
         print("no terrain folder: the 3D view builds the terrain from the terrain tiles, which is slower")
 
+    prune_hidden_glaciers(out)
     rewrite_html(out, assets, relay)
     config = "window.TFS_CONFIG = " + json.dumps({"relay": relay, "streetViewKey": os.environ.get("STREETVIEW_EMBED_KEY", "").strip(), "assets": assets}, separators=(",", ":")) + ";\n"
     write(out, "config.js", config.encode("utf-8"))
