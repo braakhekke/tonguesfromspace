@@ -35,7 +35,7 @@ a piece that cannot exist is excused in `data/audit-exceptions.json` with the re
    tongue, the bottom-3-km rule, Landsat 7 stripes, registration shift, a one-line reason for the ranking. The owner changes only what they disagree with. Landsat 7 stripe fill on
    every Landsat 7 year (skill `landsat-slc-gap-fill`; Landsat 5 only if a check shows a need: dropped lines, edge gaps), colour matching of all years (skill `landsat-colour-reference`),
    years that jump go to `LEAVE_OUT_YEARS` with the reason. Copernicus quota: spread over days.
-3. **Data work (Claude, no input).** Source search and ledger (docs/DATA_SEARCH.md), oldest photograph, ice speed, photos/Street View/trails/peak names, yearly surfaces
+3. **Data work (Claude, no input).** *Step by step: `docs/YEARLY_GLACIER_RUNBOOK.md` (written from Aletsch and Gorner; the owner's "go" after checking the input imagery starts it and Claude runs it to the end).* Source search and ledger (docs/DATA_SEARCH.md), oldest photograph, ice speed, photos/Street View/trails/peak names, yearly surfaces
    (docs/YEARLY_DEM_METHOD.md: anchors from dated surveys, model, validation against ICESat-2 / ASTER / stakes / radar), bed, lake, uncertainty, terrain bundle, SR pictures of every
    pinned year, provenance.
 4. **QA (Claude, loops until clean).** `npm run check`, `npm test`, `python3 scripts/audit_glaciers.py`, terrain quality, validation numbers compared with Aletsch, a screenshot sweep of

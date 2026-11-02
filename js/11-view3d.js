@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode } from './04-state.js';
-import { ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedId, SPEED_MIN } from './05-map.js';
+import { ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
@@ -542,7 +542,7 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the
   if ($('speedToggle').checked && FEATURES.speed) {            // ice speed of the year of the picture (ITS_LIVE, copied): the colours of the map layer, drawn on the picture; years without a map show nothing
     const f = await loadSpeedFile(speedId(g));
     if (f && f.years.includes(yr)) {
-      const sa = await speedArray(f, yr), sc = speedCanvas(f, sa, speedMask(f, g)), pk = speedPeak(f, sa, speedMask(f, g)), [x0, y0, x1, y1] = f.bbox, q0 = toTexM(x0, y1), q1 = toTexM(x1, y1), q2 = toTexM(x0, y0);
+      const sa = await speedArray(f, yr), sc = speedCanvas(f, sa, speedMask(f, g)), pk = await speedYearOk(f, yr) ? speedPeak(f, sa, speedMask(f, g)) : null, [x0, y0, x1, y1] = f.bbox, q0 = toTexM(x0, y1), q1 = toTexM(x1, y1), q2 = toTexM(x0, y0);
       ctx.save(); ctx.globalAlpha = .9; ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
       ctx.setTransform((q1[0] - q0[0]) / sc.width, (q1[1] - q0[1]) / sc.width, (q2[0] - q0[0]) / sc.height, (q2[1] - q0[1]) / sc.height, q0[0], q0[1]); ctx.drawImage(sc, 0, 0); ctx.restore();
       if (pk) { const p = stripXZ(S, pk.xy[0], pk.xy[1]); if (p.inside) speedPin3D = {x: p.x, z: p.z, text: `${Math.round(pk.v)} m/yr (${yr})`}; }      // the same point and label as the pin on the map

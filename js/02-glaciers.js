@@ -72,9 +72,9 @@ export function padBounds(b, f){ const dy=(b[1][0]-b[0][0])*f, dx=(b[1][1]-b[0][
 export const rankArea = g => g.inv ? g.inv.area_km2 : g.rgi ? g.rgi.areaKm2 : g.a2016;
 /* Length in km and the year of the last survey, read from the GLAMOS figure "lc_stat_frequency": https://doi.glamos.ch/figures/lc_stat_frequency.pdf
    km = the number printed at the right end of the glacier's row; year = where the last bar of that row ends (the figure's last column is 2024 to 2025).
-   Corbassière and Zmutt are surveyed every few years: their last bars end in 2023. Keyed by the short name of the glacier (the figure calls Findel "Findelen"). */
-export const CURRENT_LENGTH = { 'grosser aletsch': {km: 22.11, year: 2025}, 'fiescher': {km: 14.18, year: 2025}, 'gorner': {km: 11.90, year: 2025}, 'unteraar': {km: 11.46, year: 2025},
-  'corbassiere': {km: 9.20, year: 2023}, 'rhone': {km: 7.16, year: 2025}, 'findel': {km: 5.99, year: 2025}, 'zmutt': {km: 5.93, year: 2023}, 'fee': {km: 4.12, year: 2025}, 'trift': {km: 3.64, year: 2025} };
+   Corbassière, Zmutt, Fiescher and Fee: their last column (2024 to 2025) is grey, the last bars end in 2023 (GLAMOS length change: last survey of Fiescher ends 2023-09-06). Keyed by the short name of the glacier (the figure calls Findel "Findelen"). */
+export const CURRENT_LENGTH = { 'grosser aletsch': {km: 22.11, year: 2025}, 'fiescher': {km: 14.18, year: 2023}, 'gorner': {km: 11.90, year: 2025}, 'unteraar': {km: 11.46, year: 2025},
+  'corbassiere': {km: 9.20, year: 2023}, 'rhone': {km: 7.16, year: 2025}, 'findel': {km: 5.99, year: 2025}, 'zmutt': {km: 5.93, year: 2023}, 'fee': {km: 4.12, year: 2023}, 'trift': {km: 3.64, year: 2025} };
 export const areaText = (g, d = 1) => g.rgi ? Math.round(g.rgi.areaKm2).toLocaleString('en') : rankArea(g).toFixed(d);      // an area in km² for the lists: Iceland's basins are over 1,000 km², whole numbers
 /* The two outlines of a glacier, as the map, the 3D view and the downloads draw them: the old one (Switzerland 1850, Iceland about 1890) and the newest (2023, 2025). Swiss outlines are GeoJSON polygons;
    the Icelandic ones are lines (the Icelandic Met Office outlines of the whole ice cap cut to the outlet's region, so they are open at its edge): a MultiLineString. */

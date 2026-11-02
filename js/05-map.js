@@ -753,6 +753,17 @@ export function speedPeak(f, a, mask){
   let at = -1, top = 0; for (let i = 0; i < a.length; i++) if (mask[i] && a[i] !== f.nodata && a[i] * f.step > top) { top = a[i] * f.step; at = i; }
   return at >= 0 && top >= SPEED_MIN ? {v: top, xy: [x0 + (at % f.w + .5) * f.cell, y1 - (Math.floor(at / f.w) + .5) * f.cell]} : null;
 }
+/* A year whose map has many gaps along the flowline cannot say where the fastest ice is: ITS_LIVE's first years (2013, 2014) miss the icefall of some glaciers, and the "fastest ice" then comes out far too low.
+   A year counts only when at least 90 % as many flowline points have a value as in the best year of the file (computed here). Without a flowline every year counts. */
+export async function speedYearOk(f, y){
+  if (!f.flow || !f.flow.length) return true;
+  if (!f._cov) {
+    const [x0, , , y1] = f.bbox, arrs = await Promise.all(f.years.map(yy => speedArray(f, yy)));
+    const cov = arrs.map(a => f.flow.reduce((n, [X, Y]) => { const c = Math.floor((X - x0) / f.cell), r = Math.floor((y1 - Y) / f.cell); return n + (c >= 0 && c < f.w && r >= 0 && r < f.h && a[r * f.w + c] !== f.nodata ? 1 : 0); }, 0)), best = Math.max(...cov);
+    f._cov = {}; f.years.forEach((yy, i) => { f._cov[yy] = cov[i] >= 0.9 * best; });
+  }
+  return f._cov[y] !== false;
+}
 export function speedCanvas(f, a, mask){
   const c = document.createElement('canvas'); c.width = f.w; c.height = f.h; const x = c.getContext('2d'), im = x.createImageData(f.w, f.h);
   for (let i = 0; i < a.length; i++) {
@@ -797,7 +808,7 @@ export async function updateSpeed(){
   const layer = L.imageOverlay(speedCanvas(f, a, speedMask(f, g)).toDataURL(), [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'speedPane', opacity: .9, interactive: false, className: 'speed-img'});
   if (speedLayer) map.removeLayer(speedLayer); speedLayer = layer.addTo(map); speedKey = key; speedFile = f;
   if (speedPin) { map.removeLayer(speedPin); speedPin = null; }
-  const pk = speedPeak(f, a, speedMask(f, g));      // the fastest ice of the year along the flowline, marked like the thickest ice
+  const pk = await speedYearOk(f, yr) ? speedPeak(f, a, speedMask(f, g)) : null;      // the fastest ice of the year along the flowline, marked like the thickest ice
   if (pk) {
     const top = pk.v, p = L.CRS.EPSG3857.unproject(L.point(pk.xy[0], pk.xy[1]));
     speedPin = L.marker(p, {icon: L.divIcon({className: '', html: `<div class="tongue-pin max-pin"><span>${Math.round(top)} m/yr (${yr})</span></div>`, iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false, zIndexOffset: 500}).addTo(map);

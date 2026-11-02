@@ -89,7 +89,7 @@ export const DEFAULTS = [
     note:'' },
   { id:'rhone', tz:14.5, tongue:[46.588,8.385], keys:['rhone'], name:'Rhone', local:'Rhonegletscher', canton:'Valais', range:'Urner Alps',
     center:[46.61,8.39], bounds:[[46.56,8.33],[46.66,8.44]], a1850:20.2, a1973:17.6, a2016:14.64, aNew:null, len:[9.2,8.0,7.7],
-    lede:'The source of the river Rhône, flowing south from the Dammastock towards Gletsch at the Furka and Grimsel passes.',
+    lede:'The source of the river Rhône, flowing south below the Dammastock towards Gletsch, between the Furka and Grimsel passes.',
     look:'A lake has formed where the tongue used to lie on the rock step above Gletsch. Compare its size and the bare rock around it from year to year.',
     note:'In summer 2026 the Rhône glacier lost more than four metres of ice in a single month. Meltwater has carved cavities under the tongue that collapse into pits.<small class="srcline">Source: Euronews, 7 August 2026 (Matthias Huss, GLAMOS)</small>' },
   { id:'trift', tz:14.5, tongue:[46.678,8.364], keys:['trift'], name:'Trift', local:'Triftgletscher (Gadmen)', canton:'Bern', range:'Urner Alps',
@@ -109,8 +109,8 @@ export const TRAILS = {
  gorner: {
   hike: { title: 'Gornergrat to Riffelberg', text: 'From the Gornergrat down past the Riffelsee: 4.7 km, about 1 h 25 min, T2.', url: 'https://wegwandern.ch/wanderung/wanderung-gornergrat-zermatt-rotenboden-riffelsee-riffelberg-wandern/', kind: 'wander' }, bike: null },
  fiescher: {
-  hike: { title: 'Aletsch Panoramaweg, Märjelensee to Bellwald (route 39)', text: 'Passes 0.7 km from the tongue; the Burghütte stands at the foot of the glacier.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
-  bike: { title: 'Valais Panorama Bike (mountain bike route 81)', text: 'Through the upper Goms, 3.0 km from the tongue.', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-81', kind: 'mtb' } },
+  hike: { title: 'Aletsch Panoramaweg, Märjelensee to Bellwald (route 39)', text: 'Passes 0.6 km from the tongue tip (computed from the route data); the Burghütte stands above the foot of the glacier.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
+  bike: { title: 'Valais Panorama Bike (mountain bike route 81)', text: 'Through the upper Goms, 2.9 km from the tongue tip (computed from the route data).', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-81', kind: 'mtb' } },
  unteraar: {
   hike: { title: 'Grimsel Hospiz to the Lauteraarhütte', text: 'Along the Grimselsee to the hut above the glacier: 10.2 km, about 4 h.', url: 'https://www.interlaken.swiss/erlebnisse/tour/wandern-am-ursprung-der-aare', kind: 'wander' }, bike: null },
  corbassiere: {
@@ -118,7 +118,7 @@ export const TRAILS = {
  zmutt: {
   hike: { title: 'Zermatt to the Schönbielhütte', text: 'Over the moraine above the glacier, the Matterhorn north face alongside: 11 km, about 4 h.', url: 'https://www.bergwelten.com/t/w/24489', kind: 'wander' }, bike: null },
  rhone: {
-  hike: { title: 'Furka-Höhenweg, Oberwald to the Furkapass (route 51)', text: 'Views of the Rhône glacier and the Goms: 11 km, about 5½ h, demanding. Passes 1.4 km from the tongue.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-51', kind: 'wander' },
+  hike: { title: 'Furka-Höhenweg, Oberwald to the Furkapass (route 51)', text: 'First stage of the Furka-Höhenweg, Oberwald to the Furkapass, with views of the Rhône glacier. Passes 1.4 km from the tongue.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-51', kind: 'wander' },
   bike: { title: 'Rhone-Route (Veloland route 1)', text: 'Starts in Andermatt; the first stage climbs the Furka Pass. Passes 0.7 km from the tongue.', url: 'https://schweizmobil.ch/en/cycling-in-switzerland/route-1', kind: 'velo' } },
  trift: {
   hike: { title: 'Triftbrücke', text: 'A 170 m suspension bridge with the glacier at the head of the lake: about 1.5 h from the top station.', url: 'https://www.myswitzerland.com/en-gb/experiences/route/trift-bridge-a-spectacular-pedestrian-bridge/', kind: 'wander' }, bike: null },
@@ -142,9 +142,9 @@ export const GLACIER_INFO = {
  },
  "gorner": {
   "fact": "Its ice-marginal lake, the Gornersee, fills every year and usually drains in summer in a glacial lake outburst flood. With its tributaries it forms the second-largest glacier system in the Alps after the Aletsch (53 km², 2007).",
-  "name": "From the <em>Gorneren</em>, the high pastures above Zermatt: in 1579 the farmers' guild regulated when sheep could graze there. <em>Gorner</em> is assumed to come from Romansh <em>cornu</em>, \"horned\". Zermatt people also called the Monte Rosa peaks the <em>Gornerhorn</em> in the early 19th century.",
+  "name": "From the <em>Gorneren</em>, the high pastures above Zermatt: as early as 1579 the farmers' guild regulated when livestock could be moved onto them. The historian F. A. Volmar (1958) assumed that <em>Gorner</em> is a Germanisation of Romansh <em>cornu</em>, \"horned\". In the first half of the 19th century the people of Zermatt still called the mountains on the Italian side of Monte Rosa the <em>Gornerhorn</em>.",
   "factSrc": "Wikipedia (Gorner Glacier)",
-  "src": "Wikipedia (Gornergrat); Gornergrat Bahn (history of the name)"
+  "src": "Gornergrat Bahn (gornergrat.ch: how the Gornergrat got its name; the history of tourism access)"
  },
  "fiescher": {
   "fact": "In 1678 the people of Fiesch vowed to live virtuously and to pray that the Aletsch glacier would stop growing, because it threatened their valley. In 2010 the Vatican allowed them to change the vow: their annual procession now also prays about climate change and glacier melting.",
@@ -183,10 +183,10 @@ export const GLACIER_INFO = {
   "src": "Wikipedia (Zmutt)"
  },
  "rhone": {
-  "fact": "Every summer an ice grotto was dug into the glacier at the Hotel Belvédère on the Furka Pass, a tradition since about 1870, and up to 100,000 people a year came to see it. To slow the melting, the lowest part of the tongue was covered with white fleece. In September 2026 Valais rejected the operator's appeal against the order to restore the site, so the grotto can no longer be operated. Can you spot the tarpaulins on the tongue in the images?",
-  "name": "From the river it feeds: the Rhône (Latin <em>Rhodanus</em>). Its etymology is unclear; Celtic and Greek origins have been proposed.",
-  "factSrc": "showcaves.com (Eisgrotte Rhonegletscher); freizeit.ch; <a href=\"https://www.swissinfo.ch/eng/glaciers-permafrost/swiss-rh%C3%B4ne-glacier-ice-cave-ordered-closed/92010080\" target=\"_blank\" rel=\"noopener\">swissinfo.ch, 5 September 2026</a>",
-  "src": "Historical Dictionary of Switzerland; Wikipedia (Rhône)"
+  "fact": "An ice tunnel in the Rh\u00f4ne glacier, re-carved every spring, let visitors immerse themselves in the heart of the glacier, attracting up to 100,000 visitors per year. Plastic tarpaulins were spread over the glacier tongue to slow its melting. On 5 September 2026 swissinfo reported that the Valais cantonal government had rejected the operator's appeal against the order to close the cave and restore the site to its original condition. Can you spot the tarpaulins on the tongue in the images?",
+  "name": "From the river it feeds: the Rhône, which continues the Latin <em>Rhodanus</em> (Greek <em>Rhodanós</em>). The Gaulish name of the river was <em>*Rodonos</em> or <em>*Rotonos</em>, from a root meaning \"to run, roll\".",
+  "factSrc": "<a href=\"https://www.swissinfo.ch/eng/glaciers-permafrost/swiss-rh%C3%B4ne-glacier-ice-cave-ordered-closed/92010080\" target=\"_blank\" rel=\"noopener\">swissinfo.ch, 5 September 2026</a>",
+  "src": "Wikipedia (Rhône)"
  },
  "trift": {
   "fact": "In the 2004/05 measuring year the Trift glacier retreated by 216 m, more than any other monitored glacier in Switzerland, because its tongue ended in a lake that sped up the melting. A suspension bridge about 170 m long (opened 2009, replacing one built in 2004) spans the Triftsee so hikers can still reach the hut.",

@@ -9282,20 +9282,20 @@
     1.7
    ],
    "2017": [
-    1.7,
-    1.8
-   ],
-   "2018": [
     1.8,
     2.1
    ],
-   "2019": [
+   "2018": [
     1.9,
-    2.3
+    4.1
+   ],
+   "2019": [
+    2.0,
+    4.5
    ],
    "2020": [
-    1.9,
-    2.3
+    2.0,
+    3.9
    ],
    "2021": [
     2.5,
@@ -9303,15 +9303,15 @@
    ],
    "2022": [
     2.7,
-    2.7
+    2.8
    ],
    "2023": [
     1.7,
     1.7
    ],
    "2024": [
-    1.7,
-    1.8
+    1.8,
+    1.9
    ],
    "2025": [
     2.3,
@@ -9399,7 +9399,7 @@
   "asterNote": "For scale: each used scene has a stable-terrain NMAD of 12.0 to 12.5 m (computed) (no used scene lies within 25 days of the 2023 anchor), so differences of a few metres are within ASTER's own scatter. rms = spread of the scene values of the year. Check only, not in the fit.",
   "stakeNote": "",
   "notes": {
-   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). Calibrated on the same ICESat-2 shots (anchor value = the 2023 rmse, 1.73 m, an upper value); where a year has shots it is not below their rmse. Years without shots (2016 to 2019) carry the anchor value only, a lower bound. 2026 has none: it is an estimate and its balance was read from the GLAMOS figure for Aletsch.",
+   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). The two swisstopo surveys carry 1.73 m (rmse of the 220 shots of 2023; swisstopo quotes 0.5 m below 2000 m and 1 to 3 m above, as quoted by Bannwart et al., so the true value may be larger on a tongue this high), the lidar of 2021 2.02 m (rmse of 84 shots within 45 days of the lidar day). Between the surveys and beyond them the error grows with the size of the change (factors 0.39 and 0.09), calibrated on the same ICESat-2 shots, so it is not independent. Where a year has shots it is not below their rmse. Years without shots (2016, 2017, 2018, 2019) rest on the formula alone. 2026 has no value on the chart: it is an estimate (its balance comes from a figure for Aletsch), and its map in the viewer adds 25 % of its increment (median 2.4 m).",
    "independent": "<b>ICESat-2</b> also fitted the 2023 anchor day, so it is not independent. <b>ASTER</b> scenes are checks only (2 of 75 scenes usable; ; usable years: 2020). There are <b>no stakes</b> for Fieschergletscher. Click a year for the numbers.",
    "sharing": "<b>Solid</b>: the loss between two surveys is shared over the years by an elevation-band balance borrowed from Aletsch (GLAMOS has none for Fieschergletscher; four neighbours tested on ICESat-2, Aletsch kept). <b>Dashed</b>: extrapolated beyond the last survey (2026 with an estimated balance). <b>Not used</b>: measured years."
   },

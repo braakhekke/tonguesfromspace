@@ -3985,31 +3985,31 @@
   "sig": {
    "2016": [
     0.8,
-    1.0
+    0.9
    ],
    "2017": [
-    1.0,
-    1.7
+    0.9,
+    1.3
    ],
    "2018": [
-    1.0,
-    1.9
+    1.1,
+    1.4
    ],
    "2019": [
-    1.0,
-    1.9
+    1.2,
+    1.5
    ],
    "2020": [
     1.6,
     1.6
    ],
    "2021": [
-    1.0,
-    1.0
+    1.4,
+    1.4
    ],
    "2022": [
-    0.9,
-    1.2
+    0.8,
+    1.0
    ],
    "2023": [
     0.8,
@@ -4125,7 +4125,7 @@
   "asterNote": "No ASTER scene passed the quality gate (23 scenes over the strip, July to October 2016 to 2026): most are cloudy or have a rock NMAD far above 15 m (the closest: 15.4 m on 2021-07-21), in this steep terrain with snow. Nothing is shown rather than a number from a bad scene.",
   "stakeNote": "Over all 76 stake-years the modelled surface change is 0.87 of the stake reading (RMSE 1.37 m). Stakes read ablation of moving ice, so the model is expected to show a fraction. By year the ratio is 2017 0.83, 2018 0.87, 2019 0.75, 2020 0.73, 2021 0.74, 2022 0.89, 2024 0.99, 2025 1.00 (computed): it rises to about 1 in 2024 and 2025, the extrapolated years, where ICESat-2 shows the model within 0.3 m. Check only, not in the fit.",
   "notes": {
-   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). The two swisstopo surveys carry 0.8 m (the value of the Aletsch work: ICESat-2 against the 2023 surface there, rmse 0.76 m; swisstopo quotes 0.5 m below 2000 m and 1 to 3 m above, so the true value may be larger; Rhone has no 2023 shot, its 2024 shots say at most about 1 m), the lidar of 2021 0.96 m (rmse of its shots). Between the surveys and beyond them the error grows with the size of the change (factors 0.20 and 0.13), calibrated on the same ICESat-2 shots, so it is not independent. Where a year has shots it is not below their rmse. Years without shots (2016, 2017, 2018, 2019, 2022, 2023) rest on the formula alone. 2026 has no value on the chart: it is an estimate (its balance comes from a figure for Aletsch), and its map in the viewer adds 25 % of its increment (median 2.0 m).",
+   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). The two swisstopo surveys carry 0.80 m (the Aletsch value (no 2023 shots here); swisstopo quotes 0.5 m below 2000 m and 1 to 3 m above, as quoted by Bannwart et al., so the true value may be larger on a tongue this high), the lidar of 2021 1.40 m (the Aletsch value (fewer than 30 shots near the lidar day)). Between the surveys and beyond them the error grows with the size of the change (factors 0.13 and 0.13), calibrated on the same ICESat-2 shots, so it is not independent. Where a year has shots it is not below their rmse. Years without shots (2016, 2017, 2018, 2019, 2022, 2023) rest on the formula alone. 2026 has no value on the chart: it is an estimate (its balance comes from a figure for Aletsch), and its map in the viewer adds 25 % of its increment (median 2.0 m).",
    "independent": "<b>ICESat-2</b> also fitted the survey days of both anchors, so it is not independent. <b>ASTER</b>: none of the 23 scenes passed the quality gate, so there is no ASTER check. <b>GLAMOS stakes</b> (76 stake-years 2017 to 2025 on modelled ice) are checks only. Click a year for the numbers.",
    "sharing": "<b>Solid</b>: the GLAMOS annual balance of Rhonegletscher per elevation band sets how the loss between two surveys falls into each year. <b>Dashed</b>: extrapolated beyond the last survey (2026 with an estimated balance). <b>Not used</b>: measured years."
   },

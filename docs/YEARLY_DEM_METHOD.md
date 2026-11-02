@@ -1,5 +1,7 @@
 # Yearly ice-surface models for a glacier tongue: method and lessons
 
+*The executable step list for the next glacier is `docs/YEARLY_GLACIER_RUNBOOK.md`; this file is the method and the reasons.*
+
 Written 2026-10-30 from the Aletsch work (`experiments/aletsch-yearly-dem/`, local, gitignored; ledger `LEDGER.md` there). **A recipe, not a product:** every source below must be found again for the glacier at hand (docs/DATA_SEARCH.md), read, and logged as read / NOT READ. Nothing goes into `data/`, `js/` or the dock without the owner's go-ahead.
 
 **Update 2026-10-30 (evening):** the Aletsch yearly surfaces are now on the site (owner go-ahead): see docs/REFERENCE.md, row "data/yearly/B36-26.npz", for the pipeline (`strip_inputs.py` -> `strip_model.py` -> `export_site_yearly.py` -> `scripts/build_terrain_bundle.py`). Run them in that order after the strip changes in the walkthrough (and `npm run walkthrough -- export` first: the bundle builder reads `data/boxes.js`).

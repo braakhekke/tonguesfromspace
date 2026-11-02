@@ -1,7 +1,7 @@
 {
  "glacier": "B56-07",
  "name": "Gornergletscher",
- "built": "2026-11-01",
+ "built": "2026-11-02",
  "years": [
   2016,
   2017,
@@ -7558,28 +7558,28 @@
   },
   "sig": {
    "2016": [
-    1.7,
-    1.7
+    1.8,
+    2.6
    ],
    "2017": [
-    1.7,
-    1.7
+    1.8,
+    3.0
    ],
    "2018": [
-    1.7,
-    1.7
+    1.8,
+    3.0
    ],
    "2019": [
-    1.7,
-    1.7
+    1.8,
+    2.8
    ],
    "2020": [
     1.9,
-    1.9
+    2.3
    ],
    "2021": [
-    1.7,
-    1.7
+    1.6,
+    1.8
    ],
    "2022": [
     1.9,
@@ -7591,11 +7591,11 @@
    ],
    "2024": [
     2.1,
-    2.3
+    2.4
    ],
    "2025": [
     2.4,
-    3.3
+    3.6
    ],
    "2026": null
   },
@@ -7727,12 +7727,12 @@
   "asterNote": "For scale: each used scene has a stable-terrain NMAD of 9.3 to 14.7 m (computed), and on the ice next to the anchor date (2023-09-07) ASTER reads −4.0 m against the 2023 surface, so differences of a few metres are within ASTER's own scatter. rms = spread of the scene values of the year. Check only, not in the fit.",
   "stakeNote": "",
   "notes": {
-   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). Calibrated on the same ICESat-2 shots (anchor value = the 2023 rmse, 1.74 m, an upper value); where a year has shots it is not below their rmse. Years without shots (2016 to 2019) carry the anchor value only, a lower bound. 2026 has none: it is an estimate and its balance was read from the GLAMOS figure for Aletsch.",
+   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). The two swisstopo surveys carry 1.74 m (rmse of the 513 shots of 2023; swisstopo quotes 0.5 m below 2000 m and 1 to 3 m above, as quoted by Bannwart et al., so the true value may be larger on a tongue this high), the lidar of 2021 1.65 m (rmse of 166 shots within 45 days of the lidar day). Between the surveys and beyond them the error grows with the size of the change (factors 0.17 and 0.21), calibrated on the same ICESat-2 shots, so it is not independent. Where a year has shots it is not below their rmse. Years without shots (2016, 2017, 2018, 2019) rest on the formula alone. 2026 has no value on the chart: it is an estimate (its balance comes from a figure for Aletsch), and its map in the viewer adds 25 % of its increment (median 3.2 m).",
    "independent": "<b>ICESat-2</b> also fitted the 2023 anchor day, so it is not independent. <b>ASTER</b> scenes are checks only (20 of 99 scenes usable; none for 2025 and 2026). There are <b>no stakes</b> for Gornergletscher after 2008. Click a year for the numbers.",
    "sharing": "<b>Solid</b>: the loss between two surveys is shared over the years by an elevation-band balance borrowed from five other glaciers (computed; GLAMOS has none for Gornergletscher). <b>Dashed</b>: extrapolated beyond the last survey (2026 with an estimated balance). <b>Not used</b>: measured years."
   },
   "viewerText": "The yearly surfaces in 3D with a year slider, the same viewer as for Aletsch. Switch on <b>ICESat-2 shots</b> (what the model was checked against) and hover a shot for its values; the bed and uncertainty colours are in the Colour menu. There are no stake readings for Gornergletscher. About 8 MB, loaded when you press the button.",
-  "viewerV": "20261101",
+  "viewerV": "20261102",
   "bed": {
    "lead": "Three checks on Gornergletscher (all computed here, not source figures). The bed is the rock under the ice. \"Radar bed\" is the radar's own bed elevation (the survey surface minus the measured thickness, from the GLAMOS release); \"model bed\" is swissBEDROCK, which under glaciers is swissALTI3D minus a modelled GLAMOS ice thickness.",
    "checks": [
