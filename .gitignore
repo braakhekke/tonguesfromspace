@@ -39,6 +39,7 @@ scripts/.relief-cache/
 # Landsat pictures (2,600+ files, 200 MB) and the 3D terrain of regions other than Switzerland: kept local until those regions go live
 data/landsat/
 data/terrain/[a-z]*.bin
+# (on a Mac this also matches the Swiss B56-07... names, because the file system is not case sensitive: add new Swiss terrain files with `git add -f`; the CI build only has what is committed)
 
 # the glacier checklist board and the review walk-through: local tooling
 .claude/
