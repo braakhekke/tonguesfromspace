@@ -58,3 +58,12 @@ Same as docs/sources/switzerland-aletsch.md: GLAMOS (Glacier Monitoring Switzerl
 ## Not read / left out of the site (for the owner)
 - The papers above (snippets only); ASTER terms of use; the swisstopo accuracy pages; the hike, bike and name texts of the panel; GLAMOS reports on the Rhone stations (the camera method is described in Landmann et al. 2021, see docs/sources/switzerland-aletsch.md).
 - Open for the owner: the margin fade of 80 m is NOT applied to Rhone (the owner said Gorner only for now). Without it the step between the ice just inside and the ground just outside the 2023 outline grows from a median -5.8 m (2023) to -7.5 m (2024) and -12.9 m (2026) (computed); with it the growth would be removed as for Gorner (`EDGE_M=80` in experiments/rhone-yearly-dem/model.py). GLAMOS figure rounding on the site.
+
+### Yearly surfaces, harmonised run of 2026-11-02 (`experiments/swiss-yearly-dem/`, `GLACIER=B43-03`)
+- Survey days (flown strip days only, chosen on ICESat-2; `fit.json`): A1 2016-09-07, A2 2023-09-05; lowest pair rmse 1.178 m, leave-one-granule-out 1.427 m; tie within 0.05 m: 2016-09-07 / 2023-08-20; 2016-09-07 / 2023-09-05. Not independent of the check.
+- ICESat-2 (leave-one-granule-out): 998 shots in 5 granules, rmse 1.43 m, bias 0.19 m; with the used days 1.18 m. Per year: 2020 1.83 m (388); 2021 0.61 m (217); 2024 1.28 m (178); 2025 1.30 m (215).
+- Uncertainty (`experiments/yearly_uncertainty.py`): sigma_A 0.61 m (rmse of the 217 shots of 2021, the year with the lowest rmse among those with at least 100 shots (no usable shots in 2023): an upper bound), sigma_L 0.61 m (the same as the surveys, because fewer than 30 shots lie within 45 days of the lidar day), k_i 0.189, k_e 0.139; median by year: 2016 0.6, 2017 0.8, 2018 0.8, 2019 0.7, 2020 1.5, 2021 0.6, 2022 0.8, 2023 0.6, 2024 1.3, 2025 1.2; 2026 viewer map median 2.0 m.
+- Band balance (`donors.json`, rule: lowest ICESat-2 rmse among the candidates whose bins cover at least 98 % of the ice cells; own bands always win): own 1.18 m, covers 100 %; line 1.09 m, covers 100 %; B36-26 1.00 m, covers 100 %; B83-03 1.26 m, covers 100 %; B56-03 1.33 m, covers 87 %; chosen: own.
+- ASTER AST14DEM: 0 of 23 scenes passed the gate (rock NMAD at most 15 m, 300 rock and 200 ice cells); years none; terms of use NOT read.
+- GLAMOS stakes (`stakes_check.py`): 76 stake-years, modelled change = 0.85 of the reading, RMSE 1.29 m.
+- Margin fade: none. Earlier numbers in this ledger (uncertainty, ICESat-2 per year, survey days) are superseded by this section.

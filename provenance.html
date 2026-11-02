@@ -63,12 +63,13 @@
 
 <section class="fn" id="surface"><h2><span class="no">2</span>Ice surface through time: how each year was made</h2>
 <p class="lead" id="fnSummary"></p><p class="lead">One column per year. Top: how the surface was found and its 1σ uncertainty. Below: the measured surfaces it hangs on, what shapes the change between them, what checks it, and what is fixed. Click a year for the full text, the ICESat-2, ASTER and stake numbers.</p>
+<p class="lead"><b>Official glacier elevation models.</b> We are in contact with GLAMOS and swisstopo about implementing the glacier elevation models described on <a href="https://www.swisstopo.admin.ch/en/swisstopo-geodata-for-glacial-purposes" target="_blank" rel="noopener">swisstopo geodata for glacial purposes</a>. The yearly surfaces on this page are our own model, built from the swisstopo surveys as described below; they are not those official models.</p>
 <div class="card"><svg id="chart" role="img" aria-label="Provenance of the yearly surfaces"></svg></div>
 <div class="legend" id="legend"></div>
 <p class="lead" style="margin:10px 0 4px"><b>Click a year</b> in the chart to show its details here.</p>
 <div id="detail">Click a year.</div>
 <div class="notes">
-  <section><h3>Kinds of surface</h3><p><b>measured</b>: a dated DEM or lidar surface. <b>interpolated</b>: between two measured surfaces. <b>extrapolated</b>: beyond the last one, at its rate. <b>provisional</b>: 2026.</p></section>
+  <section><h3>Kinds of surface</h3><p><b>measured</b>: a dated DEM or lidar surface. <b>interpolated</b>: between two measured surfaces. <b>extrapolated</b>: beyond the last one, at its rate. <b>provisional</b>: 2026. <b>Date</b>: every year is the surface on 30 September of that year (the end of the glaciological year). A measured surface is moved from its survey day to 30 September by the same model, so the surface shown for a surveyed year is not the raw survey: it is the survey surface lowered by the melt between the survey day and 30 September (for a survey in August, the weeks in between).</p></section>
   <section><h3>Sharing the loss between years</h3><p id="nShare"><b>Solid</b>: the GLAMOS balance sets how the loss between two measured surfaces falls into each year. <b>Dashed</b>: extrapolated at the last segment's rate (2026 also with its own balance). <b>Not used</b>: measured years.</p></section>
   <section><h3>Uncertainty</h3><p id="nUnc">Median over the tongue ice, red whisker the 90th percentile. Calibrated on the same ICESat-2 shots. 2026 has none yet: it is provisional and its balance was read from the GLAMOS figure.</p></section>
   <section><h3>Independent checks</h3><p id="nInd"><b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out). <b>ASTER</b> and <b>stakes</b> are checks only. Click a year for their numbers.</p></section>
@@ -154,7 +155,9 @@ function show(yr){ const sg=SIG&&SIG[yr], ic=ICESAT[yr], ad=ASTERD&&ASTERD[yr], 
     +L('Uncertainty', !SIG?'not computed for this glacier.':sg?`1σ ${sg[0]} m median over the tongue ice${sg[1]?`, ${sg[1]} m at the 90th percentile`:''}.`:'not computed (provisional).')
     +L('ICESat-2', ic?`${ic[0]} shots, ${ic[1]} m ${String(ic[1]).includes('NMAD')?'':'rmse'}. ${PG.icesatNote}`:'no summer shots.')
     +L('ASTER', aster)+L('GLAMOS stakes', stake); }
-document.getElementById('legend').innerHTML=[['--ice','measured'],['--faint','interpolated'],['--amber','extrapolated'],['--loss',SIG?'provisional / 90th-percentile whisker':'provisional']].map(([c,t])=>`<span><i style="width:12px;height:12px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('');
+document.getElementById('legend').innerHTML=[['--ice','measured'],['--faint','interpolated'],['--amber','extrapolated'],['--loss',SIG?'provisional / 90th-percentile whisker':'provisional']].map(([c,t])=>`<span><i style="width:12px;height:12px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('')
+  +`<span><i style="width:16px;height:10px;border-radius:3px;background:var(--iceLight);border:1px solid var(--ice)"></i>solid box (row "What shapes the change"): between two measured surfaces, the balance only shares the measured change over the years</span>`
+  +`<span><i style="width:16px;height:10px;border-radius:3px;border:1px dashed var(--ice)"></i>dashed box: extrapolated (before the first or after the last survey), the balance also sets the size</span>`;
 function drawOverview(){
   const M=MAP, wa=M.whole.flat(), ax=wa.map(p=>p[0]), ay=wa.map(p=>p[1]), a0=Math.min(VB.x0,...ax)-300, a1=Math.max(VB.x1,...ax)+300, b0=Math.min(VB.y0,...ay)-300, b1=Math.max(VB.y1,...ay)+300, W=150, k=W/(a1-a0), H=Math.round((b1-b0)*k), X=x=>(x-a0)*k, Y=y=>(b1-y)*k;
   const path=rs=>rs.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join(''), loss=css('--loss'), mu=css('--muted'), ink=css('--ink');

@@ -19,6 +19,8 @@ Written 2026-10-30 from the Aletsch work (`experiments/aletsch-yearly-dem/`, loc
 3. Composite DEMs: map the strips to cells; where the source does not say which strip fed which cell, **use an independent referee**: ICESat-2 scored the candidate survey days (2023-08-10 vs 2023-09-06 vs 2024-08-30; the wrong day gave rmse 7.7 m against 3.2 m).
 4. Keep the anchors apart from airborne DEMs that are internal-use-only.
 
+**Update 2026-11-02:** the survey days, the lidar days, the shot filter, the band-balance choice and the uncertainty are now one rule for Aletsch, Gorner, Fiescher and Rhone; see "One package for all four glaciers" in `docs/YEARLY_GLACIER_RUNBOOK.md`. Where the text below says "offset d1, d2 fitted to ICESat-2" or "30 Sep minus 45 days" it describes the Aletsch work before that date.
+
 ## 2. Model (v1 in the Aletsch work)
 `S(x,t) = A_a + (A_b - A_a) * Phi(z,t)` between two dated surfaces; `Phi` from the national annual balance per 100 m elevation band, lowering the ice from snow-off (1 May + 153 d x Bw/|Bs|) to 30 Sep (uniform; the stake curve is front-loaded, a known weak point). Extrapolate beyond the last anchor with the last segment's cell scale. Add the bed floor (section 4). Three anchors beat the site's two-epoch recipe in leave-one-granule-out cross-validation.
 Estimate uncertainty per year and cell (anchor error, interpolation, extrapolation); say it was calibrated on the same shots.

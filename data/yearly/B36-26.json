@@ -1,7 +1,7 @@
 {
  "glacier": "B36-26",
  "name": "Grosser Aletschgletscher",
- "built": "2026-10-30",
+ "built": "2026-11-02",
  "years": [
   2016,
   2017,
@@ -29,55 +29,56 @@
   "2026": "estimate"
  },
  "tier": {
-  "2016": "extrapolated backwards from the 2017 to 2021 segment (no ICESat-2 summer shots, not checked)",
-  "2017": "measured: swissALTI3D 2019 edition, survey 2017 (composite 17 Jul to 21 Sep 2017 on the tongue); placed at 30 Sep 2017",
-  "2018": "interpolated between 2017 and the 2021 lidar (GLAMOS ice-lowering shape); not checked (no ICESat-2 summer shots)",
-  "2019": "interpolated between 2017 and the 2021 lidar (GLAMOS ice-lowering shape); not checked (no ICESat-2 summer shots)",
-  "2020": "interpolated between 2017 and the 2021 lidar; checked against ICESat-2 (held out by track, 164 shots): rmse 2.0 m",
-  "2021": "measured: swissSURFACE3D lidar (tile read: flights 2021-08-21, 09-24 and 10-08), placed at 24 Sep 2021; ICESat-2 (66 shots): rmse 1.4 m",
-  "2022": "interpolated between the 2021 lidar and 2023; not checked (no ICESat-2 summer shots)",
-  "2023": "measured: newest swissALTI3D edition (aerial images 2023; flight day not read, fitted to mid August); ICESat-2 (196 shots): rmse 0.8 m",
-  "2024": "extrapolated from the 2021 to 2023 rate; checked against ICESat-2 (251 shots): rmse 2.9 m",
-  "2025": "extrapolated from the 2021 to 2023 rate; not checked (no ICESat-2 summer shots yet)",
-  "2026": "PROVISIONAL estimate: extrapolated from the 2021 to 2023 rate with the 2026 balance READ FROM THE GLAMOS FIGURE (glacier-wide -3.04 m w.e., winter +0.75, regressed to 100 m bands) and its melt timing; one ICESat-2 pass of 2026-07-07 (217 shots) agrees within a mean 1.1 m (model lower), NMAD 3.6 m; end-of-season amplitude unchecked"
+  "2016": "extrapolated back from the 2017 survey at the cell scale of the first segment; not checked (no summer ICESat-2 shots)",
+  "2017": "measured: swissALTI3D 2019 edition (survey 2017), placed at 2017-09-21; not checked (no summer ICESat-2 shots)",
+  "2018": "interpolated between the 2017 survey, the lidar (60 % of the ice cells) and the 2023 survey with the GLAMOS annual balance of Grosser Aletsch per 100 m elevation band; not checked (no summer ICESat-2 shots); stakes: 1 stake-years, model change = 0.89 of the reading (computed)",
+  "2019": "interpolated between the 2017 survey, the lidar (60 % of the ice cells) and the 2023 survey with the GLAMOS annual balance of Grosser Aletsch per 100 m elevation band; not checked (no summer ICESat-2 shots); stakes: 1 stake-years, model change = 0.57 of the reading (computed)",
+  "2020": "interpolated between the 2017 survey, the lidar (60 % of the ice cells) and the 2023 survey with the GLAMOS annual balance of Grosser Aletsch per 100 m elevation band; checked against ICESat-2: 334 shots, rmse 1.64 m (leave-one-granule-out); stakes: 4 stake-years, model change = 0.57 of the reading (computed)",
+  "2021": "measured: swissSURFACE3D lidar (60 % of the ice cells, computed; the flight days are in the lidar anchor); checked against ICESat-2: 283 shots, rmse 1.71 m (leave-one-granule-out); stakes: 3 stake-years, model change = 0.59 of the reading (computed)",
+  "2022": "interpolated between the 2017 survey, the lidar (60 % of the ice cells) and the 2023 survey with the GLAMOS annual balance of Grosser Aletsch per 100 m elevation band; checked against ICESat-2: 121 shots, rmse 1.84 m (leave-one-granule-out); stakes: 4 stake-years, model change = 0.64 of the reading (computed)",
+  "2023": "measured: newest swissALTI3D edition (2024 edition, aerial images 2023), placed at 2023-08-10; checked against ICESat-2: 373 shots, rmse 1.38 m (leave-one-granule-out); stakes: 4 stake-years, model change = 0.77 of the reading (computed)",
+  "2024": "extrapolated beyond the 2023 survey at the cell scale of the last segment, from the smoothed difference of the surveys; checked against ICESat-2: 718 shots, rmse 2.40 m (leave-one-granule-out); stakes: 4 stake-years, model change = 0.70 of the reading (computed)",
+  "2025": "extrapolated beyond the 2023 survey at the cell scale of the last segment, from the smoothed difference of the surveys; not checked (no summer ICESat-2 shots); stakes: 4 stake-years, model change = 0.73 of the reading (computed)",
+  "2026": "estimate: extrapolated like 2024-2025, with the 2026 balance estimated from the GLAMOS figure for Aletsch: provisional; checked against ICESat-2: 443 shots, rmse 3.10 m (leave-one-granule-out)"
  },
- "summary": "Ice surface of each year 2016 to 2026 on the 3D strip: three measured surfaces (2017, 2021, 2023) and the GLAMOS annual balance per elevation band for the years between and beyond. A model, not a measurement, except in the three anchor years.",
+ "summary": "Ice surface of each year 2016 to 2026 on the 3D strip: two swisstopo elevation models (2017, 2023), swisstopo lidar (25 tiles of 2021) and the GLAMOS annual balance of Grosser Aletsch per elevation band for the years between and beyond. A model, not a measurement, except where a survey lies.",
  "anchors": [
   {
    "id": "A1",
    "role": "constraint",
    "source": "swissALTI3D 2019 edition (swisstopo)",
-   "survey": "aerial images 2017; on the tongue a composite of strips 2017-07-17, 2017-08-07, 2017-09-08 and 2017-09-21 (read from the RAGMAC readme and the swisstopo image-strip layer); which strip fed which cell is not published",
-   "placed_at": "30 Sep 2017 (offset fitted to ICESat-2: 0 days)"
+   "survey": "Image strips over the strip in 2017 (swisstopo layer ch.swisstopo.lubis-bildstreifen): 2017-07-17 CRYOSPHERE MONITORING (40 % of ice cells, computed), 2017-08-07 CRYOSPHERE MONITORING (40 % of ice cells, computed), 2017-08-29 SWISSIMAGE (15 % of ice cells, computed), 2017-09-08 SWISSIMAGE (60 % of ice cells, computed), 2017-09-21 SWISSIMAGE (99 % of ice cells, computed). Which strip fed which cell is not published; the edition is a composite of the strips that cover each cell, and the model puts all of it on one day.",
+   "placed_at": "2017-09-21 (a day a strip was flown; the pair of flown strip days with the lowest ICESat-2 rmse (2.23 m; leave-one-granule-out 2.23 m); days within 0.05 m of it cannot be separated by the shots and the tie goes to the GLAMOS date of the edition if it is one of them, else to the strip covering most ice; chosen on the same shots as the check, so not independent)"
   },
   {
    "id": "L",
    "role": "constraint",
    "source": "swissSURFACE3D raster (swisstopo lidar DSM, 0.5 m, read at 20 m)",
-   "survey": "flights 2021-08-21, 2021-09-23/24 and 2021-10-08/09 (GPS times of the point clouds of 49 tiles read); each tile placed at its point-weighted mean flight day; tiles whose days were not read: 30 Sep 2021 minus 6 days (assumption); tiles flown 2022 are not used",
-   "placed_at": "per tile"
+   "survey": "GPS times of the point clouds of 26 tiles read (tiles with ice). 10 tiles hold at least 85 % of their points on a single day (2021-09-24 on 9, 2021-08-21 on 1); 15 tiles were flown on several days within 60 days and take the point-weighted mean day (uncertain by up to about a month); 1 tiles flown on days further apart (or not read) are not used. The lidar sits on 60 % of the ice cells (computed).",
+   "placed_at": "per tile (see above)"
   },
   {
    "id": "A2",
    "role": "constraint",
    "source": "swissALTI3D newest edition (2024 edition; swisstopo)",
-   "survey": "built from aerial images 2023: strips 2023-08-10 (CRYOSPHERE MONITORING, 70 % of the tongue) and 2023-09-06 (SWISSIMAGE, whole tongue); ICESat-2 prefers 10 August where the first exists",
-   "placed_at": "30 Sep 2023 minus 45 days (fitted to ICESat-2)"
+   "survey": "built from aerial images 2023: strips over the ice 2023-08-10 CRYOSPHERE MONITORING (32 % of ice cells, computed), 2023-08-10 DISASTER MAPPING (7 % of ice cells, computed), 2023-09-05 SWISSIMAGE (30 % of ice cells, computed), 2023-09-06 SWISSIMAGE (100 % of ice cells, computed). Which strip fed which cell is not published.",
+   "placed_at": "2023-08-10 (a day a strip was flown; the pair of flown strip days with the lowest ICESat-2 rmse (2.23 m; leave-one-granule-out 2.23 m); days within 0.05 m of it cannot be separated by the shots and the tie goes to the GLAMOS date of the edition if it is one of them, else to the strip covering most ice; chosen on the same shots as the check, so not independent)"
   }
  ],
- "shape": "Between two anchors the surface follows the GLAMOS ice-surface lowering shape: annual balance per 100 m elevation band (release 2025, non-commercial), lowering from snow-off (1 May plus Bw/|Bs| x 153 d, melt uniform from 1 May: ASSUMPTION) to 30 September. Beyond the last anchor (2024 to 2026) the cell scale of the last segment is kept (extrapolation), applied to the measured 2023 surface with its own detail: the change comes from the difference of the two anchor surfaces smoothed over about 100 m (median of 5 cells of 20 m, then a light Gaussian), because the raw cell by cell difference carries the noise and drifted crevasse detail of two surveys of different vintage and made 2024 to 2026 rough (changed 2026-10-30). Every cell is kept between its two anchors, or, outside them, within 2.5 times the lowering of its elevation band (in m of ice) of the nearest anchor, so that cells near 3,250 m, where the band lowering is about zero, cannot explode (changed 2026-10-30). The tip lake of 2024, 2025 and 2026 is flat at the level set earlier (computed: 25th percentile of the modelled surface under the water mask; the real level is not known), with a raised rim.",
+ "shape": "Between two anchors the surface follows the lowering of the ice by elevation band: from snow-off (1 May plus Bw/|Bs| x 153 d, melt uniform from 1 May: ASSUMPTION) to 30 September. The band balance of each year is the GLAMOS annual balance of Grosser Aletschgletscher itself (release 2025, 100 m elevation bins from 1634 m, which cover the whole tongue; non-commercial). It only sets HOW the change between two surveys is spread over the years and elevations; the SIZE comes from the surveys. 2026 is not in GLAMOS release 2025: its glacier-wide balance is READ FROM THE GLAMOS FIGURE (winter +751.6 mm w.e., annual -3038.4 mm w.e., about +-100 mm w.e.) and spread to the 100 m bands with the figure's melt timing. Other band balances were tried on the same ICESat-2 shots (rmse over all shots, computed): the borrowed line 2.06 m (covers only 73 % of the ice cells: not eligible); Corbassiere 2.08 m (covers only 74 % of the ice cells: not eligible); Rhone 2.09 m; Findel 2.20 m (covers only 29 % of the ice cells: not eligible); Grosser Aletsch (own bands) 2.23 m; the glacier's own measured balance is used wherever one exists. Beyond the last anchor (2024 to 2026) the cell scale of the last segment is kept, applied to the measured 2023 surface with its own detail: the change comes from the difference of the anchor surfaces smoothed over about 100 m (median of 5 cells of 20 m, then a light Gaussian), because the raw cell by cell difference carries the noise and crevasse detail of surveys of different vintage and made 2024 to 2026 rough. The ground outside the 2023 ice outline is held at its 2023 height and no fade of the lowering towards the outline is applied (the 80 m fade is Gorner only, owner 2026-11-01), so a step grows along the outline: median lowering of the ice cells next to it 2.6 m in 2024, 4.8 m in 2025, 7.8 m in 2026 (computed). Every cell stays between its two anchors, or, outside them, within 2.5 times the lowering of its band (in m of ice) of the nearest anchor. The tip lake of 2024, 2025 and 2026 is flat at the level set earlier (an assumption: the real level is not known), with a raised rim.",
  "validation": {
-  "icesat2": "ICESat-2 ATL06, 677 shots in 7 granules, leave-one-granule-out: rmse 2.08 m over all years (error = model minus observed). Per year: 2020 1.98 m (164 shots), 2021 1.40 m, 2023 0.76 m, 2024 2.86 m. 2016, 2018, 2019, 2022 and 2025 have no summer ICESat-2 shots: not checked. Fitted offsets d1, d2 and the 2024 check use the same shots.",
-  "extended_area": "The model was built and checked on the lowest 8 km of the tongue. The rest of the strip (19,538 of 49,849 modelled ice cells, computed) uses the same rules but has no ICESat-2 check; above 2,000 m swisstopo derives heights from stereo images (accuracy \"1 to 3 m\", swisstopo page).",
-  "not_checked": "The split of the loss between years is an assumption: the model spreads each year's melt evenly from 1 May (snow-off) to 30 September. ICESat-2 has too few and too noisy shots to tell which of several plausible splits is right, so its score checks the surface in the years that have shots, not each year's step."
+  "icesat2": "ICESat-2 ATL06 v007, 2272 shots on 2023 ice, July to October, slope under 20 degrees, quality 0, h_li_sigma under 1 m, not more than 10 m above the higher of the two surveys and inside the physical envelope (not below 2 x (A2 - A1) - 10 m from the A1 surface), in 9 granules: rmse 2.23 m over all years, bias 0.58 m, leave-one-granule-out (for each granule the A1 and A2 days are chosen on the other granules and the held-out granule is scored); with the days used (2017-09-21 and 2023-08-10) rmse 2.23 m (error = model minus shot). Per year (leave-one-granule-out): 2020 1.64 m (334 shots); 2021 1.71 m (283 shots); 2022 1.84 m (121 shots); 2023 1.38 m (373 shots); 2024 2.40 m (718 shots); 2026 3.10 m (443 shots). Years without summer shots are not checked.",
+  "datum": "Heights are corrected with a plane fitted on 10163 shots on stable ground outside the ice (NMAD 1.18 m).",
+  "not_checked": "The split of the loss between years is an assumption (even melt from snow-off to 30 September). ICESat-2 scores the surface in the years with shots, not each year step. ASTER AST14DEM scenes (NASA LP DAAC, July to October 2016 to 2026) were checked against the model: scene used if at least 300 rock and 200 ice cells and a rock NMAD of at most 15 m, offset from stable rock; 10 of 82 scenes passed (years 2016, 2017, 2019, 2020, 2021, 2022). ASTER is rough, so only differences of a few metres per year mean something. GLAMOS stake readings (25 stake-years, annual files, type 1, on modelled ice inside the 2023 outline) are a check of the year-to-year split: the modelled surface change is 0.68 of the stake reading on average (RMSE 1.05 m), as expected because stakes move with the ice.",
+  "extended_area": "Cells farther than 1 km from every ICESat-2 shot used for the check (8,148 of 49,849 modelled ice cells, computed) have no check; above 2,000 m swisstopo derives heights from stereo images (accuracy \"1 to 3 m\", swisstopo page)."
  },
  "bed": "Ice surfaces are not allowed below the bedrock: swissBEDROCK (swisstopo, 10 m; under glaciers swissALTI3D minus a modelled ice thickness, GLAMOS 2020) is the floor.",
  "not_used": "Airborne DEMs of 2009, 2011 and 2017 (RAGMAC set; readmes say internal use only). The 2011 DEM is a composite with 2009 flights and DHM25 and sits above the ASTER thinning curve on the ice. Years before 2016 are not modelled: older pictures use the 2016 surface.",
  "licences": "swisstopo open government data (use, processing and commercial use allowed, source \"Federal Office of Topography swisstopo\"; terms page read 2026-10-30). GLAMOS balances: non-commercial (file headers). ICESat-2: used for checking only.",
- "caveat_2026": "PROVISIONAL estimate: extrapolated from the 2021 to 2023 rate with the 2026 balance READ FROM THE GLAMOS FIGURE (glacier-wide -3.04 m w.e., winter +0.75, regressed to 100 m bands) and its melt timing; one ICESat-2 pass of 2026-07-07 (217 shots) agrees within a mean 1.1 m (model lower), NMAD 3.6 m; end-of-season amplitude unchecked",
+ "caveat_2026": "estimate: extrapolated like 2024-2025, with the 2026 balance estimated from the GLAMOS figure for Aletsch: provisional; checked against ICESat-2: 443 shots, rmse 3.10 m (leave-one-granule-out)",
  "page": {
   "short": "Grosser Aletsch",
-  "mapcap": "<b>The tongue</b> = the part of Grosser Aletsch within 1500 m of the centreline, from the 1984 tip to 8 km above the 2016 tip. About 10.9 km² of ice (computed, SGI2016 outline, 20 m cells). The surfaces cover the whole 3D strip (outlined in black); the model was built and checked on the lowest 8 km of the tongue (red dashed). The rest of the strip, 39 % of the modelled ice cells (19,538 of 49,849, computed), follows the same rules but has no ICESat-2 check. Pictures of years before 2016 use the 2016 surface.",
+  "mapcap": "<b>The model area</b> = the 3D strip (outlined in black), as set in the walkthrough. Blue: ice inside the 2023 outline, about 21.1 km² (computed, 20 m cells). Red dashed: every cell modelled as ice, including ground that was ice at the 2017 survey, about 23.1 km² (computed). The 2,272 ICESat-2 shots used for the checks are shown in the 3D viewer (last section). The ICESat-2 check covers the cells within 1 km of a shot; the rest, 16 % of the modelled ice cells (8,148 of 49,849, computed), follows the same rules but has no check. Pictures of years before 2016 use the 2016 surface (2016 is itself extrapolated back from the 2017 survey).",
   "map": {
    "whole": [
     [
@@ -6522,160 +6523,169 @@
   },
   "sig": {
    "2016": [
-    1.5,
-    2.3
+    1.7,
+    2.1
    ],
    "2017": [
-    0.8,
-    null
+    1.4,
+    1.4
    ],
    "2018": [
-    1.3,
-    2
+    1.4,
+    1.7
    ],
    "2019": [
-    1.5,
-    2.2
+    1.4,
+    1.7
    ],
    "2020": [
-    1.5,
-    2
+    1.6,
+    1.7
    ],
    "2021": [
-    1.4,
-    null
+    1.7,
+    1.7
    ],
    "2022": [
-    1.1,
-    1.5
+    1.8,
+    1.8
    ],
    "2023": [
-    0.8,
-    null
+    1.4,
+    1.4
    ],
    "2024": [
-    1.9,
-    2.9
+    2.4,
+    2.4
    ],
    "2025": [
-    3.6,
-    5.7
+    2.4,
+    3.7
    ],
    "2026": null
   },
   "icesat": {
    "2020": [
-    164,
-    "2.0"
+    334,
+    "1.64"
    ],
    "2021": [
-    66,
-    "1.4"
+    283,
+    "1.71"
+   ],
+   "2022": [
+    121,
+    "1.84"
    ],
    "2023": [
-    196,
-    "0.8"
+    373,
+    "1.38"
    ],
    "2024": [
-    251,
-    "2.9"
+    718,
+    "2.40"
    ],
    "2026": [
-    217,
-    "1.1 mean, NMAD 3.6"
+    443,
+    "3.10"
    ]
   },
   "aster": {
-   "2016": 2,
-   "2017": 3,
-   "2018": 1,
+   "2016": 3,
+   "2017": 1,
    "2019": 2,
    "2020": 2,
-   "2021": 1
+   "2021": 1,
+   "2022": 1
   },
   "asterd": {
    "2016": [
-    -2.9,
-    2,
-    null
+    -14.8,
+    3,
+    9.1
    ],
-   "2018": [
-    -1.2,
+   "2017": [
+    -3.5,
     1,
     null
    ],
    "2019": [
-    -1.7,
+    4.1,
     2,
-    2.6
+    3.1
    ],
    "2020": [
-    -3.2,
+    5.9,
     2,
-    null
+    2.4
    ],
    "2021": [
-    2.5,
+    5.4,
+    1,
+    null
+   ],
+   "2022": [
+    0.6,
     1,
     null
    ]
   },
   "staker": {
    "2018": [
-    0.58,
+    0.89,
     1
    ],
    "2019": [
-    0.7,
+    0.57,
     1
    ],
    "2020": [
     0.57,
-    3
+    4
    ],
    "2021": [
-    0.53,
-    2
-   ],
-   "2022": [
-    0.75,
+    0.59,
     3
    ],
+   "2022": [
+    0.64,
+    4
+   ],
    "2023": [
-    0.71,
-    2
+    0.77,
+    4
    ],
    "2024": [
-    0.74,
-    2
+    0.7,
+    4
    ],
    "2025": [
-    0.7,
-    2
+    0.73,
+    4
    ]
   },
   "stake": {
    "2018": 1,
    "2019": 1,
-   "2020": 3,
-   "2021": 2,
-   "2022": 3,
-   "2023": 2,
-   "2024": 2,
-   "2025": 2
+   "2020": 4,
+   "2021": 3,
+   "2022": 4,
+   "2023": 4,
+   "2024": 4,
+   "2025": 4
   },
   "anchors": [
    {
     "year": 2017,
-    "text": "swissALTI3D 2019 ed.\nsurvey 17 Jul–21 Sep 2017"
+    "text": "swissALTI3D 2019 ed.\nsurvey 2017, placed 21 Sep"
    },
    {
     "year": 2021,
-    "text": "swissSURFACE3D lidar\nflights 21 Aug–9 Oct 2021, per tile"
+    "text": "lidar 24 Sep\n10 tiles"
    },
    {
     "year": 2023,
-    "text": "swissALTI3D 2024 ed.\nimages 10 Aug and 6 Sep 2023"
+    "text": "swissALTI3D\n2024 ed., 10 Aug"
    }
   ],
   "segments": [
@@ -6686,11 +6696,6 @@
    ],
    [
     2017,
-    2021,
-    "ice"
-   ],
-   [
-    2021,
     2023,
     "ice"
    ],
@@ -6705,17 +6710,17 @@
    "sub": "per 100 m band, melt timing",
    "est2026": "read from figure"
   },
-  "icesatNote": "Also used to fit the 2023 anchor day and calibrate σ, so not an independent check.",
-  "asterNote": "For scale: each scene has a stable-terrain NMAD of 6 to 13 m, and ASTER still reads +3.5 to +5.2 m on ice next to the anchor date, so differences of a few metres are within ASTER's own scatter. Check only, not in the fit.",
-  "stakeNote": "Over all 16 stake-years the ratio is 0.59 (RMSE 4.22 m). Check only, not in the fit.",
+  "icesatNote": "Also used to choose the survey days of both anchors, so not an independent check; the rmse is leave-one-granule-out (the days are chosen on the other granules).",
+  "asterNote": "For scale: each used scene has a stable-terrain NMAD of 6.6 to 14.3 m (computed) (no used scene lies within 25 days of the 2023 anchor), so differences of a few metres are within ASTER's own scatter. rms = spread of the scene values of the year. Check only, not in the fit.",
+  "stakeNote": "Over all 25 stake-years the modelled surface change is 0.68 of the stake reading (RMSE 1.05 m). Stakes read ablation of moving ice, so the model is expected to show a fraction. By year the ratio is 2018 0.89, 2019 0.57, 2020 0.57, 2021 0.59, 2022 0.64, 2023 0.77, 2024 0.70, 2025 0.73 (computed). Check only, not in the fit.",
   "notes": {
-   "uncertainty": "Median over the tongue ice, red whisker the 90th percentile. Calibrated on the same ICESat-2 shots. 2026 has none yet: it is provisional and its balance was read from the GLAMOS figure.",
-   "independent": "<b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out). <b>ASTER</b> and <b>stakes</b> are checks only. Click a year for their numbers.",
-   "sharing": "<b>Solid</b>: the GLAMOS balance sets how the loss between two measured surfaces falls into each year. <b>Dashed</b>: extrapolated at the last segment's rate (2026 also with its own balance). <b>Not used</b>: measured years."
+   "uncertainty": "Median over the ice of 2023, red whisker the 90th percentile (computed). The two swisstopo surveys carry 1.38 m (rmse of the 373 shots of 2023; swisstopo quotes 0.5 m below 2000 m and 1 to 3 m above, as quoted by Bannwart et al., so the true value may be larger on a tongue this high), the lidar of 2021 1.43 m (rmse of 62 shots within 45 days of the lidar day). Between the surveys and beyond them the error grows with the size of the change (factors 0.12 and 0.20), calibrated on the same ICESat-2 shots, so it is not independent. Where a year has shots it is not below their rmse. Years without shots (2016, 2017, 2018, 2019, 2025) rest on the formula alone. 2026 has no value on the chart: it is an estimate (its balance is estimated from a figure for Aletsch), and its map in the viewer adds 25 % of its increment (median 3.6 m).",
+   "independent": "<b>ICESat-2</b> also chose the survey days of both anchors and calibrated σ, so it is not independent (rmse is leave-one-granule-out). <b>ASTER</b> scenes are checks only (10 of 82 scenes usable; usable years: 2016, 2017, 2019, 2020, 2021, 2022). <b>GLAMOS stakes</b> (25 stake-years on modelled ice) are checks only. Click a year for the numbers.",
+   "sharing": "<b>Solid</b>: the GLAMOS annual balance of Grosser Aletsch per elevation band sets how the loss between two surveys falls into each year. <b>Dashed</b>: extrapolated beyond the last survey (2026 with an estimated balance); the years before the first survey are extrapolated back. <b>Not used</b>: measured years."
   },
   "areaTitle": "the tongue of Grosser Aletsch",
-  "icesatSub": "also tunes d2 and σ (not independent)",
-  "viewerV": "20261030c",
+  "icesatSub": "also fits both anchor days (leave-one-granule-out)",
+  "viewerV": "20261102",
   "viewerText": "The yearly surfaces in 3D with a year slider. Switch on <b>ICESat-2 shots</b> (what the model was checked against) and <b>GLAMOS stakes</b> (orange: stake, purple: automatic camera) and hover a record for its values. About 17 MB, loaded when you press the button.",
   "bed": {
    "lead": "Three checks on Grosser Aletsch (all computed here, not source figures). The bed is the rock under the ice. \"Radar bed\" is the radar's own bed elevation (the survey surface minus the measured thickness, from the GLAMOS release); \"model bed\" is swissBEDROCK, which under glaciers is swissALTI3D minus a modelled GLAMOS ice thickness.",

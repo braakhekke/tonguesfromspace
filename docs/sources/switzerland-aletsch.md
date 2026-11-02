@@ -155,3 +155,12 @@ Aletsch is SGI B36-26 in every release. Dates are the releases' own wording; the
 | SGI 2016 (r2020) | "referring to the years 2013-2018" | `year_acq` 2017, `area_km2` 78.48888 | LV95 |
 
 No SGI release has an Aletsch outline for 1984, 1995, 2004 or 2011 specifically. 1973 and 2010 bracket those years; the back-cast editor (experiments/aletsch-backcast) draws 1931, 1973 and 2010 as reference layers. Exact flight dates of 1973 and 2010 are not given in the files read.
+
+### Yearly surfaces, harmonised run of 2026-11-02 (`experiments/swiss-yearly-dem/`, `GLACIER=B36-26`)
+- Survey days (flown strip days only, chosen on ICESat-2; `fit.json`): A1 2017-09-21, A2 2023-08-10; lowest pair rmse 2.225 m, leave-one-granule-out 2.225 m; tie within 0.05 m: 2017-09-08 / 2023-08-10; 2017-09-21 / 2023-08-10. Not independent of the check.
+- ICESat-2 (leave-one-granule-out): 2272 shots in 9 granules, rmse 2.23 m, bias 0.58 m; with the used days 2.23 m. Per year: 2020 1.64 m (334); 2021 1.71 m (283); 2022 1.84 m (121); 2023 1.38 m (373); 2024 2.40 m (718); 2026 3.10 m (443).
+- Uncertainty (`experiments/yearly_uncertainty.py`): sigma_A 1.38 m (rmse of the 373 shots of 2023), sigma_L 1.43 m (rmse of 62 shots within 45 days of the lidar day), k_i 0.119, k_e 0.195; median by year: 2016 1.7, 2017 1.4, 2018 1.4, 2019 1.4, 2020 1.6, 2021 1.7, 2022 1.8, 2023 1.4, 2024 2.4, 2025 2.4; 2026 viewer map median 3.6 m.
+- Band balance (`donors.json`, rule: lowest ICESat-2 rmse among the candidates whose bins cover at least 98 % of the ice cells; own bands always win): own 2.23 m, covers 100 %; line 2.06 m, covers 73 %; B83-03 2.08 m, covers 74 %; B56-03 2.20 m, covers 29 %; B43-03 2.09 m, covers 99 %; chosen: own.
+- ASTER AST14DEM: 10 of 82 scenes passed the gate (rock NMAD at most 15 m, 300 rock and 200 ice cells); years 2016, 2017, 2019, 2020, 2021, 2022; terms of use NOT read.
+- GLAMOS stakes (`stakes_check.py`): 25 stake-years, modelled change = 0.68 of the reading, RMSE 1.05 m.
+- Margin fade: none. Earlier numbers in this ledger (uncertainty, ICESat-2 per year, survey days) are superseded by this section.

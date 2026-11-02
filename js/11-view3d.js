@@ -108,25 +108,29 @@ precision mediump float;
 #define HP mediump
 #endif
 uniform HP vec2 uCutA; uniform HP vec3 uCutU, uCutN; varying HP vec2 vXZ;      /* the cut: the ground on the camera side of the section line (between A and B) is not drawn */
-uniform sampler2D uMask; uniform vec2 uSz; uniform float uBuild; uniform sampler2D uTex; uniform sampler2D uTex2; uniform vec3 uSplit; uniform float uHz; varying vec2 vUV; varying vec3 vN; varying float vD, vH;
+uniform sampler2D uMask; uniform vec2 uSz; uniform float uBuild, uMesh; uniform vec2 uGrid; uniform sampler2D uTex; uniform sampler2D uTex2; uniform vec3 uSplit; uniform float uHz; varying vec2 vUV; varying vec3 vN; varying float vD, vH;
 void main(){
   if (uCutN.z > 0.5) {      /* uCutN: the side (x, y) and how deep the cut reaches towards the camera (z, metres; 0 = no cut) */ HP vec2 cd = vXZ - uCutA; if (dot(cd, uCutU.xy) >= 0.0 && dot(cd, uCutU.xy) <= uCutU.z && dot(cd, uCutN.xy) > 0.0 && dot(cd, uCutN.xy) < uCutN.z) discard; }
   float pos = uHz > 0.5 ? uSplit.z - gl_FragCoord.y : gl_FragCoord.x, at = uSplit.x * (uHz > 0.5 ? uSplit.z : uSplit.y); bool right = uSplit.x >= 0.0 && pos > at;      /* stacked: first year on top, second below; else first on the left */ vec3 c = right ? texture2D(uTex2, vUV).rgb : texture2D(uTex, vUV).rgb; float lam = max(dot(normalize(vN), normalize(vec3(0.41, 0.57, 0.71))), 0.0);
   c *= clamp(0.72 + 0.6 * (lam - 0.57), 0.45, 1.15);      /* light from the south-east, like the satellite's morning sun, only a light touch because the picture has its own shadows */
   c = mix(vec3(0.043, 0.071, 0.125), c, smoothstep(1.0, 0.8, vD));
-  if (uBuild < 0.999 && texture2D(uMask, vUV).r > 0.5) {      /* the tongue rebuilt: ahead of the front only the edges of the rough triangles (see-through, no fill, no picture); behind it the picture fills in, dissolving through the gaps, as the surface smooths out */
-    float ahead = clamp((0.9 - vUV.y) / 0.9, 0.0, 1.0) - (uBuild * 1.25 - 0.1), lines = 1.0 - smoothstep(0.0, 0.3, -ahead);
-    vec2 gp = vUV * vec2(64.0, 144.0), f = fract(gp);
-#ifdef GL_OES_standard_derivatives
-    float w = max(fwidth(gp.x), fwidth(gp.y));
-#else
-    float w = 0.05;
-#endif
-    float tri = 1.0 - smoothstep(0.0, 1.0 * w + 0.002, min(min(min(f.x, 1.0 - f.x), min(f.y, 1.0 - f.y)), abs(f.x - f.y) * 0.7071));
-    float rnd = fract(sin(dot(gl_FragCoord.xy, vec2(12.9898, 78.233))) * 43758.5453);
-    if (tri < 0.2 && rnd > 1.0 - lines) discard;
-    c = mix(c, vec3(0.8, 0.84, 0.88), step(0.2, tri) * lines);
+  if (uBuild < 0.999 && texture2D(uMask, vUV).r > 0.5) {      /* the tongue rebuilt: the surface ahead of the front is rough and smooths out behind it (see the vertex shader); a soft light edge marks the front */
+    float ahead = clamp((0.9 - vUV.y) / 0.9, 0.0, 1.0) - (uBuild * 1.25 - 0.1);
+    /* ahead of the front (the part of the tongue not rolled out yet, from the start of the flight on) the glacier is not shown: bare, shaded ground instead; the front rolls out from the tip up the glacier with the light flare below.
+       The triangle edges and the see-through hatch that were drawn here before are gone (2026-11-02). */
+    float hid = smoothstep(-0.02, 0.1, ahead);
+    c = mix(c, vec3(0.30, 0.27, 0.24) * clamp(0.72 + 0.6 * (lam - 0.57), 0.45, 1.15), hid * 0.94);
     c += vec3(1.0) * (1.0 - smoothstep(0.0, 0.03, abs(ahead))) * 0.2;      /* a soft edge at the front */
+  }
+  if (uMesh > 0.001) {      /* the mesh of the flight from the map into 3D (the style of the plane tool of the back-cast: light blue lines, 55 % opaque, over a dimmed surface): the edges of every fourth cell and their diagonals, thinner and fainter where the cells are too small to see */
+    vec2 gm = vUV * uGrid * 0.25, fm = fract(gm);
+#ifdef GL_OES_standard_derivatives
+    float wm = max(fwidth(gm.x), fwidth(gm.y));
+#else
+    float wm = 0.05;
+#endif
+    float em = min(min(min(fm.x, 1.0 - fm.x), min(fm.y, 1.0 - fm.y)), abs(fm.x + fm.y - 1.0) * 0.7071), ln = (1.0 - smoothstep(0.0, wm * 1.2 + 0.002, em)) * (1.0 - smoothstep(0.25, 0.5, wm));
+    c = mix(c, c * 0.45, uMesh); c = mix(c, vec3(0.624, 0.816, 1.0), ln * 0.55 * uMesh);
   }
   if (uSplit.x >= 0.0 && abs(pos - at) < 1.5) c = vec3(1.0);      /* the line between the two years */
   gl_FragColor = vec4(c, 1.0); }`;
@@ -210,7 +214,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
   const maskTex = gl.createTexture(); gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, 1, 1, 0, gl.RGBA, gl.UNSIGNED_BYTE, new Uint8Array([0, 0, 0, 255]));      // where the tongue is (unit 2); black until setMask
   gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE); gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
   gl.uniform1i(gl.getUniformLocation(pr, 'uMask'), 2); gl.activeTexture(gl.TEXTURE0);
-  const uB = gl.getUniformLocation(pr, 'uBuild'), uBV = gl.getUniformLocation(pr, 'uBuildV'); let build = 1;      // build: 1 = the finished tongue, less = the tongue being rebuilt
+  const uB = gl.getUniformLocation(pr, 'uBuild'), uBV = gl.getUniformLocation(pr, 'uBuildV'), uMeshL = gl.getUniformLocation(pr, 'uMesh'), uGridL = gl.getUniformLocation(pr, 'uGrid'); let build = 1, mesh = 0;      // mesh: 0..1, the share of the mesh look (the flight from the map)      // build: 1 = the finished tongue, less = the tongue being rebuilt
   const uSplit = gl.getUniformLocation(pr, 'uSplit'), uHz = gl.getUniformLocation(pr, 'uHz'), uSplitV = gl.getUniformLocation(pr, 'uSplitV'), uHzV = gl.getUniformLocation(pr, 'uHzV'); let split = -1, hz = 0;      // share of the screen width where the second year starts; -1 = one year only
   const uM = gl.getUniformLocation(pr, 'uM'), uX = gl.getUniformLocation(pr, 'uX');
   const uCutA = gl.getUniformLocation(pr, 'uCutA'), uCutU = gl.getUniformLocation(pr, 'uCutU'), uCutN = gl.getUniformLocation(pr, 'uCutN'); let cut = null, cutKey = '', cutLive = false;      // cut: {ax, az, ux, uz, L}, the section line; the ground in front of it (the camera's side) is left out of the screen picture, never of a download
@@ -264,7 +268,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
       gl.drawArrays(gl.TRIANGLES, 0, 3);
       gl.disableVertexAttribArray(7); gl.enable(gl.DEPTH_TEST); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.useProgram(pr);
     }
-    gl.uniformMatrix4fv(uM, false, viewM(w, h, view)); gl.uniform1f(uX, cam.exag); gl.uniform1f(uB, build); gl.uniform1f(uBV, build); gl.uniform3f(uSplit, split, w, h); gl.uniform1f(uHz, hz); gl.uniform3f(uSplitV, split, w, h); gl.uniform1f(uHzV, hz);
+    gl.uniformMatrix4fv(uM, false, viewM(w, h, view)); gl.uniform1f(uX, cam.exag); gl.uniform1f(uB, build); gl.uniform1f(uBV, build); gl.uniform1f(uMeshL, mesh); gl.uniform2f(uGridL, nB, nA); gl.uniform3f(uSplit, split, w, h); gl.uniform1f(uHz, hz); gl.uniform3f(uSplitV, split, w, h); gl.uniform1f(uHzV, hz);
     if (cut && cutLive) {
       const {eye} = rig(); let nx = -cut.uz, nz = cut.ux; if ((eye[0] - (cut.ax + cut.ux * cut.L / 2)) * nx + (eye[2] - (cut.az + cut.uz * cut.L / 2)) * nz < 0) { nx = -nx; nz = -nz; }      // the camera's side: seen from the other side the cut turns round, so the wall is never seen from behind
       gl.uniform2f(uCutA, cut.ax, cut.az); gl.uniform3f(uCutU, cut.ux, cut.uz, cut.L); gl.uniform3f(uCutN, nx, nz, Math.max(300, cut.L * 0.5));
@@ -370,7 +374,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
     }
     const h1 = cur; fill(h1, hb); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw();
   };
-  return {setCut: c => { const k = c ? [c.ax, c.az, c.ux, c.uz, c.L].map(v => v.toFixed(2)).join() : ''; if (k === cutKey) return; cutKey = k; cut = c; redraw(); }, setSpace, setSocket, clearSocket: () => { socketArgs = null; setHeights(cur); }, setBuild: v => { build = v; redraw(); }, setMask: c => { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.activeTexture(gl.TEXTURE0); redraw(); }, poseOf: c => { const keep = {...cam}; Object.assign(cam, c); cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az)); const q = orbitPose(); Object.assign(cam, keep); return q; }, flyMix: (a, b, ep, eo) => { const dy = (((b.yaw - a.yaw + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) - Math.PI, mp = (u, w) => u + (w - u) * ep, mo = (u, w) => u + (w - u) * eo; pose = {x: mp(a.x, b.x), y: mp(a.y, b.y), z: mp(a.z, b.z), yaw: a.yaw + dy * eo, pitch: mo(a.pitch, b.pitch), roll: 0, fovY: mo(a.fovY, b.fovY), view: null}; redraw(); }, endFlight: () => { pose = null; redraw(); }, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist, ...(cam.tx || cam.tz ? {tx: Math.round(cam.tx), tz: Math.round(cam.tz)} : {})}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), elev: (x, z) => groundNow(x, z) / cam.exag + h0, groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, {tx: 0, tz: 0}, c); clampCam(); },
+  return {setCut: c => { const k = c ? [c.ax, c.az, c.ux, c.uz, c.L].map(v => v.toFixed(2)).join() : ''; if (k === cutKey) return; cutKey = k; cut = c; redraw(); }, setSpace, setSocket, clearSocket: () => { socketArgs = null; setHeights(cur); }, setBuild: v => { build = v; redraw(); }, setMesh: v => { if (v === mesh) return; mesh = v; redraw(); }, setMask: c => { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.activeTexture(gl.TEXTURE0); redraw(); }, poseOf: c => { const keep = {...cam}; Object.assign(cam, c); cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az)); const q = orbitPose(); Object.assign(cam, keep); return q; }, flyMix: (a, b, ep, eo) => { const dy = (((b.yaw - a.yaw + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) - Math.PI, mp = (u, w) => u + (w - u) * ep, mo = (u, w) => u + (w - u) * eo; pose = {x: mp(a.x, b.x), y: mp(a.y, b.y), z: mp(a.z, b.z), yaw: a.yaw + dy * eo, pitch: mo(a.pitch, b.pitch), roll: 0, fovY: mo(a.fovY, b.fovY), view: null}; redraw(); }, endFlight: () => { pose = null; redraw(); }, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist, ...(cam.tx || cam.tz ? {tx: Math.round(cam.tx), tz: Math.round(cam.tz)} : {})}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), elev: (x, z) => groundNow(x, z) / cam.exag + h0, groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, {tx: 0, tz: 0}, c); clampCam(); },
     focusLine: (f, ms = 1000) => {            // fly the camera to a section line: looking straight at it (from the side the camera is on, as far as the turn is allowed), the whole line across the picture
       if (pose) return;
       const k = 1200 * Math.min(SC, 2.5), a1 = Math.atan2(f.nx, f.nz), wrap = a => Math.atan2(Math.sin(a), Math.cos(a)), a2 = a1 + Math.PI, near = Math.abs(wrap(a1 - cam.az)) <= Math.abs(wrap(a2 - cam.az)) ? a1 : a2;
@@ -811,7 +815,7 @@ export async function open3D(){
     const oldNoteFor = ys => { if (!usesDem) return {short: 'one terrain model for all years', full: 'This glacier has a single elevation model, used for every year: the ice surface is not adjusted to the year, so pictures of other years are draped on the same terrain.'}; const early = elevFirst && ys.some(y => y < elevFirst || special === 'oldest'); return early ? {short: `terrain as of ${elevFirst}`, full: `The oldest ${elevName} elevation model for this glacier is from ${elevFirst}: pictures of earlier years are draped on the ${elevFirst} terrain and surface, which is not extrapolated further back.`} : null; };
     const lastStrip = yearly && !swissYearly ? yearly.yearly.strips[yearly.yearly.strips.length - 1].date : '';
     const fmtMD = md => { const [m, d] = md.split('-').map(Number); return `${d} ${['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][m - 1]}`; };
-    const terrainNote = swissYearly ? ` Ice surface of each year ${yearLo} to ${yearHi}, on 30 September: ${g.id === 'aletsch' ? 'a model with three measured surfaces (swissALTI3D 2017, swissSURFACE3D lidar 2021, swissALTI3D 2023) and the GLAMOS mass balance per elevation band for the years between and after them' : 'a model between and beyond swisstopo surveys (swissALTI3D, swissSURFACE3D lidar) following the lowering of the ice by elevation band; measured only where a survey lies, see the field notes'}. Pictures of years before ${yearLo} use the ${yearLo} surface. <a href="${provenancePage()}?back=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">How each year was made</a>.` : yearly ? ` Ice surface of each year: ArcticDEM strips (2 m, ${yearly.yearly.strips.length} dated models since ${yearly.yearly.strips[0].date.slice(0, 4)}), set onto ${yearly.yearly.reference || 'ÍslandsDEM'} with the ground beside the glacier. Each year is the surface on ${fmtMD(yearly.yearly.day || '09-15')}: measured where a summer strip lies within 45 days, interpolated in time between strips otherwise, and after the last strip (${fmtDate(lastStrip)}) the surface of that strip, unchanged.${Math.max(0, ...Object.values(yearly.yearly.estimated || {})) >= 0.005 ? ' Where no recent strip covers the ice (up to ' + Math.round(100 * Math.max(...Object.values(yearly.yearly.estimated))) + ' % of the strip in a year) the surface is the last strip plus the thinning measured on the ice around it between the same days: an estimate.' : ''} Strips of the winter months carry some snow.` : usesDem ? ` Ice surface of each year: estimate from the swissALTI3D editions ${dem.old.edition} and ${dem.new.edition} (surveys ${dem.old.year}${dem.old.assumed ? ', assumed,' : ''} and ${dem.new.year}; the years after ${dem.new.year} are extrapolated; for the years before ${dem.old.year} the surface of ${dem.old.year} is used) and the yearly mass balance (GLAMOS); after the last measured year it stays as it was.` : ' The terrain model is older than the picture, so the ice sits a little lower today.';
+    const terrainNote = swissYearly ? ` Ice surface of each year ${yearLo} to ${yearHi}, on 30 September: ${g.id === 'aletsch' ? 'a model with three measured surfaces (swissALTI3D 2017, swissSURFACE3D lidar 2021, swissALTI3D 2023) and the GLAMOS mass balance per elevation band for the years between and after them' : 'a model between and beyond swisstopo surveys (swissALTI3D, swissSURFACE3D lidar) following the lowering of the ice by elevation band; measured only where a survey lies, see the field notes'}. Pictures of years before ${yearLo} use the ${yearLo} surface. A measured surface is moved from its survey day to 30 September by the same model. <a href="${provenancePage()}?back=${encodeURIComponent(location.href)}" target="_blank" rel="noopener">How each year was made</a>.` : yearly ? ` Ice surface of each year: ArcticDEM strips (2 m, ${yearly.yearly.strips.length} dated models since ${yearly.yearly.strips[0].date.slice(0, 4)}), set onto ${yearly.yearly.reference || 'ÍslandsDEM'} with the ground beside the glacier. Each year is the surface on ${fmtMD(yearly.yearly.day || '09-15')}: measured where a summer strip lies within 45 days, interpolated in time between strips otherwise, and after the last strip (${fmtDate(lastStrip)}) the surface of that strip, unchanged.${Math.max(0, ...Object.values(yearly.yearly.estimated || {})) >= 0.005 ? ' Where no recent strip covers the ice (up to ' + Math.round(100 * Math.max(...Object.values(yearly.yearly.estimated))) + ' % of the strip in a year) the surface is the last strip plus the thinning measured on the ice around it between the same days: an estimate.' : ''} Strips of the winter months carry some snow.` : usesDem ? ` Ice surface of each year: estimate from the swissALTI3D editions ${dem.old.edition} and ${dem.new.edition} (surveys ${dem.old.year}${dem.old.assumed ? ', assumed,' : ''} and ${dem.new.year}; the years after ${dem.new.year} are extrapolated; for the years before ${dem.old.year} the surface of ${dem.old.year} is used) and the yearly mass balance (GLAMOS); after the last measured year it stays as it was.` : ' The terrain model is older than the picture, so the ice sits a little lower today.';
     if (usesDem) { if (cmp) v3d.setHeights(hy(cmp[0]), hy(cmp[1])); else v3d.setHeights(hy(first)); }
     let current = first;      // declared before the context: the download pane reads it as soon as the context exists
     const rockCache = new Map(), srCache = new Map();      // year -> the picture with the rock look (ice off); year -> the super-resolved picture
@@ -2111,11 +2115,12 @@ function applyTilt(){      // the eye leads and the view turns after it: a swoop
   if (!tilt) return; const t = tilt.t;
   if (!tilt.v) return;
   $('v3d').style.opacity = smooth(0, 0.25, t).toFixed(3);
+  tilt.v.setMesh(tilt.back ? 0 : smooth(0.05, 0.3, t) * (1 - smooth(0.7, 1, t)));      // only on the way from the map into 3D: the terrain is a light-blue mesh in the middle of the flight and becomes the picture as it ends (not on the way back)
   tilt.v.flyMix(tilt.from, tilt.to, smoother(t), smoother(Math.min(1, Math.max(0, (t - 0.1) / 0.9))));
 }
 function tiltPoses(v, cam){      // the pose straight above the middle of the map (at its scale) and the pose of the camera given
   const mpp = 40075016.686 * Math.cos(map.getCenter().lat * Math.PI / 180) / (256 * 2 ** map.getZoom()), H = map.getSize().y * mpp / (2 * Math.tan(0.375)), c = tilt.centre;
-  tilt.v = v; tilt.to = v.poseOf(cam); tilt.from = {x: c.x, y: v.groundY(c.x, c.z) + H, z: c.z, yaw: -tiltAz * Math.PI / 180, pitch: -1.5, roll: 0, fovY: 0.75};      // north up, like the map
+  tilt.v = v; tilt.to = v.poseOf(cam); tilt.from = {x: c.rx, y: v.groundY(c.x, c.z) + H, z: c.rz, yaw: -tiltAz * Math.PI / 180, pitch: -Math.PI / 2, roll: 0, fovY: 0.75};      // north up, like the map; straight down: with the earlier -1.5 rad the camera leant 4 degrees and the view landed hundreds of metres off the map's middle (about 7 % of the camera height)
 }
 function tongueMask(g, S){      // the ice of the glacier in the texture space of the strip, white on black
   const W = S.tex[0] / 2, H = S.tex[1] / 2, len = S.up + S.back, c = document.createElement('canvas'); c.width = W; c.height = H;
@@ -2139,18 +2144,19 @@ function tiltReady(v, cam){      // the viewer is loaded: the flight goes from a
   applyTilt(); if (tilt.committed && tilt.t === 1) tiltFinish();
 }
 function tiltFinish(){      // the 3D view takes over fully, on the stored camera
-  const el = $('v3d'); el.style.opacity = ''; el.style.pointerEvents = ''; tilt.v.endFlight(); tilt = null;
+  const el = $('v3d'); el.style.opacity = ''; el.style.pointerEvents = ''; tilt.v.endFlight(); tilt.v.setMesh(0); tilt = null;
 }
 function tiltAnimate(to, ms, done){      // time runs straight; the easing is in the camera (smoother)
   const from = tilt.t, t0 = performance.now(), me = tilt, id = me.anim = (me.anim || 0) + 1;      // a newer animation of the same flight replaces the older
   const step = now => { if (tilt !== me || me.anim !== id) return; const k = Math.min(1, (now - t0) / ms), e = k; me.t = from + (to - from) * e; applyTilt(); if (k < 1) requestAnimationFrame(step); else done(); };
   requestAnimationFrame(step);
 }
-function tiltCancel(){ const el = $('v3d'); tilt = null; tiltEntry = false; setView('map'); el.style.opacity = ''; el.style.pointerEvents = ''; syncTiltPill(); }
+function tiltCancel(){ const el = $('v3d'); if (tilt && tilt.v) tilt.v.setMesh(0); tilt = null; tiltEntry = false; setView('map'); el.style.opacity = ''; el.style.pointerEvents = ''; syncTiltPill(); }
 let tiltS = null;
 function centreOnStrip(){      // the middle of the map in the scene of the 3D view (x right, z towards the tip), kept on the strip
   const g = v3dGlacier(), S = tiltS = stripFor(g, g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue), m = L.CRS.EPSG3857.project(map.getCenter()), dx = (m.x - S.P.x) / S.k, dy = (m.y - S.P.y) / S.k;
-  return {x: Math.max(-S.half, Math.min(S.half, dx * S.un - dy * S.ue)), z: Math.max(-S.up, Math.min(S.back, -(dx * S.ue + dy * S.un)))};
+  const rx = dx * S.un - dy * S.ue, rz = -(dx * S.ue + dy * S.un);
+  return {x: Math.max(-S.half, Math.min(S.half, rx)), z: Math.max(-S.up, Math.min(S.back, rz)), rx, rz};      // x, z: kept on the strip (for the height of the ground); rx, rz: the true middle of the map, where the flight starts and lands
 }
 function startTilt(auto){      // the 3D view is loaded behind the map while the flight in is driven by the drag (or, with auto, plays by itself)
   if (tilt || viewMode !== 'map') return;
