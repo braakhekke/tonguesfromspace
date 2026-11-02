@@ -5,7 +5,7 @@ import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUM
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
 import { styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
-import { map, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
+import { map, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
 import { showNotice } from './08-controls.js';
 import { setFull, setMini, evalMini, setLayers } from './09-phones.js';
@@ -437,11 +437,7 @@ export async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1
   }
   if (outline) {
     ctx.save();
-    ctx.lineWidth = 5; ctx.strokeStyle = '#F2A93B'; ctx.setLineDash([22, 14]); ctx.lineJoin = 'round';
-    ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 6;
-    eachPiece(outline, (ring, closed) => {
-      ctx.beginPath(); ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); if (closed) ctx.closePath(); ctx.stroke();
-    });
+    strokeEdgeFade(ctx, outline, P, '#F2A93B', W / 1080 * 1.2);
     ctx.restore();
   }
   return c;
@@ -548,7 +544,7 @@ export function drawHeader(ctx, W, S, o){
   }
   (o.legend || []).forEach(([color, dash, text], i) => {
     y += i ? 34 : 42;
-    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 5; ctx.setLineDash(dash); ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + 50, y - 8); ctx.stroke(); ctx.restore();
+    ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.shadowColor = color; ctx.shadowBlur = 8; ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + 50, y - 8); ctx.stroke(); ctx.restore();
     ctx.font = `500 22px ${FONT}`; shadowText(ctx, text, x + 66, y, {blur:8});
   });
   ctx.restore(); return y;

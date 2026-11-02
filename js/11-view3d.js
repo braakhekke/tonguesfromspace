@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode } from './04-state.js';
-import { ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
+import { mapYears, ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, strokeEdgeFade, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
@@ -436,6 +436,7 @@ export const tileBitmap = url => {
 export const V3D_BASES = {
   aerialToggle: {max: 18, credit: '© swisstopo (SWISSIMAGE)', url: (z, x, y, yr) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(state.oldestAerial || yr)}/3857/${z}/${x}/${y}.jpeg`},      // the edition of the year the picture is made for, or the oldest one in the specials row's "Oldest"
   osmToggle: {max: 19, credit: '© OpenStreetMap contributors', url: (z, x, y) => `https://tile.openstreetmap.org/${z}/${x}/${y}.png`},
+  oldMapToggle: {max: 18, credit: '© swisstopo (Journey through time)', url: (z, x, y) => { const m = mapYears(); return `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.zeitreihen/default/${m && m.oldest}1231/3857/${z}/${x}/${y}.png`; }},
   topoToggle: {max: 18, credit: '© swisstopo', url: (z, x, y) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/${z}/${x}/${y}.jpeg`},
   altiToggle: {max: 18, credit: '© swisstopo (swissALTI3D)', url: (z, x, y) => `https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/${z}/${x}/${y}.png`}
 };
@@ -470,7 +471,7 @@ export async function detectTrails(c){            // is any hiking trail inside 
 export const outline3D = g => hasOldOutline(g) && $('oldToggle').checked;      // the layers of the map, drawn on the picture of the 3D view
 export const outlineNew3D = g => !!newOutlineGeom(g) && $('newToggle').checked;
 export const radar3D = g => !!(g.inv && g.inv.radar) && $('radarToggle').checked;
-export const layerCreditNames = g => [...baseKeys().map(k => ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', altiToggle: FEATURES.swisstopo ? 'swisstopo' : REGION.terrain.short.split(' · ')[0], aerialToggle: FEATURES.swisstopo ? 'swisstopo' : 'Náttúrufræðistofnun Íslands'}[k] || null)), $('trailsToggle').checked && (FEATURES.swisstopo ? 'swisstopo' : 'OpenStreetMap'), (outline3D(g) || outlineNew3D(g) || radar3D(g)) && (FEATURES.swisstopo ? 'GLAMOS' : REGION.outlines.credit), $('l3Names').checked && (FEATURES.swisstopo ? 'swisstopo' : 'OpenStreetMap'), sectBedOn() && 'swissBEDROCK, Federal Office of Topography swisstopo'].filter(Boolean);
+export const layerCreditNames = g => [...baseKeys().map(k => ({osmToggle: 'OpenStreetMap', topoToggle: 'swisstopo', oldMapToggle: 'swisstopo', altiToggle: FEATURES.swisstopo ? 'swisstopo' : REGION.terrain.short.split(' · ')[0], aerialToggle: FEATURES.swisstopo ? 'swisstopo' : 'Náttúrufræðistofnun Íslands'}[k] || null)), $('trailsToggle').checked && (FEATURES.swisstopo ? 'swisstopo' : 'OpenStreetMap'), (outline3D(g) || outlineNew3D(g) || radar3D(g)) && (FEATURES.swisstopo ? 'GLAMOS' : REGION.outlines.credit), $('l3Names').checked && (FEATURES.swisstopo ? 'swisstopo' : 'OpenStreetMap'), sectBedOn() && 'swissBEDROCK, Federal Office of Topography swisstopo'].filter(Boolean);
 export const layersCredit = g => layerCreditNames(g).join(' · ');
 export const layersCreditText = g => { const t = layersCredit(g); return t ? ` Layers: ${t}.` : ''; };      // the sentence in the full note under the 3D view
 /* The 3D view needs only the strip, which is a small part of the glacier area (Aletsch: about a twelfth): it asks the relay for a picture of just the box around the strip, at the same 10 m pixels.
@@ -565,13 +566,9 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the
       draw(d.tracks, 'rgba(0,0,0,.55)', 6); draw(d.paths, 'rgba(0,0,0,.55)', 7); draw(d.tracks, '#FF3B30', 3.5); draw(d.paths, '#FDC200', 4.5); ctx.restore(); } }
   }
   const toXY = ll => { const q = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return toTexM(q.x, q.y); };
-  const rings = (geom, color, dash) => {            // an outline, drawn on the picture so that it follows the terrain
-    ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineWidth = 3.5; ctx.strokeStyle = color; ctx.setLineDash(dash); ctx.lineJoin = 'round'; ctx.shadowColor = 'rgba(0,0,0,.6)'; ctx.shadowBlur = 4;
-    eachPiece(geom, (ring, closed) => { ctx.beginPath(); ring.forEach((pt, i) => { const [x, y] = toXY(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); if (closed) ctx.closePath(); ctx.stroke(); });
-    ctx.restore();
-  };
-  if (outlineNew3D(g)) rings(newOutlineGeom(g), getVar('--new'), []);
-  if (outline3D(g)) rings(oldOutlineGeom(g), '#F2A93B', [14, 9]);
+  const rings = (geom, color) => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); strokeEdgeFade(ctx, geom, toXY, color, 1); ctx.restore(); };      // an outline, drawn on the picture so that it follows the terrain
+  if (outlineNew3D(g)) rings(newOutlineGeom(g), getVar('--new'));
+  if (outline3D(g)) rings(oldOutlineGeom(g), '#F2A93B');
   return tc;
 }
 /* Ice surface of the year: demchange.js (made by scripts/build_dem_change.py) holds the change between two editions of swissALTI3D inside the glacier outline.
@@ -1130,7 +1127,7 @@ export function setView(v){            // the stage shows the map or the 3D view
 }
 $('viewMap').onclick = () => { flyOut(); syncTiltPill(); }; $('view3dBtn').onclick = () => flyIn();
 /* The layer menu of the 3D view: the same switches as on the map (an outline or the radar dots), drawn on the picture that covers the terrain */
-export const L3 = [['l3Osm', 'osmToggle'], ['l3Topo', 'topoToggle'], ['l3Alti', 'altiToggle'], ['l3Aerial', 'aerialToggle'], ['l3Sat', 'satToggle'], ['l3Trails', 'trailsToggle'], ['l3Old', 'oldToggle'], ['l3New', 'newToggle'], ['l3Radar', 'radarToggle'], ['l3Pin', 'pinToggle'], ['l3Max', 'maxToggle'], ['l3Speed', 'speedToggle'], ['l3Thick', 'thickToggle']];
+export const L3 = [['l3Osm', 'osmToggle'], ['l3Topo', 'topoToggle'], ['l3OldMap', 'oldMapToggle'], ['l3Alti', 'altiToggle'], ['l3Aerial', 'aerialToggle'], ['l3Sat', 'satToggle'], ['l3Trails', 'trailsToggle'], ['l3Old', 'oldToggle'], ['l3New', 'newToggle'], ['l3Radar', 'radarToggle'], ['l3Pin', 'pinToggle'], ['l3Max', 'maxToggle'], ['l3Speed', 'speedToggle'], ['l3Thick', 'thickToggle']];
 export function sync3DMenu(){
   const g = currentGlacier(), R = g && g.inv && g.inv.radar;
   L3.forEach(([a, b]) => { $(a).checked = $(b).checked; $(a).disabled = b === 'radarToggle' ? !R : b === 'maxToggle' ? !(R && R.max_at) : $(b).disabled; });
@@ -1927,6 +1924,7 @@ export function updateCredits3D(){            // the sources of the 3D view, in 
   for (const bk of baseKeys()) {
     if (bk === 'osmToggle') parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
     else if (bk === 'topoToggle') parts.push(`Map © ${A_SWT}`);
+    else if (bk === 'oldMapToggle') parts.push(`Map ${mapYears() && mapYears().oldest || ''} © ${A_SWT} (Journey through time)`.replace('Map  ©', 'Map ©'));
     else if (bk === 'altiToggle') parts.push(FEATURES.swisstopo ? `Hillshade: swissALTI3D © ${A_SWT}` : 'Hillshade: calculated from the elevation model of each year');
     else if (bk === 'aerialToggle') parts.push(FEATURES.swisstopo ? `Aerial images: SWISSIMAGE ${state.oldestAerial || [...new Set(yrs.map(siYear))].join(' and ')} © ${A_SWT}` : `Aerial image ${flownYear(g, state.oldestAerial) || state.oldestAerial}: Náttúrufræðistofnun Íslands and Landmælingar Íslands (CC BY 4.0)`);
   }

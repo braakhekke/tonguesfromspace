@@ -210,7 +210,7 @@ export const IC_INFO = {
   },
   brasvellbreen: {
     lede: () => 'A glacier 45 km long that streams south from the dome Sørdomen of Austfonna on Nordaustlandet and ends in the sea.',
-    news: () => `In the late 1930s it was seen that Bråsvellbreen had made a huge surge, forming a tongue 10 km long out into the sea. The name means the "sudden swell glacier"${wp('Bråsvellbreen')}.`
+    news: () => `In the late 1930s it was seen that Bråsvellbreen had made a huge surge, forming a ten kilometre long tongue into the sea. The name means the "sudden swell glacier"${wp('Bråsvellbreen')}.`
   },
   negribreen: {
     lede: () => 'A large glacier that ends in the fjord Storfjorden in Spitsbergen, with a wide front and the moving point Kapp Antinori.',

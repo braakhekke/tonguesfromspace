@@ -42,6 +42,7 @@ STEP = 0.1
 NODATA = 65535
 R = 6378137.0
 FROM, TO = 2013, 2024
+FLOW_SLOW_OWN = {'B83-03': 60}      # Corbassiere: its stagnant tongue is longer than 25 steps (1.5 km), the line ended there at 4.6 km and the card was empty from 2016; 60 steps reach the fast ice at 5 to 6 km (2026-11-03, checked: 21 to 29 m/yr in every year). Zmutt gains nothing from it, Unteraar's line then runs on into a neighbouring glacier (peaks over 100 m/yr at 15 km): not used for them
 FLOW_STEP, FLOW_SLOW, FLOW_MAX, FLOW_MED, SPEED_MIN = 60.0, 25, 700, 7, 5      # metres between flowline points; steps under SPEED_MIN that end it; longest line (42 km); points of the running median (the page); the page's noise floor
 MARGIN = 3                                                                          # cells kept around the glacier's moving ice
 
@@ -128,7 +129,7 @@ def smooth3(a):
     return np.where(n > 0, np.where(np.isfinite(st), st, 0).sum(0) / np.maximum(n, 1), np.nan)
 
 
-def flowline(rgi, years, grid, tip, azimuth):
+def flowline(rgi, years, grid, tip, azimuth, slow_max=None):
     """[[x, y]] in EPSG:3857 m from the tip upstream along the mean flow direction of three of the years (see the header); [] when there is no flow field."""
     import numpy as np, rasterio
     from pyproj import Transformer
@@ -164,13 +165,13 @@ def flowline(rgi, years, grid, tip, azimuth):
         if not (0 <= row < VX.shape[0] and 0 <= col < VX.shape[1]): break
         s_ = sp[row, col]
         if np.isfinite(s_) and s_ > 0:
-            bad = 0; seen = seen or s_ >= SPEED_MIN; slow = slow + 1 if s_ < SPEED_MIN else 0
+            bad = 0; seen = seen or s_ >= SPEED_MIN; slow = slow + 1 if s_ < SPEED_MIN else 0      # (slow_max: see FLOW_SLOW_OWN)
             u = -np.array([VX[row, col], VY[row, col]]) / s_      # upstream
             if s_ >= SPEED_MIN and u @ d > 0: d = u / np.hypot(*u)      # under SPEED_MIN the direction is noise (stagnant tongue end), and a turn of more than 90 degrees in one step is noise: keep it
         else:
             bad += 1
             if bad > FLOW_SLOW: break
-        if seen and slow >= FLOW_SLOW: break
+        if seen and slow >= (slow_max or FLOW_SLOW): break
         x += d[0] * FLOW_STEP; y += d[1] * FLOW_STEP
     mx, my = back.transform(np.array([p[0] for p in pts]), np.array([p[1] for p in pts]))
     return [[int(round(u)), int(round(v))] for u, v in zip(mx, my)]
@@ -220,7 +221,7 @@ def build(key, bbox, tip, azimuth, years, out):
     if not got:
         print(f'{key}: {rgi} has none of the years {years[0]} to {years[-1]}'); return False
     ys = sorted(got)
-    flow = flowline(rgi, ys, grid, tip, azimuth)
+    flow = flowline(rgi, ys, grid, tip, azimuth, FLOW_SLOW_OWN.get(key))
     sel = glacier_only(np.stack([got[y] for y in ys]), flow, grid)
     if sel is None:
         print(f'{key}: {rgi}: no ice of {SPEED_MIN} m/yr or more is joined to the flowline ({len(flow)} points): check the tip in the record'); return False

@@ -62,6 +62,7 @@ export function updateCredits(){
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
+  if (document.getElementById('oldMapToggle').checked && mapYears() && mapYears().oldest) parts.push('Map ' + mapYears().oldest + ' © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> (Journey through time)');
   if (document.getElementById('trailsToggle').checked) parts.push((FEATURES.swisstopo ? 'Hiking trails © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>' : 'Paths © OpenStreetMap contributors') + (sightLayer ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
   if (FEATURES.swisstopo && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
@@ -114,6 +115,21 @@ if (prefs.osm === true) osm.addTo(map);
 export const topo = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.pixelkarte-farbe/default/current/3857/{z}/{x}/{y}.jpeg',
   {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo'});
 if (prefs.topo === true) topo.addTo(map);
+/* swisstopo's oldest map at the chosen glacier: the "Journey through time" layer (ch.swisstopo.zeitreihen, time = the year of the map) in the oldest year that has a map over the whole picture box, and the year of
+   the map the site shows now (the newest sheet of the 1:25,000 map there, ch.swisstopo.pixelkarte-pk25.metadata), both from data/swisstopo-maps.json (scripts/build_oldest_map.py). The years are the service's. */
+export const swisstopoMaps = {};      // site id -> {oldest, current, datenstand, releasekey, sheet}
+export const swisstopoMapsFile = fetch(asset('data/swisstopo-maps.json')).then(r => r.ok ? r.json() : {}).catch(() => ({})).then(j => { Object.assign(swisstopoMaps, j); return j; });
+export const mapYears = () => (glacierPicked && swisstopoMaps[currentGlacier().id]) || null;
+export let oldMap = null;
+export function updateMapYears(){      // the year(s) into the labels of both menus, and the layer in the year of the chosen glacier
+  const y = mapYears(), old = y && y.oldest;
+  const tl = 'swisstopo map', ol = old ? 'Oldest swisstopo map ' + old : 'Oldest swisstopo map';
+  [['topoLabel', tl], ['l3TopoLabel', tl], ['oldMapLabel', ol], ['l3OldMapLabel', ol]].forEach(([id, s]) => { const el = document.getElementById(id); if (el) el.textContent = s; });
+  const on = document.getElementById('oldMapToggle'); if (!on) return;
+  on.title = old ? '' : 'Choose a glacier to see its oldest swisstopo map';
+  if (oldMap && (!old || !on.checked || oldMap._year !== old)) { map.removeLayer(oldMap); oldMap = null; }
+  if (on.checked && old && !oldMap) { oldMap = L.tileLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.zeitreihen/default/${old}1231/3857/{z}/{x}/{y}.png`, {maxZoom: 17, maxNativeZoom: 18, attribution: '© swisstopo'}); oldMap._year = old; oldMap.addTo(map); }
+}
 /* swisstopo's relief shading of the swissALTI3D elevation model */
 export const alti = L.tileLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissalti3d-reliefschattierung/default/current/3857/{z}/{x}/{y}.png',
   {maxZoom:17, maxNativeZoom:18, attribution:'© swisstopo (swissALTI3D)'});
@@ -258,10 +274,23 @@ export function ensureOldestIs(g){
     oldestAerial.set(g.id, {ed: m.years[0], flown: m.label, img: asset(`data/oldest/${g.id}.webp`), bbox: m.bbox, source: m.source});
   }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine()); });
 }
-export const oldestWhat = o => FEATURES.swisstopo ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
+export const oldestWhat = o => FEATURES.swisstopo ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}${o.coverage === 'glacier' ? ' (covers the whole glacier, not the whole picture box)' : ''}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
+/* Switzerland: the oldest SWISSIMAGE edition that covers the WHOLE glacier (and the whole picture box where it does), found by scripts/build_oldest_aerial.py from a grid of points over the box and over the
+   outline (data/oldest-aerial.json, keyed by the site id). Only a glacier that file does not hold is asked live, at the middle of its box (that edition can leave the edges of the box blank). */
+let oldestAerialFile = null;
+const oldestFile = () => oldestAerialFile || (oldestAerialFile = fetch(asset('data/oldest-aerial.json')).then(r => r.ok ? r.json() : {}).catch(() => ({})));
 export function ensureOldest(g){
   if (!g || oldestAerial.has(g.id)) return; oldestAerial.set(g.id, undefined);
   if (!FEATURES.swisstopo) return ensureOldestIs(g);
+  oldestFile().then(f => {
+    const o = f[g.id];
+    if (!o || !o.ed) return ensureOldestLive(g);
+    aerialFlown.set(`${g.id}|${o.ed}`, o.flown);      // the year(s) flown, as the tags and the menu name the edition
+    oldestAerial.set(g.id, {ed: +o.ed, flown: o.flown, coverage: o.coverage, zoom: o.zoom, clip: o.clip});      // zoom: the finest tile level that has a picture over the whole glacier; clip: where the picture is shown
+    if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine());
+  });
+}
+function ensureOldestLive(g){
   const [[s, w], [n, e]] = imageFootprint(g).bounds, lat = (s + n) / 2, lon = (w + e) / 2;
   fetch(`https://api3.geo.admin.ch/rest/services/all/MapServer/identify?geometry=${lon},${lat}&geometryType=esriGeometryPoint&layers=all:ch.swisstopo.swissimage-product.metadata&mapExtent=${lon - .01},${lat - .01},${lon + .01},${lat + .01}&imageDisplay=500,500,96&tolerance=1&sr=4326&returnGeometry=false`)
     .then(r => r.json()).then(j => {
@@ -289,6 +318,7 @@ export function restoreOldest(){
 }
 export const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 export function updateAerial(){
+  updateMapYears();      // every change of glacier comes through here: the oldest map follows it
   const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
   if (cg && FEATURES.swisstopo) eds.forEach(ed => ensureFlown(cg, ed));
   const ys = eds.map(ed => flownYear(cg, ed) || ed);      // the menu item names the year(s) the photographs were taken (the edition until that is known)
@@ -297,15 +327,17 @@ export function updateAerial(){
   ['A', 'B', 'T'].forEach(k => {
     const yr = want[k] || null;
     if (aerial[k] && aerial[k].yr !== yr) { map.removeLayer(aerial[k].layer); aerial[k] = null; }
+    const oz = cg && state.oldestAerial && oldestAerial.get(cg.id), mine = oz && siYear(yr) === oz.ed ? oz : null;      // the oldest picture: one block of one resolution (see data/oldest-aerial.json)
+    const myBoxes = mine && mine.clip ? [L.latLngBounds(mine.clip)] : boxes;
     if (yr && !aerial[k]) {
       let layer;
       if (FEATURES.swisstopo) layer = new TrailsLayer(`https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swissimage-product/default/${siYear(yr)}/3857/{z}/{x}/{y}.jpeg`,
-        {pane: 'si' + k, maxZoom: 17, maxNativeZoom: 18, attribution: '© swisstopo (SWISSIMAGE)'});
+        {pane: 'si' + k, maxZoom: 17, maxNativeZoom: mine && mine.zoom ? Math.min(18, mine.zoom) : 18, attribution: '© swisstopo (SWISSIMAGE)'});
       else { const o = cg && oldestAerial.get(cg.id); if (!o || !o.img) return; const [x0, y0, x1, y1] = o.bbox, sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1));
         layer = L.imageOverlay(o.img, [[sw.lat, sw.lng], [ne.lat, ne.lng]], {pane: 'si' + k, interactive: false, className: 'scene-img'}); layer._clip = boxes; layer._key = key; layer.setClip = () => {}; }
-      layer._clip = boxes; layer._key = key; layer.addTo(map); aerial[k] = {yr, layer};
+      layer._clip = myBoxes; layer._key = key; layer.addTo(map); aerial[k] = {yr, layer};
     }
-    else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(boxes); }      // another glacier was chosen
+    else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(myBoxes); }      // another glacier was chosen
   });
   clip(); updateCredits(); updateSpeed(); updateNames();
 }
@@ -545,6 +577,37 @@ export function geodesicArea(ring){ // ring: [[lng,lat],...] -> m²
   return Math.abs(a * R * R / 2);
 }
 export const multiArea = geom => geom.coordinates.reduce((s, poly) => s + geodesicArea(poly[0]) - poly.slice(1).reduce((h, r) => h + geodesicArea(r), 0), 0);
+/* An outline as in the reference picture: a hard line on the edge and a colour that fades towards the inside of the polygon (open lines only get the hard line).
+   Canvas, not CSS/SVG filters (Safari on iPhone ignores them). toPt maps a [lng, lat] to canvas pixels; k scales widths for bigger canvases. */
+export function strokeEdgeFade(ctx, geom, toPt, color, k = 1){
+  const path = onlyClosed => { ctx.beginPath(); eachPiece(geom, (ring, closed) => {
+    if (onlyClosed && !closed) return;
+    ring.forEach((pt, i) => { const [x, y] = toPt(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); if (closed) ctx.closePath(); }); };
+  ctx.save(); ctx.lineJoin = 'round'; ctx.strokeStyle = color;
+  ctx.save(); path(true); ctx.clip('evenodd');                 // only the inside: stacked strokes of shrinking width add up to a fade
+  ctx.globalAlpha = .07;
+  for (let i = 0; i < 9; i++) { ctx.lineWidth = 2 * k * (34 - i * 3.6); path(true); ctx.stroke(); }
+  ctx.restore();
+  ctx.lineWidth = 2.2 * k; path(false); ctx.stroke(); ctx.restore();
+}
+/* The same on the Leaflet map: a canvas layer under the hard line (a normal, clickable GeoJSON line) */
+const EdgeFade = L.Layer.extend({
+  initialize(geom, color){ this._geom = geom; this._color = color; },
+  onAdd(m){
+    this._c = L.DomUtil.create('canvas', 'leaflet-zoom-hide'); this._c.style.pointerEvents = 'none'; m.getPane('outlines').appendChild(this._c);
+    m.on('move zoom viewreset resize', this._draw, this); this._draw();
+  },
+  onRemove(m){ m.off('move zoom viewreset resize', this._draw, this); this._c.remove(); },
+  _draw(){
+    const m = this._map, sz = m.getSize(), c = this._c, dpr = window.devicePixelRatio || 1;
+    c.width = sz.x * dpr; c.height = sz.y * dpr; c.style.width = sz.x + 'px'; c.style.height = sz.y + 'px';
+    L.DomUtil.setPosition(c, m.containerPointToLayerPoint([0, 0]));
+    const ctx = c.getContext('2d'); ctx.scale(dpr, dpr);
+    strokeEdgeFade(ctx, this._geom, ([lng, lat]) => { const q = m.latLngToContainerPoint([lat, lng]); return [q.x, q.y]; }, this._color, .45);
+  }
+});
+export const glowLines = (geom, color) => L.featureGroup([new EdgeFade(geom, color),
+  L.geoJSON(geom, {pane:'outlines', style:{color, weight:2, opacity:1, lineJoin:'round', fill:false}})]);
 export function drawOutlines(){
   Object.values(outlineLayers).forEach(l => l && map.removeLayer(l));
   outlineLayers.old = outlineLayers.new = null;
@@ -555,7 +618,7 @@ export function drawOutlines(){
   if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
   const g = currentGlacier();
   if (g.rgi) {      // a glacier of an ice-cap region: the outlines of the region's institute (lines, cut to the glacier's region)
-    const O = REGION.outlines, line = (geom, color, dash, title) => L.geoJSON(geom, {pane:'outlines', style:{color, weight:2.5, dashArray:dash, fill:false}}).bindPopup(`<strong>${title}</strong>`);
+    const O = REGION.outlines, line = (geom, color, dash, title) => glowLines(geom, color).bindPopup(`<strong>${title}</strong>`);
     if (document.getElementById('oldToggle').checked && hasOldOutline(g)) outlineLayers.old = line(oldOutlineGeom(g), getVar('--old'), '7 6', `${g.name}, outline ${g.outlines.lia.label}`).addTo(map);
     if (document.getElementById('newToggle').checked && newOutlineGeom(g)) outlineLayers.new = line(newOutlineGeom(g), getVar('--new'), null, `${g.name}, outline ${g.outlines.latest.label}`).addTo(map);
     return updateCredits();
@@ -567,9 +630,7 @@ export function drawOutlines(){
   }
   if (document.getElementById('oldToggle').checked && !g.inv.oldest)
     wire.showNotice(`No ${DATA.oldest_label} outline was matched for ${g.name}.`);
-  const mk = (geom, color, dash, title, invArea) => L.geoJSON(geom, {
-    pane:'outlines', style:{color, weight:2.5, dashArray:dash, fill:true, fillOpacity:.06, fillColor:color}
-  }).bindPopup(`<strong>${title}</strong><br>Inventory area: ${invArea.toFixed(2)} km²<br>Area on this map: ${(multiArea(geom)/1e6).toFixed(2)} km²`);
+  const mk = (geom, color, dash, title, invArea) => glowLines(geom, color).bindPopup(`<strong>${title}</strong><br>Inventory area: ${invArea.toFixed(2)} km²<br>Area on this map: ${(multiArea(geom)/1e6).toFixed(2)} km²`);
   if (document.getElementById('oldToggle').checked && g.inv.oldest)
     outlineLayers.old = mk(g.inv.oldest.outline, getVar('--old'), '7 6', `${g.name}, ${DATA.oldest_label}`, g.inv.oldest.area_km2).addTo(map);
   if (document.getElementById('newToggle').checked)

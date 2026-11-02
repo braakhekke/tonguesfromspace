@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, LANDSAT_YEARS, $ } from './01-data.js';
 import { ICECAP, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, restoreLatest } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
-import { updateNames, map, updateCredits, osm, topo, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
+import { updateNames, map, updateCredits, osm, topo, updateMapYears, swisstopoMapsFile, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
 import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
 import { focusSub, syncPane, outlineGeom, maxLinkText, speedLinkText, refreshAll } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
@@ -183,7 +183,7 @@ document.getElementById('lbToggle').onclick = () => {
 };
 document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;      // Sentinel-2 background on at the start (switch off to see the tongue in space)
 /* the three base maps replace each other: switching one on switches the others off */
-export const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'altiToggle'];
+export const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'oldMapToggle', 'altiToggle'];
 export function onlyBase(id){ BASE_TOGGLES.forEach(o => { const el = document.getElementById(o); if (o !== id && el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); }
 document.getElementById('mosaicToggle').onchange = e => { if (e.target.checked) onlyBase('mosaicToggle'); prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
 setBackground();
@@ -199,6 +199,13 @@ document.getElementById('topoToggle').onchange = e => {
   prefs.topo = e.target.checked; savePrefs();
   e.target.checked ? topo.addTo(map) : map.removeLayer(topo); updateCredits();
 };
+document.getElementById('oldMapToggle').checked = false;      // always off at the start (the browser would otherwise bring back a tick from the last visit, with no layer behind it)
+document.getElementById('l3OldMap').checked = false;
+document.getElementById('oldMapToggle').onchange = e => {      // the oldest swisstopo map of the chosen glacier (not remembered: it depends on the glacier)
+  if (e.target.checked) onlyBase('oldMapToggle');
+  updateMapYears(); updateCredits();
+};
+swisstopoMapsFile.then(() => { updateMapYears(); updateCredits(); });
 document.getElementById('trailsToggle').checked = prefs.trails === true;
 document.getElementById('trailsToggle').onchange = e => {
   prefs.trails = e.target.checked; savePrefs();
@@ -243,7 +250,7 @@ export function applyRegionUi(){
   document.title = REGION.docTitle;
   /* what the region has no data for is taken off the page: each switch of `features` hides its controls */
   const off = (feature, ...ids) => { if (!FEATURES[feature]) ids.forEach(id => { const el = document.getElementById(id), box = el && (el.closest('label') || el); if (box) box.style.display = 'none'; }); };
-  off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swisstopo', 'topoToggle', 'altiToggle', 'l3Topo'); if (!FEATURES.swisstopo) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
+  off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swisstopo', 'topoToggle', 'oldMapToggle', 'altiToggle', 'l3Topo', 'l3OldMap'); if (!FEATURES.swisstopo) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
   off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); off('speed', 'speedRow'); off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('teaser', 'teaserBtn'); off('sizeTool', 'sizeLink');
   if (!FEATURES.glamos && !GLACIERS[0].tongue) off('glamos', 'tongueBtn');      // the Tongue button needs a tongue tip (Iceland has one from the outlet data)
   if (!FEATURES.oldest && !FEATURES.latest) document.querySelectorAll('.spec-row').forEach(e => { e.style.display = 'none'; });

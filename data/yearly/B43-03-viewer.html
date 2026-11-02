@@ -40,6 +40,7 @@
   label { display:flex; align-items:center; gap:6px; margin-top:6px; font-size:12px; }
   .note { color:var(--muted); font-size:10.5px; margin-top:8px; }
   #hover { flex:0 1 auto; max-height:42%; overflow-y:auto; font-size:12px; padding:8px 12px; }
+  #hover.pinned { max-height:70%; box-shadow:inset 0 0 0 1px #C8322A; }
   #split { position:absolute; top:0; bottom:0; width:4px; background:#fff; box-shadow:0 0 6px rgba(0,0,0,.5); cursor:ew-resize; display:none; z-index:5; }
   #split::after { content:'⇆'; position:absolute; top:50%; left:-9px; width:22px; height:22px; line-height:22px; text-align:center; background:#fff; border-radius:50%; box-shadow:0 0 6px rgba(0,0,0,.5); }
   .lbl { position:absolute; top:12px; z-index:4; background:var(--card); border:1px solid var(--line); border-radius:6px; padding:3px 8px; font-size:12px; display:none; }
@@ -71,7 +72,7 @@
   <div class="note" id="foot">2026 is not shown: GLAMOS release 2025 has no 2026 balance and no 2026 survey is used. Years between the two measured anchors (2017, 2023) are interpolated; 2016, 2024 and 2025 are extrapolated.</div>
   </details></div>
 </div>
-<div class="panel" id="hover"><span style="color:var(--muted)">Hover the surface for elevation and change.</span></div>
+<div class="panel" id="hover"><span style="color:var(--muted)">Hover the surface for elevation and change. Click a stake or an ICESat-2 shot to pin its details.</span></div>
 </div>
 <div class="panel" id="stats"><b>Tongue ice, this year</b><div id="srows"></div></div>
 <div class="panel" id="legend"><b id="ltitle">Colour</b><div id="bar"></div><div class="lab"><span id="l0"></span><span id="l1"></span><span id="l2"></span></div></div>
@@ -255,8 +256,16 @@ let timer = null; const playBtn = document.getElementById('play');
 playBtn.onclick = () => { if (timer) { clearInterval(timer); timer = null; playBtn.textContent = '▶'; } else { playBtn.textContent = '❚❚'; timer = setInterval(() => { yi = (yi + 1) % NY; slider.value = yi; update(); }, 900); } };
 // ---- hover readout
 const ray = new THREE.Raycaster(), mouse = new THREE.Vector2(); let hoverBusy = false;
-renderer.domElement.addEventListener('mousemove', e => {
-  if (hoverBusy) return; hoverBusy = true; setTimeout(() => hoverBusy = false, 60);
+// a click on a stake or an ICESat-2 shot pins its readout (scroll it, read it; click empty ground or press Esc to release): the readout used to be replaced as soon as the pointer left the point
+let pinned = false, downAt = null; const hoverBox = document.getElementById('hover');
+function pin() { pinned = true; hoverBox.classList.add('pinned'); hoverBox.insertAdjacentHTML('beforeend', '<div style="margin-top:8px;font-size:10.5px;color:var(--muted)">Pinned: scroll this box. Click empty ground or press Esc to release.</div>'); }
+function unpin() { pinned = false; hoverBox.classList.remove('pinned'); }
+addEventListener('keydown', e => { if (e.key === 'Escape' && pinned) { unpin(); hiObj.visible = false; hoverBox.innerHTML = '<span style="color:var(--muted)">Hover the surface for elevation and change.</span>'; } });
+renderer.domElement.addEventListener('pointerdown', e => { downAt = [e.clientX, e.clientY]; });
+renderer.domElement.addEventListener('click', e => { if (downAt && Math.hypot(e.clientX - downAt[0], e.clientY - downAt[1]) > 4) return; readout(e, true); });
+renderer.domElement.addEventListener('mousemove', e => readout(e, false));
+function readout(e, click) {
+  if (!click) { if (pinned || hoverBusy) return; hoverBusy = true; setTimeout(() => hoverBusy = false, 60); } else unpin();
   const rect = renderer.domElement.getBoundingClientRect(); mouse.set(((e.clientX - rect.left) / rect.width) * 2 - 1, -((e.clientY - rect.top) / rect.height) * 2 + 1);
   const box = document.getElementById('hover');
   if ((ptsObj.visible && (shown.length || shownBad.length)) || (stkObj.visible && shownStk.length)) {
@@ -266,7 +275,7 @@ renderer.domElement.addEventListener('mousemove', e => {
       const s = best.s, i = best.i, rd = s[6], tot = rd.reduce((a, r) => a + (r[2] || 0), 0), totcm = rd.reduce((a, r) => a + (r[3] || 0), 0), modelCh = yi ? hgt(yi, i) - hgt(yi - 1, i) : NaN, fmt = d => d.slice(0, 4) + '-' + d.slice(4, 6) + '-' + d.slice(6, 8);
       hiGeom.setAttribute('position', new THREE.Float32BufferAttribute(best.pos, 3)); hiObj.visible = true;
       box.innerHTML = '<b>GLAMOS ' + (MT[s[5]] || 'point') + ': ' + s[3] + '</b><div class="row"><span>Glaciological year</span><span>' + s[4] + '</span></div><div class="row"><span>Readings</span><span>' + rd.length + ' (' + fmt(rd[0][0]) + ' to ' + fmt(rd[rd.length - 1][1]) + ')</span></div>' + rd.slice(0, 3).map(r => '<div class="row"><span style="font-size:10.5px">' + fmt(r[0]) + ' → ' + fmt(r[1]) + ' (' + r[4] + ')</span><span>' + (r[2] === null ? '–' : r[2] + ' mm w.e.') + (r[3] === null ? '' : ', ' + r[3] + ' cm') + '</span></div>').join('') + (rd.length > 3 ? '<div style="font-size:10.5px;color:var(--muted)">… and ' + (rd.length - 3) + ' more</div>' : '') + '<div class="row"><span>Sum of readings</span><span>' + tot + ' mm w.e.' + (totcm ? ' (' + totcm.toFixed(0) + ' cm raw)' : '') + '</span></div><div class="row"><span>Stake elevation (LN02)</span><span>' + s[2].toFixed(1) + ' m</span></div><div class="row"><span>Model surface here, year end</span><span>' + hgt(yi, i).toFixed(1) + ' m</span></div><div class="row"><span>Model surface change this year</span><span>' + (isNaN(modelCh) ? '–' : modelCh.toFixed(1) + ' m') + '</span></div><div class="row"><span>Position</span><span style="font-size:10.5px">' + (PQ[s[7]] || s[7]) + '</span></div><div class="row"><span>Dates</span><span style="font-size:10.5px">' + (DQ[s[8]] || s[8]) + '</span></div><div class="row"><span>Source</span><span>' + s[9] + (SRC[s[9]] ? ' (' + SRC[s[9]] + ')' : '') + '</span></div>' + (s[10] !== null ? '<div class="row"><span>Uncertainty / density</span><span>±' + s[10] + ' mm w.e. / ' + (s[11] === null ? '–' : s[11] + ' kg m⁻³') + '</span></div>' : '') + '<div style="font-size:10.5px;color:var(--muted)">A stake reads the ablation of the moving ice, not the elevation change at a fixed place: the model surface change is typically 0.5 to 0.75 of it (ice flow replaces the rest).</div>';
-      return;
+      if (click) pin(); return;
     }
     if (best) {
       const p = best.p, model = p[4] - p[5];
@@ -279,13 +288,13 @@ renderer.domElement.addEventListener('mousemove', e => {
         + H('Timing') + '<div style="font-size:11px;line-height:1.4">This shot is <b>' + dayTxt + '</b>. In the model that moves the surface by <b>' + sg(sh) + '</b> compared with 30 Sep (the surface the slider shows)' + (dy > 0 ? ', assuming melt goes on to 15 Oct at the late-September rate (an assumption; the model itself stops at 30 Sep)' : '') + '. The actual difference between model and shot is <b>' + sg(p[5]) + '</b>' + (ratio === null ? '.' : (ratio <= 100 ? ', so the timing explains about ' + ratio + ' % of it.' : ', so the timing alone is larger than the difference (' + ratio + ' %).')) + '</div>'
         + H('Quality') + R('Photons in fit / SNR', p[10] + ' / ' + p[11]) + R('Height uncertainty', '± ' + p[8] + ' m') + R('Granule', p[7], 'font-size:10px')
         + (p[9] ? '<div class="row" style="color:#C8322A"><b>Rejected: not a surface return</b></div><div style="font-size:11px;color:var(--muted)">The height is outside the physical envelope (more than 15 m above the 2017 surface, or lower than twice the whole 2017 to 2023 thinning minus 10 m), here ' + (p[4] / 1).toFixed(0) + ' m from the 2017 surface. It passes ATL06\'s own quality flag but has few photons and a low signal to noise ratio.</div>' : (Math.abs(p[5]) > 15 ? '<div class="row" style="color:#C8322A"><b>Suspect</b></div><div style="font-size:11px;color:var(--muted)">Large difference to the model (' + p[5].toFixed(1) + ' m); kept, not proven wrong.</div>' : ''));
-      return;
+      if (click) pin(); return;
     } else hiObj.visible = false;
   }
   ray.setFromCamera(mouse, camera); const hit = ray.intersectObject(mesh)[0];
   if (!hit) return; const c = Math.round(hit.point.x / cell), r = Math.round(-hit.point.z / cell); if (c < 0 || c >= W || r < 0 || r >= H) return; const i = r * W + c;
   box.innerHTML = '<b>' + D.years[yi] + '</b><div class="row"><span>Elevation (LN02)</span><span>' + hgt(yi, i).toFixed(1) + ' m</span></div><div class="row"><span>Since ' + BY + '</span><span>' + (hgt(yi, i) - hgt(B0, i)).toFixed(1) + ' m</span></div><div class="row"><span>vs previous year</span><span>' + (yi ? (hgt(yi, i) - hgt(yi - 1, i)).toFixed(1) + ' m' : '–') + '</span></div><div class="row"><span>Ice</span><span>' + (isLake(yi, i) ? 'no: lake (flat; level assumed from the 2023 DEM, ±10–15 m)' : (iceAt(yi, i) ? 'yes' : 'no')) + '</span></div>' + (hasS ? '<div class="row"><span>Site model elevation</span><span>' + hgtS(yi, i).toFixed(1) + ' m (new − site ' + (hgt(yi, i) - hgtS(yi, i)).toFixed(1) + ' m)</span></div>' : '') + (hasBed && !isNaN(bedAt(i)) && inBox(i) && (isI17(i) || isI23(i)) ? '<div class="row"><span>Bed elevation (swissBEDROCK)</span><span>' + bedAt(i).toFixed(1) + ' m</span></div><div class="row"><span>Ice thickness this year (surface − bed)</span><span>' + Math.max(0, hgt(yi, i) - bedAt(i)).toFixed(0) + ' m</span></div><div class="row"><span>Nearest GPR measurement</span><span>' + gprAt(i) + ' m away</span></div>' : '') + (sigU8 && iceAt(yi, i) ? '<div class="row"><span>Uncertainty (1σ)</span><span>± ' + sigAt(yi, i).toFixed(1) + ' m</span></div>' : '');
-});
+}
 // ---- camera: from the tip, looking up the tongue
 function frame() {
   let sx = 0, sz = 0, n = 0, zmax = -1e9; for (let i = 0; i < N; i += 7) if (inBox(i)) { sx += pos[3 * i]; sz += pos[3 * i + 2]; n++; }

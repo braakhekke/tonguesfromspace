@@ -367,22 +367,60 @@ def read_length_change(src):
         for v in d.values(): v.sort(key=lambda x: x["end"])
     return by_id, by_name
 
+def _day(s):
+    """'YYYY-MM-DD' -> day number, or None when the date is not that precise"""
+    try: return date(int(s[:4]), int(s[5:7]), int(s[8:10])).toordinal()
+    except (ValueError, IndexError): return None
+
+def non_overlapping(series):
+    """GLAMOS rows of one glacier that overlap in time (two observers, or a long photogrammetric interval beside yearly field readings) must not be added twice (owner, 2026-11-03: the panel's total
+    length change counted the overlap twice). Rule, the same for every glacier: the rows are taken longest interval first; a shorter row keeps only the days that no longer row has already covered, and its change
+    is scaled by that share of its days (even rate, computed); a row with no days left is left out. Rows whose dates are not exact days stay as they are. Returns (rows, info); info says what was changed
+    ({'dropped': n, 'trimmed': n, 'removed_m': change taken out of the sum}) or is None when nothing overlaps."""
+    items = []
+    for i, r in enumerate(series):
+        a, b = _day(r["start"]), _day(r["end"])
+        items.append((i, a, b, r))
+    order = sorted((t for t in items if t[1] is not None and t[2] is not None and t[2] > t[1]), key=lambda t: (-(t[2] - t[1]), t[0]))
+    covered = []      # disjoint (a, b) intervals already claimed
+    out = {}; dropped = trimmed = 0; removed = 0.0
+    for i, a, b, r in order:
+        pieces = [(a, b)]
+        for ca, cb in covered:
+            nxt = []
+            for pa, pb in pieces:
+                if cb <= pa or ca >= pb: nxt.append((pa, pb)); continue
+                if pa < ca: nxt.append((pa, ca))
+                if cb < pb: nxt.append((cb, pb))
+            pieces = nxt
+        left = sum(pb - pa for pa, pb in pieces)
+        if left <= 0: dropped += 1; removed += r["dl"]; continue
+        if left == b - a: out[i] = r; covered.append((a, b)); continue
+        pa, pb = pieces[0][0], pieces[-1][1]      # at most one piece can remain (the longer rows that cover it cannot lie inside it)
+        keep = dict(r, start=date.fromordinal(pa).isoformat(), end=date.fromordinal(pb).isoformat(), dl=r["dl"] * left / (b - a)); out[i] = keep; covered.append((pa, pb)); trimmed += 1; removed += r["dl"] - keep["dl"]
+    rows = [out[i] if i in out else r for i, a, b, r in items if i in out or a is None or b is None or b <= a]
+    rows.sort(key=lambda x: x["end"])
+    return rows, ({"dropped": dropped, "trimmed": trimmed, "removed_m": round(removed, 1)} if dropped or trimmed else None)
+
 def length_stats(series, since="2016"):
-    """Four figures from one glacier's series, all from the same measurements."""
+    """Four figures from one glacier's series, all from the same measurements. Rows that overlap in time are counted once (non_overlapping)."""
     if not series: return None
+    raw_first, raw_last, n_rows = series[0], series[-1], len(series)      # the oldest and newest row as the file states them
+    series, overlap = non_overlapping(series)
     recent = [r for r in series if r["start"][:4] >= since]
-    last = series[-1]
+    last = raw_last
     return {
-        "first_year": int(series[0]["start"][:4]),
+        "first_year": int(raw_first["start"][:4]),
         "last_year": int(last["end"][:4]),
         "total_m": round(sum(r["dl"] for r in series)),
         "recent_m": round(sum(r["dl"] for r in recent)) if recent else None,
         "recent_from": int(recent[0]["start"][:4]) if recent else None,
         "latest_m": round(last["dl"], 1),
         "latest_period": [last["start"][:4], last["end"][:4]],
-        "observations": len(series),
+        "observations": n_rows,
         # every survey as [start year, end year, change in m], so the page can add up any range of years
         "series": [[int(r["start"][:4]), int(r["end"][:4]), round(r["dl"], 1)] for r in series],
+        **({"overlap": overlap} if overlap else {}),
     }
 
 # ---------------------------------------------------------------- volume change, Swiss-wide volume, radar thickness
@@ -553,7 +591,22 @@ def main():
     here = os.path.dirname(os.path.abspath(__file__))
     root = os.path.dirname(here) if os.path.basename(here) == "scripts" else here
     ap.add_argument("--out", default=os.path.join(root, "data", "glaciers.js"), help="output file (default: data/glaciers.js)")
+    ap.add_argument("--length-only", action="store_true", help="only recompute the `length` entries of the existing --out file from --lengthchange (no inventories read), e.g. after a change of the overlap rule")
     a = ap.parse_args()
+    if a.length_only:
+        with open(a.out, encoding="utf-8") as f: txt = f.read()
+        data = json.loads(txt.split("window.GLACIER_DATA = ", 1)[1].rstrip().rstrip(";"))
+        lc_id, lc_name = read_length_change(a.lengthchange)
+        for g in data["glaciers"]:
+            series = lc_id.get(g["id"]) or lc_name.get(norm_name(g["name"]))
+            new = length_stats(series)
+            if new != g.get("length"): print(f"  {g['name']}: length {(g.get('length') or {}).get('total_m')} -> {new and new['total_m']} m", new.get("overlap") if new else "")
+            g["length"] = new
+        with open(a.out, "w", encoding="utf-8") as f:
+            f.write("/* generated by build_outlines.py - do not edit */\nwindow.GLACIER_DATA = ")
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+            f.write(";\n")
+        return
 
     print("Reading newest inventory")
     _, feats, rows = pick_layer(load_zip(a.latest), a.latest_label)

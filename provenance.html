@@ -46,12 +46,13 @@
   .fn > h2 .no { color:var(--muted); font-weight:500; margin-right:6px; } .fn > .lead { margin:-4px 0 10px; color:var(--muted); max-width:860px; font-size:12.5px; }
   .fn .notes { margin-top:14px; } .fn .legend { margin-top:10px; } .fn #detail { margin-top:12px; }
   .fn .row0 { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:520px; }
-  #overview { display:none; } .ov #overview { display:block; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
+  #overview { display:none; } .ov #overview { display:block; } .ov #allFn { display:none; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
   .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
   g.col:hover rect.hit { fill:var(--iceLight); opacity:.55; } rect.hit { fill:transparent; cursor:pointer; }
 </style></head><body><main>
 <p style="margin:0 0 6px"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a></p>
 <h1>Scientific field notes</h1>
+<p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">See the field notes for all glaciers</a></p>
 <p class="sub" id="sub">How the 3D view of <span id="gname">this glacier</span> is made: what was measured, what was modelled, and how each is checked. Every number on this page is for the tongue (section 1) only, and is as recorded in the project's source ledger or marked as computed.</p>
 <div id="overview"><p class="sub">One page of field notes for each glacier whose 3D view has a surface for every year: what was measured, what was modelled and how each is checked. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
 <nav class="toc" aria-label="Sections"><a href="#area">Study area</a><a href="#surface">Ice surface through time</a><a href="#anchors">Measured surfaces</a><a href="#validation">Validation and limits</a><a href="#bed" id="tocBed">Ice bed</a><a href="#licences">Data not used, licences</a></nav>
@@ -225,6 +226,6 @@ function drawMap(){
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(!PG) return; draw();drawMap();drawOverview();if(PG.bed) bedMaps(); });
 </script></main><script>
 // back to the page we came from (?back= carries its full address incl. #g=...; the referrer drops the fragment); home when absent or foreign
-(function(){try{var r=new URLSearchParams(location.search).get('back')||document.referrer;var u=new URL(r,location.href);if(u.origin===location.origin&&u.pathname!==location.pathname){var a=document.getElementById('back');a.href=u.href;a.dataset.back='1';a.textContent='← Back';}}catch(e){}})();
+(function(){try{var r=new URLSearchParams(location.search).get('back')||document.referrer;var u=new URL(r,location.href);if(u.origin===location.origin&&u.pathname!==location.pathname){var a=document.getElementById('back');a.href=u.href;a.dataset.back='1';a.textContent='← Back';document.getElementById('allFnA').href='provenance.html?back='+encodeURIComponent(u.href);}}catch(e){}})();
 </script>
 </body></html>

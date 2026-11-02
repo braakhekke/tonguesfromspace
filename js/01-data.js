@@ -109,21 +109,21 @@ export const TRAILS = {
  gorner: {
   hike: { title: 'Gornergrat to Riffelberg', text: 'From the Gornergrat down past the Riffelsee: 4.7 km, about 1 h 25 min, T2.', url: 'https://wegwandern.ch/wanderung/wanderung-gornergrat-zermatt-rotenboden-riffelsee-riffelberg-wandern/', kind: 'wander' }, bike: null },
  fiescher: {
-  hike: { title: 'Aletsch Panoramaweg, Märjelensee to Bellwald (route 39)', text: 'Passes 0.6 km from the tongue tip (computed from the route data); the Burghütte stands above the foot of the glacier.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
-  bike: { title: 'Valais Panorama Bike (mountain bike route 81)', text: 'Through the upper Goms, 2.9 km from the tongue tip (computed from the route data).', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-81', kind: 'mtb' } },
+  hike: { title: 'Aletsch Panoramaweg, Märjelensee to Bellwald (route 39)', text: 'Stage 3 of the Aletsch Panoramaweg, Märjelensee to Bellwald. Passes 0.6 km from the tongue tip (computed from the route data).', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-39', kind: 'wander' },
+  bike: { title: 'Valais Panorama Bike (mountain bike route 81)', text: 'A four-stage tour through the Goms (Conches valley). 2.9 km from the tongue tip (computed from the route data).', url: 'https://schweizmobil.ch/en/mountainbiking-in-switzerland/route-81', kind: 'mtb' } },
  unteraar: {
   hike: { title: 'Grimsel Hospiz to the Lauteraarhütte', text: 'Along the Grimselsee to the hut above the glacier: 10.2 km, about 4 h.', url: 'https://www.interlaken.swiss/erlebnisse/tour/wandern-am-ursprung-der-aare', kind: 'wander' }, bike: null },
  corbassiere: {
-  hike: { title: 'Cabane de Panossière via the Col des Otanes', text: 'Circular tour from Mauvoisin with views of the glacier from the pass: 12.9 km, about 6 h 15 min.', url: 'https://www.novo-monde.com/en/panossiere-hut-valais/', kind: 'wander' }, bike: null },
+  hike: { title: 'Cabane FXB Panossière, Col des Otanes to Mauvoisin', text: 'From the Cabane FXB Panossière over the Col des Otanes down to Mauvoisin, with views of the Corbassière glacier: 6.8 km, about 2 h 35 min, T3.', url: 'https://wegwandern.ch/wanderung/cabane-fxb-panossiere-col-des-otanes-mauvoisin/', kind: 'wander' }, bike: null },
  zmutt: {
-  hike: { title: 'Zermatt to the Schönbielhütte', text: 'Over the moraine above the glacier, the Matterhorn north face alongside: 11 km, about 4 h.', url: 'https://www.bergwelten.com/t/w/24489', kind: 'wander' }, bike: null },
+  hike: { title: 'Zermatt to the Schönbielhütte', text: 'Through the gravel and scree of the retreating glacier, with the Matterhorn in view: 11 km, about 4 h.', url: 'https://www.bergwelten.com/t/w/24489', kind: 'wander' }, bike: null },
  rhone: {
   hike: { title: 'Furka-Höhenweg, Oberwald to the Furkapass (route 51)', text: 'First stage of the Furka-Höhenweg, Oberwald to the Furkapass, with views of the Rhône glacier. Passes 1.4 km from the tongue.', url: 'https://schweizmobil.ch/en/hiking-in-switzerland/route-51', kind: 'wander' },
   bike: { title: 'Rhone-Route (Veloland route 1)', text: 'Starts in Andermatt; the first stage climbs the Furka Pass. Passes 0.7 km from the tongue.', url: 'https://schweizmobil.ch/en/cycling-in-switzerland/route-1', kind: 'velo' } },
  trift: {
-  hike: { title: 'Triftbrücke', text: 'A 170 m suspension bridge with the glacier at the head of the lake: about 1.5 h from the top station.', url: 'https://www.myswitzerland.com/en-gb/experiences/route/trift-bridge-a-spectacular-pedestrian-bridge/', kind: 'wander' }, bike: null },
+  hike: { title: 'Triftbrücke', text: 'A 170 m suspension bridge over the lake that the meltwater of the Trift glacier formed: about 1.5 h from the top station.', url: 'https://www.myswitzerland.com/en-gb/experiences/route/trift-bridge-a-spectacular-pedestrian-bridge/', kind: 'wander' }, bike: null },
  fee: {
-  hike: { title: 'Längfluh to Saas-Fee', text: 'From the Längfluh viewpoint above the glacier to the village: 6.5 km, about 2 h 15 min.', url: 'https://www.valais.ch/de/shop/bergbahnen/bergbahnfahrt-nach-langfluh-saas-fee', kind: 'wander' }, bike: null },
+  hike: { title: 'Längfluh to Saas-Fee', text: 'From the Längfluh mountain station along the glaciers back to the village: 6.5 km, about 2 h 15 min.', url: 'https://www.bergfex.com/sommer/wallis/touren/wanderung/599056,laengfluh--saas-fee', kind: 'wander' }, bike: null },
  findel: {
   hike: { title: 'Naturweg, Riffelalp to Sunnegga', text: 'Through a stone-pine forest to the retreating glacier, with Matterhorn views: 6.2 km, about 1 h 40 min.', url: 'https://zermatt.swiss/p/naturweg-nr-19-01tVj000005EvuoIAC', kind: 'wander' }, bike: null }
 };
@@ -135,28 +135,28 @@ export const lv95 = (lon, lat) => {
 };
 export const GLACIER_INFO = {
  "aletsch": {
-  "fact": "The Aletsch region has its own legend: the Rollibock, a huge goat-like creature with long horns, fiery eyes and icicles for fur, who lives in the ice of the glacier. He appears when people harm nature. In one story a greedy hunter crosses the ice, the glacier opens, his boat sinks in the icy water of Lake Märjelen and he is never seen again. Today he is the mascot of the Aletsch Arena and stands for respect for nature.",
-  "name": "Named after the Alp Aletsch below it, first recorded in 1231 as <em>Alech</em>. Where the name itself comes from is unknown.",
-  "factSrc": "Bergwelten and Alpenverein (Rollibock legend); Aletsch Arena (Rollibock Club, mascot)",
+  "fact": "The Aletsch region has its own legend: the Rollibock, a large buck with long horns, fiery eyes and icicles instead of fur, who lives in the eternal ice of the Great Aletsch Glacier. He rarely leaves it, only when someone provokes his anger. In one story a hunter from the Fieschertal, who had destroyed rock crystals and killed a chamois doe and her kid, is taken across Lake Märjelen by a ferryman who turns out to be the Rollibock: the glacier opens and the boat sinks in the icy water. Today he is more a mascot of the region than a legendary figure.",
+  "name": "The name Aletsch is first recorded in 1231 as <em>Alech</em>; its origin is unclear.",
+  "factSrc": "Bergwelten (Rollibock legend); Alpenverein (Rollibock, mascot)",
   "src": "Historical Dictionary of Switzerland (Aletschgletscher)"
  },
  "gorner": {
   "fact": "Its ice-marginal lake, the Gornersee, fills every year and usually drains in summer in a glacial lake outburst flood. With its tributaries it forms the second-largest glacier system in the Alps after the Aletsch (53 km², 2007).",
-  "name": "From the <em>Gorneren</em>, the high pastures above Zermatt: as early as 1579 the farmers' guild regulated when livestock could be moved onto them. The historian F. A. Volmar (1958) assumed that <em>Gorner</em> is a Germanisation of Romansh <em>cornu</em>, \"horned\". In the first half of the 19th century the people of Zermatt still called the mountains on the Italian side of Monte Rosa the <em>Gornerhorn</em>.",
+  "name": "Same name as the Gornergrat beside it. The Gornergrat Bahn's history of that name: as early as 1579 the farmers' guild regulated when sheep could be left on the <em>Gorneren</em>. The historian F. A. Volmar (1958) assumed that the name is a Germanisation of Romansh <em>cornu</em>, \"horned\", referring to the <em>Gornerhorn</em>: in the first half of the 19th century the people of Zermatt still called the mountains on the Italian side of Monte Rosa the Gornerhorn.",
   "factSrc": "Wikipedia (Gorner Glacier)",
   "src": "Gornergrat Bahn (gornergrat.ch: how the Gornergrat got its name; the history of tourism access)"
  },
  "fiescher": {
-  "fact": "In 1678 the people of Fiesch vowed to live virtuously and to pray that the Aletsch glacier would stop growing, because it threatened their valley. In 2010 the Vatican allowed them to change the vow: their annual procession now also prays about climate change and glacier melting.",
+  "fact": "In 1678 the people of Fiesch vowed to live virtuously and to pray that the Aletsch glacier would stop growing: it had come threateningly close to Fiesch. In August 2010 the Vatican approved a change of the vow: the parish may now include global warming, climate change and glacier melt in its annual prayers.",
   "name": "\"Of Fiesch\": named after the village and valley below it. The village appears as <em>Vios</em> in 1203 and <em>Viesch</em> in 1438.",
   "factSrc": "Beobachter (\"Um Gottes willen\"); swissinfo.ch",
   "src": "Historical Dictionary of Switzerland (Fiesch)"
  },
  "unteraar": {
   "fact": "In the 19th century the naturalists Franz Josef Hugi and Louis Agassiz spent many months here. Agassiz and his team lived under a huge boulder on the medial moraine, which they named the \"Hôtel des Neuchâtelois\", while they studied the glacier. It was one of the first subjects of glaciology.",
-  "name": "\"Lower Aare glacier\": the larger of the two sources of the river Aare, with the Oberaar glacier. The Aare, 288 km, is the longest river that flows entirely within Switzerland.",
-  "factSrc": "Wikipedia (Unteraargletscher); Agassiz, Life and Correspondence (1893)",
-  "src": "Wikipedia (Unteraargletscher); MySwitzerland.com (Aare)"
+  "name": "\"Lower Aare glacier\": the larger of the two sources of the river Aare. The Aare is the longest river that both rises and ends entirely within Switzerland: its total length from source to its junction with the Rhine comprises about 295 kilometres.",
+  "factSrc": "swisseduc.ch (Unteraargletscher excursion: Hugi and Agassiz, Hôtel des Neuchâtelois); Wikipedia (Unteraargletscher: one of the first subjects of developing glaciology)",
+  "src": "Wikipedia (Unteraargletscher); Wikipedia (Aare)"
  },
  "oberaletsch": {
   "fact": "Until about 1880 it still flowed into the Aletsch glacier. Both glaciers have retreated so far that they no longer join.",
@@ -177,9 +177,9 @@ export const GLACIER_INFO = {
   "src": "Wikipedia (Morteratsch Glacier); Pontresina Tourism (Legends in the Bernina glacier region)"
  },
  "zmutt": {
-  "fact": "Debris now covers about 32 % of the glacier surface, up from about 13 % in 1859. This debris slowed the glacier's response: its length and area have changed little compared with debris-free glaciers, although the mass loss is similar. Water from the Zmutt valley is collected at the Z'Mutt pumping station of the Grande Dixence system.",
+  "fact": "Debris now covers about 32 % of the glacier surface, up from about 13 % in 1859. This debris slowed the glacier's response: its length and area have changed little compared with debris-free glaciers, although the mass loss is similar. The meltwater of the Zmutt glacier feeds the Stafel pumping station of the Grande Dixence system, at 2,180 metres at the foot of the Matterhorn.",
   "name": "Named after the hamlet of Zmutt in the municipality of Zermatt. The origin of the name is not documented in the sources we checked.",
-  "factSrc": "The Cryosphere, vol. 13 (2019), Zmuttgletscher study; Grande Dixence SA",
+  "factSrc": "The Cryosphere 13 (2019), Mölg et al., Zmuttgletscher study; Grande Dixence SA (Stafel pumping station)",
   "src": "Wikipedia (Zmutt)"
  },
  "rhone": {
@@ -190,21 +190,21 @@ export const GLACIER_INFO = {
  },
  "trift": {
   "fact": "In the 2004/05 measuring year the Trift glacier retreated by 216 m, more than any other monitored glacier in Switzerland, because its tongue ended in a lake that sped up the melting. A suspension bridge about 170 m long (opened 2009, replacing one built in 2004) spans the Triftsee so hikers can still reach the hut.",
-  "name": "German <em>Trift</em> is a path along which livestock is driven, from <em>treiben</em>, \"to drive\".",
+  "name": "German <em>Trift</em> is, regionally, a path used by livestock between pasture and stable; the word comes from Middle High German <em>trift</em>, from <em>treiben</em>, \"to drive\".",
   "factSrc": "plattformj.ch (glacier measurements, 2006); Wikipedia (Trift Bridge)",
   "src": "Duden"
  },
  "fee": {
-  "fact": "At Mittelallalin, 3,500 m high, glaciologist Benedikt Schnyder carved an artificial ice cave into the glacier: the Ice Pavilion, 5,500 m² with a 71 m tunnel. It closed in 2024 for safety reasons, because the glacier retreats; a virtual reality experience replaced it.",
+  "fact": "At Mittelallalin, 3,500 m high, glaciologist Benedikt Schnyder carved an artificial ice cave into the glacier: the Ice Pavilion, 5,500 m² with a 71 m tunnel. It closed in 2024 for safety reasons; a virtual reality experience replaced it.",
   "name": "Named after Saas-Fee, the village below it, which appears as <em>Vee</em> in 1304. Where the name itself comes from is not documented in the sources we checked.",
   "factSrc": "showcaves.com (Eispavillon Mittelallalin)",
-  "src": "Historical Dictionary of Switzerland (Saas-Fee)"
+  "src": "Wikipedia (Saas-Fee)"
  },
  "findel": {
   "fact": "Around the middle of the 19th century its tongue still reached down to about 2,100 m, near the hamlet of Findeln and below the tree line. Since then it has retreated by more than 2.5 km, and since the 1970s by more than 1 km. Its meltwater, the Findelbach, joins the Gornera and the Zmuttbach to form the Matter Vispa.",
   "name": "Named after the hamlet of Findeln, 2 km east of Zermatt at 2,051 m, near where the tongue once ended. The origin of the name Findeln itself is not documented in the sources we checked.",
-  "factSrc": "Wikipedia (Findelgletscher)",
-  "src": "Wikipedia (Findeln)"
+  "factSrc": "Wikipedia, German edition (Findelgletscher)",
+  "src": "Wikipedia, German edition (Findeln)"
  }
 };
 

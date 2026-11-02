@@ -1,0 +1,102 @@
+{
+ "aletsch": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1854,
+  "oldestAny": 1854,
+  "releasekey": 2024,
+  "sheet": "Finsteraarhorn",
+  "tiles": 81
+ },
+ "corbassiere": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1861,
+  "oldestAny": 1861,
+  "releasekey": 2023,
+  "sheet": "Chanrion",
+  "tiles": 45
+ },
+ "fiescher": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1864,
+  "oldestAny": 1854,
+  "releasekey": 2024,
+  "sheet": "Finsteraarhorn",
+  "tiles": 81
+ },
+ "gorner": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1862,
+  "oldestAny": 1861,
+  "releasekey": 2023,
+  "sheet": "Zermatt",
+  "tiles": 81
+ },
+ "rhone": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1864,
+  "oldestAny": 1854,
+  "releasekey": 2024,
+  "sheet": "Urseren",
+  "tiles": 54
+ },
+ "sgi-B53-04": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1862,
+  "oldestAny": 1862,
+  "releasekey": 2023,
+  "sheet": "Randa",
+  "tiles": 42
+ },
+ "sgi-B56-03": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1862,
+  "oldestAny": 1862,
+  "releasekey": 2023,
+  "sheet": "Zermatt",
+  "tiles": 54
+ },
+ "trift": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2024,
+  "oldest": 1864,
+  "oldestAny": 1864,
+  "releasekey": 2025,
+  "sheet": "Guttannen",
+  "tiles": 48
+ },
+ "unteraar": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2024,
+  "oldest": 1864,
+  "oldestAny": 1854,
+  "releasekey": 2025,
+  "sheet": "Guttannen",
+  "tiles": 81
+ },
+ "zmutt": {
+  "asked": "2026-11-02",
+  "current": 2026,
+  "datenstand": 2023,
+  "oldest": 1862,
+  "oldestAny": 1861,
+  "releasekey": 2023,
+  "sheet": "Matterhorn",
+  "tiles": 63
+ }
+}

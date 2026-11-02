@@ -307,6 +307,18 @@ def main():
             rel = hashed_name(f"data/oldest/{f}", data)
             write(out, rel, data)
             assets[f"data/oldest/{f}"] = rel
+    oa = os.path.join(ROOT, "data", "oldest-aerial.json")      # the oldest SWISSIMAGE edition that covers the whole glacier (Switzerland, scripts/build_oldest_aerial.py): one file, hashed
+    if os.path.isfile(oa):
+        data = read("data/oldest-aerial.json")
+        rel = hashed_name("data/oldest-aerial.json", data)
+        write(out, rel, data)
+        assets["data/oldest-aerial.json"] = rel
+    sm = os.path.join(ROOT, "data", "swisstopo-maps.json")      # the oldest swisstopo map over each picture box and the year of the map shown now (scripts/build_oldest_map.py)
+    if os.path.isfile(sm):
+        data = read("data/swisstopo-maps.json")
+        rel = hashed_name("data/swisstopo-maps.json", data)
+        write(out, rel, data)
+        assets["data/swisstopo-maps.json"] = rel
     # Landsat pictures before 2016 (Iceland): not in the site bundle. They live in the R2 bucket LANDSAT (scripts/upload_landsat.sh) and the Worker serves
     # them at data/landsat/<outlet>.json and <outlet>/<year>.jpg (plain names, revalidated; `asset()` leaves unlisted names as they are).
     yearly = os.path.join(ROOT, "data", "yearly")      # how the yearly ice surfaces were made (science mode of the 3D view, provenance.html); the .npz next to them is only for the terrain builder

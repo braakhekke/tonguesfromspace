@@ -3,7 +3,8 @@ import { $, COARSE, PHONE } from './01-data.js';
 import { needsOutline, loadOutline, rankArea, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs } from './03-imagery.js';
 import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPicked } from './04-state.js';
-import { map, updateSight, updateTrailClip, updateAerial, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
+import { map, updateSight, updateTrailClip, updateAerial, updateMapYears, oldestAerial, ensureOldest, showOldest, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
+import { showLatest } from './03-imagery.js';
 import { checkYears, checkGen } from './06-scene-search.js';
 import { renderGlacierList, subTitle, focusSub, renderStory } from './07-render.js';
 import { showNotice, drawBoxes, updateBoxes, glaciersExtent, syncSatUi } from './08-controls.js';
@@ -154,13 +155,22 @@ export function chooseGlacier(id){
   const sat = $('satToggle'); if (!sat.checked) { sat.checked = true; sat.dispatchEvent(new Event('change')); }      // choosing a glacier switches the Sentinel-2 picture on (it may have been switched off in the layer menu)
   if (first) { const bt = $('boxToggle'); if (bt.checked) { bt.checked = false; bt.dispatchEvent(new Event('change')); } }      // the selectable-glacier layer goes off with the first choice
   if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines
-    stopPlay(); if (first) { if (state.checked) { setCompareLayers(); buildTimelapse(); } drawOutlines(); writeHash(); updateTrailClip(); updateAerial(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
+    stopPlay(); if (first) { if (state.checked) { setCompareLayers(); buildTimelapse(); } drawOutlines(); writeHash(); updateTrailClip(); updateAerial(); updateMapYears(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
     if (first && checkGen === 0) checkYears();      // a region that opens on its overview has not searched yet
     return focusTongue();
   }
   stopPlay();
-  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); updateTrailClip(); updateAerial(); updateSight(); drawTonguePin(); focusTongue(); writeHash();
-  checkYears();                 // each glacier has its own clearest scenes
+  const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null;      // Oldest or Latest stays chosen when the next glacier is clicked
+  state.glacier = id; renderGlacierList(); renderStory(); drawOutlines(); drawBoxes(); updateBoxes(); updateTrailClip(); updateAerial(); updateMapYears(); updateSight(); drawTonguePin(); focusTongue(); writeHash();
+  checkYears().then(() => keepSpecial(id, special));                 // each glacier has its own clearest scenes
+}
+/* the new glacier gets the same special picture as the old one had (its search has finished: the scenes of every year are known) */
+function keepSpecial(id, special, tries = 0){
+  if (!special || state.glacier !== id || viewMode === '3d' || !state.checked) return;
+  if (special === 'latest') { showLatest(); return; }
+  const g = currentGlacier(); ensureOldest(g);
+  if (oldestAerial.get(id) === undefined && tries < 50) { setTimeout(() => keepSpecial(id, special, tries + 1), 200); return; }      // the oldest picture of this glacier is still being looked up
+  if (oldestAerial.get(id)) showOldest();
 }
 export const MP_CHEV = '<svg class="mp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 export let gSheet = null;
