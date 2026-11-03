@@ -261,7 +261,10 @@ dialog.player{overflow:visible}
   .hero .wrap{gap:40px}
   .tile{border-bottom:1px solid var(--rule)}
   .info{left:0;right:0;bottom:0;width:auto;border-width:1px 0 0}
-  .mapbox{height:340px}
+  .mapbox{height:auto;background:transparent}      /* the card of a chosen region or glacier sits under the map, not over it */
+  #map{position:relative;inset:auto;height:340px}
+  .info{position:static;width:auto;border-width:1px 0 0;box-shadow:none;max-height:none}
+  .credit{position:static;background:none;padding:6px 0 0;color:rgba(255,255,255,.5)}
   .maphint{display:block;margin:8px 0 0;font-size:11.5px;color:rgba(255,255,255,.55)}
   .whygrid{align-items:flex-start;text-align:left}.why-logo{align-self:flex-start}
   .sci-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin:6px 0 0;padding:14px 16px;border:1px solid #0A1B33;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
@@ -285,7 +288,8 @@ dialog.player{overflow:visible}
   .flight-link{font-size:12px}
   .bar .wrap{height:52px}
   .whyband,.closing{padding:30px 0}.pickband{padding:34px 0 24px}section.s{padding:32px 0}
-  .mapbox{height:78vh}
+  .mapbox{height:auto}
+  #map{height:62vh}
   .tiles{grid-template-columns:repeat(4,1fr)}
 }
 
