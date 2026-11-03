@@ -266,7 +266,7 @@ dialog.player{overflow:visible}
   .info{position:static;width:auto;border-width:1px 0 0;box-shadow:none;max-height:none}
   .credit{position:static;background:none;padding:6px 0 0;color:rgba(255,255,255,.5)}
   .maphint{display:block;margin:8px 0 0;font-size:11.5px;color:rgba(255,255,255,.55)}
-  .whygrid{align-items:flex-start;text-align:left}.why-logo{align-self:flex-start}
+  .whygrid{align-items:flex-start;text-align:left}.why-logo{display:none}
   .sci-toggle{display:flex;align-items:center;justify-content:space-between;width:100%;margin:6px 0 0;padding:14px 16px;border:1px solid #0A1B33;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;cursor:pointer}
   .sci-toggle svg{width:18px;height:18px;fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
   .sci-toggle[aria-expanded=true] svg{transform:rotate(180deg)}
