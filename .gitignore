@@ -90,3 +90,7 @@ teaser/where-the-ice-was.mp4
 teaser/teaser-wide.mp4
 teaser/teaser-wide.webm
 teaser/teaser-wide-poster.jpg
+# local only: intermediate and old film files, not used by the site
+images/home/clips/trails.mp4
+images/home/clips/trails.jpg
+images/home/film-poster.jpg

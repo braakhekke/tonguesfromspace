@@ -70,20 +70,29 @@ class Take:
 # Sizes in CSS px of a 1280 x 720 page that is drawn 1.5 times (1920 x 1080 in the film).
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 
+def mods(p):
+    """The page is ES modules: M.map (05-map.js), M.st (04-state.js), M.ctl (08-controls.js), M.v3 (11-view3d.js), M.an (10-animation.js) are the page's own module objects (live bindings), W is js/wire.js."""
+    wait_js(p, "typeof L !== 'undefined' && document.querySelector('.leaflet-tile-loaded')", 150000)
+    p.evaluate("""async () => { if (window.M) return; window.W = (await import('/js/wire.js')).wire;
+        window.M = {map: await import('/js/05-map.js'), st: await import('/js/04-state.js'), ctl: await import('/js/08-controls.js'), v3: await import('/js/11-view3d.js'), an: await import('/js/10-animation.js')}; }""")
+
+
 def ready_map(p, timeout=90000):
     """Every picture of the timelapse is there."""
-    wait_js(p, "typeof tlLayers !== 'undefined' && tlLayers.length > 1 && tlLayers.every(t => t.layer._ready)", timeout)
+    mods(p)
+    wait_js(p, "M.map.tlLayers.length > 1 && M.map.tlLayers.every(t => t.layer._ready)", timeout)
 
 
 def ready_3d(p, timeout=120000):
-    wait_js(p, "typeof v3dCtx !== 'undefined' && v3dCtx && typeof v3d !== 'undefined' && v3d", timeout)
+    mods(p)
+    wait_js(p, "M.v3.v3dCtx && M.v3.v3d", timeout)
 
 
 def warm_play(p):
     """Plays the timelapse once, unseen, so that every picture of the years is loaded (the first run waits for them), then goes back to the first frame."""
-    p.evaluate("play()")
-    wait_js(p, "state.playing && !document.getElementById('playBtn').querySelector('.spin-s')", 120000)
-    p.evaluate("stopPlay(); showFrame(0)")
+    p.evaluate("M.map.play()")
+    wait_js(p, "M.st.state.playing && !document.getElementById('playBtn').querySelector('.spin-s')", 120000)
+    p.evaluate("M.map.stopPlay(); M.map.showFrame(0)")
     p.wait_for_timeout(600)
 
 
@@ -113,7 +122,7 @@ def take_map(T):
     warm_play(p)
     to_modes(p)
     p.evaluate("() => D.tipAt(0.5, 0.62)")
-    wait_js(p, "state.available[2016] && state.available[2026]", 60000)
+    wait_js(p, "M.st.state.available[2016] && M.st.state.available[2026]", 60000)
     m = T.mouse
     m.place(520, 470)
     T.go()
@@ -125,7 +134,7 @@ def take_map(T):
     m.click("#lbToggle", 500)
     T.sleep(0.6)
     m.click("#modeCompare", 800)
-    p.evaluate("() => { setOrient('v'); D.tipAt(0.5, 0.62); state.split = 0.5; clip(); D.cap('', 'Compare it', 'Drag through time', 'Any two years, side by side.'); }")
+    p.evaluate("() => { M.ctl.setOrient('v'); D.tipAt(0.5, 0.62); M.st.state.split = 0.5; M.map.clip(); D.cap('', 'Compare it', 'Drag through time', 'Any two years, side by side.'); }")
     T.sleep(0.6)
     sb = stage_box(p)
     x0, w = sb["x"], sb["width"]
@@ -152,24 +161,25 @@ def take_3d(T):
     p.evaluate("() => D.cine(true)")
     warm_play(p)
     to_modes(p)
-    p.evaluate("() => v3d.setCam({az: -0.5, el: 0.28, dist: 4800})")
+    cam_(p, -0.5, 0.28, 4800)
     p.wait_for_timeout(700)
     m = T.mouse
     m.place(520, 470)
     T.go()
     p.evaluate("() => D.cap('', 'Fly over it', 'Fly over the ice', 'Satellite pictures on the real terrain. The ice sinks with the years.')")
     m.click(".tl-play", 450)
-    p.evaluate("() => D.tween(7600, u => v3d.setCam({az: -0.5 + 1.1 * u, el: 0.28 + 0.26 * Math.sin(u * Math.PI * 0.85), dist: 4800 - 1500 * u}), false)")
-    p.evaluate("() => { v3d.setCam({az: 0.35, el: 0.32, dist: 4200}); }")
+    p.evaluate("() => D.tween(7600, u => W.v3d.setCam({az: -0.5 + 1.1 * u, el: 0.28 + 0.26 * Math.sin(u * Math.PI * 0.85), dist: 4800 - 1500 * u}), false)")
+    cam_(p, 0.35, 0.32, 4200)
     m.click("#modeSingle", 800)
     p.evaluate("() => D.cap('', 'Step inside it', 'Step into old photographs', 'Photographs placed on today\u2019s terrain.', {top: 70, cr: 56})")
-    wait_js(p, "typeof v3dCtx !== 'undefined' && v3dCtx && v3dCtx.photos", 90000)
-    p.evaluate("() => { v3d.setCam({az: 0.35, el: 0.32, dist: 4200}); }")
+    wait_js(p, "M.v3.v3dCtx && M.v3.v3dCtx.photos", 90000)
+    cam_(p, 0.35, 0.32, 4200)
     T.sleep(0.5)
-    m.click(".ph-toggle", 700)
-    T.sleep(0.3)
+    p.evaluate("() => { const c = document.getElementById('l3Photos'); c.checked = true; c.dispatchEvent(new Event('change', {bubbles: true})); }")      # the layer "Then and now": the dock opens with the thumbnails
+    wait_js(p, "document.querySelector(\"#v3dPhotos .ph[data-i='7']\") && document.querySelector(\"#v3dPhotos .ph[data-i='7']\").offsetWidth > 0", 30000)
+    T.sleep(0.6)
     m.click(".ph[data-i='7']", 600)
-    wait_js(p, "!!photoOn", 30000)
+    wait_js(p, "!!M.v3.photoOn", 30000)
     wait_js(p, "!document.getElementById('v3dDiv').hidden", 30000)
     T.sleep(0.5)
     sb = stage_box(p)
@@ -301,7 +311,7 @@ def take_end(T):
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 # New takes (2026-11): the page is ES modules now, so the old globals (state, play(), v3d ...) are gone; these takes reach what they need through js/wire.js
-# (W) and the modules. The older takes above are not re-recorded: their clips in teaser/work stay as they are.
+# (W) and the modules (mods() below). The first takes (map, 3d, export) were ported to the same access on 2026-11-03 and record again.
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
 
 def wire_(p):

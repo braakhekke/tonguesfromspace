@@ -43,7 +43,7 @@
   #dr .card.on .src{opacity:1;transform:none;transition-delay:.9s}
   #dr .card.on .url{opacity:1;transform:none;transition-delay:1.3s}
   /* clean look for the film: the real page, without the small print and hints */
-  body.cine .credits,body.cine .leaflet-control-attribution,body.cine .leaflet-control-zoom,body.cine .leaflet-control-scale,body.cine .notice,body.cine .pick-hint,body.cine .down-hint,body.cine .scroll-cue,body.cine .gesture-hint,body.cine .handle-hint,body.cine .v3d-handle .hint,body.cine .gframe,body.cine .frame-label,body.cine .teaser-btn,body.cine .v3d-top .h-full,body.cine .v3d-top .h-short{display:none!important}
+  body.cine .credits,body.cine .leaflet-control-attribution,body.cine .leaflet-control-zoom,body.cine .leaflet-control-scale,body.cine .notice,body.cine .pick-hint,body.cine .down-hint,body.cine .scroll-cue,body.cine .gesture-hint,body.cine .handle-hint,body.cine .v3d-handle .hint,body.cine .gframe,body.cine .frame-label,body.cine .teaser-btn,body.cine .tilt-hint,body.cine .v3d-top .h-full,body.cine .v3d-top .h-short{display:none!important}
   body.cine *{cursor:none!important}
   `;
   const st = document.createElement('style'); st.textContent = css; (document.head || document.documentElement).appendChild(st);
@@ -90,31 +90,31 @@
     tween(ms, fn, ease = true){ return new Promise(res => { const t0 = performance.now(); const tick = now => { const u = Math.min(1, (now - t0) / ms); fn(ease ? u * u * (3 - 2 * u) : u); if (u < 1) requestAnimationFrame(tick); else res(); }; requestAnimationFrame(tick); }); },
     /* the map: the tongue tip at (fx, fy) of the screen, dz zoom levels closer than the start view, kept inside the picture box of the glacier so that its edge does not show */
     frameTongue(dz = 0, fx = 0.5, fy = 0.5, animate = false){
-      map.invalidateSize({pan: false}); focusTongue(false);
-      const g = currentGlacier(), z = map.getZoom() + dz, sz = map.getSize(), tip = map.project(L.latLng(g.inv.terminus.tip), z);
+      W.map.invalidateSize({pan: false}); M.map.focusTongue(false);
+      const g = W.currentGlacier(), z = W.map.getZoom() + dz, sz = W.map.getSize(), tip = W.map.project(L.latLng(g.inv.terminus.tip), z);
       let c = L.point(tip.x + (0.5 - fx) * sz.x, tip.y + (0.5 - fy) * sz.y);
-      const a = map.project(L.latLng(g.bounds[0]), z), b = map.project(L.latLng(g.bounds[1]), z), x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
+      const a = W.map.project(L.latLng(g.bounds[0]), z), b = W.map.project(L.latLng(g.bounds[1]), z), x0 = Math.min(a.x, b.x), x1 = Math.max(a.x, b.x), y0 = Math.min(a.y, b.y), y1 = Math.max(a.y, b.y);
       c.x = x1 - x0 >= sz.x ? Math.min(x1 - sz.x / 2, Math.max(x0 + sz.x / 2, c.x)) : (x0 + x1) / 2;
       c.y = y1 - y0 >= sz.y ? Math.min(y1 - sz.y / 2, Math.max(y0 + sz.y / 2, c.y)) : (y0 + y1) / 2;
-      map.setView(map.unproject(c, z), z, {animate});
+      W.map.setView(W.map.unproject(c, z), z, {animate});
     },
     /* the map: the lower part of the glacier with its 1850 outline: tip at (fx, fy), zoom chosen so that the 1850 outline within r metres of the tip fits */
     frameLower(r = 3600, fx = 0.5, fy = 0.4){
-      map.invalidateSize({pan: false}); const g = currentGlacier(), tip = L.latLng(g.inv.terminus.tip), o = g.inv.oldest && g.inv.oldest.outline, sz = map.getSize();
+      W.map.invalidateSize({pan: false}); const g = W.currentGlacier(), tip = L.latLng(g.inv.terminus.tip), o = g.inv.oldest && g.inv.oldest.outline, sz = W.map.getSize();
       const pts = []; (o ? o.coordinates : []).forEach(poly => poly[0].forEach(([x, y]) => { const q = L.latLng(y, x); if (q.distanceTo(tip) <= r) pts.push(q); }));
-      let z = map.getZoom();
-      if (pts.length) { const b = L.latLngBounds(pts); z = Math.min(15, map.getBoundsZoom(b, false, L.point(sz.x * 0.35, sz.y * 0.3))); }
-      const t = map.project(tip, z); map.setView(map.unproject(L.point(t.x + (0.5 - fx) * sz.x, t.y + (0.5 - fy) * sz.y), z), z, {animate: false});
+      let z = W.map.getZoom();
+      if (pts.length) { const b = L.latLngBounds(pts); z = Math.min(15, W.map.getBoundsZoom(b, false, L.point(sz.x * 0.35, sz.y * 0.3))); }
+      const t = W.map.project(tip, z); W.map.setView(W.map.unproject(L.point(t.x + (0.5 - fx) * sz.x, t.y + (0.5 - fy) * sz.y), z), z, {animate: false});
     },
     /* pans the map so that the tongue tip is at (fx, fy) of the screen, whatever the zoom and the size of the map are now */
     tipAt(fx = 0.5, fy = 0.6){
-      map.invalidateSize({pan: false}); const g = currentGlacier(), sz = map.getSize(), pt = map.latLngToContainerPoint(L.latLng(g.inv.terminus.tip));
-      map.panBy([pt.x - fx * sz.x, pt.y - fy * sz.y], {animate: false});
+      W.map.invalidateSize({pan: false}); const g = W.currentGlacier(), sz = W.map.getSize(), pt = W.map.latLngToContainerPoint(L.latLng(g.inv.terminus.tip));
+      W.map.panBy([pt.x - fx * sz.x, pt.y - fy * sz.y], {animate: false});
     },
     /* the download pane: pans the map so that the tongue tip is at (fx, fy) of the frame that the picture or video is cut from */
     tipInFrame(fx = 0.5, fy = 0.62){
-      const f = document.getElementById('videoFrame').getBoundingClientRect(), m = document.getElementById('map').getBoundingClientRect(), g = currentGlacier(), pt = map.latLngToContainerPoint(L.latLng(g.inv.terminus.tip));
-      map.panBy([pt.x + m.left - (f.left + fx * f.width), pt.y + m.top - (f.top + fy * f.height)], {animate: false});
+      const f = document.getElementById('videoFrame').getBoundingClientRect(), m = document.getElementById('map').getBoundingClientRect(), g = W.currentGlacier(), pt = W.map.latLngToContainerPoint(L.latLng(g.inv.terminus.tip));
+      W.map.panBy([pt.x + m.left - (f.left + fx * f.width), pt.y + m.top - (f.top + fy * f.height)], {animate: false});
     },
     clear(){ root.querySelectorAll('.cap,.card,.rip').forEach(e => e.remove()); }
   };
