@@ -282,6 +282,19 @@ dialog.player{overflow:visible}
   section.s{padding:52px 0}
 }
 
+/* the clip stays at the top of the screen while the list of points scrolls under it (a block, not a grid: a sticky grid item only sticks inside its own row) */
+@media (max-width:900px){
+  .how{display:block}
+  .vstage{position:sticky;top:0;z-index:5;box-shadow:0 6px 14px rgba(10,27,51,.18)}
+  .feat button{background:var(--sheet)}
+  .feat button[aria-current="true"]{background:var(--firn)}
+}
+/* phones on their side: the clip left, the list right, the clip still pinned */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .how{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:0 14px}
+  .vstage{top:8px}
+}
+
 /* ---------- phones: one calm column (the front page seen at 390 px) ---------- */
 @media (max-width:640px){
   .wrap{padding:0 20px}
@@ -312,7 +325,7 @@ dialog.player{overflow:visible}
   .sbox input{font-size:16px;padding:15px 0}      /* 16 px: iOS does not zoom the page on focus */
   .pk-btn{font-size:16px}
   #map{height:min(58vh,380px)}
-  .tiles{grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;border:0}
+  .tiles,.tnote,.soonrow{display:none}      /* phones: the region boxes, the totals note and the "in the making" line under the map are not needed (the map and the search choose the region) */
   .tile{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);padding:12px 14px;min-height:64px}
   .tile:last-child{border-right:1px solid rgba(255,255,255,.16)}
   .tile .c,.tile small.of{display:none}      /* the region name twice, and the inventory total: not needed on a small tile */

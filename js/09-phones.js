@@ -6,7 +6,7 @@ import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPi
 import { map, updateSight, updateTrailClip, updateAerial, updateMapYears, oldestAerial, ensureOldest, showOldest, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
 import { showLatest } from './03-imagery.js';
 import { checkYears, checkGen } from './06-scene-search.js';
-import { renderGlacierList, subTitle, focusSub, renderStory } from './07-render.js';
+import { renderGlacierList, subTitle, focusSub, renderStory, inviteHtml } from './07-render.js';
 import { showNotice, drawBoxes, updateBoxes, glaciersExtent, syncSatUi } from './08-controls.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'chooseGlacier', { get: () => chooseGlacier, configurable: true });
@@ -226,6 +226,8 @@ export const FYI = document.querySelector('a.fyi'), FYI_HOME = FYI.parentNode, F
 export const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under the box, wherever the box is
 export function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); home.appendChild(FYI_BY); }
 FYI_PHONE.addEventListener('change', placeFyi); placeFyi();
+/* on phones the social links and the GitHub note sit below the For Your Ice box (css hides the copy in the About block there) */
+{ const d = document.createElement('div'); d.className = 'phone-invite'; d.innerHTML = inviteHtml(); $('fyiSlot').appendChild(d); }
 
 /* phones in portrait: the map's layer box moves out of the visual, to a panel below it; the dock button opens it */
 export function placeLayers(){

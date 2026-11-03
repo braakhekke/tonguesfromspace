@@ -18,7 +18,8 @@ ALLOWED_ORIGINS = "https://tonguesfromspace.org,https://www.tonguesfromspace.org
 [assets]
 directory = "../_site"
 not_found_handling = "404-page"
-run_worker_first = ["/api/*", "/cdse/*", "/gallery/*", "/ask/*", "/data/landsat/*"]
+binding = "ASSETS"      # the Worker reads the files itself for the videos (Range requests)
+run_worker_first = ["/api/*", "/cdse/*", "/gallery/*", "/ask/*", "/data/landsat/*", "/images/*.mp4", "/teaser/*.mp4"]
 
 [[kv_namespaces]]
 binding = "CACHE"

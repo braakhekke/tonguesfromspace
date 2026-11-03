@@ -91,6 +91,7 @@ export default {
     if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors);
     if (url.pathname.startsWith('/ask/')) return ask(request, env, url, cors);
     if (url.pathname.startsWith('/data/landsat/')) return landsat(request, env, url);
+    if (url.pathname.endsWith('.mp4')) return videoFile(request, env);
 
     const route = { '/cdse/statistics': 'statistics', '/cdse/process': 'process' }[url.pathname];
     if (!route) return json({ error: 'Not found' }, 404, cors);
@@ -132,6 +133,24 @@ export default {
     return new Response(out.data.slice(0), { status: out.status, headers: { ...cors, 'Content-Type': out.type, 'X-Cache': 'MISS' } });
   }
 };
+
+/* ---------- Video files (the clips on the home page, the teaser): the static assets answer a Range request with the whole file (200), and Safari on iPhone then shows no video.
+   The Worker runs first for these paths (wrangler.toml run_worker_first), takes the file from the assets and answers Range requests itself with 206. ---------- */
+async function videoFile(request, env) {
+  const r = await env.ASSETS.fetch(new Request(request.url, { method: 'GET' }));
+  const range = /^bytes=(\d*)-(\d*)$/.exec(request.headers.get('Range') || '');
+  if (!r.ok || !range || (range[1] === '' && range[2] === '')) {
+    const h = new Headers(r.headers); h.set('Accept-Ranges', 'bytes');
+    return new Response(request.method === 'HEAD' ? null : r.body, { status: r.status, headers: h });
+  }
+  const buf = await r.arrayBuffer(), size = buf.byteLength;
+  let start = range[1] === '' ? Math.max(0, size - Number(range[2])) : Number(range[1]);
+  let end = range[1] === '' || range[2] === '' ? size - 1 : Math.min(Number(range[2]), size - 1);
+  const h = new Headers(r.headers); h.set('Accept-Ranges', 'bytes');
+  if (start >= size || start > end) { h.set('Content-Range', `bytes */${size}`); return new Response(null, { status: 416, headers: h }); }
+  h.set('Content-Range', `bytes ${start}-${end}/${size}`); h.set('Content-Length', String(end - start + 1));
+  return new Response(request.method === 'HEAD' ? null : buf.slice(start, end + 1), { status: 206, headers: h });
+}
 
 /* ---------- Landsat pictures (R2 bucket LANDSAT, same paths as data/landsat/ in the working copy; not in the repository) ---------- */
 /* Only the glaciers of regions that are public are served. The bucket also holds the Landsat pictures of Iceland and Norway; add a glacier here when its region goes public. */

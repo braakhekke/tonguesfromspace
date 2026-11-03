@@ -838,7 +838,8 @@ sup.fn a:hover{opacity:.7}
   .leaflet-control-scale{margin-bottom:84px!important}
   .credits{font-size:12px;line-height:22px;height:22px}
   .hint{font-size:13px}
-  .years button{padding:8px 0;font-size:14px}
+  .years button{padding:6px 0;font-size:13px}
+  .stack .years:not(.specials){grid-template-columns:repeat(8,1fr);gap:2px}      /* more to a row: with the Landsat years (1984 on) the lists were taller than the screen */
   .toggle{min-height:36px}
   .sym-pitch,.sym-bus{width:76px}.sym-pool{width:70px}.sym-tower{width:44px}
   .stat.hero .v{font-size:26px}
@@ -903,6 +904,9 @@ sup.fn a:hover{opacity:.7}
   .lb-more svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;margin-bottom:1px}
   .layerbox.more .lb-more{display:flex}
   .fyi-slot{display:block;order:4;padding:0 18px 32px}
+  .story .about-wrap .social,.story .about-wrap .gh-invite{display:none}      /* on phones they sit below the For Your Ice box (.phone-invite) */
+  .phone-invite .gh-invite{text-align:center;justify-content:center;align-items:center;margin-top:10px}
+  .phone-invite .social{margin-top:14px}
 }
 
 /* Phones in portrait: the layer menu opens as a panel directly under the visual (thumb reach, the visual stays where it is), in two columns */
@@ -1003,8 +1007,9 @@ body.has-full{overflow:hidden}
   .stage.mini .v3d{pointer-events:none}      /* a touch on the small window scrolls the page, it does not turn the terrain */
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
-  .stage.mini .mini-ctl{display:flex;position:absolute;right:4px;bottom:4px;z-index:700;gap:4px}
-  .stage.mini .mini-ctl button{width:30px;height:30px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer}
+  .stage.mini .mini-ctl{display:contents}      /* enlarge and full screen at the bottom right, the closing cross in the top right corner */
+  .stage.mini .mini-ctl button{position:absolute;z-index:700;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer}
+  .stage.mini #miniFull{right:4px;bottom:4px}.stage.mini #miniBig{right:38px;bottom:4px}.stage.mini #miniClose{right:4px;top:4px}
 }
 /* ---------- collapsible side panels (desktop and tablet) ---------- */
 .panel-toggle{display:none}
@@ -1583,7 +1588,7 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 @media (min-width:721px){.mapbar .tl-prev,.mapbar .tl-next{min-height:0}}
 .tl-dots:has(.tl-step){display:block}      /* the map dock shows its timeline row only in Timelapse; One year puts the previous / next buttons in it */
 .mapbar .tl-prev svg,.mapbar .tl-next svg{display:block;width:16px;height:16px;stroke-width:2.4}      /* the dock hides the icons of its buttons on desktop (.mapbar button svg); the arrows are icons only */
-.mapbar .tl-prev,.mapbar .tl-next{width:30px;height:30px;min-width:0;padding:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff}
+.mapbar .tl-prev,.mapbar .tl-next{width:30px;height:30px;min-width:0;min-height:0;padding:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff}
 .mapbar .tl-prev:hover:not(:disabled),.mapbar .tl-next:hover:not(:disabled){background:rgba(255,255,255,.3)}
 .mapbar .tl-prev:disabled,.mapbar .tl-next:disabled{background:rgba(255,255,255,.18);opacity:.35}
 
@@ -1684,7 +1689,17 @@ html.embed .mapbar .sep:nth-of-type(n+2){display:none}      /* the 3D toolbar ke
 html.embed .embed-open{display:block;position:absolute;top:10px;right:10px;z-index:730;background:var(--sheet);color:var(--accent);font-size:13px;font-weight:700;line-height:1;padding:9px 13px;border-radius:6px;box-shadow:0 1px 8px rgba(0,0,0,.28);text-decoration:none;white-space:nowrap}
 html.embed .embed-open:hover{background:var(--firn)}
 
-.landsat-info{margin:2px 0 6px;font-size:11.5px;line-height:1.4;color:var(--moraine)}
+.landsat-info{margin:-13px 0 0;font-size:11.5px;line-height:1.4;color:var(--moraine)}
 .landsat-info[hidden]{display:none}
 #landsatI{margin-left:4px;vertical-align:middle;width:16px;height:16px;font-family:inherit;font-size:10px;font-weight:600;font-style:normal;color:var(--moraine);border-color:var(--moraine);background:none}
 #landsatI[aria-expanded="true"]{background:var(--moraine);color:#fff}
+
+/* phones: the docks (map and 3D) are more see-through, and the One year row (previous / next year) is a slim line with round buttons */
+@media (max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .mapbar,.v3d-measure{background:rgba(10,18,24,.3)}
+  .tl-dots:has(.tl-step),.v3d-tl:has(.tl-step){padding:2px 8px;margin-bottom:2px}
+  .tl-step{gap:10px}
+  .mapbar .tl-prev,.mapbar .tl-next,.v3d-measure .tl-prev,.v3d-measure .tl-next{width:24px;height:24px;min-width:0;min-height:0;padding:0}
+  .tl-prev svg,.tl-next svg,.mapbar .tl-prev svg,.mapbar .tl-next svg{width:13px;height:13px}
+  .tl-step .tl-step-year{font-size:13px;min-width:38px}
+}

@@ -182,6 +182,18 @@ class TestRelay(WorkerCase):
         for k in ("noIceland", "sjLong", "far"):
             self.assertEqual(r[k], 400, k)
 
+    def test_video_range_requests_get_206(self):
+        r = self.run_js("""const bytes = new Uint8Array(100).map((_, i) => i);
+          env.ASSETS = {fetch: async () => new Response(bytes, {status: 200, headers: {'Content-Type': 'video/mp4'}})};
+          const get = async (range, method = 'GET') => { const x = await W.fetch({url: 'https://relay.test/images/home/clips/a.mp4', method, headers: new Headers(range ? {Range: range} : {})}, env, {});
+            return {status: x.status, cr: x.headers.get('Content-Range'), len: x.headers.get('Content-Length'), ar: x.headers.get('Accept-Ranges'), n: (await x.arrayBuffer()).byteLength}; };
+          return {all: await get(null), part: await get('bytes=10-19'), open: await get('bytes=90-'), tail: await get('bytes=-5'), bad: await get('bytes=200-')};""")
+        self.assertEqual((r["all"]["status"], r["all"]["ar"], r["all"]["n"]), (200, "bytes", 100))
+        self.assertEqual((r["part"]["status"], r["part"]["cr"], r["part"]["n"]), (206, "bytes 10-19/100", 10))
+        self.assertEqual((r["open"]["cr"], r["open"]["n"]), ("bytes 90-99/100", 10))
+        self.assertEqual((r["tail"]["cr"], r["tail"]["n"]), ("bytes 95-99/100", 5))
+        self.assertEqual(r["bad"]["status"], 416)
+
     def test_ping(self):
         r = self.run_js("return await info(await W.fetch(req('/cdse/ping', 'GET', '', 'http://t.test'), env, {}));")
         self.assertEqual(r["status"], 200)
