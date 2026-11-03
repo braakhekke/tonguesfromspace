@@ -1708,3 +1708,11 @@ html.embed .embed-open:hover{background:var(--firn)}
 @media (max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .stage:not(.mini) .v3d-north{top:14px;bottom:auto}
 }
+
+/* phone header: the region name is the picker (its menu opens below the title); the back link reads on the light header */
+.mhead{position:relative}
+.mhead .region-btn{display:inline-flex;align-items:center;gap:2px;margin:0;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer}
+.mhead .region-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.mhead .region-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.mhead .region-menu{left:50%;top:100%;transform:translateX(-50%);text-align:left;z-index:900}
+.mhead .all-regions{display:block;margin:6px 0 0;font-size:12.5px;font-weight:600;color:var(--crevasse);text-decoration:none}

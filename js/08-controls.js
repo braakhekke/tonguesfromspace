@@ -244,7 +244,7 @@ syncSatUi();
    site is going. Choosing one opens its link (#r=...) and reloads: every region starts clean and loads only its own data. */
 export function applyRegionUi(){
   document.querySelectorAll('.region-name').forEach(e => { e.textContent = REGION.name; });
-  document.getElementById('regionBtn').setAttribute('aria-label', `Region: ${REGION.name}. Change region`);
+  document.querySelectorAll('.region-btn').forEach(b => b.setAttribute('aria-label', `Region: ${REGION.name}. Change region`));
   document.getElementById('brandLede').textContent = REGION.brandLede;
   document.querySelectorAll('#mhead > span').forEach(e => { e.textContent = REGION.brandLede; });
   document.title = REGION.docTitle;
@@ -278,20 +278,26 @@ export function applyRegionUi(){
 export function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
 export function renderRegionMenu(){
   const soon = c => ({...c, ready: !!c.ready && !HIDDEN_REGIONS.includes(c.id)});      // every region is listed, as on the front page; the ones not published yet (or without data) are "soon" and cannot be clicked
-  document.getElementById('regionMenu').innerHTML = REGIONS_ALL.map(r => r.children
+  const html = REGIONS_ALL.map(r => r.children
     ? `<li class="group" role="presentation">${r.name}</li>` + r.children.map(c => regionItem(soon(c), true)).join('') : regionItem(soon(r))).join('');
+  document.querySelectorAll('.region-menu').forEach(m => { m.innerHTML = html; });      // the panel's menu and the phone header's
 }
-export function toggleRegionMenu(open = document.getElementById('regionMenu').hidden){
-  document.getElementById('regionMenu').hidden = !open; document.getElementById('regionBtn').setAttribute('aria-expanded', open);
+const regionMenus = () => [...document.querySelectorAll('.region-menu')], regionBtns = () => [...document.querySelectorAll('.region-btn')];
+export function toggleRegionMenu(open){
+  const phone = getComputedStyle(document.getElementById('mhead')).display !== 'none';      // on phones the panel's brand is hidden and the header holds the picker
+  const menu = document.getElementById(phone ? 'regionMenuM' : 'regionMenu');
+  if (open === undefined) open = menu.hidden;
+  regionMenus().forEach(m => { m.hidden = m !== menu || !open; });
+  regionBtns().forEach(b => b.setAttribute('aria-expanded', open && !!b.closest('#mhead') === phone));
 }
-document.getElementById('regionBtn').onclick = e => { e.stopPropagation(); toggleRegionMenu(); };
-document.getElementById('regionMenu').onclick = e => {
+regionBtns().forEach(b => { b.onclick = e => { e.stopPropagation(); toggleRegionMenu(); }; });
+regionMenus().forEach(m => { m.onclick = e => {
   const li = e.target.closest('li'); if (!li || li.classList.contains('group') || li.getAttribute('aria-disabled') === 'true') return;
   if (li.dataset.id === REGION.id) return toggleRegionMenu(false);
   history.replaceState(null, '', regionLink(li.dataset.id)); location.reload();
-};
-document.addEventListener('click', e => { if (!e.target.closest('#regionMenu')) toggleRegionMenu(false); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('regionMenu').hidden) { toggleRegionMenu(false); document.getElementById('regionBtn').focus(); } });
+}; });
+document.addEventListener('click', e => { if (!e.target.closest('.region-menu')) toggleRegionMenu(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && regionMenus().some(m => !m.hidden)) { toggleRegionMenu(false); regionBtns().find(b => b.offsetParent)?.focus(); } });
 renderRegionMenu(); applyRegionUi();
 
 /* Landsat years (Iceland): the switch under the years puts the Landsat years in front of the Sentinel-2 years and takes them out again; it stays on across views, modes and glaciers (prefs.landsat) */
