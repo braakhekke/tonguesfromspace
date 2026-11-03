@@ -139,7 +139,7 @@
     </div>
     <div class="tiles" id="tiles"></div>
     <p class="maphint">Two fingers to move and zoom the map.</p>
-    <p class="tnote">Totals are the counts the inventories state; what an inventory counts as a glacier differs. Switzerland: SGI2016, “1,400 individual glacier entities”. Iceland and Svalbard: Randolph Glacier Inventory 6.0 (regions Iceland and Svalbard and Jan Mayen). Norway: the 1999–2006 inventory, “3143 glaciers” (the count of the newer 2018–19 inventory could not be read). Sources: Linsbauer et al. 2021, Frontiers in Earth Science; rgidata.org; Andreassen et al. 2022, Journal of Glaciology.</p>
+    <p class="tnote">Totals are the counts the inventories state; what an inventory counts as a glacier differs. Switzerland: the Swiss Glacier Inventory SGI2023 lists 1,289 glaciers (counted in the inventory file, GLAMOS). Iceland and Svalbard: Randolph Glacier Inventory 6.0 (regions Iceland and Svalbard and Jan Mayen). Norway: the 1999–2006 inventory, “3143 glaciers” (the count of the newer 2018–19 inventory could not be read). Sources: GLAMOS, SGI2023; rgidata.org; Andreassen et al. 2022, Journal of Glaciology.</p>
     <p class="soonrow">Iceland, Norway and Svalbard are in the making. Their glaciers can be visited on the map, but not opened yet.</p>
   </div></div>
 </section>
@@ -344,8 +344,8 @@ player.addEventListener('close', () => vid.pause());
 player.addEventListener('click', e => { if (e.target === player) player.close(); });
 
 /* ---------- regions: paths are the real addresses of js/00-regions.js ---------- */
-/* totals of glaciers as the inventories state them (read at the sources 2026-11-03; docs/SOURCES.md): ch SGI2016 "1,400 individual glacier entities" (Linsbauer et al. 2021); is, no-svalbard RGI 6.0 table of rgidata.org (06 Iceland 568, 07 Svalbard and Jan Mayen 1615); no-mainland "3143 glaciers" of the 1999-2006 inventory (Andreassen et al. 2022) */
-const TOTALS = { ch: '1,400', is: '568', 'no-svalbard': '1615', 'no-mainland': '3143' };
+/* totals of glaciers as the inventories state them (read at the sources 2026-11-03; docs/SOURCES.md): ch SGI2023 1,289 entries (counted in data/glaciers.js inventory.count, from the GLAMOS file inventory_sgi2023_r2026); is, no-svalbard RGI 6.0 table of rgidata.org (06 Iceland 568, 07 Svalbard and Jan Mayen 1615); no-mainland "3143 glaciers" of the 1999-2006 inventory (Andreassen et al. 2022) */
+const TOTALS = { ch: '1,289', is: '568', 'no-svalbard': '1615', 'no-mainland': '3143' };
 const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picker).map(c => {      // the records of js/regions.js: the same list as the dashboard's region menu, plus the planned regions
   const soon = !c.ready || HIDDEN_REGIONS.includes(c.id);      // not published (yet): shown, not clickable
   const n = (window.HOME_GLACIERS || []).filter((g) => g.region === c.id && !g.parent).length;      // glaciers the data holds for the region
