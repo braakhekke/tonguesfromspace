@@ -162,7 +162,7 @@ document.getElementById('pinToggle').onchange = e => { prefs.pin = e.target.chec
 document.getElementById('thickToggle').checked = prefs.thick === true;
 document.getElementById('thickToggle').onchange = e => { prefs.thick = e.target.checked; savePrefs(); setThickness(); };      // drawOutlines() at the end of the boot applies a saved choice
 document.getElementById('maxToggle').checked = prefs.maxspot === true;
-document.getElementById('maxToggle').onchange = e => { prefs.maxspot = e.target.checked; savePrefs(); drawMax(); document.querySelectorAll('[data-act="radar-max"]').forEach(b => { b.firstChild.textContent = maxLinkText(b.dataset.text); }); };
+document.getElementById('maxToggle').onchange = e => { prefs.maxspot = e.target.checked; savePrefs(); drawMax(); document.querySelectorAll('[data-act="radar-max"]').forEach(b => { b.firstChild.textContent = maxLinkText(); }); };
 document.getElementById('radarToggle').checked = prefs.radar === true;
 document.getElementById('radarToggle').onchange = e => { prefs.radar = e.target.checked; savePrefs(); drawRadar(); };
 document.getElementById('speedToggle').checked = prefs.speed === true;

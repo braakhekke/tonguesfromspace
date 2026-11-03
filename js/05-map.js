@@ -69,7 +69,7 @@ export function updateCredits(){
   if (document.getElementById('namesToggle').checked && map.hasLayer(namesLayer)) parts.push('Other glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0 via <a href="https://www.glims.org/RGI/" target="_blank" rel="noopener">GLIMS</a>');
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
-  if (maxMarker && !radarLayer) parts.push('Thickest ice measurement: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0); modelled value at that spot: Grab et al. 2021 via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
+  if (maxMarker) parts.push('Thickest ice: ' + (thickestSpot(currentGlacier()).kind === 'model' ? 'Grab et al. 2021, <a href="https://doi.org/10.3929/ethz-b-000434697" target="_blank" rel="noopener">SwissGlacierThickness-R2020</a> (CC BY 4.0)' : '<a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> radar (CC BY 4.0)'));
   if (speedLayer) parts.push('Ice speed: <a href="https://its-live.jpl.nasa.gov" target="_blank" rel="noopener">ITS_LIVE</a> annual mosaics of image pair velocities v2.1, NASA MEaSUREs (CC BY 4.0)');
   if (radarLayer) parts.push('Radar ice thickness: <a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> (CC BY 4.0)');
   if (typeof wire.svActive === 'function' && wire.svActive()) parts.push('Street View © <a href="https://www.google.com/maps" target="_blank" rel="noopener">Google</a>');
@@ -876,37 +876,23 @@ export async function updateSpeed(){
   }
   updateCredits();
 }
-/* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map */
-/* the modelled thickness (Grab et al. 2021, swisstopo ice thickness raster) at one point: WMS GetFeatureInfo, value in metres as the service returns it; null outside Switzerland or without ice */
-const pointThick = new Map();
-export function thicknessAt([lat, lng]){
-  const key = `${lat},${lng}`;
-  if (!pointThick.has(key)) pointThick.set(key, (async () => {
-    const x = lng * 20037508.34 / 180, y = Math.log(Math.tan((90 + lat) * Math.PI / 360)) * 20037508.34 / Math.PI, b = [x - 500, y - 500, x + 500, y + 500];
-    const url = 'https://wms.geo.admin.ch/?' + new URLSearchParams({ SERVICE: 'WMS', VERSION: '1.3.0', REQUEST: 'GetFeatureInfo', LAYERS: THICK_LAYER, QUERY_LAYERS: THICK_LAYER, STYLES: '',
-      CRS: 'EPSG:3857', BBOX: b.join(','), WIDTH: 101, HEIGHT: 101, I: 50, J: 50, INFO_FORMAT: 'text/plain' });
-    try { const m = /value_0\.name = '([\d.]+)'/.exec(await (await fetch(url)).text()); return m && +m[1] > 0 ? +m[1] : null; } catch { return null; }
-  })());
-  return pointThick.get(key);
+/* The thickest ice of a glacier, as one value: the maximum of the ice thickness map of Grab et al. (2021), SwissGlacierThickness-R2020, in the year of that map (`inv.model`: the Summary.shp
+   `h_max` and `year_mode`, and the place of that cell), or the radar maximum when its survey is newer than the map. `kind` names the source, `at` is the place. */
+export function thickestSpot(g){
+  const inv = g && g.inv, M = inv && inv.model, R = inv && inv.radar;
+  if (R && R.max_at && R.max_year && (!M || R.max_year > M.year)) return {m: R.max_m, year: R.max_year, kind: 'radar', at: R.max_at};
+  return M ? {m: M.max_m, year: M.year, kind: 'model', at: M.at, plus: M.plus, minus: M.minus} : null;
 }
-/* the place of the thickest ice measurement (radar) of the selected glacier: a layer of its own, one label on the map.
-   When the measurement is older than the thickness map (around 2016), a second line gives the modelled thickness at the same spot with its year. */
+export const spotText = s => `${Math.round(s.m)} m (${s.year ? `${s.year}, ` : ''}${s.kind})`;
+/* the place of the thickest ice of the selected glacier: a layer of its own, one label on the map, "794 m (2017, model)" */
 export function drawMax(){
   if (maxMarker) { map.removeLayer(maxMarker); maxMarker = null; }
-  const on = document.getElementById('maxToggle').checked, g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier(), R = g && g.inv && g.inv.radar;
-  if (on && R && R.max_at) {
-    // the same look as the tongue indication: ring with a red label, here "850 m (1958)"; the label keeps the case it is written in
-    const first = `${R.max_m} m${R.max_year ? ` (${R.max_year})` : ''}`;
-    const put = extra => {
-      if (maxMarker) map.removeLayer(maxMarker);
-      maxMarker = L.marker(R.max_at, {icon: L.divIcon({className: '', html: `<div class="tongue-pin max-pin"><span>${first}${extra ? `<br><i>${extra}</i>` : ''}</span></div>`, iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false, zIndexOffset: 500}).addTo(map);
-    };
-    put('');
-    if (R.max_year && R.max_year < 2016) Promise.all([thicknessAt(R.max_at), wire.glacierVolume(g).catch(() => null)]).then(([t, v]) => {
-      if (t && document.getElementById('maxToggle').checked && currentGlacier() === g && maxMarker) put(`${Math.round(t)} m (${(v && v.yr) || 2016}, model)`);
-    });
+  const on = document.getElementById('maxToggle').checked, g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier(), T = thickestSpot(g);
+  if (on && T) {
+    // the same look as the tongue indication: ring with a red label; the label keeps the case it is written in
+    maxMarker = L.marker(T.at, {icon: L.divIcon({className: '', html: `<div class="tongue-pin max-pin"><span>${spotText(T)}</span></div>`, iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false, zIndexOffset: 500}).addTo(map);
   }
-  document.getElementById('maxNote').hidden = !on || !!(R && R.max_at);
+  document.getElementById('maxNote').hidden = !on || !!T;
   updateCredits();
 }
 

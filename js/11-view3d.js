@@ -3,12 +3,12 @@ import { FIRST_YEAR, YEARS, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode } from './04-state.js';
-import { mapYears, ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, strokeEdgeFade, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
+import { thickestSpot, spotText, mapYears, ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, strokeEdgeFade, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
 import { setLayers } from './09-phones.js';
-import { VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
+import { previewScale, shadowText, VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'bundleId', { get: () => bundleId, configurable: true });
 Object.defineProperty(wire, 'download3D', { get: () => download3D, configurable: true });
@@ -286,6 +286,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
     const dpr = Math.min(2, devicePixelRatio || 1), w = Math.round(canvas.clientWidth * dpr), h = Math.round(canvas.clientHeight * dpr);
     if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
     cutLive = true; paint(w, h); cutLive = false;
+    if (onDraw) onDraw();
   };
   const frame = (w, h, c, view) => {            // one picture of w x h with the camera c (az, el, dist; default: the one on screen); the canvas must be copied before the next await
     held = true; if (canvas.width !== w || canvas.height !== h) { canvas.width = w; canvas.height = h; }
@@ -322,7 +323,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
   };
   const hold = on => { held = on; if (!on) redraw(); };
   const redraw = () => { if (!dirty) { dirty = true; requestAnimationFrame(draw); } };
-  let onCam = null;      // told when the visitor moves the camera
+  let onCam = null, onDraw = null;      // onCam: told when the visitor moves the camera; onDraw: after every picture (the north arrow follows the heading)
   const clampCam = () => { cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az)); redraw(); if (onCam) onCam(); };
   const ptrs = new Map(); let pinch = 0;
   let camFly = 0;      // counts the camera flights: a touch of the picture ends the one running
@@ -375,7 +376,7 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
     }
     const h1 = cur; fill(h1, hb); gl.bindBuffer(gl.ARRAY_BUFFER, vb); gl.bufferData(gl.ARRAY_BUFFER, vd, gl.STATIC_DRAW); redraw();
   };
-  return {setCut: c => { const k = c ? [c.ax, c.az, c.ux, c.uz, c.L].map(v => v.toFixed(2)).join() : ''; if (k === cutKey) return; cutKey = k; cut = c; redraw(); }, setSpace, setSocket, clearSocket: () => { socketArgs = null; setHeights(cur); }, setBuild: v => { build = v; redraw(); }, setMesh: v => { if (v === mesh) return; mesh = v; redraw(); }, setMask: c => { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.activeTexture(gl.TEXTURE0); redraw(); }, poseOf: c => { const keep = {...cam}; Object.assign(cam, c); cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az)); const q = orbitPose(); Object.assign(cam, keep); return q; }, flyMix: (a, b, ep, eo) => { const dy = (((b.yaw - a.yaw + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) - Math.PI, mp = (u, w) => u + (w - u) * ep, mo = (u, w) => u + (w - u) * eo; pose = {x: mp(a.x, b.x), y: mp(a.y, b.y), z: mp(a.z, b.z), yaw: a.yaw + dy * eo, pitch: mo(a.pitch, b.pitch), roll: 0, fovY: mo(a.fovY, b.fovY), view: null}; redraw(); }, endFlight: () => { pose = null; redraw(); }, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist, ...(cam.tx || cam.tz ? {tx: Math.round(cam.tx), tz: Math.round(cam.tz)} : {})}), setOnCam: f => { onCam = f; }, projectAt, groundY: (x, z) => groundNow(x, z), elev: (x, z) => groundNow(x, z) / cam.exag + h0, groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, {tx: 0, tz: 0}, c); clampCam(); },
+  return {setCut: c => { const k = c ? [c.ax, c.az, c.ux, c.uz, c.L].map(v => v.toFixed(2)).join() : ''; if (k === cutKey) return; cutKey = k; cut = c; redraw(); }, setSpace, setSocket, clearSocket: () => { socketArgs = null; setHeights(cur); }, setBuild: v => { build = v; redraw(); }, setMesh: v => { if (v === mesh) return; mesh = v; redraw(); }, setMask: c => { gl.activeTexture(gl.TEXTURE2); gl.bindTexture(gl.TEXTURE_2D, maskTex); gl.texImage2D(gl.TEXTURE_2D, 0, gl.RGBA, gl.RGBA, gl.UNSIGNED_BYTE, c); gl.activeTexture(gl.TEXTURE0); redraw(); }, poseOf: c => { const keep = {...cam}; Object.assign(cam, c); cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az)); const q = orbitPose(); Object.assign(cam, keep); return q; }, flyMix: (a, b, ep, eo) => { const dy = (((b.yaw - a.yaw + Math.PI) % (2 * Math.PI)) + 2 * Math.PI) % (2 * Math.PI) - Math.PI, mp = (u, w) => u + (w - u) * ep, mo = (u, w) => u + (w - u) * eo; pose = {x: mp(a.x, b.x), y: mp(a.y, b.y), z: mp(a.z, b.z), yaw: a.yaw + dy * eo, pitch: mo(a.pitch, b.pitch), roll: 0, fovY: mo(a.fovY, b.fovY), view: null}; redraw(); }, endFlight: () => { pose = null; redraw(); }, setShift: (cx, cy) => { shift = {cx, cy}; redraw(); }, getShift: () => shift, setPose, hasPose: () => !!pose, zoomBy: f => { if (pose) return; cam.dist *= f; clampCam(); }, pick, setExag: v => { cam.exag = v; redraw(); }, getCam: () => ({az: cam.az, el: cam.el, dist: cam.dist, ...(cam.tx || cam.tz ? {tx: Math.round(cam.tx), tz: Math.round(cam.tz)} : {})}), setOnCam: f => { onCam = f; }, setOnDraw: f => { onDraw = f; }, getYaw: () => (pose || orbitPose()).yaw, projectAt, groundY: (x, z) => groundNow(x, z), elev: (x, z) => groundNow(x, z) / cam.exag + h0, groundIn, getEye: eyeOf, exag: () => cam.exag, setCam: c => { Object.assign(cam, {tx: 0, tz: 0}, c); clampCam(); },
     focusLine: (f, ms = 1000) => {            // fly the camera to a section line: looking straight at it (from the side the camera is on, as far as the turn is allowed), the whole line across the picture
       if (pose) return;
       const k = 1200 * Math.min(SC, 2.5), a1 = Math.atan2(f.nx, f.nz), wrap = a => Math.atan2(Math.sin(a), Math.cos(a)), a2 = a1 + Math.PI, near = Math.abs(wrap(a1 - cam.az)) <= Math.abs(wrap(a2 - cam.az)) ? a1 : a2;
@@ -509,7 +510,6 @@ export function drawHillshade(ctx, S, h, nA, nB, TEX){            // a base map 
   c.getContext('2d').putImageData(im, 0, 0); ctx.save(); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(c, 0, 0, TEX[0], TEX[1]); ctx.restore();
 }
 export let speedPin3D = null;      // the fastest ice of the year of the picture as a mark in the scene ({x, z, text}), set with the speed colours below; null when the layer is off, has no map for the year, or the point lies outside the strip
-export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the satellite picture of a year, turned so that up the glacier is up, as the texture of the strip
 /* The hiking-trail tiles come as finished pictures, so their lines are made thinner on the canvas (no filters, which Safari on iPhone ignores): every pixel keeps the mean of its own opacity and the lowest opacity within one pixel around it, so the edges of a line fade and a line is about a pixel thinner */
 export function thinLines(cv){
   const W = cv.width, H = cv.height, cx = cv.getContext('2d', {willReadFrequently: true}), im = cx.getImageData(0, 0, W, H), px = im.data, a = new Uint8Array(W * H), t = new Uint8Array(W * H);
@@ -518,6 +518,7 @@ export function thinLines(cv){
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x, m = Math.min(t[i], y > 0 ? t[i - W] : 0, y < H - 1 ? t[i + W] : 0); px[4 * i + 3] = (a[i] + m) >> 1; }
   cx.putImageData(im, 0, 0);
 }
+export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the satellite picture of a year, turned so that up the glacier is up, as the texture of the strip
   speedPin3D = null;
   if ($('trailsToggle').checked) await ensureSight();
   const HALF = S.half, TEX = S.tex, len = S.up + S.back; let bb = imageFootprint(g).bbox, u = null;
@@ -817,6 +818,7 @@ export async function open3D(){
     const hasBed = !!(bb && bb.bed); $('l3BlockRow').hidden = !hasBed; $('l3Sr').checked = false; $('l3Block').checked = prefs.bedBlock !== false; if (hasBed) v3d.setBlock($('l3Block').checked, bb.bed);      // the bed of the terrain file: cut sides
     v3d.setExag(+$('v3dExag').value); msg.hidden = true; v3dHome = S.cam || (PLAIN_START && FEATURES.swisstopo && g.id === GLACIERS[0].id ? LANDING_CAM : null); if (keepCam) v3d.setCam(keepCam); else if (S.cam) v3d.setCam(S.cam); else if (PLAIN_START && FEATURES.swisstopo && g.id === GLACIERS[0].id) v3d.setCam(LANDING_CAM);
     if (tiltEntry) { tiltEntry = false; tiltReady(v3d, v3d.getCam()); }
+    v3dNorthAz = Math.atan2(S.ue, S.un); v3d.setOnDraw(() => { const n = $('v3dNorth'); if (n) n.style.setProperty('--rot', (-(v3dNorthAz + v3d.getYaw()) * 180 / Math.PI).toFixed(1) + 'deg'); });      // the strip's up-glacier direction is a compass bearing (ue east, un north); the view looks at bearing + yaw, so north lies that far the other way round
     v3d.setOnCam(() => { if (!$('videoSheet').hidden) hint3D(); });      // the sharpness hint follows the zoom
     bindRadarPicking($('v3dCanvas')); bindCamPicking($('v3dCanvas'));
     const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null, surfYear = y => !dem ? y : special === 'latest' ? dem.new.year : special === 'oldest' ? dem.old.year : Math.max(y, dem.old.year);      // the specials use the newest / the oldest elevation model as it is
@@ -1140,7 +1142,7 @@ $('viewMap').onclick = () => { flyOut(); syncTiltPill(); }; $('view3dBtn').oncli
 export const L3 = [['l3Osm', 'osmToggle'], ['l3Topo', 'topoToggle'], ['l3OldMap', 'oldMapToggle'], ['l3Alti', 'altiToggle'], ['l3Aerial', 'aerialToggle'], ['l3Sat', 'satToggle'], ['l3Trails', 'trailsToggle'], ['l3Old', 'oldToggle'], ['l3New', 'newToggle'], ['l3Radar', 'radarToggle'], ['l3Pin', 'pinToggle'], ['l3Max', 'maxToggle'], ['l3Speed', 'speedToggle'], ['l3Thick', 'thickToggle']];
 export function sync3DMenu(){
   const g = currentGlacier(), R = g && g.inv && g.inv.radar;
-  L3.forEach(([a, b]) => { $(a).checked = $(b).checked; $(a).disabled = b === 'radarToggle' ? !R : b === 'maxToggle' ? !(R && R.max_at) : $(b).disabled; });
+  L3.forEach(([a, b]) => { $(a).checked = $(b).checked; $(a).disabled = b === 'radarToggle' ? !R : b === 'maxToggle' ? !thickestSpot(g) : $(b).disabled; });
   $('l3OldLabel').textContent = $('oldLabel').textContent; $('l3NewLabel').textContent = $('newLabel').textContent; $('l3PinLabel').textContent = $('pinLabel').textContent; $('l3AerialLabel').textContent = $('aerialLabel').textContent; renderLayerTitles();
   $('l3TrailLegend').hidden = !$('trailsToggle').checked; $('l3SightLegend').hidden = !sightFor(g);
   $('l3RadarLegend').hidden = !$('radarToggle').checked;
@@ -1150,7 +1152,7 @@ export function sync3DMenu(){
   $('l3SpeedRow').style.display = FEATURES.speed ? '' : 'none'; $('l3SpeedLegend').hidden = !FEATURES.speed || !$('speedToggle').checked; $('l3SpeedNote').textContent = 'Mean surface speed of the year of the picture, ITS_LIVE. Under 5 m/yr is not told apart from rock, so it stays clear. Years without a map show nothing.';
   $('l3Space').checked = prefs.space3d === true; if (v3d) v3d.setSpace(prefs.space3d === true);
   { const lc = $('v3dLc'); if (lc && v3dCtx) lc.textContent = layersCreditText(v3dCtx.g); const ls = $('v3dLcS'); if (ls && v3dCtx) ls.textContent = shortLayerNames(v3dCtx.g); }
-  $('l3MaxNote').hidden = !$('maxToggle').checked || !!(R && R.max_at);
+  $('l3MaxNote').hidden = !$('maxToggle').checked || !!thickestSpot(g);
   if (v3dCtx) { const seen = !!v3dCtx.pin; $('l3Max').closest('label').style.display = seen ? '' : 'none'; if (!seen) $('l3MaxNote').hidden = true; const tr = v3dCtx.hasTrails !== false; $('l3Trails').closest('label').style.display = tr ? '' : 'none'; if (!tr) { $('l3TrailLegend').hidden = true; $('l3SightLegend').hidden = true; } }      // the thickest ice only has a place in the menu when it lies inside the strip
   updateCredits();      // the sources follow the switches
   $('l3Op').value = imgOpacity(); $('l3OpOut').textContent = `${Math.round(imgOpacity() * 100)} %`;
@@ -1164,10 +1166,10 @@ export function stripXZ(S, mx, my){            // a place in Web Mercator -> the
   const dx = (mx - S.P.x) / S.k, dy = (my - S.P.y) / S.k, a = dx * S.ue + dy * S.un, b = dx * S.un - dy * S.ue;
   return {x: b, z: -a, a, b, inside: Math.abs(b) <= S.half && a >= -S.back && a <= S.up};
 }
-export function pinData(g, S){            // the place of the thickest radar ice in the strip: x, z of the scene and the text
-  const R = g.inv && g.inv.radar; if (!R || !R.max_at) return null;
-  const q = L.CRS.EPSG3857.project(L.latLng(R.max_at[0], R.max_at[1])), p = stripXZ(S, q.x, q.y); if (!p.inside) return null;
-  return {x: p.x, z: p.z, text: `${R.max_m} m${R.max_year ? ` (${R.max_year})` : ''}`};
+export function pinData(g, S){            // the place of the thickest ice in the strip: x, z of the scene and the text ("794 m (2017, model)")
+  const T = thickestSpot(g); if (!T) return null;
+  const q = L.CRS.EPSG3857.project(L.latLng(T.at[0], T.at[1])), p = stripXZ(S, q.x, q.y); if (!p.inside) return null;
+  return {x: p.x, z: p.z, text: spotText(T)};
 }
 export function tipData(g, S){            // the tip of the tongue
   const at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue; if (!at) return null;
@@ -1915,8 +1917,17 @@ $('v3dLbToggle').onclick = () => { const min = $('v3dLayers').classList.toggle('
 addEventListener('keydown', e => { if (e.key === 'Escape' && viewMode === '3d' && !e.defaultPrevented) { if (photoOn) leavePhoto(); else flyOut(); } });
 
 /* ---- download of the 3D view: the picture as it is on screen, or a video in which the camera swings over the terrain (timelapse: the years follow one another, compare: the slider moves) ---- */
+const northRot = cam => -(v3dNorthAz + (cam && v3d ? v3d.poseOf(cam).yaw : v3d ? v3d.getYaw() : 0));      // radians the north arrow turns clockwise: for the camera given (a video frame) or the one on screen
+function drawNorth3D(ctx, W, S, rot){            // the north arrow of the live view, top right of the frame: a small arrow that turns with the camera, an upright N under it
+  const u = W >= 1500 ? 1.3 : 1, r = 24 * u, x = W - S.right - r, y = S.top + r + 6 * u;
+  ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.globalAlpha = 0.85;
+  ctx.translate(x, y); ctx.rotate(rot); ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.38, r * 0.62); ctx.lineTo(0, r * 0.38); ctx.lineTo(-r * 0.38, r * 0.62); ctx.closePath();
+  ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
+  ctx.save(); ctx.font = `600 ${Math.round(18 * u)}px ${FONT}`; shadowText(ctx, 'N', x, y + r + 20 * u, {blur: 6, color: 'rgba(255,255,255,.9)', align: 'center'}); ctx.restore();
+}
 export function draw3DLabels(ctx, W, H, S, L){
   const g = L.g;
+  if (L.north !== null) drawNorth3D(ctx, W, S, L.north === undefined ? northRot() : L.north);
   if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(g), L.cmp ? `${L.cmp[0]} | ${L.cmp[1]}` : String(L.year), L.credit, L.hA ?? 1, L.facts && !L.cmp ? factTiles(g, L.year, L.facts.set, L.facts.base) : []);
   shade(ctx, W, H, S);
   ctx.textBaseline = 'alphabetic';
@@ -1930,17 +1941,11 @@ export function draw3DLabels(ctx, W, H, S, L){
     tl: L.years && L.years.length > 1 && !L.cmp ? { years: L.years, pos: Math.max(0, L.years.indexOf(L.year)) } : null
   });
 }
-/* A small solid logo in the top right corner of the 3D videos: white face, red sides. It turns and tilts a little with the camera, so it seems to sit in the same space as the terrain. */
-export let logoSide = null;
-export function drawLogo3DAt(ctx, lx, ly, h, cam, cam0){            // the logo at (lx, ly) top left, h high: it turns and tilts a little with the camera, with a red solid side
+/* A small white logo in the corner of the 3D videos. It turns and tilts a little with the camera, so it seems to sit in the same space as the terrain. */
+export function drawLogo3DAt(ctx, lx, ly, h, cam, cam0){            // the logo at (lx, ly) top left, h high: it turns and tilts a little with the camera (white, no side)
   if (!logoImg) return;
-  if (!logoSide) { const t = document.createElement('canvas'); t.width = 400; t.height = 380; const q = t.getContext('2d'); q.drawImage(logoImg, 0, 0, 400, 380); q.globalCompositeOperation = 'source-in'; q.fillStyle = '#A82A23'; q.fillRect(0, 0, 400, 380); logoSide = t; }
-  const w = h * 200 / 190, th = 0.35 - (cam.az - cam0.az) * 1.6, sx = Math.max(0.3, Math.abs(Math.cos(th))), dep = Math.sin(th) * h * 0.2, dy = h * 0.05 - (cam.el - cam0.el) * h * 0.9, N = 10;
-  const cx = lx + w / 2, cy = ly + h / 2;
-  ctx.save();
-  for (let k = N; k >= 1; k--) { const f = k / N; ctx.save(); ctx.translate(cx + dep * f, cy + dy * f); ctx.scale(sx, 1); ctx.drawImage(logoSide, -w / 2, -h / 2, w, h); ctx.restore(); }
-  ctx.translate(cx, cy); ctx.scale(sx, 1); ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, -w / 2, -h / 2, w, h);
-  ctx.restore();
+  const w = h * 200 / 190, th = 0.35 - (cam.az - cam0.az) * 1.6, sx = Math.max(0.3, Math.abs(Math.cos(th))), dy = h * 0.05 - (cam.el - cam0.el) * h * 0.9;
+  ctx.save(); ctx.translate(lx + w / 2, ly + h / 2 + dy); ctx.scale(sx, 1); ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, -w / 2, -h / 2, w, h); ctx.restore();
 }
 export const A_SWT = '<a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>';
 export function updateCredits3D(){            // the sources of the 3D view, in the credits bar of the map (one line, a click opens all of it), with the same wording
@@ -1971,7 +1976,7 @@ export function labels3D(c, facts){            // what the labels of the picture
   return {g: c.g, cmp: c.cmp, hz: c.hz, year, outline: outline3D(c.g), outlineNew: outlineNew3D(c.g), facts, years: c.cmp ? null : vstate.kind === 'image' ? [] : c.years, credit: credit3D(c, c.cmp ? c.cmp.join(' and ') : vstate.kind !== 'image' && c.years.length > 1 ? `${c.years[0]}–${c.years[c.years.length - 1]}` : year)};
 }
 export function drawPreview3D(){            // placeholder labels over the frame, drawn by the same function as the finished picture
-  const cv = $('vfPreview'), c = v3dCtx, F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = 0.5;
+  const cv = $('vfPreview'), c = v3dCtx, F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = previewScale(cv, W);
   cv.width = Math.round(W * q); cv.height = Math.round(H * q);
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!logoImg && !logoAsked) { setLogoAsked(true); loadLogo().then(() => drawPreview3D()); }      // the logo is part of every picture
@@ -2081,9 +2086,9 @@ export async function download3D(kind){
         if (t >= P.intro && t < P.intro + P.main) { if (radar3D(g) && c.radarList) drawRadarPins(ctx, c, viewer, W, H, camAt, view, H / 1080, -1, -1); drawMarks3D(ctx, projectMarks(c, viewer, W, H, camAt, view), t, H / 1080); }
         const te = t - P.main;
         if (te >= 0) {          // the fact card, on the last view: the last frame fades out under it
-          if (te < 0.4) { ctx.save(); ctx.globalAlpha = 1 - easeIO(te / 0.4); draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year}); ctx.restore(); }
+          if (te < 0.4) { ctx.save(); ctx.globalAlpha = 1 - easeIO(te / 0.4); draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year, north: northRot(camAt)}); ctx.restore(); }
           drawEndSlide(ctx, W, H, S, info, te);
-        } else { setBrandMotion({cam: camAt, cam0}); try { draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year, hA: easeIO(t / 0.5)}); } finally { setBrandMotion(null); } }
+        } else { setBrandMotion({cam: camAt, cam0}); try { draw3DLabels(ctx, W, H, S, {...labels3D(c, facts), year: c.cmp ? null : year, hA: easeIO(t / 0.5), north: northRot(camAt)}); } finally { setBrandMotion(null); } }
         const vf = new VideoFrame(out, {timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps)});
         enc.encode(vf, {keyFrame: i % (fps * 2) === 0}); vf.close();
         while (enc.encodeQueueSize > 6) await new Promise(r => setTimeout(r, 4));
@@ -2118,7 +2123,7 @@ export async function download3D(kind){
 /* From the map into 3D: the footprint of the 3D strip is drawn on the map (dashed) and, when the middle of the map is inside it and the map is zoomed in on the tongue, a "Tilt into 3D" pill offers the switch (click it, or drag it up) */
 const TILT_SPAN = 3, OUTLINE_SPAN = 8;      // the pill shows when the map is at most this many strip lengths wide, the outline when at most OUTLINE_SPAN
 const spanOf = poly => { const c = map.getCenter(), mpp = 40075016.686 * Math.cos(c.lat * Math.PI / 180) / (256 * 2 ** map.getZoom()); return map.getSize().x * mpp / (2 * poly[0].distanceTo(poly[3]) / 2); };      // map width in strip lengths (the strip runs from corner 0 to corner 3 along its length)
-let tiltPill = null, tiltAz = 0, tiltEntry = false;
+let tiltPill = null, tiltAz = 0, tiltEntry = false, v3dNorthAz = 0;
 function stripPolygon(){
   const g = viewMode === 'map' ? v3dGlacier() : null, at = g && (g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue); if (!at) return null;
   const S = stripFor(g, at); tiltAz = Math.atan2(S.ue, S.un) * 180 / Math.PI;

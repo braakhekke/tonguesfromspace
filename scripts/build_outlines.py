@@ -541,6 +541,40 @@ def read_thickness(src, ids, cell=50):
                         "years": [min(years), max(years)] if years else None}
     return summary, points
 
+def read_model_peaks(sgi_zip, summary_zip, ids, unc_dir=None):
+    """Grab et al. (2021), SwissGlacierThickness-R2020 (ETH Research Collection, doi:10.3929/ethz-b-000434697, CC BY 4.0) -> {glacier id: {max_m, year, at: [lat, lng]}}.
+    max_m and year are the `h_max` and `year_mode` of Summary.shp (year_mode: the reference year of the thickness map, from the SwissALTI3D metadata, not 2016); the place is the centre of the
+    10 m cell of the glacier's own IceThickness.tif with that maximum (the maximum of the tif must equal h_max, else the glacier is skipped and said so).
+    unc_dir (the unzipped 05_IceThicknessUncertainty_SwissAlps folder): plus / minus = the value of IceThicknessUncertaintyPlus.tif / ...Minus.tif in that cell ("point-specific uncertainty estimate of the
+    modelled ice thickness ... towards smaller (minus) and towards larger (plus) ice thicknesses", ReadMe). The ReadMe gives no unit; metres, because next to measured GPR points the values (about 12-14) are
+    the GPR uncertainty (about 7-9 m) combined with the +-10 m surface elevation of Grab et al. 2021, Appendix C. The tifs are uncompressed float32 with one row per strip, so one cell is read by offset."""
+    import numpy as np
+    from PIL import Image
+    Image.MAX_IMAGE_PIXELS = None
+    zs, zm = load_zip(sgi_zip), load_zip(summary_zip)
+    dbf = next(n for n in zm.namelist() if n.lower().endswith("summary.dbf"))
+    summ = {str(r["pk_sgi"]).replace("/", "-"): r for r in read_dbf(zm.read(dbf), "latin-1")}
+    out = {}
+    def cell(kind, e, n):
+        im = Image.open(os.path.join(unc_dir, f"IceThicknessUncertainty{kind}.tif"))
+        assert im.tag_v2[259] == 1 and im.tag_v2[278] == 1 and im.tag_v2[258] == (32,), "uncertainty tif is not uncompressed float32 with one row per strip"
+        tp, sc, offs = im.tag_v2[33922], im.tag_v2[33550][0], im.tag_v2[273]
+        with open(im.filename, "rb") as f:
+            f.seek(offs[int((tp[4] - n) // sc)] + 4 * int((e - tp[3]) // sc)); return struct.unpack("<f", f.read(4))[0]
+    for gid in ids:
+        name = next((n for n in zs.namelist() if n.endswith(f"/{gid}_IceThickness.tif")), None)
+        r = summ.get(gid)
+        if not name or not r: print(f"  {gid}: no model thickness found"); continue
+        im = Image.open(io.BytesIO(zs.read(name))); a = np.array(im)
+        scale, tie = im.tag_v2[33550][0], im.tag_v2[33922]
+        i, j = np.unravel_index(np.argmax(np.where(a > 0, a, -1)), a.shape)
+        if abs(float(a[i, j]) - r["h_max"]) > 0.01: print(f"  {gid}: tif maximum {a[i, j]:.2f} differs from Summary h_max {r['h_max']:.2f}, skipped"); continue
+        e, n = tie[3] + (j + .5) * scale, tie[4] - (i + .5) * scale
+        lng, lat = to_wgs84(e, n)
+        out[gid] = {"max_m": round(r["h_max"], 2), "year": int(r["year_mode"]), "at": [lat, lng]}
+        if unc_dir: out[gid].update(plus=round(cell("Plus", e, n), 2), minus=round(cell("Minus", e, n), 2))
+    return out
+
 def inventory_stats(groups, top):
     """How many glaciers the newest inventory lists, how big they are, and the share of the ten largest."""
     areas = [g["area"] for g in groups.values()]
@@ -586,6 +620,10 @@ def main():
     ap.add_argument("--balance", default=BALANCE_URL, help="GLAMOS glacier mass balance zip (URL or path); 'none' to skip")
     ap.add_argument("--swisswide", default=SWISS_URL, help="GLAMOS Swiss-wide mass balance zip (URL or path); 'none' to skip")
     ap.add_argument("--thickness", default=THICK_URL, help="GLAMOS radar ice thickness zip (URL or path); 'none' to skip")
+    ap.add_argument("--grab-sgi", default=None, help="Grab et al. 2021 per-glacier ice thickness zip (04_IceThickness_SGI.zip, ETH Research Collection, local path)")
+    ap.add_argument("--grab-summary", default=None, help="Grab et al. 2021 Summary zip (01_Summary.zip, local path)")
+    ap.add_argument("--grab-uncertainty", default=None, help="folder 05_IceThicknessUncertainty_SwissAlps (unzipped): adds plus / minus to the model entries")
+    ap.add_argument("--model-only", action="store_true", help="only add the `model` entries (thickest ice of the Grab et al. map) to the existing --out file, from --grab-sgi and --grab-summary")
     ap.add_argument("--top", type=int, default=10)
     ap.add_argument("--simplify", type=float, default=8, help="outline simplification tolerance in metres")
     here = os.path.dirname(os.path.abspath(__file__))
@@ -593,6 +631,18 @@ def main():
     ap.add_argument("--out", default=os.path.join(root, "data", "glaciers.js"), help="output file (default: data/glaciers.js)")
     ap.add_argument("--length-only", action="store_true", help="only recompute the `length` entries of the existing --out file from --lengthchange (no inventories read), e.g. after a change of the overlap rule")
     a = ap.parse_args()
+    if a.model_only:
+        with open(a.out, encoding="utf-8") as f: txt = f.read()
+        data = json.loads(txt.split("window.GLACIER_DATA = ", 1)[1].rstrip().rstrip(";"))
+        peaks = read_model_peaks(a.grab_sgi, a.grab_summary, [g["id"] for g in data["glaciers"]], a.grab_uncertainty)
+        for g in data["glaciers"]:
+            if g["id"] in peaks: g["model"] = peaks[g["id"]]; print(f"  {g['name']}: {peaks[g['id']]}")
+        with open(a.out, "w", encoding="utf-8") as f:
+            f.write("/* generated by build_outlines.py - do not edit */\nwindow.GLACIER_DATA = ")
+            json.dump(data, f, ensure_ascii=False, separators=(",", ":"))
+            f.write(";\n")
+        return
+
     if a.length_only:
         with open(a.out, encoding="utf-8") as f: txt = f.read()
         data = json.loads(txt.split("window.GLACIER_DATA = ", 1)[1].rstrip().rstrip(";"))
@@ -655,6 +705,9 @@ def main():
         print(f"  {sum(len(v) for v in th_pts.values())} cells for {len(th_pts)} glaciers")
 
     prev = previous_terminus(a.out)
+    try:      # the model peaks come from local ETH files (--model-only); a full rebuild keeps what the file had
+        with open(a.out, encoding="utf-8") as f: prev_model = {g["id"]: g["model"] for g in json.loads(f.read().split("window.GLACIER_DATA = ", 1)[1].rstrip().rstrip(";"))["glaciers"] if g.get("model")}
+    except (OSError, ValueError, IndexError, KeyError): prev_model = {}
     out = []
     for rank, (gid, g) in enumerate(top, 1):
         best = best_match(g, oldest)
@@ -669,6 +722,7 @@ def main():
             "length": length_stats(series),
             "volume": volume_stats(vc.get(gid)),
             "radar": th_sum.get(gid),
+            "model": prev_model.get(gid),
             "balance": mb.get(gid),
             "terminus": prev[gid][1] if gid in prev and prev[gid][0] == round(g["area"], 2) else terminus(g["polys"]),
         }

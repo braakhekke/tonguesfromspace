@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
-import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN } from './05-map.js';
+import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
@@ -544,7 +544,7 @@ export function aboutChaptersCh(){
         <p>The three tiles follow the years you select. They add up (volume, and thickness, which is the volume over the mean area of the survey) or average (balance, as GLAMOS measured it, not scaled) the yearly mass balance of those years, scaled to the volume survey of the glacier, so they are estimates. They show the survey period only when no yearly value exists for the selected years.</p>
         <h4>Radar ice thickness</h4>
         <p>Single measurements from ground-penetrating radar, taken from the surface along lines, between 1958 and 2017 depending on the glacier. The map shows the mean of every 50 m cell. They tell how thick the ice was when it was measured; today it is thinner.</p>
-        <p><em>Latest thickest ice number, modelled for the reference year of the map (2017 for Aletsch)</em> is the maximum of the ice thickness map of Grab et al.${fn('grab')} for this glacier, read from swisstopo. It is a model result and not a measurement: the radar lines are used to calibrate an ice-flow model that fills the gaps. The radar maximum is older and only a point on a line, so it stays in the note.</p>
+        <p><em>Thickest ice</em> is one number with its year and its source. It is the maximum of the ice thickness map of Grab et al.${fn('grab')} for this glacier, in the reference year of that map (2017 for Aletsch), and the pin on the map marks the cell where it is. The card also gives the uncertainty of the map in that cell, towards thicker (+) and thinner (−) ice, as the data collection states it. It is a model result and not a measurement: the radar lines are used to calibrate an ice-flow model that fills the gaps. Only a radar or seismic maximum measured after the reference year of the map would replace it, and then the card and the pin say so.</p>
         <p>The map layer "Ice thickness 2016 (modelled)" shows the whole map. The radar data are only a part of what is needed for the glacier ice volume of Grab et al.${fn('grab')}, which also uses models.</p>
         <h4>Ice thickness change per year</h4>
         <p>The chart shows the yearly mass balance from GLAMOS for the years of the images, as metres of ice (the balance in water divided by 0.85). Aletsch, Rhone, Corbassière and Findel are measured directly every year; for the other six glaciers the line of all Swiss glaciers is shown.</p>
@@ -590,7 +590,7 @@ export function aboutChaptersCh(){
       <details class="about-ch" name="aboutch" id="ch-16"><summary>Map layers</summary><div class="about-sec">
         <p>Open <em>Layers</em> at the top right of the map. The same menu works in 3D, with a few layers of its own (see The 3D view).</p>
         <p><em>Pictures.</em> <em>Sentinel-2 image</em> is the picture of the chosen year, with its own opacity; <em>swisstopo aerial</em> shows SWISSIMAGE (see Aerial images, trails and panoramas). The setting <em>Surroundings opacity</em> in the left panel fades the picture outside the 1850 outline.</p>
-        <p><em>The glacier.</em> <em>Outline 1850</em> and <em>Outline 2023</em> are the outlines of the Swiss Glacier Inventory.${fn('sgi')} <em>Tongue tip 2023</em> is the lowest point of the 2023 outline. <em>Thickest ice</em> is where the radar measured the thickest ice, and <em>Radar points</em> shows the radar measurements (the mean of every 50 m cell).${fn('radar')} <em>Modelled thickness 2016</em> is the ice thickness map of Grab et al.${fn('grab')} (the menu names 2016; the reference year of the map differs by glacier, 2017 for Aletsch). <em>Ice speed</em> is described under Ice speed.</p>
+        <p><em>The glacier.</em> <em>Outline 1850</em> and <em>Outline 2023</em> are the outlines of the Swiss Glacier Inventory.${fn('sgi')} <em>Tongue tip 2023</em> is the lowest point of the 2023 outline. <em>Thickest ice</em> is where the ice is thickest, by the thickness map of Grab et al.${fn('grab')} (or by a newer radar survey, if there is one), and <em>Radar points</em> shows the radar measurements (the mean of every 50 m cell).${fn('radar')} <em>Modelled thickness 2016</em> is the ice thickness map of Grab et al.${fn('grab')} (the menu names 2016; the reference year of the map differs by glacier, 2017 for Aletsch). <em>Ice speed</em> is described under Ice speed.</p>
         <p><em>Around the glacier.</em> <em>Hiking trails</em> with the band where the tongue can be seen; <em>Panoramas</em> (Street View, Aletsch only); <em>Other glacier names</em> writes the name of the chosen glacier and of the other glaciers inside its picture (names from Wikidata and the Randolph Glacier Inventory${fn('names')}); <em>Selectable glaciers</em> draws the ten glaciers as red outlines you can click and is switched off when you choose one.</p>
         <p><em>Backgrounds</em> behind and around the picture: Sentinel-2 cloudless by EOX, OpenStreetMap, the swisstopo map, a hillshade and place labels.${fn('bg')} <em>Tools:</em> Tongue fits the view to the picture box and Whole glacier to the whole glacier, Measure length and Measure area draw on the map and give the value, Clear removes them.</p>
       </div></details>
@@ -724,7 +724,7 @@ ${aboutFrame(aboutChaptersCh())}`;
     if (storyTab === 'swiss') { wireWater(); }
   });
   wireWater();
-  renderGlacierWater(); renderGlacierSpeed(lo, hi); renderShare(); fillThickness();
+  renderGlacierWater(); renderGlacierSpeed(lo, hi); renderShare();
   restoringCards = true;
   storyEl.querySelectorAll('details.coll').forEach(d => { if (openCards.includes(cardKey(d))) d.open = true; else if (sameGlacier && d.open) d.open = false; });
   setTimeout(() => { restoringCards = false; }, 100);
@@ -799,7 +799,7 @@ export const SOURCES = {
   bedrock:() => `swissBEDROCK © ${lnk('https://www.swisstopo.admin.ch/en/3d-swissbedrock-en', 'Federal Office of Topography swisstopo')} (free geodata, terms of use: ${lnk('https://www.swisstopo.admin.ch/en/terms-of-use-free-geodata-and-geoservices', 'swisstopo OGD')}), release 1, August 2025. The bed under the ice in the 3D thickness cross-section. Under glaciers it is swissALTI3D 10 m minus a modelled ice thickness (GLAMOS 2020): "a maximum estimate of the bedrock surface" according to the release notes, a model and not a measurement.`,
   yearly: () => `Yearly ice surfaces of the ten Swiss glaciers of this site (3D view, 2016 to 2026): swissALTI3D (2019, 2024 and 2025 editions) and swissSURFACE3D raster, © ${lnk('https://www.swisstopo.admin.ch', 'Federal Office of Topography swisstopo')} (open government data); GLAMOS mass balance per elevation band (release 2025, ${lnk('https://doi.org/10.18750/massbalance.2025.r2025', 'doi:10.18750/massbalance.2025.r2025')}, non-commercial use); ICESat-2 ATL06 laser heights, for checking only. A model, not a measurement, except in the measured years (Aletsch 2017, 2021 and 2023; Gornergletscher 2021, 2022 and 2023; Fieschergletscher 2017, 2021 and 2023; Rhonegletscher 2016, 2021 and 2023; Unteraargletscher 2023; Corbassière 2016, 2021 and 2023; Zmuttgletscher 2023; Findelgletscher 2023; Feegletscher 2021 and 2023; Triftgletscher 2016, 2021 and 2023). The full account: ${lnk('provenance.html?id=B36-26', 'Aletsch')}, ${lnk('provenance.html?id=B56-07', 'Gornergletscher')}, ${lnk('provenance.html?id=B40-07', 'Fieschergletscher')}, ${lnk('provenance.html?id=B43-03', 'Rhonegletscher')}, ${lnk('provenance.html?id=A54g-11', 'Unteraargletscher')}, ${lnk('provenance.html?id=B83-03', 'Corbassière')}, ${lnk('provenance.html?id=B57-05', 'Zmuttgletscher')}, ${lnk('provenance.html?id=B56-03', 'Findelgletscher')}, ${lnk('provenance.html?id=B53-04', 'Feegletscher')}, ${lnk('provenance.html?id=A54e-24', 'Triftgletscher')}.`,
   sr:     () => `Super-resolved picture (optional 3D layer, the ten Swiss glaciers of this site): SEN2SR (tacofoundation, model card licence cc0-1.0) applied to Sentinel-2 scenes (contains modified Copernicus Sentinel data). The extra detail is the model's estimate.`,
-  grab:   () => `Grab, M. et al. (2021), ${lnk('https://www.cambridge.org/core/journals/journal-of-glaciology/article/ice-thickness-distribution-of-all-swiss-glaciers-based-on-extended-groundpenetrating-radar-data-and-glaciological-modeling/CB6685222A664FD3FCE1367E2B5245D8', 'Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling')}, Journal of Glaciology 67(266). Modelled ice thickness and ice volume of Swiss glaciers around 2016, read from the ice thickness layer of ${lnk('https://map.geo.admin.ch', 'swisstopo')}. A model result, not a measurement.`,
+  grab:   () => `Grab, M. et al. (2021), ${lnk('https://www.cambridge.org/core/journals/journal-of-glaciology/article/ice-thickness-distribution-of-all-swiss-glaciers-based-on-extended-groundpenetrating-radar-data-and-glaciological-modeling/CB6685222A664FD3FCE1367E2B5245D8', 'Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling')}, Journal of Glaciology 67(266). Modelled ice thickness and ice volume of Swiss glaciers around 2016, read from the ice thickness layer of ${lnk('https://map.geo.admin.ch', 'swisstopo')}. The thickest ice of each glacier (number, year of the map and place) is read from the data collection ${lnk('https://doi.org/10.3929/ethz-b-000434697', 'SwissGlacierThickness-R2020')}, ETH Research Collection, doi:10.3929/ethz-b-000434697, CC BY 4.0. A model result, not a measurement.`,
   landsat:() => `Landsat 5 and 7, Collection 2 Level-2 surface reflectance (30 m), courtesy of the ${lnk('https://www.usgs.gov/landsat-missions', 'U.S. Geological Survey')} (public domain), read through the ${lnk('https://planetarycomputer.microsoft.com/dataset/landsat-c2-l2', 'Microsoft Planetary Computer')}. One scene per year before 2016, chosen by the Sentinel-2 rules of the region (clear, closest to its target day: the end of the melt season); natural colour and the two false colour styles, made from the red, green, blue, near infrared and two shortwave infrared bands; stripes of no data in Landsat 7 are filled along the ice flow (own processing).`,
   s2:     () => `Copernicus Sentinel-2, Level-1C (pictures) and Level-2A (scene choice), contains modified Copernicus Sentinel data, via the ${lnk('https://dataspace.copernicus.eu', 'Copernicus Data Space Ecosystem')}. Product ids, tiles, times and sun elevation in the image metadata: its ${lnk('https://stac.dataspace.copernicus.eu/v1', 'STAC catalogue')}.`,
   terrain:() => `swissALTI3D © ${lnk('https://www.swisstopo.admin.ch', 'swisstopo')} (open government data), served as terrain tiles by ${lnk('https://mapterhorn.com/attribution', 'Mapterhorn')}. Peak names: swissNAMES3D © swisstopo.`,
@@ -888,7 +888,7 @@ export function stats(g, lo, hi){
     }
   } else if (L) rangeHint = 'glacier data needs a rebuild';
   // ice volume: the newest GLAMOS volume survey of this glacier (comparison of two elevation models) and the radar thickness measurements
-  const V = inv && inv.volume, R = inv && inv.radar, volHint = inv ? 'no volume survey by GLAMOS' : 'glacier data not loaded yet';
+  const V = inv && inv.volume, T = thickestSpot(g), volHint = inv ? 'no volume survey by GLAMOS' : 'glacier data not loaded yet';
   const per = V ? `${V.from}–${V.to}` : '';
   const m1 = v => `${v < 0 ? '−' : v > 0 ? '+' : ''}${Math.abs(v).toFixed(1)}`;
   // everything since the first elevation model of this glacier: the longest survey that ends with the newest one
@@ -914,7 +914,7 @@ export function stats(g, lo, hi){
       {ico:'sum',  k:'Volume', kk:'Volume change', per: selOn && selDv !== null ? selPer : per, fn:'vc', loss:true, v: selOn && selDv !== null ? `${sgn(selDv, Math.abs(selDv) < 0.1 ? 3 : 2)} km³` : V ? `${V.dV_km3 < 0 ? '−' : '+'}${Math.abs(V.dV_km3).toFixed(Math.abs(V.dV_km3) < 0.1 ? 3 : 2)} km³` : null, hint:volHint},
       {ico:'drop', k:'Balance', kk:'Mass balance per year', per: selOn ? selPer : per, fn:'vc', loss:true, v: selOn ? `${sgn(selBal, 2)} m w.e.` : V ? `${V.bal_mwe_a < 0 ? '−' : '+'}${Math.abs(V.bal_mwe_a).toFixed(2)} m w.e.` : null, sub: !selOn && V ? `± ${V.sigma.toFixed(2)}` : '', hint:volHint},
       ...(cubeKm3 ? [{cube:true, vol:cubeKm3, per: selOn && selDv !== null ? selPer : per}] : []),
-      {ico:'flag', k:'Thickest ice', per:'around 2016', v: R ? `${R.max_m} m` : null, hint:'not measured directly by radar', slot:'thick', wide:true, act: R && R.max_at ? 'radar-max' : '', actText: R && R.max_at ? `${R.max_m} m in ${R.max_year || 'the survey'} (radar)` : ''}
+      {ico:'flag', k:'Thickest ice', per: T ? `${T.kind === 'model' ? 'Model result' : 'Radar measurement'} ${T.year || ''}`.trim() + (T.kind === 'model' && T.plus != null ? `, uncertainty +${Math.round(T.plus)} / −${Math.round(-T.minus)} m` : '') : '', fn: T ? (T.kind === 'model' ? 'grab' : 'radar') : '', v: T ? `${Math.round(T.m)} m` : null, hint:'no thickness data for this glacier', slot:'thick', wide:true, act: T ? 'radar-max' : '', actText: T ? 'thickest ice' : ''}
     ],
     area: [
       ...(lostArea ? [{hero:true, ico:'down', k:`${((aRef - a1850) / a1850 * 100).toFixed(0).replace('-', '−')} % since 1850`, fn:'sgi', loss:true, wide:true, v:`−${(a1850 - aRef).toFixed(2)} km²`,
@@ -988,14 +988,14 @@ document.addEventListener('click', e => {          // "Show speed on the map" in
   const t = document.getElementById('speedToggle'); t.checked = !t.checked; t.dispatchEvent(new Event('change'));
   if (t.checked) document.getElementById('map').scrollIntoView({block: 'center', behavior: 'smooth'});
 });
-document.addEventListener('click', e => {          // "Show on map" in the stats: layer on, fly to the thickest ice measurement, open its label
+document.addEventListener('click', e => {          // "Show on map" in the stats: layer on, fly to the thickest ice, open its label
   if (!e.target.closest || !e.target.closest('[data-act="radar-max"]')) return;
-  const g = currentGlacier(), R = g && g.inv && g.inv.radar, t = document.getElementById('maxToggle');
-  if (!R || !R.max_at) return;
+  const g = currentGlacier(), T = thickestSpot(g), t = document.getElementById('maxToggle');
+  if (!T) return;
   if (t.checked) { t.checked = false; t.dispatchEvent(new Event('change')); return; }      // second click closes it again
   t.checked = true; t.dispatchEvent(new Event('change'));
   document.getElementById('map').scrollIntoView({block:'center', behavior:'smooth'});
-  map.flyTo(R.max_at, Math.max(map.getZoom(), 15), {duration:1.2});
+  map.flyTo(T.at, Math.max(map.getZoom(), 15), {duration:1.2});
 });
 /* Symbols that make a loss easy to grasp. Thickness: the Eiffel Tower (330 m) whose top, as many metres as the glacier lost in thickness, is melting away.
    Area: football pitches. Length: city buses end to end. Water: Olympic swimming pools. Sizes: pitch 105 x 68 m, bus 12 m, pool 50 x 25 x 2 m = 2.5 million litres. */
@@ -1041,7 +1041,7 @@ export const SYM_SVG = {
 export const symHtml = (y, note) => `<span class="sym-chip">≈ ${y.big ? y.big.replace(/^×\s*/, '') + ' ' : ''}${y.small}${note ? ' · ' + note : ''}</span>`;      /* a plain text chip instead of the drawings */
 export const fmtCount = n => n >= 1e6 ? `${(n / 1e6).toFixed(1)} million` : n >= 1000 ? (Math.round(n / 10) * 10).toLocaleString('en') : n >= 10 ? String(Math.round(n)) : n.toFixed(1);
 /* The four stat cards (Area, Length, Ice thickness and volume, Ice and water) open and close; closed, each shows its headline figure. The choice is remembered. */
-export const maxLinkText = txt => document.getElementById('maxToggle').checked ? 'Close thickest measurement' : `Show thickest measurement on the map: ${txt}`;
+export const maxLinkText = () => document.getElementById('maxToggle').checked ? 'Close thickest ice' : 'Show the thickest ice on the map';
 /* A card that opens closes the one above (name="..."), which shifts the page up: put the title of the new card back in view */
 export let restoringCards = false;
 export function keepTitleVisible(d){
@@ -1099,7 +1099,7 @@ export function renderStats(g, lo, hi){
           ${t.v && t.sym ? symHtml(t.sym) : ''}
           ${!t.v && t.hint ? `<span class="k note">${t.hint}</span>` : ''}
           ${t.v && t.cover ? `<span class="k note">${t.cover}</span>` : ''}
-          ${t.v && t.act ? `<button type="button" class="tile-link" data-act="${t.act}" data-text="${t.actText}"><span class="tl-t">${maxLinkText(t.actText)}</span>${fn('radar')}</button>` : ''}
+          ${t.v && t.act ? `<button type="button" class="tile-link" data-act="${t.act}" data-text="${t.actText}"><span class="tl-t">${maxLinkText()}</span></button>` : ''}
         </div>`).join('')}
       </div>
       ${key === 'volume' ? thinningChart(g, lo, hi) : key === 'area' ? areaBars(g) + (FEATURES.sizeTool ? `<a class="size-link" href="${sizeHref(g)}">How big is that? Drag it onto your city →</a>` : '') : key === 'length' ? retreatChart(g, lo, hi) : ''}
@@ -1193,20 +1193,6 @@ export const iceSource = g => { const V = volumeSurvey(g), M = balanceModel(g);
 /* The selected glacier's part of the Swiss ice, as a line above the figures of the Switzerland tab: its measured volume around 2016
    (Grab et al. 2021, via swisstopo), the latest volume survey, against the national ice of that year. */
 export const shareText = sh => `${sh * 100 < 10 ? (sh * 100).toFixed(1) : Math.round(sh * 100)} %`;
-/* "Thickest ice": the map of Grab et al. (2021), around 2016, replaces the radar maximum once swisstopo has answered; the radar value (older, often 1958-2012) moves to the note */
-export function fillThickness(){
-  const g = currentGlacier(), tile = document.querySelector('.stat[data-slot="thick"]');
-  if (!tile) return;
-  glacierVolume(g).then(v => {
-    if (!v || !v.max || currentGlacier() !== g || !tile.isConnected) return;
-    const R = g.inv && g.inv.radar, yrs = R && R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join('–')) : '';
-    tile.querySelector('.v').textContent = `${Math.round(v.max)} m`;
-    tile.querySelector('.k').innerHTML = `<i class="mini">${ICONS.flag}</i>Thickest ice`;
-    tile.querySelectorAll('.note, .per, .d').forEach(n => n.remove());
-    tile.querySelector('.k').insertAdjacentHTML('afterend', `<span class="d">Model result ${v.yr || 2016}${fn('grab')}</span>`);
-    if (R && R.max_at && !tile.querySelector('.tile-link')) tile.insertAdjacentHTML('beforeend', `<button type="button" class="tile-link" data-act="radar-max" data-text="${R.max_m} m in ${R.max_year || 'the survey'} (radar)"><span class="tl-t">${maxLinkText(`${R.max_m} m in ${R.max_year || 'the survey'} (radar)`)}</span>${fn('radar')}</button>`);
-  }).catch(() => {});
-}
 export function renderShare(){
   const g = currentGlacier(), big = document.getElementById('shIce');
   if (!big) return;

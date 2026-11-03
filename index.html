@@ -251,8 +251,8 @@
       <label class="toggle gl-only"><input type="checkbox" id="oldToggle"> <span><span class="sym"><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i></span><span id="oldLabel">Outline 1850</span></span></label>
       <label class="toggle gl-only"><input type="checkbox" id="newToggle"> <span><span class="sym"><i class="swatch" style="border-color:var(--new)"></i></span><span id="newLabel">Outline 2023</span></span></label>
       <label class="toggle gl-only" title="The lowest point of the 2023 outline"><input type="checkbox" id="pinToggle"> <span><span class="sym"><i class="pin-sw"></i></span><span id="pinLabel">Tongue tip 2023</span></span></label>
-      <label class="toggle gl-only" title="Where the radar measured the thickest ice"><input type="checkbox" id="maxToggle"> <span><span class="sym"><i class="pin-sw blue"></i></span>Thickest ice</span></label>
-      <p class="hint gl-only" id="maxNote" hidden>No radar measurements for this glacier.</p>
+      <label class="toggle gl-only" title="Where the ice is thickest (thickness map of Grab et al. 2021, or a newer radar survey)"><input type="checkbox" id="maxToggle"> <span><span class="sym"><i class="pin-sw blue"></i></span>Thickest ice</span></label>
+      <p class="hint gl-only" id="maxNote" hidden>No thickness data for this glacier.</p>
       <label class="toggle gl-only" title="Modelled ice thickness around 2016"><input type="checkbox" id="thickToggle"> <span><span class="sym"><i class="area-sw thick"></i></span>Modelled thickness 2016</span></label>
       <div class="trail-legend radar-legend gl-only" id="thickLegendBox" hidden><img id="thickLegendImg" alt="Legend: modelled ice thickness in metres" width="105"><small>Model result, not a measurement <span data-fn-slot="grab"></span>, state around 2016. The green lines are the radar surveys it is based on.</small></div>
       <label class="toggle gl-only" title="Ice thickness measured by ground-penetrating radar"><input type="checkbox" id="radarToggle"> <span><span class="sym"><i class="dots-sw"><b></b><b></b><b></b></i></span>Radar points</span></label>
@@ -308,6 +308,7 @@
     <div class="v3d" id="v3d" hidden role="dialog" aria-label="3D view of the tongue">
       <canvas id="v3dCanvas"></canvas>
       <canvas class="v3d-over" id="v3dOver"></canvas>
+      <div class="v3d-north" id="v3dNorth" aria-hidden="true" title="North"><svg viewBox="0 0 24 24"><path d="M12 3l4.5 15L12 15.5 7.5 18z"/></svg><b>N</b></div>
       <div class="tongue-loading" id="tongueLoading" hidden aria-live="polite"><span>Reconstruction in progress</span><em><i></i></em></div>
       <div class="v3d-top"><div class="year-tag v3d-year" id="v3dTitle">3D view</div><span class="h-full">Drag to turn all the way round and tilt, Shift or right-drag (two fingers) to move, scroll or pinch to zoom.</span><span class="h-short">Drag to turn · two fingers to move and zoom</span><a class="sci-pill" id="v3dSci" href="/provenance.html" target="_blank" rel="noopener" title="How this view was made: pictures, terrain, data, dates, checks and licences"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4M3 7h3M3 12h3M3 17h3"/></svg><span class="sci-l">Scientific field notes</span><span class="sci-s">Field notes</span></a><span class="sci-no" id="v3dSciNo" role="status" hidden>There are no field notes for this glacier.</span></div>
       <div class="layerbox v3d-layers" id="v3dLayers" role="group" aria-label="Layers of the 3D view">
@@ -321,8 +322,8 @@
           <label class="toggle"><input type="checkbox" id="l3Old"> <span><span class="sym"><i class="swatch" style="border-color:var(--old);border-top-style:dashed"></i></span><span id="l3OldLabel">Outline 1850</span></span></label>
           <label class="toggle"><input type="checkbox" id="l3New"> <span><span class="sym"><i class="swatch" style="border-color:var(--new)"></i></span><span id="l3NewLabel">Outline 2023</span></span></label>
           <label class="toggle" title="The lowest point of the 2023 outline"><input type="checkbox" id="l3Pin"> <span><span class="sym"><i class="pin-sw"></i></span><span id="l3PinLabel">Tongue tip 2023</span></span></label>
-          <label class="toggle" title="Where the radar measured the thickest ice"><input type="checkbox" id="l3Max"> <span><span class="sym"><i class="pin-sw blue"></i></span>Thickest ice</span></label>
-          <p class="hint" id="l3MaxNote" hidden>No radar measurements for this glacier.</p>
+          <label class="toggle" title="Where the ice is thickest (thickness map of Grab et al. 2021, or a newer radar survey)"><input type="checkbox" id="l3Max"> <span><span class="sym"><i class="pin-sw blue"></i></span>Thickest ice</span></label>
+          <p class="hint" id="l3MaxNote" hidden>No thickness data for this glacier.</p>
           <label class="toggle" id="l3ThickRow" title="Modelled ice thickness around 2016 (Grab et al. 2021, GLAMOS, via swisstopo), the same for every year"><input type="checkbox" id="l3Thick"> <span><span class="sym"><i class="area-sw thick"></i></span>Modelled thickness 2016</span></label>
           <div class="trail-legend radar-legend" id="l3ThickLegend" hidden><img id="l3ThickImg" alt="Legend: modelled ice thickness in metres" width="105"><small>Model result, not a measurement. The same picture for every year.</small></div>
           <label class="toggle" title="Ice thickness measured by ground-penetrating radar"><input type="checkbox" id="l3Radar"> <span><span class="sym"><i class="dots-sw"><b></b><b></b><b></b></i></span>Radar points</span></label>

@@ -5,7 +5,7 @@ import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUM
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
 import { styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
-import { map, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
+import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
 import { showNotice } from './08-controls.js';
 import { setFull, setMini, evalMini, setLayers } from './09-phones.js';
@@ -99,11 +99,12 @@ export function frameGroundRes(){            // metres of terrain per video pixe
 }
 /* The text on the map frame: drawn with the same functions as the finished picture or video (timelapse, slider or single picture), over the live map.
    The end card is left out. */
+export const previewScale = (cv, W) => Math.min(1, Math.max(0.5, (cv.clientWidth || 0) * Math.min(2, devicePixelRatio || 1) / W));      // the preview canvas has the pixels the screen shows (not half the download size, which looked soft)
 export let logoAsked = false;
 export function drawPreview(){
   if (viewMode === '3d') return wire.drawPreview3D();
   if (!logoImg && !logoAsked) { logoAsked = true; loadLogo().then(() => drawPreview()); }      // the logo is part of every picture: the preview shows it as soon as it is decoded
-  const cv = $('vfPreview'), F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = 0.5, ys = videoYears();
+  const cv = $('vfPreview'), F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, q = previewScale(cv, W), ys = videoYears();
   cv.width = Math.round(W * q); cv.height = Math.round(H * q);
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!ys.length) return;
@@ -651,7 +652,7 @@ export function drawEndSlide(ctx, W, H, S, info, te){
   if (wide) { const gr = ctx.createLinearGradient(0, 0, W, 0); gr.addColorStop(0, 'rgba(8,14,18,.92)'); gr.addColorStop(.55, 'rgba(8,14,18,.84)'); gr.addColorStop(1, 'rgba(8,14,18,.35)'); ctx.fillStyle = gr; }
   else ctx.fillStyle = 'rgba(8,14,18,.8)';
   ctx.fillRect(0, 0, W, H);
-  const hero = e.glacier || e.swiss, label = `${e.glacier ? stillName(g).toUpperCase() : 'ALL SWISS GLACIERS'} · ${e.from}–${e.to}`, sub = e.glacier ? 'of its ice (estimate)' : 'of their ice';
+  const hero = e.glacier || e.swiss, label = `${e.glacier ? stillName(g).toUpperCase() : 'ALL SWISS GLACIERS'} · ${e.from === e.to ? e.from - 1 : e.from}–${e.to}`, sub = e.glacier ? 'of its ice (estimate)' : 'of their ice';
   ctx.textBaseline = 'alphabetic'; ctx.font = `600 32px ${FONT}`;
   const comp = wrap(ctx, `about ${hero.N.poolsLong} Olympic pools of water`, 0, 0, maxW, 42).map(l => l.t), rows = e.glacier ? 1 : 0;
   const blockH = 190 + 46 + 66 + comp.length * 42 + (rows ? 44 + 52 : 0) + 90;
@@ -787,7 +788,7 @@ export function factTiles(g, year, set, base){
     const th = thinning(g);
     if (th) t.push({ label: `THINNING SINCE ${th.from}`, value: MINUS_SIGN + Math.round(Math.abs(th.dh)), unit: 'm', color: FACT_RED });
   } else if (set === 'size') {
-    const aRef = rankArea(g), R = inv && inv.radar, max = v && v.max ? v.max : R ? R.max_m : null;
+    const aRef = rankArea(g), T = thickestSpot(g), max = T ? T.m : null;
     if (ok(aRef)) t.push({ label: `AREA ${inv ? (inv.year || rankLabel()) : 2016}`, value: aRef.toFixed(1), unit: 'km²', color: FACT_BLUE });
     if (ok(max)) t.push({ label: 'MAX. THICKNESS', value: String(Math.round(max)), unit: 'm', color: W3 });
     const tip = inv && inv.terminus && inv.terminus.tip_m;
