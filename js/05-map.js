@@ -921,14 +921,15 @@ export function startMeasure(mode){
   cancelMeasure();
   M.mode = mode; map.doubleClickZoom.disable();
   document.getElementById('app').classList.add('measuring');
-  document.getElementById(mode === 'dist' ? 'measureDist' : 'measureArea').setAttribute('aria-pressed', 'true');
+  document.getElementById({dist:'measureDist', area:'measureArea', sect:'measureSect'}[mode]).setAttribute('aria-pressed', 'true');
   document.getElementById('measureHint').classList.add('show');
   updateMeasureText();
 }
 export function updateMeasureText(cursor){
   const pts = cursor ? [...M.pts, cursor] : M.pts, el = document.getElementById('measureText');
   const phone = COARSE, tap = phone ? 'Tap' : 'Click';          // on phones the hint stays short: it sits on the picture
-  if (!pts.length) el.textContent = M.mode === 'dist' ? `${tap} the map to start a line.` : `${tap} the map to start an area.`;
+  if (M.mode === 'sect') el.textContent = pts.length ? `${tap} the other side of the glacier.` : `${tap} the map on one side of the glacier, then on the other.`;
+  else if (!pts.length) el.textContent = M.mode === 'dist' ? `${tap} the map to start a line.` : `${tap} the map to start an area.`;
   else if (M.mode === 'dist') el.textContent = `Length ${fmtLen(pathLen(pts))}.${phone ? '' : ' Double-click or press Finish.'}`;
   else el.textContent = pts.length < 3 ? (phone ? 'Add 3 points.' : 'Add at least three points.') : `Area ${fmtArea(geodesicArea(ringOf(pts)))}.${phone ? '' : ' Double-click or press Finish.'}`;
 }
@@ -939,7 +940,10 @@ export function drawTemp(cursor){
   M.temp = (M.mode === 'area' && pts.length > 2 ? L.polygon(pts, style) : L.polyline(pts, style)).addTo(M.group);
   updateMeasureText(cursor); updateClear();
 }
-map.on('click', e => { if (!M.mode) return; M.pts.push(e.latlng); drawTemp(); });
+map.on('click', e => {
+  if (!M.mode) return; M.pts.push(e.latlng); drawTemp();
+  if (M.mode === 'sect' && M.pts.length === 2) finishSection();      // a cross-section is just two points
+});
 map.on('mousemove', e => { if (M.mode && M.pts.length) drawTemp(e.latlng); });
 map.on('dblclick', () => M.mode && finishMeasure());
 export function finishMeasure(){
@@ -955,16 +959,29 @@ export function finishMeasure(){
   shape.addTo(M.group).bindTooltip(label, {permanent:true, direction:'center', className:'m-label'});
   const mode = M.mode; M.temp = null; endMeasure(); startMeasure(mode);   // stay in the tool for the next shape
 }
+function finishSection(){            // the line is kept on the map and the view flies into 3D, where the cut and its chart are drawn
+  const ll = M.pts.map(p => [p.lat, p.lng]);
+  if (M.temp) M.group.removeLayer(M.temp);
+  M.temp = null; endMeasure();
+  M.group.addLayer(L.polyline(ll, {pane:'measure', color:getVar('--measure'), weight:3, interactive:false})); updateClear();
+  wire.sectFromMap(ll);
+}
 export function cancelMeasure(){ if (M.temp) M.group.removeLayer(M.temp); M.temp = null; endMeasure(); }
 export function endMeasure(){
   M.mode = null; M.pts = []; map.doubleClickZoom.enable();
   document.getElementById('app').classList.remove('measuring');
-  ['measureDist','measureArea'].forEach(id => document.getElementById(id).setAttribute('aria-pressed','false'));
+  ['measureDist','measureArea','measureSect'].forEach(id => document.getElementById(id).setAttribute('aria-pressed','false'));
   document.getElementById('measureHint').classList.remove('show');
   updateClear();
 }
 document.getElementById('measureDist').onclick = () => M.mode === 'dist' ? cancelMeasure() : startMeasure('dist');
 document.getElementById('measureArea').onclick = () => M.mode === 'area' ? cancelMeasure() : startMeasure('area');
+document.getElementById('measureSect').onclick = () => {
+  if (M.mode === 'sect') return cancelMeasure();
+  const g = currentGlacier();
+  if (!g || !(g.inv && g.inv.radar)) return wire.showNotice('The thickness cross-section needs GLAMOS radar data, which this glacier does not have.');
+  startMeasure('sect');
+};
 document.getElementById('measureFinish').onclick = finishMeasure;
 document.getElementById('measureCancel').onclick = cancelMeasure;
 document.getElementById('measureClear').onclick = () => { cancelMeasure(); M.group.clearLayers(); updateClear(); };

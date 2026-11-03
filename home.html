@@ -40,7 +40,7 @@
 <main id="top">
 <section class="hero">
   <div class="wrap">
-    <div>
+    <div class="herotext">
       <h1><span>Glaciers don’t talk.</span> <span>Their <em>tongues</em> tell all.</span></h1>
       <p class="lede">Satellite and historic imagery, field measurements and glacier data in one viewer, on the map and in 3D.</p>
       <div class="find">
@@ -113,8 +113,12 @@
           <ul id="gresults2" class="res" role="listbox" aria-label="Glaciers you may mean" hidden></ul>
           <p class="sstat" role="status" aria-live="polite" hidden></p>
         </div>
-        <div class="sel"><select id="pick" aria-label="Glacier"></select>
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></div>
+        <div class="pk" id="pk">
+          <select id="pick" aria-label="Glacier" hidden></select>
+          <button type="button" class="pk-btn" id="pickBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="pickMenu" aria-label="Glacier"><span class="pk-t" id="pickT">Choose a glacier…</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="pk-back" id="pickBack" hidden></div>
+          <ul class="pk-menu" id="pickMenu" role="listbox" aria-label="Glacier" hidden></ul>
+        </div>
       </div>
     </div>
 
@@ -359,12 +363,15 @@ const regionHref = r => LOCAL ? 'index.html' + (r.id === 'ch' ? '' : '#r=' + r.i
 const glacierHref = (r, g) => { const q = 'g=' + encodeURIComponent(g.parent || g.id) + (g.parent ? '&sub=' + g.sub : ''); return LOCAL ? 'index.html#' + (r.id === 'ch' ? '' : 'r=' + r.id + '&') + q : r.href + '#' + q; };
 
 pick.innerHTML = '<option value="">Choose a glacier…</option>';
+const pickItems = [];      // the same list as the hidden select, for the menu: {head} or {value, text, area, indent, disabled}
 let lastGroup = null, grp = null;
 for (const r of REGIONS) {
   if (r.group !== lastGroup) { lastGroup = r.group; }
   grp = document.createElement('optgroup'); grp.label = r.group === r.name ? r.name : r.group + ' · ' + r.name; pick.appendChild(grp);
+  pickItems.push({head: grp.label});
   const o = new Option(r.soon ? r.name + ' (in the making)' : 'All of ' + r.name, 'r:' + r.id); o.disabled = r.soon && !r.making; grp.appendChild(o);
-  if (!r.soon || r.making) for (const g of ordered(r.id)) grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id));
+  pickItems.push({value: 'r:' + r.id, text: o.text, indent: 0, disabled: o.disabled, region: true});
+  if (!r.soon || r.making) for (const g of ordered(r.id)) { grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id)); pickItems.push({value: 'g:' + g.id, text: nameOf(g), area: fmtArea(g.area), indent: g.parent ? 1 : 0}); }
   r.marker = L.marker(r.ll, { icon: L.divIcon({ className: 'pin' + (r.soon ? ' soon' : '') + (r.side ? ' ' + r.side : ''), html: '<span>' + r.name + '</span>', iconSize: [0, 0] }), keyboard: true, title: r.name }).addTo(map);
   if (r.soon && !r.n) continue;
   if (!r.soon || r.making) r.marker.on('click', () => chooseRegion(r.id));
@@ -411,14 +418,14 @@ function clearMarks() {
   document.querySelectorAll('.pin,.gdot').forEach(p => p.classList.remove('on'));
   tiles.querySelectorAll('.tile').forEach(b => b.removeAttribute('aria-current'));
 }
-function reset() { showOutline(null); clearMarks(); drawGlaciers(null); $('info').hidden = true; $('iNot').hidden = true; pick.value = ''; history.replaceState(null, '', location.pathname); }
+function reset() { showOutline(null); clearMarks(); drawGlaciers(null); $('info').hidden = true; $('iNot').hidden = true; setPick(''); history.replaceState(null, '', location.pathname); }
 
 function chooseRegion(id, doFly = true) {
   const r = REGIONS.find(x => x.id === id);
   if (!r || (r.soon && !r.making)) return reset();
   $('iNot').hidden = true; $('iMaking').hidden = !r.making;
   showOutline(null); clearMarks(); drawGlaciers(r);
-  pick.value = 'r:' + id;
+  setPick('r:' + id);
   r.marker.getElement().classList.add('on');
   tiles.querySelector('[data-id="' + id + '"]').setAttribute('aria-current', 'true');
   const gs = ordered(id);
@@ -441,7 +448,7 @@ function chooseGlacier(gid, doFly = true) {
   if (!$('info').dataset.region || $('info').dataset.region !== r.id || !glMarkers[gid]) { clearMarks(); drawGlaciers(r); r.marker.getElement().classList.add('on'); tiles.querySelector('[data-id="' + r.id + '"]').setAttribute('aria-current', 'true'); }
   $('info').dataset.region = r.id;
   document.querySelectorAll('.gdot').forEach(p => p.classList.remove('on')); glMarkers[gid].getElement().classList.add('on');
-  pick.value = 'g:' + gid;
+  setPick('g:' + gid);
   $('iBack').hidden = false; $('iBack').textContent = '← All of ' + r.name; $('iBack').onclick = () => chooseRegion(r.id);
   $('iLab').textContent = r.group === r.name ? r.name : r.group + ' · ' + r.name;
   const parent = g.parent && (window.HOME_GLACIERS || []).find(x => x.id === g.parent);
@@ -455,6 +462,16 @@ function chooseGlacier(gid, doFly = true) {
   showOutline(gid);
   history.replaceState(null, '', '#glacier=' + gid);      // the picker's own link; #g= is a dashboard link
 }
+/* the picker: the same look as the glacier list of the dashboard (white card, red bar at the left, area at the right); on phones the list is a sheet from the bottom */
+const pickBtn = $('pickBtn'), pickMenu = $('pickMenu'), pickBack = $('pickBack');
+function setPick(v) { pick.value = v; const it = pickItems.find(i => i.value === v); $('pickT').textContent = it ? it.text : 'Choose a glacier…'; pickBtn.classList.toggle('ph', !it); pickMenu.querySelectorAll('li[role=option]').forEach(li => li.setAttribute('aria-selected', li.dataset.v === v)); }
+pickMenu.innerHTML = pickItems.map(i => i.head ? '<li class="hd" role="presentation">' + i.head + '</li>' : '<li role="option" class="' + (i.indent ? 'sub' : '') + (i.region ? ' rg' : '') + '" data-v="' + i.value + '" aria-selected="false"' + (i.disabled ? ' aria-disabled="true"' : '') + '><span>' + i.text + '</span>' + (i.area ? '<small>' + i.area + '</small>' : '') + '</li>').join('');
+function openPick(on) { pickMenu.hidden = pickBack.hidden = !on; pickBtn.setAttribute('aria-expanded', on); document.body.classList.toggle('pk-open', on); if (on) { const s = pickMenu.querySelector('[aria-selected=true]'); if (s) s.scrollIntoView({ block: 'nearest' }); } }
+pickBtn.onclick = () => openPick(pickMenu.hidden);
+pickBack.onclick = () => openPick(false);
+pickMenu.onclick = e => { const li = e.target.closest('li[role=option]'); if (!li || li.getAttribute('aria-disabled') === 'true') return; openPick(false); setPick(li.dataset.v); pick.onchange(); };
+document.addEventListener('click', e => { if (!pickMenu.hidden && !e.target.closest('#pk')) openPick(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pickMenu.hidden) { openPick(false); pickBtn.focus(); } });
 pick.onchange = () => { const [k, id] = pick.value.split(/:(.+)/); if (k === 'r') chooseRegion(id); else if (k === 'g') chooseGlacier(id); else reset(); };
 const start = location.hash.slice(1);
 if (start.startsWith('glacier=')) chooseGlacier(decodeURIComponent(start.slice(8)));

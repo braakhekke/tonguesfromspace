@@ -543,7 +543,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .story h2{font-size:25px;line-height:1.12;margin:7px 0 4px;font-weight:700;letter-spacing:-.018em;color:#0E1A22}      /* sizes of the redesign: title 25, place 12.5, lede 13.5 */
 .story .sub{color:var(--moraine);font-size:12.5px;margin:0}
 .story .lede{font-family:var(--sans);font-size:13.5px;font-weight:400;line-height:1.55;color:#1C2A33;margin:12px 0 0}
-.tabs{display:flex;gap:22px;border-bottom:1px solid var(--rule);margin:18px calc(-1 * var(--pad)) 0;padding:0 var(--pad)}      /* the line under the tabs runs the full width of the panel */
+.tabs{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--rule);margin:18px calc(-1 * var(--pad)) 0;padding:0 var(--pad)}      /* the line under the tabs runs the full width of the panel */
 .tabs button{flex:none;border:0;background:none;padding:11px 0 10px;font-weight:600;font-size:13px;color:var(--moraine);border-radius:0;margin-bottom:-1px;cursor:pointer}
 .tabs button:hover{color:var(--rock)}
 .tabs button[aria-selected="true"]{color:#0E1A22;box-shadow:inset 0 -2px 0 var(--accent);cursor:default}      /* text tabs: the chosen one dark with a 2 px red line under its text */
@@ -1171,7 +1171,7 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 @media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:36px}.v3d-photocap{bottom:138px}}
 
 /* the measuring tools show only their symbols, everywhere (the words are in the tooltips and the labels for screen readers) */
-.mapbar .mtool .lbl,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span,#v3dMeasure #v3mSect span,#v3dMeasure #v3mSect2d span{display:none!important}
+.mapbar .mtool .lbl,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span,#v3dMeasure #v3mSect span,#v3dMeasure #v3mLayers span,#v3dMeasure #v3mSect2d span{display:none!important}
 .mapbar .mtool{padding-left:10px;padding-right:10px}
 .v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear,.v3d-measure > #v3mSect,.v3d-measure > #v3mSect2d{padding:0 10px!important}
 .mapbar .mtool svg{display:block}      /* on desktop the measuring buttons are now symbols only */
@@ -1560,7 +1560,7 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .v3d-sect .hd button{border:0;background:none;font:inherit;font-size:18px;line-height:1;color:var(--moraine);cursor:pointer;padding:0 2px}
 .v3d-sect svg{display:block;width:100%;height:auto;margin-top:4px;font-family:var(--sans)}
 .v3d-sect .ft{margin-top:3px;font-size:11px;color:var(--moraine);line-height:1.35}
-@media (max-width:720px){.v3d-sect{bottom:140px;left:8px;width:calc(100% - 16px)}}
+@media (max-width:720px){.v3d-sect{bottom:140px;left:8px;width:calc(100% - 16px);padding:8px 8px 6px}.v3d-sect .hd{flex-wrap:wrap;gap:2px 8px}.v3d-sect .hd span:not(.ex){order:3;flex:1 0 100%}.v3d-sect .hd .ex{margin-left:auto}.v3d-sect .hd button#v3dSectX{order:2}}
 
 .v3d-sect .lg{display:flex;flex-wrap:wrap;gap:3px 14px;margin-top:5px;font-size:11.5px;color:var(--ink)}
 .v3d-sect .lg span{display:inline-flex;align-items:center;gap:5px}
@@ -1594,6 +1594,7 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 /* the caption under the cut in the 3D view: line, bed and radar source, and the button for the 2D chart */
 .v3d-cutcap{position:absolute;z-index:6;display:flex;align-items:center;gap:8px;background:rgba(34,49,58,.92);color:#fff;border-radius:6px;padding:4px 5px 4px 9px;line-height:1.35;white-space:nowrap;box-shadow:0 2px 10px rgba(0,0,0,.35)}
 .v3d-cutcap[hidden]{display:none}
+@media (max-width:720px){.v3d-cutcap{white-space:normal;max-width:calc(100% - 16px)}}
 .v3d-cutcap .tx b{display:block;font-size:12px;font-weight:600}
 .v3d-cutcap .tx span{display:block;font-size:11px;font-weight:500;opacity:.8}
 .v3d-cutcap button{flex:none;display:grid;place-items:center;width:30px;height:30px;padding:0;border:1px solid rgba(255,255,255,.3);border-radius:6px;background:none;color:#fff;cursor:pointer}

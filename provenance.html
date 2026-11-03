@@ -48,6 +48,7 @@
   .fn .row0 { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:520px; }
   #overview { display:none; } .ov #overview { display:block; } .ov #allFn { display:none; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
   .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
+  @media (max-width:640px) { main { padding:16px 12px 32px; } .mapcard { flex:1 1 100%; min-width:0; max-width:100%; } .maps svg#map0 { flex:0 0 28%; } .fn, .bednote { padding:12px 12px 10px; } .bednote figure svg { width:100%; } .bednote figcaption { max-width:none; } .bednote .figkey svg { width:100%; max-width:230px; } .fn .r span:first-child { flex-basis:70px; } }
   g.col:hover rect.hit { fill:var(--iceLight); opacity:.55; } rect.hit { fill:transparent; cursor:pointer; }
 </style></head><body><main>
 <p style="margin:0 0 6px"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a></p>

@@ -109,12 +109,36 @@ section.s.alt{background:var(--firn);border-top:1px solid var(--rule);border-bot
 .pickband .sh p{color:rgba(255,255,255,.7)}
 .pickband .pickrow .sstat{color:rgba(255,255,255,.75)}
 .pickband .soonrow{color:rgba(255,255,255,.55)}
-.pickband .sbox,.pickband .sel select{border-color:transparent}
+.pickband .sbox,.pickband .pk-btn{border-color:transparent}
 .pickrow .sstat{margin:6px 0 0;font-size:12px}
-.sel{position:relative;min-width:280px}
-.sel select{width:100%;appearance:none;-webkit-appearance:none;border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:12px 38px 12px 14px;font-weight:600;font-size:14px;color:#0A1B33;cursor:pointer}
-.sel select:hover{background:var(--firn)}
-.sel svg{position:absolute;right:11px;top:50%;width:16px;height:16px;margin-top:-8px;fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
+.pk{position:relative;min-width:280px}
+.pk-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 12px 8px 15px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;box-shadow:inset 3px 0 0 var(--accent)}      /* the card of the dashboard's glacier list: white, red bar at the left */
+.pk-btn:hover{background:var(--firn)}
+.pk-btn.ph .pk-t{font-weight:500;color:var(--moraine)}
+.pk-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pk-btn svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--moraine);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.pk-menu{position:absolute;z-index:800;top:100%;left:0;right:0;min-width:300px;margin:4px 0 0;padding:0;list-style:none;max-height:min(62vh,460px);overflow:auto;background:var(--sheet);border:1px solid var(--rule);box-shadow:0 12px 32px rgba(7,11,20,.28)}
+.pk-menu[hidden],.pk-back[hidden]{display:none}
+.pk-menu li{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:10px 14px;border-top:1px solid var(--rule-2);color:#0A1B33;cursor:pointer}
+.pk-menu li.hd{position:sticky;top:0;z-index:1;cursor:default;font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--moraine);background:var(--firn);border-top:0}
+.pk-menu li.rg{font-weight:700}
+.pk-menu li.sub{padding-left:34px}
+.pk-menu li span{min-width:0;font-weight:500}
+.pk-menu li.rg span{font-weight:700}
+.pk-menu li small{flex:none;color:var(--moraine);font-size:12.5px;font-variant-numeric:tabular-nums}
+.pk-menu li:hover:not([aria-disabled=true]):not(.hd){background:var(--firn)}
+.pk-menu li[aria-selected=true]{background:#E9EFF2;box-shadow:inset 3px 0 0 var(--accent)}
+.pk-menu li[aria-selected=true] span{font-weight:800}
+.pk-menu li[aria-disabled=true]{color:var(--faint);cursor:default}
+.pk-back{display:none}
+@media (max-width:900px){
+  .pk{min-width:0;width:100%}
+  .pk-back:not([hidden]){display:block;position:fixed;inset:0;z-index:2999;background:rgba(10,20,28,.5)}
+  .pk-menu{position:fixed;z-index:3000;top:auto;left:0;right:0;bottom:0;margin:0;min-width:0;max-height:78dvh;border:0;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .pk-menu li{padding:14px 18px;font-size:16px}
+  .pk-menu li.sub{padding-left:38px}
+  body.pk-open{overflow:hidden}
+}
 .mapbox{position:relative;border:1px solid rgba(255,255,255,.14);box-shadow:0 24px 60px rgba(0,0,0,.4);height:clamp(420px,62vh,620px);background:var(--night)}
 #map{position:absolute;inset:0}
 .leaflet-container{font-family:var(--sans);background:var(--night)}
@@ -212,6 +236,13 @@ dialog.player{overflow:visible}
 @media (max-width:900px){
   .hero{padding:104px 0 44px}
   .hero .wrap{grid-template-columns:1fr;gap:34px}
+  .herotext{display:contents}      /* phones: the title and the line under it, then the flight video, then "Choose a glacier" and the search under the video */
+  .herotext h1{order:1;margin:0}.herotext .lede{order:2;margin:-14px 0 0}.flightbox{order:3}.herotext .find{order:4;margin:0}
+  .find{flex-direction:column;align-items:stretch;gap:10px;padding:14px;border:1px solid rgba(255,255,255,.45);background:rgba(255,255,255,.07)}      /* outlined: the two controls sit in one clear frame */
+  .find .btn-red{width:100%;justify-content:center;height:52px;font-size:15px}
+  .find .search{flex:none;width:100%}
+  .find .sbox{height:52px;border:2px solid #fff}
+  .find .btn-red + .search .sbox{border-left:2px solid #fff}
   .bar nav{display:none}
   .brand b{font-size:18px}
   footer .wrap{grid-template-columns:1fr;gap:28px}

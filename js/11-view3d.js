@@ -17,6 +17,7 @@ Object.defineProperty(wire, 'drawPreview3D', { get: () => drawPreview3D, configu
 Object.defineProperty(wire, 'leavePhoto', { get: () => leavePhoto, configurable: true });
 Object.defineProperty(wire, 'loadBundle', { get: () => loadBundle, configurable: true });
 Object.defineProperty(wire, 'open3D', { get: () => open3D, configurable: true });
+Object.defineProperty(wire, 'sectFromMap', { get: () => sectFromMap, configurable: true });
 Object.defineProperty(wire, 'refresh3D', { get: () => refresh3D, configurable: true });
 Object.defineProperty(wire, 'retitle3D', { get: () => retitle3D, configurable: true });
 Object.defineProperty(wire, 'setSplit3D', { get: () => setSplit3D, configurable: true });
@@ -846,6 +847,7 @@ export async function open3D(){
     v3dCtx = {g, S, bundle: bb, latest: heights, dem, grid: {nA, nB}, cmp, years, pin: pinData(g, S), tip: tipData(g, S), names: null, namesP: null, hz: horiz(), tex: texOf, iceOff: false, sr: false, srMeta: srP, surface: hy, usesDem, elevFirst, follow: null, current: () => cmp ? null : current, restore: () => cmp ? null : showYear(current)};      sync3DMenu(); detectTrails(v3dCtx);
     if (viewMode === '3d' && !$('videoSheet').hidden) update3DInfo();
     update3Measure(); pinLoop(); setupPhotos(g, v3dCtx);
+    if (!tilt) applyMapSection();      // a line drawn on the map: cut it now (in a flight, tiltFinish does it)
     if (cmp) {
       v3d.setTexture(tc2, 1); showDivider3D(cmp, v3dCtx.hz);      // same direction as chosen for the map: stacked or side by side
       { const t = yearTags3D(g, cmp); setTitle3D(g, `${t.tags[0]} – ${t.tags[1]}`, t.extra); }
@@ -1521,6 +1523,18 @@ export function focusSection(){            // the camera flies to the section li
   if (!sectCamBack) sectCamBack = viewer.getCam();      // where the camera was before the first flight to a section: the close button flies back to it
   viewer.focusLine({x: h.A[0] + h.ux * h.L / 2, z: h.A[1] + h.uz * h.L / 2, nx: -h.uz, nz: h.ux, L: h.L, relief: hi - lo});
 }
+let mapSect = null;      // [[lat, lng], [lat, lng]]: a cross-section drawn on the map, waiting for the 3D view
+export function sectFromMap(ll){            // the map's cross-section tool: the view flies into 3D and the line becomes the cut
+  mapSect = ll; if (viewMode === '3d') return applyMapSection(); flyIn();
+}
+function applyMapSection(){
+  const ll = mapSect, c = v3dCtx; if (!ll || !c || !v3d || viewMode !== '3d') return; mapSect = null;
+  const pts = ll.map(([lat, lng]) => { const q = L.CRS.EPSG3857.project(L.latLng(lat, lng)); return stripXZ(c.S, q.x, q.y); });
+  if (!pts.every(p => p.inside)) return showNotice('Part of that line lies outside the 3D picture of this glacier. Draw it across the glacier again.');
+  if (M3.gid !== c.g.id) { M3.shapes = []; M3.gid = c.g.id; }
+  M3.shapes = M3.shapes.filter(sh => sh.mode !== 'sect'); M3.shapes.push({mode: 'sect', pts: pts.map(p => [p.x, p.z])}); M3.mode = null; M3.pts = [];
+  update3Measure(); pinLoop(); renderSection().then(focusSection);
+}
 export function clear3Measure(){ if (sectLine() && v3d && sectCamBack) v3d.flyCam(sectCamBack, 900); sectCamBack = null; M3.mode = null; M3.pts = []; M3.shapes = []; update3Measure(); renderSection(); }
 $('v3mOut').onclick = () => { if (v3d) v3d.zoomBy(1.3); };      // the same steps as the minus and plus of the map
 $('v3mIn').onclick = () => { if (v3d) v3d.zoomBy(1 / 1.3); };
@@ -1528,6 +1542,7 @@ $('v3mHome').onclick = () => { if (v3d) v3d.flyCam({...v3d.homeCam(), ...(v3dHom
 $('v3mDist').onclick = () => M3.mode === 'dist' ? cancel3Measure() : start3Measure('dist');
 $('v3mArea').onclick = () => M3.mode === 'area' ? cancel3Measure() : start3Measure('area');
 $('v3mSect').onclick = () => M3.mode === 'sect' ? cancel3Measure() : start3Measure('sect');
+$('v3mLayers').onclick = () => $('layersBtn').click();      // phones: the map's bar with this button is under the 3D dock
 $('v3dSectX').onclick = () => { sect2d = false; renderSection(); };
 $('v3dCutClose').onclick = closeSection;
 $('v3dCutYears').onclick = () => { sectYearsOn = !sectYearsOn; renderSection(); };
@@ -1570,7 +1585,7 @@ export async function renderSection(){
   const pts = all.map(p => ({p, t: (p.x - A[0]) * ux + (p.z - A[1]) * uz, off: (p.x - A[0]) * uz - (p.z - A[1]) * ux})).filter(q => q.t >= 0 && q.t <= L && Math.abs(q.off) <= SECT_BUF).sort((a, b) => a.t - b.t);
   pts.forEach(q => { q.s = viewer.elev(q.p.x, q.p.z); q.own = q.p.bed !== null && q.p.bed !== undefined; q.bed = q.own ? q.p.bed : q.s - q.p.m; const mb = bedAt(c, q.p.x, q.p.z); q.far = q.own && mb !== null && Math.abs(mb - q.p.bed) > Math.max(DISAGREE_M, DISAGREE_F * q.p.m); });      // the radar's own bed, where the file has it (it does not move when the ice thins); far: the model bed is clearly elsewhere
   const n = Math.max(2, Math.ceil(L / 10) + 1), surf = Array.from({length: n}, (_, i) => { const t = L * i / (n - 1); return [t, viewer.elev(A[0] + ux * t, A[1] + uz * t)]; });
-  const others = sectOthers(c, A, ux, uz, surf), W = 560, ml = 44, mr = 8, mt = 8, mb = 24, pw = W - ml - mr;
+  const others = sectOthers(c, A, ux, uz, surf), W = Math.min(560, Math.max(300, innerWidth - 40)), ml = 44, mr = 8, mt = 8, mb = 24, pw = W - ml - mr;
   const mbed = surf.map(q => { const b = bedAt(c, A[0] + ux * q[0], A[1] + uz * q[0]); return b === null ? null : Math.min(b, q[1]); });      // the model bed, never above the surface of the grid on screen
   const hasM = mbed.some((b, i) => b !== null && surf[i][1] - b > 0.5), lo0 = Math.min(...surf.map(q => q[1]), ...pts.map(q => q.bed), ...mbed.filter(b => b !== null)), hi0 = Math.max(...surf.map(q => q[1]), ...others.map(o => Math.max(...o.d.map((d, i) => surf[i][1] + d)))), pad = (hi0 - lo0) * 0.06 + 5, lo = lo0 - pad, hi = hi0 + pad, ph = Math.round(Math.max(80, Math.min(230, (hi - lo) * pw / L))), H = ph + mt + mb;      // true scale (1 : 1) where it fits, else squeezed or stretched to between 80 and 230 px
   const X = t => ml + t / L * pw, Y = e => mt + (hi - e) / (hi - lo) * ph, f1 = v => v.toFixed(1);
@@ -2147,14 +2162,14 @@ function tiltReady(v, cam){      // the viewer is loaded: the flight goes from a
   applyTilt(); if (tilt.committed && tilt.t === 1) tiltFinish();
 }
 function tiltFinish(){      // the 3D view takes over fully, on the stored camera
-  const el = $('v3d'); el.style.opacity = ''; el.style.pointerEvents = ''; tilt.v.endFlight(); tilt.v.setMesh(0); tilt = null;
+  const el = $('v3d'); el.style.opacity = ''; el.style.pointerEvents = ''; tilt.v.endFlight(); tilt.v.setMesh(0); tilt = null; applyMapSection();
 }
 function tiltAnimate(to, ms, done){      // time runs straight; the easing is in the camera (smoother)
   const from = tilt.t, t0 = performance.now(), me = tilt, id = me.anim = (me.anim || 0) + 1;      // a newer animation of the same flight replaces the older
   const step = now => { if (tilt !== me || me.anim !== id) return; const k = Math.min(1, (now - t0) / ms), e = k; me.t = from + (to - from) * e; applyTilt(); if (k < 1) requestAnimationFrame(step); else done(); };
   requestAnimationFrame(step);
 }
-function tiltCancel(){ const el = $('v3d'); if (tilt && tilt.v) tilt.v.setMesh(0); tilt = null; tiltEntry = false; setView('map'); el.style.opacity = ''; el.style.pointerEvents = ''; syncTiltPill(); }
+function tiltCancel(){ mapSect = null; const el = $('v3d'); if (tilt && tilt.v) tilt.v.setMesh(0); tilt = null; tiltEntry = false; setView('map'); el.style.opacity = ''; el.style.pointerEvents = ''; syncTiltPill(); }
 let tiltS = null;
 function centreOnStrip(){      // the middle of the map in the scene of the 3D view (x right, z towards the tip), kept on the strip
   const g = v3dGlacier(), S = tiltS = stripFor(g, g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue), m = L.CRS.EPSG3857.project(map.getCenter()), dx = (m.x - S.P.x) / S.k, dy = (m.y - S.P.y) / S.k;
