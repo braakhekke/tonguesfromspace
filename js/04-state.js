@@ -22,6 +22,7 @@ export let AUTOPLAY = false;           // the plain address opens on a timelapse
 export const HASH_AT_LOAD = location.hash;      // the address as the visitor opened it: the landing page writes its own state into the hash while it boots
 export let PLAIN_START = false;        // the plain address: the landing page is the 3D timelapse of the biggest glacier
 export let OPEN_3D = false;            // a shared link asks for the 3D view
+export let EMBED = false;              // embed=1: the page sits in an iframe on another site and shows the picture only (css: html.embed)
 export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen
 (function readHash(){
   const p = new URLSearchParams(location.hash.slice(1));
@@ -35,7 +36,8 @@ export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the has
   if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
   if (['natural', 'false1', 'false2', 'false3'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
-  if (p.get('ol') === '1') prefs.old = true;                                                      // ol=1: show the 1850 outline
+  if (p.get('embed') === '1') { EMBED = true; document.documentElement.classList.add('embed'); }
+  if (p.get('ol') === '1') prefs.old = true;                                                     // ol=1: show the 1850 outline
   if (REGION.landsat && (prefs.landsat || ['a', 'b', 'from', 'to', 'one'].some(k => +p.get(k) && +p.get(k) < FIRST_YEAR))) { YEARS.unshift(...LANDSAT_YEARS); prefs.landsat = true; }      // Landsat on: saved in an earlier visit, or the link names a year before Sentinel-2
   glacierPicked = OPEN_ON_GLACIER; OPEN_3D = FEATURES.view3d && OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));
   HASH_TAB = { discover: 'look', fun: 'look', stats: 'figures', switzerland: 'swiss' }[p.get('t')] || null;

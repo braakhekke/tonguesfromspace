@@ -1632,3 +1632,18 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .story .stat.cube-tile .per-y{order:-1;margin:-2px 0 3px}
 /* About chapters: short paragraphs, lists and subheads read left-aligned */
 .story .about-sec p,.story .about-sec li{text-align:left;hyphens:manual;-webkit-hyphens:manual}
+/* ---------- embed: the share step's iframe code, and the page as it looks inside that iframe (hash embed=1) ---------- */
+.embed-box{display:flex;flex-direction:column;gap:8px}
+.embed-box[hidden]{display:none}
+.embed-box .hint{margin:0}
+#embedCode{width:100%;box-sizing:border-box;border:1px solid var(--rule);background:var(--firn);color:var(--rock);font:11px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:8px;resize:none}
+.embed-row{display:flex;gap:8px}
+.embed-open{display:none}
+html.embed .controls,html.embed .story,html.embed .mhead,html.embed .panel-toggle,html.embed .scroll-cue,html.embed .fyi-slot,html.embed #fsBtn,html.embed #v3dFs{display:none!important}
+html.embed .app{display:block;height:100%}
+html.embed .stage-slot{display:block;height:100%;min-height:0}
+html.embed .stage-slot .stage{position:relative;left:auto;top:auto;bottom:auto;width:auto;height:100%;min-height:0}
+html.embed .layerbox,html.embed #layersBtn,html.embed #moreBtn,html.embed .mtool,html.embed .v3d-layers,html.embed .v3d-measure > :not(.v3d-tl):not(.v3d-zoom),html.embed #v3dSci,html.embed #v3dSciNo,html.embed #v3dPhotos,html.embed #v3dSect,html.embed .sv-panel{display:none!important}      /* the picture as the main viewer shows it: no layer menus, measuring, science mode, photographs */
+html.embed .mapbar .sep:nth-of-type(n+2){display:none}      /* the 3D toolbar keeps its timeline (play, pause) and the zoom buttons */
+html.embed .embed-open{display:block;position:absolute;top:10px;right:10px;z-index:730;background:var(--sheet);color:var(--accent);font-size:13px;font-weight:700;line-height:1;padding:9px 13px;border-radius:6px;box-shadow:0 1px 8px rgba(0,0,0,.28);text-decoration:none;white-space:nowrap}
+html.embed .embed-open:hover{background:var(--firn)}

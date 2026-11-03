@@ -2,7 +2,7 @@ import { wire } from './wire.js';
 import { $, COARSE, PHONE } from './01-data.js';
 import { needsOutline, loadOutline, rankArea, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs } from './03-imagery.js';
-import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPicked } from './04-state.js';
+import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPicked, EMBED } from './04-state.js';
 import { map, updateSight, updateTrailClip, updateAerial, updateMapYears, oldestAerial, ensureOldest, showOldest, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
 import { showLatest } from './03-imagery.js';
 import { checkYears, checkGen } from './06-scene-search.js';
@@ -275,6 +275,36 @@ export async function shareView(){
   catch { prompt('Copy this link:', url); }
 }
 $('shareBtn').onclick = shareView;
+
+/* Embed: the iframe code of the view on screen. The link is the shared link plus embed=1 (the page then shows the picture only); the colour style and the 1850 outline,
+   which the address does not keep, are added to it. */
+export function embedLink(){
+  const p = new URLSearchParams(location.hash.slice(1));
+  if (state.style !== 'natural') p.set('s', state.style);
+  if (prefs.old) p.set('ol', '1');
+  p.set('embed', '1');
+  return location.href.split('#')[0] + '#' + p.toString().replace(/%2C/g, ',');
+}
+export function embedCode(){
+  const g = currentGlacier();
+  const title = `${g.name} from space - Tongues from Space`.replace(/"/g, '&quot;');
+  return `<iframe src="${embedLink()}" title="${title}" width="100%" height="520" style="border:0;max-width:100%" loading="lazy" allow="fullscreen" allowfullscreen></iframe>`;
+}
+/* inside an embed, the pill leads to the same view on the full page (embed=1 left out); the address is read at the click, so it follows what the visitor did since */
+if (EMBED) {
+  const open = () => { const p = new URLSearchParams(location.hash.slice(1)); p.delete('embed'); $('embedOpen').href = location.href.split('#')[0] + '#' + p.toString().replace(/%2C/g, ','); };
+  open(); $('embedOpen').addEventListener('click', open);
+}
+$('embedBtn').onclick = () => {
+  const box = $('embedBox'), open = box.hidden;
+  box.hidden = !open; $('embedBtn').setAttribute('aria-expanded', open);
+  if (open) { $('embedCode').value = embedCode(); $('embedPreview').href = embedLink(); $('embedCopy').textContent = 'Copy code'; }
+};
+$('embedCopy').onclick = async () => {
+  $('embedCode').value = embedCode(); $('embedPreview').href = embedLink();      // the view may have changed since the box opened
+  try { await navigator.clipboard.writeText($('embedCode').value); $('embedCopy').textContent = 'Copied'; }
+  catch { $('embedCode').select(); $('embedCopy').textContent = 'Press Ctrl/Cmd+C'; }
+};
 
 /* Mobile data: a timelapse loads one image per year the first time */
 export let dataNoteShown = false;

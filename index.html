@@ -203,6 +203,12 @@
         <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your animation</b><small>short video, MP4</small></button>
       </div>
       <button type="button" class="act sat-need" id="shareBtn">Share this view</button>
+      <button type="button" class="act sat-need" id="embedBtn" aria-expanded="false" aria-controls="embedBox">Embed on your website</button>
+      <div class="embed-box" id="embedBox" hidden>
+        <p class="hint">Paste this into your page. It shows the view you have now: glacier, years and mode, with the credits.</p>
+        <textarea id="embedCode" readonly rows="9" spellcheck="false" aria-label="Embed code"></textarea>
+        <div class="embed-row"><button type="button" class="act" id="embedCopy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
+      </div>
       <a class="act act-link" href="gallery.html">Gallery</a>
       <a class="act act-link" href="size.html" id="sizeLink" title="Drag the outline of a glacier onto a city and see how big it is">Size comparison with your city</a>
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
@@ -373,6 +379,7 @@
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span class="pt-label" id="toggleRightLabel">Discover facts and figures</span></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
+    <a class="embed-open" id="embedOpen" target="_blank" rel="noopener" title="Open this view on Tongues from Space">Explore more on tonguesfromspace.org ↗</a>
     <div class="mini-ctl" id="miniCtl">
       <button type="button" id="miniBig" aria-label="Back to the full visual" title="Enlarge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15V5h10M5 5l7 7M19 9v10H9"/></svg></button>
       <button type="button" id="miniFull" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
