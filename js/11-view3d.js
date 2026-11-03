@@ -567,7 +567,7 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the
       draw(d.tracks, 'rgba(0,0,0,.55)', 6); draw(d.paths, 'rgba(0,0,0,.55)', 7); draw(d.tracks, '#FF3B30', 3.5); draw(d.paths, '#FDC200', 4.5); ctx.restore(); } }
   }
   const toXY = ll => { const q = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return toTexM(q.x, q.y); };
-  const rings = (geom, color) => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); strokeEdgeFade(ctx, geom, toXY, color, 1); ctx.restore(); };      // an outline, drawn on the picture so that it follows the terrain
+  const rings = (geom, color) => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); strokeEdgeFade(ctx, geom, toXY, color, .7); ctx.restore(); };      // an outline, drawn on the picture so that it follows the terrain
   if (outlineNew3D(g)) rings(newOutlineGeom(g), getVar('--new'));
   if (outline3D(g)) rings(oldOutlineGeom(g), '#F2A93B');
   return tc;

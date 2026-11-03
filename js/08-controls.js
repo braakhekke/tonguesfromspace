@@ -277,8 +277,9 @@ export function applyRegionUi(){
 }
 export function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
 export function renderRegionMenu(){
-  document.getElementById('regionMenu').innerHTML = REGIONS.map(r => r.children
-    ? `<li class="group" role="presentation">${r.name}</li>` + r.children.map(c => regionItem(c, true)).join('') : regionItem(r)).join('');
+  const soon = c => ({...c, ready: !!c.ready && !HIDDEN_REGIONS.includes(c.id)});      // every region is listed, as on the front page; the ones not published yet (or without data) are "soon" and cannot be clicked
+  document.getElementById('regionMenu').innerHTML = REGIONS_ALL.map(r => r.children
+    ? `<li class="group" role="presentation">${r.name}</li>` + r.children.map(c => regionItem(soon(c), true)).join('') : regionItem(soon(r))).join('');
 }
 export function toggleRegionMenu(open = document.getElementById('regionMenu').hidden){
   document.getElementById('regionMenu').hidden = !open; document.getElementById('regionBtn').setAttribute('aria-expanded', open);
