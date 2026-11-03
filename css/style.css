@@ -1703,3 +1703,8 @@ html.embed .embed-open:hover{background:var(--firn)}
   .tl-prev svg,.tl-next svg,.mapbar .tl-prev svg,.mapbar .tl-next svg{width:13px;height:13px}
   .tl-step .tl-step-year{font-size:13px;min-width:38px}
 }
+
+/* phones: the dock covers the bottom right of the 3D view, so the north arrow sits at the top right (the small window keeps it above its own buttons) */
+@media (max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .stage:not(.mini) .v3d-north{top:14px;bottom:auto}
+}
