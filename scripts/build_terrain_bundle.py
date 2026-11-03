@@ -136,7 +136,12 @@ def yearly_surfaces(gid, EN, hts, bedv, h0):
     of the 2 m model stays and the ice change is as smooth as its 20 m cells. A surface never lies below the bedrock (swissBEDROCK) where there is one."""
     p = os.path.join(ROOT, 'data', 'yearly', gid + '.npz')
     if not os.path.exists(p): return None
-    z = np.load(p); E = np.array([[e for e, n in r] for r in EN]); N = np.array([[n for e, n in r] for r in EN])
+    z = np.load(p)
+    if 'clean' in z.files:      # the clean build (experiments/clean-yearly): the surface of each year is already on the nodes of this grid, in decimetres above z['base']; no taper, no resampling, no lake rule here (the lakes are flat in the file)
+        H = np.array(hts, float); base = float(z['base']); assert z['surf'].shape[1:] == H.shape, (z['surf'].shape, H.shape); out = [[[int(round((v - h0) * 10)) for v in r] for r in (base + z['surf'][k].astype(float) / 10).tolist()] for k in range(len(z['years']))]
+        years = [int(y) for y in z['years']]; J = json.load(open(os.path.join(ROOT, 'data', 'yearly', gid + '.json')))
+        return {'years': years, 'kind': [J['kind'][str(y)] for y in years], 'dates': J['dates'], 'clean': 1, 'swiss': 1, 'provenance': f'data/yearly/{gid}.json'}, out
+    E = np.array([[e for e, n in r] for r in EN]); N = np.array([[n for e, n in r] for r in EN])
     fi = (E - int(z['e0'])) / 20 - 0.5; fj = (N - int(z['n0'])) / 20 - 0.5; H = np.array(hts, float); out = []
     B = np.array([[np.nan if v is None else v for v in r] for r in bedv], float)
     for k in range(len(z['years'])):

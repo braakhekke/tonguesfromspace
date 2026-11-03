@@ -52,6 +52,7 @@
   .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
   @media (max-width:640px) { main { padding:16px 12px 32px; } .mapcard { flex:1 1 100%; min-width:0; max-width:100%; } .maps svg#map0 { flex:0 0 28%; } .fn, .bednote { padding:12px 12px 10px; } .bednote figure svg { width:100%; } .bednote figcaption { max-width:none; } .bednote .figkey svg { width:100%; max-width:230px; } .fn .r span:first-child { flex-basis:70px; } }
   g.col:hover rect.hit { fill:var(--iceLight); opacity:.55; } rect.hit { fill:transparent; cursor:pointer; }
+  .stab { border-collapse:collapse; font-size:12px; margin:8px 0; } .stab th, .stab td { text-align:left; padding:3px 12px 3px 0; border-top:1px solid var(--rule); font-weight:400; } .stab th { color:var(--muted); font-size:11px; } .fn table { border-collapse:collapse; font-size:12px; } .fn table th, .fn table td { text-align:left; padding:3px 10px 3px 0; border-top:1px solid var(--rule); }
 </style></head><body><main>
 <p style="margin:0 0 6px"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a></p>
 <h1>Scientific field notes</h1>
@@ -67,7 +68,6 @@
 
 <section class="fn" id="surface"><h2><span class="no">2</span>Ice surface through time: how each year was made</h2>
 <p class="lead" id="fnSummary"></p><p class="lead">One column per year: how the surface was found, its 1σ uncertainty, the measured surfaces it hangs on, what shapes the change between them and what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p>
-<p class="lead"><b>Official glacier elevation models.</b> I am in contact with GLAMOS and swisstopo about implementing the glacier elevation models described on <a href="https://www.swisstopo.admin.ch/en/swisstopo-geodata-for-glacial-purposes" target="_blank" rel="noopener">swisstopo geodata for glacial purposes</a>. The yearly surfaces on this page are my own model, built from the swisstopo surveys as described below; they are not those official models.</p>
 <div class="card"><svg id="chart" role="img" aria-label="Provenance of the yearly surfaces"></svg></div>
 <div class="legend" id="legend"></div>
 <p class="lead" style="margin:10px 0 4px"><b>Click a year</b> in the chart to show its details here.</p>
@@ -97,7 +97,7 @@
 <section class="fn" id="licences"><h2><span class="no">6</span>Data not used, and licences</h2><div id="fnLic">Loading…</div></section>
 <script>
 let BM;
-let PG, YEARS, KIND, TIER, SIG, ANCHOR, ICESAT, ASTER, ASTERD, STAKER, STAKE, MAP, STRIP, VB=null;      // all from data/yearly/<id>.json, loaded below (id in the address: ?id=B36-26, B56-07)
+let MT, PG, YEARS, KIND, TIER, SIG, ANCHOR, ICESAT, ASTER, ASTERD, STAKER, STAKE, MAP, STRIP, VB=null;      // all from data/yearly/<id>.json, loaded below (id in the address: ?id=B36-26, B56-07)
 const KMAP = {measured:'meas', interpolated:'int', extrapolated:'ext', estimate:'prov', provisional:'prov'};
 const css = n => getComputedStyle(document.documentElement).getPropertyValue(n).trim();
 function draw(){
@@ -195,7 +195,7 @@ function drawMap(){
    +(top?`<circle cx="${X(top[0])}" cy="${Y(top[1])}" r="3" fill="${css('--card')}" stroke="${loss}" stroke-width="1.4"/><text x="${X(top[0])-7}" y="${Y(top[1])-5}" font-size="9.5" text-anchor="end" fill="${ink}">${M.topLabel}</text>`:'')
    +`<line x1="${bx}" x2="${bx+sb}" y1="${by}" y2="${by}" stroke="${ink}" stroke-width="2"/><text x="${bx}" y="${by-4}" font-size="9.5" fill="${ink}">${M.scaleM/1000} km</text>`
    +`<g transform="translate(${Wm-18},18)"><path d="M0 -12 L5 4 L0 1 L-5 4 Z" fill="${ink}"/><text y="16" font-size="9.5" text-anchor="middle" fill="${ink}">N</text></g>`;
-  const svg=document.getElementById('map'); svg.setAttribute('viewBox',`0 0 ${Wm} ${Hm}`); svg.innerHTML=s; VB={x0,x1,y0,y1};
+  const svg=document.getElementById('map'); svg.setAttribute('viewBox',`0 0 ${Wm} ${Hm}`); svg.innerHTML=s; VB={x0,x1,y0,y1}; MT={x0,y1,k};
 }
 // long texts from the data files: a short lead, then the rest as a list (the data files keep the full sentences)
 const ABBR=/(?:\bal|\be\.g|\bi\.e|\bvs|\bapprox|\bNo|\bSt|\bFig)\.$/;
@@ -216,7 +216,69 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     return;
   }
   const ID=q.get('id').replace(/[^A-Za-z0-9-]/g,''), VIEW=`/data/yearly/${ID}-viewer.html`;
+
+  // ---- the clean build (experiments/clean-yearly): the same page, filled from d.clean (made by s09_site_files.py)
+  const CK={measured:'--ice',partial:'--ice',interpolated:'--faint',extrapolated:'--amber',estimate:'--loss',modelled:'--faint',edition:'--ice'}, CKN={measured:'measured',partial:'partial',interpolated:'interpolated',extrapolated:'extrapolated',estimate:'provisional',modelled:'modelled',edition:'edition'};
+  let CL, CY;
+  const num=(v,dd)=>v==null?'–':(+v).toFixed(dd==null?1:dd), sgn=(v,dd)=>v==null?'–':((v>0?'+':v<0?'−':'')+Math.abs(v).toFixed(dd==null?1:dd));
+  const unwrap=h=>String(h).replace(/^\s*<p>/,'').replace(/<\/p>\s*$/,'');
+  function drawClean(){
+    const W=1060, L=190, R=10, colW=(W-L-R)/CY.length, X=i=>L+colW*(i+.5), P=CL.perYear; let y=8, s='';
+    const lane=t=>{ s+=`<text class="lane" x="0" y="${y+10}">${t}</text>`; y+=20; }, rowl=(t,sub)=>{ s+=`<text class="rowl" x="0" y="${y+4}">${t}</text>`+(sub?`<text class="small" x="0" y="${y+17}">${sub}</text>`:''); };
+    s+=CY.map((yr,i)=>`<text class="yr" x="${X(i)}" y="${y+10}" text-anchor="middle">${yr}</text>`).join(''); y+=22;
+    lane('How the surface was found');
+    rowl('Method'); CY.forEach((yr,i)=>{ const k=P[yr].kind, c=css(CK[k]); s+=`<rect x="${X(i)-colW/2+4}" y="${y-6}" width="${colW-8}" height="20" rx="5" fill="${c}" ${k==='estimate'?'fill-opacity=".18" stroke="'+c+'" stroke-dasharray="3 2"':(k==='partial'||k==='edition')?'fill-opacity=".55"':''}/><text x="${X(i)}" y="${y+8}" text-anchor="middle" font-size="10" font-weight="600" fill="${k==='estimate'?c:'#fff'}">${CKN[k]}</text>`; }); y+=34;
+    rowl('Ice in the strip','km² (volume km³), computed'); CY.forEach((yr,i)=>{ s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${num(P[yr].ice_km2,1)}</text><text class="small" x="${X(i)}" y="${y+17}" text-anchor="middle">(${num(P[yr].volume_km3,2)})</text>`; }); y+=34;
+    lane('Dated surveys under each year');
+    const mx=Math.max(1,...CY.map(yr=>P[yr].flights.filter(f=>!/lidar/.test(f)).length+(P[yr].flights.some(f=>/lidar/.test(f))?1:0))); rowl('Flights and lidar','one mark each, month-day'); const y0=y;
+    CY.forEach((yr,i)=>{ const fls=P[yr].flights.filter(f=>!/lidar/.test(f)), ld=P[yr].flights.filter(f=>/lidar/.test(f)).map(f=>f.slice(0,10)).sort(); if(ld.length) fls.push(ld[0]+(ld.length>1?'~'+ld[ld.length-1].slice(5):'')+' lidar'); fls.forEach((f,j)=>{ const lid=/lidar/.test(f), c=css('--ice'), yy=y0+j*13; const lab=lid?f.replace(' lidar','').slice(5):f.slice(5,10); s+=(lid?`<rect x="${X(i)-24}" y="${yy-4}" width="8" height="8" fill="${c}"/>`:`<circle cx="${X(i)-20}" cy="${yy}" r="4.2" fill="${c}"/>`)+`<text class="small" x="${X(i)-12}" y="${yy+3}" fill="${css('--ink')}">${lab}${lid?' lidar':''}</text>`; }); if(!fls.length) s+=`<text class="small" x="${X(i)}" y="${y0+3}" text-anchor="middle">–</text>`; });
+    y=y0+mx*13+10; rowl('swissALTI3D editions','date they stand for (estimated)');
+    [[CL.tA1,'2019 edition'],[CL.tA2,'newest edition']].forEach(([d_,t_])=>{ const i=CY.indexOf(+d_.slice(0,4)); if(i<0) return; s+=`<path d="M${X(i)} ${y-6}l7 7l-7 7l-7 -7z" fill="${css('--ice')}" stroke="${css('--card')}" stroke-width="1.5"/><text class="small" x="${X(i)}" y="${y+19}" text-anchor="middle" fill="${css('--ink')}">${t_}</text><text class="small" x="${X(i)}" y="${y+30}" text-anchor="middle">${d_}</text>`; }); y+=48;
+    lane('What shapes the change');
+    rowl('Summer balance factor','GLAMOS summer × factor fitted on flights'); CY.forEach((yr,i)=>{ const k=P[yr].kappa; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${k==null?'1.00':k.toFixed(2)}</text>`; if(k==null) s+=`<text class="small" x="${X(i)}" y="${y+16}" text-anchor="middle">not fitted</text>`; }); y+=34;
+    lane('What checks it');
+    rowl('ICESat-2 shots','median, NMAD: model − shot, not in fit'); CY.forEach((yr,i)=>{ const v=P[yr].shots; if(!v){ s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle">–</text>`; return; } const r=4+Math.sqrt(v.n)*.55; s+=`<circle cx="${X(i)}" cy="${y+2}" r="${r}" fill="${css('--ice')}" fill-opacity=".25" stroke="${css('--ice')}"/><text class="small" x="${X(i)}" y="${y+5}" text-anchor="middle" fill="${css('--ink')}">${v.n}</text><text class="small" x="${X(i)}" y="${y+27}" text-anchor="middle" fill="${css('--ink')}">${sgn(v.median)} ±${num(v.nmad)}</text>`; }); y+=40;
+    rowl('Leave one flight out','rmse m, refit without the flight'); CY.forEach((yr,i)=>{ const v=Object.values(P[yr].loo||{}); s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v.length?(v.length>1?num(Math.min(...v))+'–':'')+num(Math.max(...v)):'–'}</text>`; }); y+=26;
+    rowl('GLAMOS stakes','stake-years on the glacier'); CY.forEach((yr,i)=>{ const v=P[yr].stakes; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v?v.n:'–'}</text>`; }); y+=30;
+    lane('Fixed for every year');
+    rowl('Bed (floor)','Grab et al. 2021 ice thickness'); s+=`<rect x="${L+4}" y="${y-4}" width="${W-L-R-8}" height="14" rx="4" fill="none" stroke="${css('--faint')}" stroke-dasharray="4 3"/><text class="small" x="${L+(W-L-R)/2}" y="${y+7}" text-anchor="middle">a model: the 2019 surface minus measured thickness, lowered under measured surfaces</text>`; y+=30;
+    rowl('Tip lake','flat water level, m'); CY.forEach((yr,i)=>{ const v=P[yr].lake; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v?v.level.toFixed(2):'–'}</text>`; if(v) s+=`<text class="small" x="${X(i)}" y="${y+16}" text-anchor="middle">${{plateau:'measured',weak:'weak ±0.5',held:'held ±1'}[v.quality]||''}</text>`; }); y+=34;
+    const svg=document.getElementById('chart'); svg.setAttribute('viewBox',`0 0 ${W} ${y}`);
+    svg.innerHTML=CY.map((yr,i)=>`<g class="col" data-y="${yr}"><rect class="hit" x="${X(i)-colW/2}" y="0" width="${colW}" height="${y}"/></g>`).join('')+s;
+    svg.querySelectorAll('g.col').forEach(g=>g.onclick=()=>showClean(+g.dataset.y));
+  }
+  function showClean(yr){ const v=CL.perYear[yr], L=(h,t)=>`<div style="margin-top:6px"><span style="color:var(--ink);font-weight:600">${h}</span> <span style="color:var(--muted)">${t}</span></div>`;
+    const sh=v.shots, lo=Object.entries(v.loo||{}), st=v.stakes, lk=v.lake;
+    document.getElementById('detail').innerHTML=`<b>${yr}</b>, picture of ${v.date}: ${CKN[v.kind]}<ul class="fnl"><li>Ice in the strip ${num(v.ice_km2,2)} km², volume ${num(v.volume_km3,3)} km³ (computed on the 8 m grid).</li><li>Of the ice cells: <b>${v.share.this_year} %</b> covered by a flight or the lidar of this year, <b>${v.share.other_year} %</b> reached only by flights of other years (this year follows the model there), <b>${v.share.none} %</b> reached by no flight (the swissALTI3D editions and the model).</li><li>Flights and lidar of this year: ${v.flights.length?v.flights.join(', '):'none'}.</li></ul>`
+     +L('ICESat-2 (check, not in the fit)', sh?`${sh.n} shots in ${sh.granules||'?'} granule${sh.granules>1?'s':''}: model − shot median ${sgn(sh.median)} m, NMAD ${num(sh.nmad)} m, rmse ${num(sh.rmse)} m. The previous site model on the same shots (leave one granule out; it had been fitted on ICESat-2 days): median ${sgn(sh.old_median)} m, rmse ${num(sh.old_rmse)} m.`:'no usable summer shots.')
+     +L('Leave one flight out', lo.length?lo.map(([d_,r_])=>`${d_}: rmse ${num(r_)} m`).join('; ')+' (the flight left out, predicted from all the others; the rmse contains the 8 m crevasse detail).':'no flight this year.')
+     +L('GLAMOS stakes', st?`${st.n} stake-years (elevations ${st.z[0]}–${st.z[1]} m): stake minus GLAMOS bin balance ${sgn(st.stake_minus_bin,0)} mm w.e. on average, minus the flight-calibrated bin balance ${sgn(st.stake_minus_kappa_bin,0)} mm w.e.`:'no stake-year this year.')
+     +L('Summer balance factor', v.kappa==null?'not fitted (no flight improved it): 1.00':v.kappa.toFixed(2))
+     +(lk?L('Tip lake', `${lk.level.toFixed(2)} m (${{plateau:'measured on the flight, flat to '+num(lk.nmad,2)+' m',weak:'from the flight, but wavy water or shore in the mask: ±0.5 m',held:'no flight: the previous level held, ±1 m'}[lk.quality]}).`):''); }
+  function cleanPage(d){
+    CL=d.clean; CY=d.years; const $=id=>document.getElementById(id), S=CL.sections;
+    document.title='Field notes: '+d.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+d.short+' 3D'; }
+    $('gname').textContent=d.short; $('areaT').textContent='the tongue of '+d.short; $('sub').innerHTML=`The satellite pictures on the site are real images. This page is about the 3D ice surface under them for <span id="gname">${esc(d.short)}</span>: what is measured, what is modelled and how I checked it. Every number is for the strip of the 3D view (section 1), computed here or taken from my source ledger.`;
+    MAP=CL.map; STRIP=MAP.strip; drawMap(); drawOverview();
+    $('mapcap').innerHTML=prose(CL.mapcap,true,2)+`<p style="margin-top:8px"><label>Footprint on the map of <select id="covsel2"><option value="">none</option>${MAP.cover.map((c,i)=>`<option value="${i}">${esc(c.label)} (${c.kind})</option>`).join('')}</select></label> <span class="small" id="covnote" style="color:var(--muted)"></span></p>`;
+    $('covsel2').onchange=e=>{ const g=$('covg'); if(g) g.remove(); const i=e.target.value; $('covnote').textContent=''; if(i==='') return; const c=MAP.cover[i], X=x=>(x-MT.x0)*MT.k, Y=y=>(MT.y1-y)*MT.k; $('map').insertAdjacentHTML('beforeend',`<g id="covg"><path d="${c.rings.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join('')}" fill="#ED730F" fill-opacity=".45" stroke="#ED730F" stroke-width=".8"/></g>`); $('covnote').textContent=(c.cells*64/1e6).toFixed(1)+' km² of the model grid covered (computed).'; };
+    $('fnSummary').innerHTML=unwrap(S['What this is']); YEARS=CY; css; drawClean();
+    $('legend').innerHTML=[['--ice','measured: a flight or the lidar of that year covers most of the ice'],['--faint','between flights'],['--amber','beyond the first or last flight'],['--loss','provisional (2026: balance estimated)']].map(([c,t])=>`<span><i style="width:16px;height:10px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('');
+    $('detail').innerHTML='Click a year.'; [...document.querySelectorAll('#surface p.lead')].forEach(q=>{ if(q.textContent.startsWith('One column per year')) q.textContent='One column per year: how the surface was found, the dated surveys under it, what shapes the change between them and what checks it. Click a year for its ICESat-2 and stake numbers and how much of its ice a flight covers.'; });
+    document.querySelector('.notes').innerHTML=`<section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a flight or the lidar of that year covers most of the ice; there the surface of the picture day is reproduced to about 0.2 m.</li><li><b>partial</b>: a flight covers part of the ice; the rest follows the model.</li><li><b>edition</b>: the picture day is the day a swissALTI3D edition stands for (estimated from the flights, or documented where there are none): the stereo surface of that edition, stated accuracy 1 to 3 m.</li><li><b>between flights</b> and <b>beyond the flights</b>: the model, from the balance, melt timing and the fitted ice flow.</li></ul></section><section><h3>Physics and fitted numbers</h3>${S['Physics and fitted numbers']}</section><section><h3>Uncertainty</h3>${S['Uncertainty']}</section>`+(S['Lakes']?`<section><h3>Lakes</h3>${S['Lakes']}</section>`:'');
+    $('anchors').querySelector('h2').innerHTML='<span class="no">3</span>Surveys used';
+    const tb=CL.surveys.map(v=>`<tr><td>${v.day}</td><td>${v.ice_share==null?'–':Math.round(100*v.ice_share)+' %'}</td><td>${v.cells.toLocaleString('en')}</td><td>${v.stable.toLocaleString('en')}</td><td>${sgn(v.offset,2)}</td><td>${sgn(v.tilt_E,2)} / ${sgn(v.tilt_N,2)}</td><td>${num(v.nmad_before,2)} → ${num(v.nmad_after,2)}</td></tr>`).join('');
+    $('fnAnch').innerHTML=S['Observations']+`<table class="stab"><tr><th>Flight</th><th>Share of the ice covered</th><th>Cells in the strip</th><th>Rock cells</th><th>Tie to rock, offset m</th><th>Tilt E / N, m per km</th><th>Rock NMAD before → after, m</th></tr>${tb}</table><p class="small" style="color:var(--muted)">Each flight DSM is tied to the swissALTI3D rock by a plane (offset and tilt) fitted on cells outside the ice; the tie is computed here. Cells in the strip are 8 m cells.</p>`;
+    $('fnVal').innerHTML=S['Validation']+S['Not done, and remarks'];
+    $('fnView').innerHTML=`<p>${CL.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}" target="_blank" rel="noopener" style="color:var(--ice)">open it in its own tab</a></p><div id="vwrap"></div>`;
+    $('vbtn').onclick=()=>{ $('vwrap').innerHTML='<iframe src="'+VIEW+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; $('vbtn').hidden=true; };
+    $('fnLic').innerHTML=S['Data and licences'];
+    const tb5=document.getElementById('tocBed'); if(tb5) tb5.remove();
+    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent; const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });
+    const yq=+(new URLSearchParams(location.search).get('year')||0); if(yq&&CL.perYear[yq]) showClean(yq);
+  }
   fetch(`/data/yearly/${ID}.json`).then(r=>r.ok?r.json():Promise.reject()).then(d=>{
+    if(d.clean){ cleanPage(d); return; }
     const ys=d.years, y=yr?Math.min(Math.max(yr,ys[0]),ys[ys.length-1]):0;
     PG=d.page; YEARS=ys; KIND={}; ys.forEach(v=>KIND[v]=KMAP[d.kind[v]]); TIER=d.tier; SIG=PG.sig; ANCHOR=PG.anchors; ICESAT=PG.icesat; ASTER=PG.aster; ASTERD=PG.asterd; STAKER=PG.staker; STAKE=PG.stake; MAP=PG.map; STRIP=MAP.strip;
     $('gname').textContent=PG.short; $('areaT').textContent=PG.areaTitle||'the tongue of '+PG.short; $('mapcap').innerHTML=prose(PG.mapcap,true,2); $('nUnc').outerHTML='<div id="nUnc">'+prose(PG.notes.uncertainty,false,1)+'</div>'; $('nInd').innerHTML=parts(PG.notes.independent)+'<p>Click a year for the numbers.</p>'; $('nShare').innerHTML=parts(PG.notes.sharing);
