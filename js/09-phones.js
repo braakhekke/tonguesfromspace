@@ -1,7 +1,7 @@
 import { wire } from './wire.js';
 import { $, COARSE, PHONE } from './01-data.js';
 import { needsOutline, loadOutline, rankArea, areaText, GLACIERS } from './02-glaciers.js';
-import { prefs, savePrefs } from './03-imagery.js';
+import { prefs, savePrefs, imagesToFetch } from './03-imagery.js';
 import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPicked, EMBED } from './04-state.js';
 import { map, updateSight, updateTrailClip, updateAerial, updateMapYears, oldestAerial, ensureOldest, showOldest, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
 import { showLatest } from './03-imagery.js';
@@ -308,12 +308,12 @@ $('embedCopy').onclick = async () => {
   catch { $('embedCode').select(); $('embedCopy').textContent = 'Press Ctrl/Cmd+C'; }
 };
 
-/* Mobile data: a timelapse loads one image per year the first time */
+/* Mobile data: a timelapse loads one image per year the first time; only the years not stored on this phone yet are counted */
 export let dataNoteShown = false;
-export function mobileDataNote(){
+export async function mobileDataNote(){
   if (!COARSE || dataNoteShown) return;
+  const g = currentGlacier(), n = await imagesToFetch(g, tlFrames());
+  if (n <= 2 || dataNoteShown) return;
   dataNoteShown = true;
-  const n = tlFrames().length;
-  if (n > 2) showNotice(`The first time, a timelapse of ${n} years loads about ${Math.round(n * 1.2)} MB of images. On mobile data you may prefer Wi-Fi. After that they are stored on your phone.`);
+  showNotice(`The first time, a timelapse loads about ${Math.round(n * 1.2)} MB of images (${n} years not yet on your phone). On mobile data you may prefer Wi-Fi. After that they are stored on your phone.`);
 }
-

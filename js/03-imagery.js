@@ -209,6 +209,7 @@ export const idb = (() => {
   }
   setTimeout(trim, 4000);                                                  // once, a few seconds after the page starts
   return {
+    has: k => run(async db => await wait(db.transaction('kv').objectStore('kv').count(k)) > 0),      // stored on this device? (does not read the picture)
     get: k => run(async db => { const v = await wait(db.transaction('kv').objectStore('kv').get(k)); if (v instanceof Blob) touch(k, v); return v; }),
     set: (k, v) => run(async db => { await wait(db.transaction('kv', 'readwrite').objectStore('kv').put(v, k)); if (v instanceof Blob) { await touch(k, v); clearTimeout(trimTimer); trimTimer = setTimeout(trim, 3000); } })
   };
@@ -407,6 +408,10 @@ export let pending = 0, pendingLs = 0, active = 0; const queue = [];      // pic
 export const runQueue = () => { while (active < 3 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
 export const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
 export const imageKey = (g, yr, fp, strip, level) => { const sc = wire.state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${wire.state.style}|${g.id}|${sc.date}|${sc.id}${sc.fill ? '|' + sc.fill.date : ''}` : `${CDSE.version}|img|${(STYLE_BANDS[wire.state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}${level && level !== 1 ? '|L' + level : ''}`; };      // a Landsat picture is one file whatever the colour style or the strip
+export async function imagesToFetch(g, years){      // how many of these years' pictures are not stored on this device yet (an ice cap's tiled picture always counts)
+  const fp = imageFootprint(g), has = await Promise.all(years.map(yr => { const sc = wire.state.available[yr]; return sc && (isLandsat(sc) || !fp.tiles) ? idb.has(imageKey(g, yr, fp, false)) : false; }));
+  return has.filter(h => !h).length;
+}
 export const footprintRes = g => { const fp = imageFootprint(g), bb = fp.bbox; return Math.max((bb[2] - bb[0]), (bb[3] - bb[1]) * fp.w / fp.h) / fp.w * Math.cos(Math.atan(Math.sinh((bb[1] + bb[3]) / 2 / 6378137))); };      // ground metres per pixel of the picture of the whole glacier area (10 unless it was cut down to the 2,500 px limit)
 export const imageHere = (g, yr) => isLandsat(wire.state.available[yr]) || (footprintRes(g) <= CDSE.groundRes * 1.02 && memCache.has(imageKey(g, yr, imageFootprint(g), false)));      // a Landsat picture is the whole picture box in one file: the 3D view cuts its strip out of it      // the whole picture is already on its way or here, and has the full resolution
 /* The memory budget of a cap picture (a whole ice cap, 18 megapixels at 10 m for Hofsjökull = 70 MB decoded, and a phone's canvas holds 16.7 megapixels): a timelapse keeps one picture per
