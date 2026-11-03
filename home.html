@@ -56,6 +56,10 @@
           <p class="sstat" id="gstat" role="status" aria-live="polite" hidden></p>
         </div>
       </div>
+      <div class="cta">
+        <button class="btn-ghost" id="watch" type="button">
+          <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the 1-minute teaser</button>
+      </div>
     </div>
 
     <div class="flightbox">
@@ -87,14 +91,18 @@
     </svg>
     <div class="whyhead">
       <p class="eyebrow">Why Tongues from Space</p>
-      <p class="why-name">Every glacier ends in a tongue, the stretch of ice that reaches down into the valley. Retreat, and in rarer cases advance, shows first there, so that is where I look.</p>
+      <p class="why-name">Every glacier ends in a tongue, the stretch of ice that reaches down into the valley. Retreat, and in rarer cases advance, shows first there, so that is where to look.</p>
       <p class="why-name">Everything you see is built on <b>real satellite images</b>, not renderings. The viewer shows the one clear late-summer scene of each year, next to historic imagery, field measurements and other glacier data, on the map and in 3D.</p>
-      <div class="cta">
-        <button class="btn-ghost" id="watch" type="button">
-          <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the 1-minute teaser</button>
-      </div>
     </div>
-  </div></div>
+  </div>
+  <div class="wrap aud">
+    <details class="aud-card" name="aud"><summary><b>Scientists</b><span>Every picture dated, every figure sourced.</span></summary><ul><li>Sentinel-2 and Landsat scenes with their acquisition date, Landsat reaching back before 2016</li><li>Natural and false-colour styles, and a before-and-after slider</li><li>Ice surface of each year (a model, with measured surfaces where they exist) and the <i>Science mode</i> in 3D, with field notes for every glacier</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b>Journalists</b><span>Before and after, ready to use.</span></summary><ul><li>Export a single image or a short vertical video of any glacier</li><li>Slide between two summers, or loop all years, for a clear before and after</li><li>Drag a glacier outline onto a city to show its size</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b>Educators</b><span>A glacier to explore with a class.</span></summary><ul><li>Time-lapse of the best picture of each year, and the slider between two years</li><li>Fly over the ice in 3D with the satellite picture draped over the terrain</li><li>Compare a glacier with a city to grasp its scale</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b>Students</b><span>See the data behind the headline.</span></summary><ul><li>Pictures next to published length, area, thickness and volume figures</li><li>Switch layers on and off: outlines, ice thickness, ice speed, lowest point, thickest ice</li><li>Old maps and aerial photographs next to the satellite picture</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b>Outdoor people</b><span>Know the ice before you go.</span></summary><ul><li>See how far a tongue has retreated and where its end is today</li><li>Hiking trails drawn on the map, with the line of sight to the tongue where calculated</li><li>Street View panoramas near the glacier, where there are any that see the ice</li><li>and more…</li></ul></details>
+  </div>
+</div>
 
 <section class="split" id="regions">
   <div class="pickband"><div class="wrap">
@@ -160,21 +168,23 @@
     </div>
   </div>
 </section>
+<section class="quoteband">
+  <div class="wrap"><p>I believe in pictures. A before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p></div>
+</section>
 <section class="s alt" id="science">
   <div class="wrap">
     <div class="sh"><div>
       <p class="eyebrow">Data and method</p>
-      <h2>What is measured, what is computed, and which is which.</h2>
+      <h2>What is measured and what is computed.</h2>
       <p>The pictures are real satellite images. The figures come from published sources. Where the record has gaps I fill them by computation, with help from AI, and I mark it.</p>
     </div></div>
-    <button type="button" class="sci-toggle" id="sciToggle" aria-expanded="false" aria-controls="sciBody">How it is made <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
     <div class="sci" id="sciBody">
-      <div><h3>Real satellite images, with their date</h3><p>Each picture is an actual Sentinel-2 or Landsat scene. I crop it to a fixed frame and set the colours. I never paint in glaciers or generate scenes.</p></div>
-      <div><h3>One clear picture per year</h3><p>You do not have to wade through gigabytes of scenes. Every late-summer scene is scored for cloud, cloud shadow and snow on the tongue, the same way for every glacier and year. The clearest wins.</p></div>
-      <div><h3>Gaps are filled, not hidden</h3><p>Landsat 7 scenes after 2003 have missing stripes. I fill them from other scans of the same place.</p><p>Where no measured surface exists for a year, the 3D view uses an estimate from published elevation models and mass balance. That is my own computation, not a measurement.</p></div>
-      <div><h3>Figures as the source states them</h3><p>Lengths, areas, volumes and thicknesses appear as published, each with a note on where it is from. A value I calculate is marked as computed and never credited to the source. If I cannot read a figure in its source, I leave it out.</p></div>
-      <div><h3>AI helps me build it</h3><p>I use an AI assistant (Claude) to write code, find and read sources and draft texts. I decide what goes in, and I check what it produces before it is published.</p></div>
-      <div><h3>Reviewed and tested</h3><p>I review each glacier step by step: frame, outline, pictures, 3D view, figures and texts. Figures are compared with their source pages, and automated tests run before every release.</p></div>
+      <details><summary><h3>Real satellite images, with their date</h3></summary><p>Each picture is an actual Sentinel-2 or Landsat scene. I crop it to a fixed frame and set the colours. I never paint in glaciers or generate scenes.</p></details>
+      <details><summary><h3>One clear picture per year</h3></summary><p>You do not have to wade through gigabytes of scenes. Every late-summer scene is scored for cloud, cloud shadow and snow on the tongue, the same way for every glacier and year. The clearest wins.</p></details>
+      <details><summary><h3>Gaps are filled, not hidden</h3></summary><p>Landsat 7 scenes after 2003 have missing stripes. I fill them from other scans of the same place.</p><p>Where no measured surface exists for a year, the 3D view uses an estimate from published elevation models and mass balance. That is my own computation, not a measurement.</p></details>
+      <details><summary><h3>Figures as the source states them</h3></summary><p>Lengths, areas, volumes and thicknesses appear as published, each with a note on where it is from. A value I calculate is marked as computed and never credited to the source. If I cannot read a figure in its source, I leave it out.</p></details>
+      <details><summary><h3>AI helps me build it</h3></summary><p>I use an AI assistant (Claude) to write code, find and read sources and draft texts. I decide what goes in, and I check what it produces before it is published.</p></details>
+      <details><summary><h3>Reviewed and tested</h3></summary><p>I review each glacier step by step: frame, outline, pictures, 3D view, figures and texts. Figures are compared with their source pages, and automated tests run before every release.</p></details>
     </div>
   </div>
 </section>
@@ -295,6 +305,9 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
   };
   setTimeout(start, 300);      // the viewer loads at once, behind the video, so that it is ready when the flight ends
 })();
+
+/* ---------- the audience cards: opening one closes the others (the name attribute does it where supported) ---------- */
+document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle', () => { if (d.open) document.querySelectorAll('.aud-card[open]').forEach(o => { if (o !== d) o.open = false; }); }));
 
 /* ---------- what you can do: a clip per point (scripts/make_home_clips.py) ---------- */
 (() => {
@@ -473,10 +486,6 @@ const pickBtn = $('pickBtn'), pickMenu = $('pickMenu'), pickBack = $('pickBack')
 function setPick(v) { pick.value = v; const it = pickItems.find(i => i.value === v); $('pickT').textContent = it ? it.text : 'Choose a glacier…'; pickBtn.classList.toggle('ph', !it); pickMenu.querySelectorAll('li[role=option]').forEach(li => li.setAttribute('aria-selected', li.dataset.v === v)); }
 pickMenu.innerHTML = pickItems.map(i => i.head ? '<li class="hd" role="presentation">' + i.head + '</li>' : '<li role="option" class="' + (i.indent ? 'sub' : '') + (i.region ? ' rg' : '') + '" data-v="' + i.value + '" aria-selected="false"' + (i.disabled ? ' aria-disabled="true"' : '') + '><span>' + i.text + '</span>' + (i.area ? '<small>' + i.area + '</small>' : '') + '</li>').join('');
 function openPick(on) { pickMenu.hidden = pickBack.hidden = !on; pickBtn.setAttribute('aria-expanded', on); document.body.classList.toggle('pk-open', on); if (on) { const s = pickMenu.querySelector('[aria-selected=true]'); if (s) s.scrollIntoView({ block: 'nearest' }); } }
-{ const t = $('sciToggle'), body = $('sciBody'), ph = matchMedia('(max-width:900px)');      // phones: the data-and-method boxes are folded away until asked for
-  const sync = () => { const open = !ph.matches || t.getAttribute('aria-expanded') === 'true'; body.hidden = !open; };
-  t.onclick = () => { t.setAttribute('aria-expanded', t.getAttribute('aria-expanded') !== 'true'); sync(); };
-  ph.addEventListener('change', sync); sync(); }
 pickBtn.onclick = () => openPick(pickMenu.hidden);
 pickBack.onclick = () => openPick(false);
 pickMenu.onclick = e => { const li = e.target.closest('li[role=option]'); if (!li || li.getAttribute('aria-disabled') === 'true') return; openPick(false); setPick(li.dataset.v); pick.onchange(); };

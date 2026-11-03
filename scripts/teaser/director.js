@@ -75,9 +75,9 @@
     down(on){ const c = $('.cur'); if (c) c.classList.toggle('down', on); },
     ripple(x, y){ const r = el('rip'); r.style.left = x + 'px'; r.style.top = y + 'px'; setTimeout(() => r.remove(), 700); },
     /* end card: the logo and name of the site as in the left panel, a line, the address */
-    card(sub, url){
+    card(sub, url, t2 = 'Switzerland'){      // t2: the red second line beside the logo; '' leaves it out
       D.uncard(true);
-      const c = el('card', `<div class="in"><div class="brand"><img src="logo/tongues-from-space-logo-plain-white.svg" alt=""><div><div class="t1">Tongues from Space</div><div class="t2">Switzerland</div></div></div><p class="sub">${sub}</p><div class="url">${url}</div></div>`);
+      const c = el('card', `<div class="in"><div class="brand"><img src="logo/tongues-from-space-logo-plain-white.svg" alt=""><div><div class="t1">Tongues from Space</div>${t2 ? `<div class="t2">${t2}</div>` : ''}</div></div><p class="sub">${sub}</p><div class="url">${url}</div></div>`);
       requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add('on'))); return c;
     },
     uncard(now){ root.querySelectorAll('.card').forEach(c => { c.classList.remove('on'); if (now) c.remove(); else setTimeout(() => c.remove(), 700); }); },

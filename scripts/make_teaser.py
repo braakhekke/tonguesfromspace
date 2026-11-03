@@ -88,7 +88,7 @@ def warm_play(p):
 
 
 def set_speed(p, v):
-    p.evaluate("v => { document.getElementById('speedSel').value = v; updateSpeedIcon(); }", v)
+    p.evaluate("v => { const s = document.getElementById('speedSel'); s.value = v; s.dispatchEvent(new Event('input', {bubbles: true})); }", v)
 
 
 def loop_on(p):
@@ -191,14 +191,13 @@ def take_3d(T):
 def take_stats(T):
     """The right panel: the cursor opens it, Stats (area, length, thickness and volume), Switzerland (how much ice is left), Discover (what to look for)."""
     p = T.open("#g=aletsch&m=single")
-    ready = "state.checked && state.available[2026]"
-    wait_js(p, ready, 90000)
+    wait_js(p, "typeof L !== 'undefined' && document.querySelector('.leaflet-tile-loaded')", 150000); wire_(p); p.wait_for_timeout(7000)
     p.evaluate("() => { D.cine(true); }")
     p.wait_for_timeout(1500)
     m = T.mouse
     m.place(700, 420)
     T.go()
-    p.evaluate("() => D.cap('', 'Back it with facts', 'Know the ice', 'Figures from GLAMOS, with their sources.', {left: 312, cb: 96})")
+    p.evaluate("() => D.cap('', 'Backed by facts', 'Know the ice', 'Figures from many sources, each one named.', {left: 312, cb: 96})")
     m.click("#toggleRight", 800)
     T.sleep(0.5)
     m.click("#story .tabs button[data-tab='figures']", 700)
@@ -287,33 +286,166 @@ def take_product(T):
 
 
 def take_end(T):
-    """The closing text over the playing timelapse, darkened, slowly pushing in."""
+    """The closing text over the playing timelapse, darkened, slowly pushing in. The card says what the site is for, without naming a country."""
     p = T.open("#g=aletsch&m=timelapse&from=2016&to=2026")
-    ready_map(p)
+    wait_js(p, "typeof L !== 'undefined' && document.querySelector('.leaflet-tile-loaded')", 150000); wire_(p); p.wait_for_timeout(5000)
+    p.evaluate("""async () => { const m = await import('/js/05-map.js'); m.map.invalidateSize({pan: false}); m.focusTongue(false); }""")
     set_speed(p, 3); loop_on(p)
-    p.evaluate("() => { D.cine(true); D.frameLower(3600, 0.5, 0.42); }")
-    warm_play(p)
+    p.evaluate("() => { D.cine(true); }")
+    p.click(".tl-play"); wait_js(p, "!document.getElementById('playBtn').querySelector('.spin-s')", 240000)      # the years run once, unseen, so that every picture is loaded
     T.go()
-    p.evaluate("""() => { play(); D.push('#map', 1.12, 5); D.card('Make your own picture or animation of the ten largest Swiss glaciers.', 'tonguesfromspace.org'); }""")
-    T.sleep(4.0)
+    p.evaluate("""() => { D.push('#map', 1.12, 5); D.card('Glacier visuals, done your way.<br>For everyone who loves glaciers, from scientist to alpinist.', 'tonguesfromspace.org', ''); }""")
+    T.sleep(4.6)
     T.done(0.2)
 
 
-TAKES = {"map": take_map, "3d": take_3d, "stats": take_stats, "export": take_export, "product": take_product, "end": take_end}
-ORDER = ["map", "3d", "stats", "export", "product", "end"]
+# ----------------------------------------------------------------------------------------------------------------------------------------------------
+# New takes (2026-11): the page is ES modules now, so the old globals (state, play(), v3d ...) are gone; these takes reach what they need through js/wire.js
+# (W) and the modules. The older takes above are not re-recorded: their clips in teaser/work stay as they are.
+# ----------------------------------------------------------------------------------------------------------------------------------------------------
+
+def wire_(p):
+    p.evaluate("async () => { if (!window.W) window.W = (await import('/js/wire.js')).wire; }")
+
+
+def ready_3d_(p):
+    wait_js(p, "document.querySelector('#v3dCanvas') && document.querySelector('#v3dCanvas').offsetWidth > 0", 150000)
+    wire_(p)
+
+
+def cam_(p, az, el, dist):
+    p.evaluate("([a, e, d]) => W.v3d.setCam({az: a, el: e, dist: d})", [az, el, dist])
+
+
+def take_cross(T):
+    """3D: the thickness cross-section: the tool, a line across the tongue, the profile with the bed under the ice."""
+    p = T.open("#g=aletsch&m=single&v=3d")
+    ready_3d_(p); p.wait_for_timeout(5000)
+    p.evaluate("() => D.cine(true)")
+    cam_(p, -0.35, 0.62, 5200); p.wait_for_timeout(2500)
+    m = T.mouse
+    m.place(900, 640)
+    T.go()
+    p.evaluate("() => D.cap('', 'Look inside', 'Cut through the ice', 'A cross-section: the ice on top, the rock under it.', {top: 70, cr: 24, cw: 270})")
+    T.sleep(0.8)
+    m.click("#v3mSect", 800)
+    T.sleep(0.5)
+    m.glide(640, 330, 800); p.mouse.click(640, 330); T.sleep(0.5)
+    m.glide(930, 400, 900); p.mouse.click(930, 400)
+    T.sleep(3.2)
+    p.evaluate("D.capOut()")
+    T.done(0.3)
+
+
+def take_notes(T):
+    """The field-notes pill in the 3D view, then the field-notes page: what is measured, what is modelled, how it was checked."""
+    p = T.open("#g=aletsch&m=single&v=3d")
+    ready_3d_(p); p.wait_for_timeout(5000)
+    p.evaluate("() => D.cine(true)")
+    cam_(p, -0.35, 0.4, 4600); p.wait_for_timeout(1500)
+    m = T.mouse
+    m.place(700, 300)
+    T.go()
+    p.evaluate("() => D.cap('', 'Know how it is made', 'Scientific field notes', 'What is measured, what is modelled and how it was checked.', {cb: 40, cr: 24, cw: 290})")
+    T.sleep(0.6)
+    m.click("#v3dSci", 900)
+    T.sleep(0.4)
+    p.goto(f"{BASE}/provenance.html?id=B36-26&", wait_until="load")      # the pill is a link to the field notes of the glacier
+    p.wait_for_timeout(900)
+    p.evaluate("() => window.scrollTo({top: 0})")
+    for y in (700, 1500, 2400):      # a slow scroll past the figures
+        p.evaluate("y => window.scrollTo({top: y, behavior: 'smooth'})", y); p.wait_for_timeout(1500)
+    T.done(0.2)
+
+
+CHIPS = [      # words and small visuals that are thrown onto the page: (label, a tiny picture as html, x, y of the chip in css px of the 1280 x 720 page)
+    ("Ice speed", "<i class='sw' style='background:linear-gradient(90deg,#3b5bdb,#22b8cf,#fab005,#f76707)'></i>", 330, 120),
+    ("Radar thickness", "<i class='dots'><b style='background:#4dabf7'></b><b style='background:#1c7ed6'></b><b style='background:#0b3d91'></b></i>", 700, 560),
+    ("Hiking and alpine trails", "<i class='dash'><b style='background:#fcc419'></b><b style='background:#fa5252'></b><b style='background:#4263eb'></b></i>", 800, 130),
+    ("Street View", "<i class='sv'>360</i>", 330, 330),
+    ("Photographs where they were taken", "<i class='cam'></i>", 640, 628),
+    ("Outline 1850", "<i class='sw' style='background:repeating-linear-gradient(90deg,#f59f00 0 7px,transparent 7px 11px);height:3px'></i>", 340, 520),
+    ("Modelled thickness", "<i class='sw' style='background:linear-gradient(90deg,#d0ebff,#74c0fc,#1c7ed6,#0b2a66)'></i>", 1000, 330),
+    ("Names and places", "<i class='tt'>Aa</i>", 960, 560),
+]
+CHIP_CSS = """#dr .chip{position:absolute;display:flex;align-items:center;gap:10px;background:#fff;border:1px solid #DDE3E6;box-shadow:0 2px 12px rgba(0,0,0,.25);padding:9px 14px 9px 11px;font-size:14px;font-weight:600;color:#0A1B33;white-space:nowrap;opacity:0;transform:translate(var(--dx,0),var(--dy,0)) scale(.92);transition:opacity .35s,transform .55s cubic-bezier(.2,.9,.25,1)}
+#dr .chip.in{opacity:1;transform:none}
+#dr .chip i{display:inline-block;font-style:normal}
+#dr .chip .sw{width:46px;height:9px}
+#dr .chip .dots{display:flex;gap:4px} #dr .chip .dots b{width:10px;height:10px;border-radius:50%}
+#dr .chip .dash{display:flex;flex-direction:column;gap:3px} #dr .chip .dash b{width:40px;height:3px}
+#dr .chip .sv{width:26px;height:26px;border-radius:50%;background:#228be6;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
+#dr .chip .cam{width:24px;height:17px;border-radius:3px;background:#1971c2;position:relative} #dr .chip .cam:after{content:'';position:absolute;left:8px;top:4px;width:8px;height:8px;border-radius:50%;background:#fff}
+#dr .chip .tt{font-size:15px;font-weight:700;color:#0A1B33;border-bottom:2px solid #C8322A}"""
+
+
+def take_data(T):
+    """The map at the tongue: layers of spatial data are switched on one after another, and a word with a small picture of each is thrown onto the page."""
+    p = T.open("#g=aletsch&m=single")
+    wait_js(p, "typeof L !== 'undefined' && document.querySelector('.leaflet-tile-loaded')", 150000); wire_(p); p.wait_for_timeout(6000)
+    p.evaluate("""async () => { const m = await import('/js/05-map.js'); m.map.invalidateSize({pan: false}); m.focusTongue(false); m.map.setZoom(m.map.getZoom(), {animate: false}); }""")
+    p.add_style_tag(content=CHIP_CSS); p.evaluate("() => D.cine(true)")
+    p.evaluate("() => { for (const e of document.querySelectorAll('body *')) if (/reached the tongue/.test(e.textContent) && e.textContent.length < 120) e.style.setProperty('display', 'none', 'important'); }"); p.wait_for_timeout(1500)
+    p.evaluate("() => { const b = document.getElementById('lbToggle'); if (b.getAttribute('aria-expanded') !== 'true') b.click(); }")
+    m = T.mouse
+    m.place(1000, 420)
+    T.go()
+    p.evaluate("() => D.cap('', 'And much more', 'Much more spatial data', 'Ice speed, radar, trails, photographs, Street View and more, each in its place.', {left: 312, cb: 30, cw: 300})")
+    T.sleep(1.0)
+    toggles = {"Outline 1850": "oldToggle", "Radar thickness": "radarToggle", "Ice speed": "speedToggle", "Hiking and alpine trails": "trailsToggle", "Street View": "svToggle", "Modelled thickness": "thickToggle", "Names and places": "namesToggle"}
+    for label, html, x, y in CHIPS:
+        cid = toggles.get(label)
+        if cid:
+            p.evaluate("id => { const c = document.getElementById(id); if (c && !c.checked) c.click(); }", cid)
+        dx, dy = ("-60px", "0") if x < 640 else ("60px", "0")
+        p.evaluate("""([label, html, x, y, dx, dy]) => { const c = document.createElement('div'); c.className = 'chip'; c.style.left = x + 'px'; c.style.top = y + 'px'; c.style.setProperty('--dx', dx); c.style.setProperty('--dy', dy);
+            c.innerHTML = html + '<span>' + label + '</span>'; D.root.appendChild(c); requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add('in'))); }""", [label, html, x, y, dx, dy])
+        T.sleep(0.95)
+    T.sleep(1.6)
+    p.evaluate("D.capOut()")
+    T.done(0.3)
+
+
+def take_size(T):
+    """size.html: the outline of Aletsch is dragged onto Zurich; the page tells how many times it fits."""
+    p = T.ctx.new_page(); T.page = p
+    p.add_init_script(DIRECTOR_SRC); p.on("pageerror", lambda e: print("  pageerror:", str(e)[:200]))
+    p.goto(f"{BASE}/size.html#g=B36-26&c=zurich", wait_until="load"); p.wait_for_timeout(9000)
+    p.add_style_tag(content="body{user-select:none!important;-webkit-user-select:none!important}")
+    p.evaluate("D.follow = true; D.cine(true)")
+    p.mouse.move(620, 335); p.mouse.down(); p.mouse.move(880, 260, steps=20); p.mouse.up(); p.wait_for_timeout(1200)      # off the city, unseen (the map is x 290 to 960 of the page)
+    T.rec = Rec(p, *T.fmt["out"]); T.mouse = Mouse(p); T.mouse.place(880, 260)
+    T.go()
+    p.evaluate("() => D.cap('', 'Size it up', 'Glaciers on your city', 'Drag a glacier onto Z\u00fcrich, Bern or a city of your choice.', {left: 312, cb: 40, cw: 260})")
+    T.sleep(1.0)
+    p.mouse.move(880, 260, steps=6); p.mouse.down(); T.sleep(0.15)
+    for i in range(1, 61):
+        u = i / 60; e = u * u * (3 - 2 * u); p.mouse.move(880 + (620 - 880) * e, 260 + (335 - 260) * e); p.wait_for_timeout(45)
+    p.mouse.up(); T.sleep(2.4)
+    p.evaluate("D.capOut()")
+    T.done(0.3)
+
+
+TAKES = {"map": take_map, "3d": take_3d, "stats": take_stats, "export": take_export, "product": take_product, "end": take_end,
+         "cross": take_cross, "notes": take_notes, "data": take_data, "size": take_size}
+ORDER = ["map", "3d", "cross", "notes", "data", "size", "stats", "export", "product", "end"]      # the older takes keep their clips; --takes cross,notes,data,size records only the new ones
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
+TRIM = {"cross": 7.0, "notes": 7.5, "size": 6.0, "stats": 9.0}      # seconds kept of these takes in the film (the new takes and the stats take are cut short to keep the film near a minute and a half)
+
+
 def assemble(names, fmt, out):
     """Joins the clips of the takes with cross-fades and encodes the film."""
-    exe = ffmpeg_exe()
+    exe = ffmpeg_exe(); fmt_name = names[0].split("-")[0]
     clips = [f"{WORK}/{n}.mp4" for n in names if os.path.exists(f"{WORK}/{n}.mp4")]
     if not clips:
         raise SystemExit("no clips")
     durs = [float(subprocess.run([exe, "-i", c], capture_output=True, text=True).stderr.split("Duration: ")[1].split(",")[0].split(":")[2]) for c in clips]
+    durs = [min(d, TRIM.get(os.path.basename(c)[len(fmt_name) + 1:-4], d)) for c, d in zip(clips, durs)]      # a clip can be cut short (TRIM), never extended
     cmd = [exe, "-y", "-loglevel", "error"]
-    for c in clips:
-        cmd += ["-i", c]
+    for c, d in zip(clips, durs):
+        cmd += ["-t", f"{d:.3f}", "-i", c]
     if len(clips) == 1:
         graph, last = "", "0:v"
     else:
@@ -339,6 +471,7 @@ def main():
     ap.add_argument("--takes", help="comma list; default all")
     ap.add_argument("--exports", action="store_true", help="make the export files again (the product shot uses them)")
     ap.add_argument("--no-assemble", action="store_true")
+    ap.add_argument("--out-name", help="film file name without extension (default: the format's own, which replaces the published teaser)")
     ap.add_argument("--assemble-only", action="store_true")
     a = ap.parse_args()
     fmt = FORMATS[a.format]
@@ -356,7 +489,7 @@ def main():
                 TAKES[n](Take(ctx, f"{a.format}-{n}", fmt))
             ctx.close()
     if not a.no_assemble:
-        assemble([f"{a.format}-{n}" for n in ORDER if (not a.takes or n in names) or a.assemble_only], fmt, f"{OUT}/{fmt['name']}")
+        assemble([f"{a.format}-{n}" for n in ORDER if (not a.takes or n in names) or a.assemble_only], fmt, f"{OUT}/{a.out_name or fmt['name']}")
 
 
 if __name__ == "__main__":
