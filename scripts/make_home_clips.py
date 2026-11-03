@@ -17,6 +17,7 @@ CLIPS = {
     'then':    ('wide-3d', [(12.4, 18.8)], 15.0),                   # then and now: a photograph over the 3D view
     'numbers': ('numbers', [('trails.mp4', 1.5, 13.0), ('wide-stats', 2.0, 8.5)], 8.0),        # Discover (trails in view, Hike and bike) and then the figures of the glacier
     'share':   ('wide-product', [(0.2, 4.4)], 2.0),                 # pictures and videos for the phone
+    'cross':   ('wide-cross', [(0.2, 8.4)], 7.0),                   # the thickness cross-section: a line across the tongue, the ice above the bed
 }
 
 def ffmpeg():
@@ -28,6 +29,7 @@ def ffmpeg():
 def main():
     exe = ffmpeg(); os.makedirs(OUT, exist_ok=True)
     for name, (take, parts, post) in CLIPS.items():
+        if sys.argv[1:] and name not in sys.argv[1:]: continue      # `make_home_clips.py cross` cuts only that clip
         if take == 'numbers':      # stretches of several files joined (the first one is recorded by record_home_extras.py)
             files = [os.path.join(OUT, f) if f.endswith('.mp4') else os.path.join(WORK, f + '.mp4') for f, _, _ in parts]
             cmd = [exe, '-y', '-loglevel', 'error'] + sum((['-i', f] for f in files), [])

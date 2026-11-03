@@ -43,19 +43,6 @@
     <div class="herotext">
       <h1><span>Glaciers don’t talk.</span> <span>Their <em>tongues</em> tell all.</span></h1>
       <p class="lede">Satellite and historic imagery, field measurements and glacier data in one viewer, on the map and in 3D.</p>
-      <div class="find">
-        <a class="btn-red" href="#regions">Choose a glacier
-          <svg viewBox="0 0 24 24"><path d="M12 4l1.4 1.4L8.8 10H20v2H8.8l4.6 4.6L12 18l-8-8z" transform="rotate(270 12 12)"/></svg></a>
-        <div class="search" role="search">
-          <label for="gsearch" class="sr">Search for a glacier, in any language</label>
-          <div class="sbox">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 105.2 11.7l4.8 4.8-1.4 1.4-4.8-4.8A7 7 0 0010 3zm0 2a5 5 0 100 10 5 5 0 000-10z"/></svg>
-            <input id="gsearch" type="search" role="combobox" aria-expanded="false" aria-controls="gresults" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="…or search for one yourself">
-          </div>
-          <ul id="gresults" class="res" role="listbox" aria-label="Glaciers you may mean" hidden></ul>
-          <p class="sstat" id="gstat" role="status" aria-live="polite" hidden></p>
-        </div>
-      </div>
       <div class="cta">
         <button class="btn-ghost" id="watch" type="button">
           <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the 1-minute teaser</button>
@@ -78,29 +65,19 @@
   </div>
 </section>
 <div class="whyband" id="why"><div class="wrap whygrid">
-    <svg class="why-logo" viewBox="0 0 200 190" role="img" aria-label="Tongues from Space logo">
-      <defs>
-        <mask id="wlMouth" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><ellipse cx="100" cy="88" rx="48" ry="24" fill="#000"/></mask>
-        <mask id="wlGroove" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/></mask>
-      </defs>
-      <g fill="#0A1B33">
-        <path d="M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z" mask="url(#wlMouth)"/>
-        <path class="tongue" d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#wlGroove)"/>
-        <path class="spark" d="M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z"/>
-      </g>
-    </svg>
     <div class="whyhead">
       <p class="eyebrow">Why Tongues from Space</p>
       <p class="why-name">Every glacier ends in a tongue, the stretch of ice that reaches down into the valley. Retreat, and in rarer cases advance, shows first there, so that is where to look.</p>
       <p class="why-name">Everything you see is built on <b>real satellite images</b>, not renderings. The viewer shows the one clear late-summer scene of each year, next to historic imagery, field measurements and other glacier data, on the map and in 3D.</p>
+    <p class="why-name">Made for everyone who loves glaciers, from scientists to alpinists, from newsrooms to TikTok creators. Open the card that sounds like you.</p>
     </div>
   </div>
   <div class="wrap aud">
-    <details class="aud-card" name="aud"><summary><b>Scientists</b><span>Every picture dated, every figure sourced.</span></summary><ul><li>Sentinel-2 and Landsat scenes with their acquisition date, Landsat reaching back before 2016</li><li>Natural and false-colour styles, and a before-and-after slider</li><li>Ice surface of each year (a model, with measured surfaces where they exist) and the <i>Science mode</i> in 3D, with field notes for every glacier</li><li>and more…</li></ul></details>
-    <details class="aud-card" name="aud"><summary><b>Journalists</b><span>Before and after, ready to use.</span></summary><ul><li>Export a single image or a short vertical video of any glacier</li><li>Slide between two summers, or loop all years, for a clear before and after</li><li>Drag a glacier outline onto a city to show its size</li><li>and more…</li></ul></details>
-    <details class="aud-card" name="aud"><summary><b>Educators</b><span>A glacier to explore with a class.</span></summary><ul><li>Time-lapse of the best picture of each year, and the slider between two years</li><li>Fly over the ice in 3D with the satellite picture draped over the terrain</li><li>Compare a glacier with a city to grasp its scale</li><li>and more…</li></ul></details>
-    <details class="aud-card" name="aud"><summary><b>Students</b><span>See the data behind the headline.</span></summary><ul><li>Pictures next to published length, area, thickness and volume figures</li><li>Switch layers on and off: outlines, ice thickness, ice speed, lowest point, thickest ice</li><li>Old maps and aerial photographs next to the satellite picture</li><li>and more…</li></ul></details>
-    <details class="aud-card" name="aud"><summary><b>Outdoor people</b><span>Know the ice before you go.</span></summary><ul><li>See how far a tongue has retreated and where its end is today</li><li>Hiking trails drawn on the map, with the line of sight to the tongue where calculated</li><li>Street View panoramas near the glacier, where there are any that see the ice</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></svg>Scientists</b><span>Every picture dated, every figure sourced.</span></summary><ul><li>Sentinel-2 and Landsat scenes with their acquisition date, Landsat reaching back before 2016</li><li>Natural and false-colour styles, and a before-and-after slider</li><li>Ice surface of each year (a model, with measured surfaces where they exist) and the <i>Science mode</i> in 3D, with field notes for every glacier</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 01-2-2V5zM17 9h3v8a2 2 0 01-2 2M7 9h7M7 13h7"/></svg>Journalists</b><span>Before and after, ready to use.</span></summary><ul><li>Export a single image or a short vertical video of any glacier</li><li>Slide between two summers, or loop all years, for a clear before and after</li><li>Drag a glacier outline onto a city to show its size</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5zM6 11.5V16c0 1.2 2.7 3 6 3s6-1.8 6-3v-4.5"/></svg>Educators</b><span>A glacier to explore with a class.</span></summary><ul><li>Time-lapse of the best picture of each year, and the slider between two years</li><li>Fly over the ice in 3D with the satellite picture draped over the terrain</li><li>Compare a glacier with a city to grasp its scale</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13"/></svg>Students</b><span>See the data behind the headline.</span></summary><ul><li>Pictures next to published length, area, thickness and volume figures</li><li>Switch layers on and off: outlines, ice thickness, ice speed, lowest point, thickest ice</li><li>Old maps and aerial photographs next to the satellite picture</li><li>and more…</li></ul></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20l7-12 4 7 2-3 7 8z"/></svg>Outdoor people</b><span>Know the ice before you go.</span></summary><ul><li>See how far a tongue has retreated and where its end is today</li><li>Hiking trails drawn on the map, with the line of sight to the tongue where calculated</li><li>Street View panoramas near the glacier, where there are any that see the ice</li><li>and more…</li></ul></details>
   </div>
 </div>
 
@@ -120,7 +97,7 @@
             <input id="gsearch2" type="search" role="combobox" aria-expanded="false" aria-controls="gresults2" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search a glacier, in any language">
           </div>
           <ul id="gresults2" class="res" role="listbox" aria-label="Glaciers you may mean" hidden></ul>
-          <p class="sstat" role="status" aria-live="polite" hidden></p>
+          <p class="sstat" id="gstat" role="status" aria-live="polite" hidden></p>
         </div>
         <div class="pk" id="pk">
           <select id="pick" aria-label="Glacier" hidden></select>
@@ -158,7 +135,7 @@
     <div class="sh">
       <div>
         <p class="eyebrow">Create and share</p>
-        <h2>Seven ways to look at a glacier.</h2>
+        <h2>Many ways to explore glacier tongues.</h2>
         <p>Point at one, or tap it, to see it work.</p>
       </div>
     </div>
@@ -169,7 +146,19 @@
   </div>
 </section>
 <section class="quoteband">
-  <div class="wrap"><p>I believe in pictures. A before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p></div>
+  <div class="wrap quotegrid">
+    <svg class="why-logo" viewBox="0 0 200 190" role="img" aria-label="Tongues from Space logo">
+      <defs>
+        <mask id="wlMouth" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><ellipse cx="100" cy="88" rx="48" ry="24" fill="#000"/></mask>
+        <mask id="wlGroove" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/></mask>
+      </defs>
+      <g fill="#0A1B33">
+        <path d="M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z" mask="url(#wlMouth)"/>
+        <path class="tongue" d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#wlGroove)"/>
+        <path class="spark" d="M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z"/>
+      </g>
+    </svg>
+    <p>I believe in pictures. A before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p></div>
 </section>
 <section class="s alt" id="science">
   <div class="wrap">
@@ -315,8 +304,9 @@ document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle',
     ['years',   'Watch the years pass',   'The best picture of each year in one loop: snow, ice, lakes and green slopes shifting from year to year.'],
     ['compare', 'Slide between summers',  'Drag a line across two years and watch one landscape turn into another.'],
     ['fly',     'Fly over the ice in 3D', 'The satellite picture draped over the terrain: swoop along the glacier and look up at the peaks.'],
+    ['cross',   'Cut through the ice',    'Draw a line across the tongue and see the ice on top and the rock under it, with the radar measurements where they exist.'],
     ['then',    'Step into old photographs', 'Historic photographs, set into the 3D view where the photographer stood (the Swiss glaciers for now).'],
-    ['numbers', 'Discover and read the numbers', 'What to look for, hikes and bike routes with the trails where the tongue is in view, and the area and length of every glacier; for Switzerland also thickness and volume, with their sources.'],
+    ['numbers', 'Discover and read the numbers', 'What to look for, trails with the tongue in view, and the figures of every glacier; for Switzerland also thickness and volume, with their sources.'],
     ['size',    'Size it up against a city', 'Drag the outline of a glacier onto Zürich, Bern or Basel and see how big it really is.'],
     ['share',   'Take it with you',       'Download a picture or an animation for your phone, ready to post.']
   ];
@@ -341,8 +331,6 @@ document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle',
     btns.forEach((b, j) => j === i ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current'));
     vids[i].loop = locked; vids[i].currentTime = 0; vids[i].play().catch(() => {});
   }
-  const fc = document.createElement('li'), fb = document.createElement('button'); fb.type = 'button'; fb.className = 'film-cell'; fb.id = 'film';
-  fb.innerHTML = '<span class="n" style="color:#fff">▶</span><b>The whole story</b><span class="t">Watch the 1-minute teaser.</span>'; fc.appendChild(fb); feat.appendChild(fc);
   // show the first poster at once; start playing when the section scrolls into view
   vids[0].classList.add('on'); btns[0].setAttribute('aria-current', 'true'); cur = 0;
   if (!still && 'IntersectionObserver' in window) new IntersectionObserver((es, o) => { if (es[0].isIntersecting && !started) { started = true; if (!locked) select(0, true); o.disconnect(); } }, { threshold: .4 }).observe(stage);
@@ -351,7 +339,7 @@ document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle',
 /* ---------- teaser dialog ---------- */
 const player = $('player'), vid = $('vid');
 const openFilm = () => { player.showModal(); vid.muted = false; vid.play().catch(() => {}); };
-$('watch').onclick = $('film').onclick = openFilm;      // the 'film' button is made by the clip code above
+$('watch').onclick = openFilm;
 $('closePlayer').onclick = () => player.close();
 player.addEventListener('close', () => vid.pause());
 player.addEventListener('click', e => { if (e.target === player) player.close(); });
@@ -400,11 +388,21 @@ for (const r of REGIONS) {
   tiles.appendChild(t);
 }
 
+/* the opening view: all the region pins with room around them (the labels hang to the side of each pin) */
+{ const pins = REGIONS.filter(r => r.marker && !r.soon).map(r => r.ll); if (pins.length) { map.options.zoomSnap = 0.1; map.fitBounds(L.latLngBounds(pins), { paddingTopLeft: [90, 50], paddingBottomRight: [120, 50], maxZoom: 5, animate: false }); map.options.zoomSnap = 1; } }
+
 /* fly to a place, leaving it clear of the card on the left */
 function fly(ll, zoom) {
   const off = matchMedia('(min-width:901px)').matches ? 170 : 0;
   const c = map.unproject(map.project(ll, zoom).subtract([off, 0]), zoom);
   map.flyTo(c, zoom, { duration: 1.1 });
+}
+/* fly to a region as close as all its glacier dots still fit, clear of the card on the left (on phones the card sits under the map) */
+function flyToDots(r) {
+  const ll = Object.values(glMarkers).map(m => m.getLatLng());
+  if (!ll.length) return fly(r.ll, r.zoom);
+  const wide = matchMedia('(min-width:901px)').matches;
+  map.flyToBounds(L.latLngBounds(ll), { paddingTopLeft: [wide ? 350 : 40, 50], paddingBottomRight: [50, 50], maxZoom: r.zoom + 2, duration: 1.1 });
 }
 const glLayer = L.layerGroup().addTo(map);
 /* The catchment of the chosen glacier: its outline (data/home-outlines.js, generated, thinned; loaded on the first choice). */
@@ -457,7 +455,7 @@ function chooseRegion(id, doFly = true) {
     b.onmouseenter = () => glMarkers[g.id] && glMarkers[g.id].openTooltip(); b.onmouseleave = () => glMarkers[g.id] && glMarkers[g.id].closeTooltip();
     li.appendChild(b); list.appendChild(li); }
   $('iGo').textContent = 'Open the region'; $('iGo').href = regionHref(r); $('iGo').hidden = !!r.making; $('iGo2').hidden = true; $('info').hidden = false;
-  if (doFly) fly(r.ll, r.zoom);
+  if (doFly) flyToDots(r);
   history.replaceState(null, '', '#' + id);
 }
 
