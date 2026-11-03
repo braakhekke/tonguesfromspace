@@ -16,7 +16,7 @@ WORK = os.path.join(ROOT, "teaser", "work", "hero"); OUT = os.path.join(ROOT, "i
 ARGS = ["--use-gl=angle", "--use-angle=metal", "--enable-webgl", "--ignore-gpu-blocklist", "--hide-scrollbars", "--force-color-profile=srgb"]
 W, H, DSF = 1280, 720, 2
 SECONDS = 8                          # one turn of the camera there and back, ending where the live 3D viewer starts; the timelapse runs once and a bit in it
-CLEAN = "html body #stage :is(#v3dLbToggle,#v3dLayers,.mapbar,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small,.v3d-year .sub,.v3d-year .hint,.v3d-year p,.v3d-year div,.v3d-year span){display:none!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important} html body *{cursor:none!important}"
+CLEAN = "html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small,.v3d-year .sub,.v3d-year .hint,.v3d-year p,.v3d-year div,.v3d-year span){display:none!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important} html body *{cursor:none!important}"
 
 
 def main():

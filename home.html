@@ -262,7 +262,7 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
   if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;                                                          // the video only
   vid.playbackRate = 1.75;      // the flight is short, so that the visitor can take over early
   const STAGE_X = 290, STAGE_W = 990, STAGE_H = 720;
-  const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
+  const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
   const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
   new ResizeObserver(fit).observe(fig); fit();
   let ended = vid.ended, ready = false, shown = false, released = true;
