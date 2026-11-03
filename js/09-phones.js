@@ -83,10 +83,6 @@ export function setFull(on){
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);
 }
 export const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
-document.querySelectorAll('.home-link').forEach(a => a.addEventListener('click', e => {      // the title leads back to the start: no glacier chosen, the overview of Switzerland
-  if (e.metaKey || e.ctrlKey || e.shiftKey) return;
-  e.preventDefault(); history.replaceState(null, '', regionLink(REGION.id)); location.reload();
-}));
 $('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
 $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);

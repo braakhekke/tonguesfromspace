@@ -841,15 +841,15 @@ class TestPicker(SiteCase):
     def test_every_page_has_a_link_back_to_the_picker(self):
         want = "/" if BUILT else "home.html"
         page = self.open("#g=aletsch")
-        link = page.locator(".brand .all-regions")
+        link = page.locator(".brand a.home-link[data-home]")  # the title goes home; there is no separate "All regions" link any more
         self.assertTrue(link.is_visible(), "a clear way back on the dashboard")
         self.assertEqual(link.get_attribute("href"), want)
-        self.assertEqual(page.locator("#mhead .all-regions").get_attribute("href"), want, "also in the phone header")
+        self.assertEqual(page.locator("#mhead a.home-link[data-home]").get_attribute("href"), want, "also in the phone header")
         for path in ("/size.html", "/gallery.html"):
             page = self.picker_at(path)
             self.assertEqual(page.locator("a[data-home]").first.get_attribute("href"), want, path)
         page = self.open("#g=aletsch")
-        page.locator(".brand .all-regions").click()
+        page.locator(".brand a.home-link[data-home]").click()
         page.wait_for_function("document.title.includes('Glaciers seen from orbit')", timeout=15000)
 
     def test_the_front_page_is_international_counts_what_is_open_and_puts_why_under_the_picker(self):
