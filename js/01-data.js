@@ -166,19 +166,19 @@ export const GLACIER_INFO = {
  },
  "corbassiere": {
   "fact": "It starts above 4,000 m on the north slope of the Grand Combin and its tongue ends at about 2,300 m. It is 9.8 km long.",
-  "name": "A French place name of the Val de Bagnes; its origin is not documented in the sources we checked.",
+  "name": "A French place name of the Val de Bagnes; its origin is not documented in the sources I checked.",
   "factSrc": "Wikipedia (Corbassière Glacier)",
   "src": "Wikipedia (Corbassière Glacier)"
  },
  "morteratsch": {
   "fact": "With about 1.2 km³ of ice it is the third-largest glacier in the Eastern Alps, after the Pasterze and the Gepatschferner.",
-  "name": "A legend explains the name: Annetta, a farmer's daughter, died of sorrow while her beloved herdsman Aratsch was away as a soldier. When he returned he rode into a crevasse, and her ghost is said to wander the alp crying \"Mort Aratsch!\" (\"Aratsch is dead\"). A documented etymology is not in the sources we checked.",
+  "name": "A legend explains the name: Annetta, a farmer's daughter, died of sorrow while her beloved herdsman Aratsch was away as a soldier. When he returned he rode into a crevasse, and her ghost is said to wander the alp crying \"Mort Aratsch!\" (\"Aratsch is dead\"). A documented etymology is not in the sources I checked.",
   "factSrc": "Wikipedia (Morteratsch Glacier)",
   "src": "Wikipedia (Morteratsch Glacier); Pontresina Tourism (Legends in the Bernina glacier region)"
  },
  "zmutt": {
   "fact": "Debris now covers about 32 % of the glacier surface, up from about 13 % in 1859. This debris slowed the glacier's response: its length and area have changed little compared with debris-free glaciers, although the mass loss is similar. The meltwater of the Zmutt glacier feeds the Stafel pumping station of the Grande Dixence system, at 2,180 metres at the foot of the Matterhorn.",
-  "name": "Named after the hamlet of Zmutt in the municipality of Zermatt. The origin of the name is not documented in the sources we checked.",
+  "name": "Named after the hamlet of Zmutt in the municipality of Zermatt. The origin of the name is not documented in the sources I checked.",
   "factSrc": "The Cryosphere 13 (2019), Mölg et al., Zmuttgletscher study; Grande Dixence SA (Stafel pumping station)",
   "src": "Wikipedia (Zmutt)"
  },
@@ -196,13 +196,13 @@ export const GLACIER_INFO = {
  },
  "fee": {
   "fact": "At Mittelallalin, 3,500 m high, glaciologist Benedikt Schnyder carved an artificial ice cave into the glacier: the Ice Pavilion, 5,500 m² with a 71 m tunnel. It closed in 2024 for safety reasons; a virtual reality experience replaced it.",
-  "name": "Named after Saas-Fee, the village below it, which appears as <em>Vee</em> in 1304. Where the name itself comes from is not documented in the sources we checked.",
+  "name": "Named after Saas-Fee, the village below it, which appears as <em>Vee</em> in 1304. Where the name itself comes from is not documented in the sources I checked.",
   "factSrc": "showcaves.com (Eispavillon Mittelallalin)",
   "src": "Wikipedia (Saas-Fee)"
  },
  "findel": {
   "fact": "Around the middle of the 19th century its tongue still reached down to about 2,100 m, near the hamlet of Findeln and below the tree line. Since then it has retreated by more than 2.5 km, and since the 1970s by more than 1 km. Its meltwater, the Findelbach, joins the Gornera and the Zmuttbach to form the Matter Vispa.",
-  "name": "Named after the hamlet of Findeln, 2 km east of Zermatt at 2,051 m, near where the tongue once ended. The origin of the name Findeln itself is not documented in the sources we checked.",
+  "name": "Named after the hamlet of Findeln, 2 km east of Zermatt at 2,051 m, near where the tongue once ended. The origin of the name Findeln itself is not documented in the sources I checked.",
   "factSrc": "Wikipedia, German edition (Findelgletscher)",
   "src": "Wikipedia, German edition (Findeln)"
  }

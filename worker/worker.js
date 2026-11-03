@@ -397,7 +397,7 @@ async function ask(request, env, url, cors) {
     if (!t || !t.success) return json({ error: 'The check "are you a person" failed. Please try again.' }, 403, cors);
     let g;
     try { g = await wikidataGlacier(name, typeof body.lang === 'string' ? body.lang : '').catch(() => null) || await rgiGlacier(name); } catch { return json({ error: 'The glacier list could not be reached. Please try again later.' }, 502, cors); }
-    if (!g) return json({ error: 'unknown', message: `“${name}” is not a glacier we can find in Wikidata or in the Randolph Glacier Inventory. Please check the spelling.` }, 404, cors);
+    if (!g) return json({ error: 'unknown', message: `“${name}” is not a glacier I can find in Wikidata or in the Randolph Glacier Inventory. Please check the spelling.` }, 404, cors);
     const key = 'ask/' + g.q, old = await env.CACHE.get(key, 'json'), now = new Date().toISOString();
     if (!old && (await env.CACHE.list({ prefix: 'ask/', limit: ASK.max })).keys.length >= ASK.max) return json({ error: 'Too many requests are waiting. Please try again later.' }, 503, cors);
     const typed = old ? [...new Set([...old.typed, name])].slice(0, 8) : [name];

@@ -44,6 +44,8 @@
   .toc { display:flex; flex-wrap:wrap; gap:4px 16px; margin:0 0 14px; font-size:12px; } .toc a { color:var(--ice); text-decoration:none; } .toc a:hover { text-decoration:underline; } .toc a.hot { background:var(--loss); color:#fff; padding:2px 10px; border-radius:999px; font-weight:600; } .toc a.hot:hover { text-decoration:none; opacity:.9; }
   #viewer { border-color:var(--loss); }
   .fn > h2 .no { color:var(--muted); font-weight:500; margin-right:6px; } .fn > .lead { margin:-4px 0 10px; color:var(--muted); max-width:860px; font-size:12.5px; }
+  .fn h3.fnh { margin:14px 0 2px; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--loss); font-weight:600; } .fn h3.fnh:first-child { margin-top:2px; }
+  ul.fnl { margin:4px 0 8px; padding-left:18px; color:var(--muted); font-size:12.5px; line-height:1.45; max-width:900px; } ul.fnl li { margin:0 0 4px; } ul.fnl b { color:var(--ink); font-weight:600; } .anc { margin:0 0 12px; } .anc p { margin:0; } .notes ul.fnl { font-size:12px; padding-left:16px; margin:2px 0 0; } .mapcap ul.fnl { font-size:inherit; }
   .fn .notes { margin-top:14px; } .fn .legend { margin-top:10px; } .fn #detail { margin-top:12px; }
   .fn .row0 { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:520px; }
   #overview { display:none; } .ov #overview { display:block; } .ov #allFn { display:none; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
@@ -54,8 +56,8 @@
 <p style="margin:0 0 6px"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a></p>
 <h1>Scientific field notes</h1>
 <p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">See the field notes for all glaciers</a></p>
-<p class="sub" id="sub">How the 3D view of <span id="gname">this glacier</span> is made: what was measured, what was modelled, and how each is checked. Every number on this page is for the tongue (section 1) only, and is as recorded in the project's source ledger or marked as computed.</p>
-<div id="overview"><p class="sub">One page of field notes for each glacier whose 3D view has a surface for every year: what was measured, what was modelled and how each is checked. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
+<p class="sub" id="sub">The satellite pictures on the site are real images. This page is about the 3D ice surface under them for <span id="gname">this glacier</span>: what is measured, what I modelled, and how I checked it. Every number is for the tongue (section 1) only, taken from my source ledger or marked as computed.</p>
+<div id="overview"><p class="sub">One page for each glacier whose 3D view has an ice surface for every year: what is measured, what is modelled and how it is checked. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
 <nav class="toc" aria-label="Sections"><a href="#area">Study area</a><a href="#surface">Ice surface through time</a><a href="#anchors">Measured surfaces</a><a href="#validation">Validation and limits</a><a href="#bed" id="tocBed">Ice bed</a><a href="#licences">Data not used, licences</a></nav>
 
 <section class="fn" id="area"><h2><span class="no">1</span>Study area: <span id="areaT">the tongue</span></h2>
@@ -64,17 +66,17 @@
 
 
 <section class="fn" id="surface"><h2><span class="no">2</span>Ice surface through time: how each year was made</h2>
-<p class="lead" id="fnSummary"></p><p class="lead">One column per year. Top: how the surface was found and its 1σ uncertainty. Below: the measured surfaces it hangs on, what shapes the change between them, what checks it, and what is fixed. Click a year for the full text, the ICESat-2, ASTER and stake numbers.</p>
-<p class="lead"><b>Official glacier elevation models.</b> We are in contact with GLAMOS and swisstopo about implementing the glacier elevation models described on <a href="https://www.swisstopo.admin.ch/en/swisstopo-geodata-for-glacial-purposes" target="_blank" rel="noopener">swisstopo geodata for glacial purposes</a>. The yearly surfaces on this page are our own model, built from the swisstopo surveys as described below; they are not those official models.</p>
+<p class="lead" id="fnSummary"></p><p class="lead">One column per year: how the surface was found, its 1σ uncertainty, the measured surfaces it hangs on, what shapes the change between them and what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p>
+<p class="lead"><b>Official glacier elevation models.</b> I am in contact with GLAMOS and swisstopo about implementing the glacier elevation models described on <a href="https://www.swisstopo.admin.ch/en/swisstopo-geodata-for-glacial-purposes" target="_blank" rel="noopener">swisstopo geodata for glacial purposes</a>. The yearly surfaces on this page are my own model, built from the swisstopo surveys as described below; they are not those official models.</p>
 <div class="card"><svg id="chart" role="img" aria-label="Provenance of the yearly surfaces"></svg></div>
 <div class="legend" id="legend"></div>
 <p class="lead" style="margin:10px 0 4px"><b>Click a year</b> in the chart to show its details here.</p>
 <div id="detail">Click a year.</div>
 <div class="notes">
-  <section><h3>Kinds of surface</h3><p><b>measured</b>: a dated DEM or lidar surface. <b>interpolated</b>: between two measured surfaces. <b>extrapolated</b>: beyond the last one, at its rate. <b>provisional</b>: 2026. <b>Date</b>: every year is the surface on 30 September of that year (the end of the glaciological year). A measured surface is moved from its survey day to 30 September by the same model, so the surface shown for a surveyed year is not the raw survey: it is the survey surface lowered by the melt between the survey day and 30 September (for a survey in August, the weeks in between).</p></section>
-  <section><h3>Sharing the loss between years</h3><p id="nShare"><b>Solid</b>: the GLAMOS balance sets how the loss between two measured surfaces falls into each year. <b>Dashed</b>: extrapolated at the last segment's rate (2026 also with its own balance). <b>Not used</b>: measured years.</p></section>
+  <section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a dated DEM or lidar surface.</li><li><b>interpolated</b>: between two measured surfaces.</li><li><b>extrapolated</b>: beyond the last one, at its rate.</li><li><b>provisional</b>: 2026.</li><li><b>Date</b>: every year is the surface on 30 September of that year (the end of the glaciological year).</li></ul><p>A measured surface is moved from its survey day to 30 September by the same model. So the surface shown for a surveyed year is not the raw survey: it is the survey surface lowered by the melt between the survey day and 30 September (for a survey in August, the weeks in between).</p></section>
+  <section><h3>Sharing the loss between years</h3><div id="nShare"><ul class="fnl"><li><b>Solid</b>: the GLAMOS balance sets how the loss between two measured surfaces falls into each year.</li><li><b>Dashed</b>: extrapolated at the last segment's rate (2026 also with its own balance).</li><li><b>Not used</b>: measured years.</li></ul></div></section>
   <section><h3>Uncertainty</h3><p id="nUnc">Median over the tongue ice, red whisker the 90th percentile. Calibrated on the same ICESat-2 shots. 2026 has none yet: it is provisional and its balance was read from the GLAMOS figure.</p></section>
-  <section><h3>Independent checks</h3><p id="nInd"><b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out). <b>ASTER</b> and <b>stakes</b> are checks only. Click a year for their numbers.</p></section>
+  <section><h3>Independent checks</h3><div id="nInd"><ul class="fnl"><li><b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out).</li><li><b>ASTER</b> and <b>stakes</b> are checks only.</li></ul><p>Click a year for their numbers.</p></div></section>
 </div>
 <div id="fnView">Loading…</div></section>
 
@@ -153,7 +155,7 @@ function show(yr){ const sg=SIG&&SIG[yr], ic=ICESAT[yr], ad=ASTERD&&ASTERD[yr], 
   const stake = !STAKE ? (PG.stakeNone||'not checked for this glacier.') : !ns ? 'no stake-year on the tongue ice this year.'
     : sr ? `${ns} stake-year${ns>1?'s':''}. Model surface lowering ÷ stake ablation = <b>×${sr[0].toFixed(2)}</b>: the model's surface drops by ${Math.round(sr[0]*100)} % of what the stake itself loses, the rest is replaced by ice flowing in (the stake moves with the ice). Stakes measure ablation, not the height change at a fixed place, so this checks the shape between years, not the surface. ${PG.stakeNote}`
     : `${ns} stake-year${ns>1?'s':''}.`;
-  document.getElementById('detail').innerHTML=`<b>${yr}</b> · ${TIER[yr]}`
+  document.getElementById('detail').innerHTML=`<b>${yr}</b><ul class="fnl">${String(TIER[yr]).split(/;\s+(?![^()]*\))/).map(x=>`<li>${x}</li>`).join('')}</ul>`
     +L('Uncertainty', !SIG?'not computed for this glacier.':sg?`1σ ${sg[0]} m median over the tongue ice${sg[1]?`, ${sg[1]} m at the 90th percentile`:''}.`:'not computed (provisional).')
     +L('ICESat-2', ic?`${ic[0]} shots, ${ic[1]} m ${String(ic[1]).includes('NMAD')?'':'rmse'}. ${PG.icesatNote}`:'no summer shots.')
     +L('ASTER', aster)+L('GLAMOS stakes', stake); }
@@ -195,6 +197,13 @@ function drawMap(){
    +`<g transform="translate(${Wm-18},18)"><path d="M0 -12 L5 4 L0 1 L-5 4 Z" fill="${ink}"/><text y="16" font-size="9.5" text-anchor="middle" fill="${ink}">N</text></g>`;
   const svg=document.getElementById('map'); svg.setAttribute('viewBox',`0 0 ${Wm} ${Hm}`); svg.innerHTML=s; VB={x0,x1,y0,y1};
 }
+// long texts from the data files: a short lead, then the rest as a list (the data files keep the full sentences)
+const ABBR=/(?:\bal|\be\.g|\bi\.e|\bvs|\bapprox|\bNo|\bSt|\bFig)\.$/;
+function sents(t){ const out=[]; String(t).split(/(?<=\.)\s+(?=[A-Z0-9(<"“])/).forEach(x=>{ if(out.length&&ABBR.test(out[out.length-1])) out[out.length-1]+=' '+x; else out.push(x); }); const res=[]; out.forEach(x=>{ if(x.length<240){ res.push(x); return; } x.split(/;\s+(?![^()]*\))/).forEach((y,i,arr)=>{ y=y.replace(/\.$/,''); res.push(y.charAt(0).toUpperCase()+y.slice(1)+'.'); }); }); return res; }
+function prose(t,html,keep){ const s=sents(html?t:String(t).replace(/[&<>]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]))), k=keep==null?1:keep;
+  if(s.length<=k+1) return s.map(x=>`<p>${x}</p>`).join('');
+  return s.slice(0,k).map(x=>`<p>${x}</p>`).join('')+`<ul class="fnl">${s.slice(k).map(x=>`<li>${x}</li>`).join('')}</ul>`; }
+const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return m.length>1?`<ul class="fnl">${m.map(x=>`<li>${x.trim()}</li>`).join('')}</ul>`:prose(h,true); };
 // scientific field notes: everything the 3D view's panel used to show, from data/yearly/<id>.json (made by the glacier's export_site_yearly.py in experiments/, with the 'page' block: chart numbers, map, texts)
 (function(){
   if('scrollRestoration' in history)history.scrollRestoration='manual'; scrollTo(0,0);
@@ -210,15 +219,16 @@ function drawMap(){
   fetch(`/data/yearly/${ID}.json`).then(r=>r.ok?r.json():Promise.reject()).then(d=>{
     const ys=d.years, y=yr?Math.min(Math.max(yr,ys[0]),ys[ys.length-1]):0;
     PG=d.page; YEARS=ys; KIND={}; ys.forEach(v=>KIND[v]=KMAP[d.kind[v]]); TIER=d.tier; SIG=PG.sig; ANCHOR=PG.anchors; ICESAT=PG.icesat; ASTER=PG.aster; ASTERD=PG.asterd; STAKER=PG.staker; STAKE=PG.stake; MAP=PG.map; STRIP=MAP.strip;
-    $('gname').textContent=PG.short; $('areaT').textContent=PG.areaTitle||'the tongue of '+PG.short; $('mapcap').innerHTML=PG.mapcap; $('nUnc').textContent=PG.notes.uncertainty; $('nInd').innerHTML=PG.notes.independent; $('nShare').innerHTML=PG.notes.sharing;
+    $('gname').textContent=PG.short; $('areaT').textContent=PG.areaTitle||'the tongue of '+PG.short; $('mapcap').innerHTML=prose(PG.mapcap,true,2); $('nUnc').outerHTML='<div id="nUnc">'+prose(PG.notes.uncertainty,false,1)+'</div>'; $('nInd').innerHTML=parts(PG.notes.independent)+'<p>Click a year for the numbers.</p>'; $('nShare').innerHTML=parts(PG.notes.sharing);
     document.title='Field notes: '+PG.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+PG.short+' 3D'; }
-    if(PG.bed){ const B=PG.bed; BM=B.BM; $('bed').hidden=false; $('bedLead').innerHTML=B.lead; $('bedChecks').innerHTML=B.checks.map(c=>`<div class="chk">${c}</div>`).join(''); $('bedCap1').innerHTML=B.figs[0]; $('bedCap2').innerHTML=B.figs[1]; $('bedKey').innerHTML=B.key; $('bedRead').innerHTML=B.read; $('bedSrc').innerHTML=B.src; $('bm1').setAttribute('aria-label',B.aria1); $('bm2').setAttribute('aria-label',B.aria2); } else $('tocBed').remove();
+    if(PG.bed){ const B=PG.bed; BM=B.BM; $('bed').hidden=false; $('bedLead').innerHTML=prose(B.lead,true,1); $('bedChecks').innerHTML=B.checks.map(c=>`<div class="chk">${c}</div>`).join(''); $('bedCap1').innerHTML=B.figs[0]; $('bedCap2').innerHTML=B.figs[1]; $('bedKey').innerHTML=B.key; $('bedRead').innerHTML=prose(B.read,true,1); $('bedSrc').innerHTML=B.src; $('bm1').setAttribute('aria-label',B.aria1); $('bm2').setAttribute('aria-label',B.aria2); } else $('tocBed').remove();
     let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent; const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });      // numbered by what is on the page
-    $('fnAnch').innerHTML=d.anchors.map(a=>`<p><b>${esc(a.id)}</b> ${esc(a.source)}. ${esc(a.survey.replace(/\.$/,''))}. Placed at ${esc(a.placed_at)}.</p>`).join('')+`<p>${esc(d.shape)}</p>`;
+    $('fnAnch').innerHTML=d.anchors.map(a=>`<div class="anc"><p><b>${esc(a.id)}</b> ${esc(a.source)}</p><ul class="fnl">${sents(a.survey).map(x=>`<li>${esc(x)}</li>`).join('')}<li><b>Placed at</b> ${esc(a.placed_at.replace(/\.$/,''))}</li></ul></div>`).join('')+`<h3 class="fnh">How the years in between are made</h3>`+prose(d.shape,false,1);
     $('fnSummary').textContent=d.summary;
-    $('fnVal').innerHTML=['icesat2','datum','extended_area','not_checked'].filter(k=>d.validation[k]).map(k=>`<p>${esc(d.validation[k])}</p>`).join('')+`<p>${esc(d.bed)}</p>${d.caveat_2026?`<p>${esc(d.caveat_2026)}</p>`:''}`;
+    const VH={icesat2:'Against ICESat-2 laser heights',datum:'Height datum',extended_area:'Where there is no check',not_checked:'What is not checked'};
+    $('fnVal').innerHTML=['icesat2','datum','extended_area','not_checked'].filter(k=>d.validation[k]).map(k=>`<h3 class="fnh">${VH[k]}</h3>`+prose(d.validation[k],false,1)).join('')+`<h3 class="fnh">Floor of the model</h3>`+prose(d.bed,false,1)+(d.caveat_2026?`<h3 class="fnh">2026</h3>`+prose(d.caveat_2026,false,1):'');
     $('fnView').innerHTML=`<p>${PG.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}?v=${PG.viewerV||''}" target="_blank" rel="noopener" style="color:var(--ice)">Open it in its own tab</a></p><div id="vwrap"></div>`;
-    $('fnLic').innerHTML=`<p>${esc(d.not_used)}</p><p>${esc(d.licences)}</p>`;
+    $('fnLic').innerHTML=`<h3 class="fnh">Not used</h3>`+prose(d.not_used,false,1)+`<h3 class="fnh">Licences</h3>`+prose(d.licences,false,1);
     const vb=$('vbtn'), load=()=>{$('vwrap').innerHTML='<iframe src="'+VIEW+'?v='+(PG.viewerV||'')+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; vb.hidden=true;}; vb.onclick=load; if(q.get('viewer'))load();
     draw(); drawMap(); drawOverview(); if(PG.bed) bedMaps();
     if(y)show(y);      // the year on screen is chosen, but the page stays at its top

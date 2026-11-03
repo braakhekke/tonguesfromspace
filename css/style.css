@@ -637,6 +637,11 @@ sup.fn a:hover{opacity:.7}
 .sym-txt small:only-child{font-size:14px;font-weight:700;color:var(--rock)}
 .about-sec b{display:block;font-size:12.5px;color:var(--rock);margin:0 0 3px}
 .about-sec p{font-size:12px;line-height:1.5;color:var(--moraine);margin:0 0 6px}
+.about-sec h4{font-size:12.5px;font-weight:600;color:var(--rock);margin:14px 0 4px}
+.about-sec h4:first-child{margin-top:2px}
+.about-sec ul{margin:0 0 8px;padding-left:16px;font-size:12px;line-height:1.5;color:var(--moraine)}
+.about-sec li{margin:0 0 5px}
+.about-sec li:last-child{margin-bottom:0}
 .src-list{margin:0;padding-left:16px;font-size:11.5px;line-height:1.5;color:var(--moraine)}
 .src-list a{color:var(--crevasse)}
 .stat{background:var(--firn);border-radius:0;padding:9px 10px;display:flex;flex-direction:column;gap:2px;min-width:0}
@@ -1625,3 +1630,5 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .story .stat.cube-tile .k{text-transform:uppercase}
 .story .stat .sym-cube{display:block;width:100%;height:auto;max-height:110px;margin:6px 0 2px}
 .story .stat.cube-tile .per-y{order:-1;margin:-2px 0 3px}
+/* About chapters: short paragraphs, lists and subheads read left-aligned */
+.story .about-sec p,.story .about-sec li{text-align:left;hyphens:manual;-webkit-hyphens:manual}
