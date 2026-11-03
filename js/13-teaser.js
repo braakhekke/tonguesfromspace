@@ -7,9 +7,9 @@ Object.defineProperty(wire, 'teaserOpen', { get: () => teaserOpen, configurable:
 /* =====================================================================
    13. Teaser film: plays over the page at the first visit
    ===================================================================== */
-/* A film of about a minute (teaser/, made by scripts/make_teaser.py from the page itself): timelapse, compare, 3D, old photographs, the downloads and the figures.
+/* A film of about a minute and a half (teaser/, made by scripts/make_teaser.py from the page itself): timelapse, compare, 3D, old photographs, a cross-section, the field notes, more spatial data, glacier sizes, the downloads and the figures.
    It plays once, on the first visit to the plain address (no link to a glacier, no hash), muted, over the page while the page loads behind it. Skip, Esc or the end leave it.
-   Not for people who asked for less motion or less data, On portrait screens the film is shown in the middle, just under full width. "Watch the teaser" in the left panel and the link #teaser play it again. */
+   Not for people who asked for less motion or less data, On portrait screens the film is shown in the middle, just under full width. "Watch the demo" in the left panel and the link #teaser play it again. */
 export const TEASER_KEY = 'tfs-teaser-seen';
 export const teaserSeen = () => { try { return !!localStorage.getItem(TEASER_KEY); } catch { return false; } };
 export const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } catch {} };
@@ -22,10 +22,10 @@ export function teaserWanted(){
 export let teaserOpen = false;
 export function openTeaser(auto){
   if (teaserOpen) return;
-  const base = 'teaser/teaser-wide', before = /** @type {any} */ (document.activeElement);
+  const base = 'teaser/teaser-wide-new', before = /** @type {any} */ (document.activeElement);
   teaserOpen = true;
-  const box = document.createElement('div'); box.className = 'teaser'; box.id = 'teaser'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Teaser film: Tongues from Space');
-  box.innerHTML = `<video muted playsinline preload="auto" poster="${asset(base + '-poster.jpg')}" aria-label="Satellite timelapses, a before and after slider, 3D terrain, historic photographs, downloads and glacier figures of the ten largest Swiss glaciers">
+  const box = document.createElement('div'); box.className = 'teaser'; box.id = 'teaser'; box.setAttribute('role', 'dialog'); box.setAttribute('aria-modal', 'true'); box.setAttribute('aria-label', 'Demo film: Tongues from Space');
+  box.innerHTML = `<video muted playsinline preload="auto" poster="${asset(base + '-poster.jpg')}" aria-label="Satellite timelapses, a before and after slider, 3D terrain, historic photographs, a cross-section through the ice, field notes, more spatial data, glacier sizes on your city, downloads and glacier figures of the ten largest Swiss glaciers">
       <source src="${asset(base + '.mp4')}" type="video/mp4"><source src="${asset(base + '.webm')}" type="video/webm"></video>
     <button type="button" class="teaser-skip">Skip</button><div class="teaser-bar" aria-hidden="true"><i></i></div>
     <div class="teaser-end" hidden><button type="button" class="teaser-go">Start exploring</button><button type="button" class="teaser-again">Watch again</button></div>`;

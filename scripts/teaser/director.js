@@ -8,13 +8,12 @@
   const css = `
   #dr{position:fixed;inset:0;z-index:99990;pointer-events:none;font-family:'Schibsted Grotesk','Helvetica Neue',Arial,sans-serif;color:#0E1A22;overflow:hidden}
   #dr *{box-sizing:border-box}
-  /* caption: a sheet like the panels of the site */
+  /* caption: a sheet like the panels of the site, without the small red label above the headline */
   #dr .cap{position:absolute;bottom:var(--cb,30px);right:var(--cr,24px);width:var(--cw,255px);background:#fff;border:1px solid #DDE3E6;box-shadow:0 2px 12px rgba(0,0,0,.22);padding:13px 16px 14px;opacity:0;transform:translateY(8px);transition:opacity .4s,transform .5s cubic-bezier(.2,.8,.2,1)}
   #dr .cap.in{opacity:1;transform:none}
   #dr .cap.out{opacity:0;transform:translateY(6px);transition:opacity .3s,transform .35s}
-  #dr .cap .k{display:flex;align-items:center;gap:10px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:#C8322A}
-  #dr .cap .k .num{color:#C8322A;font-weight:700;font-variant-numeric:tabular-nums}
-  #dr .cap .h{margin-top:6px;font-size:21px;line-height:1.15;font-weight:600;letter-spacing:-.01em;color:#0A1B33}
+  #dr .cap .k{display:none}
+  #dr .cap .h{font-size:21px;line-height:1.15;font-weight:600;letter-spacing:-.01em;color:#0A1B33}
   #dr .cap .s{margin-top:5px;font-size:13.5px;line-height:1.4;font-weight:400;color:#66757E}
   /* cursor */
   #dr .cur{position:absolute;left:0;top:0;width:22px;height:22px;margin:-2px 0 0 -2px;opacity:0;transition:opacity .3s,transform .12s;filter:drop-shadow(0 1px 3px rgba(0,0,0,.45));will-change:left,top}
@@ -23,17 +22,21 @@
   #dr .rip{position:absolute;width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:50%;border:2px solid #fff;box-shadow:0 0 0 1px rgba(14,26,34,.35);opacity:.95;animation:rip .6s ease-out forwards}
   @keyframes rip{to{transform:scale(3.2);opacity:0}}
   /* end card: no sheet, white text straight on the darkened page, the header of the site large; it drifts up slowly while it is on */
-  #dr .card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:radial-gradient(ellipse at 50% 50%,rgba(4,9,16,.74),rgba(3,6,12,.9));opacity:0;transition:opacity .9s}
+  #dr .card{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;background:rgba(4,9,16,.78);opacity:0;transition:opacity .9s}
   #dr .card.on{opacity:1}
   #dr .card .in{display:flex;flex-direction:column;align-items:center;animation:drift 6s linear forwards}
   @keyframes drift{from{transform:translateY(14px) scale(.98)}to{transform:translateY(-10px) scale(1.03)}}
   #dr .card .brand{display:flex;align-items:center;justify-content:center;gap:28px;text-align:left}
-  #dr .card .brand img{width:132px;height:auto;display:block}
+  #dr .card .brand svg{width:132px;height:auto;display:block;overflow:visible}
+  #dr .card .brand svg .tongue{transform-box:view-box;transform-origin:96px 86px;animation:lick 5s ease-in-out infinite}      /* as the logo on the home page, but white */
+  #dr .card .brand svg .spark{transform-box:fill-box;transform-origin:center;animation:twinkle 3.2s ease-in-out infinite}
+  @keyframes lick{0%,100%{transform:scaleY(.82) scaleX(.96)}50%{transform:scaleY(1.08) scaleX(1.02)}}
+  @keyframes twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.65) rotate(45deg);opacity:.55}}
   #dr .card .t1{font-size:64px;font-weight:600;letter-spacing:-.015em;line-height:1.05;color:#fff;white-space:nowrap}
   #dr .card .t2{font-size:64px;font-weight:600;letter-spacing:-.015em;line-height:1.05;color:#E5443B}
   #dr .card .sub{margin:34px 0 0;font-size:23px;line-height:1.4;color:rgba(255,255,255,.94);max-width:760px}
   #dr .card .src{margin:10px 0 0;font-size:16.5px;color:rgba(255,255,255,.66);letter-spacing:.02em}
-  #dr .card .url{margin-top:30px;padding-bottom:6px;border-bottom:2px solid #E5443B;color:#fff;font-size:26px;font-weight:600;letter-spacing:.01em}
+  #dr .card .url{margin-top:30px;color:#fff;font-size:26px;font-weight:600;letter-spacing:.01em}
   #dr .card .brand,#dr .card .sub,#dr .card .src,#dr .card .url{opacity:0;transform:translateY(12px);transition:opacity .9s,transform 1.1s cubic-bezier(.2,.8,.2,1)}
   #dr .card.on .brand{opacity:1;transform:none;transition-delay:.15s}
   #dr .card.on .sub{opacity:1;transform:none;transition-delay:.6s}
@@ -77,7 +80,7 @@
     /* end card: the logo and name of the site as in the left panel, a line, the address */
     card(sub, url, t2 = 'Switzerland'){      // t2: the red second line beside the logo; '' leaves it out
       D.uncard(true);
-      const c = el('card', `<div class="in"><div class="brand"><img src="logo/tongues-from-space-logo-plain-white.svg" alt=""><div><div class="t1">Tongues from Space</div>${t2 ? `<div class="t2">${t2}</div>` : ''}</div></div><p class="sub">${sub}</p><div class="url">${url}</div></div>`);
+      const c = el('card', `<div class="in"><div class="brand"><svg viewBox="0 0 200 190" aria-hidden="true"><defs><mask id="dlM" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><ellipse cx="100" cy="88" rx="48" ry="24" fill="#000"/></mask><mask id="dlG" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/></mask></defs><g fill="#fff"><path d="M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z" mask="url(#dlM)"/><path class="tongue" d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#dlG)"/><path class="spark" d="M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z"/></g></svg><div><div class="t1">Tongues from Space</div>${t2 ? `<div class="t2">${t2}</div>` : ''}</div></div><p class="sub">${sub}</p><div class="url">${url}</div></div>`);
       requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add('on'))); return c;
     },
     uncard(now){ root.querySelectorAll('.card').forEach(c => { c.classList.remove('on'); if (now) c.remove(); else setTimeout(() => c.remove(), 700); }); },

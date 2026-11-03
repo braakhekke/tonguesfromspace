@@ -376,7 +376,7 @@ CHIP_CSS = """#dr .chip{position:absolute;display:flex;align-items:center;gap:10
 #dr .chip .dash{display:flex;flex-direction:column;gap:3px} #dr .chip .dash b{width:40px;height:3px}
 #dr .chip .sv{width:26px;height:26px;border-radius:50%;background:#228be6;color:#fff;font-size:9px;font-weight:700;display:flex;align-items:center;justify-content:center}
 #dr .chip .cam{width:24px;height:17px;border-radius:3px;background:#1971c2;position:relative} #dr .chip .cam:after{content:'';position:absolute;left:8px;top:4px;width:8px;height:8px;border-radius:50%;background:#fff}
-#dr .chip .tt{font-size:15px;font-weight:700;color:#0A1B33;border-bottom:2px solid #C8322A}"""
+#dr .chip .tt{font-size:15px;font-weight:700;color:#0A1B33}"""
 
 
 def take_data(T):
