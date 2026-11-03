@@ -260,6 +260,22 @@ dialog.player{overflow:visible}
   section.s{padding:52px 0}
 }
 
+/* phone held sideways: the hero is the text on the left and the flight on the right, not a tall single column; the sections below are lower */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .hero{padding:64px 0 26px}
+  .hero .wrap{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:22px;align-items:center}
+  .herotext{display:block}
+  .herotext h1{margin:0 0 10px;font-size:25px}.herotext .lede{margin:0 0 12px;font-size:13.5px;line-height:1.45}
+  .herotext .find{margin:0;padding:10px;gap:8px}
+  .find .btn-red{height:42px;font-size:14px}.find .sbox{height:42px}
+  .flightbox{order:0}
+  .flight-link{font-size:12px}
+  .bar .wrap{height:52px}
+  .whyband,.closing{padding:30px 0}.pickband{padding:34px 0 24px}section.s{padding:32px 0}
+  .mapbox{height:78vh}
+  .tiles{grid-template-columns:repeat(4,1fr)}
+}
+
 /* ---------- search ---------- */
 .sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 .search{position:relative;margin-top:20px}

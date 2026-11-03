@@ -336,6 +336,13 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 @media (max-width:720px){
   .v3d-top .h-full{display:none}.v3d-top .h-short{display:block}
 }
+@media (pointer:coarse),(max-width:950px) and (orientation:landscape) and (max-height:520px){      /* touch: never the mouse text (Shift, right-drag); the hint goes after the first touch of the picture */
+  .v3d-top .h-full{display:none}.v3d-top .h-short{display:block;font-size:12px}
+  .sci-pill{margin-top:5px;padding:4px 9px 4px 7px;font-size:11.5px}
+  .sci-pill .sci-l{display:none}.sci-pill .sci-s{display:inline}
+}
+.sci-pill .sci-s{display:none}
+body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .v3d-bottom [hidden]{display:none}
 .v3d-div{position:absolute;z-index:4;touch-action:none;display:flex;align-items:center;justify-content:center}
 .v3d-div[hidden]{display:none}

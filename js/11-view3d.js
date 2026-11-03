@@ -1734,6 +1734,11 @@ $('v3dSectPngDl').onclick = () => {
 };
 export const creditNote = () => { const c = v3dCtx; if (!c) return; const lc = $('v3dLc'); if (lc) lc.textContent = layersCreditText(c.g); const ls = $('v3dLcS'); if (ls) ls.textContent = shortLayerNames(c.g); };
 export const sectStamp = (viewer, sh) => { const [A, B] = sh.pts; return `${v3dCtx.cmp ? v3dCtx.cmp.join('-') : v3dCtx.current()}|${viewer.elev((A[0] + B[0]) / 2, (A[1] + B[1]) / 2).toFixed(2)}|${viewer.elev(A[0], A[1]).toFixed(2)}`; };      // changes when another year's surface is set
+try { if (COARSE && localStorage.getItem('tsf.v3hint')) document.body.classList.add('hint-done'); } catch (e) {}
+$('v3d').addEventListener('pointerdown', e => {            // touch: the drag hint has done its job after the first touch of the picture
+  if (!COARSE || (e.target.closest && e.target.closest('button, a, .layerbox, .v3d-measure'))) return;
+  document.body.classList.add('hint-done'); try { localStorage.setItem('tsf.v3hint', '1'); } catch (err) {}
+});
 export let m3Down = null;
 $('v3d').addEventListener('pointerdown', e => { m3Down = M3.mode && !(e.target.closest && e.target.closest('button, .layerbox, input, .v3d-div, .v3d-measure, .v3d-mhint, a')) ? {x: e.clientX, y: e.clientY, t: performance.now()} : null; });
 $('v3d').addEventListener('pointerup', e => {
