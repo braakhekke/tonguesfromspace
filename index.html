@@ -23,6 +23,7 @@
 <link rel="preconnect" href="https://tiles.maps.eox.at">
 <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" as="script" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous">
 <script src="js/regions.js"></script>
+<script src="js/dem-export.js"></script>
 <script src="js/00-regions.js"></script>
 <script src="js/search.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
@@ -77,7 +78,6 @@
   .landsat-opt{align-items:flex-start;margin:8px 0 4px}
   .landsat-opt input{margin-top:3px}
   .landsat-opt.not-recommended #landsatText{color:#9a5b00}
-  .landsat-note{display:block;font-size:11px;line-height:1.35;color:var(--moraine);margin-top:1px}
 </style>
 </head>
 <body>
@@ -109,7 +109,7 @@
         <ul class="region-menu" id="regionMenu" role="listbox" aria-label="Region" hidden></ul>
       </div>
       <p id="brandLede">Discover the ten largest Swiss glaciers. Compare, create and share your visuals.</p>
-      <button type="button" class="teaser-btn" id="teaserBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the demo</button>
+      <div class="brand-btns"><button type="button" class="teaser-btn" id="teaserBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the demo</button><a class="teaser-btn" href="gallery.html" title="Pictures and videos that visitors have shared"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg>Gallery</a></div>
     </div>
 
     <section class="step" id="glacierGroup">
@@ -171,7 +171,8 @@
           <label class="toggle loop"><input type="checkbox" id="loopToggle"> <span>Loop</span></label>
         </div>
       </div>
-      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span><small class="landsat-note">Before 2016, the imagery comes with 30 m pixels instead of the 10 m from 2016 onwards, so less detail. For now, the dynamic statistics listed in the right panel start in 2016, not earlier. The elevation models are reconstructed from 2016 onwards, so earlier imagery is projected onto the 2016 elevation model.</small></span></label>
+      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span> <button type="button" class="info-btn" id="landsatI" aria-expanded="false" aria-controls="landsatInfo" aria-label="About the older imagery">i</button></span></label>
+      <p class="landsat-info" id="landsatInfo" hidden>Before 2016, the imagery has 30 m pixels instead of 10 m, so less detail. The dynamic statistics in the right panel start in 2016. The elevation models are reconstructed from 2016 onwards, so earlier imagery is projected onto the 2016 elevation model.</p>
       <p class="status busy" id="status">Looking for the clearest scene of each year…</p>
 
       <details class="tune sat-need">
@@ -194,34 +195,39 @@
       <div class="meta-body" id="metaBody"></div>
       </details>
       <p class="hint outside-note" id="outsideNote" hidden></p>
+      <a class="act act-link" href="size.html" id="sizeLink" title="Drag the outline of a glacier onto a city and see how big it is">Size comparison with your city</a>
     </section>
 
     <section class="step" id="shareGroup">
-      <h2 class="step-h"><span class="num">03</span>Create and share<small class="step-lock">pick a glacier</small></h2>
+      <h2 class="step-h"><span class="num">03</span>Save and share<small class="step-lock">pick a glacier</small></h2>
       <div class="dl-grid sat-need">
         <button type="button" class="dl" id="imageBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg><b>Your image</b><small>one picture, JPEG</small></button>
         <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your animation</b><small>short video, MP4</small></button>
+        <button type="button" class="dl dl-wide" id="demBtn" aria-expanded="false" aria-controls="demBox" hidden title="The ice surface of a year as a file for GIS"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 19l5.5-9 4 5.5 3-4L21 19z"/><path d="M12 3v5M9.5 5.5L12 3l2.5 2.5"/></svg><span><b>Elevation model</b><small>GeoTIFF, ASCII grid or XYZ</small></span></button>
       </div>
-      <button type="button" class="act sat-need" id="shareBtn">Share this view</button>
-      <button type="button" class="act sat-need" id="embedBtn" aria-expanded="false" aria-controls="embedBox">Embed on your website</button>
+      <div class="embed-box" id="demBox" hidden>
+        <div class="dem-row"><label>Year <select id="demYear" aria-label="Year of the surface"></select></label><label>Format <select id="demFmt" aria-label="File format"></select></label></div>
+        <p class="hint" id="demNote"></p>
+        <button type="button" class="act" id="demGo">Download</button>
+        <p class="hint" id="demMsg" role="status"></p>
+      </div>
+      <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share link</button><button type="button" class="act" id="embedBtn" aria-expanded="false" aria-controls="embedBox">Embed</button></div>
       <div class="embed-box" id="embedBox" hidden>
         <p class="hint">Paste this into your page. It shows the view you have now: glacier, years and mode, with the credits.</p>
         <textarea id="embedCode" readonly rows="9" spellcheck="false" aria-label="Embed code"></textarea>
         <div class="embed-row"><button type="button" class="act" id="embedCopy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
       </div>
-      <a class="act act-link" href="gallery.html">Gallery</a>
-      <a class="act act-link" href="size.html" id="sizeLink" title="Drag the outline of a glacier onto a city and see how big it is">Size comparison with your city</a>
       <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
         <img class="fyi-img" src="images/foryourice.jpg" alt="A framed glacier art print by For Your Ice" width="420" height="517" loading="lazy">
-        <span class="fyi-ask">Glacier art for your wall</span>
+        <span class="fyi-ask">A glacier worth keeping</span>
         <span class="fyi-name">For Your Ice</span>
-        <span class="fyi-text">Take a piece of the ice home. Every print supports new visual tools, like this Tongues from Space dashboard, that bring glaciers closer to people.</span>
+        <span class="fyi-text">Support Tongues from Space through art</span>
         <span class="fyi-go">See the prints →</span>
       </a>
       <p class="byline fyi-by">Designed to increase public glacial awareness - by J. Braakhekke.</p>
     </section>
 
-    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn"><span class="num">03</span><span>Create and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn"><span class="num">03</span><span>Save and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
   </aside>
 
   <!-- ================= CENTRE ================= -->

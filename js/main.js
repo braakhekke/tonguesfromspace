@@ -14,6 +14,7 @@ import './08-controls.js';
 import './09-phones.js';
 import './10-animation.js';
 import './11-view3d.js';
+import './11a-dem-download.js';
 import './12-boot.js';
 import './13-teaser.js';
 import './14-streetview.js';

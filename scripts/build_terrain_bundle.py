@@ -130,6 +130,9 @@ def taper(d):
     return d * np.minimum(k, TAPER_CELLS) / TAPER_CELLS
 
 
+LAKE_FLAGS = {}      # gid -> int16 array (years, rows, columns), 1 where the node of that year is lake; appended to the payload after the bed
+
+
 def yearly_surfaces(gid, EN, hts, bedv, h0):
     """(header entry, [surface of each year as rows of decimetres above the tip]) from data/yearly/<id>.npz, or None. The file holds the change of each year against the newest swissALTI3D
     edition (cm, 20 m cells, made by experiments/aletsch-yearly-dem/strip_model.py); it is resampled bilinearly onto the grid of the strip and added to the 14 m heights (lake cells, `flat`, are set to their water level), so the detail
@@ -140,7 +143,8 @@ def yearly_surfaces(gid, EN, hts, bedv, h0):
     if 'clean' in z.files:      # the clean build (experiments/clean-yearly): the surface of each year is already on the nodes of this grid, in decimetres above z['base']; no taper, no resampling, no lake rule here (the lakes are flat in the file)
         H = np.array(hts, float); base = float(z['base']); assert z['surf'].shape[1:] == H.shape, (z['surf'].shape, H.shape); out = [[[int(round((v - h0) * 10)) for v in r] for r in (base + z['surf'][k].astype(float) / 10).tolist()] for k in range(len(z['years']))]
         years = [int(y) for y in z['years']]; J = json.load(open(os.path.join(ROOT, 'data', 'yearly', gid + '.json')))
-        return {'years': years, 'kind': [J['kind'][str(y)] for y in years], 'dates': J['dates'], 'clean': 1, 'swiss': 1, 'provenance': f'data/yearly/{gid}.json'}, out
+        LAKE_FLAGS[gid] = (z['cls'] == 5).astype('<i2') if (z['cls'] == 5).any() else None      # lake nodes of each year (class 5): the 3D section draws them as water, not as ice
+        return {'years': years, **({'lake': 1} if LAKE_FLAGS[gid] is not None else {}), 'kind': [J['kind'][str(y)] for y in years], 'dates': J['dates'], 'clean': 1, 'swiss': 1, 'provenance': f'data/yearly/{gid}.json'}, out
     E = np.array([[e for e, n in r] for r in EN]); N = np.array([[n for e, n in r] for r in EN])
     fi = (E - int(z['e0'])) / 20 - 0.5; fj = (N - int(z['n0'])) / 20 - 0.5; H = np.array(hts, float); out = []
     B = np.array([[np.nan if v is None else v for v in r] for r in bedv], float)
@@ -195,7 +199,7 @@ def build(g, tiles, bed):
         flat = []
         for row in rows: flat += [row[0]] + [row[i] - row[i - 1] for i in range(1, len(row))]
         return struct.pack('<%dh' % len(flat), *flat)
-    payload = zlib.compress(packed(q) + (packed(delta) if delta else b'') + (b''.join(packed(s) for s in yearly[1]) if yearly else b'') + packed(bq), 9)
+    payload = zlib.compress(packed(q) + (packed(delta) if delta else b'') + (b''.join(packed(s) for s in yearly[1]) if yearly else b'') + packed(bq) + (LAKE_FLAGS[gid].tobytes() if LAKE_FLAGS.get(gid) is not None else b''), 9)
     name, size = tl.write_bundle(gid, head, payload)
     print(f'  {len(pins)} radar pins, {len(names)} names ({", ".join(n["text"] for n in names)}), ice change: {"yes" if delta else "no"}, bed: {nobed} of {len(bq) * len(bq[0])} points without swissBEDROCK; wrote {name}: {size / 1024:.0f} KB', file=sys.stderr)
 

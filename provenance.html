@@ -17,13 +17,17 @@
   #detail { margin-top:12px; min-height:64px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:10px 14px; }
   #detail b { color:var(--loss); } .note { color:var(--muted); font-size:11.5px; margin-top:12px; max-width:900px; }
   .top { display:flex; gap:16px; align-items:stretch; flex-wrap:wrap; margin-bottom:14px; }
-  .maps { display:flex; gap:10px; align-items:flex-start; } .maps svg#map0 { flex:0 0 150px; } .maps svg#map { flex:1 1 auto; }
+  .maps { display:flex; gap:16px; align-items:flex-start; } .maps svg#map0 { flex:0 0 120px; } .maps svg#map { flex:1 1 auto; min-width:0; background:var(--card); border:1px solid var(--rule); border-radius:8px; } svg text.halo { paint-order:stroke; stroke:var(--card); stroke-width:3px; stroke-linejoin:round; }
+  .cov { margin-top:16px; padding-top:12px; border-top:1px solid var(--rule); } .cov label { display:block; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--loss); font-weight:600; margin-bottom:6px; } .cov select { display:block; width:100%; max-width:520px; box-sizing:border-box; padding:6px 8px; font:inherit; font-size:12.5px; color:var(--ink); background:var(--card); border:1px solid var(--rule); border-radius:6px; } .cov .covnote { margin:8px 0 0; font-size:11.5px; line-height:1.45; color:var(--muted); min-height:1.45em; } .cov .covnote i { display:inline-block; width:10px; height:10px; border-radius:2px; background:#ED730F; opacity:.6; margin-right:6px; vertical-align:-1px; }
   .mapcard { flex:0 0 520px; padding:10px 12px; } .mapcard svg { min-width:0; } .mapcap { color:var(--muted); font-size:11.5px; margin-top:6px; line-height:1.4; } .mapcap b { color:var(--ink); }
   .top .sub { flex:1 1 380px; margin:0; align-self:center; }
   .notes { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:10px 22px; margin-top:14px; }
   .notes h3 { margin:0 0 2px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--loss); font-weight:600; }
   .notes p { margin:0; color:var(--muted); font-size:12px; line-height:1.45; } .notes b { color:var(--ink); font-weight:600; }
   #detail div { line-height:1.45; }
+  .dl { margin-top:14px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; } .dl h3 { margin:0 0 4px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--loss); font-weight:600; } .dl p { margin:0 0 6px; max-width:820px; }
+  .dlrow { display:flex; flex-wrap:wrap; gap:8px 14px; align-items:flex-end; margin:8px 0; } .dlrow label { display:flex; flex-direction:column; gap:3px; font-size:11px; color:var(--muted); } .dlrow select { font:inherit; font-size:13px; padding:5px 8px; border-radius:8px; border:1px solid var(--rule); background:var(--bg); color:var(--ink); }
+  .dlrow button { font:inherit; font-weight:600; padding:6px 14px; border-radius:8px; border:1px solid var(--loss); background:var(--loss); color:#fff; cursor:pointer; } .dlrow button:disabled { opacity:.6; cursor:wait; } .dlnote { color:var(--muted); font-size:11.5px; }
   .bednote { margin-top:18px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px 16px 12px; }
   .bednote h2 { margin:0 0 2px; font-size:15px; color:var(--loss); } .bednote .lead { color:var(--muted); margin:0 0 10px; max-width:860px; }
   .bednote .checks { display:grid; grid-template-columns:repeat(auto-fit,minmax(260px,1fr)); gap:12px 20px; }
@@ -47,7 +51,7 @@
   .fn h3.fnh { margin:14px 0 2px; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--loss); font-weight:600; } .fn h3.fnh:first-child { margin-top:2px; }
   ul.fnl { margin:4px 0 8px; padding-left:18px; color:var(--muted); font-size:12.5px; line-height:1.45; max-width:900px; } ul.fnl li { margin:0 0 4px; } ul.fnl b { color:var(--ink); font-weight:600; } .anc { margin:0 0 12px; } .anc p { margin:0; } .notes ul.fnl { font-size:12px; padding-left:16px; margin:2px 0 0; } .mapcap ul.fnl { font-size:inherit; }
   .fn .notes { margin-top:14px; } .fn .legend { margin-top:10px; } .fn #detail { margin-top:12px; }
-  .fn .row0 { display:flex; gap:16px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:520px; }
+  .fn .row0 { display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; flex:0 0 520px; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:560px; } .fn .row0 .mapcap p { margin:0 0 8px; }
   #overview { display:none; } .ov #overview { display:block; } .ov #allFn { display:none; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
   .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
   @media (max-width:640px) { main { padding:16px 12px 32px; } .mapcard { flex:1 1 100%; min-width:0; max-width:100%; } .maps svg#map0 { flex:0 0 28%; } .fn, .bednote { padding:12px 12px 10px; } .bednote figure svg { width:100%; } .bednote figcaption { max-width:none; } .bednote .figkey svg { width:100%; max-width:230px; } .fn .r span:first-child { flex-basis:70px; } }
@@ -78,7 +82,8 @@
   <section><h3>Uncertainty</h3><p id="nUnc">Median over the tongue ice, red whisker the 90th percentile. Calibrated on the same ICESat-2 shots. 2026 has none yet: it is provisional and its balance was read from the GLAMOS figure.</p></section>
   <section><h3>Independent checks</h3><div id="nInd"><ul class="fnl"><li><b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out).</li><li><b>ASTER</b> and <b>stakes</b> are checks only.</li></ul><p>Click a year for their numbers.</p></div></section>
 </div>
-<div id="fnView">Loading…</div></section>
+<div id="fnView">Loading…</div>
+<div id="dlbox" class="dl" hidden></div></section>
 
 <section class="fn" id="anchors"><h2><span class="no">3</span>Measured surfaces: the anchors</h2><div id="fnAnch">Loading…</div></section>
 <section class="fn" id="validation"><h2><span class="no">4</span>Validation, limits and caveats</h2><div id="fnVal">Loading…</div></section>
@@ -95,6 +100,38 @@
   <div class="src" id="bedSrc"></div>
 </section>
 <section class="fn" id="licences"><h2><span class="no">6</span>Data not used, and licences</h2><div id="fnLic">Loading…</div></section>
+<script src="js/dem-export.js"></script>
+<script>
+let demCache = null;
+async function demLoad(id){      // the terrain file of a glacier, parsed (heights of every year) with the LV95 position of every node
+  if (demCache && demCache.id === id) return demCache;
+  const man = await fetch('/data/terrain/manifest.json', {cache: 'no-cache'}).then(r => r.json()), name = man[id]; if (!name) throw new Error('no terrain file');
+  const r = await fetch('/data/terrain/' + name); if (!r.ok) throw new Error('terrain file not found');
+  const b = await DEM.parse(await r.arrayBuffer()); b.nd = DEM.nodes(b.head); b.id = id; return (demCache = b);
+}
+function dlInit(d, ID){
+  const box = document.getElementById('dlbox'); if (!box || !d.years || !d.years.length) return;
+  const name = d.short || d.name || ID, kindOf = y => (d.kind || {})[y], dateOf = y => (d.dates || [])[d.years.indexOf(y)];
+  box.hidden = false;
+  box.innerHTML = `<h3>Download the elevation model</h3><p>The ice surface of one year for ${name}, the strip of the 3D view (ice and the ground around it), for GIS: heights in metres above sea level as in swissALTI3D, coordinates LV95 (EPSG:2056).</p>
+  <div class="dlrow"><label>Year <select id="dlYear">${d.years.map(y => `<option value="${y}">${y}</option>`).join('')}</select></label>
+  <label>Format <select id="dlFmt">${Object.entries(DEM.FORMATS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('')}</select></label>
+  <button id="dlBtn" type="button">Download</button></div><p class="dlnote" id="dlNote"></p><p class="dlnote" id="dlMsg" role="status"></p>`;
+  const yS = document.getElementById('dlYear'), fS = document.getElementById('dlFmt'), note = document.getElementById('dlNote'), msg = document.getElementById('dlMsg');
+  yS.value = d.years[d.years.length - 2] || d.years[0];
+  const txt = () => DEM.FORMAT_TEXT[fS.value];
+  const refresh = () => { const y = +yS.value, k = kindOf(y), dt = dateOf(y); note.textContent = `${y}: ${k || 'surface'}${dt ? ', the surface on ' + dt : ''}. ${txt()} A model, not a measurement, except on the days and cells a survey covers; heights are kept to 0.1 m. For non-commercial use: the data under it (swisstopo, GLAMOS) has its own terms, see Data and licences below.`; };
+  yS.onchange = fS.onchange = refresh; refresh();
+  document.getElementById('dlBtn').onclick = async () => {
+    const y = +yS.value, f = fS.value, btn = document.getElementById('dlBtn'); btn.disabled = true; msg.textContent = 'Preparing…';
+    try {
+      const b = await demLoad(ID), k = kindOf(y), dt = dateOf(y), o = DEM.make(b, y, f, DEM.credit(name, y, k, dt, ID)), fn = DEM.fileName(ID, y, o.ext); DEM.save(o.blob, fn);
+      msg.textContent = `Saved ${fn} (${(o.blob.size / 1048576).toFixed(1)} MB${f === 'xyz' ? '' : ', cells of ' + Math.round(b.nd.cell) + ' m'}).`;
+    } catch (e) { console.error(e); msg.textContent = 'The file could not be made: ' + e.message; }
+    btn.disabled = false;
+  };
+}
+</script>
 <script>
 let BM;
 let MT, PG, YEARS, KIND, TIER, SIG, ANCHOR, ICESAT, ASTER, ASTERD, STAKER, STAKE, MAP, STRIP, VB=null;      // all from data/yearly/<id>.json, loaded below (id in the address: ?id=B36-26, B56-07)
@@ -185,16 +222,17 @@ function drawMap(){
   const M=MAP, all=M.tongue.flat().concat(STRIP), xs=all.map(p=>p[0]), ys=all.map(p=>p[1]), pad=900, x0=Math.min(...xs)-pad, x1=Math.max(...xs)+pad, y0=Math.min(...ys)-pad, y1=Math.max(...ys)+pad;
   const k=300/(x1-x0), Wm=300, Hm=Math.round((y1-y0)*k), X=x=>(x-x0)*k, Y=y=>(y1-y)*k, path=rs=>rs.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join('');
   const ink=css('--ink'), mu=css('--muted'), ice=css('--ice'), loss=css('--loss'), rule=css('--rule');
-  const tip=M.tip, top=M.top, sb=M.scaleM*k, bx=10, by=Hm-12;
+  const tip=M.tip, top=M.top, sb=M.scaleM*k, bx=16, by=Hm-16;
+  const SB=STRIP.reduce((a,b)=>b[1]<a[1]?b:a);
   let s=`<path d="${path(M.whole)}" fill="${css('--iceLight')}" stroke="${mu}" stroke-width=".8"/>`
    +`<path d="${path(M.tongue)}" fill="${loss}" fill-opacity=".10" stroke="${loss}" stroke-width="1.2" stroke-dasharray="4 3"/>`
    +`<path d="${path(M.ice)}" fill="${ice}" fill-opacity=".85"/>`
-   +`<path d="${path([STRIP])}" fill="none" stroke="${ink}" stroke-width="1.3"/><text x="${X(STRIP[3][0])+4}" y="${Y(STRIP[3][1])+11}" font-size="9.5" fill="${ink}">3D strip</text>`
+   +`<path d="${path([STRIP])}" fill="none" stroke="${ink}" stroke-width="1.3"/><text class="halo" x="${X(SB[0])-6}" y="${Y(SB[1])-6}" font-size="9.5" text-anchor="end" fill="${ink}">3D strip</text>`
    +(M.centre.length?`<polyline points="${M.centre.map(p=>X(p[0]).toFixed(1)+','+Y(p[1]).toFixed(1)).join(' ')}" fill="none" stroke="${css('--card')}" stroke-width="1" stroke-opacity=".7"/>`:'')
-   +`<circle cx="${X(tip[0])}" cy="${Y(tip[1])}" r="3.6" fill="${loss}" stroke="${css('--card')}" stroke-width="1.2"/><text x="${X(tip[0])+6}" y="${Y(tip[1])+12}" font-size="9.5" fill="${ink}">${M.tipLabel}</text>`
-   +(top?`<circle cx="${X(top[0])}" cy="${Y(top[1])}" r="3" fill="${css('--card')}" stroke="${loss}" stroke-width="1.4"/><text x="${X(top[0])-7}" y="${Y(top[1])-5}" font-size="9.5" text-anchor="end" fill="${ink}">${M.topLabel}</text>`:'')
-   +`<line x1="${bx}" x2="${bx+sb}" y1="${by}" y2="${by}" stroke="${ink}" stroke-width="2"/><text x="${bx}" y="${by-4}" font-size="9.5" fill="${ink}">${M.scaleM/1000} km</text>`
-   +`<g transform="translate(${Wm-18},18)"><path d="M0 -12 L5 4 L0 1 L-5 4 Z" fill="${ink}"/><text y="16" font-size="9.5" text-anchor="middle" fill="${ink}">N</text></g>`;
+   +`<circle cx="${X(tip[0])}" cy="${Y(tip[1])}" r="3.6" fill="${loss}" stroke="${css('--card')}" stroke-width="1.2"/><text class="halo" x="${X(tip[0])+7}" y="${Y(tip[1])-6}" font-size="9.5" fill="${ink}">${M.tipLabel}</text>`
+   +(top?`<circle cx="${X(top[0])}" cy="${Y(top[1])}" r="3" fill="${css('--card')}" stroke="${loss}" stroke-width="1.4"/><text class="halo" x="${X(top[0])-8}" y="${Y(top[1])+14}" font-size="9.5" text-anchor="end" fill="${ink}">${M.topLabel}</text>`:'')
+   +`<line x1="${bx}" x2="${bx+sb}" y1="${by}" y2="${by}" stroke="${ink}" stroke-width="2"/><text x="${bx}" y="${by-5}" font-size="9.5" fill="${ink}">${M.scaleM/1000} km</text>`
+   +`<g transform="translate(${Wm-20},24)"><path d="M0 -12 L5 4 L0 1 L-5 4 Z" fill="${ink}"/><text y="16" font-size="9.5" text-anchor="middle" fill="${ink}">N</text></g>`;
   const svg=document.getElementById('map'); svg.setAttribute('viewBox',`0 0 ${Wm} ${Hm}`); svg.innerHTML=s; VB={x0,x1,y0,y1}; MT={x0,y1,k};
 }
 // long texts from the data files: a short lead, then the rest as a list (the data files keep the full sentences)
@@ -231,15 +269,15 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     rowl('Ice in the strip','km² (volume km³), computed'); CY.forEach((yr,i)=>{ s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${num(P[yr].ice_km2,1)}</text><text class="small" x="${X(i)}" y="${y+17}" text-anchor="middle">(${num(P[yr].volume_km3,2)})</text>`; }); y+=34;
     lane('Dated surveys under each year');
     const mx=Math.max(1,...CY.map(yr=>P[yr].flights.filter(f=>!/lidar/.test(f)).length+(P[yr].flights.some(f=>/lidar/.test(f))?1:0))); rowl('Flights and lidar','one mark each, month-day'); const y0=y;
-    CY.forEach((yr,i)=>{ const fls=P[yr].flights.filter(f=>!/lidar/.test(f)), ld=P[yr].flights.filter(f=>/lidar/.test(f)).map(f=>f.slice(0,10)).sort(); if(ld.length) fls.push(ld[0]+(ld.length>1?'~'+ld[ld.length-1].slice(5):'')+' lidar'); fls.forEach((f,j)=>{ const lid=/lidar/.test(f), c=css('--ice'), yy=y0+j*13; const lab=lid?f.replace(' lidar','').slice(5):f.slice(5,10); s+=(lid?`<rect x="${X(i)-24}" y="${yy-4}" width="8" height="8" fill="${c}"/>`:`<circle cx="${X(i)-20}" cy="${yy}" r="4.2" fill="${c}"/>`)+`<text class="small" x="${X(i)-12}" y="${yy+3}" fill="${css('--ink')}">${lab}${lid?' lidar':''}</text>`; }); if(!fls.length) s+=`<text class="small" x="${X(i)}" y="${y0+3}" text-anchor="middle">–</text>`; });
-    y=y0+mx*13+10; rowl('swissALTI3D editions','date they stand for (estimated)');
+    CY.forEach((yr,i)=>{ const fls=P[yr].flights.filter(f=>!/lidar/.test(f)), ld=P[yr].flights.filter(f=>/lidar/.test(f)).map(f=>f.slice(0,10)).sort(); if(ld.length) fls.push(ld[0]+(ld.length>1?'~'+ld[ld.length-1].slice(5):'')+' lidar'); fls.forEach((f,j)=>{ const lid=/lidar/.test(f), c=css('--ice'), yy=y0+j*13; const lab=lid?f.replace(' lidar','').slice(5):f.slice(5,10); s+=(lid?`<rect x="${X(i)-24}" y="${yy-4}" width="8" height="8" fill="${c}"/>`:`<circle cx="${X(i)-20}" cy="${yy}" r="4.2" fill="${c}"/>`)+`<text class="small" x="${X(i)-12}" y="${yy+3}" fill="${css('--ink')}">${lid?'lidar':lab}</text>`; }); if(!fls.length) s+=`<text class="small" x="${X(i)}" y="${y0+3}" text-anchor="middle">–</text>`; });
+    y=y0+mx*13+10; rowl('swissALTI3D editions','date each stands for');
     [[CL.tA1,'2019 edition'],[CL.tA2,'newest edition']].forEach(([d_,t_])=>{ const i=CY.indexOf(+d_.slice(0,4)); if(i<0) return; s+=`<path d="M${X(i)} ${y-6}l7 7l-7 7l-7 -7z" fill="${css('--ice')}" stroke="${css('--card')}" stroke-width="1.5"/><text class="small" x="${X(i)}" y="${y+19}" text-anchor="middle" fill="${css('--ink')}">${t_}</text><text class="small" x="${X(i)}" y="${y+30}" text-anchor="middle">${d_}</text>`; }); y+=48;
     lane('What shapes the change');
-    rowl('Summer balance factor','GLAMOS summer × factor fitted on flights'); CY.forEach((yr,i)=>{ const k=P[yr].kappa; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${k==null?'1.00':k.toFixed(2)}</text>`; if(k==null) s+=`<text class="small" x="${X(i)}" y="${y+16}" text-anchor="middle">not fitted</text>`; }); y+=34;
+    rowl('Summer balance factor','GLAMOS summer × fitted factor'); CY.forEach((yr,i)=>{ const k=P[yr].kappa; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${k==null?'1.00':k.toFixed(2)}</text>`; if(k==null) s+=`<text class="small" x="${X(i)}" y="${y+16}" text-anchor="middle">not fitted</text>`; }); y+=34;
     lane('What checks it');
-    rowl('ICESat-2 shots','median, NMAD: model − shot, not in fit'); CY.forEach((yr,i)=>{ const v=P[yr].shots; if(!v){ s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle">–</text>`; return; } const r=4+Math.sqrt(v.n)*.55; s+=`<circle cx="${X(i)}" cy="${y+2}" r="${r}" fill="${css('--ice')}" fill-opacity=".25" stroke="${css('--ice')}"/><text class="small" x="${X(i)}" y="${y+5}" text-anchor="middle" fill="${css('--ink')}">${v.n}</text><text class="small" x="${X(i)}" y="${y+27}" text-anchor="middle" fill="${css('--ink')}">${sgn(v.median)} ±${num(v.nmad)}</text>`; }); y+=40;
-    rowl('Leave one flight out','rmse m, refit without the flight'); CY.forEach((yr,i)=>{ const v=Object.values(P[yr].loo||{}); s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v.length?(v.length>1?num(Math.min(...v))+'–':'')+num(Math.max(...v)):'–'}</text>`; }); y+=26;
-    rowl('GLAMOS stakes','stake-years on the glacier'); CY.forEach((yr,i)=>{ const v=P[yr].stakes; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v?v.n:'–'}</text>`; }); y+=30;
+    rowl('ICESat-2 shots','model − shot: median ±NMAD'); CY.forEach((yr,i)=>{ const v=P[yr].shots; if(!v){ s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle">–</text>`; return; } const r=4+Math.sqrt(v.n)*.55; s+=`<circle cx="${X(i)}" cy="${y+2}" r="${r}" fill="${css('--ice')}" fill-opacity=".25" stroke="${css('--ice')}"/><text class="small" x="${X(i)}" y="${y+5}" text-anchor="middle" fill="${css('--ink')}">${v.n}</text><text class="small" x="${X(i)}" y="${y+27}" text-anchor="middle" fill="${css('--ink')}">${sgn(v.median)} ±${num(v.nmad)}</text>`; }); y+=40;
+    rowl('Leave one flight out','rmse m, flight left out'); CY.forEach((yr,i)=>{ const v=Object.values(P[yr].loo||{}); s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v.length?(v.length>1?num(Math.min(...v))+'–':'')+num(Math.max(...v)):'–'}</text>`; }); y+=26;
+    y+=8; rowl('GLAMOS stakes','stake-years on the glacier'); CY.forEach((yr,i)=>{ const v=P[yr].stakes; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v?v.n:'–'}</text>`; }); y+=30;
     lane('Fixed for every year');
     rowl('Bed (floor)','Grab et al. 2021 ice thickness'); s+=`<rect x="${L+4}" y="${y-4}" width="${W-L-R-8}" height="14" rx="4" fill="none" stroke="${css('--faint')}" stroke-dasharray="4 3"/><text class="small" x="${L+(W-L-R)/2}" y="${y+7}" text-anchor="middle">a model: the 2019 surface minus measured thickness, lowered under measured surfaces</text>`; y+=30;
     rowl('Tip lake','flat water level, m'); CY.forEach((yr,i)=>{ const v=P[yr].lake; s+=`<text class="small" x="${X(i)}" y="${y+4}" text-anchor="middle" fill="${css('--ink')}">${v?v.level.toFixed(2):'–'}</text>`; if(v) s+=`<text class="small" x="${X(i)}" y="${y+16}" text-anchor="middle">${{plateau:'measured',weak:'weak ±0.5',held:'held ±1'}[v.quality]||''}</text>`; }); y+=34;
@@ -260,10 +298,10 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     document.title='Field notes: '+d.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+d.short+' 3D'; }
     $('gname').textContent=d.short; $('areaT').textContent='the tongue of '+d.short; $('sub').innerHTML=`The satellite pictures on the site are real images. This page is about the 3D ice surface under them for <span id="gname">${esc(d.short)}</span>: what is measured, what is modelled and how I checked it. Every number is for the strip of the 3D view (section 1), computed here or taken from my source ledger.`;
     MAP=CL.map; STRIP=MAP.strip; drawMap(); drawOverview();
-    $('mapcap').innerHTML=prose(CL.mapcap,true,2)+`<p style="margin-top:8px"><label>Footprint on the map of <select id="covsel2"><option value="">none</option>${MAP.cover.map((c,i)=>`<option value="${i}">${esc(c.label)} (${c.kind})</option>`).join('')}</select></label> <span class="small" id="covnote" style="color:var(--muted)"></span></p>`;
-    $('covsel2').onchange=e=>{ const g=$('covg'); if(g) g.remove(); const i=e.target.value; $('covnote').textContent=''; if(i==='') return; const c=MAP.cover[i], X=x=>(x-MT.x0)*MT.k, Y=y=>(MT.y1-y)*MT.k; $('map').insertAdjacentHTML('beforeend',`<g id="covg"><path d="${c.rings.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join('')}" fill="#ED730F" fill-opacity=".45" stroke="#ED730F" stroke-width=".8"/></g>`); $('covnote').textContent=(c.cells*64/1e6).toFixed(1)+' km² of the model grid covered (computed).'; };
+    $('mapcap').innerHTML=prose(CL.mapcap,true,2)+`<div class="cov"><label for="covsel2">Footprint of a flight or the lidar</label><select id="covsel2"><option value="">none</option>${MAP.cover.map((c,i)=>`<option value="${i}">${esc(c.label)} · ${c.kind} · ${c.km2} km² of the strip, ${Math.round(100*c.ice)} % of the ice</option>`).join('')}</select><p class="covnote" id="covnote"></p></div>`;
+    $('covsel2').onchange=e=>{ const g=$('covg'); if(g) g.remove(); const i=e.target.value; $('covnote').textContent=''; if(i==='') return; const c=MAP.cover[i], X=x=>(x-MT.x0)*MT.k, Y=y=>(MT.y1-y)*MT.k; $('map').insertAdjacentHTML('beforeend',`<g id="covg"><path d="${c.rings.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join('')}" fill="#ED730F" fill-opacity=".45" stroke="#ED730F" stroke-width=".8"/></g>`); $('covnote').innerHTML='<i></i>'+c.km2+' km² of the strip, '+Math.round(100*c.ice)+' % of the glacier ice (computed).'+(c.ice<0.01?' Over rock only: it is not an observation of the ice, it only helps tie the other flights to the ground.':''); };
     $('fnSummary').innerHTML=unwrap(S['What this is']); YEARS=CY; css; drawClean();
-    $('legend').innerHTML=[['--ice','measured: a flight or the lidar of that year covers most of the ice'],['--faint','between flights'],['--amber','beyond the first or last flight'],['--loss','provisional (2026: balance estimated)']].map(([c,t])=>`<span><i style="width:16px;height:10px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('');
+    $('legend').innerHTML=[['--ice','measured: a flight or the lidar of that year covers most of the ice'],['--ice','partial (lighter) or edition: part of the ice measured, or anchored on a swissALTI3D edition'],['--faint','interpolated between flights'],['--amber','extrapolated beyond the first or last flight'],['--loss','provisional (2026: balance estimated)']].map(([c,t])=>`<span><i style="width:16px;height:10px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('');
     $('detail').innerHTML='Click a year.'; [...document.querySelectorAll('#surface p.lead')].forEach(q=>{ if(q.textContent.startsWith('One column per year')) q.textContent='One column per year: how the surface was found, the dated surveys under it, what shapes the change between them and what checks it. Click a year for its ICESat-2 and stake numbers and how much of its ice a flight covers.'; });
     document.querySelector('.notes').innerHTML=`<section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a flight or the lidar of that year covers most of the ice; there the surface of the picture day is reproduced to about 0.2 m.</li><li><b>partial</b>: a flight covers part of the ice; the rest follows the model.</li><li><b>edition</b>: the picture day is the day a swissALTI3D edition stands for (estimated from the flights, or documented where there are none): the stereo surface of that edition, stated accuracy 1 to 3 m.</li><li><b>between flights</b> and <b>beyond the flights</b>: the model, from the balance, melt timing and the fitted ice flow.</li></ul></section><section><h3>Physics and fitted numbers</h3>${S['Physics and fitted numbers']}</section><section><h3>Uncertainty</h3>${S['Uncertainty']}</section>`+(S['Lakes']?`<section><h3>Lakes</h3>${S['Lakes']}</section>`:'');
     $('anchors').querySelector('h2').innerHTML='<span class="no">3</span>Surveys used';
@@ -273,6 +311,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('fnView').innerHTML=`<p>${CL.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}" target="_blank" rel="noopener" style="color:var(--ice)">open it in its own tab</a></p><div id="vwrap"></div>`;
     $('vbtn').onclick=()=>{ $('vwrap').innerHTML='<iframe src="'+VIEW+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; $('vbtn').hidden=true; };
     $('fnLic').innerHTML=S['Data and licences'];
+    dlInit(d,ID);
     const tb5=document.getElementById('tocBed'); if(tb5) tb5.remove();
     let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent; const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });
     const yq=+(new URLSearchParams(location.search).get('year')||0); if(yq&&CL.perYear[yq]) showClean(yq);
@@ -293,6 +332,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('fnLic').innerHTML=`<h3 class="fnh">Not used</h3>`+prose(d.not_used,false,1)+`<h3 class="fnh">Licences</h3>`+prose(d.licences,false,1);
     const vb=$('vbtn'), load=()=>{$('vwrap').innerHTML='<iframe src="'+VIEW+'?v='+(PG.viewerV||'')+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; vb.hidden=true;}; vb.onclick=load; if(q.get('viewer'))load();
     draw(); drawMap(); drawOverview(); if(PG.bed) bedMaps();
+    dlInit(d,ID);
     if(y)show(y);      // the year on screen is chosen, but the page stays at its top
   }).catch(()=>{['fnAnch','fnVal','fnView','fnLic'].forEach(i=>$(i).textContent='The field notes could not be loaded.');});
 })();

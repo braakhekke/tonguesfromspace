@@ -296,7 +296,7 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
   const image = kind === 'image', in3D = viewMode === '3d';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
-  $('vsTitle').textContent = 'Create and share';      // the same name as step 3 in the left panel
+  $('vsTitle').textContent = 'Save and share';      // the same name as step 3 in the left panel
   document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Or move and zoom the map yourself, until the frame shows what you want.';
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
     if (vstate.fmt === 'box') setFmt('wide');      // the image box is a map extent: no meaning in 3D

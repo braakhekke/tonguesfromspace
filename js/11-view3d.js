@@ -428,7 +428,7 @@ export function sync3D(){            // the 3D view follows the left panel: anot
   if (document.getElementById('v3d').hidden) return;      // not $(): this runs during start-up, before $ exists
   clearTimeout(sync3D.t); sync3D.t = setTimeout(() => { if (!$('v3d').hidden) open3D(); }, 150);
 }
-export function close3D(){ v3dRun++; resetPhotos(); v3dCtx = null; hideDivider3D(); pinLoop(); if (v3d) { v3d.destroy(); v3d = null; } $('v3d').hidden = true; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a fresh canvas each time: a lost WebGL context cannot be reused
+export function close3D(){ v3dRun++; wire.syncDemTile(); resetPhotos(); v3dCtx = null; hideDivider3D(); pinLoop(); if (v3d) { v3d.destroy(); v3d = null; } $('v3d').hidden = true; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a fresh canvas each time: a lost WebGL context cannot be reused
 /* Base maps and the hiking trails on the picture of the strip: the tiles of the same servers as on the map, drawn one by one into the picture (kept, so another year or layer does not fetch them again) */
 export const tileCache = new Map();
 export const tileBitmap = url => {
@@ -669,7 +669,8 @@ export async function parseBundle(buf){
   const surfaces = head.yearly ? new Map(head.yearly.years.map((y, i) => [y, undo(off + i * n, 0.1, head.h0)])) : null;      // Iceland: the surface of every year (scripts/build_dem_iceland.py)
   if (head.yearly) off += n * head.yearly.years.length;
   const bed = head.bed ? undo(off, 0.1, head.h0) : null;      // Switzerland: the bedrock elevation (swissBEDROCK), m above sea level like the heights
-  return {...head, heights: undo(0, 0.1, head.h0), delta, surfaces, bed};
+  const lake = head.yearly && head.yearly.lake ? new Map(head.yearly.years.map((y, i) => [y, all.subarray(off + (head.bed ? n : 0) + i * n, off + (head.bed ? n : 0) + (i + 1) * n)])) : null;      // the lake nodes of every year (1 = water), after the bed (the clean surfaces: class 5 of the stored model)
+  return {...head, heights: undo(0, 0.1, head.h0), delta, surfaces, bed, lake};
 }
 export function loadBundle(id){            // the parsed file of a glacier, or null (no file, no network, a broken file): the caller then falls back to the terrain tiles
   if (!id) return Promise.resolve(null);
@@ -686,7 +687,7 @@ export const stripOf = (b, g) => ({P: {x: b.P[0], y: b.P[1]}, k: b.k, ue: b.ue, 
   merc: (a, c) => [b.P[0] + (a * b.ue + c * b.un) * b.k, b.P[1] + (a * b.un - c * b.ue) * b.k]});      // the strip as the file was made: the same as stripFor() finds
 export function coarseBundle(b){            // every second point: the 28 m grid for devices that cannot draw the fine one
   const nA = b.nA / 2, nB = b.nB / 2, W = b.nB + 1, W2 = nB + 1, pick = a => { if (!a) return null; const o = new Float32Array((nA + 1) * W2); for (let j = 0; j <= nA; j++) for (let i = 0; i <= nB; i++) o[j * W2 + i] = a[2 * j * W + 2 * i]; return o; };
-  return {...b, nA, nB, heights: pick(b.heights), delta: pick(b.delta), bed: pick(b.bed), surfaces: b.surfaces ? new Map([...b.surfaces].map(([y, a]) => [y, pick(a)])) : null};
+  return {...b, nA, nB, heights: pick(b.heights), delta: pick(b.delta), bed: pick(b.bed), surfaces: b.surfaces ? new Map([...b.surfaces].map(([y, a]) => [y, pick(a)])) : null, lake: b.lake ? new Map([...b.lake].map(([y, a]) => [y, pick(a)])) : null};
 }
 /* The note at the bottom of the 3D view: in full on bigger screens; on phones one short line (what the picture is made of) with "Details" for the rest */
 export const shortLayerNames = g => layerCreditNames(g).filter(n => n !== 'swisstopo').map(n => ' · ' + n).join('');
@@ -794,6 +795,7 @@ export function subGlacier(g, k, key){
   return {...g, id: key, name: sb.name, local: sb.name, tongue: tip, cap: null, subs: null, image: null, subOf: g.id, view3d: {azimuth: Math.round(az), half: Math.round(half), back: 1500, up: Math.round(up), tex: 2 * half >= up + 1500 ? [2048, 1024] : [1024, 2048]}};
 }
 export async function open3D(){
+  wire.syncDemTile();
   const run = ++v3dRun, g = v3dGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
   const cmp = state.mode === 'compare' && state.a !== state.b && state.available[state.a] && state.available[state.b] ? [state.a, state.b] : null;      // compare: both years side by side with a slider
   const years = cmp || (state.mode === 'timelapse' ? tlFrames() : [stillYear()].filter(y => state.available[y])), first = years.includes(stillYear()) ? stillYear() : years[years.length - 1];
@@ -1577,6 +1579,7 @@ $('v3mClear').onclick = clear3Measure; $('v3mFinish').onclick = finish3Measure; 
 
 /* ---------- thickness cross-section: a line across the glacier; the surface comes from the 3D grid on screen (viewer.elev), the ice depth from the GLAMOS radar cells beside the line.
    The bed at a radar cell is computed here as surface minus radar depth, and said so. The radar was flown in the years named in the note; the ice has thinned since. ---------- */
+export const LAKE_FILL = '#3E9FA6', LAKE_CUT = '#8CCBCF';      // lake in the chart and on the 3D cut (teal: not the pale blue of the ice)
 export const DISAGREE_M = 30, DISAGREE_F = 0.25;      // a dot is drawn open when the model bed differs from the radar bed by more than 30 m or a quarter of the radar thickness
 export const SECT_BUF = 50, SECT_GAP = 125;      // metres: how far from the line a radar cell still counts (owner: stay within 50 m), and the largest gap in the bed line that is drawn through
 export let sectKey = '', sect2d = false;      // sect2d: the 2D chart of the section is open
@@ -1602,6 +1605,19 @@ export function sectOthers(c, A, ux, uz, surf){            // the other years: f
 }
 export const sectBedOn = () => !!(sectLine() && v3dCtx && v3dCtx.bundle && v3dCtx.bundle.bed) && !document.body.classList.contains('pane-open');      // the model bed is on the section panel (not in downloads): its credit shows in the note
 export function sectLine(){ return M3.shapes.find(sh => sh.mode === 'sect') || null; }
+export function refSurfaceAt(c, viewer, x, z){            // the ice surface a radar depth is taken from where the file has no bed of its own: the first elevation model (the same in every year), so the dots do not move when the year changes
+  if (!c.usesDem || !c.surface || !c.elevFirst) return viewer.elev(x, z);
+  const cache = c.sectSurf || (c.sectSurf = new Map()); let a = cache.get(c.elevFirst); if (!a) cache.set(c.elevFirst, a = c.surface(c.elevFirst));
+  return gridAt(c, a, x, z);
+}
+export function lakeYears(c){            // the lake of the shown year on the grid of the strip, and the years of the elevation models: null where the glacier has no stored lake
+  const b = c.bundle, lk = b && b.lake; if (!lk || c.cmp) return null;
+  const ys = b.yearly.years, y = Math.min(ys[ys.length - 1], Math.max(ys[0], sectSurfYear(c))); return {now: lk.get(y), all: lk, years: ys, y};
+}
+export function lakeNearAt(c, arr, x, z){            // the node of the strip nearest to a place (0/1 array of a year)
+  const S = c.S, nA = c.grid.nA, nB = c.grid.nB, W = nB + 1, len = S.up + S.back, i = Math.min(nB, Math.max(0, Math.round((x + S.half) / (2 * S.half) * nB))), j = Math.min(nA, Math.max(0, Math.round((z + S.up) / len * nA)));
+  return arr[j * W + i] === 1;
+}
 export async function renderSection(){
   const box = $('v3dSect'), sh = sectLine(), c = v3dCtx, viewer = v3d;
   if (!sh || !c || !viewer || M3.gid !== c.g.id || !(c.g.inv && c.g.inv.radar)) { box.hidden = true; sectKey = ''; if (!sh) sect2d = false; $('v3mSect2d').hidden = true; creditNote(); return; }
@@ -1609,20 +1625,32 @@ export async function renderSection(){
   sectKey = sectStamp(viewer, sh);      // before the wait: the loop in pinLoop compares it every frame
   const all = await radarAllFor(c).catch(() => []); if (sectLine() !== sh || v3dCtx !== c || v3d !== viewer) return;
   const pts = all.map(p => ({p, t: (p.x - A[0]) * ux + (p.z - A[1]) * uz, off: (p.x - A[0]) * uz - (p.z - A[1]) * ux})).filter(q => q.t >= 0 && q.t <= L && Math.abs(q.off) <= SECT_BUF).sort((a, b) => a.t - b.t);
-  pts.forEach(q => { q.s = viewer.elev(q.p.x, q.p.z); q.own = q.p.bed !== null && q.p.bed !== undefined; q.bed = q.own ? q.p.bed : q.s - q.p.m; const mb = bedAt(c, q.p.x, q.p.z); q.far = q.own && mb !== null && Math.abs(mb - q.p.bed) > Math.max(DISAGREE_M, DISAGREE_F * q.p.m); });      // the radar's own bed, where the file has it (it does not move when the ice thins); far: the model bed is clearly elsewhere
+  pts.forEach(q => { q.s = viewer.elev(q.p.x, q.p.z); q.own = q.p.bed !== null && q.p.bed !== undefined; q.bed = q.own ? q.p.bed : refSurfaceAt(c, viewer, q.p.x, q.p.z) - q.p.m; const mb = bedAt(c, q.p.x, q.p.z); q.far = q.own && mb !== null && Math.abs(mb - q.p.bed) > Math.max(DISAGREE_M, DISAGREE_F * q.p.m); });      // the radar's own bed, where the file has it (it does not move when the ice thins); far: the model bed is clearly elsewhere
   const n = Math.max(2, Math.ceil(L / 10) + 1), surf = Array.from({length: n}, (_, i) => { const t = L * i / (n - 1); return [t, viewer.elev(A[0] + ux * t, A[1] + uz * t)]; });
+  pts.forEach(q => { const f = Math.min(n - 1, Math.max(0, q.t / L * (n - 1))), i0 = Math.min(n - 2, Math.floor(f)); q.st = surf[i0][1] + (surf[i0 + 1][1] - surf[i0][1]) * (f - i0); });      // the surface of the line at the dot: the stem of a dot starts there (the bed of the dot does not depend on the year)
   const others = sectOthers(c, A, ux, uz, surf), W = Math.min(560, Math.max(300, innerWidth - 40)), ml = 44, mr = 8, mt = 8, mb = 24, pw = W - ml - mr;
   const mbed = surf.map(q => { const b = bedAt(c, A[0] + ux * q[0], A[1] + uz * q[0]); return b === null ? null : Math.min(b, q[1]); });      // the model bed, never above the surface of the grid on screen
+  const lk = lakeYears(c), water = surf.map((q, i) => !!lk && lakeNearAt(c, lk.now, A[0] + ux * q[0], A[1] + uz * q[0]));      // lake: water in this year at the node (stored model, class 5)
+  const first = lk ? c.surface ? (() => { const cache = c.sectSurf || (c.sectSurf = new Map()); let a = cache.get(lk.years[0]); if (!a) cache.set(lk.years[0], a = c.surface(lk.years[0])); return a; })() : null : null;
+  const lakeNote = surf.map((q, i) => { if (!water[i]) return ''; const x = A[0] + ux * q[0], z = A[1] + uz * q[0], since = lk.years.find(yy => lakeNearAt(c, lk.all.get(yy), x, z)), wasIce = first && mbed[i] !== null && gridAt(c, first, x, z) - mbed[i] >= ICE_MIN;      // when the water came, and whether the first year of the models still had ice there
+    return `Lake${since && since > lk.years[0] ? ' since ' + since : ''}${wasIce ? `, ice in ${lk.years[0]}` : ''}`; });
   const hasM = mbed.some((b, i) => b !== null && surf[i][1] - b > 0.5), lo0 = Math.min(...surf.map(q => q[1]), ...pts.map(q => q.bed), ...mbed.filter(b => b !== null)), hi0 = Math.max(...surf.map(q => q[1]), ...others.map(o => Math.max(...o.d.map((d, i) => surf[i][1] + d)))), pad = (hi0 - lo0) * 0.06 + 5, lo = lo0 - pad, hi = hi0 + pad, ph = Math.round(Math.max(80, Math.min(230, (hi - lo) * pw / L))), H = ph + mt + mb;      // true scale (1 : 1) where it fits, else squeezed or stretched to between 80 and 230 px
   const X = t => ml + t / L * pw, Y = e => mt + (hi - e) / (hi - lo) * ph, f1 = v => v.toFixed(1);
   const step = [10, 20, 50, 100, 200, 500].find(st => (hi - lo) / st <= 5) || 500, ticks = []; for (let e = Math.ceil(lo / step) * step; e <= hi; e += step) ticks.push(e);
   let svg = ticks.map(e => `<line x1="${ml}" x2="${W - mr}" y1="${f1(Y(e))}" y2="${f1(Y(e))}" stroke="var(--rule)"/><text x="${ml - 5}" y="${f1(Y(e) + 3.5)}" text-anchor="end" font-size="10" fill="var(--moraine)">${e.toLocaleString('en')}</text>`).join('');
   const runs = []; pts.forEach(q => { const r = runs[runs.length - 1]; if (r && q.t - r[r.length - 1].t <= SECT_GAP) r.push(q); else runs.push([q]); });
-  const ice = []; surf.forEach((q, i) => { if (mbed[i] !== null && q[1] - mbed[i] > 0.5) { const r = ice[ice.length - 1]; if (r && r[r.length - 1] === i - 1) r.push(i); else ice.push([i]); } });      // stretches where the model has ice
-  if (hasM) ice.filter(r => r.length > 1).forEach(r => {
-    svg += `<polygon points="${[...r.map(i => `${f1(X(surf[i][0]))},${f1(Y(surf[i][1]))}`), ...r.slice().reverse().map(i => `${f1(X(surf[i][0]))},${f1(Y(mbed[i]))}`)].join(' ')}" fill="var(--crevasse)" fill-opacity=".22"/>`;
-    svg += `<polyline points="${r.map(i => `${f1(X(surf[i][0]))},${f1(Y(mbed[i]))}`).join(' ')}" fill="none" stroke="var(--rock)" stroke-width="1.5" stroke-dasharray="5 3"/>`;
-  });
+  const runsOf = test => { const out = []; surf.forEach((q, i) => { if (test(i)) { const r = out[out.length - 1]; if (r && r[r.length - 1] === i - 1) r.push(i); else out.push([i]); } }); return out; };
+  const hasBed = i => mbed[i] !== null && surf[i][1] - mbed[i] > 0.5, ice = runsOf(i => !water[i] && hasBed(i)), lakeRuns = runsOf(i => water[i] && mbed[i] !== null), lakeBed = i => Math.min(mbed[i], surf[i][1]);      // stretches where the model has ice; stretches of lake (water level of the year down to the model bed)
+  if (hasM) {
+    ice.filter(r => r.length > 1).forEach(r => {
+      svg += `<polygon points="${[...r.map(i => `${f1(X(surf[i][0]))},${f1(Y(surf[i][1]))}`), ...r.slice().reverse().map(i => `${f1(X(surf[i][0]))},${f1(Y(mbed[i]))}`)].join(' ')}" fill="var(--crevasse)" fill-opacity=".22"/>`;
+      svg += `<polyline points="${r.map(i => `${f1(X(surf[i][0]))},${f1(Y(mbed[i]))}`).join(' ')}" fill="none" stroke="var(--rock)" stroke-width="1.5" stroke-dasharray="5 3"/>`;
+    });
+    lakeRuns.filter(r => r.length > 1).forEach(r => {
+      svg += `<polygon points="${[...r.map(i => `${f1(X(surf[i][0]))},${f1(Y(surf[i][1]))}`), ...r.slice().reverse().map(i => `${f1(X(surf[i][0]))},${f1(Y(lakeBed(i)))}`)].join(' ')}" fill="${LAKE_FILL}" fill-opacity=".55"/>`;
+      svg += `<polyline points="${r.map(i => `${f1(X(surf[i][0]))},${f1(Y(lakeBed(i)))}`).join(' ')}" fill="none" stroke="var(--rock)" stroke-width="1.5" stroke-dasharray="5 3"/>`;
+    });
+  }
   if (!hasM) runs.filter(r => r.length > 1).forEach(r => {      // without a model bed: the ice between the surface and the bed, where the radar cells follow each other
     const top = surf.filter(q => q[0] >= r[0].t && q[0] <= r[r.length - 1].t).map(q => `${f1(X(q[0]))},${f1(Y(q[1]))}`), bot = r.slice().reverse().map(q => `${f1(X(q.t))},${f1(Y(q.bed))}`);
     svg += `<polygon points="${[`${f1(X(r[0].t))},${f1(Y(r[0].s))}`, ...top, ...bot].join(' ')}" fill="var(--crevasse)" fill-opacity=".28"/>`;
@@ -1630,16 +1658,17 @@ export async function renderSection(){
   });
   if (others.length) { const y0 = others[0].y, y1 = others[others.length - 1].y; others.forEach(o => { svg += `<polyline points="${surf.map((q, i) => `${f1(X(q[0]))},${f1(Y(q[1] + o.d[i]))}`).join(' ')}" fill="none" stroke="${yearColour(o.y, Math.min(y0, sectSurfYear(c)), Math.max(y1, sectSurfYear(c)))}" stroke-width="1.2" stroke-opacity=".85"><title>${o.y}</title></polyline>`; }); }
   svg += `<polyline points="${surf.map(q => `${f1(X(q[0]))},${f1(Y(q[1]))}`).join(' ')}" fill="none" stroke="var(--crevasse)" stroke-width="2.2" stroke-linejoin="round"/>`;
-  pts.forEach(q => { svg += `<g><title>${q.p.m} m of ice${q.p.y ? ` (${q.p.seis ? 'seismic' : 'radar'} ${q.p.y})` : ''} · bed ${Math.round(q.bed).toLocaleString('en')} m a.s.l.${q.own ? ' (from the radar file)' : ' (computed)'}${q.far ? ' · the swissBEDROCK bed is far from it' : ''}</title><line x1="${f1(X(q.t))}" x2="${f1(X(q.t))}" y1="${f1(Y(q.s))}" y2="${f1(Y(q.bed))}" stroke="${radarColor(q.p.m)}" stroke-width="1.2" stroke-opacity=".7"/><circle cx="${f1(X(q.t))}" cy="${f1(Y(q.bed))}" r="3.6" fill="${q.far ? '#fff' : radarColor(q.p.m)}" stroke="${q.far ? radarColor(q.p.m) : '#fff'}" stroke-width="${q.far ? 1.8 : 1.2}"/></g>`; });
+  pts.forEach(q => { svg += `<g><title>${q.p.m} m of ice${q.p.y ? ` (${q.p.seis ? 'seismic' : 'radar'} ${q.p.y})` : ''} · bed ${Math.round(q.bed).toLocaleString('en')} m a.s.l.${q.own ? ' (from the radar file)' : ' (computed)'}${q.far ? ' · the swissBEDROCK bed is far from it' : ''}</title><line x1="${f1(X(q.t))}" x2="${f1(X(q.t))}" y1="${f1(Y(q.st))}" y2="${f1(Y(q.bed))}" stroke="${radarColor(q.p.m)}" stroke-width="1.2" stroke-opacity=".7"/><circle cx="${f1(X(q.t))}" cy="${f1(Y(q.bed))}" r="3.6" fill="${q.far ? '#fff' : radarColor(q.p.m)}" stroke="${q.far ? radarColor(q.p.m) : '#fff'}" stroke-width="${q.far ? 1.8 : 1.2}"/></g>`; });
   svg += `<text x="${ml}" y="${H - 7}" font-size="11" font-weight="700" fill="var(--rock)" text-anchor="start">A</text><text x="${W - mr}" y="${H - 7}" font-size="11" font-weight="700" fill="var(--rock)" text-anchor="end">B</text><text x="${ml + pw / 2}" y="${H - 7}" font-size="10" fill="var(--moraine)" text-anchor="middle">${fmtLen(L)}</text>`;
   $('v3dSectSvg').setAttribute('viewBox', `0 0 ${W} ${H}`); $('v3dSectSvg').innerHTML = svg + '<g id="v3dSectHv" pointer-events="none"></g>';
-  sectHov = {W, H, ml, mt, pw, ph, L, n, surf, mbed, pts, X, Y, sh, A, ux, uz, hasM, hasBed: pts.length > 0, others};
+  sectHov = {W, H, ml, mt, pw, ph, L, n, surf, mbed, water, lakeNote, pts, X, Y, sh, A, ux, uz, hasM, hasBed: pts.length > 0, others};
   const years = [...new Set(pts.map(q => q.p.y).filter(Boolean))].sort(), yr = c.cmp ? 'as on screen' : sectSurfYear(c), exag = (ph / (hi - lo)) / (pw / L);
   const sl = surf.reduce((t, q, i) => i ? t + Math.hypot(q[0] - surf[i - 1][0], q[1] - surf[i - 1][1]) : 0, 0);
   $('v3dSectInfo').textContent = `${fmtLen(L)} line · ${fmtLen(sl)} along the surface ${yr}`;
   const open = !!($('v3dSectNote').querySelector('details') || {}).open, cnt = pts.length, sw = (css, extra = '') => `<i class="sw" style="${css}${extra}"></i>`, anyFar = pts.some(q => q.far), anyOwn = pts.some(q => q.own);
   const lg = [`<span>${sw('width:20px;border-top:2.2px solid var(--crevasse)')}Ice surface (3D grid)</span>`,
     hasM ? `<span>${sw('width:20px;border-top:1.6px dashed var(--rock)')}Bed, swissBEDROCK (model)</span>` : '',
+    lakeRuns.length ? `<span>${sw(`width:20px;height:9px;background:${LAKE_FILL};opacity:.7`)}Lake (water level of the year; the floor is the model bed, not measured)</span>` : '',
     others.length ? `<span>${sw('width:30px;height:3px;background:linear-gradient(90deg,#C8322A,#3F9BC4)')}Surface of the other years, ${others[0].y} to ${others[others.length - 1].y}</span>` : '',
     cnt ? `<span>${sw('width:8px;height:8px;border-radius:50%;background:#3F9BC4;border:1.5px solid #fff;box-shadow:0 0 0 .6px #8a979e')}Radar bed: ${cnt} cell${cnt === 1 ? '' : 's'} within ${SECT_BUF} m${years.length ? `, flown ${years.join(', ')}` : ''}</span>` : '',
     anyFar ? `<span>${sw('width:8px;height:8px;border-radius:50%;background:#fff;border:1.5px solid #3F9BC4')}Model bed far from it</span>` : ''].filter(Boolean).join('');
@@ -1666,13 +1695,13 @@ export function sectAt(t){            // the values at distance t from A: surfac
   const f = Math.min(h.n - 1, Math.max(0, t / h.L * (h.n - 1))), i = Math.min(h.n - 2, Math.floor(f)), a = f - i, lerp = (p, q) => p + (q - p) * a;
   const s = lerp(h.surf[i][1], h.surf[i + 1][1]), b0 = h.mbed[i], b1 = h.mbed[i + 1], mb = b0 !== null && b1 !== null ? lerp(b0, b1) : null;
   const near = h.pts.reduce((best, q) => { const d = Math.abs(q.t - t); return d <= 12 && (!best || d < best.d) ? {q, d} : best; }, null), rq = near && near.q;
-  const mThk = mb !== null ? Math.max(0, s - mb) : null;
-  return {t, s, mb, rq, mThk, ice: mThk !== null && mThk >= ICE_MIN, rBed: rq ? rq.bed : null, rThk: rq ? rq.p.m : null, rSurf: rq ? (rq.own ? rq.bed + rq.p.m : rq.s) : null,      // radar surface: the survey's own surface (bed + thickness, computed) where the file has the bed, else the grid on screen
+  const mThk = mb !== null ? Math.max(0, s - mb) : null, wi = Math.round(f), lake = !!h.water[wi];      // lake: water at the nearest sample
+  return {t, s, mb, rq, mThk, lake, lakeText: lake ? h.lakeNote[wi] : '', ice: !lake && mThk !== null && mThk >= ICE_MIN, rBed: rq ? rq.bed : null, rThk: rq ? rq.p.m : null, rSurf: rq ? rq.bed + rq.p.m : null,      // radar surface: the survey's own surface (bed + thickness, computed) where the file has the bed, else the grid on screen
     rows: null, note: rq ? `radar ${rq.p.y || ''} ${rq.p.seis ? 'seismic' : ''}${rq.own ? ' · surface = bed + thickness' : ''}`.replace(/\s+/g, ' ').trim() : ''};
 }
 const ICE_MIN = 5;      // metres: below this computed thickness (surface of the year minus model bed) there is no ice to speak of: the model 'bed' there is the ground (swissALTI3D), the few metres are the difference between two surfaces
-const groundLine = v => !v.ice && v.mb !== null ? `Ground: ${REGION.terrain.html.replace(/<[^>]+>/g, '')}` : '';      // outside the ice the height is the terrain model of the region (the site's own credit text for the 3D terrain), not a bedrock model
-const sectRows = v => [['Surface', v.s, v.rSurf], [v.ice || v.mb === null ? 'Bed' : 'Ground', v.mb, v.rBed], ['Thickness', v.ice ? v.mThk : null, v.rThk]];
+const groundLine = v => v.lake ? `${v.lakeText}: the floor is the swissBEDROCK model, not measured` : !v.ice && v.mb !== null ? `Ground: ${REGION.terrain.html.replace(/<[^>]+>/g, '')}` : '';      // outside the ice the height is the terrain model of the region (the site's own credit text for the 3D terrain), not a bedrock model
+const sectRows = v => v.lake ? [['Water level', v.s, null], ['Lake floor', v.mb, v.rBed], ['Water depth', v.mb !== null ? Math.max(0, v.s - v.mb) : null, null]] : [['Surface', v.s, v.rSurf], [v.ice || v.mb === null ? 'Bed' : 'Ground', v.mb, v.rBed], ['Thickness', v.ice ? v.mThk : null, v.rThk]];
 export function showSectHover(t){            // on the chart: a line, dots and the table of values at t; null clears it
   const h = sectHov, g = $('v3dSectHv'); if (!g) return; if (!h || t === null) { g.innerHTML = ''; return; }
   const v = sectAt(t), rq = v.rq, X = h.ml + t / h.L * h.pw, rows = sectRows(v), cw = rq ? [54, 44, 44, 40] : [54, 44, 0, 0], gl = groundLine(v), bw = Math.max(cw.reduce((x, y) => x + y, 0) + 14, gl.length * 4.7 + 14), bh = 13 * (rows.length + 4) + 8 + (rq ? 11 : 0) + (gl ? 13 : 0), mYr = v3dCtx.cmp ? 'on screen' : sectSurfYear(v3dCtx), rYr = rq && rq.p.y ? rq.p.y : '–';      // the year of the elevation model (the surface shown) and the year of the radar survey, under the column names
@@ -1837,10 +1866,10 @@ export function drawCut3D(ctx, viewer, w, h, u, sh, caption){            // the 
   const ICE = '#CFE5F0', ICE_LINE = '#3F9BC4', ROCK = '#A39F96';      // ice: the light blue of the chart (the glacier blue at about a fifth over white)
   ctx.save(); ctx.lineJoin = 'round';
   path([...T, ...B.slice().reverse()]); ctx.fillStyle = ROCK; ctx.fill();      // rock
-  let i = 0; while (i < n) {            // ice: stretches where the model bed lies under the surface
+  let i = 0; while (i < n) {            // ice: stretches where the model bed lies under the surface; lake (teal) where the stored model holds water in this year
     if (bed[i] === null || top[i] - bed[i] < 0.5 * ex) { i++; continue; }
-    let j = i; while (j + 1 < n && bed[j + 1] !== null && top[j + 1] - bed[j + 1] >= 0.5 * ex) j++;
-    if (j > i) { path([...T.slice(i, j + 1), ...Dp.slice(i, j + 1).reverse()]); ctx.fillStyle = ICE; ctx.fill(); ctx.strokeStyle = '#22313A'; ctx.lineWidth = 1.4 * u; ctx.setLineDash([5 * u, 3 * u]); ctx.beginPath(); Dp.slice(i, j + 1).forEach((q, m) => m ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.stroke(); ctx.setLineDash([]); }
+    const wat = !!k.water[i]; let j = i; while (j + 1 < n && bed[j + 1] !== null && top[j + 1] - bed[j + 1] >= 0.5 * ex && !!k.water[j + 1] === wat) j++;
+    if (j > i) { path([...T.slice(i, j + 1), ...Dp.slice(i, j + 1).reverse()]); ctx.fillStyle = wat ? LAKE_CUT : ICE; ctx.fill(); ctx.strokeStyle = '#22313A'; ctx.lineWidth = 1.4 * u; ctx.setLineDash([5 * u, 3 * u]); ctx.beginPath(); Dp.slice(i, j + 1).forEach((q, m) => m ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.stroke(); ctx.setLineDash([]); }
     i = j + 1;
   }
   ctx.strokeStyle = getVar('--measure') || '#FFD84D'; ctx.lineWidth = 3 * u; ctx.shadowColor = 'rgba(0,0,0,.65)'; ctx.shadowBlur = 4 * u; ctx.beginPath(); T.forEach((q, m) => m ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1])); ctx.stroke(); ctx.shadowBlur = 0;      // the surface edge of the wall is the section line
@@ -1851,7 +1880,7 @@ export function drawCut3D(ctx, viewer, w, h, u, sh, caption){            // the 
     k.others.forEach((o, m) => { ctx.strokeStyle = yearColour(o.y, y0, y1); let pen = false; ctx.beginPath(); o.d.forEach((d, i) => { const q = OP[m * n + i]; if (!q || Math.abs(d) < 0.5) { pen = false; return; } pen ? ctx.lineTo(q[0], q[1]) : ctx.moveTo(q[0], q[1]); pen = true; }); ctx.stroke(); });
     ctx.lineCap = 'butt';
   }
-  const rp = k.pts.map(q => { const ii = Math.min(n - 1, Math.max(0, Math.round(q.t / k.L * (n - 1)))), y = top[ii] - (q.s - q.bed) * ex; return {q, pt: viewer.projectAt([[X(ii), y, Z(ii), false]], w, h, null, null)[0], top: T[ii]}; }).filter(r => r.pt);
+  const rp = k.pts.map(q => { const ii = Math.min(n - 1, Math.max(0, Math.round(q.t / k.L * (n - 1)))), y = top[ii] - (k.surf[ii][1] - q.bed) * ex; return {q, pt: viewer.projectAt([[X(ii), y, Z(ii), false]], w, h, null, null)[0], top: T[ii]}; }).filter(r => r.pt);
   rp.forEach(r => { ctx.strokeStyle = radarColor(r.q.p.m); ctx.globalAlpha = .6; ctx.lineWidth = 1.2 * u; ctx.beginPath(); ctx.moveTo(r.top[0], r.top[1]); ctx.lineTo(r.pt[0], r.pt[1]); ctx.stroke(); ctx.globalAlpha = 1; ctx.fillStyle = radarColor(r.q.p.m); ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.4 * u; ctx.beginPath(); ctx.arc(r.pt[0], r.pt[1], 3.6 * u, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); });      // the radar cells beside the line, at their bed
   cutHit = {T, B, ts: k.surf.map(q => q[0])};
   if (cutMark !== null) {            // the place under the pointer: a line down the wall with a dot on the surface and on the model bed
@@ -1860,7 +1889,7 @@ export function drawCut3D(ctx, viewer, w, h, u, sh, caption){            // the 
     [[t0, ICE_LINE], [d0, '#22313A']].forEach(([q, c]) => { ctx.fillStyle = c; ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.8 * u; ctx.beginPath(); ctx.arc(q[0], q[1], 4.5 * u, 0, 2 * Math.PI); ctx.fill(); ctx.stroke(); });
   }
   if (caption) {            // one caption under the wall (a box of the page, with the button of the 2D chart): length of the line, along the surface, and what the bed and the dots are
-    const yrs = [...new Set(k.pts.map(q => q.p.y).filter(Boolean))].sort(), cap = $('v3dCutCap'), l2 = `Bed under the ice: swissBEDROCK model (dashed)${k.pts.length ? ` · ${k.pts.length} radar cell${k.pts.length === 1 ? '' : 's'}${yrs.length ? `, ${yrs.join(', ')}` : ''}` : ''}`;
+    const yrs = [...new Set(k.pts.map(q => q.p.y).filter(Boolean))].sort(), cap = $('v3dCutCap'), l2 = `${k.water.some(Boolean) ? 'Teal: lake (water level of the year, floor = model bed, not measured). ' : ''}Bed under the ice: swissBEDROCK model (dashed)${k.pts.length ? ` · ${k.pts.length} radar cell${k.pts.length === 1 ? '' : 's'}${yrs.length ? `, ${yrs.join(', ')}` : ''}` : ''}`;
     const yb = $('v3dCutYears'); yb.hidden = !(v3dCtx.usesDem && !v3dCtx.cmp); yb.setAttribute('aria-pressed', sectYearsOn); const l3 = sectYearsOn && k.others.length ? `<i class="grad"></i>Surface of the other years, ${k.others[0].y} to ${k.others[k.others.length - 1].y}` : ''; if ($('v3dCutCap3').innerHTML !== l3) $('v3dCutCap3').innerHTML = l3; $('v3dCutCap3').hidden = !l3; const l4 = sectEarly(v3dCtx) ? sectEarlyText(v3dCtx) : ''; if ($('v3dCutCap4').textContent !== l4) $('v3dCutCap4').textContent = l4; $('v3dCutCap4').hidden = !l4;
     if ($('v3dCutCap1').textContent !== caption) $('v3dCutCap1').textContent = caption; if ($('v3dCutCap2').textContent !== l2) $('v3dCutCap2').textContent = l2;
     cap.hidden = false;

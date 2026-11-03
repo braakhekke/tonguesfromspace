@@ -233,8 +233,8 @@ export function syncSatUi(){
   if (satShown()) { const n = document.getElementById('notice'); if (n.textContent === SAT_MSG || n.textContent === OLDEST_MSG) { n.classList.remove('show'); clearTimeout(showNotice.t); } }      // the message is gone as soon as it no longer applies: the picture is on, or a glacier is picked
 }
 document.addEventListener('click', e => {
-  const noGlacier = !glacierPicked, t = e.target.closest ? e.target.closest(noGlacier ? '#vizGroup > :not(.step-h), #shareGroup > :not(.step-h):not(.act-link):not(.fyi):not(.fyi-by)' : '.sat-need') : null;
-  if (!t || (!noGlacier && satShown())) return;
+  const noGlacier = !glacierPicked, t = e.target.closest ? e.target.closest(noGlacier ? '#vizGroup > :not(.step-h):not(.act-link), #shareGroup > :not(.step-h):not(.act-link):not(.fyi):not(.fyi-by)' : '.sat-need') : null;
+  if (!t || (!noGlacier && satShown()) || e.target.closest('#landsatI')) return;      // the info button of the Landsat row works without a glacier too
   e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); showNotice(satMsg());
 }, true);
 syncSatUi();
@@ -315,6 +315,7 @@ export async function setLandsat(on){
   state.frame = 0; setStatus(statusLine()); refreshAll();
 }
 export const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
+document.getElementById('landsatI').onclick = e => { e.preventDefault(); const p = document.getElementById('landsatInfo'); p.hidden = !p.hidden; e.currentTarget.setAttribute('aria-expanded', !p.hidden); };
 { const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');
   if (REGION.landsat) { row.dataset.title = row.title; row.style.display = ''; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); updateLandsatRow(); } }
 /* The text of the Landsat switch; for a glacier whose picture is so small that 30 m pixels make it blurry (under 400 Landsat pixels across, a picture box under 12 km) it says "not recommended" */
@@ -332,5 +333,5 @@ export async function updateLandsatRow(){
   t.textContent = years.length ? `Include older imagery${note}` : `Include older imagery: none found for this glacier`;
   const box = document.getElementById('landsatToggle'), none = !years.length && !box.checked;      // a glacier without Landsat pictures: the switch stays, greyed out and off (if it is on, it can still be switched off)
   box.disabled = none; row.style.opacity = none ? '.5' : ''; row.style.cursor = none ? 'default' : '';
-  const ln = row.querySelector('.landsat-note'); if (ln) ln.style.display = none ? 'none' : '';      // the note on 30 m pixels is about pictures that are not there
+  document.getElementById('landsatI').style.display = none ? 'none' : ''; if (none) document.getElementById('landsatInfo').hidden = true;      // the note on 30 m pixels is about pictures that are not there
 }

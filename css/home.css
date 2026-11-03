@@ -48,6 +48,7 @@ a{color:inherit}
 .flight.grabbed .cap{opacity:0}
 .flight .cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:44px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.66),transparent);font-size:12.5px;color:rgba(255,255,255,.92);pointer-events:none}
 .flight .cap b{font-weight:700;color:#fff}
+.flight-credit{display:none}
 .flight .cap small{display:block;margin-top:4px;font-size:10px;line-height:1.35;color:rgba(255,255,255,.7)}
 .herotext .cta .btn-ghost{border:0;padding:6px 0;gap:10px;color:#fff}
 .herotext .cta .btn-ghost:hover{background:none;color:#fff;text-decoration:underline;text-underline-offset:4px}
@@ -94,10 +95,12 @@ a{color:inherit}
 .aud-card summary b{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--accent)}
 .aud-card summary b svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .aud-card summary span{font-size:13px;line-height:1.4;color:var(--rock)}
+.aud-lede{margin:0;padding:0 14px 10px;font-size:13px;line-height:1.5;color:var(--rock)}
 .aud-card ul{margin:0;padding:0 14px 14px 30px;font-size:12.5px;line-height:1.5;color:var(--moraine)}
 .aud-card li{margin:0 0 5px}
 .quoteband{padding:64px 0;background:var(--ice)}
 .quotegrid{display:flex;align-items:center;justify-content:center;gap:56px}
+.quoteband .qsub{margin-top:14px;font-size:clamp(15px,1.6vw,18px);font-weight:400;color:var(--rock)}
 .quoteband p{margin:0;max-width:640px;font-size:clamp(20px,2.4vw,30px);line-height:1.4;font-weight:600;color:#0A1B33}
 
 
@@ -279,6 +282,49 @@ dialog.player{overflow:visible}
   .closing .wrap{flex-direction:column;align-items:stretch;gap:22px}
   .closing .btn-red.go{width:100%;justify-content:center;height:58px;font-size:16px;border:2px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}
   section.s{padding:52px 0}
+}
+
+/* ---------- phones: one calm column (the front page seen at 390 px) ---------- */
+@media (max-width:640px){
+  .wrap{padding:0 20px}
+  .hero{padding:92px 0 36px}
+  .hero .wrap{gap:26px}
+  .herotext h1{font-size:clamp(28px,8.4vw,36px)}
+  .herotext .lede{font-size:16.5px;line-height:1.5;margin:-8px 0 0}
+  .flight{box-shadow:0 0 0 1px rgba(255,255,255,.12)}
+  .flight .cap{padding:30px 12px 10px;font-size:12px;line-height:1.35}
+  .flight .cap small{display:none}      /* the credits sit under the picture, not over it (same text, .flight-credit) */
+  .flight-credit{display:block;margin:10px 0 0;font-size:10.5px;line-height:1.45;color:rgba(255,255,255,.55)}
+  .flight-link{justify-content:space-between;margin-top:14px;padding:14px 0;border-top:1px solid rgba(255,255,255,.16);font-size:15px;line-height:1.35}
+  .hero .cta{border-top:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);margin:-26px 0 0}
+  .hero .cta .btn-ghost{width:100%;padding:14px 0;font-size:15px}
+  .whyband{padding:40px 0}
+  .why-name{font-size:16.5px;line-height:1.55}
+  .whyband .aud{grid-template-columns:1fr;gap:8px;margin-top:26px}
+  .aud-card summary{padding:14px 40px 14px 14px;min-height:44px}
+  .aud-card summary::after{top:13px;font-size:22px}
+  .aud-lede{font-size:14.5px;padding:0 16px 10px}
+  .aud-card ul{font-size:14px;line-height:1.5;padding:0 16px 14px 32px}
+  .aud-card li{margin:0 0 7px}
+  .pickband{padding:44px 0 32px}
+  .pickband .sh{display:block;margin:0 0 20px}
+  .sh .pick-h{font-size:28px}
+  .pickband .sh p{font-size:15px;line-height:1.5;margin:10px 0 0}
+  .pickrow{display:grid;grid-template-columns:1fr;gap:10px;margin-top:18px}
+  .pickrow .search{width:100%}
+  .sbox,.pk-btn{min-height:52px}
+  .sbox input{font-size:16px;padding:15px 0}      /* 16 px: iOS does not zoom the page on focus */
+  .pk-btn{font-size:16px}
+  #map{height:min(58vh,380px)}
+  .tiles{grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;border:0}
+  .tile{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);padding:12px 14px;min-height:64px}
+  .tile:last-child{border-right:1px solid rgba(255,255,255,.16)}
+  .tile .c,.tile small.of{display:none}      /* the region name twice, and the inventory total: not needed on a small tile */
+  .tile b{font-size:16px}
+  .tile small{font-size:12px}
+  .tile[disabled]{opacity:.6}
+  .tnote{font-size:11px}
+  .soonrow{margin-top:10px}
 }
 
 /* phone held sideways: the hero is the text on the left and the flight on the right, not a tall single column; the sections below are lower */
