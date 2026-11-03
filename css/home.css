@@ -95,9 +95,7 @@ a{color:inherit}
 .aud-card summary b{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--accent)}
 .aud-card summary b svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .aud-card summary span{font-size:13px;line-height:1.4;color:var(--rock)}
-.aud-lede{margin:0;padding:0 14px 10px;font-size:13px;line-height:1.5;color:var(--rock)}
-.aud-card ul{margin:0;padding:0 14px 14px 30px;font-size:12.5px;line-height:1.5;color:var(--moraine)}
-.aud-card li{margin:0 0 5px}
+.aud-lede{margin:0;padding:0 14px 14px;font-size:13px;line-height:1.5;color:var(--rock)}
 .quoteband{padding:64px 0;background:var(--ice)}
 .quotegrid{display:flex;align-items:center;justify-content:center;gap:56px}
 .quoteband .qsub{margin-top:14px;font-size:clamp(15px,1.6vw,18px);font-weight:400;color:var(--rock)}
@@ -303,10 +301,8 @@ dialog.player{overflow:visible}
   .whyband .aud{grid-template-columns:1fr;gap:8px;margin-top:26px}
   .aud-card summary{padding:14px 40px 14px 14px;min-height:44px}
   .aud-card summary::after{top:13px;font-size:22px}
-  .aud-lede{font-size:14.5px;padding:0 16px 10px}
-  .aud-card ul{font-size:14px;line-height:1.5;padding:0 16px 14px 32px}
-  .aud-card li{margin:0 0 7px}
-  .pickband{padding:44px 0 32px}
+  .aud-lede{font-size:14.5px;padding:0 16px 14px}
+    .pickband{padding:44px 0 32px}
   .pickband .sh{display:block;margin:0 0 20px}
   .sh .pick-h{font-size:28px}
   .pickband .sh p{font-size:15px;line-height:1.5;margin:10px 0 0}
