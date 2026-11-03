@@ -1957,7 +1957,7 @@ export function updateCredits3D(){            // the sources of the 3D view, in 
   if ($('l3Names').checked) parts.push(FEATURES.swisstopo ? `Peak names: ${A_SWT} (swissNAMES3D)` : 'Place names © OpenStreetMap contributors');
   $('credits').innerHTML = parts.join(' · ');
 }
-export const credit3D = (c, yrs) => shortCredit(yrs, [...(c && c.bundle && c.bundle.yearly ? ['ArcticDEM'] : []), ...REGION.terrain.short.split(' · ').filter(n => !(c && c.bundle && c.bundle.yearly && n === 'ArcticDEM')), ...layerCreditNames(c.g)]);
+export const credit3D = (c, yrs) => shortCredit(yrs, [...(c && c.bundle && c.bundle.yearly && !c.bundle.yearly.swiss ? ['ArcticDEM'] : []), ...REGION.terrain.short.split(' · ').filter(n => !(c && c.bundle && c.bundle.yearly && !c.bundle.yearly.swiss && n === 'ArcticDEM')), ...layerCreditNames(c.g)]);
 export function labels3D(c, facts){            // what the labels of the picture show now (the timelapse: the year on screen); facts: {set, base} or null
   const year = c.cmp ? null : c.current();
   return {g: c.g, cmp: c.cmp, hz: c.hz, year, outline: outline3D(c.g), outlineNew: outlineNew3D(c.g), facts, years: c.cmp ? null : vstate.kind === 'image' ? [] : c.years, credit: credit3D(c, c.cmp ? c.cmp.join(' and ') : vstate.kind !== 'image' && c.years.length > 1 ? `${c.years[0]}–${c.years[c.years.length - 1]}` : year)};
