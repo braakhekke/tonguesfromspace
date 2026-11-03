@@ -68,7 +68,14 @@ window.GLACIER_BOXES = {
     "azimuth": 105.5,
     "half": 2481,
     "back": 1685,
-    "up": 6517
+    "up": 6517,
+    "cam": {
+     "az": -0.1449,
+     "el": 0.2227,
+     "dist": 4598,
+     "tx": 69,
+     "tz": -119
+    }
    },
    "derived": {
     "bbox": [
@@ -104,7 +111,14 @@ window.GLACIER_BOXES = {
     "azimuth": 17.6,
     "half": 2300,
     "back": 1607,
-    "up": 6791
+    "up": 6791,
+    "cam": {
+     "az": -0.0982,
+     "el": 0.3339,
+     "dist": 4576,
+     "tx": 103,
+     "tz": -256
+    }
    },
    "derived": {
     "bbox": [
@@ -140,7 +154,14 @@ window.GLACIER_BOXES = {
     "azimuth": 271.9,
     "half": 2507,
     "back": 2435,
-    "up": 6657
+    "up": 6657,
+    "cam": {
+     "az": -0.0071,
+     "el": 0.365,
+     "dist": 5392,
+     "tx": 147,
+     "tz": -332
+    }
    },
    "derived": {
     "bbox": [
@@ -176,7 +197,14 @@ window.GLACIER_BOXES = {
     "azimuth": 166.2,
     "half": 2281,
     "back": 1792,
-    "up": 6862
+    "up": 6862,
+    "cam": {
+     "az": -0.2636,
+     "el": 0.3461,
+     "dist": 4197,
+     "tx": 60,
+     "tz": 177
+    }
    },
    "derived": {
     "bbox": [
@@ -212,7 +240,14 @@ window.GLACIER_BOXES = {
     "azimuth": 253.2,
     "half": 2219,
     "back": 3081,
-    "up": 5141
+    "up": 5141,
+    "cam": {
+     "az": -0.0773,
+     "el": 0.2833,
+     "dist": 5160,
+     "tx": 107,
+     "tz": -131
+    }
    },
    "derived": {
     "bbox": [
@@ -248,7 +283,12 @@ window.GLACIER_BOXES = {
     "azimuth": 4.3,
     "half": 2267,
     "back": 1658,
-    "up": 6113
+    "up": 6113,
+    "cam": {
+     "az": -0.1323,
+     "el": 0.2562,
+     "dist": 4207
+    }
    },
    "derived": {
     "bbox": [
@@ -284,7 +324,14 @@ window.GLACIER_BOXES = {
     "azimuth": 122.5,
     "half": 2036,
     "back": 2305,
-    "up": 6734
+    "up": 6734,
+    "cam": {
+     "az": 0.2044,
+     "el": 0.2551,
+     "dist": 4485,
+     "tx": 4,
+     "tz": -49
+    }
    },
    "derived": {
     "bbox": [
@@ -320,7 +367,14 @@ window.GLACIER_BOXES = {
     "azimuth": 213.2,
     "half": 2935,
     "back": 1186,
-    "up": 3938
+    "up": 3938,
+    "cam": {
+     "az": -0.2059,
+     "el": 0.4092,
+     "dist": 4990,
+     "tx": -49,
+     "tz": 184
+    }
    },
    "derived": {
     "bbox": [
@@ -356,7 +410,12 @@ window.GLACIER_BOXES = {
     "azimuth": 166.5,
     "half": 1944,
     "back": 3016,
-    "up": 5054
+    "up": 5054,
+    "cam": {
+     "az": 0.1535,
+     "el": 0.3155,
+     "dist": 7194
+    }
    },
    "derived": {
     "bbox": [
