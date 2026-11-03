@@ -63,3 +63,26 @@ node_modules/
 .cache/
 .dev.vars
 scripts/.placement/
+
+# local only (owner's decision 2026-11-03): the working tools, records and notes behind the site; the repository holds the site, the Worker and what the build needs
+walkthrough/
+data/regions/
+data/review-signoffs.json
+data/audit-exceptions.json
+docs/sources/
+docs/ADD_A_GLACIER.md
+docs/DATA_SEARCH.md
+docs/WALKTHROUGH.md
+docs/PIPELINE_SWISS.md
+docs/YEARLY_DEM_METHOD.md
+docs/YEARLY_GLACIER_RUNBOOK.md
+docs/DEM_RELEASE_PLAN.md
+scripts/tools/
+scripts/onboard_lib.py
+scripts/placement_sheet.py
+scripts/.streetview-ranked-is.json
+scripts/.streetview-scan-is.json
+tests/test_walkthrough.py
+tests/test_board.py
+CLAUDE.md
+REWRITE.md

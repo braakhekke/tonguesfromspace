@@ -212,6 +212,10 @@ def hidden_glacier_ids():
         if GROUP_ON[group]:
             continue
         base = os.path.join(ROOT, "data", "regions")
+        if not os.path.isdir(base):      # the records stay on the owner's computer (not in the repository): the generated list of the front page has the same ids
+            txt = open(os.path.join(ROOT, "data", "home-glaciers.js"), encoding="utf-8").read()
+            ids.update(g["id"] for g in json.loads(txt[txt.index("["):txt.rindex("]") + 1]) if g["region"].startswith(prefix))
+            continue
         for region in sorted(os.listdir(base)):
             if region.startswith(prefix) and os.path.isdir(os.path.join(base, region)):
                 ids.update(os.listdir(os.path.join(base, region)))

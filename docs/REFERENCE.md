@@ -1,5 +1,7 @@
 # Reference: files, code layout and data flow
 
+> Some files named here (walkthrough, ledgers, review tools, the records in data/regions) are kept on the owner's computer only, not in the repository.
+
 Moved from CLAUDE.md, with the statements about plain scripts corrected after the move to ES modules (2026-10). Rules, style and testing stay in CLAUDE.md.
 
 ## Files

@@ -1,8 +1,0 @@
-/* The wizard's own base. Colours and the typeface are the site's tokens (css/tokens.css, linked by the page); these two are used only here. */
-*{box-sizing:border-box}
-[hidden]{display:none!important}
-html{scroll-behavior:smooth}
-@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
-:root{--night:#0E1A22;--night-2:#16252F}
-body{margin:0;background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
-button,select,input,textarea{font:inherit;color:inherit}
