@@ -57,8 +57,8 @@
     "stakes": null,
     "kappa": 1.3,
     "lake": null,
-    "ice_km2": 10.815,
-    "volume_km3": 1.9468,
+    "ice_km2": 10.812,
+    "volume_km3": 1.9464,
     "share": {
      "this_year": 0,
      "other_year": 98,
@@ -74,8 +74,8 @@
     "stakes": null,
     "kappa": 1.3,
     "lake": null,
-    "ice_km2": 10.683,
-    "volume_km3": 1.8952,
+    "ice_km2": 10.669,
+    "volume_km3": 1.8948,
     "share": {
      "this_year": 0,
      "other_year": 99,
@@ -95,11 +95,11 @@
     "stakes": null,
     "kappa": 1.0999999999999999,
     "lake": null,
-    "ice_km2": 10.581,
-    "volume_km3": 1.8553,
+    "ice_km2": 10.566,
+    "volume_km3": 1.855,
     "share": {
      "this_year": 96,
-     "other_year": 4,
+     "other_year": 3,
      "none": 0
     }
    },
@@ -117,11 +117,11 @@
     "stakes": null,
     "kappa": 0.8999999999999999,
     "lake": null,
-    "ice_km2": 10.489,
-    "volume_km3": 1.8199,
+    "ice_km2": 10.481,
+    "volume_km3": 1.8198,
     "share": {
      "this_year": 98,
-     "other_year": 2,
+     "other_year": 1,
      "none": 0
     }
    },
@@ -147,8 +147,8 @@
     "stakes": null,
     "kappa": 0.95,
     "lake": null,
-    "ice_km2": 10.437,
-    "volume_km3": 1.7924,
+    "ice_km2": 10.429,
+    "volume_km3": 1.7923,
     "share": {
      "this_year": 98,
      "other_year": 2,
@@ -180,7 +180,7 @@
     "stakes": null,
     "kappa": 0.9,
     "lake": null,
-    "ice_km2": 10.369,
+    "ice_km2": 10.376,
     "volume_km3": 1.7714,
     "share": {
      "this_year": 97,
@@ -200,7 +200,7 @@
      "2022-08-24"
     ],
     "loo": {
-     "2022-07-16": 1.12,
+     "2022-07-16": 1.1,
      "2022-08-24": 1.08
     },
     "shots": {
@@ -215,7 +215,7 @@
     "stakes": null,
     "kappa": 0.85,
     "lake": null,
-    "ice_km2": 10.026,
+    "ice_km2": 10.058,
     "volume_km3": 1.7261,
     "share": {
      "this_year": 100,
@@ -246,8 +246,8 @@
     "stakes": null,
     "kappa": 0.9500000000000001,
     "lake": null,
-    "ice_km2": 9.764,
-    "volume_km3": 1.6936,
+    "ice_km2": 9.797,
+    "volume_km3": 1.6935,
     "share": {
      "this_year": 99,
      "other_year": 1,
@@ -263,7 +263,7 @@
     ],
     "loo": {
      "2024-08-22": 1.05,
-     "2024-08-23": 1.39
+     "2024-08-23": 1.52
     },
     "shots": {
      "n": 139,
@@ -277,8 +277,8 @@
     "stakes": null,
     "kappa": 0.95,
     "lake": null,
-    "ice_km2": 9.622,
-    "volume_km3": 1.6498,
+    "ice_km2": 9.662,
+    "volume_km3": 1.6496,
     "share": {
      "this_year": 78,
      "other_year": 22,
@@ -296,9 +296,9 @@
     "loo": {},
     "shots": {
      "n": 289,
-     "median": 0.4,
-     "nmad": 0.97,
-     "rmse": 1.43,
+     "median": 0.37,
+     "nmad": 0.96,
+     "rmse": 1.55,
      "old_rmse": 5.27,
      "old_median": 5.14,
      "granules": 3
@@ -306,8 +306,8 @@
     "stakes": null,
     "kappa": 0.7999999999999999,
     "lake": null,
-    "ice_km2": 9.577,
-    "volume_km3": 1.6287,
+    "ice_km2": 9.617,
+    "volume_km3": 1.6288,
     "share": {
      "this_year": 100,
      "other_year": 0,
@@ -323,8 +323,8 @@
     "stakes": null,
     "kappa": null,
     "lake": null,
-    "ice_km2": 9.348,
-    "volume_km3": 1.5702,
+    "ice_km2": 9.392,
+    "volume_km3": 1.57,
     "share": {
      "this_year": 0,
      "other_year": 100,
@@ -764,7 +764,7 @@
     "n": 1633,
     "median": 0.06,
     "nmad": 0.92,
-    "rmse": 1.46
+    "rmse": 1.48
    },
    "n_old_same": {
     "n": 1633,
@@ -776,11 +776,11 @@
   "gedi": null,
   "sections": {
    "What this is": "<p>The ice surface of every year 2016 to 2026, on <b>the day of the satellite picture the site shows for that year</b> (2016 09-09, 2017 08-25, 2018 08-15, 2019 08-25, 2020 08-09, 2021 08-14, 2022 08-09, 2023 08-19, 2024 08-23, 2025 08-08, 2026 08-13). It is a physical model fitted to every dated elevation model that exists for the glacier, not an interpolation between two surveys. Where a flight or the lidar was flown, the surface of that day is reproduced (to about 0.2 m, the DSM epoch weighted by its own noise); between and beyond the epochs the surface follows the surface mass balance, the melt timing and a fitted rate of ice flow. A model, not a measurement, except on the days and cells a survey covers.</p>",
-   "Observations": "<ul><li><b>Flights</b> (swisstopo Spezialbefliegungen, photogrammetric DSM 0.5 m, each tied to rock with a plane, 0.7 m): 29 flights over the ice on 2018-08-15, 2019-08-25, 2020-09-09, 2020-09-13, 2021-08-20, 2021-08-21, 2021-08-26, 2022-07-13, 2022-07-16, 2022-08-23, 2022-08-24, 2023-08-20, 2023-08-22, 2024-08-22, 2024-08-23, 2025-09-18; 5 further flights (2022-07-13, 2022-08-23, 2023-08-23, 2024-08-30, 2025-09-18) reach the strip only over rock: they cover less than 1 % of the ice and are no observation of it.</li><li><b>Lidar</b> (swissSURFACE3D raster, one day per tile from the point clouds, 0.35 m): none.</li><li><b>swissALTI3D</b> 2019 edition and the newest edition as ice surfaces (stereo; the model takes their uncertainty as 0.6 m below 2000 m and 1.5 m above, 2.0 m above 2000 m where no flight series exists). Their dates were estimated from the flights (the date at which the edition equals the flight-based surface of the tongue): <b>2019 edition 2012-09-09, newest edition 2022-08-22</b>.</li></ul><p>Against the flight and lidar based surface the editions stand too high at the upper end of the flight coverage: A1 2019 edition: +0.8 m at 2150 m, +0.9 m at 2250 m, +0.5 m at 2350 m, -1.0 m at 2450 m, -0.6 m at 2550 m; A2 newest edition: -2.4 m at 2050 m, -2.1 m at 2150 m, -2.0 m at 2250 m, -2.0 m at 2350 m, -1.8 m at 2450 m, -1.4 m at 2550 m. This was measured and removed; above the reach of the flights it is held constant (+0.5 m added to the editions' uncertainty there).</p>",
+   "Observations": "<ul><li><b>Flights</b> (swisstopo Spezialbefliegungen, photogrammetric DSM 0.5 m, each tied to rock with a plane, 0.7 m): 29 flights over the ice on 2018-08-15, 2019-08-25, 2020-09-09, 2020-09-13, 2021-08-20, 2021-08-21, 2021-08-26, 2022-07-13, 2022-07-16, 2022-08-23, 2022-08-24, 2023-08-20, 2023-08-22, 2024-08-22, 2024-08-23, 2025-09-18; 5 further flights (2022-07-13, 2022-08-23, 2023-08-23, 2024-08-30, 2025-09-18) reach the strip only over rock: they cover less than 1 % of the ice and are no observation of it.</li><li><b>Lidar</b> (swissSURFACE3D raster, one day per tile from the point clouds, 0.35 m): none.</li><li><b>swissALTI3D</b> 2019 edition and the newest edition as ice surfaces (stereo; the model takes their uncertainty as 0.6 m below 2000 m and 1.5 m above, 2.0 m above 2000 m where no flight series exists). Their dates were estimated from the flights (the date at which the edition equals the flight-based surface of the tongue): <b>2019 edition 2012-09-09, newest edition 2022-08-22</b>.</li></ul><p>Against the flight and lidar based surface the editions stand too high at the upper end of the flight coverage: A1 2019 edition: +0.8 m at 2150 m, +1.0 m at 2250 m, +0.5 m at 2350 m, -1.0 m at 2450 m, -0.6 m at 2550 m; A2 newest edition: -2.4 m at 2050 m, -2.1 m at 2150 m, -2.0 m at 2250 m, -2.0 m at 2350 m, -1.8 m at 2450 m, -1.4 m at 2550 m. This was measured and removed; above the reach of the flights it is held constant (+0.5 m added to the editions' uncertainty there).</p>",
    "Physics and fitted numbers": "<p><b>h(x,t) = h0(x) + S(z,t) + e(x)·τ + residual.</b> S is the surface mass balance acting on the surface: the GLAMOS elevation-band balance of the Rhone as a stand-in (GLAMOS has no balance for this glacier; computed, and said so here), winter accumulation spread over October to April, summer melt spread over May to September in proportion to the positive degrees of the Eggishorn (2892 m) and Jungfraujoch temperature records (lapse rate 0.65 K per 100 m), snow melting first (density 0.4), then ice (0.9) or firn (0.6). e(x) is everything the balance does not explain, mainly ice flow, fitted per cell: median by elevation (m/yr) +3.0 at 1900 to 2100 m, +2.9 at 2100 to 2300 m, +2.3 at 2300 to 2500 m, +1.8 at 2500 to 2700 m, +0.1 at 2700 to 2900 m, +0.0 at 2900 to 3100 m, -0.0 at 3100 to 3300 m.</p><p>The summer balance of each hydrological year was scaled by a factor fitted on the flights (the published balances are modelled values at the tongue): 2016: 1.30, 2017: 1.30, 2018: 1.10, 2019: 0.90, 2020: 0.95, 2021: 0.90, 2022: 0.85, 2023: 0.95, 2024: 0.95, 2025: 0.80. A factor that did not move from 1.00 means no flight improved it.</p>",
-   "Each year": "<table><tr><th>Year</th><th>Picture date</th><th>Surface</th><th>Ice in the strip, km²</th><th>Volume in the strip, km³</th><th>Flights / lidar of that year</th></tr><tr><td>2016</td><td>2016-09-09</td><td>beyond the first or last flight</td><td>10.81</td><td>1.947</td><td>–</td></tr><tr><td>2017</td><td>2017-08-25</td><td>beyond the first or last flight</td><td>10.68</td><td>1.895</td><td>–</td></tr><tr><td>2018</td><td>2018-08-15</td><td>a flight or the lidar covers it</td><td>10.58</td><td>1.855</td><td>2018-08-15, 2018-08-15, 2018-08-15</td></tr><tr><td>2019</td><td>2019-08-25</td><td>a flight or the lidar covers it</td><td>10.49</td><td>1.820</td><td>2019-08-25, 2019-08-25, 2019-08-25, 2019-08-25</td></tr><tr><td>2020</td><td>2020-08-09</td><td>a flight or the lidar covers it</td><td>10.44</td><td>1.792</td><td>2020-09-09, 2020-09-09, 2020-09-13, 2020-09-13</td></tr><tr><td>2021</td><td>2021-08-14</td><td>a flight or the lidar covers it</td><td>10.37</td><td>1.771</td><td>2021-08-20, 2021-08-21, 2021-08-26, 2021-08-26</td></tr><tr><td>2022</td><td>2022-08-09</td><td>a flight or the lidar covers it</td><td>10.03</td><td>1.726</td><td>2022-07-13, 2022-07-13, 2022-07-16, 2022-08-23, 2022-08-23, 2022-08-24</td></tr><tr><td>2023</td><td>2023-08-19</td><td>a flight or the lidar covers it</td><td>9.76</td><td>1.694</td><td>2023-08-20, 2023-08-20, 2023-08-22</td></tr><tr><td>2024</td><td>2024-08-23</td><td>a flight or the lidar covers it</td><td>9.62</td><td>1.650</td><td>2024-08-22, 2024-08-23</td></tr><tr><td>2025</td><td>2025-08-08</td><td>a flight or the lidar covers it</td><td>9.58</td><td>1.629</td><td>2025-09-18, 2025-09-18, 2025-09-18</td></tr><tr><td>2026</td><td>2026-08-13</td><td>estimate (balance of 2026 estimated)</td><td>9.35</td><td>1.570</td><td>–</td></tr></table><p class=\"small\">Ice area and volume are computed inside the 3D strip (bed: Grab et al. 2021 ice thickness; ice where the surface stands more than 0.5 m above it); the strip holds only part of the glacier, so these are not the GLAMOS whole-glacier figures.</p>",
-   "Validation": "<p><b>ICESat-2 (not used in the fit)</b>: model minus 1633 shots on the ice, median +0.06 m, NMAD 0.92 m, rmse 1.46 m. 2020: +0.13 m (108 shots). 2021: -0.13 m (567 shots). 2022: -0.36 m (206 shots). 2023: +0.79 m (323 shots). 2024: -0.20 m (139 shots). 2025: +0.40 m (289 shots).</p><p><b>Leave one flight out</b> (refit without it, predict it): rmse 1.3, 1.5, 2.7, 0.6, 1.4, 3.8, 1.1, 3.2, 1.0, 1.0, 1.4, 1.2, 0.9, 1.9, 8.5, 1.1, 1.3, 1.1, 1.8, 1.4, 1.1, 1.8, 3.2, 1.9, 1.1, 1.4, 2.0, 1.8, 1.4 m (flights in date order; the rmse contains the 8 m crevasse detail of the DSM).</p><p>Fit residual on all 2,518,980 observations: NMAD 1.15 m, rmse 1.87 m.</p>",
-   "Uncertainty": "<p>1σ, honest ranges: on a flight or lidar day on the cells it covers 0.3 to 0.7 m; between flights 1.0 to 3.2 m (leave one out); beyond the last flight about 1.8 m; where only the editions exist (above the reach of the flights) about 1.5 m (ICESat-2 rmse) with an absolute offset of up to 2 to 3 m; the first year before any observation about 3 m; the last year (balances estimated) about 3.6 m. ICESat-2 reads about 0.9 m lower than surface models on rough ice (not a model error).</p>",
+   "Each year": "<table><tr><th>Year</th><th>Picture date</th><th>Surface</th><th>Ice in the strip, km²</th><th>Volume in the strip, km³</th><th>Flights / lidar of that year</th></tr><tr><td>2016</td><td>2016-09-09</td><td>beyond the first or last flight</td><td>10.81</td><td>1.946</td><td>–</td></tr><tr><td>2017</td><td>2017-08-25</td><td>beyond the first or last flight</td><td>10.67</td><td>1.895</td><td>–</td></tr><tr><td>2018</td><td>2018-08-15</td><td>a flight or the lidar covers it</td><td>10.57</td><td>1.855</td><td>2018-08-15, 2018-08-15, 2018-08-15</td></tr><tr><td>2019</td><td>2019-08-25</td><td>a flight or the lidar covers it</td><td>10.48</td><td>1.820</td><td>2019-08-25, 2019-08-25, 2019-08-25, 2019-08-25</td></tr><tr><td>2020</td><td>2020-08-09</td><td>a flight or the lidar covers it</td><td>10.43</td><td>1.792</td><td>2020-09-09, 2020-09-09, 2020-09-13, 2020-09-13</td></tr><tr><td>2021</td><td>2021-08-14</td><td>a flight or the lidar covers it</td><td>10.38</td><td>1.771</td><td>2021-08-20, 2021-08-21, 2021-08-26, 2021-08-26</td></tr><tr><td>2022</td><td>2022-08-09</td><td>a flight or the lidar covers it</td><td>10.06</td><td>1.726</td><td>2022-07-13, 2022-07-13, 2022-07-16, 2022-08-23, 2022-08-23, 2022-08-24</td></tr><tr><td>2023</td><td>2023-08-19</td><td>a flight or the lidar covers it</td><td>9.80</td><td>1.694</td><td>2023-08-20, 2023-08-20, 2023-08-22</td></tr><tr><td>2024</td><td>2024-08-23</td><td>a flight or the lidar covers it</td><td>9.66</td><td>1.650</td><td>2024-08-22, 2024-08-23</td></tr><tr><td>2025</td><td>2025-08-08</td><td>a flight or the lidar covers it</td><td>9.62</td><td>1.629</td><td>2025-09-18, 2025-09-18, 2025-09-18</td></tr><tr><td>2026</td><td>2026-08-13</td><td>estimate (balance of 2026 estimated)</td><td>9.39</td><td>1.570</td><td>–</td></tr></table><p class=\"small\">Ice area and volume are computed inside the 3D strip (bed: Grab et al. 2021 ice thickness; ice where the surface stands more than 0.5 m above it); the strip holds only part of the glacier, so these are not the GLAMOS whole-glacier figures.</p>",
+   "Validation": "<p><b>ICESat-2 (not used in the fit)</b>: model minus 1633 shots on the ice, median +0.06 m, NMAD 0.92 m, rmse 1.48 m. 2020: +0.13 m (108 shots). 2021: -0.13 m (567 shots). 2022: -0.36 m (206 shots). 2023: +0.79 m (323 shots). 2024: -0.20 m (139 shots). 2025: +0.37 m (289 shots).</p><p><b>Leave one flight out</b> (refit without it, predict it): rmse 1.2, 1.5, 2.6, 0.6, 1.4, 3.8, 1.1, 3.0, 1.0, 1.0, 1.2, 1.2, 0.9, 1.9, 8.5, 1.1, 1.2, 1.1, 1.7, 1.4, 1.1, 1.8, 3.2, 1.9, 1.1, 1.5, 1.8, 1.8, 1.4 m (flights in date order; the rmse contains the 8 m crevasse detail of the DSM).</p><p>Fit residual on all 2,515,467 observations: NMAD 1.15 m, rmse 1.83 m.</p>",
+   "Uncertainty": "<p>1σ, honest ranges: on a flight or lidar day on the cells it covers 0.3 to 0.7 m; between flights 1.0 to 3.1 m (leave one out); beyond the last flight about 1.8 m; where only the editions exist (above the reach of the flights) about 1.5 m (ICESat-2 rmse) with an absolute offset of up to 2 to 3 m; the first year before any observation about 3 m; the last year (balances estimated) about 3.6 m. ICESat-2 reads about 0.9 m lower than surface models on rough ice (not a model error).</p>",
    "Not done, and remarks": "<ul><li><b>Ice flux.</b> The rate of ice flow e(x) was fitted from the surfaces; it has not been checked against the ice flux (flux divergence from ITS_LIVE velocities and the thickness map). Left open on purpose.</li><li><b>High accumulation area.</b> Where neither lidar nor flights exist the surface rests on the two swissALTI3D editions (stereo, stated accuracy 1 to 3 m), on the mass balance and on a constant rate of ice flow. The change from year to year is better known there than the absolute height (about 2 to 3 m).</li><li><b>Ice edge.</b> At the margin the ice surface is continued up the wall for at most 32 m (flat, only over rising ground); the Swiss Glacier Inventory 2016 supports it only weakly.</li><li><b>Terms.</b> The terms of use and the accuracy statement of the flight DSMs have not been read.</li></ul>",
    "Data and licences": "<p>swisstopo open government data: swissALTI3D, swissSURFACE3D raster, Spezialbefliegungen DSMs (© Federal Office of Topography swisstopo; the collection's licence field says \"proprietary\", its terms are not read yet). GLAMOS mass balance release 2025 (doi:10.18750/massbalance.2025.r2025, non-commercial use) and the Swiss Glacier Inventory. MeteoSwiss daily temperature (CC BY 4.0). Grab et al. 2021 ice thickness (CC BY 4.0, doi:10.3929/ethz-b-000434697). ICESat-2 ATL06 and GEDI (NASA), GLAMOS stakes: for checking only. Not used: airborne research DEMs (internal use only), ASTER (accuracy 5 to 30 m against a signal of 1 to 5 m per year).</p>"
   },
@@ -9435,25 +9435,10 @@
      "label": "2018-08-15 09:40",
      "day": "2018-08-15",
      "kind": "flight",
-     "cells": 251698,
+     "km2": 12.94,
+     "ice": 0.577,
      "rings": [
       [
-       [
-        2658992,
-        1160168
-       ],
-       [
-        2658968,
-        1160144
-       ],
-       [
-        2658944,
-        1160120
-       ],
-       [
-        2658920,
-        1160096
-       ],
        [
         2658896,
         1160072
@@ -9960,291 +9945,11 @@
        ],
        [
         2655056,
-        1156712
+        1155944
        ],
        [
-        2655032,
-        1156688
-       ],
-       [
-        2655008,
-        1156664
-       ],
-       [
-        2654960,
-        1156688
-       ],
-       [
-        2654912,
-        1156664
-       ],
-       [
-        2654864,
-        1156640
-       ],
-       [
-        2654816,
-        1156616
-       ],
-       [
-        2654768,
-        1156592
-       ],
-       [
-        2654696,
-        1156568
-       ],
-       [
-        2654648,
-        1156544
-       ],
-       [
-        2654600,
-        1156520
-       ],
-       [
-        2654576,
-        1156496
-       ],
-       [
-        2654528,
-        1156472
-       ],
-       [
-        2654480,
-        1156448
-       ],
-       [
-        2654456,
-        1156424
-       ],
-       [
-        2654408,
-        1156400
-       ],
-       [
-        2654384,
-        1156376
-       ],
-       [
-        2654360,
-        1156352
-       ],
-       [
-        2654312,
-        1156328
-       ],
-       [
-        2654288,
-        1156304
-       ],
-       [
-        2654264,
-        1156280
-       ],
-       [
-        2654240,
-        1156256
-       ],
-       [
-        2654216,
-        1156232
-       ],
-       [
-        2654168,
-        1156208
-       ],
-       [
-        2654144,
-        1156184
-       ],
-       [
-        2654120,
-        1156160
-       ],
-       [
-        2654096,
-        1156136
-       ],
-       [
-        2654072,
-        1156112
-       ],
-       [
-        2654048,
-        1156088
-       ],
-       [
-        2654024,
-        1156064
-       ],
-       [
-        2654000,
-        1156040
-       ],
-       [
-        2654792,
-        1154000
-       ],
-       [
-        2654840,
-        1154024
-       ],
-       [
-        2654888,
-        1154048
-       ],
-       [
-        2654912,
-        1154072
-       ],
-       [
-        2654960,
-        1154096
-       ],
-       [
-        2655056,
-        1154120
-       ],
-       [
-        2655128,
-        1154144
-       ],
-       [
-        2655176,
-        1154168
-       ],
-       [
-        2655200,
-        1154192
-       ],
-       [
-        2655248,
-        1154216
-       ],
-       [
-        2655320,
-        1154240
-       ],
-       [
-        2655368,
-        1154264
-       ],
-       [
-        2655392,
-        1154288
-       ],
-       [
-        2655440,
-        1154312
-       ],
-       [
-        2655464,
-        1154336
-       ],
-       [
-        2655512,
-        1154360
-       ],
-       [
-        2655560,
-        1154384
-       ],
-       [
-        2655584,
-        1154408
-       ],
-       [
-        2655608,
-        1154432
-       ],
-       [
-        2655656,
-        1154456
-       ],
-       [
-        2655680,
-        1154480
-       ],
-       [
-        2655704,
-        1154504
-       ],
-       [
-        2655728,
-        1154528
-       ],
-       [
-        2655752,
-        1154552
-       ],
-       [
-        2655800,
-        1154576
-       ],
-       [
-        2655824,
-        1154600
-       ],
-       [
-        2655848,
-        1154624
-       ],
-       [
-        2655872,
-        1154648
-       ],
-       [
-        2655896,
-        1154672
-       ],
-       [
-        2655920,
-        1154720
-       ],
-       [
-        2655944,
-        1154744
-       ],
-       [
-        2655968,
-        1154768
-       ],
-       [
-        2655992,
-        1154792
-       ],
-       [
-        2656016,
-        1154816
-       ],
-       [
-        2656040,
-        1154840
-       ],
-       [
-        2656064,
-        1154864
-       ],
-       [
-        2656088,
-        1154888
-       ],
-       [
-        2656136,
-        1154936
-       ],
-       [
-        2656160,
-        1154960
-       ],
-       [
-        2656184,
-        1154984
-       ],
-       [
-        2656232,
-        1155008
+        2655296,
+        1155056
        ],
        [
         2656256,
@@ -10995,28 +10700,12 @@
         1160000
        ],
        [
-        2659136,
+        2659112,
         1160048
        ],
        [
-        2659112,
+        2658896,
         1160072
-       ],
-       [
-        2659088,
-        1160096
-       ],
-       [
-        2659064,
-        1160120
-       ],
-       [
-        2659040,
-        1160144
-       ],
-       [
-        2658992,
-        1160168
        ]
       ]
      ]
@@ -11025,180 +10714,21 @@
      "label": "2018-08-15 09:49",
      "day": "2018-08-15",
      "kind": "flight",
-     "cells": 205996,
+     "km2": 10.46,
+     "ice": 0.556,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159640
-       ],
-       [
-        2654048,
-        1159616
-       ],
-       [
-        2654072,
-        1159592
-       ],
-       [
-        2654096,
-        1159568
-       ],
-       [
-        2654144,
-        1159544
-       ],
-       [
-        2654168,
-        1159520
-       ],
-       [
-        2654192,
-        1159496
-       ],
-       [
-        2654216,
-        1159472
-       ],
-       [
-        2654240,
-        1159448
-       ],
-       [
-        2654264,
-        1159424
-       ],
-       [
-        2654288,
-        1159400
-       ],
-       [
-        2654312,
-        1159376
-       ],
-       [
-        2654336,
-        1159352
-       ],
-       [
-        2654360,
-        1159328
-       ],
-       [
-        2654384,
-        1159304
-       ],
-       [
-        2654408,
-        1159280
-       ],
-       [
-        2654432,
-        1159232
-       ],
-       [
-        2654456,
-        1159208
-       ],
-       [
-        2654480,
-        1159184
-       ],
-       [
-        2654504,
-        1159160
-       ],
-       [
-        2654528,
-        1159112
-       ],
-       [
-        2654552,
-        1159088
-       ],
-       [
-        2654576,
-        1159064
-       ],
-       [
-        2654600,
-        1159040
-       ],
-       [
-        2654624,
-        1159016
-       ],
-       [
-        2654648,
-        1158992
-       ],
-       [
-        2654672,
-        1158968
-       ],
-       [
-        2654696,
-        1158944
-       ],
-       [
-        2654720,
-        1158920
-       ],
-       [
-        2654744,
-        1158896
-       ],
-       [
-        2654768,
-        1158872
-       ],
-       [
-        2654792,
-        1158848
-       ],
-       [
-        2654816,
-        1158824
-       ],
-       [
-        2654840,
-        1158776
-       ],
-       [
-        2654864,
-        1158752
-       ],
-       [
-        2654888,
-        1158728
-       ],
-       [
-        2654912,
-        1158704
-       ],
-       [
-        2654936,
-        1158680
-       ],
-       [
-        2654960,
-        1158656
-       ],
-       [
-        2654984,
-        1158632
-       ],
-       [
-        2655104,
-        1158608
+        2655152,
+        1159928
        ],
        [
         2655128,
-        1158584
+        1158944
        ],
        [
         2655152,
@@ -12381,148 +11911,12 @@
         1160096
        ],
        [
-        2656256,
+        2656016,
         1160120
        ],
        [
-        2656232,
+        2655176,
         1160144
-       ],
-       [
-        2656208,
-        1160168
-       ],
-       [
-        2656160,
-        1160192
-       ],
-       [
-        2656136,
-        1160216
-       ],
-       [
-        2656112,
-        1160240
-       ],
-       [
-        2656088,
-        1160264
-       ],
-       [
-        2656064,
-        1160288
-       ],
-       [
-        2656040,
-        1160312
-       ],
-       [
-        2656016,
-        1160336
-       ],
-       [
-        2655968,
-        1160360
-       ],
-       [
-        2655944,
-        1160384
-       ],
-       [
-        2655920,
-        1160408
-       ],
-       [
-        2655872,
-        1160432
-       ],
-       [
-        2655848,
-        1160456
-       ],
-       [
-        2655800,
-        1160480
-       ],
-       [
-        2655776,
-        1160504
-       ],
-       [
-        2655752,
-        1160528
-       ],
-       [
-        2655728,
-        1160552
-       ],
-       [
-        2655704,
-        1160576
-       ],
-       [
-        2655680,
-        1160600
-       ],
-       [
-        2655656,
-        1160648
-       ],
-       [
-        2655632,
-        1160672
-       ],
-       [
-        2655608,
-        1160696
-       ],
-       [
-        2655584,
-        1160720
-       ],
-       [
-        2655560,
-        1160744
-       ],
-       [
-        2655536,
-        1160768
-       ],
-       [
-        2655512,
-        1160792
-       ],
-       [
-        2655488,
-        1160816
-       ],
-       [
-        2655464,
-        1160840
-       ],
-       [
-        2655440,
-        1160864
-       ],
-       [
-        2655416,
-        1160888
-       ],
-       [
-        2655368,
-        1160912
-       ],
-       [
-        2655344,
-        1160936
-       ],
-       [
-        2655320,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
        ]
       ]
      ]
@@ -12531,7 +11925,8 @@
      "label": "2018-08-15 09:58",
      "day": "2018-08-15",
      "kind": "flight",
-     "cells": 299976,
+     "km2": 17.67,
+     "ice": 0.622,
      "rings": [
       [
        [
@@ -12867,28 +12262,20 @@
         1156208
        ],
        [
-        2664464,
+        2664272,
         1156184
        ],
        [
-        2664992,
-        1156208
+        2664296,
+        1156232
        ],
        [
-        2664848,
-        1158392
+        2664320,
+        1157312
        ],
        [
-        2664752,
+        2664344,
         1158368
-       ],
-       [
-        2664704,
-        1158392
-       ],
-       [
-        2664392,
-        1158416
        ],
        [
         2664224,
@@ -13113,176 +12500,21 @@
      "label": "2019-08-25 08:57",
      "day": "2019-08-25",
      "kind": "flight",
-     "cells": 237090,
+     "km2": 12.44,
+     "ice": 0.569,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159664
+        2655152,
+        1159928
        ],
        [
-        2654048,
-        1159640
-       ],
-       [
-        2654072,
-        1159616
-       ],
-       [
-        2654096,
-        1159592
-       ],
-       [
-        2654120,
-        1159568
-       ],
-       [
-        2654144,
-        1159544
-       ],
-       [
-        2654192,
-        1159520
-       ],
-       [
-        2654216,
-        1159496
-       ],
-       [
-        2654240,
-        1159472
-       ],
-       [
-        2654264,
-        1159448
-       ],
-       [
-        2654288,
-        1159424
-       ],
-       [
-        2654312,
-        1159400
-       ],
-       [
-        2654336,
-        1159376
-       ],
-       [
-        2654360,
-        1159352
-       ],
-       [
-        2654384,
-        1159328
-       ],
-       [
-        2654408,
-        1159304
-       ],
-       [
-        2654432,
-        1159280
-       ],
-       [
-        2654456,
-        1159232
-       ],
-       [
-        2654480,
-        1159184
-       ],
-       [
-        2654504,
-        1159160
-       ],
-       [
-        2654528,
-        1159136
-       ],
-       [
-        2654552,
-        1159112
-       ],
-       [
-        2654576,
-        1159088
-       ],
-       [
-        2654600,
-        1159064
-       ],
-       [
-        2654624,
-        1159040
-       ],
-       [
-        2654648,
-        1159016
-       ],
-       [
-        2654672,
-        1158992
-       ],
-       [
-        2654696,
-        1158968
-       ],
-       [
-        2654720,
+        2655128,
         1158944
-       ],
-       [
-        2654768,
-        1158920
-       ],
-       [
-        2654792,
-        1158872
-       ],
-       [
-        2654816,
-        1158848
-       ],
-       [
-        2654840,
-        1158824
-       ],
-       [
-        2654864,
-        1158800
-       ],
-       [
-        2654888,
-        1158752
-       ],
-       [
-        2654912,
-        1158728
-       ],
-       [
-        2654936,
-        1158704
-       ],
-       [
-        2654960,
-        1158680
-       ],
-       [
-        2654984,
-        1158656
-       ],
-       [
-        2655032,
-        1158632
-       ],
-       [
-        2655080,
-        1158608
        ],
        [
         2655152,
@@ -14589,140 +13821,12 @@
         1160096
        ],
        [
-        2656304,
+        2656016,
         1160120
        ],
        [
-        2656280,
+        2655176,
         1160144
-       ],
-       [
-        2656256,
-        1160168
-       ],
-       [
-        2656208,
-        1160192
-       ],
-       [
-        2656184,
-        1160216
-       ],
-       [
-        2656160,
-        1160240
-       ],
-       [
-        2656136,
-        1160264
-       ],
-       [
-        2656088,
-        1160288
-       ],
-       [
-        2656064,
-        1160312
-       ],
-       [
-        2656040,
-        1160336
-       ],
-       [
-        2656016,
-        1160360
-       ],
-       [
-        2655992,
-        1160384
-       ],
-       [
-        2655944,
-        1160408
-       ],
-       [
-        2655920,
-        1160432
-       ],
-       [
-        2655872,
-        1160456
-       ],
-       [
-        2655824,
-        1160480
-       ],
-       [
-        2655800,
-        1160504
-       ],
-       [
-        2655752,
-        1160528
-       ],
-       [
-        2655728,
-        1160576
-       ],
-       [
-        2655704,
-        1160600
-       ],
-       [
-        2655680,
-        1160624
-       ],
-       [
-        2655656,
-        1160672
-       ],
-       [
-        2655632,
-        1160696
-       ],
-       [
-        2655608,
-        1160720
-       ],
-       [
-        2655584,
-        1160744
-       ],
-       [
-        2655560,
-        1160792
-       ],
-       [
-        2655536,
-        1160816
-       ],
-       [
-        2655512,
-        1160840
-       ],
-       [
-        2655464,
-        1160864
-       ],
-       [
-        2655440,
-        1160888
-       ],
-       [
-        2655416,
-        1160912
-       ],
-       [
-        2655392,
-        1160936
-       ],
-       [
-        2655344,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
        ]
       ]
      ]
@@ -14731,7 +13835,8 @@
      "label": "2019-08-25 09:08",
      "day": "2019-08-25",
      "kind": "flight",
-     "cells": 235081,
+     "km2": 15.05,
+     "ice": 0.522,
      "rings": [
       [
        [
@@ -15137,7 +14242,8 @@
      "label": "2019-08-25 09:16",
      "day": "2019-08-25",
      "kind": "flight",
-     "cells": 215494,
+     "km2": 6.33,
+     "ice": 0.045,
      "rings": [
       [
        [
@@ -15453,72 +14559,40 @@
         1155296
        ],
        [
-        2655008,
+        2655056,
         1155272
        ],
        [
-        2654936,
-        1155248
+        2655296,
+        1155056
        ],
        [
-        2654840,
-        1155224
+        2656328,
+        1155032
        ],
        [
-        2654792,
-        1155200
+        2657360,
+        1155008
        ],
        [
-        2654816,
-        1155104
+        2658392,
+        1154984
        ],
        [
-        2654840,
+        2659424,
+        1154960
+       ],
+       [
+        2660480,
         1154936
        ],
        [
-        2654864,
-        1154792
-       ],
-       [
-        2654888,
-        1154648
-       ],
-       [
-        2654912,
-        1154480
-       ],
-       [
-        2654936,
-        1154336
-       ],
-       [
-        2654960,
-        1154192
-       ],
-       [
-        2654984,
-        1154024
-       ],
-       [
-        2662592,
-        1154000
-       ],
-       [
-        2662568,
-        1154048
-       ],
-       [
-        2662544,
-        1154216
-       ],
-       [
-        2662520,
-        1154480
+        2661512,
+        1154912
        ],
        [
         2662496,
-        1154744
+        1154888
        ],
        [
         2662472,
@@ -15559,17 +14633,10 @@
      "label": "2019-08-25 09:31",
      "day": "2019-08-25",
      "kind": "flight",
-     "cells": 241268,
+     "km2": 12.43,
+     "ice": 0.577,
      "rings": [
       [
-       [
-        2659064,
-        1160120
-       ],
-       [
-        2659040,
-        1160096
-       ],
        [
         2659016,
         1160072
@@ -16068,235 +15135,11 @@
        ],
        [
         2655056,
-        1156688
-       ],
-       [
-        2655032,
-        1156664
-       ],
-       [
-        2655008,
-        1156640
-       ],
-       [
-        2654984,
-        1156592
-       ],
-       [
-        2654960,
-        1156568
-       ],
-       [
-        2654840,
-        1156544
-       ],
-       [
-        2654720,
-        1156520
-       ],
-       [
-        2654576,
-        1156496
-       ],
-       [
-        2654504,
-        1156472
-       ],
-       [
-        2654456,
-        1156448
-       ],
-       [
-        2654408,
-        1156424
-       ],
-       [
-        2654384,
-        1156400
-       ],
-       [
-        2654360,
-        1156376
-       ],
-       [
-        2654336,
-        1156352
-       ],
-       [
-        2654312,
-        1156328
-       ],
-       [
-        2654288,
-        1156304
-       ],
-       [
-        2654240,
-        1156280
-       ],
-       [
-        2654216,
-        1156256
-       ],
-       [
-        2654192,
-        1156232
-       ],
-       [
-        2654168,
-        1156208
-       ],
-       [
-        2654144,
-        1156184
-       ],
-       [
-        2654120,
-        1156160
-       ],
-       [
-        2654096,
-        1156136
-       ],
-       [
-        2654048,
-        1156112
-       ],
-       [
-        2654024,
-        1156088
-       ],
-       [
-        2654000,
-        1156064
-       ],
-       [
-        2654768,
-        1154000
-       ],
-       [
-        2654816,
-        1154024
-       ],
-       [
-        2654840,
-        1154048
-       ],
-       [
-        2654888,
-        1154072
-       ],
-       [
-        2654936,
-        1154096
-       ],
-       [
-        2654960,
-        1154120
-       ],
-       [
-        2654984,
-        1154144
-       ],
-       [
-        2655032,
-        1154168
-       ],
-       [
-        2655056,
-        1154192
-       ],
-       [
-        2655104,
-        1154216
-       ],
-       [
-        2655176,
-        1154240
-       ],
-       [
-        2655224,
-        1154264
+        1155944
        ],
        [
         2655296,
-        1154288
-       ],
-       [
-        2655344,
-        1154312
-       ],
-       [
-        2655392,
-        1154336
-       ],
-       [
-        2655440,
-        1154360
-       ],
-       [
-        2655464,
-        1154384
-       ],
-       [
-        2655512,
-        1154408
-       ],
-       [
-        2655536,
-        1154432
-       ],
-       [
-        2655584,
-        1154456
-       ],
-       [
-        2655608,
-        1154480
-       ],
-       [
-        2655656,
-        1154504
-       ],
-       [
-        2655680,
-        1154528
-       ],
-       [
-        2655704,
-        1154552
-       ],
-       [
-        2655728,
-        1154576
-       ],
-       [
-        2655752,
-        1154600
-       ],
-       [
-        2655776,
-        1154624
-       ],
-       [
-        2655800,
-        1154648
-       ],
-       [
-        2655824,
-        1154672
-       ],
-       [
-        2655800,
-        1154816
-       ],
-       [
-        2655824,
-        1154960
-       ],
-       [
-        2655848,
-        1155008
+        1155056
        ],
        [
         2655872,
@@ -17031,20 +15874,12 @@
         1160000
        ],
        [
-        2659136,
+        2659112,
         1160048
        ],
        [
-        2659112,
+        2659016,
         1160072
-       ],
-       [
-        2659088,
-        1160096
-       ],
-       [
-        2659064,
-        1160120
        ]
       ]
      ]
@@ -17053,7 +15888,8 @@
      "label": "2020-09-09 08:05",
      "day": "2020-09-09",
      "kind": "flight",
-     "cells": 244172,
+     "km2": 6.82,
+     "ice": 0.045,
      "rings": [
       [
        [
@@ -17373,144 +16209,44 @@
         1155344
        ],
        [
-        2655032,
+        2655056,
         1155320
        ],
        [
-        2654912,
-        1155296
-       ],
-       [
-        2654792,
-        1155272
-       ],
-       [
-        2654672,
-        1155248
-       ],
-       [
-        2654600,
-        1155224
-       ],
-       [
-        2654528,
-        1155200
-       ],
-       [
-        2654480,
-        1155176
-       ],
-       [
-        2654432,
-        1155152
-       ],
-       [
-        2654360,
-        1155128
-       ],
-       [
-        2654312,
-        1155104
-       ],
-       [
-        2654240,
-        1155080
-       ],
-       [
-        2654192,
+        2655296,
         1155056
        ],
        [
-        2654120,
+        2656328,
         1155032
        ],
        [
-        2654096,
+        2657360,
         1155008
        ],
        [
-        2654120,
+        2658392,
+        1154984
+       ],
+       [
+        2659424,
         1154960
        ],
        [
-        2654144,
-        1154792
+        2660480,
+        1154936
        ],
        [
-        2654120,
-        1154672
+        2661512,
+        1154912
        ],
        [
-        2654096,
-        1154624
-       ],
-       [
-        2654120,
-        1154480
-       ],
-       [
-        2654144,
-        1154336
-       ],
-       [
-        2654168,
-        1154216
-       ],
-       [
-        2654144,
-        1154144
-       ],
-       [
-        2654120,
-        1154120
-       ],
-       [
-        2663216,
-        1154000
-       ],
-       [
-        2663192,
-        1154120
-       ],
-       [
-        2663168,
-        1154264
-       ],
-       [
-        2663144,
-        1154288
-       ],
-       [
-        2663096,
-        1154312
-       ],
-       [
-        2663072,
-        1154360
-       ],
-       [
-        2663048,
-        1154384
-       ],
-       [
-        2663024,
-        1154432
-       ],
-       [
-        2663000,
-        1154504
-       ],
-       [
-        2662976,
-        1154600
-       ],
-       [
-        2662952,
-        1154696
+        2662544,
+        1154888
        ],
        [
         2662928,
-        1154768
+        1154864
        ],
        [
         2662904,
@@ -17591,184 +16327,21 @@
      "label": "2020-09-09 08:37",
      "day": "2020-09-09",
      "kind": "flight",
-     "cells": 220634,
+     "km2": 11.38,
+     "ice": 0.573,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159664
-       ],
-       [
-        2654048,
-        1159640
-       ],
-       [
-        2654072,
-        1159616
-       ],
-       [
-        2654096,
-        1159592
-       ],
-       [
-        2654120,
-        1159568
-       ],
-       [
-        2654168,
-        1159544
-       ],
-       [
-        2654192,
-        1159520
-       ],
-       [
-        2654216,
-        1159496
-       ],
-       [
-        2654240,
-        1159472
-       ],
-       [
-        2654264,
-        1159448
-       ],
-       [
-        2654288,
-        1159424
-       ],
-       [
-        2654312,
-        1159400
-       ],
-       [
-        2654336,
-        1159376
-       ],
-       [
-        2654360,
-        1159352
-       ],
-       [
-        2654384,
-        1159328
-       ],
-       [
-        2654408,
-        1159304
-       ],
-       [
-        2654432,
-        1159280
-       ],
-       [
-        2654456,
-        1159256
-       ],
-       [
-        2654432,
-        1159232
-       ],
-       [
-        2654456,
-        1159160
-       ],
-       [
-        2654480,
-        1159136
-       ],
-       [
-        2654504,
-        1159112
-       ],
-       [
-        2654528,
-        1159088
-       ],
-       [
-        2654552,
-        1159064
-       ],
-       [
-        2654576,
-        1159016
-       ],
-       [
-        2654600,
-        1158992
-       ],
-       [
-        2654624,
-        1158968
-       ],
-       [
-        2654648,
-        1158944
-       ],
-       [
-        2654696,
-        1158920
-       ],
-       [
-        2654720,
-        1158896
-       ],
-       [
-        2654744,
-        1158872
-       ],
-       [
-        2654768,
-        1158848
-       ],
-       [
-        2654792,
-        1158800
-       ],
-       [
-        2654816,
-        1158776
-       ],
-       [
-        2654840,
-        1158752
-       ],
-       [
-        2654864,
-        1158728
-       ],
-       [
-        2654888,
-        1158704
-       ],
-       [
-        2654912,
-        1158680
-       ],
-       [
-        2654936,
-        1158656
-       ],
-       [
-        2655032,
-        1158632
-       ],
-       [
-        2655080,
-        1158608
-       ],
-       [
-        2655104,
-        1158584
+        2655152,
+        1159928
        ],
        [
         2655128,
-        1158560
+        1158944
        ],
        [
         2655152,
@@ -18991,132 +17564,12 @@
         1160072
        ],
        [
-        2656280,
+        2656016,
         1160120
        ],
        [
-        2656256,
+        2655176,
         1160144
-       ],
-       [
-        2656232,
-        1160168
-       ],
-       [
-        2656208,
-        1160192
-       ],
-       [
-        2656160,
-        1160216
-       ],
-       [
-        2656136,
-        1160240
-       ],
-       [
-        2656112,
-        1160264
-       ],
-       [
-        2656088,
-        1160288
-       ],
-       [
-        2656064,
-        1160312
-       ],
-       [
-        2656016,
-        1160336
-       ],
-       [
-        2655992,
-        1160360
-       ],
-       [
-        2655968,
-        1160384
-       ],
-       [
-        2655944,
-        1160408
-       ],
-       [
-        2655896,
-        1160432
-       ],
-       [
-        2655848,
-        1160456
-       ],
-       [
-        2655800,
-        1160480
-       ],
-       [
-        2655728,
-        1160504
-       ],
-       [
-        2655704,
-        1160552
-       ],
-       [
-        2655680,
-        1160576
-       ],
-       [
-        2655656,
-        1160624
-       ],
-       [
-        2655632,
-        1160672
-       ],
-       [
-        2655608,
-        1160720
-       ],
-       [
-        2655584,
-        1160744
-       ],
-       [
-        2655560,
-        1160768
-       ],
-       [
-        2655536,
-        1160792
-       ],
-       [
-        2655488,
-        1160816
-       ],
-       [
-        2655464,
-        1160840
-       ],
-       [
-        2655440,
-        1160888
-       ],
-       [
-        2655392,
-        1160912
-       ],
-       [
-        2655368,
-        1160936
-       ],
-       [
-        2655320,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
        ]
       ]
      ]
@@ -19125,29 +17578,10 @@
      "label": "2020-09-13 10:59",
      "day": "2020-09-13",
      "kind": "flight",
-     "cells": 258045,
+     "km2": 13.22,
+     "ice": 0.586,
      "rings": [
       [
-       [
-        2658920,
-        1160216
-       ],
-       [
-        2658896,
-        1160192
-       ],
-       [
-        2658872,
-        1160168
-       ],
-       [
-        2658848,
-        1160120
-       ],
-       [
-        2658824,
-        1160096
-       ],
        [
         2658800,
         1160072
@@ -19634,283 +18068,11 @@
        ],
        [
         2655056,
-        1156784
-       ],
-       [
-        2655008,
-        1156760
-       ],
-       [
-        2654936,
-        1156736
-       ],
-       [
-        2654864,
-        1156712
-       ],
-       [
-        2654816,
-        1156688
-       ],
-       [
-        2654768,
-        1156664
-       ],
-       [
-        2654720,
-        1156640
-       ],
-       [
-        2654672,
-        1156616
-       ],
-       [
-        2654624,
-        1156592
-       ],
-       [
-        2654576,
-        1156568
-       ],
-       [
-        2654528,
-        1156544
-       ],
-       [
-        2654480,
-        1156520
-       ],
-       [
-        2654456,
-        1156496
-       ],
-       [
-        2654408,
-        1156472
-       ],
-       [
-        2654360,
-        1156448
-       ],
-       [
-        2654336,
-        1156424
-       ],
-       [
-        2654312,
-        1156400
-       ],
-       [
-        2654288,
-        1156376
-       ],
-       [
-        2654264,
-        1156352
-       ],
-       [
-        2654216,
-        1156328
-       ],
-       [
-        2654192,
-        1156304
-       ],
-       [
-        2654168,
-        1156280
-       ],
-       [
-        2654144,
-        1156256
-       ],
-       [
-        2654120,
-        1156232
-       ],
-       [
-        2654096,
-        1156208
-       ],
-       [
-        2654048,
-        1156184
-       ],
-       [
-        2654024,
-        1156160
-       ],
-       [
-        2654000,
-        1156136
-       ],
-       [
-        2654840,
-        1154000
-       ],
-       [
-        2654864,
-        1154024
-       ],
-       [
-        2654912,
-        1154048
-       ],
-       [
-        2654960,
-        1154072
-       ],
-       [
-        2655008,
-        1154096
-       ],
-       [
-        2655104,
-        1154120
-       ],
-       [
-        2655152,
-        1154144
-       ],
-       [
-        2655200,
-        1154168
-       ],
-       [
-        2655248,
-        1154192
+        1155944
        ],
        [
         2655296,
-        1154216
-       ],
-       [
-        2655344,
-        1154240
-       ],
-       [
-        2655392,
-        1154264
-       ],
-       [
-        2655416,
-        1154288
-       ],
-       [
-        2655464,
-        1154312
-       ],
-       [
-        2655512,
-        1154336
-       ],
-       [
-        2655536,
-        1154360
-       ],
-       [
-        2655584,
-        1154384
-       ],
-       [
-        2655608,
-        1154408
-       ],
-       [
-        2655632,
-        1154432
-       ],
-       [
-        2655680,
-        1154456
-       ],
-       [
-        2655704,
-        1154480
-       ],
-       [
-        2655728,
-        1154504
-       ],
-       [
-        2655752,
-        1154528
-       ],
-       [
-        2655776,
-        1154552
-       ],
-       [
-        2655800,
-        1154576
-       ],
-       [
-        2655824,
-        1154600
-       ],
-       [
-        2655848,
-        1154624
-       ],
-       [
-        2655872,
-        1154648
-       ],
-       [
-        2655896,
-        1154672
-       ],
-       [
-        2655920,
-        1154696
-       ],
-       [
-        2655944,
-        1154720
-       ],
-       [
-        2655968,
-        1154744
-       ],
-       [
-        2655992,
-        1154768
-       ],
-       [
-        2656016,
-        1154792
-       ],
-       [
-        2656040,
-        1154816
-       ],
-       [
-        2656064,
-        1154840
-       ],
-       [
-        2656088,
-        1154864
-       ],
-       [
-        2656136,
-        1154912
-       ],
-       [
-        2656160,
-        1154936
-       ],
-       [
-        2656184,
-        1154960
-       ],
-       [
-        2656232,
-        1154984
-       ],
-       [
-        2656256,
-        1155008
+        1155056
        ],
        [
         2656280,
@@ -20645,28 +18807,8 @@
         1160048
        ],
        [
-        2659064,
+        2658800,
         1160072
-       ],
-       [
-        2659040,
-        1160096
-       ],
-       [
-        2659016,
-        1160144
-       ],
-       [
-        2658992,
-        1160168
-       ],
-       [
-        2658968,
-        1160192
-       ],
-       [
-        2658920,
-        1160216
        ]
       ]
      ]
@@ -20675,7 +18817,8 @@
      "label": "2020-09-13 11:05",
      "day": "2020-09-13",
      "kind": "flight",
-     "cells": 215449,
+     "km2": 13.79,
+     "ice": 0.383,
      "rings": [
       [
        [
@@ -21101,13 +19244,10 @@
      "label": "2021-08-20 10:39",
      "day": "2021-08-20",
      "kind": "flight",
-     "cells": 235484,
+     "km2": 11.99,
+     "ice": 0.58,
      "rings": [
       [
-       [
-        2659040,
-        1160096
-       ],
        [
         2659016,
         1160072
@@ -21621,284 +19761,12 @@
         1156760
        ],
        [
-        2655032,
-        1156736
-       ],
-       [
-        2654936,
-        1156712
-       ],
-       [
-        2654888,
-        1156688
-       ],
-       [
-        2654840,
-        1156664
-       ],
-       [
-        2654792,
-        1156640
-       ],
-       [
-        2654744,
-        1156616
-       ],
-       [
-        2654672,
-        1156592
-       ],
-       [
-        2654624,
-        1156568
-       ],
-       [
-        2654600,
-        1156544
-       ],
-       [
-        2654528,
-        1156520
-       ],
-       [
-        2654504,
-        1156496
-       ],
-       [
-        2654456,
-        1156472
-       ],
-       [
-        2654408,
-        1156448
-       ],
-       [
-        2654384,
-        1156424
-       ],
-       [
-        2654360,
-        1156400
-       ],
-       [
-        2654312,
-        1156376
-       ],
-       [
-        2654288,
-        1156352
-       ],
-       [
-        2654264,
-        1156328
-       ],
-       [
-        2654216,
-        1156304
-       ],
-       [
-        2654192,
-        1156280
-       ],
-       [
-        2654168,
-        1156256
-       ],
-       [
-        2654144,
-        1156232
-       ],
-       [
-        2654120,
-        1156208
-       ],
-       [
-        2654072,
-        1156184
-       ],
-       [
-        2654048,
-        1156160
-       ],
-       [
-        2654024,
-        1156136
-       ],
-       [
-        2654000,
-        1156112
-       ],
-       [
-        2654672,
-        1154000
-       ],
-       [
-        2654720,
-        1154024
-       ],
-       [
-        2654744,
-        1154048
-       ],
-       [
-        2654792,
-        1154072
-       ],
-       [
-        2654840,
-        1154096
-       ],
-       [
-        2654864,
-        1154120
-       ],
-       [
-        2654912,
-        1154144
-       ],
-       [
-        2654960,
-        1154168
-       ],
-       [
-        2655008,
-        1154192
-       ],
-       [
-        2655032,
-        1154216
-       ],
-       [
         2655056,
-        1154240
+        1155944
        ],
        [
-        2655104,
-        1154264
-       ],
-       [
-        2655152,
-        1154288
-       ],
-       [
-        2655248,
-        1154312
-       ],
-       [
-        2655320,
-        1154336
-       ],
-       [
-        2655368,
-        1154360
-       ],
-       [
-        2655392,
-        1154384
-       ],
-       [
-        2655464,
-        1154408
-       ],
-       [
-        2655512,
-        1154432
-       ],
-       [
-        2655536,
-        1154456
-       ],
-       [
-        2655560,
-        1154480
-       ],
-       [
-        2655584,
-        1154504
-       ],
-       [
-        2655632,
-        1154528
-       ],
-       [
-        2655656,
-        1154552
-       ],
-       [
-        2655680,
-        1154576
-       ],
-       [
-        2655704,
-        1154600
-       ],
-       [
-        2655728,
-        1154624
-       ],
-       [
-        2655752,
-        1154648
-       ],
-       [
-        2655800,
-        1154672
-       ],
-       [
-        2655824,
-        1154696
-       ],
-       [
-        2655848,
-        1154720
-       ],
-       [
-        2655872,
-        1154744
-       ],
-       [
-        2655896,
-        1154768
-       ],
-       [
-        2655920,
-        1154792
-       ],
-       [
-        2655944,
-        1154816
-       ],
-       [
-        2655968,
-        1154840
-       ],
-       [
-        2655992,
-        1154864
-       ],
-       [
-        2656016,
-        1154888
-       ],
-       [
-        2656040,
-        1154912
-       ],
-       [
-        2656064,
-        1154936
-       ],
-       [
-        2656088,
-        1154960
-       ],
-       [
-        2656112,
-        1154984
-       ],
-       [
-        2656160,
-        1155008
+        2655296,
+        1155056
        ],
        [
         2656184,
@@ -22549,12 +20417,8 @@
         1160048
        ],
        [
-        2659088,
+        2659016,
         1160072
-       ],
-       [
-        2659040,
-        1160096
        ]
       ]
      ]
@@ -22563,188 +20427,21 @@
      "label": "2021-08-21 08:25",
      "day": "2021-08-21",
      "kind": "flight",
-     "cells": 242561,
+     "km2": 12.62,
+     "ice": 0.526,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159760
-       ],
-       [
-        2654048,
-        1159736
-       ],
-       [
-        2654072,
-        1159712
-       ],
-       [
-        2654096,
-        1159688
-       ],
-       [
-        2654120,
-        1159664
-       ],
-       [
-        2654144,
-        1159640
-       ],
-       [
-        2654168,
-        1159616
-       ],
-       [
-        2654192,
-        1159592
-       ],
-       [
-        2654240,
-        1159568
-       ],
-       [
-        2654264,
-        1159544
-       ],
-       [
-        2654288,
-        1159520
-       ],
-       [
-        2654312,
-        1159496
-       ],
-       [
-        2654336,
-        1159472
-       ],
-       [
-        2654360,
-        1159448
-       ],
-       [
-        2654384,
-        1159424
-       ],
-       [
-        2654408,
-        1159400
-       ],
-       [
-        2654432,
-        1159352
-       ],
-       [
-        2654456,
-        1159328
-       ],
-       [
-        2654480,
-        1159304
-       ],
-       [
-        2654504,
-        1159280
-       ],
-       [
-        2654528,
-        1159232
-       ],
-       [
-        2654552,
-        1159208
-       ],
-       [
-        2654576,
-        1159184
-       ],
-       [
-        2654600,
-        1159160
-       ],
-       [
-        2654624,
-        1159136
-       ],
-       [
-        2654648,
-        1159088
-       ],
-       [
-        2654672,
-        1159064
-       ],
-       [
-        2654696,
-        1159040
-       ],
-       [
-        2654720,
-        1159016
-       ],
-       [
-        2654744,
-        1158992
-       ],
-       [
-        2654792,
-        1158968
-       ],
-       [
-        2654816,
-        1158944
-       ],
-       [
-        2654840,
-        1158920
-       ],
-       [
-        2654864,
-        1158896
-       ],
-       [
-        2654888,
-        1158872
-       ],
-       [
-        2654912,
-        1158824
-       ],
-       [
-        2654936,
-        1158800
-       ],
-       [
-        2654960,
-        1158776
-       ],
-       [
-        2654984,
-        1158752
-       ],
-       [
-        2655008,
-        1158728
-       ],
-       [
-        2655032,
-        1158704
-       ],
-       [
-        2655056,
-        1158680
-       ],
-       [
-        2655080,
-        1158656
+        2655152,
+        1159928
        ],
        [
         2655128,
-        1158632
+        1158944
        ],
        [
         2655200,
@@ -23283,168 +20980,12 @@
         1154984
        ],
        [
-        2659112,
+        2659424,
         1154960
        ],
        [
-        2659136,
-        1154936
-       ],
-       [
-        2659160,
-        1154912
-       ],
-       [
-        2659184,
-        1154888
-       ],
-       [
-        2659208,
-        1154864
-       ],
-       [
-        2659232,
-        1154816
-       ],
-       [
-        2659256,
-        1154792
-       ],
-       [
-        2659280,
-        1154768
-       ],
-       [
-        2659304,
-        1154744
-       ],
-       [
-        2659328,
-        1154720
-       ],
-       [
-        2659352,
-        1154696
-       ],
-       [
-        2659376,
-        1154672
-       ],
-       [
-        2659400,
-        1154648
-       ],
-       [
-        2659424,
-        1154624
-       ],
-       [
-        2659448,
-        1154600
-       ],
-       [
-        2659472,
-        1154576
-       ],
-       [
-        2659496,
-        1154552
-       ],
-       [
-        2659520,
-        1154504
-       ],
-       [
-        2659544,
-        1154480
-       ],
-       [
-        2659568,
-        1154432
-       ],
-       [
-        2659640,
-        1154408
-       ],
-       [
-        2659688,
-        1154432
-       ],
-       [
-        2659736,
-        1154456
-       ],
-       [
-        2659784,
-        1154480
-       ],
-       [
-        2659832,
-        1154504
-       ],
-       [
-        2659880,
-        1154528
-       ],
-       [
-        2659952,
-        1154552
-       ],
-       [
-        2660000,
-        1154576
-       ],
-       [
-        2660048,
-        1154600
-       ],
-       [
-        2660096,
-        1154624
-       ],
-       [
-        2660144,
-        1154648
-       ],
-       [
-        2660192,
-        1154672
-       ],
-       [
-        2660264,
-        1154696
-       ],
-       [
-        2660336,
-        1154720
-       ],
-       [
-        2660408,
-        1154744
-       ],
-       [
         2660480,
-        1154768
-       ],
-       [
-        2660552,
-        1154792
-       ],
-       [
-        2660576,
-        1154816
-       ],
-       [
-        2660600,
-        1154840
-       ],
-       [
-        2660648,
-        1154864
-       ],
-       [
-        2660672,
-        1154888
+        1154936
        ],
        [
         2660696,
@@ -24243,148 +21784,12 @@
         1160096
        ],
        [
-        2656088,
+        2656016,
         1160120
        ],
        [
-        2656064,
-        1160144
-       ],
-       [
-        2656040,
-        1160168
-       ],
-       [
-        2656016,
-        1160192
-       ],
-       [
-        2655992,
-        1160216
-       ],
-       [
-        2655968,
-        1160240
-       ],
-       [
-        2655920,
-        1160264
-       ],
-       [
-        2655896,
-        1160288
-       ],
-       [
-        2655848,
-        1160312
-       ],
-       [
-        2655824,
-        1160336
-       ],
-       [
-        2655800,
-        1160360
-       ],
-       [
-        2655776,
-        1160384
-       ],
-       [
-        2655752,
-        1160408
-       ],
-       [
-        2655728,
-        1160432
-       ],
-       [
-        2655704,
-        1160456
-       ],
-       [
-        2655680,
-        1160480
-       ],
-       [
-        2655656,
-        1160504
-       ],
-       [
-        2655632,
-        1160528
-       ],
-       [
-        2655608,
-        1160552
-       ],
-       [
-        2655584,
-        1160576
-       ],
-       [
-        2655560,
-        1160600
-       ],
-       [
-        2655536,
-        1160624
-       ],
-       [
-        2655512,
-        1160648
-       ],
-       [
-        2655488,
-        1160672
-       ],
-       [
-        2655464,
-        1160696
-       ],
-       [
-        2655440,
-        1160720
-       ],
-       [
-        2655416,
-        1160744
-       ],
-       [
-        2655392,
-        1160768
-       ],
-       [
-        2655368,
-        1160792
-       ],
-       [
-        2655320,
-        1160816
-       ],
-       [
-        2655296,
-        1160840
-       ],
-       [
-        2655272,
-        1160864
-       ],
-       [
-        2655224,
-        1160888
-       ],
-       [
-        2655200,
-        1160912
-       ],
-       [
         2655176,
-        1160936
-       ],
-       [
-        2654000,
-        1160984
+        1160144
        ]
       ]
      ]
@@ -24393,7 +21798,8 @@
      "label": "2021-08-26 09:25",
      "day": "2021-08-26",
      "kind": "flight",
-     "cells": 254420,
+     "km2": 15.55,
+     "ice": 0.524,
      "rings": [
       [
        [
@@ -24705,104 +22111,16 @@
         1156520
        ],
        [
-        2664728,
+        2664296,
         1156496
        ],
        [
-        2664896,
-        1156520
-       ],
-       [
-        2664992,
-        1156544
-       ],
-       [
-        2664968,
-        1156904
-       ],
-       [
-        2664944,
-        1156928
-       ],
-       [
-        2664920,
-        1156976
-       ],
-       [
-        2664896,
-        1157000
-       ],
-       [
-        2664872,
-        1157024
-       ],
-       [
-        2664848,
-        1157072
-       ],
-       [
-        2664824,
-        1157096
-       ],
-       [
-        2664800,
-        1157144
-       ],
-       [
-        2664776,
-        1157168
-       ],
-       [
-        2664752,
-        1157192
-       ],
-       [
-        2664728,
-        1157240
-       ],
-       [
-        2664704,
-        1157264
-       ],
-       [
-        2664680,
+        2664320,
         1157312
        ],
        [
-        2664656,
-        1157336
-       ],
-       [
-        2664632,
-        1157360
-       ],
-       [
-        2664608,
-        1157408
-       ],
-       [
-        2664584,
-        1157432
-       ],
-       [
-        2664560,
-        1157480
-       ],
-       [
-        2664536,
-        1157528
-       ],
-       [
-        2664512,
-        1157552
-       ],
-       [
-        2664488,
-        1157624
-       ],
-       [
-        2664392,
-        1158656
+        2664344,
+        1158368
        ],
        [
         2664296,
@@ -24839,7 +22157,8 @@
      "label": "2021-08-26 09:31",
      "day": "2021-08-26",
      "kind": "flight",
-     "cells": 244029,
+     "km2": 6.27,
+     "ice": 0.014,
      "rings": [
       [
        [
@@ -25123,100 +22442,48 @@
         1155104
        ],
        [
-        2655032,
+        2655056,
         1155080
        ],
        [
-        2654936,
+        2655296,
         1155056
        ],
        [
-        2654840,
+        2656328,
         1155032
        ],
        [
-        2654744,
+        2657360,
         1155008
        ],
        [
-        2654696,
+        2658392,
         1154984
        ],
        [
-        2654648,
+        2659424,
         1154960
        ],
        [
-        2654600,
+        2660480,
         1154936
        ],
        [
-        2654528,
+        2661512,
         1154912
        ],
        [
-        2654480,
+        2662544,
         1154888
        ],
        [
-        2654432,
+        2663576,
         1154864
        ],
        [
-        2654336,
-        1154840
-       ],
-       [
-        2654240,
-        1154816
-       ],
-       [
-        2654144,
-        1154792
-       ],
-       [
-        2654024,
-        1154768
-       ],
-       [
-        2654000,
-        1154744
-       ],
-       [
-        2663840,
-        1154000
-       ],
-       [
-        2663864,
-        1154048
-       ],
-       [
-        2663888,
-        1154096
-       ],
-       [
-        2663912,
-        1154144
-       ],
-       [
-        2663888,
-        1154264
-       ],
-       [
-        2663864,
-        1154432
-       ],
-       [
-        2663840,
-        1154552
-       ],
-       [
-        2663816,
-        1154672
-       ],
-       [
         2663792,
-        1154792
+        1154840
        ],
        [
         2663768,
@@ -25325,164 +22592,21 @@
      "label": "2022-07-13 10:15",
      "day": "2022-07-13",
      "kind": "flight",
-     "cells": 200806,
+     "km2": 10.52,
+     "ice": 0.506,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159640
+        2655152,
+        1159928
        ],
        [
-        2654048,
-        1159616
-       ],
-       [
-        2654072,
-        1159568
-       ],
-       [
-        2654120,
-        1159544
-       ],
-       [
-        2654168,
-        1159520
-       ],
-       [
-        2654192,
-        1159496
-       ],
-       [
-        2654216,
-        1159472
-       ],
-       [
-        2654240,
-        1159448
-       ],
-       [
-        2654264,
-        1159424
-       ],
-       [
-        2654288,
-        1159400
-       ],
-       [
-        2654312,
-        1159376
-       ],
-       [
-        2654336,
-        1159328
-       ],
-       [
-        2654360,
-        1159304
-       ],
-       [
-        2654384,
-        1159256
-       ],
-       [
-        2654408,
-        1159232
-       ],
-       [
-        2654432,
-        1159184
-       ],
-       [
-        2654480,
-        1159160
-       ],
-       [
-        2654504,
-        1159136
-       ],
-       [
-        2654552,
-        1159112
-       ],
-       [
-        2654576,
-        1159088
-       ],
-       [
-        2654600,
-        1159040
-       ],
-       [
-        2654624,
-        1159016
-       ],
-       [
-        2654672,
-        1158992
-       ],
-       [
-        2654696,
-        1158968
-       ],
-       [
-        2654720,
+        2655128,
         1158944
-       ],
-       [
-        2654744,
-        1158920
-       ],
-       [
-        2654768,
-        1158896
-       ],
-       [
-        2654792,
-        1158872
-       ],
-       [
-        2654816,
-        1158848
-       ],
-       [
-        2654840,
-        1158824
-       ],
-       [
-        2654864,
-        1158800
-       ],
-       [
-        2654888,
-        1158776
-       ],
-       [
-        2654912,
-        1158752
-       ],
-       [
-        2654936,
-        1158704
-       ],
-       [
-        2654960,
-        1158680
-       ],
-       [
-        2654984,
-        1158656
-       ],
-       [
-        2655032,
-        1158632
-       ],
-       [
-        2655104,
-        1158608
        ],
        [
         2655200,
@@ -26745,148 +23869,8 @@
         1160120
        ],
        [
-        2655776,
-        1160144
-       ],
-       [
-        2655752,
-        1160168
-       ],
-       [
-        2655704,
-        1160192
-       ],
-       [
-        2655680,
-        1160216
-       ],
-       [
-        2655656,
-        1160240
-       ],
-       [
-        2655632,
-        1160264
-       ],
-       [
-        2655608,
-        1160288
-       ],
-       [
-        2655584,
-        1160312
-       ],
-       [
-        2655560,
-        1160336
-       ],
-       [
-        2655536,
-        1160360
-       ],
-       [
-        2655512,
-        1160384
-       ],
-       [
-        2655488,
-        1160408
-       ],
-       [
-        2655464,
-        1160432
-       ],
-       [
-        2655440,
-        1160456
-       ],
-       [
-        2655416,
-        1160480
-       ],
-       [
-        2655392,
-        1160504
-       ],
-       [
-        2655368,
-        1160528
-       ],
-       [
-        2655344,
-        1160552
-       ],
-       [
-        2655296,
-        1160576
-       ],
-       [
-        2655272,
-        1160600
-       ],
-       [
-        2655248,
-        1160624
-       ],
-       [
-        2655224,
-        1160648
-       ],
-       [
-        2655200,
-        1160672
-       ],
-       [
         2655176,
-        1160696
-       ],
-       [
-        2655128,
-        1160720
-       ],
-       [
-        2655104,
-        1160744
-       ],
-       [
-        2655080,
-        1160768
-       ],
-       [
-        2655032,
-        1160792
-       ],
-       [
-        2655008,
-        1160816
-       ],
-       [
-        2654984,
-        1160840
-       ],
-       [
-        2654960,
-        1160864
-       ],
-       [
-        2654936,
-        1160888
-       ],
-       [
-        2654912,
-        1160912
-       ],
-       [
-        2654864,
-        1160936
-       ],
-       [
-        2654840,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
+        1160144
        ]
       ]
      ]
@@ -26895,7 +23879,8 @@
      "label": "2022-07-13 10:32",
      "day": "2022-07-13",
      "kind": "flight",
-     "cells": 200160,
+     "km2": 12.81,
+     "ice": 0.529,
      "rings": [
       [
        [
@@ -27337,7 +24322,8 @@
      "label": "2022-07-13 10:39",
      "day": "2022-07-13",
      "kind": "flight",
-     "cells": 179415,
+     "km2": 4.11,
+     "ice": 0.0,
      "rings": [
       [
        [
@@ -27577,212 +24563,32 @@
         1155032
        ],
        [
-        2658032,
+        2658056,
         1155008
        ],
        [
-        2657960,
+        2658392,
         1154984
        ],
        [
-        2657888,
+        2659424,
         1154960
        ],
        [
-        2657840,
+        2660480,
         1154936
        ],
        [
-        2657768,
+        2661512,
         1154912
        ],
        [
-        2657672,
+        2662544,
         1154888
        ],
        [
-        2657528,
+        2663552,
         1154864
-       ],
-       [
-        2657240,
-        1154840
-       ],
-       [
-        2657144,
-        1154816
-       ],
-       [
-        2657096,
-        1154792
-       ],
-       [
-        2657072,
-        1154768
-       ],
-       [
-        2657024,
-        1154744
-       ],
-       [
-        2657000,
-        1154720
-       ],
-       [
-        2656928,
-        1154696
-       ],
-       [
-        2656256,
-        1154720
-       ],
-       [
-        2656208,
-        1154696
-       ],
-       [
-        2655800,
-        1154720
-       ],
-       [
-        2655728,
-        1154696
-       ],
-       [
-        2655656,
-        1154672
-       ],
-       [
-        2655584,
-        1154648
-       ],
-       [
-        2655512,
-        1154624
-       ],
-       [
-        2655368,
-        1154600
-       ],
-       [
-        2655200,
-        1154576
-       ],
-       [
-        2655104,
-        1154552
-       ],
-       [
-        2655008,
-        1154528
-       ],
-       [
-        2654960,
-        1154504
-       ],
-       [
-        2654936,
-        1154480
-       ],
-       [
-        2654888,
-        1154456
-       ],
-       [
-        2654840,
-        1154432
-       ],
-       [
-        2654816,
-        1154408
-       ],
-       [
-        2654768,
-        1154384
-       ],
-       [
-        2654720,
-        1154360
-       ],
-       [
-        2654672,
-        1154336
-       ],
-       [
-        2654648,
-        1154312
-       ],
-       [
-        2654624,
-        1154288
-       ],
-       [
-        2654552,
-        1154264
-       ],
-       [
-        2654408,
-        1154240
-       ],
-       [
-        2654144,
-        1154216
-       ],
-       [
-        2654000,
-        1154192
-       ],
-       [
-        2663000,
-        1154000
-       ],
-       [
-        2662976,
-        1154048
-       ],
-       [
-        2663000,
-        1154288
-       ],
-       [
-        2663096,
-        1154312
-       ],
-       [
-        2663192,
-        1154336
-       ],
-       [
-        2663288,
-        1154360
-       ],
-       [
-        2663384,
-        1154384
-       ],
-       [
-        2663480,
-        1154408
-       ],
-       [
-        2663552,
-        1154432
-       ],
-       [
-        2663624,
-        1154456
-       ],
-       [
-        2663600,
-        1154552
-       ],
-       [
-        2663576,
-        1154672
-       ],
-       [
-        2663552,
-        1154768
        ],
        [
         2663528,
@@ -27847,7 +24653,8 @@
      "label": "2022-07-16 09:45",
      "day": "2022-07-16",
      "kind": "flight",
-     "cells": 270831,
+     "km2": 13.64,
+     "ice": 0.657,
      "rings": [
       [
        [
@@ -28335,304 +25142,20 @@
         1156472
        ],
        [
-        2655056,
+        2655080,
         1156448
        ],
        [
-        2655032,
-        1156424
-       ],
-       [
-        2655008,
-        1156376
-       ],
-       [
-        2654984,
-        1156352
-       ],
-       [
-        2654960,
-        1156328
-       ],
-       [
-        2654936,
-        1156304
-       ],
-       [
-        2654912,
-        1156280
-       ],
-       [
-        2654888,
-        1156256
-       ],
-       [
-        2654864,
-        1156232
-       ],
-       [
-        2654840,
-        1156208
-       ],
-       [
-        2654792,
-        1156184
-       ],
-       [
-        2654768,
-        1156160
-       ],
-       [
-        2654720,
-        1156136
-       ],
-       [
-        2654672,
-        1156112
-       ],
-       [
-        2654648,
-        1156088
-       ],
-       [
-        2654624,
-        1156064
-       ],
-       [
-        2654600,
-        1156040
-       ],
-       [
-        2654576,
-        1156016
-       ],
-       [
-        2654552,
-        1155992
-       ],
-       [
-        2654528,
-        1155968
-       ],
-       [
-        2654480,
+        2655056,
         1155944
        ],
        [
-        2654456,
-        1155920
-       ],
-       [
-        2654432,
-        1155896
-       ],
-       [
-        2654408,
-        1155872
-       ],
-       [
-        2654384,
-        1155824
-       ],
-       [
-        2654360,
-        1155800
-       ],
-       [
-        2654336,
-        1155776
-       ],
-       [
-        2654312,
-        1155752
-       ],
-       [
-        2654288,
-        1155728
-       ],
-       [
-        2654264,
-        1155680
-       ],
-       [
-        2654240,
-        1155656
-       ],
-       [
-        2654216,
-        1155608
-       ],
-       [
-        2654192,
-        1155536
-       ],
-       [
-        2654168,
-        1155488
-       ],
-       [
-        2654144,
-        1155440
-       ],
-       [
-        2654120,
-        1155416
-       ],
-       [
-        2654096,
-        1155392
-       ],
-       [
-        2654072,
-        1155368
-       ],
-       [
-        2654048,
-        1155320
-       ],
-       [
-        2654024,
-        1155296
-       ],
-       [
-        2654000,
-        1155272
-       ],
-       [
-        2656304,
-        1154000
+        2655296,
+        1155056
        ],
        [
         2656328,
-        1154048
-       ],
-       [
-        2656352,
-        1154072
-       ],
-       [
-        2656376,
-        1154096
-       ],
-       [
-        2656400,
-        1154120
-       ],
-       [
-        2656424,
-        1154168
-       ],
-       [
-        2656448,
-        1154192
-       ],
-       [
-        2656472,
-        1154216
-       ],
-       [
-        2656496,
-        1154240
-       ],
-       [
-        2656520,
-        1154288
-       ],
-       [
-        2656544,
-        1154360
-       ],
-       [
-        2656568,
-        1154408
-       ],
-       [
-        2656592,
-        1154432
-       ],
-       [
-        2656640,
-        1154456
-       ],
-       [
-        2656664,
-        1154480
-       ],
-       [
-        2656688,
-        1154504
-       ],
-       [
-        2656712,
-        1154528
-       ],
-       [
-        2656736,
-        1154576
-       ],
-       [
-        2656760,
-        1154600
-       ],
-       [
-        2656784,
-        1154648
-       ],
-       [
-        2656808,
-        1154672
-       ],
-       [
-        2656832,
-        1154696
-       ],
-       [
-        2656856,
-        1154720
-       ],
-       [
-        2656880,
-        1154744
-       ],
-       [
-        2656904,
-        1154768
-       ],
-       [
-        2656928,
-        1154792
-       ],
-       [
-        2656952,
-        1154816
-       ],
-       [
-        2656976,
-        1154840
-       ],
-       [
-        2657000,
-        1154864
-       ],
-       [
-        2657024,
-        1154888
-       ],
-       [
-        2657048,
-        1154912
-       ],
-       [
-        2657072,
-        1154936
-       ],
-       [
-        2657096,
-        1154960
-       ],
-       [
-        2657144,
-        1154984
+        1155032
        ],
        [
         2657192,
@@ -29393,7 +25916,8 @@
      "label": "2022-08-23 10:11",
      "day": "2022-08-23",
      "kind": "flight",
-     "cells": 169647,
+     "km2": 10.86,
+     "ice": 0.512,
      "rings": [
       [
        [
@@ -29675,7 +26199,8 @@
      "label": "2022-08-23 10:20",
      "day": "2022-08-23",
      "kind": "flight",
-     "cells": 140076,
+     "km2": 2.45,
+     "ice": 0.0,
      "rings": [
       [
        [
@@ -29843,232 +26368,28 @@
         1155008
        ],
        [
-        2658440,
+        2658488,
         1154984
        ],
        [
-        2658344,
+        2659424,
         1154960
        ],
        [
-        2658128,
+        2660480,
         1154936
        ],
        [
-        2658056,
+        2661512,
         1154912
        ],
        [
-        2657984,
+        2662544,
         1154888
-       ],
-       [
-        2657888,
-        1154864
-       ],
-       [
-        2657816,
-        1154840
-       ],
-       [
-        2657720,
-        1154816
-       ],
-       [
-        2657648,
-        1154792
-       ],
-       [
-        2657600,
-        1154816
-       ],
-       [
-        2657528,
-        1154792
-       ],
-       [
-        2657360,
-        1154768
-       ],
-       [
-        2657240,
-        1154744
-       ],
-       [
-        2657120,
-        1154720
-       ],
-       [
-        2657072,
-        1154696
-       ],
-       [
-        2657048,
-        1154672
-       ],
-       [
-        2656952,
-        1154648
-       ],
-       [
-        2656856,
-        1154624
-       ],
-       [
-        2656616,
-        1154600
-       ],
-       [
-        2656520,
-        1154576
-       ],
-       [
-        2656424,
-        1154552
-       ],
-       [
-        2656352,
-        1154528
-       ],
-       [
-        2655656,
-        1154504
-       ],
-       [
-        2655536,
-        1154480
-       ],
-       [
-        2655392,
-        1154456
-       ],
-       [
-        2655272,
-        1154432
-       ],
-       [
-        2655200,
-        1154408
-       ],
-       [
-        2655104,
-        1154384
-       ],
-       [
-        2654936,
-        1154360
-       ],
-       [
-        2654840,
-        1154336
-       ],
-       [
-        2654816,
-        1154312
-       ],
-       [
-        2654768,
-        1154288
-       ],
-       [
-        2654744,
-        1154264
-       ],
-       [
-        2654720,
-        1154240
-       ],
-       [
-        2654672,
-        1154216
-       ],
-       [
-        2654624,
-        1154192
-       ],
-       [
-        2654576,
-        1154168
-       ],
-       [
-        2654528,
-        1154144
-       ],
-       [
-        2654480,
-        1154120
-       ],
-       [
-        2654432,
-        1154096
-       ],
-       [
-        2654360,
-        1154072
-       ],
-       [
-        2654312,
-        1154048
-       ],
-       [
-        2654240,
-        1154024
-       ],
-       [
-        2663168,
-        1154000
-       ],
-       [
-        2663144,
-        1154048
-       ],
-       [
-        2663120,
-        1154096
-       ],
-       [
-        2663096,
-        1154144
-       ],
-       [
-        2663072,
-        1154192
-       ],
-       [
-        2663048,
-        1154216
-       ],
-       [
-        2663024,
-        1154240
-       ],
-       [
-        2663000,
-        1154336
-       ],
-       [
-        2662976,
-        1154456
-       ],
-       [
-        2662952,
-        1154576
-       ],
-       [
-        2662928,
-        1154672
-       ],
-       [
-        2662904,
-        1154768
-       ],
-       [
-        2662880,
-        1154816
        ],
        [
         2662856,
-        1154888
+        1154864
        ],
        [
         2662832,
@@ -30129,7 +26450,8 @@
      "label": "2022-08-23 10:57",
      "day": "2022-08-23",
      "kind": "flight",
-     "cells": 267154,
+     "km2": 13.78,
+     "ice": 0.642,
      "rings": [
       [
        [
@@ -30654,295 +26976,15 @@
        ],
        [
         2655056,
-        1156208
-       ],
-       [
-        2655008,
-        1156184
-       ],
-       [
-        2654984,
-        1156160
-       ],
-       [
-        2654960,
-        1156136
-       ],
-       [
-        2654912,
-        1156112
-       ],
-       [
-        2654864,
-        1156088
-       ],
-       [
-        2654816,
-        1156064
-       ],
-       [
-        2654768,
-        1156040
-       ],
-       [
-        2654744,
-        1156016
-       ],
-       [
-        2654720,
-        1155992
-       ],
-       [
-        2654696,
-        1155968
-       ],
-       [
-        2654672,
         1155944
        ],
        [
-        2654648,
-        1155920
-       ],
-       [
-        2654624,
-        1155896
-       ],
-       [
-        2654600,
-        1155872
-       ],
-       [
-        2654576,
-        1155848
-       ],
-       [
-        2654552,
-        1155824
-       ],
-       [
-        2654528,
-        1155800
-       ],
-       [
-        2654504,
-        1155776
-       ],
-       [
-        2654480,
-        1155752
-       ],
-       [
-        2654456,
-        1155728
-       ],
-       [
-        2654432,
-        1155704
-       ],
-       [
-        2654408,
-        1155680
-       ],
-       [
-        2654384,
-        1155656
-       ],
-       [
-        2654360,
-        1155608
-       ],
-       [
-        2654336,
-        1155584
-       ],
-       [
-        2654312,
-        1155536
-       ],
-       [
-        2654288,
-        1155464
-       ],
-       [
-        2654264,
-        1155416
-       ],
-       [
-        2654240,
-        1155392
-       ],
-       [
-        2654216,
-        1155368
-       ],
-       [
-        2654192,
-        1155344
-       ],
-       [
-        2654168,
-        1155320
-       ],
-       [
-        2654144,
-        1155272
-       ],
-       [
-        2654120,
-        1155224
-       ],
-       [
-        2654096,
-        1155200
-       ],
-       [
-        2654072,
-        1155176
-       ],
-       [
-        2654048,
-        1155152
-       ],
-       [
-        2654024,
-        1155128
-       ],
-       [
-        2654000,
-        1155104
-       ],
-       [
-        2656112,
-        1154000
-       ],
-       [
-        2656136,
-        1154024
-       ],
-       [
-        2656160,
-        1154048
-       ],
-       [
-        2656184,
-        1154072
-       ],
-       [
-        2656208,
-        1154096
-       ],
-       [
-        2656232,
-        1154144
-       ],
-       [
-        2656256,
-        1154168
-       ],
-       [
-        2656280,
-        1154192
-       ],
-       [
-        2656304,
-        1154216
+        2655296,
+        1155056
        ],
        [
         2656328,
-        1154264
-       ],
-       [
-        2656352,
-        1154288
-       ],
-       [
-        2656376,
-        1154336
-       ],
-       [
-        2656400,
-        1154408
-       ],
-       [
-        2656424,
-        1154456
-       ],
-       [
-        2656448,
-        1154480
-       ],
-       [
-        2656472,
-        1154504
-       ],
-       [
-        2656520,
-        1154528
-       ],
-       [
-        2656544,
-        1154552
-       ],
-       [
-        2656568,
-        1154576
-       ],
-       [
-        2656592,
-        1154600
-       ],
-       [
-        2656616,
-        1154624
-       ],
-       [
-        2656640,
-        1154648
-       ],
-       [
-        2656664,
-        1154696
-       ],
-       [
-        2656712,
-        1154744
-       ],
-       [
-        2656736,
-        1154768
-       ],
-       [
-        2656760,
-        1154792
-       ],
-       [
-        2656784,
-        1154816
-       ],
-       [
-        2656808,
-        1154840
-       ],
-       [
-        2656832,
-        1154888
-       ],
-       [
-        2656856,
-        1154912
-       ],
-       [
-        2656904,
-        1154936
-       ],
-       [
-        2656928,
-        1154960
-       ],
-       [
-        2656952,
-        1154984
+        1155032
        ],
        [
         2656976,
@@ -31667,180 +27709,21 @@
      "label": "2022-08-24 09:56",
      "day": "2022-08-24",
      "kind": "flight",
-     "cells": 180770,
+     "km2": 9.47,
+     "ice": 0.469,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159688
-       ],
-       [
-        2654048,
-        1159664
-       ],
-       [
-        2654072,
-        1159640
-       ],
-       [
-        2654096,
-        1159616
-       ],
-       [
-        2654120,
-        1159592
-       ],
-       [
-        2654144,
-        1159568
-       ],
-       [
-        2654192,
-        1159544
-       ],
-       [
-        2654216,
-        1159520
-       ],
-       [
-        2654240,
-        1159496
-       ],
-       [
-        2654264,
-        1159472
-       ],
-       [
-        2654288,
-        1159448
-       ],
-       [
-        2654336,
-        1159424
-       ],
-       [
-        2654360,
-        1159400
-       ],
-       [
-        2654384,
-        1159376
-       ],
-       [
-        2654432,
-        1159352
-       ],
-       [
-        2654504,
-        1159328
-       ],
-       [
-        2654528,
-        1159304
-       ],
-       [
-        2654552,
-        1159280
-       ],
-       [
-        2654576,
-        1159256
-       ],
-       [
-        2654600,
-        1159208
-       ],
-       [
-        2654624,
-        1159184
-       ],
-       [
-        2654648,
-        1159160
-       ],
-       [
-        2654672,
-        1159136
-       ],
-       [
-        2654696,
-        1159112
-       ],
-       [
-        2654720,
-        1159088
-       ],
-       [
-        2654744,
-        1159064
-       ],
-       [
-        2654768,
-        1159040
-       ],
-       [
-        2654792,
-        1159016
-       ],
-       [
-        2654816,
-        1158992
-       ],
-       [
-        2654840,
-        1158968
-       ],
-       [
-        2654864,
-        1158944
-       ],
-       [
-        2654888,
-        1158920
-       ],
-       [
-        2654912,
-        1158896
-       ],
-       [
-        2654936,
-        1158872
-       ],
-       [
-        2654960,
-        1158848
-       ],
-       [
-        2654984,
-        1158824
-       ],
-       [
-        2655008,
-        1158800
-       ],
-       [
-        2655032,
-        1158776
-       ],
-       [
-        2655056,
-        1158752
-       ],
-       [
-        2655080,
-        1158728
-       ],
-       [
-        2655104,
-        1158704
+        2655152,
+        1159928
        ],
        [
         2655128,
-        1158680
+        1158944
        ],
        [
         2655176,
@@ -33167,148 +29050,8 @@
         1160120
        ],
        [
-        2655656,
-        1160144
-       ],
-       [
-        2655632,
-        1160168
-       ],
-       [
-        2655608,
-        1160192
-       ],
-       [
-        2655584,
-        1160216
-       ],
-       [
-        2655560,
-        1160240
-       ],
-       [
-        2655536,
-        1160264
-       ],
-       [
-        2655512,
-        1160288
-       ],
-       [
-        2655488,
-        1160312
-       ],
-       [
-        2655464,
-        1160336
-       ],
-       [
-        2655440,
-        1160360
-       ],
-       [
-        2655392,
-        1160384
-       ],
-       [
-        2655368,
-        1160408
-       ],
-       [
-        2655344,
-        1160432
-       ],
-       [
-        2655320,
-        1160456
-       ],
-       [
-        2655296,
-        1160480
-       ],
-       [
-        2655272,
-        1160504
-       ],
-       [
-        2655248,
-        1160528
-       ],
-       [
-        2655200,
-        1160552
-       ],
-       [
         2655176,
-        1160576
-       ],
-       [
-        2655152,
-        1160600
-       ],
-       [
-        2655128,
-        1160624
-       ],
-       [
-        2655080,
-        1160648
-       ],
-       [
-        2655056,
-        1160672
-       ],
-       [
-        2655032,
-        1160696
-       ],
-       [
-        2655008,
-        1160720
-       ],
-       [
-        2654984,
-        1160744
-       ],
-       [
-        2654960,
-        1160768
-       ],
-       [
-        2654936,
-        1160792
-       ],
-       [
-        2654912,
-        1160816
-       ],
-       [
-        2654864,
-        1160840
-       ],
-       [
-        2654840,
-        1160864
-       ],
-       [
-        2654816,
-        1160888
-       ],
-       [
-        2654768,
-        1160912
-       ],
-       [
-        2654744,
-        1160936
-       ],
-       [
-        2654696,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
+        1160144
        ]
       ]
      ]
@@ -33317,164 +29060,21 @@
      "label": "2023-08-20 08:47",
      "day": "2023-08-20",
      "kind": "flight",
-     "cells": 193914,
+     "km2": 10.19,
+     "ice": 0.49,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159640
+        2655152,
+        1159928
        ],
        [
-        2654048,
-        1159616
-       ],
-       [
-        2654072,
-        1159592
-       ],
-       [
-        2654120,
-        1159568
-       ],
-       [
-        2654168,
-        1159544
-       ],
-       [
-        2654192,
-        1159520
-       ],
-       [
-        2654240,
-        1159496
-       ],
-       [
-        2654264,
-        1159472
-       ],
-       [
-        2654312,
-        1159448
-       ],
-       [
-        2654336,
-        1159424
-       ],
-       [
-        2654360,
-        1159400
-       ],
-       [
-        2654408,
-        1159376
-       ],
-       [
-        2654432,
-        1159352
-       ],
-       [
-        2654480,
-        1159328
-       ],
-       [
-        2654504,
-        1159304
-       ],
-       [
-        2654528,
-        1159280
-       ],
-       [
-        2654552,
-        1159256
-       ],
-       [
-        2654576,
-        1159208
-       ],
-       [
-        2654600,
-        1159184
-       ],
-       [
-        2654624,
-        1159160
-       ],
-       [
-        2654648,
-        1159136
-       ],
-       [
-        2654672,
-        1159088
-       ],
-       [
-        2654696,
-        1159064
-       ],
-       [
-        2654720,
-        1159040
-       ],
-       [
-        2654768,
-        1159016
-       ],
-       [
-        2654792,
-        1158992
-       ],
-       [
-        2654816,
-        1158968
-       ],
-       [
-        2654840,
+        2655128,
         1158944
-       ],
-       [
-        2654864,
-        1158920
-       ],
-       [
-        2654888,
-        1158896
-       ],
-       [
-        2654912,
-        1158872
-       ],
-       [
-        2654936,
-        1158848
-       ],
-       [
-        2654960,
-        1158824
-       ],
-       [
-        2654984,
-        1158776
-       ],
-       [
-        2655008,
-        1158752
-       ],
-       [
-        2655032,
-        1158728
-       ],
-       [
-        2655056,
-        1158704
-       ],
-       [
-        2655104,
-        1158680
        ],
        [
         2655152,
@@ -34777,148 +30377,8 @@
         1160120
        ],
        [
-        2655752,
-        1160144
-       ],
-       [
-        2655728,
-        1160168
-       ],
-       [
-        2655704,
-        1160192
-       ],
-       [
-        2655680,
-        1160216
-       ],
-       [
-        2655656,
-        1160240
-       ],
-       [
-        2655632,
-        1160264
-       ],
-       [
-        2655608,
-        1160288
-       ],
-       [
-        2655584,
-        1160312
-       ],
-       [
-        2655560,
-        1160336
-       ],
-       [
-        2655536,
-        1160360
-       ],
-       [
-        2655512,
-        1160384
-       ],
-       [
-        2655488,
-        1160408
-       ],
-       [
-        2655464,
-        1160432
-       ],
-       [
-        2655440,
-        1160456
-       ],
-       [
-        2655392,
-        1160480
-       ],
-       [
-        2655368,
-        1160504
-       ],
-       [
-        2655344,
-        1160528
-       ],
-       [
-        2655320,
-        1160552
-       ],
-       [
-        2655296,
-        1160576
-       ],
-       [
-        2655272,
-        1160600
-       ],
-       [
-        2655224,
-        1160624
-       ],
-       [
-        2655200,
-        1160648
-       ],
-       [
         2655176,
-        1160672
-       ],
-       [
-        2655152,
-        1160696
-       ],
-       [
-        2655128,
-        1160720
-       ],
-       [
-        2655080,
-        1160744
-       ],
-       [
-        2655056,
-        1160768
-       ],
-       [
-        2655032,
-        1160792
-       ],
-       [
-        2655008,
-        1160816
-       ],
-       [
-        2654984,
-        1160840
-       ],
-       [
-        2654960,
-        1160864
-       ],
-       [
-        2654936,
-        1160888
-       ],
-       [
-        2654888,
-        1160912
-       ],
-       [
-        2654864,
-        1160936
-       ],
-       [
-        2654816,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
+        1160144
        ]
       ]
      ]
@@ -34927,7 +30387,8 @@
      "label": "2023-08-20 09:13",
      "day": "2023-08-20",
      "kind": "flight",
-     "cells": 179600,
+     "km2": 11.49,
+     "ice": 0.524,
      "rings": [
       [
        [
@@ -35349,7 +30810,8 @@
      "label": "2023-08-22 09:11",
      "day": "2023-08-22",
      "kind": "flight",
-     "cells": 263595,
+     "km2": 13.42,
+     "ice": 0.621,
      "rings": [
       [
        [
@@ -35874,279 +31336,15 @@
        ],
        [
         2655056,
-        1156304
-       ],
-       [
-        2655032,
-        1156280
-       ],
-       [
-        2654984,
-        1156256
-       ],
-       [
-        2654936,
-        1156232
-       ],
-       [
-        2654888,
-        1156208
-       ],
-       [
-        2654840,
-        1156184
-       ],
-       [
-        2654792,
-        1156160
-       ],
-       [
-        2654744,
-        1156136
-       ],
-       [
-        2654696,
-        1156112
-       ],
-       [
-        2654672,
-        1156088
-       ],
-       [
-        2654648,
-        1156064
-       ],
-       [
-        2654624,
-        1156040
-       ],
-       [
-        2654600,
-        1156016
-       ],
-       [
-        2654552,
-        1155992
-       ],
-       [
-        2654528,
-        1155968
-       ],
-       [
-        2654504,
         1155944
        ],
        [
-        2654480,
-        1155920
-       ],
-       [
-        2654456,
-        1155896
-       ],
-       [
-        2654432,
-        1155872
-       ],
-       [
-        2654408,
-        1155824
-       ],
-       [
-        2654384,
-        1155800
-       ],
-       [
-        2654360,
-        1155776
-       ],
-       [
-        2654336,
-        1155752
-       ],
-       [
-        2654312,
-        1155728
-       ],
-       [
-        2654288,
-        1155680
-       ],
-       [
-        2654264,
-        1155632
-       ],
-       [
-        2654240,
-        1155584
-       ],
-       [
-        2654216,
-        1155536
-       ],
-       [
-        2654192,
-        1155488
-       ],
-       [
-        2654168,
-        1155440
-       ],
-       [
-        2654144,
-        1155416
-       ],
-       [
-        2654120,
-        1155392
-       ],
-       [
-        2654096,
-        1155344
-       ],
-       [
-        2654072,
-        1155320
-       ],
-       [
-        2654048,
-        1155296
-       ],
-       [
-        2654024,
-        1155248
-       ],
-       [
-        2654000,
-        1155224
-       ],
-       [
-        2656112,
-        1154000
-       ],
-       [
-        2656136,
-        1154024
-       ],
-       [
-        2656160,
-        1154048
-       ],
-       [
-        2656184,
-        1154072
-       ],
-       [
-        2656208,
-        1154096
-       ],
-       [
-        2656232,
-        1154144
-       ],
-       [
-        2656256,
-        1154168
-       ],
-       [
-        2656280,
-        1154192
-       ],
-       [
-        2656304,
-        1154240
+        2655296,
+        1155056
        ],
        [
         2656328,
-        1154264
-       ],
-       [
-        2656352,
-        1154288
-       ],
-       [
-        2656376,
-        1154384
-       ],
-       [
-        2656400,
-        1154432
-       ],
-       [
-        2656424,
-        1154456
-       ],
-       [
-        2656448,
-        1154480
-       ],
-       [
-        2656472,
-        1154504
-       ],
-       [
-        2656520,
-        1154528
-       ],
-       [
-        2656544,
-        1154552
-       ],
-       [
-        2656568,
-        1154576
-       ],
-       [
-        2656592,
-        1154600
-       ],
-       [
-        2656616,
-        1154624
-       ],
-       [
-        2656640,
-        1154696
-       ],
-       [
-        2656664,
-        1154744
-       ],
-       [
-        2656688,
-        1154792
-       ],
-       [
-        2656712,
-        1154816
-       ],
-       [
-        2656736,
-        1154840
-       ],
-       [
-        2656760,
-        1154864
-       ],
-       [
-        2656784,
-        1154888
-       ],
-       [
-        2656808,
-        1154912
-       ],
-       [
-        2656832,
-        1154936
-       ],
-       [
-        2656880,
-        1154960
-       ],
-       [
-        2656904,
-        1154984
+        1155032
        ],
        [
         2656928,
@@ -36883,7 +32081,8 @@
      "label": "2023-08-23 11:06",
      "day": "2023-08-23",
      "kind": "flight",
-     "cells": 132219,
+     "km2": 2.39,
+     "ice": 0.0,
      "rings": [
       [
        [
@@ -37075,232 +32274,28 @@
         1155008
        ],
        [
-        2658536,
+        2658584,
         1154984
        ],
        [
-        2658464,
+        2659424,
         1154960
        ],
        [
-        2658416,
+        2660480,
         1154936
        ],
        [
-        2658344,
+        2661512,
         1154912
        ],
        [
-        2658272,
+        2662544,
         1154888
        ],
        [
-        2658200,
+        2662928,
         1154864
-       ],
-       [
-        2658152,
-        1154840
-       ],
-       [
-        2658056,
-        1154816
-       ],
-       [
-        2657984,
-        1154792
-       ],
-       [
-        2657912,
-        1154768
-       ],
-       [
-        2657864,
-        1154744
-       ],
-       [
-        2657624,
-        1154720
-       ],
-       [
-        2657480,
-        1154696
-       ],
-       [
-        2657384,
-        1154672
-       ],
-       [
-        2657264,
-        1154648
-       ],
-       [
-        2657168,
-        1154624
-       ],
-       [
-        2657096,
-        1154600
-       ],
-       [
-        2657072,
-        1154576
-       ],
-       [
-        2657000,
-        1154552
-       ],
-       [
-        2656928,
-        1154528
-       ],
-       [
-        2656904,
-        1154504
-       ],
-       [
-        2656856,
-        1154480
-       ],
-       [
-        2656736,
-        1154456
-       ],
-       [
-        2656592,
-        1154480
-       ],
-       [
-        2656544,
-        1154456
-       ],
-       [
-        2656304,
-        1154432
-       ],
-       [
-        2656232,
-        1154456
-       ],
-       [
-        2655752,
-        1154480
-       ],
-       [
-        2655656,
-        1154456
-       ],
-       [
-        2655560,
-        1154432
-       ],
-       [
-        2655512,
-        1154408
-       ],
-       [
-        2655440,
-        1154384
-       ],
-       [
-        2655368,
-        1154360
-       ],
-       [
-        2655320,
-        1154336
-       ],
-       [
-        2655296,
-        1154312
-       ],
-       [
-        2655248,
-        1154288
-       ],
-       [
-        2655200,
-        1154264
-       ],
-       [
-        2655176,
-        1154240
-       ],
-       [
-        2655128,
-        1154216
-       ],
-       [
-        2655080,
-        1154192
-       ],
-       [
-        2655008,
-        1154168
-       ],
-       [
-        2654912,
-        1154144
-       ],
-       [
-        2654816,
-        1154120
-       ],
-       [
-        2654720,
-        1154096
-       ],
-       [
-        2654552,
-        1154072
-       ],
-       [
-        2654528,
-        1154024
-       ],
-       [
-        2663000,
-        1154000
-       ],
-       [
-        2662976,
-        1154048
-       ],
-       [
-        2662952,
-        1154144
-       ],
-       [
-        2662928,
-        1154264
-       ],
-       [
-        2662904,
-        1154384
-       ],
-       [
-        2662928,
-        1154432
-       ],
-       [
-        2663024,
-        1154456
-       ],
-       [
-        2663000,
-        1154480
-       ],
-       [
-        2662976,
-        1154600
-       ],
-       [
-        2662952,
-        1154720
-       ],
-       [
-        2662928,
-        1154840
        ],
        [
         2662904,
@@ -37353,7 +32348,8 @@
      "label": "2024-08-22 08:42",
      "day": "2024-08-22",
      "kind": "flight",
-     "cells": 263772,
+     "km2": 13.44,
+     "ice": 0.636,
      "rings": [
       [
        [
@@ -37885,284 +32881,16 @@
         1156280
        ],
        [
-        2655032,
-        1156256
-       ],
-       [
-        2655008,
-        1156232
-       ],
-       [
-        2654960,
-        1156208
-       ],
-       [
-        2654912,
-        1156184
-       ],
-       [
-        2654864,
-        1156160
-       ],
-       [
-        2654816,
-        1156136
-       ],
-       [
-        2654768,
-        1156112
-       ],
-       [
-        2654720,
-        1156088
-       ],
-       [
-        2654672,
-        1156064
-       ],
-       [
-        2654648,
-        1156040
-       ],
-       [
-        2654624,
-        1156016
-       ],
-       [
-        2654600,
-        1155992
-       ],
-       [
-        2654576,
-        1155968
-       ],
-       [
-        2654528,
+        2655056,
         1155944
        ],
        [
-        2654504,
-        1155920
-       ],
-       [
-        2654480,
-        1155896
-       ],
-       [
-        2654456,
-        1155872
-       ],
-       [
-        2654408,
-        1155824
-       ],
-       [
-        2654384,
-        1155800
-       ],
-       [
-        2654360,
-        1155752
-       ],
-       [
-        2654336,
-        1155728
-       ],
-       [
-        2654312,
-        1155680
-       ],
-       [
-        2654288,
-        1155632
-       ],
-       [
-        2654264,
-        1155584
-       ],
-       [
-        2654240,
-        1155536
-       ],
-       [
-        2654216,
-        1155488
-       ],
-       [
-        2654192,
-        1155440
-       ],
-       [
-        2654168,
-        1155416
-       ],
-       [
-        2654144,
-        1155368
-       ],
-       [
-        2654120,
-        1155344
-       ],
-       [
-        2654096,
-        1155320
-       ],
-       [
-        2654072,
-        1155272
-       ],
-       [
-        2654048,
-        1155248
-       ],
-       [
-        2654024,
-        1155200
-       ],
-       [
-        2654000,
-        1155176
-       ],
-       [
-        2656112,
-        1154000
-       ],
-       [
-        2656136,
-        1154024
-       ],
-       [
-        2656160,
-        1154048
-       ],
-       [
-        2656184,
-        1154072
-       ],
-       [
-        2656208,
-        1154096
-       ],
-       [
-        2656232,
-        1154144
-       ],
-       [
-        2656256,
-        1154168
-       ],
-       [
-        2656280,
-        1154192
-       ],
-       [
-        2656304,
-        1154216
+        2655296,
+        1155056
        ],
        [
         2656328,
-        1154264
-       ],
-       [
-        2656352,
-        1154288
-       ],
-       [
-        2656376,
-        1154336
-       ],
-       [
-        2656400,
-        1154360
-       ],
-       [
-        2656424,
-        1154384
-       ],
-       [
-        2656448,
-        1154432
-       ],
-       [
-        2656472,
-        1154456
-       ],
-       [
-        2656496,
-        1154504
-       ],
-       [
-        2656520,
-        1154528
-       ],
-       [
-        2656544,
-        1154552
-       ],
-       [
-        2656568,
-        1154576
-       ],
-       [
-        2656592,
-        1154600
-       ],
-       [
-        2656616,
-        1154624
-       ],
-       [
-        2656640,
-        1154648
-       ],
-       [
-        2656664,
-        1154696
-       ],
-       [
-        2656688,
-        1154720
-       ],
-       [
-        2656712,
-        1154744
-       ],
-       [
-        2656736,
-        1154768
-       ],
-       [
-        2656760,
-        1154792
-       ],
-       [
-        2656784,
-        1154816
-       ],
-       [
-        2656808,
-        1154840
-       ],
-       [
-        2656832,
-        1154888
-       ],
-       [
-        2656880,
-        1154912
-       ],
-       [
-        2656904,
-        1154936
-       ],
-       [
-        2656928,
-        1154960
-       ],
-       [
-        2656952,
-        1154984
+        1155032
        ],
        [
         2656976,
@@ -38939,7 +33667,8 @@
      "label": "2024-08-23 09:47",
      "day": "2024-08-23",
      "kind": "flight",
-     "cells": 194829,
+     "km2": 12.44,
+     "ice": 0.537,
      "rings": [
       [
        [
@@ -39319,16 +34048,12 @@
         1156736
        ],
        [
-        2664368,
+        2664296,
         1156712
        ],
        [
-        2664344,
-        1156808
-       ],
-       [
         2664320,
-        1157336
+        1157312
        ],
        [
         2664296,
@@ -39385,7 +34110,8 @@
      "label": "2024-08-30 10:03",
      "day": "2024-08-30",
      "kind": "flight",
-     "cells": 148117,
+     "km2": 2.76,
+     "ice": 0.0,
      "rings": [
       [
        [
@@ -39585,224 +34311,28 @@
         1155008
        ],
        [
-        2658008,
+        2658392,
         1154984
        ],
        [
-        2657960,
+        2659424,
         1154960
        ],
        [
-        2657888,
+        2660480,
         1154936
        ],
        [
-        2657840,
+        2661512,
         1154912
        ],
        [
-        2657792,
+        2662544,
         1154888
        ],
        [
-        2657768,
-        1154864
-       ],
-       [
-        2657648,
-        1154840
-       ],
-       [
-        2657624,
-        1154864
-       ],
-       [
-        2657528,
-        1154840
-       ],
-       [
-        2657456,
-        1154816
-       ],
-       [
-        2657384,
-        1154792
-       ],
-       [
-        2657312,
-        1154816
-       ],
-       [
-        2657216,
-        1154792
-       ],
-       [
-        2657144,
-        1154768
-       ],
-       [
-        2657072,
-        1154744
-       ],
-       [
-        2657048,
-        1154720
-       ],
-       [
-        2657000,
-        1154696
-       ],
-       [
-        2656928,
-        1154672
-       ],
-       [
-        2656760,
-        1154648
-       ],
-       [
-        2656208,
-        1154672
-       ],
-       [
-        2655848,
-        1154696
-       ],
-       [
-        2655728,
-        1154672
-       ],
-       [
-        2655656,
-        1154648
-       ],
-       [
-        2655584,
-        1154624
-       ],
-       [
-        2655536,
-        1154600
-       ],
-       [
-        2655416,
-        1154576
-       ],
-       [
-        2655296,
-        1154552
-       ],
-       [
-        2655272,
-        1154528
-       ],
-       [
-        2655248,
-        1154504
-       ],
-       [
-        2655224,
-        1154456
-       ],
-       [
-        2655200,
-        1154432
-       ],
-       [
-        2655176,
-        1154384
-       ],
-       [
-        2655128,
-        1154360
-       ],
-       [
-        2654984,
-        1154336
-       ],
-       [
-        2654888,
-        1154312
-       ],
-       [
-        2654816,
-        1154288
-       ],
-       [
-        2654768,
-        1154264
-       ],
-       [
-        2654720,
-        1154240
-       ],
-       [
-        2654672,
-        1154216
-       ],
-       [
-        2654576,
-        1154192
-       ],
-       [
-        2654552,
-        1154168
-       ],
-       [
-        2654288,
-        1154192
-       ],
-       [
-        2654168,
-        1154168
-       ],
-       [
-        2654096,
-        1154144
-       ],
-       [
-        2654072,
-        1154120
-       ],
-       [
-        2654000,
-        1154096
-       ],
-       [
-        2662928,
-        1154000
-       ],
-       [
-        2662904,
-        1154096
-       ],
-       [
-        2662880,
-        1154192
-       ],
-       [
-        2662856,
-        1154288
-       ],
-       [
-        2662832,
-        1154384
-       ],
-       [
-        2662808,
-        1154480
-       ],
-       [
-        2662784,
-        1154576
-       ],
-       [
-        2662760,
-        1154672
-       ],
-       [
         2662736,
-        1154768
+        1154864
        ],
        [
         2662712,
@@ -39831,7 +34361,8 @@
      "label": "2025-09-18 10:16",
      "day": "2025-09-18",
      "kind": "flight",
-     "cells": 182106,
+     "km2": 11.65,
+     "ice": 0.517,
      "rings": [
       [
        [
@@ -40209,188 +34740,21 @@
      "label": "2025-09-18 10:46",
      "day": "2025-09-18",
      "kind": "flight",
-     "cells": 203767,
+     "km2": 10.71,
+     "ice": 0.515,
      "rings": [
       [
        [
-        2654000,
-        1160984
+        2655176,
+        1160144
        ],
        [
-        2654024,
-        1159688
-       ],
-       [
-        2654048,
-        1159664
-       ],
-       [
-        2654072,
-        1159640
-       ],
-       [
-        2654096,
-        1159592
-       ],
-       [
-        2654120,
-        1159568
-       ],
-       [
-        2654168,
-        1159544
-       ],
-       [
-        2654192,
-        1159520
-       ],
-       [
-        2654216,
-        1159496
-       ],
-       [
-        2654240,
-        1159472
-       ],
-       [
-        2654264,
-        1159448
-       ],
-       [
-        2654288,
-        1159424
-       ],
-       [
-        2654312,
-        1159400
-       ],
-       [
-        2654336,
-        1159376
-       ],
-       [
-        2654360,
-        1159352
-       ],
-       [
-        2654384,
-        1159328
-       ],
-       [
-        2654408,
-        1159304
-       ],
-       [
-        2654432,
-        1159280
-       ],
-       [
-        2654456,
-        1159256
-       ],
-       [
-        2654480,
-        1159208
-       ],
-       [
-        2654504,
-        1159184
-       ],
-       [
-        2654528,
-        1159160
-       ],
-       [
-        2654552,
-        1159112
-       ],
-       [
-        2654576,
-        1159088
-       ],
-       [
-        2654600,
-        1159064
-       ],
-       [
-        2654624,
-        1159040
-       ],
-       [
-        2654648,
-        1159016
-       ],
-       [
-        2654672,
-        1158992
-       ],
-       [
-        2654696,
-        1158968
-       ],
-       [
-        2654720,
-        1158944
-       ],
-       [
-        2654744,
-        1158920
-       ],
-       [
-        2654768,
-        1158872
-       ],
-       [
-        2654792,
-        1158848
-       ],
-       [
-        2654816,
-        1158824
-       ],
-       [
-        2654840,
-        1158800
-       ],
-       [
-        2654864,
-        1158776
-       ],
-       [
-        2654888,
-        1158752
-       ],
-       [
-        2654912,
-        1158728
-       ],
-       [
-        2654936,
-        1158704
-       ],
-       [
-        2654960,
-        1158680
-       ],
-       [
-        2654984,
-        1158656
-       ],
-       [
-        2655008,
-        1158632
-       ],
-       [
-        2655032,
-        1158608
-       ],
-       [
-        2655080,
-        1158584
+        2655152,
+        1159928
        ],
        [
         2655128,
-        1158560
+        1158944
        ],
        [
         2655152,
@@ -41697,140 +36061,8 @@
         1160120
        ],
        [
-        2655800,
-        1160144
-       ],
-       [
-        2655776,
-        1160168
-       ],
-       [
-        2655752,
-        1160192
-       ],
-       [
-        2655728,
-        1160216
-       ],
-       [
-        2655704,
-        1160240
-       ],
-       [
-        2655656,
-        1160264
-       ],
-       [
-        2655632,
-        1160288
-       ],
-       [
-        2655608,
-        1160312
-       ],
-       [
-        2655584,
-        1160336
-       ],
-       [
-        2655560,
-        1160360
-       ],
-       [
-        2655536,
-        1160384
-       ],
-       [
-        2655512,
-        1160408
-       ],
-       [
-        2655488,
-        1160432
-       ],
-       [
-        2655464,
-        1160456
-       ],
-       [
-        2655440,
-        1160480
-       ],
-       [
-        2655416,
-        1160504
-       ],
-       [
-        2655392,
-        1160528
-       ],
-       [
-        2655344,
-        1160576
-       ],
-       [
-        2655272,
-        1160600
-       ],
-       [
-        2655224,
-        1160624
-       ],
-       [
-        2655200,
-        1160648
-       ],
-       [
         2655176,
-        1160672
-       ],
-       [
-        2655152,
-        1160696
-       ],
-       [
-        2655128,
-        1160720
-       ],
-       [
-        2655104,
-        1160744
-       ],
-       [
-        2655080,
-        1160768
-       ],
-       [
-        2655032,
-        1160816
-       ],
-       [
-        2654984,
-        1160840
-       ],
-       [
-        2654960,
-        1160864
-       ],
-       [
-        2654936,
-        1160888
-       ],
-       [
-        2654912,
-        1160912
-       ],
-       [
-        2654888,
-        1160936
-       ],
-       [
-        2654864,
-        1160960
-       ],
-       [
-        2654000,
-        1160984
+        1160144
        ]
       ]
      ]
@@ -41839,25 +36071,10 @@
      "label": "2025-09-18 11:02",
      "day": "2025-09-18",
      "kind": "flight",
-     "cells": 298457,
+     "km2": 15.38,
+     "ice": 0.666,
      "rings": [
       [
-       [
-        2658896,
-        1160240
-       ],
-       [
-        2658872,
-        1160192
-       ],
-       [
-        2658848,
-        1160144
-       ],
-       [
-        2658824,
-        1160120
-       ],
        [
         2658800,
         1160072
@@ -42367,284 +36584,20 @@
         1156376
        ],
        [
-        2655056,
+        2655080,
         1156352
        ],
        [
-        2655032,
-        1156328
-       ],
-       [
-        2655008,
-        1156304
-       ],
-       [
-        2654960,
-        1156280
-       ],
-       [
-        2654936,
-        1156256
-       ],
-       [
-        2654888,
-        1156232
-       ],
-       [
-        2654864,
-        1156208
-       ],
-       [
-        2654792,
-        1156184
-       ],
-       [
-        2654744,
-        1156160
-       ],
-       [
-        2654720,
-        1156136
-       ],
-       [
-        2654672,
-        1156112
-       ],
-       [
-        2654648,
-        1156088
-       ],
-       [
-        2654624,
-        1156064
-       ],
-       [
-        2654600,
-        1156040
-       ],
-       [
-        2654576,
-        1156016
-       ],
-       [
-        2654528,
-        1155992
-       ],
-       [
-        2654504,
-        1155968
-       ],
-       [
-        2654480,
+        2655056,
         1155944
        ],
        [
-        2654456,
-        1155920
-       ],
-       [
-        2654432,
-        1155896
-       ],
-       [
-        2654408,
-        1155872
-       ],
-       [
-        2654384,
-        1155848
-       ],
-       [
-        2654360,
-        1155824
-       ],
-       [
-        2654336,
-        1155776
-       ],
-       [
-        2654312,
-        1155752
-       ],
-       [
-        2654288,
-        1155728
-       ],
-       [
-        2654264,
-        1155704
-       ],
-       [
-        2654240,
-        1155656
-       ],
-       [
-        2654216,
-        1155608
-       ],
-       [
-        2654192,
-        1155536
-       ],
-       [
-        2654168,
-        1155488
-       ],
-       [
-        2654144,
-        1155440
-       ],
-       [
-        2654120,
-        1155416
-       ],
-       [
-        2654096,
-        1155368
-       ],
-       [
-        2654072,
-        1155344
-       ],
-       [
-        2654048,
-        1155320
-       ],
-       [
-        2654024,
-        1155272
-       ],
-       [
-        2654000,
-        1155248
+        2655296,
+        1155056
        ],
        [
         2656328,
-        1154000
-       ],
-       [
-        2656352,
-        1154024
-       ],
-       [
-        2656376,
-        1154048
-       ],
-       [
-        2656400,
-        1154096
-       ],
-       [
-        2656424,
-        1154120
-       ],
-       [
-        2656448,
-        1154144
-       ],
-       [
-        2656472,
-        1154192
-       ],
-       [
-        2656496,
-        1154216
-       ],
-       [
-        2656520,
-        1154264
-       ],
-       [
-        2656544,
-        1154312
-       ],
-       [
-        2656568,
-        1154336
-       ],
-       [
-        2656592,
-        1154384
-       ],
-       [
-        2656616,
-        1154408
-       ],
-       [
-        2656640,
-        1154432
-       ],
-       [
-        2656664,
-        1154456
-       ],
-       [
-        2656688,
-        1154480
-       ],
-       [
-        2656712,
-        1154528
-       ],
-       [
-        2656736,
-        1154552
-       ],
-       [
-        2656760,
-        1154600
-       ],
-       [
-        2656784,
-        1154672
-       ],
-       [
-        2656808,
-        1154696
-       ],
-       [
-        2656856,
-        1154720
-       ],
-       [
-        2656880,
-        1154744
-       ],
-       [
-        2656904,
-        1154768
-       ],
-       [
-        2656928,
-        1154816
-       ],
-       [
-        2656952,
-        1154840
-       ],
-       [
-        2656976,
-        1154864
-       ],
-       [
-        2657000,
-        1154888
-       ],
-       [
-        2657048,
-        1154912
-       ],
-       [
-        2657072,
-        1154936
-       ],
-       [
-        2657120,
-        1154960
-       ],
-       [
-        2657168,
-        1154984
+        1155032
        ],
        [
         2657216,
@@ -43427,32 +37380,8 @@
         1160048
        ],
        [
-        2659088,
+        2658800,
         1160072
-       ],
-       [
-        2659064,
-        1160096
-       ],
-       [
-        2659040,
-        1160120
-       ],
-       [
-        2659016,
-        1160144
-       ],
-       [
-        2658992,
-        1160192
-       ],
-       [
-        2658968,
-        1160216
-       ],
-       [
-        2658896,
-        1160240
        ]
       ]
      ]
@@ -43461,7 +37390,8 @@
      "label": "2025-09-18 11:18",
      "day": "2025-09-18",
      "kind": "flight",
-     "cells": 182601,
+     "km2": 4.17,
+     "ice": 0.0,
      "rings": [
       [
        [
@@ -43709,224 +37639,32 @@
         1155008
        ],
        [
-        2657888,
+        2658392,
         1154984
        ],
        [
-        2657816,
+        2659424,
         1154960
        ],
        [
-        2657792,
+        2660480,
         1154936
        ],
        [
-        2657768,
+        2661512,
         1154912
        ],
        [
-        2657672,
+        2662544,
         1154888
        ],
        [
-        2657432,
+        2663576,
         1154864
-       ],
-       [
-        2657408,
-        1154840
-       ],
-       [
-        2657168,
-        1154864
-       ],
-       [
-        2657120,
-        1154840
-       ],
-       [
-        2657096,
-        1154816
-       ],
-       [
-        2657048,
-        1154792
-       ],
-       [
-        2656952,
-        1154768
-       ],
-       [
-        2655848,
-        1154744
-       ],
-       [
-        2655728,
-        1154720
-       ],
-       [
-        2655656,
-        1154696
-       ],
-       [
-        2655608,
-        1154672
-       ],
-       [
-        2655536,
-        1154648
-       ],
-       [
-        2655464,
-        1154624
-       ],
-       [
-        2655368,
-        1154600
-       ],
-       [
-        2655296,
-        1154576
-       ],
-       [
-        2655224,
-        1154552
-       ],
-       [
-        2655176,
-        1154528
-       ],
-       [
-        2655128,
-        1154504
-       ],
-       [
-        2655056,
-        1154480
-       ],
-       [
-        2654984,
-        1154456
-       ],
-       [
-        2654912,
-        1154432
-       ],
-       [
-        2654840,
-        1154408
-       ],
-       [
-        2654768,
-        1154384
-       ],
-       [
-        2654696,
-        1154360
-       ],
-       [
-        2654600,
-        1154336
-       ],
-       [
-        2654528,
-        1154312
-       ],
-       [
-        2654456,
-        1154288
-       ],
-       [
-        2654360,
-        1154264
-       ],
-       [
-        2654264,
-        1154240
-       ],
-       [
-        2654192,
-        1154216
-       ],
-       [
-        2654120,
-        1154192
-       ],
-       [
-        2654024,
-        1154168
-       ],
-       [
-        2654000,
-        1154144
-       ],
-       [
-        2662712,
-        1154000
-       ],
-       [
-        2662784,
-        1154096
-       ],
-       [
-        2662880,
-        1154120
-       ],
-       [
-        2662952,
-        1154144
-       ],
-       [
-        2663048,
-        1154168
-       ],
-       [
-        2663120,
-        1154192
-       ],
-       [
-        2663216,
-        1154216
-       ],
-       [
-        2663312,
-        1154240
-       ],
-       [
-        2663408,
-        1154264
-       ],
-       [
-        2663504,
-        1154288
-       ],
-       [
-        2663600,
-        1154312
-       ],
-       [
-        2663672,
-        1154336
-       ],
-       [
-        2663720,
-        1154360
-       ],
-       [
-        2663696,
-        1154456
-       ],
-       [
-        2663672,
-        1154552
-       ],
-       [
-        2663648,
-        1154672
        ],
        [
         2663624,
-        1154792
+        1154840
        ],
        [
         2663600,
@@ -43990,13 +37728,6 @@
        ]
       ]
      ]
-    },
-    {
-     "label": "lidar",
-     "day": "",
-     "kind": "lidar",
-     "cells": 0,
-     "rings": []
     }
    ]
   },
