@@ -510,6 +510,14 @@ export function drawHillshade(ctx, S, h, nA, nB, TEX){            // a base map 
 }
 export let speedPin3D = null;      // the fastest ice of the year of the picture as a mark in the scene ({x, z, text}), set with the speed colours below; null when the layer is off, has no map for the year, or the point lies outside the strip
 export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the satellite picture of a year, turned so that up the glacier is up, as the texture of the strip
+/* The hiking-trail tiles come as finished pictures, so their lines are made thinner on the canvas (no filters, which Safari on iPhone ignores): every pixel keeps the mean of its own opacity and the lowest opacity within one pixel around it, so the edges of a line fade and a line is about a pixel thinner */
+export function thinLines(cv){
+  const W = cv.width, H = cv.height, cx = cv.getContext('2d', {willReadFrequently: true}), im = cx.getImageData(0, 0, W, H), px = im.data, a = new Uint8Array(W * H), t = new Uint8Array(W * H);
+  for (let i = 0; i < a.length; i++) a[i] = px[4 * i + 3];
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x; t[i] = Math.min(a[i], x > 0 ? a[i - 1] : 0, x < W - 1 ? a[i + 1] : 0); }
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x, m = Math.min(t[i], y > 0 ? t[i - W] : 0, y < H - 1 ? t[i + W] : 0); px[4 * i + 3] = (a[i] + m) >> 1; }
+  cx.putImageData(im, 0, 0);
+}
   speedPin3D = null;
   if ($('trailsToggle').checked) await ensureSight();
   const HALF = S.half, TEX = S.tex, len = S.up + S.back; let bb = imageFootprint(g).bbox, u = null;
@@ -561,10 +569,10 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH){            // the
     ctx.restore();
   }
   if ($('trailsToggle').checked) {
-    if (FEATURES.swisstopo) await drawTiles(ctx, S, toTexM, V3D_TRAILS, 15);
+    if (FEATURES.swisstopo) { const lc = document.createElement('canvas'); lc.width = TEX[0]; lc.height = TEX[1]; await drawTiles(lc.getContext('2d', {willReadFrequently: true}), S, toTexM, V3D_TRAILS, 15); thinLines(lc); ctx.drawImage(lc, 0, 0); }
     else { const d = trailsFor(g); if (d) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineJoin = ctx.lineCap = 'round';      // Iceland: the paths are lines, not tiles
       const draw = (list, color, w) => { ctx.strokeStyle = color; ctx.lineWidth = w; list.forEach(l => { ctx.beginPath(); l.forEach(([lat, lng], i) => { const q = L.CRS.EPSG3857.project(L.latLng(lat, lng)), [x, y] = toTexM(q.x, q.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }); };
-      draw(d.tracks, 'rgba(0,0,0,.55)', 6); draw(d.paths, 'rgba(0,0,0,.55)', 7); draw(d.tracks, '#FF3B30', 3.5); draw(d.paths, '#FDC200', 4.5); ctx.restore(); } }
+      draw(d.tracks, 'rgba(0,0,0,.55)', 4.5); draw(d.paths, 'rgba(0,0,0,.55)', 5); draw(d.tracks, '#FF3B30', 2.5); draw(d.paths, '#FDC200', 3.2); ctx.restore(); } }
   }
   const toXY = ll => { const q = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return toTexM(q.x, q.y); };
   const rings = (geom, color) => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); strokeEdgeFade(ctx, geom, toXY, color, .7); ctx.restore(); };      // an outline, drawn on the picture so that it follows the terrain

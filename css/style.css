@@ -312,6 +312,9 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 @media (max-width:720px){.v3d .v3d-layers{top:64px;right:8px}}
 .v3d-top .v3d-year{position:static;z-index:auto}      /* the same year tag as on the map: one big year, one small line under it */
 .v3d-top > span{display:block;margin-top:5px;font-size:12px;font-weight:500;color:rgba(255,255,255,.78);text-shadow:0 1px 8px rgba(0,0,0,.6)}
+.v3d-north{position:absolute;right:14px;bottom:64px;width:30px;z-index:2;pointer-events:none;display:flex;flex-direction:column;align-items:center;gap:1px;opacity:.7;--rot:0deg;font:600 10px/1 var(--sans);color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+.v3d-north svg{width:24px;height:24px;fill:rgba(255,255,255,.85);stroke:rgba(0,0,0,.35);stroke-width:1;transform:rotate(var(--rot))}      /* the arrow turns with the camera; the N stays upright */
+.v3d-north svg path{stroke-linejoin:round}
 .v3d-msg{position:absolute;inset:0;display:grid;place-items:center;padding:24px;text-align:center;font-size:14px;color:#cfd9e3;pointer-events:none}
 .v3d-bottom{position:absolute;left:14px;right:14px;bottom:12px;display:flex;flex-direction:column;gap:6px;font-size:11px;line-height:1.4;color:#aebccb;pointer-events:none}
 .v3d-bottom a{color:#cfe3f1;pointer-events:auto}
@@ -1317,9 +1320,26 @@ body.pane-open .app.is-3d .v3d-hint,body.pane-open .app.is-3d #videoFrameNote{di
 .teaser-go{border:0;background:var(--accent);color:#fff;box-shadow:0 8px 28px rgba(200,50,42,.5)}
 .teaser-again{border:1px solid rgba(255,255,255,.5);background:rgba(10,19,34,.55);color:#fff}
 body.teaser-on{overflow:hidden}
+.teaser-stage{display:contents}
+.teaser-ctl{display:none}
 @media (min-width:900px) and (hover:hover){
   .teaser{background:rgba(10,19,34,.55);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px)}
-  .teaser video{width:min(960px,calc(100% - 160px),calc((100vh - 120px) * 16 / 9));height:auto;aspect-ratio:16/9;border-radius:10px;box-shadow:0 20px 70px rgba(0,0,0,.5)}      /* at most 960 px wide: the film is 1920 px, so it stays sharp on a 2x screen and is not blown up on a large one */
+  .teaser-stage{display:block;position:relative;width:min(960px,calc(100% - 160px),calc((100vh - 120px) * 16 / 9));border-radius:10px;overflow:hidden;box-shadow:0 20px 70px rgba(0,0,0,.5)}
+  .teaser video{width:100%;height:auto;aspect-ratio:16/9;border-radius:0;box-shadow:none}
+  .teaser-bar{display:none}
+  /* play/pause, time and a scrubbable progress bar over the foot of the film: shown on hover, focus and while paused */
+  .teaser-ctl{position:absolute;left:0;right:0;bottom:0;display:flex;align-items:center;gap:12px;padding:26px 16px 12px;background:linear-gradient(transparent,rgba(10,19,34,.75));opacity:0;transition:opacity .2s}
+  .teaser-stage:hover .teaser-ctl,.teaser-ctl:focus-within,.teaser.paused .teaser-ctl{opacity:1}
+  .teaser-pp{display:flex;align-items:center;justify-content:center;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.16);color:#fff;cursor:pointer}
+  .teaser-pp:hover{background:var(--accent)}
+  .teaser-pp svg{width:16px;height:16px;fill:currentColor}
+  .teaser-pp .pp-play,.teaser.paused .teaser-pp .pp-pause{display:none}
+  .teaser.paused .teaser-pp .pp-play{display:inline}
+  .teaser-time{min-width:78px;color:#fff;font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+  .teaser-track{position:relative;flex:1;height:14px;cursor:pointer;touch-action:none;background:linear-gradient(rgba(255,255,255,.28),rgba(255,255,255,.28)) center/100% 4px no-repeat}
+  .teaser-track i{position:absolute;left:0;top:5px;height:4px;width:0;background:var(--accent);pointer-events:none}
+  .teaser-track:hover i,.teaser-track:focus-visible i{top:4px;height:6px}
+  .teaser-track:focus-visible{outline:2px solid #fff;outline-offset:2px}      /* at most 960 px wide: the film is 1920 px, so it stays sharp on a 2x screen and is not blown up on a large one */
 }
 /* phone in portrait: the 16:9 film in the middle of the screen, just under full width (Skip sits above it, the progress bar under it) */
 @media (orientation:portrait) and (max-width:720px){
