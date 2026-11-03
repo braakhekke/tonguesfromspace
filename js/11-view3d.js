@@ -1242,14 +1242,14 @@ export function drawMarks3D(ctx, list, t, u){            // t: seconds (the move
     const [gx, gy] = m.g, [hx, hy] = m.h;
     ctx.shadowColor = 'rgba(0,0,0,.7)'; ctx.shadowBlur = 5 * u; ctx.strokeStyle = 'rgba(255,255,255,.85)'; ctx.lineWidth = 1.3 * u; ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(hx, hy); ctx.stroke();
     ctx.fillStyle = '#fff';
-    ctx.font = `600 ${13.5 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
+    ctx.font = `600 ${11.5 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
   });
   ctx.restore();
   list.filter(m => m.type === 'rod').forEach(m => drawRod3D(ctx, m, u));
   list.filter(m => m.type === 'gname').forEach(m => {            // glacier names: ice blue, italic, to tell them from the peaks
     const [gx, gy] = m.g, [hx, hy] = m.h;
     ctx.shadowColor = 'rgba(0,0,0,.75)'; ctx.shadowBlur = 5 * u; ctx.strokeStyle = 'rgba(160,215,245,.9)'; ctx.lineWidth = 1.3 * u; ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(hx, hy); ctx.stroke();
-    ctx.fillStyle = '#bfe6ff'; ctx.font = `italic 600 ${13.5 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
+    ctx.fillStyle = '#bfe6ff'; ctx.font = `italic 600 ${11.5 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
   });
   list.filter(m => m.type !== 'name' && m.type !== 'gname' && m.type !== 'rod').forEach(m => drawPin3D(ctx, m, t, u, m.type === 'tip' ? (getVar('--accent') || '#C8322A') : (getVar('--crevasse') || '#2D6E8E')));
 }
