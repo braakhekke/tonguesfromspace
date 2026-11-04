@@ -1,6 +1,6 @@
 import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS } from './01-data.js';
-import { SEASON, isLandsat, unifyOrbit, summerStarted, findScene, queued, fmtDM, fmtDate, capWaiting } from './03-imagery.js';
+import { SEASON, isLandsat, unifyOrbit, summerStarted, findScene, queued, fmtDM, fmtDate, capWaiting, sideStyle } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, AUTOPLAY, setAUTOPLAY } from './04-state.js';
 import { map, updateCredits, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, oldestPair, aerialDesc, tagLine, play, layerA, setLayerA, setLayerB, layerB } from './05-map.js';
 // registered for the files below it in the load order (see wire.js)
@@ -51,9 +51,9 @@ export async function checkYears(){
   } }      // the opening timelapse starts by itself (not under the teaser film, not after a click)
 }
 export function statusLine(){
-  const lt = state.latest, latestLine = lt && state.available[lt.year] && state.mode !== 'timelapse' && viewMode !== '3d' ? `Latest clear-ish scene: ${fmtDate(state.available[lt.year].date)}.` : '';      // the chosen Latest is named, except in a timelapse and in 3D (neither has it)
+  const lt = state.latest, latestLine = lt && state.available[lt.year] && state.mode !== 'timelapse' ? `Latest clear-ish scene: ${fmtDate(state.available[lt.year].date)}.` : '';      // the chosen Latest is named, except in a timelapse (it has none)
   const oa = state.oldestAerial && oldestAerial.get(state.glacier);
-  if (oa && state.mode === 'compare') return `First image: the oldest aerial image, ${oldestWhat(oa)}. No Sentinel-2 picture on that side.` + (latestLine ? ' ' + latestLine : '');
+  if (oa && state.mode === 'compare') return `${state.oldestSide === 'b' ? 'Second' : 'First'} image: the oldest aerial image, ${oldestWhat(oa)}. No Sentinel-2 picture on that side.` + (latestLine ? ' ' + latestLine : '');
   if (oa) return `Oldest aerial image: ${oldestWhat(oa)}. No Sentinel-2 picture.`;
   const normal = y => lt && lt.year === y ? lt.saved : state.available[y];      // the Latest scene stands in for its year's scene: the counts below use the year's own
   const ok = okYears().filter(normal), expected = YEARS.filter(summerStarted), missing = expected.filter(y => !normal(y));       // the current year is not counted before its summer
@@ -70,10 +70,10 @@ export function statusLine(){
 }
 /* Year labels on the map: year plus the date of the scene */
 export function updateTags(){
-  const sub = y => { const sc = state.available[y]; return sc ? `${fmtDM(sc.date)}${sc.clear ? '' : ', some clouds'}` : 'Sentinel-2'; };
+  const sub = y => { const sc = state.available[y]; return sc ? `${sc.latest ? 'Latest, ' : ''}${fmtDM(sc.date)}${sc.clear ? '' : ', some clouds'}` : 'Sentinel-2'; };
   const scA = state.available[state.a], scB = state.available[state.b];      // the line under a year names its satellite (Landsat before 2016)
   wire.setTag('tagA', state.a); wire.setTag('tagB', state.b);
   if (!satOn()) { document.querySelector('#tagA small').innerHTML = aerialDesc(state.a); document.querySelector('#tagB small').innerHTML = aerialDesc(state.b); return; }
-  tagLine(document.querySelector('#tagA small'), sub(state.a), scA); tagLine(document.querySelector('#tagB small'), sub(state.b), scB);
-  if (oldestPair()) { wire.setTag('tagA', flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#tagA small').innerHTML = aerialDesc(state.oldestAerial); }
+  tagLine(document.querySelector('#tagA small'), sub(state.a), scA); tagLine(document.querySelector('#tagB small'), sub(state.b), scB, sideStyle(1));
+  if (oldestPair()) { const T = state.oldestSide === 'b' ? 'tagB' : 'tagA'; wire.setTag(T, flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial); document.querySelector('#' + T + ' small').innerHTML = aerialDesc(state.oldestAerial); }
 }

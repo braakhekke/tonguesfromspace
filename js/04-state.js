@@ -12,8 +12,8 @@ export let viewMode = 'map';      // 'map' or '3d': what the stage shows. The pa
 export const state = {
   glacier: (GLACIERS.find(g => g.id === REGION.landingGlacier) || GLACIERS[0]).id, mode: 'single',          // new visitors start with one image, the newest year
   a: null, b: null, from: null, to: null, one: null,
-  split: 0.5, available: {}, latest: null, oldestAerial: null, oldestSaved: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
-  frame: 0, playing: false, timer: null,
+  split: 0.5, available: {}, latest: null, latestSide: 'b', oldestAerial: null, oldestSide: 'a', oldestSaved: null, checked: false,   // available[year] = chosen scene {date, cloud, snow, clear} or null
+  frame: 0, playing: false, timer: null, styleB: null,      // styleB: the slider's second picture has its own colour composition (null = the same as the first)
   style: ({ false: 'false1', parece: 'false2' }[prefs.style]) || (['false1', 'false2', 'false3'].includes(prefs.style) ? prefs.style : 'natural')     // old saved names: false, parece
 };
 export let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
@@ -36,7 +36,9 @@ export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the has
   if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
   if (['natural', 'false1', 'false2', 'false3'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
+  if (['natural', 'false1', 'false2', 'false3'].includes(p.get('s2'))) state.styleB = p.get('s2');           // s2: colour style of the slider's second picture
   if (p.get('embed') === '1') { EMBED = true; document.documentElement.classList.add('embed'); }
+  if (p.get('tr') === '1') prefs.trails = true;                                                 // tr=1: show the hiking trails
   if (p.get('ol') === '1') prefs.old = true;                                                     // ol=1: show the 1850 outline
   if (REGION.landsat && (prefs.landsat || ['a', 'b', 'from', 'to', 'one'].some(k => +p.get(k) && +p.get(k) < FIRST_YEAR))) { YEARS.unshift(...LANDSAT_YEARS); prefs.landsat = true; }      // Landsat on: saved in an earlier visit, or the link names a year before Sentinel-2
   glacierPicked = OPEN_ON_GLACIER; OPEN_3D = FEATURES.view3d && OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));

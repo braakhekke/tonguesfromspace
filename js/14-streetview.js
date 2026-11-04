@@ -7,6 +7,7 @@ import { bundleId } from './11-view3d.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'refreshStreetView', { get: () => refreshStreetView, configurable: true });
 Object.defineProperty(wire, 'svActive', { get: () => svActive, configurable: true });
+Object.defineProperty(wire, 'svPins', { get: () => ({list: svList, index: svIndex, open: openStreetView}), configurable: true });      // the 3D view draws the panoramas as marks on the terrain
 /* =====================================================================
    14. Street View: the best panoramas of a glacier (Google)
    ===================================================================== */
@@ -19,7 +20,7 @@ export let svFile = null, svList = [], svMarkers = [], svIndex = -1, svGen = 0;
 export const loadStreetViewFile = () => svFile || (svFile = fetch(asset('data/streetview.json'), ASSETS['data/streetview.json'] ? undefined : {cache: 'no-cache'}).then(r => r.ok ? r.json() : {}).catch(() => ({})));
 export const svEmbedUrl = p => 'https://www.google.com/maps/embed/v1/streetview?' + new URLSearchParams({key: SV_KEY, pano: p.pano, heading: p.heading ?? 0, pitch: p.pitch ?? 0, fov: p.fov ?? 90});
 export const svMapsUrl = p => 'https://www.google.com/maps/@?' + new URLSearchParams({api: 1, map_action: 'pano', pano: p.pano, heading: p.heading ?? 0, pitch: p.pitch ?? 0, fov: p.fov ?? 90});
-export const svActive = () => !!SV_KEY && !$('svRow').hidden && $('svToggle').checked && viewMode !== '3d';
+export const svActive = () => !!SV_KEY && !$('svRow').hidden && $('svToggle').checked;      // map and 3D view
 
 export function drawStreetView(){
   svMarkers.forEach(m => map.removeLayer(m)); svMarkers = [];
@@ -48,7 +49,7 @@ export async function refreshStreetView(){          // a glacier was chosen: its
   closeStreetView(); svList = [];
   if (SV_KEY && g && FEATURES.streetview) { const f = await loadStreetViewFile(); if (gen !== svGen) return; svList = (f && f[bundleId(g)]) || []; }
   $('svRow').hidden = !svList.length;
-  drawStreetView(); updateCredits();
+  drawStreetView(); updateCredits(); if (viewMode === '3d' && typeof wire.sync3DMenu === 'function') wire.sync3DMenu();      // the 3D menu's row follows
 }
 $('svToggle').onchange = () => { if (!$('svToggle').checked) closeStreetView(); drawStreetView(); updateCredits(); };
 $('svClose').onclick = closeStreetView;

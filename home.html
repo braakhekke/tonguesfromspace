@@ -34,6 +34,7 @@
     <a href="#how">Create and share</a>
     <a href="#science">Data and method</a>
     <a href="gallery.html">Gallery</a>
+    <a class="navopen js-dash" id="navOpen" href="index.html"><i aria-hidden="true"></i>Open the dashboard</a>
   </nav>
 </div></header>
 
@@ -44,27 +45,30 @@
       <h1><span>Glaciers don’t talk.</span> <span>Their <em>tongues</em> tell all.</span></h1>
       <p class="lede">Explore how glaciers change: satellite and historic imagery, field measurements and glacier data in one viewer, on the map and in 3D. Then turn what you find into something worth sharing.</p>
       <div class="cta">
+        <a class="btn-red js-dash" id="heroOpen" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         <button class="btn-ghost" id="watch" type="button">
-          <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the demo</button>
+          <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the tour</button>
       </div>
     </div>
 
     <div class="flightbox">
     <figure class="flight" id="flight">
-      <video id="flightVideo" autoplay muted playsinline preload="auto" poster="images/home/hero-flight.jpg" aria-label="A 3D flight over the Grosser Aletsch glacier while the years 2016 to 2026 pass">
+      <video id="flightVideo" autoplay loop muted playsinline preload="auto" poster="images/home/hero-flight.jpg" aria-label="A 3D flight over the Grosser Aletsch glacier while the years 2016 to 2026 pass">
         <source src="images/home/hero-flight.webm" type="video/webm">
         <source src="images/home/hero-flight.mp4" type="video/mp4">
       </video>
       <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
-      <button class="flight-go" id="flightGo" type="button" hidden aria-label="Fly around by yourself: take over the 3D view"><span class="pill"><b>Fly around by yourself</b><i>Click, then drag to turn and scroll to zoom</i></span></button>
-      <button class="flight-off" id="flightOff" type="button" hidden aria-label="Stop exploring and scroll the page">&times;</button>
       <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span><small>Contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)</small></figcaption>
     </figure>
       <p class="flight-credit">Contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)</p>
-      <a class="flight-link" href="index.html#g=aletsch&m=timelapse&from=2016&to=2026&v=3d">Fly to the tongue of Grosser Aletschgletscher straight away <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a>
     </div>
   </div>
 </section>
+<div class="stepsband"><ol class="wrap steps">
+  <li><b>1 · Choose</b>Pick a glacier on the map or from the list. Regions marked “In the making” can be looked at, not opened yet.</li>
+  <li><b>2 · Compare</b>Slide through the years, switch map layers, fly over the tongue in 3D.</li>
+  <li><b>3 · Share</b>Export a picture or a video, or embed the view in your page.</li>
+</ol></div>
 <div class="whyband" id="why"><div class="wrap whygrid">
     <div class="whyhead">
       <p class="eyebrow">Why Tongues from Space</p>
@@ -74,11 +78,11 @@
     </div>
   </div>
   <div class="wrap aud">
-    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></svg>Scientists</b><span>Explore the evidence. Trace every figure.</span></summary><p class="aud-lede">Explore dated satellite imagery alongside published measurements, glacier outlines and field observations. Follow the sources, compare years, investigate the changes in the ice and download elevation models for your own analysis.</p></details>
-    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 01-2-2V5zM17 9h3v8a2 2 0 01-2 2M7 9h7M7 13h7"/></svg>Journalists</b><span>Show the change. Tell the story.</span></summary><p class="aud-lede">Turn glacier retreat into compelling visual stories. Create before-and-after images, short videos and interactive views ready to use in articles, reports and social media.</p></details>
-    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5zM6 11.5V16c0 1.2 2.7 3 6 3s6-1.8 6-3v-4.5"/></svg>Educators</b><span>Make glacier change visible in the classroom.</span></summary><p class="aud-lede">Let your students explore real glaciers, travel through time and discover how mountain landscapes are changing. Bring satellite imagery and interactive 3D exploration into your lessons.</p></details>
-    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13"/></svg>Students</b><span>Go beyond the headlines. Explore the data.</span></summary><p class="aud-lede">Investigate glaciers through satellite images, historical maps and published measurements. Compare different data layers and discover how scientists observe and understand glacier change.</p></details>
-    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20l7-12 4 7 2-3 7 8z"/></svg>Outdoor people</b><span>Know the ice before you go.</span></summary><p class="aud-lede">Discover where glacier tongues end today and how far they have retreated. Explore hiking trails, viewpoints and the changing landscapes around the glaciers before your next mountain adventure.</p></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></svg>Scientists</b><span>Explore the evidence. Trace every figure.</span></summary><p class="aud-lede">Explore dated satellite imagery alongside published measurements, glacier outlines and field observations. Follow the sources, compare years, investigate the changes in the ice and download elevation models for your own analysis.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=compare&ol=1&t=stats" href="index.html#g=aletsch&m=compare&ol=1&t=stats">Explore imagery, outlines and sources <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 01-2-2V5zM17 9h3v8a2 2 0 01-2 2M7 9h7M7 13h7"/></svg>Journalists</b><span>Show the change. Tell the story.</span></summary><p class="aud-lede">Turn glacier retreat into compelling visual stories. Create before-and-after images, short videos and interactive views ready to use in articles, reports and social media.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=compare" href="index.html#g=aletsch&m=compare">Try the before-and-after slider <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5zM6 11.5V16c0 1.2 2.7 3 6 3s6-1.8 6-3v-4.5"/></svg>Educators</b><span>Make glacier change visible in the classroom.</span></summary><p class="aud-lede">Let your students explore real glaciers, travel through time and discover how mountain landscapes are changing. Bring satellite imagery and interactive 3D exploration into your lessons.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=timelapse&v=3d" href="index.html#g=aletsch&m=timelapse&v=3d">Travel through time in 3D <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13"/></svg>Students</b><span>Go beyond the headlines. Explore the data.</span></summary><p class="aud-lede">Investigate glaciers through satellite images, historical maps and published measurements. Compare different data layers and discover how scientists observe and understand glacier change.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=compare&s=false1&t=discover" href="index.html#g=aletsch&m=compare&s=false1&t=discover">Compare the data layers <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20l7-12 4 7 2-3 7 8z"/></svg>Outdoor people</b><span>Know the ice before you go.</span></summary><p class="aud-lede">Discover where glacier tongues end today and how far they have retreated. Explore hiking trails, viewpoints and the changing landscapes around the glaciers before your next mountain adventure.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=single&ol=1&tr=1&t=discover" href="index.html#g=aletsch&m=single&ol=1&tr=1&t=discover">See the trails and how far the tongue retreated <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></details>
   </div>
 </div>
 
@@ -88,8 +92,14 @@
       <div>
         <p class="eyebrow">Choose a glacier</p>
         <h3 class="pick-h">Which glacier do you want to see?</h3>
-        <p>Click a region on the map, then a glacier, or choose one from the list.</p>
+        <p>Search or choose a glacier on the map, or click a region and then a glacier.</p>
       </div>
+      <div class="sh-cta"><a class="btn-red js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+    </div>
+
+    <div class="mapbox">
+      <div id="map" role="application" aria-label="World map of the regions"></div>
+      <div class="map-ctl">
       <div class="pickrow">
         <div class="search" role="search">
           <label for="gsearch2" class="sr">Search for a glacier, in any language</label>
@@ -107,10 +117,7 @@
           <ul class="pk-menu" id="pickMenu" role="listbox" aria-label="Glacier" hidden></ul>
         </div>
       </div>
-    </div>
-
-    <div class="mapbox">
-      <div id="map" role="application" aria-label="World map of the regions"></div>
+      </div>
       <div class="info" id="info" hidden>
         <button class="back" id="iBack" type="button" hidden></button>
         <div class="lab" id="iLab"></div>
@@ -121,7 +128,7 @@
         <div class="row"><a class="btn-red" id="iGo" href="#">Open the dashboard</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
         <p class="notready" id="iNot" role="status" hidden>This tongue isn't ready for Space yet.</p>
       </div>
-      <div class="credit">Sentinel-2 cloudless 2024 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
+      <div class="credit">Summer 2026 mosaic: contains modified Copernicus Sentinel data (Sentinel-2); wider view: Sentinel-2 cloudless 2025 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
     </div>
     <div class="tiles" id="tiles"></div>
     <p class="maphint">Two fingers to move and zoom the map.</p>
@@ -144,6 +151,7 @@
       <div class="vstage" id="vstage" aria-hidden="true"></div>
       <ol class="feat" id="feat"></ol>
     </div>
+    <div class="how-cta"><a class="btn-red js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
   </div>
 </section>
 <section class="quoteband">
@@ -184,7 +192,7 @@
 <section class="closing">
   <div class="wrap">
     <h2><span>Every glacier ends in a tongue.</span> <span>Now go look at yours.</span></h2>
-    <a class="btn-red go" href="#regions">Choose a glacier <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4l1.4 1.4L8.8 10H20v2H8.8l4.6 4.6L12 18l-8-8z" transform="rotate(90 12 12)"/></svg></a>
+    <a class="btn-red go js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
 </section>
 <div class="wrap">
@@ -253,29 +261,25 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
 
 /* ---------- hero: a short 3D flight over Aletsch (video, scripts/record_home_hero.py), then the live 3D viewer of the dashboard in the same frame ----------
    The viewer is index.html in an iframe (same origin) drawn 1280 x 720 and cropped to its stage (the left panel is 290 px wide), with the dashboard's own chrome hidden by a style
-   put into it from here: no change to the dashboard. It loads when the page is idle, plays the timelapse 2016 to 2026 in a loop, and takes over from the video when the video has
-   ended and the viewer is ready. A click makes it the visitor's (drag to turn, scroll to zoom); the x or Esc gives the page's scrolling back. The slider this replaced is kept in
+   put into it from here: no change to the dashboard. It loads when the page is idle, plays the timelapse 2016 to 2026 in a loop, and takes over from the looping video as soon as it is
+   ready, and is the visitor's at once (drag or swipe to turn; the wheel scrolls the page). The slider this replaced is kept in
    design/home-hero-slider/. Not loaded with reduced motion, "save data" or a slow connection: the video's poster stays. */
 (() => {
-  const fig = $('flight'), vid = $('flightVideo'), fr = $('flightLive'), go = $('flightGo'), off = $('flightOff'), what = $('flightWhat');
+  const fig = $('flight'), vid = $('flightVideo'), fr = $('flightLive'), what = $('flightWhat');
   const c = navigator.connection || {};
   if (matchMedia('(prefers-reduced-motion:reduce)').matches) { vid.removeAttribute('autoplay'); vid.pause(); return; }      // the poster stays
   if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;                                                          // the video only
-  vid.playbackRate = 1.75;      // the flight is short, so that the visitor can take over early
   const STAGE_X = 290, STAGE_W = 990, STAGE_H = 720;
   const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
   const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
   new ResizeObserver(fit).observe(fig); fit();
-  let ended = vid.ended, ready = false, shown = false, released = true;
-  const show = () => {
-    if (shown || !ended || !ready) return; shown = true;
-    fr.classList.add('on'); vid.classList.add('off'); go.hidden = false; what.textContent = '· live 3D view, drag to turn';
+  let shown = false;
+  const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel scrolls the page, it does not zoom
+    if (shown) return; shown = true;
+    fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off'); what.textContent = '\u00b7 live 3D view, drag to turn';
+    setTimeout(() => vid.pause(), 1000);
+    try { fr.contentDocument.addEventListener('wheel', e => { if (e.ctrlKey) return; e.stopImmediatePropagation(); e.preventDefault(); scrollBy(e.deltaX, e.deltaY); }, {capture: true, passive: false}); } catch {}
   };
-  vid.addEventListener('ended', () => { ended = true; show(); });
-  const grab = () => { released = false; fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.tabIndex = 0; go.hidden = true; off.hidden = false; fig.classList.add('grabbed'); };
-  const release = () => { released = true; fr.style.pointerEvents = 'none'; fr.tabIndex = -1; off.hidden = true; go.hidden = !shown; fig.classList.remove('grabbed'); };
-  go.addEventListener('click', grab); off.addEventListener('click', release);
-  addEventListener('keydown', e => { if (e.key === 'Escape' && !released) release(); });
   const start = () => {
     fr.src = 'index.html#g=aletsch&m=timelapse&from=2016&to=2026&v=3d';
     fr.addEventListener('load', () => {
@@ -288,7 +292,7 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
           if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's dashboard remembers; the classes only, so nothing is saved */
           const st = d.createElement('style'); st.id = 'flightClean'; st.textContent = CLEAN; d.head.appendChild(st); const sp = d.getElementById('speedSel'); sp.value = 2; sp.dispatchEvent(new Event('input', {bubbles: true})); d.getElementById('loopToggle').checked = true; d.querySelector('.tl-play').click(); d.querySelectorAll('.mapbar,#v3dMeasure,#v3dTlLine,#tlDots,.tl-row').forEach(e => e.style.setProperty('display', 'none', 'important')); fr.contentWindow.dispatchEvent(new Event('resize')); }
           if (d.querySelector('#playBtn .spin-s')) return;                     // the years' pictures are still on their way
-          clearInterval(poll); ready = true; show();
+          clearInterval(poll); show();
         } catch { clearInterval(poll); }
       }, 250);
     }, {once: true});
@@ -358,7 +362,7 @@ const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picke
 
 const map = L.map('map', { worldCopyJump: true, minZoom: 2, maxZoom: 12, scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false }).setView([67, 8], 3);      // touch: one finger scrolls the page past the map, two fingers (pinch) move and zoom it      // the five regions; the planned ones are one zoom out
 map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());
-L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg', { maxNativeZoom: 14, maxZoom: 17 }).addTo(map);
+L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/g/{z}/{y}/{x}.jpg', { maxNativeZoom: 14, maxZoom: 17 }).addTo(map);
 L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png', { maxNativeZoom: 16, maxZoom: 17, opacity: .9 }).addTo(map);
 
 const pick = $('pick'), tiles = $('tiles'), list = $('iList');
@@ -368,6 +372,7 @@ const ordered = id => { const all = byRegion(id), top = all.filter(g => !g.paren
 const nameOf = g => g.name + (g.approx ? ' ≈' : '');      // ≈: the name of the outlet is inferred, not certain (as in the dashboard)
 const fmtArea = a => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
 const regionHref = r => LOCAL ? 'index.html' + (r.id === 'ch' ? '' : '#r=' + r.id) : r.href;
+{ const ch = REGIONS.find(r => r.id === 'ch'); if (ch) { document.querySelectorAll('.js-dash').forEach(a => { a.href = regionHref(ch); }); document.querySelectorAll('.js-view').forEach(a => { a.href = regionHref(ch) + '#' + a.dataset.view; }); } }      // the dashboard, one click from the top
 const glacierHref = (r, g) => { const q = 'g=' + encodeURIComponent(g.parent || g.id) + (g.parent ? '&sub=' + g.sub : ''); return LOCAL ? 'index.html#' + (r.id === 'ch' ? '' : 'r=' + r.id + '&') + q : r.href + '#' + q; };
 
 pick.innerHTML = '<option value="">Choose a glacier…</option>';
@@ -384,7 +389,7 @@ for (const r of REGIONS) {
   if (r.soon && !r.n) continue;
   if (!r.soon || r.making) r.marker.on('click', () => chooseRegion(r.id));
   const t = document.createElement('button'); t.type = 'button'; t.className = 'tile' + (r.making ? ' making' : ''); t.dataset.id = r.id; t.disabled = r.soon && !r.making;
-  t.innerHTML = '<span class="c">' + r.group + '</span><b>' + r.name + '</b><small>' + r.n + '</small>' + (TOTALS[r.id] ? '<small class="of">out of ' + TOTALS[r.id] + ' total glaciers</small>' : '');
+  t.innerHTML = '<span class="st ' + (r.soon || r.making ? 'soon' : 'open') + '">' + (r.soon || r.making ? 'In the making' : 'Open') + '</span><span class="c">' + r.group + '</span><b>' + r.name + '</b><small>' + r.n + '</small>' + (TOTALS[r.id] ? '<small class="of">out of ' + TOTALS[r.id] + ' total glaciers</small>' : '');
   if (!r.soon || r.making) t.onclick = () => chooseRegion(r.id);
   tiles.appendChild(t);
 }

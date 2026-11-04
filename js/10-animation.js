@@ -3,12 +3,12 @@ import { IC_INFO } from './07b-icecap-texts.js';
 import { IS_CHANGE } from './07a-region-icecaps.js';
 import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS, $, COARSE, PHONE } from './01-data.js';
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
-import { styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, fmtDM } from './03-imagery.js';
+import { styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, sideStyle, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
 import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
 import { showNotice } from './08-controls.js';
-import { setFull, setMini, evalMini, setLayers } from './09-phones.js';
+import { setFull, setMini, evalMini, setLayers, swipeToClose } from './09-phones.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'closeVideo', { get: () => closeVideo, configurable: true });
 Object.defineProperty(wire, 'drawPreview', { get: () => drawPreview, configurable: true });
@@ -109,7 +109,7 @@ export function drawPreview(){
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!ys.length) return;
   const g = currentGlacier(), S = marginsFor(vstate.kind, vstate.fmt), swipe = vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe', image = vstate.kind === 'image';
-  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && hasOldOutline(g)), res: frameGroundRes(), style: state.style, compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && hasOldOutline(g)), res: frameGroundRes(), style: state.style, styleB: sideStyle(1), compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
     tlYears: image ? [] : ys };      // a single picture has no timeline bar
   if (!swipe && $('vFacts').checked) { loadFacts(g); info.factSet = $('vFactSet').value; info.factBase = image ? FIRST_YEAR : ys[0]; }
   ctx.save(); ctx.scale(q, q);
@@ -125,7 +125,7 @@ export function stopPreview(){
   if (!vPrev.on) return; vPrev.on = false; cancelAnimationFrame(vPrev.raf);
   if (state.playing) stopPlay();
   if (viewMode === '3d' && wire.v3d && vPrev.cam0) { wire.v3d.setCam(vPrev.cam0); vPrev.cam = null; if (wire.v3dCtx && wire.v3dCtx.cmp) wire.setSplit3D(vPrev.split0); else if (vPrev.year0 && wire.v3dCtx && wire.v3dCtx.follow) wire.v3dCtx.follow(vPrev.year0); wire.drawPreview3D(); }      // the view, the line and the year come back
-  $('videoFrame').classList.remove('playing'); $('vfPlay').innerHTML = PV_ICON.play; $('vfPlay').setAttribute('aria-label', 'Play a preview');
+  $('videoFrame').classList.remove('playing'); $('vfPlay').innerHTML = PV_ICON.play; $('vfPlay').setAttribute('aria-label', 'Play a preview'); syncPlayBtn();
   if (vstate.kind !== 'image' && vstate.type === 'swipe') { clip(); drawPreview(); }
 }
 export function startPreview3D(){            // the camera swings as in the video, the years change (timelapse) or the line moves (slider); everything is put back when it stops
@@ -141,22 +141,25 @@ export function startPreview3D(){            // the camera swings as in the vide
     const swing = $('vSwing') && $('vSwing').checked, cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
     vPrev.off = off; vPrev.cam = {az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
     if (c.cmp) { sPh += dt * 1.2 / perSec(0); wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * sPh / 6)); }
-    else if (ys && c.follow) { yPh += dt / perSec(ys.length); const y = ys[Math.floor(yPh) % ys.length]; if (y !== c.current()) c.follow(y); }
+    else if (ys && c.follow) { yPh += dt / perSec(ys.length); const sq = loopSeq(ys.length), y = ys[sq[Math.floor(yPh) % sq.length]]; if (y !== c.current()) c.follow(y); }      // the order of the video: loops, and back in time between them
     wire.drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
   };
   vPrev.raf = requestAnimationFrame(tick);
 }
 export function startPreview(){
   if (vstate.kind === 'image' || vPrev.on) return;
-  if (viewMode === '3d') { vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); return startPreview3D(); }
-  vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview');
+  const ys = videoYears();
+  if (viewMode === '3d') { vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn(); return startPreview3D(); }
+  vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn();
   if (vstate.type === 'swipe') {            // the slider goes to and fro across the frame
     const t0 = performance.now(), r = frameRect(), a = horiz() ? (r.y + 0.05 * r.h) / map.getSize().y : (r.x + 0.05 * r.w) / map.getSize().x, b = horiz() ? (r.y + 0.95 * r.h) / map.getSize().y : (r.x + 0.95 * r.w) / map.getSize().x;
     const tick = now => { if (!vPrev.on) return; const u = ((now - t0) / (2600 * Math.max(0.3, perSec(0) / 1.2))) % 2, e = u < 1 ? u : 2 - u, s = e * e * (3 - 2 * e); state.split = a + (b - a) * s; clip(); drawPreview(); vPrev.raf = requestAnimationFrame(tick); };
     vPrev.raf = requestAnimationFrame(tick);
-  } else { document.getElementById('loopToggle').checked = true; if (!state.playing) play(); }      // the map's timelapse plays; showFrame redraws the labels at every frame
+  } else { document.getElementById('loopToggle').checked = true; if (state.playing) stopPlay(); play(tlLayers.length === ys.length ? loopSeq(tlLayers.length) : null); }      // the map's timelapse plays; showFrame redraws the labels at every frame
 }
-$('vfPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
+export function syncPlayBtn(){ $('vsPlay').lastElementChild.textContent = vPrev.on ? 'Stop animation' : 'Play animation'; $('vsPlay').firstElementChild.innerHTML = vPrev.on ? '<path d="M7 7h10v10H7z"/>' : '<path d="M8 5v14l11-7z"/>'; }
+$('vfPlay').onclick = $('vsPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
+$('vfClose').onclick = () => closeVideo();      // the cross under the preview, beside the play button (alone when the preview is a picture)
 export function guideText(){
   const video = vstate.kind !== 'image';
   $('vSafeRow').hidden = !(video && vstate.fmt === 'reel');      // the Reels / TikTok choice only exists for a 9:16 video
@@ -259,7 +262,7 @@ export function updateFrame(){
                                : `${ys.length} years, ${ys[0]}–${ys[ys.length - 1]}, about ${Math.round(videoDuration(loopSeq(ys.length).length))} s.`) +
       (res < 4 ? ' Images have 10 m pixels: this close, the video looks soft.' : '');
   earlyNote(ys);
-  placeFrame(); $('vfPlay').style.display = vstate.kind === 'image' ? 'none' : '';      // the preview is for animations
+  placeFrame(); $('vfPlay').style.display = $('vsPlay').style.display = vstate.kind === 'image' ? 'none' : '';      // the preview is for animations
   $('vsGuide').textContent = guideText();
   drawPreview();
   $('vFactsRow').style.display = !FEATURES.facts || (vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe') ? 'none' : '';      // the facts belong to a single year
@@ -292,7 +295,7 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
   }
   stopPreview();      // switching between image and animation ends a running preview
   vstate.kind = kind; $('vfPlay').style.display = kind === 'image' ? 'none' : '';
-  document.body.classList.add('pane-open'); setLayers(false); if (typeof cancelMeasure === 'function') cancelMeasure(); map.removeLayer(M.group);      // no layer menu (it would open out of sight, behind the pane) and no measurements: neither is part of a download
+  document.body.classList.add('pane-open'); drawOutlines(); setLayers(false); if (typeof cancelMeasure === 'function') cancelMeasure(); map.removeLayer(M.group);      // no layer menu (it would open out of sight, behind the pane) and no measurements: neither is part of a download
   const image = kind === 'image', in3D = viewMode === '3d';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
@@ -357,14 +360,22 @@ export function bringVisualIntoView(stay){            // phones: the visual has 
 export function closeVideo(){
   if (vstate.busy) return; stopPreview();
   let shiftBack = null; if (paneCentred && viewMode !== '3d' && !$('videoSheet').hidden) { const c = frameCentre(), m = map.getSize().divideBy(2); shiftBack = {x: Math.round(c.x - m.x), y: Math.round(c.y - m.y)}; }
-  document.body.classList.remove('pane-open'); M.group.addTo(map);
+  document.body.classList.remove('pane-open'); drawOutlines(); M.group.addTo(map);
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
   if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.setShift) wire.v3d.setShift(0, 0);
   if (paneCentred) { paneCentred = false; if (viewMode !== '3d' && shiftBack) map.panBy([shiftBack.x, shiftBack.y], {animate: false}); }      // back to the middle of the whole stage
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
 }
 $('vkImage').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('video'); };      // switch between the two panes without closing
-$('videoBtn').onclick = () => openVideo('video'); $('imageBtn').onclick = () => openVideo('image'); $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
+swipeToClose($('videoSheet').querySelector('.vs-head'), $('videoSheet'), () => $('vsClose').click(), () => PHONE.matches);      // phones: the pane is a bottom sheet
+/* the pane gives a short bounce when a button opens or switches it, so the visitor notices where it appeared (not with reduced motion) */
+function pumpPane(){
+  const sh = $('videoSheet');
+  if (!sh.animate || matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  const a = PHONE.matches ? 'translateY' : 'translateX';
+  sh.animate([{transform: a + '(0)'}, {transform: a + '(14px)', offset: .3}, {transform: a + '(0)', offset: .55}, {transform: a + '(6px)', offset: .75}, {transform: a + '(0)'}], {duration: 520, easing: 'ease-out'});      // pushes toward its own screen edge and back: no gap opens
+}
+$('videoBtn').onclick = () => { openVideo('video'); pumpPane(); }; $('imageBtn').onclick = () => { openVideo('image'); pumpPane(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', box: 'vfBox' };
 export const setFmt = f => {
   stopPreview();
@@ -383,8 +394,9 @@ $('speedSel').addEventListener('input', () => { syncSpeed('speedSel'); if (!$('v
 syncSpeed('speedSel');
 $('vSafe').onchange = updateFrame;
 $('vMinimal').onchange = updateFrame; $('vEnd').onchange = updateFrame; $('vFacts').onchange = $('vFactSet').onchange = updateFrame;
-export const syncLoops = () => { $('vBounce').disabled = +$('vLoops').value < 2; updateFrame(); };
-$('vLoops').onchange = syncLoops; $('vBounce').onchange = updateFrame; syncLoops();
+const restartPreview = () => { if (vPrev.on) { stopPreview(); startPreview(); } };      // the running preview takes the new order of the years
+export const syncLoops = () => { $('vBounce').disabled = +$('vLoops').value < 2; updateFrame(); restartPreview(); };
+$('vLoops').onchange = syncLoops; $('vBounce').onchange = () => { updateFrame(); restartPreview(); }; syncLoops();
 $('vSwing').onchange = () => { if (viewMode === '3d') wire.update3DInfo(); };
 $('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } updateFrame(); };   // show the 1850 outline on the map as well
 /* The map behind the pane shows what the pane will make: Timelapse, Compare (the slider) or One year (a single image) */
@@ -596,7 +608,7 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
   if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(info.glacier), `${info.years[0]} | ${info.years[1]}`, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), info.hA ?? 1);
   shade(ctx, W, H, S, 300);
   const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
-  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${styleName(info.style, sc[k])}`] : null;
+  const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(k === 1 && info.styleB || info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${styleName(k === 1 && info.styleB || info.style, sc[k])}`] : null;
   const al = Math.min(1, split / (W * 0.25)), ar = Math.min(1, (W - split) / (W * 0.25));      // a year fades when its image is almost hidden
   drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
     yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []});
@@ -710,7 +722,7 @@ export async function frameBases(ys, W, H){
 
   // images of all years (most are cached already), decoded one after the other with createImageBitmap: robust also on phones
   let done = 0;
-  const urls = await Promise.all(ys.map(y => loadImage(g, y).then(url => { progress(0.2 * (++done) / ys.length, `Loading images ${done} of ${ys.length}…`); return url; })));
+  const urls = await Promise.all(ys.map((y, i) => loadImage(g, y, null, undefined, sideStyle(i)).then(url => { progress(0.2 * (++done) / ys.length, `Loading images ${done} of ${ys.length}…`); return url; })));
   const bases = [];
   for (const [i, url] of urls.entries()) {
     const bmp = await createImageBitmap(await (await fetch(url)).blob());
@@ -718,7 +730,7 @@ export async function frameBases(ys, W, H){
     progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
   }
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
-  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(), style: state.style,
+  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(), style: state.style, styleB: sideStyle(1),
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
     site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
   return { g, bases, outline, info };
@@ -964,7 +976,7 @@ export async function offerShare(){            // shown as soon as the download 
   $('vsShareBox').hidden = false;
 }
 export let shareOnly = false;              // the file is made for the gallery only: no download
-export const exportSignature = () => { try { return JSON.stringify([viewMode, state.glacier, state.mode, state.a, state.b, state.from, state.to, state.one, state.latest && state.latest.year, state.style, state.frame, vstate.kind, vstate.type, vstate.fmt, minimalOn(),
+export const exportSignature = () => { try { return JSON.stringify([viewMode, state.glacier, state.mode, state.a, state.b, state.from, state.to, state.one, state.latest && state.latest.year, state.style, state.styleB, state.frame, vstate.kind, vstate.type, vstate.fmt, minimalOn(),
   [...document.querySelectorAll('#videoSheet input, #videoSheet select')].filter(e => !e.closest('#vsShareBox')).map(e => e.type === 'checkbox' ? +e.checked : e.value).join('|'),
   viewMode === '3d' ? [wire.v3d && wire.v3d.getCam(), wire.v3dSplit, wire.v3dCtx && wire.v3dCtx.current && wire.v3dCtx.current()] : [map.getCenter().lat.toFixed(5), map.getCenter().lng.toFixed(5), map.getZoom(), state.split],
   [...document.querySelectorAll('.layerbox input[type=checkbox]')].map(e => +e.checked).join(''), brightness(), outsideAlpha(), imgOpacity(), typeof frameRect === 'function' ? frameRect() : null]); } catch { return String(Math.random()); } };      // what the file shows: a file made earlier is reused only when nothing of this has changed

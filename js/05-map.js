@@ -1,10 +1,12 @@
 import { wire } from './wire.js';
 import { YEARS, $, COARSE } from './01-data.js';
 import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
-import { prefs, savePrefs, isLandsat, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, setLoading, fmtDM, latestBusy } from './03-imagery.js';
+import { prefs, savePrefs, isLandsat, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, sideStyle, setLoading, fmtDM, latestBusy } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, glacierPicked } from './04-state.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'map', { get: () => map, configurable: true });
+Object.defineProperty(wire, 'oldestPair', { get: () => oldestPair, configurable: true });
+Object.defineProperty(wire, 'restoreOldest', { get: () => restoreOldest, configurable: true });
 /* =====================================================================
    5. Map
    ===================================================================== */
@@ -182,6 +184,7 @@ export function updateSight(){
   if (!window.GLACIER_SIGHT && document.getElementById('trailsToggle').checked) { ensureSight().then(() => { updateSight(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } }); return; }      // the file is on its way: the layer is drawn when it arrives
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, d = picked ? sightFor(currentGlacier()) : null, on = document.getElementById('trailsToggle').checked && !!d;
   document.getElementById('sightLegend').hidden = !on;
+  if (!on) { const w = document.getElementById('trailsWhy'); w.hidden = true; const b = document.querySelector('#sightLegend .lb-i'); if (b) b.setAttribute('aria-expanded', 'false'); }      // the explanation goes with the band
   if (on) sightLayer = L.layerGroup([['#fff', 12, .85], ['#7B2CFF', 7, .9]].flatMap(([color, weight, opacity]) => d.lines.map(l => L.polyline(l, {pane: 'sightPane', color, weight, opacity, lineCap: 'round', lineJoin: 'round', interactive: false})))).addTo(map);      // all the white edges first, then the violet cores
 }
 export let trailClipKey = '';
@@ -245,7 +248,7 @@ export function aerialWanted(){          // slot -> year
   return document.getElementById('aerialToggle').checked ? aerialSlots() : {};
 }
 export function aerialSlots(){          // slot -> year, whether the layer is on or not
-  if (state.mode === 'compare') return state.oldestAerial ? {A: state.oldestAerial} : {A: state.a, B: state.b};
+  if (state.mode === 'compare') return state.oldestAerial ? {[state.oldestSide === 'b' ? 'B' : 'A']: state.oldestAerial} : {A: state.a, B: state.b};
   if (state.mode === 'single') return {T: state.oldestAerial || state.one};
   const f = tlFrames(); return {T: f.length ? f[f.length - 1] : state.to};      // timelapse: the newest year of the range
 }
@@ -300,9 +303,10 @@ function ensureOldestLive(g){
       oldestAerial.set(g.id, {ed: +first.bgdi_flugjahr, flown: +first.flightyear});
     }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine()); });
 }
-export function showOldest(){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being
+export function showOldest(side = state.oldestSide){            // the oldest aerial image alone on the map (and as the picture of the 3D view): the Sentinel-2 picture goes off for the time being; in the slider it is the picture of the chosen side ('a' left/top, 'b' right/bottom)
   const o = oldestAerial.get(state.glacier); if (!o) return;
-  restoreLatest();
+  if (state.mode !== 'compare' || state.latestSide === side) restoreLatest();      // in the slider the latest scene stays on the other side
+  state.oldestSide = side;
   if (!state.oldestAerial) state.oldestSaved = {sat: $('satToggle').checked, aerial: $('aerialToggle').checked};
   state.oldestAerial = o.ed; state.oldestMode = state.mode;
   if (state.mode === 'compare') { $('aerialToggle').checked = true; $('aerialToggle').dispatchEvent(new Event('change')); wire.refreshAll(); wire.setStatus(wire.statusLine()); return; }      // the slider keeps the Sentinel-2 picture for its other side
@@ -343,7 +347,8 @@ export function updateAerial(){
 }
 export const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
-export const oldestPair = () => !!state.oldestAerial && state.mode === 'compare';      // the slider with the oldest aerial image as its first picture and a Sentinel-2 year as the other
+export const oldestPair = () => !!state.oldestAerial && state.mode === 'compare';      // the slider with the oldest aerial image as one picture (state.oldestSide) and a Sentinel-2 year as the other
+export const oldestOn = side => oldestPair() && state.oldestSide === side;
 export const satShown = () => glacierPicked && satOn() && !oldestPair();
 export const SAT_MSG = 'Pick a glacier or turn on the Sentinel-2 image layer in the layer menu.';
 export const OLDEST_MSG = 'The oldest aerial image has no Sentinel-2 picture, so this is not available. Pick a year to go back to the satellite pictures.';
@@ -361,15 +366,15 @@ export function applySatVisibility(){          // the Sentinel-2 pictures can be
   wire.syncSatUi(); wire.updateTags(); if (tlLayers.length) showFrame(state.frame);
   if (!satShown() && !document.getElementById('videoSheet').hidden) wire.closeVideo();      // a download pane needs the picture
 }
-export function imageryLayer(yr, pane, opacity=1){
+export function imageryLayer(yr, pane, opacity=1, style){
   const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className: 'scene-img'});
   ov._g = g;
   const fail = e => { wire.setStatus(e.message); wire.showNotice(e.message); };
   const load = () => {
-    const fine = () => loadImage(g, yr).then(url => wire.showImage(ov, url)).catch(fail);
+    const fine = () => loadImage(g, yr, null, undefined, style).then(url => wire.showImage(ov, url)).catch(fail);
     if (!(g.cap && capLevel() === 1)) return fine();
     ov._loadFine = fine;      // a cap's picture is big: a small copy (40 m) shows first; the 10 m one replaces it at once if the map is zoomed in, else when it is (capCheckFine)
-    loadImage(g, yr, null, 0.25).then(url => { if (!ov._orig) wire.showImage(ov, url); if (capWantsFine()) fine(); else { capWaiting.add(ov); setLoading(); } }).catch(() => fine());
+    loadImage(g, yr, null, 0.25, style).then(url => { if (!ov._orig) wire.showImage(ov, url); if (capWantsFine()) fine(); else { capWaiting.add(ov); setLoading(); } }).catch(() => fine());
   };
   if (viewMode === '3d') deferredLoads.push([ov, load]); else load();      // the map is not on show in the 3D view: its pictures wait (that view asks for its own, much smaller ones)
   return ov;
@@ -383,9 +388,9 @@ export function setCompareLayers(){
   [layerA, layerB].forEach(l => l && map.removeLayer(l));
   layerA = layerB = null;
   if (!glacierPicked) return;      // the start shows only the background, no glacier picture yet
-  if (state.mode !== 'compare' || !state.available[state.b] || (!oldestPair() && !state.available[state.a])) return;
-  if (!oldestPair()) layerA = imageryLayer(state.a, 'paneA').addTo(map);      // no Sentinel-2 picture on that side with the oldest aerial image
-  layerB = imageryLayer(state.b, 'paneB').addTo(map);
+  if (state.mode !== 'compare' || (!oldestOn('b') && !state.available[state.b]) || (!oldestOn('a') && !state.available[state.a])) return;
+  if (!oldestOn('a')) layerA = imageryLayer(state.a, 'paneA').addTo(map);      // no Sentinel-2 picture on the side with the oldest aerial image
+  if (!oldestOn('b')) layerB = imageryLayer(state.b, 'paneB', 1, sideStyle(1)).addTo(map);      // the second picture may have its own colour composition
   clip(); updateCredits();
 }
 /* The slider: split is 0..1 of the map width (vertical divider) or height (horizontal divider). The horizontal one keeps
@@ -456,7 +461,7 @@ export function buildTimelapse(){
   showFrame(state.frame);
 }
 /* the line under a year on the map: the date, then what the picture is, on one row; it only breaks between the two parts */
-export function tagLine(el, first, sc){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(state.style, sc)}</span>`; }
+export function tagLine(el, first, sc, style = state.style){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(style, sc)}</span>`; }
 export function showFrame(i){
   if (!tlLayers.length) { wire.setTag('tagT', '–'); return; }
   state.frame = i;
@@ -505,7 +510,7 @@ export function syncFullPlay(){          // the round play / pause button of the
   syncDock();
   document.querySelectorAll('.tl-play').forEach(b => { b.innerHTML = state.playing ? FULL_ICONS.pause : FULL_ICONS.play; b.setAttribute('aria-label', state.playing ? 'Pause' : 'Play'); });
 }
-export function play(){
+export function play(seq = null){            // seq: the frames in the order to show them (a preview of loops and going back in time); without it the years run 0..n-1
   if (tlLayers.length < 2) return;
   state.playing = true; document.getElementById('playBtn').innerHTML = PAUSE_ICON; syncFullPlay();
   const begun = Date.now();
@@ -527,12 +532,17 @@ export function play(){
     go();
   };
   const go = () => {
-  if (state.frame >= tlLayers.length - 1) showFrame(0);
+  let pos = 0;
+  if (seq) showFrame(seq[0]); else if (state.frame >= tlLayers.length - 1) showFrame(0);
   const tick = () => {
-    let next = state.frame + 1;
-    if (next >= tlLayers.length) {
-      if (!document.getElementById('loopToggle').checked) return stopPlay();
-      next = 0;
+    let next;
+    if (seq) { if (++pos >= seq.length) pos = 0; next = seq[pos]; }
+    else {
+      next = state.frame + 1;
+      if (next >= tlLayers.length) {
+        if (!document.getElementById('loopToggle').checked) return stopPlay();
+        next = 0;
+      }
     }
     showFrame(next);
     state.timer = setTimeout(tick, speedMs());
@@ -620,7 +630,7 @@ export function drawOutlines(){
   if (g.rgi) {      // a glacier of an ice-cap region: the outlines of the region's institute (lines, cut to the glacier's region)
     const O = REGION.outlines, line = (geom, color, dash, title) => glowLines(geom, color).bindPopup(`<strong>${title}</strong>`);
     if (document.getElementById('oldToggle').checked && hasOldOutline(g)) outlineLayers.old = line(oldOutlineGeom(g), getVar('--old'), '7 6', `${g.name}, outline ${g.outlines.lia.label}`).addTo(map);
-    if (document.getElementById('newToggle').checked && newOutlineGeom(g)) outlineLayers.new = line(newOutlineGeom(g), getVar('--new'), null, `${g.name}, outline ${g.outlines.latest.label}`).addTo(map);
+    if (document.getElementById('newToggle').checked && newOutlineGeom(g) && !document.body.classList.contains('pane-open')) outlineLayers.new = line(newOutlineGeom(g), getVar('--new'), null, `${g.name}, outline ${g.outlines.latest.label}`).addTo(map);
     return updateCredits();
   }
   if (!g.inv) {
@@ -633,7 +643,7 @@ export function drawOutlines(){
   const mk = (geom, color, dash, title, invArea) => glowLines(geom, color).bindPopup(`<strong>${title}</strong><br>Inventory area: ${invArea.toFixed(2)} km²<br>Area on this map: ${(multiArea(geom)/1e6).toFixed(2)} km²`);
   if (document.getElementById('oldToggle').checked && g.inv.oldest)
     outlineLayers.old = mk(g.inv.oldest.outline, getVar('--old'), '7 6', `${g.name}, ${DATA.oldest_label}`, g.inv.oldest.area_km2).addTo(map);
-  if (document.getElementById('newToggle').checked)
+  if (document.getElementById('newToggle').checked && !document.body.classList.contains('pane-open'))      // a download prints only the oldest outline (if ticked), not the newest
     outlineLayers.new = mk(g.inv.outline, getVar('--new'), null, `${g.name}, ${DATA.latest_label}${g.inv.year ? ' ('+g.inv.year+')' : ''}`, g.inv.area_km2).addTo(map);
   updateCredits();
 }
@@ -713,7 +723,7 @@ export async function drawRadar(){
   const gen = ++radarGen, on = document.getElementById('radarToggle').checked, legend = document.getElementById('radarLegend'), note = document.getElementById('radarNote');
   if (radarLayer) { map.removeLayer(radarLayer); radarLayer = null; }
   legend.hidden = !on;
-  if (!on) return updateCredits();
+  if (!on || document.body.classList.contains('pane-open')) return updateCredits();      // the radar dots are not part of a download: not in its preview either
   const g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier();
   const R = g && g.inv && g.inv.radar;
   note.textContent = !g ? 'Choose a glacier to see its radar profiles.' : R ? `Surveys between ${R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join(' and ')) : '?'}; click a dot for its year. The ice has thinned since.` : 'No radar measurements for this glacier in the GLAMOS data.';
@@ -914,7 +924,7 @@ export function startMeasure(mode){
 export function updateMeasureText(cursor){
   const pts = cursor ? [...M.pts, cursor] : M.pts, el = document.getElementById('measureText');
   const phone = COARSE, tap = phone ? 'Tap' : 'Click';          // on phones the hint stays short: it sits on the picture
-  if (M.mode === 'sect') el.textContent = pts.length ? `${tap} the other side of the glacier.` : `${tap} the map on one side of the glacier, then on the other.`;
+  if (M.mode === 'sect') el.textContent = pts.length ? `Cross-section, step 2 of 2: ${tap.toLowerCase()} the other side of the glacier.` : `Cross-section, step 1 of 2: ${tap.toLowerCase()} the map on one side of the glacier.`;
   else if (!pts.length) el.textContent = M.mode === 'dist' ? `${tap} the map to start a line.` : `${tap} the map to start an area.`;
   else if (M.mode === 'dist') el.textContent = `Length ${fmtLen(pathLen(pts))}.${phone ? '' : ' Double-click or press Finish.'}`;
   else el.textContent = pts.length < 3 ? (phone ? 'Add 3 points.' : 'Add at least three points.') : `Area ${fmtArea(geodesicArea(ringOf(pts)))}.${phone ? '' : ' Double-click or press Finish.'}`;

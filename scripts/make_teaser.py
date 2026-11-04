@@ -358,9 +358,9 @@ def take_notes(T):
     T.go()
     p.evaluate("() => D.cap('', 'Know how it is made', 'Scientific field notes', 'What is measured, what is modelled and how it was checked.', {cb: 40, cr: 24, cw: 290})")
     T.sleep(0.6)
-    m.click("#v3dSci", 900)
+    m.click(".notes-btn", 900)
     T.sleep(0.4)
-    p.goto(f"{BASE}/provenance.html?id=B36-26&", wait_until="load")      # the pill is a link to the field notes of the glacier
+    p.goto(f"{BASE}/provenance.html?id=B36-26&", wait_until="load")      # the button in the right panel is a link to the field notes of the glacier
     p.wait_for_timeout(900)
     p.evaluate("() => window.scrollTo({top: 0})")
     for y in (700, 1500, 2400):      # a slow scroll past the figures

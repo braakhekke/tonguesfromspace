@@ -382,7 +382,7 @@ export function restoreLatest(){            // back to the normal scene of that 
   if (ys.length) ['a', 'b', 'one'].forEach(k => { if (!wire.state.available[wire.state[k]]) wire.state[k] = ys[ys.length - 1]; });
 }
 export let latestBusy = false;
-export async function showLatest(){
+export async function showLatest(side = 'b'){      // side: in the slider, which picture gets the latest scene ('a' left/top, 'b' right/bottom)
   if (latestBusy || !wire.state.checked) return;
   const g = wire.currentGlacier(), gen = wire.checkGen; latestBusy = true;
   wire.setStatus('Looking for the latest clear-ish scene…'); wire.renderYears();
@@ -397,9 +397,11 @@ export async function showLatest(){
   }
   restoreLatest();
   const year = +sc.date.slice(0, 4);
+  if (wire.state.mode === 'compare' && wire.oldestPair() && wire.state.oldestSide === side) wire.restoreOldest();      // one picture per side: the latest scene takes the place of the oldest aerial image
   wire.state.latest = {year, saved: wire.state.available[year] || null};
   wire.state.available[year] = sc; wire.state.frame = 0;
-  if (wire.state.mode === 'compare') wire.state.b = year; else { wire.state.one = year; wire.state.mode = 'single'; }      // in the slider the latest scene is the right side
+  if (wire.state.mode === 'compare') { const other = side === 'a' ? 'b' : 'a'; wire.state.latestSide = side; wire.state[side] = year;
+    if (wire.state[other] === year) { const ys = YEARS.filter(y => y !== year && wire.state.available[y]); if (ys.length) wire.state[other] = other === 'a' ? ys[0] : ys[ys.length - 1]; } } else { wire.state.one = year; wire.state.mode = 'single'; }      // in the slider the latest scene is the chosen side
   wire.setStatus(wire.statusLine()); wire.refreshAll();
 }
 
@@ -407,7 +409,8 @@ export async function showLatest(){
 export let pending = 0, pendingLs = 0, active = 0; const queue = [];      // pictures on their way: from Copernicus, and Landsat files of this site
 export const runQueue = () => { while (active < 3 && queue.length) { active++; const job = queue.shift(); job().finally(() => { active--; runQueue(); }); } };
 export const queued = fn => new Promise((res, rej) => { queue.push(() => fn().then(res, rej)); runQueue(); });
-export const imageKey = (g, yr, fp, strip, level) => { const sc = wire.state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${wire.state.style}|${g.id}|${sc.date}|${sc.id}${sc.fill ? '|' + sc.fill.date : ''}` : `${CDSE.version}|img|${(STYLE_BANDS[wire.state.style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}${level && level !== 1 ? '|L' + level : ''}`; };      // a Landsat picture is one file whatever the colour style or the strip
+export const sideStyle = side => side === 1 && wire.state.mode === 'compare' && wire.state.styleB ? wire.state.styleB : wire.state.style;      // the colour composition of a side of the slider: the second picture (right or bottom) may have its own, else both share one
+export const imageKey = (g, yr, fp, strip, level, style = wire.state.style) => { const sc = wire.state.available[yr]; return isLandsat(sc) ? `${CDSE.version}|img|landsat|${style}|${g.id}|${sc.date}|${sc.id}${sc.fill ? '|' + sc.fill.date : ''}` : `${CDSE.version}|img|${(STYLE_BANDS[style] || []).join('')}|${g.id}${strip ? '-strip' : ''}|${sc.date}${sc.orbit ? '|' + sc.orbit : ''}|${fp.bbox.join(',')}${level && level !== 1 ? '|L' + level : ''}`; };      // a Landsat picture is one file whatever the colour style or the strip
 export async function imagesToFetch(g, years){      // how many of these years' pictures are not stored on this device yet (an ice cap's tiled picture always counts)
   const fp = imageFootprint(g), has = await Promise.all(years.map(yr => { const sc = wire.state.available[yr]; return sc && (isLandsat(sc) || !fp.tiles) ? idb.has(imageKey(g, yr, fp, false)) : false; }));
   return has.filter(h => !h).length;
@@ -420,8 +423,8 @@ export const smallDevice = () => matchMedia('(pointer: coarse)').matches || inne
 export const capLevel = () => wire.state.mode === 'timelapse' || smallDevice() ? 0.5 : 1;
 /* The picture of a whole ice cap: its tiles (g.cap.tiles, each at most 2,490 px, the same requests for every visitor so the relay's cache serves them) are asked for one by one at the
    same scene and drawn side by side into one picture, so the rest of the page sees one image per year as everywhere else. */
-export function loadCapImage(g, yr, fp, level){
-  const sc = wire.state.available[yr], style = wire.state.style, key = imageKey(g, yr, fp, false, level);
+export function loadCapImage(g, yr, fp, level, style = wire.state.style){
+  const sc = wire.state.available[yr], key = imageKey(g, yr, fp, false, level, style);
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);
@@ -463,11 +466,11 @@ export function capCheckFine(){          // after a zoom: the layers that were w
   }
   if (changed) setLoading();
 }
-export function loadImage(g, yr, strip, level){            // strip: {bbox, w, h} of a strip picture for the 3D view (stripImageSpec); without it the picture of the whole glacier area, as the map shows it; level: a cap's share of the full resolution
-  const sc = wire.state.available[yr], style = wire.state.style, fp = isLandsat(sc) ? imageFootprint(g) : strip || imageFootprint(g);      // Landsat: always the whole picture box, drawn in the same Mercator box as the Sentinel-2 pictures
+export function loadImage(g, yr, strip, level, style = wire.state.style){            // strip: {bbox, w, h} of a strip picture for the 3D view (stripImageSpec); without it the picture of the whole glacier area, as the map shows it; level: a cap's share of the full resolution
+  const sc = wire.state.available[yr], fp = isLandsat(sc) ? imageFootprint(g) : strip || imageFootprint(g);      // Landsat: always the whole picture box, drawn in the same Mercator box as the Sentinel-2 pictures
   strip = isLandsat(sc) ? null : strip;
-  if (fp.tiles && !strip && !isLandsat(sc)) return loadCapImage(g, yr, fp, level || capLevel());
-  const key = imageKey(g, yr, fp, !!strip);
+  if (fp.tiles && !strip && !isLandsat(sc)) return loadCapImage(g, yr, fp, level || capLevel(), style);
+  const key = imageKey(g, yr, fp, !!strip, undefined, style);
   if (memCache.has(key)) return memCache.get(key);
   const p = (async () => {
     const hit = await idb.get(key);

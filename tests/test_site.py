@@ -280,8 +280,8 @@ class TestRegions(SiteCase):
         page.wait_for_function("state.checked", timeout=30000)
         self.assertEqual(page.evaluate("YEARS[0]"), 2016, "off at first: the years start with Sentinel-2")
         self.assertEqual(page.evaluate("document.getElementById('landsatToggle').checked"), False)
-        self.assertIn("30 m", page.evaluate("document.getElementById('landsatRow').innerText"))
-        page.click("#landsatToggle")
+        self.assertIn("30 m", page.evaluate("document.querySelector('#lsOne .landsat-chip').title"))
+        page.click("#lsOne .landsat-chip")
         page.wait_for_function("okYears().includes(1990)", timeout=10000)
         self.assertEqual(page.evaluate("YEARS[0]"), 1984)
         sc = page.evaluate("state.available[1990]")
@@ -293,9 +293,21 @@ class TestRegions(SiteCase):
         self.assertIn("U.S. Geological Survey", page.evaluate("document.getElementById('credits').innerText"))
         page.click("#modeCompare")      # the switch stays on across modes
         self.assertEqual(page.evaluate("YEARS[0]"), 1984)
-        page.click("#landsatToggle")
+        page.click("#lsA .landsat-chip")
         self.assertEqual(page.evaluate("[YEARS[0], okYears().filter(y => y < 2016).length, state.one >= 2016 || state.one == null]"), [2016, 0, True])
         self.assertClean()
+
+    def test_specials_in_3d_oldest_is_greyed_with_a_tip_and_latest_stays(self):      # 3D One year and Slider: Oldest is map only (tip says so), Latest goes along into 3D
+        page = self.open("#r=is&g=breidamerkurjokull&m=single&one=1990&v=map")
+        page.wait_for_function("oldestAerial.get('breidamerkurjokull') !== undefined", timeout=15000)
+        chips = "() => [...document.querySelectorAll('#yearsSpecial button')].map(b => [b.textContent, b.classList.contains('is-na'), b.title.startsWith('Not available in 3D'), b.disabled])"
+        self.assertEqual(page.evaluate(chips)[0][1:], [False, False, False])      # the map: Oldest works
+        page.evaluate("() => { setViewMode('3d'); document.getElementById('app').classList.add('is-3d'); specialChips(); }")
+        oldest, latest = page.evaluate(chips)
+        self.assertEqual(oldest, ["Oldest", True, True, False])      # greyed, tip, still hoverable (not disabled)
+        self.assertFalse(latest[1] or latest[2])
+        self.assertTrue(page.is_visible("#yearsSpecial"), "the Specials row is shown in 3D")
+        page.evaluate("() => { setViewMode('map'); document.getElementById('app').classList.remove('is-3d'); specialChips(); }")
 
     def test_vatnajokull_has_oldest_and_latest(self):      # Oldest: the historic aerial mosaic of 1980/82 (one file), Latest: the newest scene of the last weeks
         page = self.open("#r=is&g=breidamerkurjokull&m=single&one=1990&v=map")      # a year before Sentinel-2 in the link switches the Landsat pictures on, which need no relay (the tests have none)
@@ -444,6 +456,35 @@ class TestFunctions(SiteCase):
         self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); set('aerialToggle', true)"), ["osmToggle", "aerialToggle"])
         self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); state.oldestAerial = 2017"), ["aerialToggle"])
         self.assertIn("swissimage-product/default/2023/", self.page.evaluate("V3D_BASES.aerialToggle.url(15, 1, 2, 2023)"))
+
+    def test_then_and_now_row_stays_in_the_3d_menu_in_timelapse_and_slider_and_says_why(self):      # old photographs are for One year: the row is greyed (not removed), with the reason and a way to One year
+        js = """mode => { $('l3PhotosRow').hidden = false; state.mode = mode; syncPhotosRow();
+          return {off: $('l3Photos').disabled, grey: $('l3PhotosRow').classList.contains('is-unavail'), note: !$('l3PhotosNote').hidden, why: $('l3PhotosWhy').textContent}; }"""
+        one = self.page.evaluate(js, "single")
+        self.assertEqual((one["off"], one["grey"], one["note"]), (False, False, False))
+        for mode, word in (("timelapse", "Timelapse"), ("compare", "Slider")):
+            r = self.page.evaluate(js, mode)
+            self.assertEqual((r["off"], r["grey"], r["note"]), (True, True, True), mode)
+            self.assertIn(word, r["why"])
+        self.page.evaluate("() => { $('l3PhotosRow').hidden = true; syncPhotosRow(); }")      # a glacier without photographs: no row, no note
+        self.assertFalse(self.page.evaluate("() => !$('l3PhotosNote').hidden"))
+        self.page.evaluate("() => { state.mode = 'timelapse'; $('l3PhotosGo').click(); }")      # the link goes to One year
+        self.assertEqual(self.page.evaluate("state.mode"), "single")
+
+    def test_cross_section_in_the_slider_has_the_two_surfaces_and_its_button(self):      # the slider's two years: the first is the cut, the second a line (before: the section knew one surface and hid the button)
+        r = self.page.evaluate("""() => {
+          const S = {half: 100, up: 100, back: 100}, mk = cmp => ({cmp, years: [], usesDem: true, S, grid: {nA: 1, nB: 1}, elevFirst: 2016, current: () => cmp ? null : 2020, surface: y => new Float32Array(4).fill(y - 2000)});
+          $('v3dCutYears').click();      // the surfaces of the other year(s) on
+          const A = [0, 0], surf = [[0, 17], [50, 17], [100, 17]];
+          const sl = mk([2017, 2023]), one = mk(null);
+          return {year: sectSurfYear(sl), early: sectEarly(sl), others: sectOthers(sl, A, 1, 0, surf).map(o => [o.y, o.d[0]]), oneYear: sectOthers(one, A, 1, 0, surf).map(o => o.y).slice(0, 3)};
+        }""")
+        self.assertEqual((r["year"], r["early"], r["others"]), (2017, False, [[2023, 6]]))
+        self.assertTrue(len(r["oneYear"]) > 0, "one year still lists the other years")
+        self.assertNotIn(2020, r["oneYear"])
+
+    def test_preview_has_a_cross_beside_the_play_button(self):
+        self.assertEqual(self.page.evaluate("[!!$('vfClose'), $('vfClose').parentElement === $('vfPlay').parentElement]"), [True, True])
 
     def test_scene_choice_prefers_september_then_august_then_cloudy(self):
         day = lambda d, cloud, snow=0: {"date": d, "orbit": "R108", "cloud": cloud, "snow": snow}
@@ -674,8 +715,8 @@ class TestIcecapImagery(SiteCase):
         page.evaluate("landsatFiles.clear(); updateLandsatRow()")
         page.wait_for_function("document.getElementById('landsatToggle').disabled", timeout=10000)
         self.assertIn("none found", page.evaluate("document.getElementById('landsatText').textContent"))
-        self.assertNotEqual(page.evaluate("getComputedStyle(document.getElementById('landsatRow')).display"), "none")
-        self.assertEqual(page.evaluate("getComputedStyle(document.querySelector('#landsatRow .landsat-note')).display"), "none", "no note on 30 m pixels when there are no Landsat pictures")
+        self.assertTrue(page.evaluate("document.querySelector('.landsat-chip').disabled"), "the chip is greyed out")
+        self.assertTrue(page.evaluate("document.getElementById('landsatInfo').hidden"), "no note on 30 m pixels when there are no Landsat pictures")
         self.assertClean()
 
     def test_a_timelapse_and_small_screens_get_half_the_resolution(self):

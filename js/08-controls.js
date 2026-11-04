@@ -5,7 +5,7 @@ import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, rest
 import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
 import { updateNames, map, updateCredits, osm, topo, updateMapYears, swisstopoMapsFile, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
 import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
-import { focusSub, syncPane, outlineGeom, maxLinkText, speedLinkText, refreshAll } from './07-render.js';
+import { focusSub, syncPane, outlineGeom, maxLinkText, speedLinkText, refreshAll, renderYears } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'setStatus', { get: () => setStatus, configurable: true });
 Object.defineProperty(wire, 'showNotice', { get: () => showNotice, configurable: true });
@@ -17,7 +17,7 @@ Object.defineProperty(wire, 'updateLandsatRow', { get: () => updateLandsatRow, c
 export function setOrient(o){
   prefs.orient = o; savePrefs();
   document.getElementById('orientV').setAttribute('aria-pressed', o !== 'h'); document.getElementById('orientH').setAttribute('aria-pressed', o === 'h');
-  document.getElementById('labelA').textContent = o === 'h' ? 'Top' : 'Left'; document.getElementById('labelB').textContent = o === 'h' ? 'Bottom' : 'Right';
+  document.getElementById('labelA').textContent = o === 'h' ? 'Top image' : 'Left image'; document.getElementById('labelB').textContent = o === 'h' ? 'Bottom image' : 'Right image';
   document.getElementById('yearsA').setAttribute('aria-label', o === 'h' ? 'Year for top image' : 'Year for left image');
   document.getElementById('yearsB').setAttribute('aria-label', o === 'h' ? 'Year for bottom image' : 'Year for right image');
   state.split = .5;
@@ -181,6 +181,39 @@ document.getElementById('lbToggle').onclick = () => {
   const min = lb.classList.toggle('min'); prefs.lbMin = min; savePrefs();
   document.getElementById('lbToggle').setAttribute('aria-expanded', !min);
 };
+/* Restore defaults: the saved settings of every glacier are dropped and the page opens again on this glacier in the same view (map or 3D) with one year and natural colour */
+document.getElementById('resetBtn').onclick = () => {
+  try { localStorage.removeItem('glacierPrefs'); } catch {}
+  const region = REGION.id === 'ch' || PATH_REGION ? '' : `r=${REGION.id}&`;
+  location.hash = `#${region}g=${state.glacier}&m=single&s=natural${viewMode === '3d' ? '&v=3d' : ''}`;
+  location.reload();
+};
+/* The "i" next to a layer opens its short explanation under it (the click does not switch the layer) */
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.lb-i'); if (!b) return; e.preventDefault(); e.stopPropagation(); const w = document.getElementById(b.dataset.why); w.hidden = !w.hidden; b.setAttribute('aria-expanded', !w.hidden); }, true);      // delegated: the legend of a region without swisstopo is built by applyRegionUi
+/* How many layers are on: a small count in the Layers header of each menu, and on the Layers buttons of the phone bars (they open the menu of the view on show). Counted from the switches
+   that are on screen (not hidden by the region, the glacier or the mode); read again after every change and twice a second, because the pages set switches without an event too. */
+{
+  const badges = [...document.querySelectorAll('.lb-count')], app = document.getElementById('app');
+  const shown = el => { const l = el.closest('label') || el; return !el.disabled && !l.closest('[hidden]') && getComputedStyle(l).display !== 'none'; };
+  const countOf = id => [...document.querySelectorAll(`#${id} .lb-body input[type=checkbox]`)].filter(el => el.checked && shown(el)).length;
+  const update = () => {
+    const in3d = app.classList.contains('is-3d'), cache = {};
+    badges.forEach(b => {
+      const id = b.classList.contains('on-btn') && b.closest('#layersBtn') ? (in3d ? 'v3dLayers' : 'layerbox') : b.dataset.menu, n = cache[id] ?? (cache[id] = countOf(id));
+      const txt = n ? String(n) : ''; if (b.textContent !== txt) { b.textContent = txt; b.hidden = !n; b.title = `${n} layer${n === 1 ? '' : 's'} on`; b.setAttribute('aria-label', b.title); }
+    });
+  };
+  document.addEventListener('change', e => { if (e.target.closest && e.target.closest('.layerbox')) update(); }); setInterval(update, 500); update();
+}
+/* First visit: the Layers button pulses and a small note says what is inside. "Got it" or opening the menu ends it; it is not shown again (this browser only). */
+(() => {
+  try { if (localStorage.getItem('tsf-layers-tip') === '1') return; } catch (e) {}
+  const tip = document.createElement('div'); tip.className = 'lb-tip'; tip.setAttribute('role', 'status');
+  tip.innerHTML = '<b>More on the map</b>Hiking trails, older aerial photos, outlines and more are under \u201cLayers\u201d.<button type="button">Got it</button>';
+  lb.appendChild(tip); lb.classList.add('nudge');
+  const done = () => { lb.classList.remove('nudge'); tip.remove(); try { localStorage.setItem('tsf-layers-tip', '1'); } catch (e) {} };
+  tip.querySelector('button').onclick = done; document.getElementById('lbToggle').addEventListener('click', done, {once: true});
+})();
 document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;      // Sentinel-2 background on at the start (switch off to see the tongue in space)
 /* the three base maps replace each other: switching one on switches the others off */
 export const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'oldMapToggle', 'altiToggle'];
@@ -256,9 +289,9 @@ export function applyRegionUi(){
   if (!FEATURES.oldest && !FEATURES.latest) document.querySelectorAll('.spec-row').forEach(e => { e.style.display = 'none'; });
   if (!FEATURES.glamos) document.querySelectorAll('label[for="outside"]').forEach(e => { e.style.display = 'none'; });
   if (!FEATURES.swisstopo && FEATURES.trails) {      // the legend of the paths: footpaths and tracks, and the stretches from where the ice front is in view
-    const sight = id => `<span id="${id}" hidden title="Where the line of sight from eye height 1.7 m to the ice front is free (trees and buildings not counted)"><i class="sight-sw"></i>Ice front in view (1.7 m)</span>`;
-    document.getElementById('trailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('sightLegend')}`;
-    document.getElementById('l3TrailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('l3SightLegend')}`;
+    const sight = (id, why) => `<span id="${id}" hidden title="Where the ice front can be seen from the path (trees and buildings not counted)"><i class="sight-sw"></i>Ice front in view<button type="button" class="lb-i" data-why="${why}" aria-expanded="false" aria-label="About the ice-front-in-view band">i</button></span>`;
+    document.getElementById('trailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('sightLegend', 'trailsWhy')}`;
+    document.getElementById('l3TrailLegend').innerHTML = `<span><i style="--c:#FDC200"></i>Footpath</span><span><i style="--c:#FF0000"></i>Track</span>${sight('l3SightLegend', 'l3TrailsWhy')}`;
     document.querySelectorAll('#trailsToggle, #l3Trails').forEach(el => { const lab = el.closest('label'); lab.title = 'Footpaths and tracks (OpenStreetMap)'; lab.lastElementChild.lastChild.textContent = 'Footpaths and tracks'; });
   }
   if (!FEATURES.glamos) {      // the download panes: no tongue tip, no 1850 outline, no glacier facts and no fact card (their figures are GLAMOS's)
@@ -323,7 +356,7 @@ export async function setLandsat(on){
 export const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
 document.getElementById('landsatI').onclick = e => { e.preventDefault(); const p = document.getElementById('landsatInfo'); p.hidden = !p.hidden; e.currentTarget.setAttribute('aria-expanded', !p.hidden); };
 { const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');
-  if (REGION.landsat) { row.dataset.title = row.title; row.style.display = ''; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); updateLandsatRow(); } }
+  if (REGION.landsat) { row.dataset.title = row.title; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); updateLandsatRow(); } }
 /* The text of the Landsat switch; for a glacier whose picture is so small that 30 m pixels make it blurry (under 400 Landsat pixels across, a picture box under 12 km) it says "not recommended" */
 export async function updateLandsatRow(){
   const t = document.getElementById('landsatText'), row = document.getElementById('landsatRow'); if (!t || !REGION.landsat) return;
@@ -340,4 +373,5 @@ export async function updateLandsatRow(){
   const box = document.getElementById('landsatToggle'), none = !years.length && !box.checked;      // a glacier without Landsat pictures: the switch stays, greyed out and off (if it is on, it can still be switched off)
   box.disabled = none; row.style.opacity = none ? '.5' : ''; row.style.cursor = none ? 'default' : '';
   document.getElementById('landsatI').style.display = none ? 'none' : ''; if (none) document.getElementById('landsatInfo').hidden = true;      // the note on 30 m pixels is about pictures that are not there
+  renderYears();      // the "+ Landsat" chip at the front of the year rows follows the same state
 }

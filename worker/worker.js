@@ -91,6 +91,7 @@ export default {
     if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors);
     if (url.pathname.startsWith('/ask/')) return ask(request, env, url, cors);
     if (url.pathname.startsWith('/data/landsat/')) return landsat(request, env, url);
+    if (url.pathname.startsWith('/data/home-bg/')) return homeBackground(request, env, url);
     if (url.pathname.endsWith('.mp4')) return videoFile(request, env);
 
     const route = { '/cdse/statistics': 'statistics', '/cdse/process': 'process' }[url.pathname];
@@ -165,6 +166,18 @@ async function landsat(request, env, url) {
   const obj = request.method === 'HEAD' ? await env.LANDSAT.head(key) : await env.LANDSAT.get(key);
   if (!obj) return new Response('Not found', { status: 404 });
   const h = new Headers({ 'Content-Type': key.endsWith('.json') ? 'application/json' : 'image/jpeg', 'ETag': obj.httpEtag, 'Cache-Control': 'public, max-age=86400' });
+  if (request.headers.get('If-None-Match') === obj.httpEtag) return new Response(null, { status: 304, headers: h });
+  return new Response(request.method === 'HEAD' ? null : obj.body, { headers: h });
+}
+
+/* ---------- Front page background (R2 bucket LANDSAT, data/home-bg/{z}/{x}/{y}.webp: Sentinel-2 summer mosaic tiles, scripts/build_home_background.py) ---------- */
+async function homeBackground(request, env, url) {
+  if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Use GET', { status: 405 });
+  const key = decodeURIComponent(url.pathname.slice(1));
+  if (!env.LANDSAT || !/^data\/home-bg\/\d{1,2}\/\d+\/\d+\.webp$/.test(key)) return new Response('Not found', { status: 404 });
+  const obj = request.method === 'HEAD' ? await env.LANDSAT.head(key) : await env.LANDSAT.get(key);
+  if (!obj) return new Response('Not found', { status: 404, headers: { 'Cache-Control': 'public, max-age=3600' } });
+  const h = new Headers({ 'Content-Type': 'image/webp', 'ETag': obj.httpEtag, 'Cache-Control': 'public, max-age=86400' });
   if (request.headers.get('If-None-Match') === obj.httpEtag) return new Response(null, { status: 304, headers: h });
   return new Response(request.method === 'HEAD' ? null : obj.body, { headers: h });
 }

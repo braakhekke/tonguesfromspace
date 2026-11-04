@@ -1,4 +1,4 @@
-// Test and debugging hook: when window.TFS_EXPOSE is set (tests/test_site.py does, or type it in the console before the page loads),
+// Test and debugging hook: when window.TFS_EXPOSE is set (tests/test_site.py does, or type it in the console before the page loads) or the address has ?expose (scripts/tools/warm-up.html does),
 // every exported name of the sections is readable on `window`, e.g. `state` or `currentGlacier()`. Nothing in the page uses it.
 
 import * as m0 from './01-data.js';
@@ -18,7 +18,7 @@ import * as m13 from './12-boot.js';
 import * as m14 from './13-teaser.js';
 import * as m15 from './14-streetview.js';
 
-if (/** @type {any} */ (window).TFS_EXPOSE) {
+if (/** @type {any} */ (window).TFS_EXPOSE || /[?&]expose\b/.test(location.search)) {
   for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15]) {
     for (const k of Object.keys(ns)) Object.defineProperty(window, k, { get: () => ns[k], configurable: true });
   }

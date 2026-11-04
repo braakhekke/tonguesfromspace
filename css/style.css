@@ -12,7 +12,7 @@ button,select,input{font:inherit;color:inherit}
 .scroll-cue{position:sticky;bottom:-28px;height:0;margin-top:-24px;z-index:5;pointer-events:none}
 .scroll-cue[hidden]{display:none}
 .scroll-cue::before{content:"";position:absolute;left:-20px;right:-20px;bottom:-28px;height:96px;background:linear-gradient(to bottom,rgba(255,255,255,0),var(--sheet) 80%)}
-.scroll-cue button{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--rule);border-radius:999px;background:#fff;color:var(--moraine);font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;white-space:nowrap}      /* the look of the step labels: grey capitals, the step number in red */
+.scroll-cue button{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--rule);border-radius:999px;background:#fff;color:#0A1B33;font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;white-space:nowrap}      /* the look of the step labels: grey capitals, the step number in red */
 .scroll-cue button .num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
 .scroll-cue svg{width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;animation:cueBob 1.6s ease-in-out infinite}
 @keyframes cueBob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
@@ -23,9 +23,9 @@ button,select,input{font:inherit;color:inherit}
 .home-link{color:inherit;text-decoration:none;cursor:pointer}
 .home-link:hover .t1,.home-link:hover{opacity:.85}
 .brand h1 .t1{display:block;white-space:nowrap;color:#0A1B33}
-.brand h1 .t2{display:block;color:var(--accent)}
+.brand h1 .t2{display:block;color:#0A1B33}
 .brand{position:relative}
-.brand h1 .region-btn{display:flex;align-items:center;gap:3px;margin:0;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer;letter-spacing:inherit}      /* the second title line is the region picker: the region name with a small chevron */
+.brand h1 .region-btn{display:flex;align-items:center;gap:3px;margin:0;padding:0;border:0;background:none;font:inherit;color:#0A1B33;cursor:pointer;letter-spacing:inherit}      /* the second title line is the region picker: the region name with a small chevron */
 .brand h1 .region-btn svg{width:16px;height:16px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
 .brand h1 .region-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
 .brand h1 .region-btn:hover .region-name{text-decoration:underline;text-underline-offset:3px}
@@ -43,7 +43,7 @@ button,select,input{font:inherit;color:inherit}
 .brand .what{margin-top:2px;line-height:1.4}
 .step{display:flex;flex-direction:column;gap:10px}
 .controls .step ~ .step{border-top:1px solid var(--rule);margin:0 calc(-1 * var(--pad));padding:22px var(--pad) 0}      /* the thin line runs the full width of the panel */
-.step-h{display:flex;align-items:center;gap:10px;margin:0;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}      /* grey label, the step number in red: 01 GLACIER */
+.step-h{display:flex;align-items:center;gap:12px;margin:0;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A1B33}      /* dark like the title (Tongues from Space), the step number in red: 01 CHOOSE */
 .step-lock{display:none;white-space:nowrap;margin-left:auto;font-size:10.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--moraine)}
 .app.no-glacier .step-lock{display:inline}
 .app.no-glacier #vizGroup > :not(.step-h):not(.act-link),.app.no-glacier #shareGroup > :not(.step-h):not(.act-link):not(.fyi):not(.fyi-by){opacity:.4;filter:none}      /* a click on them says why (js/08-controls.js), so no pointer-events:none on the box; the sliders inside let the click through */
@@ -68,8 +68,9 @@ button,select,input{font:inherit;color:inherit}
 .g-back{position:absolute;inset:0;background:rgba(10,20,28,.5)}
 .g-panel{position:absolute;left:0;right:0;bottom:0;max-height:86dvh;overflow-y:auto;overscroll-behavior:contain;background:var(--sheet);border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35);padding-bottom:calc(8px + env(safe-area-inset-bottom,0px));animation:gsUp .22s ease-out}
 @keyframes gsUp{from{transform:translateY(28px);opacity:0}}
-.g-head{position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:16px 8px 12px 18px;background:var(--sheet);border-bottom:1px solid var(--rule)}
-.g-close{display:grid;place-items:center;width:40px;height:40px;border:0;background:none;color:var(--moraine);cursor:pointer}
+.g-grip{position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--rule)}
+.g-head{touch-action:none;position:sticky;top:0;z-index:1;display:flex;align-items:center;justify-content:space-between;padding:16px 8px 12px 18px;background:var(--sheet);border-bottom:1px solid var(--rule)}
+.g-close{display:grid;place-items:center;width:44px;height:44px;border:0;background:none;color:var(--moraine);cursor:pointer}
 .g-close svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 .g-list{list-style:none;margin:0;padding:0}
 .g-list li{border-bottom:1px solid var(--rule-2)}
@@ -79,6 +80,7 @@ button,select,input{font:inherit;color:inherit}
 .g-list .area{color:var(--moraine);font-size:14px;font-variant-numeric:tabular-nums}
 .g-list .g-bar{grid-column:2 / 4;display:block;height:3px;background:var(--rule-2)}
 .g-list .g-bar b{display:block;height:100%;background:var(--ice)}
+.g-list button:focus-visible,.g-close:focus-visible{outline-offset:-3px}
 .g-list button[aria-pressed="true"]{background:#E9EFF2;box-shadow:inset 3px 0 0 var(--accent)}
 .g-list button[aria-pressed="true"] .name{font-weight:800}
 .g-list button[aria-pressed="true"] .g-bar b{background:var(--crevasse)}
@@ -86,6 +88,14 @@ body.sheet-open{overflow:hidden}
 .note{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:0}
 .note:empty{display:none}
 .swatches{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+#compareControls .swatches{margin-bottom:12px}
+.cc-alt{margin:0 0 12px}
+.cc-alt > summary{display:flex;align-items:center;gap:6px;cursor:pointer;list-style:none;user-select:none;font-size:11.5px;color:var(--faint)}      /* the second picture's own colour composition: folded until wanted */
+.cc-alt > summary::-webkit-details-marker{display:none}
+.cc-alt > summary::after{content:'';width:6px;height:6px;border:solid currentColor;border-width:0 1.6px 1.6px 0;transform:rotate(45deg);margin:-3px 0 0 2px;transition:transform .15s}
+.cc-alt[open] > summary::after{transform:rotate(225deg);margin-top:3px}
+.cc-alt[open] > summary{margin-bottom:6px}
+.cc-alt .swatches{margin-bottom:0}      /* the slider: colour choice, then a clear gap, then the years of that picture */
 .sw{border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:5px 5px 6px;cursor:pointer;display:flex;flex-direction:column;align-items:stretch;gap:5px;font-size:12px;font-weight:600;color:var(--rock);min-width:0;text-align:center}
 .yr-range{padding:2px 4px 0}
 .yr-vals{display:flex;justify-content:space-between;align-items:baseline;font-size:12px;color:var(--moraine);padding:0 14%}      /* the two years sit a little in from the ends, nearer the "to" in the middle */
@@ -105,9 +115,11 @@ body.sheet-open{overflow:hidden}
 .sw i svg{display:block;width:100%;height:100%}
 .sw[aria-pressed="true"]{background:#E9EFF2;border-color:var(--rule);box-shadow:inset 0 -2px 0 var(--accent)}      /* selected, as in the glacier list: pale, red line under it */
 .sw:hover{border-color:var(--crevasse)}
+.sw:not([aria-pressed="true"]) span{color:var(--faint)}      /* the compositions not in use: grey label (the thumbnail stays in colour); no CSS filter, Safari on iPhone ignores them */
+.sw:not([aria-pressed="true"]):hover span{color:var(--rock)}
 .hint{font-size:11.5px;color:var(--moraine);margin:8px 0 0}
 .g-search{width:100%;box-sizing:border-box;margin:0 0 6px;padding:7px 10px;border:1px solid var(--line,#d5dbe0);border-radius:6px;font:inherit;font-size:13px}
-.glaciers{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0}
+.glaciers{position:relative;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;max-height:113px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}      /* 3.5 rows: the cut-off row shows that the list scrolls */
 .glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;column-gap:6px;row-gap:0;text-align:left;padding:6px 10px 6px 13px;border:0;background:none;border-radius:0;cursor:pointer}
 .glaciers button:hover{background:var(--firn)}
 .glaciers button[aria-pressed="true"] .rank{color:var(--moraine);font-weight:400}
@@ -149,11 +161,14 @@ body.sheet-open{overflow:hidden}
 .years button.in-range{background:var(--firn);border-color:var(--rule)}
 .years button:disabled{color:#B6BEC2;background:var(--firn);border-color:var(--firn);cursor:not-allowed;pointer-events:none}
 .years button:disabled.missing{text-decoration:line-through}
+.years button.is-na{color:#B6BEC2;background:var(--firn);border-color:var(--firn);cursor:not-allowed}      /* greyed but still hoverable and clickable: the tooltip and the notice say why (a disabled button gets no hover) */
+.years button.is-na:hover{border-color:var(--firn)}
 .years button.some:not([aria-pressed="true"]){border-style:dashed}      /* the best scene of this year still has some clouds */
 .spec-row{display:flex;align-items:center;gap:10px;margin-top:-4px}
 .spec-row .side-label{margin:0;flex:none;font-size:11.5px;font-weight:500;font-style:italic;text-transform:none;letter-spacing:0}      /* a sub-choice of the years: not a capital label of its own */
 .years.specials{flex:1;grid-template-columns:repeat(2,1fr)}
 .years.specials button{padding:5px 0}
+.slider-specials{margin-top:4px}
 .stack{display:flex;flex-direction:column;gap:12px}
 .row{display:flex;gap:8px;align-items:center}
 .spin-s{display:inline-block;width:12px;height:12px;margin-right:6px;border:2px solid rgba(255,255,255,.45);border-top-color:#fff;border-radius:50%;animation:spinS .8s linear infinite}
@@ -185,6 +200,15 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .tune[open] > summary::after{transform:rotate(225deg);margin-top:3px}
 .tune[open] > summary{margin-bottom:6px}
 .tune[open]{display:flex;flex-direction:column;gap:2px}
+/* "Adjust image": a switch like the older-imagery one; on, it shows the sliders */
+.tune-adjust{margin-top:6px}
+.adj-switch{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;padding:2px 0;border:0;background:none;cursor:pointer;font:inherit;font-size:12px;font-weight:600;color:var(--moraine);text-align:left}
+.adj-track{flex:none;position:relative;width:30px;height:17px;border-radius:9px;background:var(--rule);transition:background .15s}
+.adj-knob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.adj-switch[aria-checked="true"] .adj-track{background:var(--crevasse)}
+.adj-switch[aria-checked="true"] .adj-knob{transform:translateX(13px)}
+.adj-switch:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px;border-radius:6px}
+.tune-adjust > div:not([hidden]){display:flex;flex-direction:column;gap:2px;margin-top:6px}
 .meta-body{min-width:0}
 .meta-scroll{max-width:100%;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}      /* a wide table scrolls sideways inside the panel */
 .meta-dl{margin:6px 0 0;padding:3px 9px;font:inherit;font-size:11.5px;color:var(--moraine);background:none;border:1px solid var(--rule);border-radius:6px;cursor:pointer}
@@ -341,10 +365,7 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 }
 @media (pointer:coarse),(max-width:950px) and (orientation:landscape) and (max-height:520px){      /* touch: never the mouse text (Shift, right-drag); the hint goes after the first touch of the picture */
   .v3d-top .h-full{display:none}.v3d-top .h-short{display:block;font-size:12px}
-  .sci-pill{margin-top:5px;padding:4px 9px 4px 7px;font-size:11.5px}
-  .sci-pill .sci-l{display:none}.sci-pill .sci-s{display:inline}
 }
-.sci-pill .sci-s{display:none}
 body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .v3d-bottom [hidden]{display:none}
 .v3d-div{position:absolute;z-index:4;touch-action:none;display:flex;align-items:center;justify-content:center}
@@ -366,9 +387,11 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .v3d.cmp-v #v3dLabA{right:calc((1 - var(--s, .5)) * 100% + 30px)}
 .v3d.cmp-v #v3dLabB{left:calc(var(--s, .5) * 100% + 30px)}
 .v3d.cmp-h .v3d-lab{right:14px}      /* the horizontal slider: the years sit on the right of the view, above and below the line (clear of the full screen button, and of the Layers menu while it is open) */
+.app.no-right .v3d.cmp-h .v3d-lab{right:56px}      /* the closed right panel is a red tab on the edge: the years stay clear of it */
 .v3d.cmp-h:has(.v3d-layers:not(.min)) .v3d-lab{right:190px}
-.v3d.cmp-h #v3dLabA{top:max(58px, calc(var(--s, .5) * 100% - 40px))}
-.v3d.cmp-h #v3dLabB{top:max(98px, calc(var(--s, .5) * 100% + 12px))}
+.v3d-lab small.v3d-lab-date{display:block;margin-top:4px;font-size:12px;font-weight:500;letter-spacing:0;opacity:.85}      /* the date of the picture, small under its year */
+.v3d.cmp-h #v3dLabA{top:max(58px, calc(var(--s, .5) * 100% - 58px))}
+.v3d.cmp-h #v3dLabB{top:max(116px, calc(var(--s, .5) * 100% + 12px))}
 /* Historic photographs (3D view): a rail of thumbnails, the chosen photo over the picture, the credit under it */
 .v3d-photo{position:absolute;z-index:2;pointer-events:none;box-shadow:0 0 0 1px rgba(255,255,255,.55),0 8px 30px rgba(0,0,0,.5);background:#000}
 .v3d-photo[hidden]{display:none}
@@ -426,6 +449,13 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .measuring #map{cursor:crosshair}
 .measuring .leaflet-outlines-pane *{pointer-events:none!important}
 .layerbox{position:absolute;right:12px;top:104px;z-index:665;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 12px 6px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:220px}
+.layerbox.nudge::after{content:"";position:absolute;inset:-4px;border:2px solid var(--accent);border-radius:11px;pointer-events:none;animation:lbNudge 1.8s ease-out infinite}
+@keyframes lbNudge{0%{opacity:.9;transform:scale(.97)}100%{opacity:0;transform:scale(1.08)}}
+.lb-tip{position:absolute;right:0;top:calc(100% + 10px);width:236px;background:var(--ink);color:#fff;font-size:12.5px;line-height:1.45;padding:10px 12px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.lb-tip::before{content:"";position:absolute;right:22px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:var(--ink)}
+.lb-tip b{display:block;margin-bottom:2px}
+.lb-tip button{display:block;margin-top:8px;border:1px solid rgba(255,255,255,.55);background:none;color:#fff;font:inherit;font-size:12px;padding:3px 10px;cursor:pointer}
+.layerbox:not(.min) .lb-tip,.layerbox.in-flow .lb-tip{display:none}
 .lb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;border:0;background:none;padding:0 0 6px;margin:0;font-weight:700;font-size:12.5px;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);cursor:pointer}
 .lb-head svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;transition:transform .2s}
 .trail-legend{margin:0 0 6px 26px;font-size:11.5px;color:var(--moraine);display:flex;flex-direction:column;gap:1px}
@@ -476,7 +506,8 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .sv-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round}
 .sv-open{flex:none;font-size:11.5px;color:#8CC4E0;white-space:nowrap}
 .sv-panel iframe{flex:1;width:100%;min-height:0;border:0;background:#111}
-.is-3d .sv-panel,.is-framing .sv-panel{display:none}
+.is-framing .sv-panel{display:none}      /* open in 3D too (the panoramas are marks on the terrain there) */
+.is-3d .sv-panel:not(.full){z-index:715}      /* the 3D view is z-index 700: the panel has to lie above it */
 @media (max-width:720px){.sv-panel{left:8px;right:8px;width:auto;bottom:auto;top:54px;height:min(340px,calc(100% - 150px))}}
 .sv-btn .fs-out,.sv-panel.full .sv-btn .fs-in{display:none}
 .sv-panel.full .sv-btn .fs-out{display:block}
@@ -550,13 +581,14 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .story.empty > .story-empty h2{display:block}
 .story::before{content:'';display:block;flex:none;height:20px}      /* the top space is inside the scroll, so a sticky card header sits flush with the top edge */
 .story > *{flex:none}
-.story h2{font-size:25px;line-height:1.12;margin:7px 0 4px;font-weight:700;letter-spacing:-.018em;color:#0E1A22}      /* sizes of the redesign: title 25, place 12.5, lede 13.5 */
+.story h2{font-size:25px;line-height:1.12;margin:7px 0 4px;font-weight:700;letter-spacing:-.018em;color:#0A1B33}
+@media (min-width:721px){.story > h2{margin:-2px 0 0}.story > .sub{margin-bottom:4px}}      /* desktop: the glacier name sits on the line of 'Tongues from Space' and the place line on the line of the region name (left panel, 22 px high lines from y 22) */      /* sizes of the redesign: title 25, place 12.5, lede 13.5 */
 .story .sub{color:var(--moraine);font-size:12.5px;margin:0}
 .story .lede{font-family:var(--sans);font-size:13.5px;font-weight:400;line-height:1.55;color:#1C2A33;margin:12px 0 0}
 .tabs{display:flex;justify-content:space-between;gap:12px;border-bottom:1px solid var(--rule);margin:18px calc(-1 * var(--pad)) 0;padding:0 var(--pad)}      /* the line under the tabs runs the full width of the panel */
-.tabs button{flex:none;border:0;background:none;padding:11px 0 10px;font-weight:600;font-size:13px;color:var(--moraine);border-radius:0;margin-bottom:-1px;cursor:pointer}
-.tabs button:hover{color:var(--rock)}
-.tabs button[aria-selected="true"]{color:#0E1A22;box-shadow:inset 0 -2px 0 var(--accent);cursor:default}      /* text tabs: the chosen one dark with a 2 px red line under its text */
+.tabs button{flex:none;border:0;background:none;padding:11px 0 10px;font-weight:600;font-size:13px;color:#0A1B33;border-radius:0;margin-bottom:-1px;cursor:pointer}
+.tabs button:hover{color:#0A1B33;opacity:.8}
+.tabs button[aria-selected="true"]{color:#0A1B33;opacity:1;box-shadow:inset 0 -2px 0 var(--accent);cursor:default}      /* text tabs: the chosen one dark with a 2 px red line under its text */
 .tab-panel{display:flex;flex-direction:column;gap:10px}
 .tab-panel[hidden]{display:none}
 .fact-k{display:block;font-size:11px;font-weight:800;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
@@ -581,8 +613,6 @@ details.about{margin:0 calc(-1 * var(--pad));padding:0 var(--pad);border-top:1px
 details.about>summary{cursor:pointer;font-size:12px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;color:var(--moraine);display:flex;align-items:center;justify-content:center;gap:10px;list-style:none;padding:18px 0}      /* centred, with the round i and no chevron */
 details.about>summary .info-btn{display:inline-flex;flex:none}
 details.about>summary{color:var(--accent);font-weight:700}
-details.about>summary .about-ico{width:24px;height:24px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round}
-details.about>summary .about-ico .dot{fill:currentColor;stroke:none}
 details.about>summary::after{border-color:var(--accent)}
 details.about>summary::after{content:'';flex:none;width:7px;height:7px;border:solid var(--moraine);border-width:0 2px 2px 0;transform:rotate(45deg);margin:-3px 4px 0 8px;transition:transform .15s}
 details.about[open]>summary::after{transform:rotate(-135deg);margin-top:3px}
@@ -781,11 +811,15 @@ sup.fn a:hover{opacity:.7}
 .vs-note:empty{display:none}
 .vs-head{display:flex;justify-content:space-between;align-items:center}
 .vs-head strong{font-size:13.5px;color:var(--accent);text-transform:uppercase;letter-spacing:.05em}
-.vs-share{border-top:1px solid var(--rule);padding-top:8px;display:flex;flex-direction:column;gap:6px}
-.vs-share>button{border:1px solid var(--rule);background:var(--sheet);border-radius:0;padding:7px 10px;cursor:pointer;font-weight:600;font-size:13px}
+.vs-play{flex:none;display:flex;align-items:center;justify-content:center;gap:8px;width:100%;color:var(--ink);font-family:inherit}
+.vs-play svg{flex:none;width:16px;height:16px;fill:var(--accent)}
+.vs-share{display:flex;flex-direction:column;gap:6px}
+.vs-share>button{display:flex;align-items:center;justify-content:center;gap:8px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);border-radius:0;padding:8px 10px;cursor:pointer;font:inherit;font-size:13px;font-weight:500}
 .vs-share>button:hover{background:var(--firn)}
-.vs-share form{display:flex;flex-direction:column;gap:6px}
-.vs-share input[type=text]{border:1px solid var(--rule);border-radius:0;padding:6px 8px;font-size:13px}
+.vs-share>button svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.vs-share form{display:flex;flex-direction:column;gap:8px}
+.vs-share input[type=text]{border:1px solid var(--rule);border-radius:0;padding:8px 10px;font:inherit;font-size:13px;background:var(--sheet);color:var(--ink)}
+.vs-share .toggle{font-size:13px;margin-bottom:0}
 .vs-close{border:0;background:none;font-size:24px;line-height:1;cursor:pointer;padding:0 4px;color:var(--moraine)}
 .vs-opts{display:grid;grid-template-columns:1fr;gap:2px;margin:0}
 .vs-opts .toggle{margin:0;font-size:13px}
@@ -805,8 +839,8 @@ sup.fn a:hover{opacity:.7}
   .app{display:flex;flex-direction:column;height:auto}
   .mhead{display:block;order:0;background:var(--sheet);padding:10px 14px 8px;border-bottom:1px solid var(--rule);text-align:center}
   .mhead-logo{display:inline-block;vertical-align:-6px;height:26px;width:auto;margin-right:8px}
-  .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:var(--accent)}
-  .mhead strong span{display:inline;font-size:inherit;margin:0;color:var(--accent)}
+  .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#0A1B33}
+  .mhead strong span{display:inline;font-size:inherit;margin:0;color:#0A1B33}
   .mhead strong span.t1{color:#0A1B33}
   .mhead{border-top:4px solid var(--accent)}
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
@@ -868,7 +902,7 @@ sup.fn a:hover{opacity:.7}
   .mhead{display:block;padding:8px 14px;text-align:center}
   .mhead-logo{height:20px;vertical-align:-4px;margin-right:6px}
   .mhead strong{display:block;font-size:15px;font-weight:800}
-  .mhead strong span{display:inline;font-size:inherit;margin:0;color:var(--accent)}
+  .mhead strong span{display:inline;font-size:inherit;margin:0;color:#0A1B33}
   .mhead strong span.t1{color:#0A1B33}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
   .controls .brand,#glacierList,#rankNote{display:none}
@@ -924,7 +958,12 @@ sup.fn a:hover{opacity:.7}
   body.pane-open #layersBtn{display:none!important}
   /* full screen: the layer menu rises from the bottom edge of the screen, with a clear way out at the top and bottom */
   body.has-full .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:auto;z-index:2100;max-height:58dvh;overflow-y:auto;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45);padding-bottom:calc(10px + env(safe-area-inset-bottom,0px))}
-  body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet)}
+  body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet);touch-action:none;padding-top:16px}
+  body.has-full .layerbox.in-flow .lb-head::before{content:'';position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--rule)}
+  /* the create-and-share pane is a bottom sheet here: a handle, and the header can be dragged down (js/09-phones.js, swipeToClose) */
+  .vs-head{position:relative;touch-action:none;min-height:36px}
+  .vs-head::before{content:'';position:absolute;top:-6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--rule)}
+  .vs-close{min-width:44px;min-height:44px;margin:-8px -8px -8px 0}
   body.has-full .layerbox.in-flow .lb-head span::after{content:' · tap to close';font-weight:500;color:var(--moraine);font-size:12.5px}
 }
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
@@ -1024,7 +1063,7 @@ body.has-full{overflow:hidden}
   .app.no-left .controls{visibility:hidden;border:0;overflow:hidden;transition:visibility 0s .35s}
   .app.no-left #toggleLeft svg{transform:rotate(180deg)}
   .app.no-right{--rw:0px}
-  .app.no-right .story{visibility:hidden;border:0;overflow:hidden;transition:visibility 0s .35s}
+  .app.no-right .story{visibility:hidden;border:0;overflow:hidden;padding-left:0;padding-right:0;transition:visibility 0s .35s}      /* no padding in the 0 px column, or the closed panel sticks out 44 px and the page gets a horizontal scrollbar */
   .app.no-right #toggleRight svg{transform:rotate(180deg)}
   /* collapsed, the right panel is an inviting tab on the edge: red, the text written downwards, a soft glow like the "Then and now" pill */
   .pt-label{display:none}
@@ -1065,8 +1104,8 @@ body.has-full{overflow:hidden}
 /* while a download pane is open, the 3D view shows only what the download will contain */
 body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photocap,body.pane-open .v3d-measure,body.pane-open .v3d-sect,body.pane-open .v3d-mhint,body.pane-open .v3d-tip{display:none!important}
 .social{display:flex;justify-content:center;gap:6px;margin-top:10px}
-.social a{display:inline-flex;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;color:var(--moraine);transition:color .15s,background .15s}
-.social a:hover,.social a:focus-visible{color:#fff;background:var(--accent)}
+.social a,.social button{display:inline-flex;border:0;background:none;padding:0;cursor:pointer;width:28px;height:28px;align-items:center;justify-content:center;border-radius:50%;color:var(--moraine);transition:color .15s,background .15s}
+.social a:hover,.social a:focus-visible,.social button:hover,.social button:focus-visible{color:#fff;background:var(--accent)}
 .social svg{width:16px;height:16px;fill:currentColor}
 
 /* Sentinel-2 pictures switched off in the layers menu */
@@ -1078,7 +1117,12 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 .stage.is-full .full-exit,.app.visual-only .full-exit,.app .full-play{background:var(--glass)}
 
 /* "Then and now" and its camera symbols belong to One year: not in Compare and Timelapse */
-.app:not(.photos-ok) .v3d-photos,.app:not(.photos-ok) #l3PhotosRow{display:none!important}      /* the Layers switch too: it would do nothing here */
+.app:not(.photos-ok) .v3d-photos{display:none!important}      /* the dock; the Layers row stays, greyed, with the reason and a way to One year (.is-unavail) */
+.layerbox .toggle.is-unavail{cursor:default}
+.layerbox .toggle.is-unavail .sym{opacity:.45}
+.layerbox .lb-unavail{margin:0 0 4px 0;line-height:1.4}
+.layerbox .lb-go{display:inline;padding:0;border:0;background:none;font:inherit;font-weight:600;color:var(--accent);cursor:pointer;text-decoration:underline;text-underline-offset:2px}
+.layerbox .lb-go:hover{color:var(--rock)}
 
 /* pose tuning of a photograph (tune=1 in the address, see js/11-view3d.js) */
 .v3d-tune{position:absolute;top:12px;right:12px;z-index:7;width:268px;background:var(--glass);border-radius:8px;padding:10px 12px 11px;font-size:12px;color:var(--rock);box-shadow:0 2px 12px rgba(0,0,0,.35)}
@@ -1223,10 +1267,15 @@ body.pane-open .tfs-scale{display:none!important}      /* no scale bar while a d
 body.pane-open .mapbar{display:none!important}      /* no toolbar under the picture while a download pane is open (zoom with the wheel or two fingers) */
 
 /* the preview play button under the frame of the animation pane; while it plays the outside of the frame gets darker */
-.vf-play{position:absolute;left:50%;bottom:-52px;transform:translateX(-50%);width:40px;height:40px;border:0;border-radius:50%;padding:0;display:none;place-items:center;background:rgba(150,156,160,.92);color:#fff;cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.vf-btns{position:absolute;left:50%;bottom:-52px;transform:translateX(-50%);display:none;gap:12px;pointer-events:none}      /* play (animations only) and close, side by side under the frame */
+body.pane-open .video-frame .vf-btns{display:flex}
+/* The map while a download pane is open shows only what the download prints: the Sentinel-2 / Landsat picture and (if ticked) the 1850 outline. Base maps, aerial images, thickness, speed, trails, the sight band, names and marks are left out of the picture, so they are left out of the preview (the layers stay as they are set and come back when the pane closes). */
+body.pane-open #map .leaflet-tile-pane,body.pane-open #map .leaflet-bgPane-pane,body.pane-open #map .leaflet-siA-pane,body.pane-open #map .leaflet-siB-pane,body.pane-open #map .leaflet-siT-pane,body.pane-open #map .leaflet-thickPane-pane,body.pane-open #map .leaflet-speedPane-pane,body.pane-open #map .leaflet-sightPane-pane,body.pane-open #map .leaflet-labels-pane,body.pane-open #map .leaflet-marker-pane,body.pane-open #map .leaflet-shadow-pane,body.pane-open #map .leaflet-tooltip-pane,body.pane-open #map .leaflet-popup-pane{display:none!important}
+.vf-play{position:static;width:40px;height:40px;border:0;border-radius:50%;padding:0;display:none;place-items:center;background:rgba(150,156,160,.92);color:#fff;cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .vf-play svg{width:18px;height:18px;fill:currentColor;stroke:none}
+.vf-close svg{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 .vf-play:hover{background:rgba(120,126,130,.96)}
-body.pane-open .video-frame .vf-play{display:grid}
+body.pane-open .video-frame .vf-play{display:grid}      /* a play button hidden by the page (a picture, not an animation) stays hidden: its inline style wins */
 .video-frame{transition:box-shadow .3s}
 .video-frame.playing{box-shadow:0 0 0 9999px rgba(6,10,13,.88)}
 
@@ -1623,14 +1672,6 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .v3d-sect details ul{margin:4px 0 0;padding-left:16px}
 .v3d-sect details li{margin:2px 0}
 
-/* scientific field notes (3D view): the pill in the top bar links to provenance.html */
-.sci-pill{display:inline-flex;align-items:center;gap:6px;margin-top:8px;padding:5px 10px 5px 8px;border-radius:999px;border:1px solid rgba(255,255,255,.35);background:rgba(10,16,24,.55);color:#e8f0f6;font:600 12.5px/1 inherit;cursor:pointer;pointer-events:auto}
-.sci-pill svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.sci-pill:hover{background:#C8322A;border-color:#C8322A;color:#fff}
-.sci-pill{text-decoration:none}
-.sci-pill.none{opacity:.75}
-.sci-no{display:block;max-width:260px;margin-top:6px;padding:6px 9px;border-radius:8px;background:rgba(10,16,24,.8);color:#e8f0f6;font:500 12px/1.35 inherit;pointer-events:auto}
-
 /* hover on the wall of the 3D cross-cut: the table of the chart, beside the pointer */
 .v3d-cuttip{max-width:none;padding:6px 9px 5px;font-size:12px}
 .v3d-cuttip table{border-collapse:collapse}
@@ -1679,17 +1720,40 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .embed-box .hint{margin:0}
 #embedCode{width:100%;box-sizing:border-box;border:1px solid var(--rule);background:var(--firn);color:var(--rock);font:11px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:8px;resize:none}
 .embed-row{display:flex;gap:8px}
+.embed-row .act{min-width:0;padding-left:6px;padding-right:6px;white-space:nowrap}      /* three buttons share one row */
 .embed-open{display:none}
 html.embed .controls,html.embed .story,html.embed .mhead,html.embed .panel-toggle,html.embed .scroll-cue,html.embed .fyi-slot,html.embed #fsBtn,html.embed #v3dFs{display:none!important}
 html.embed .app{display:block;height:100%}
 html.embed .stage-slot{display:block;height:100%;min-height:0}
 html.embed .stage-slot .stage{position:relative;left:auto;top:auto;bottom:auto;width:auto;height:100%;min-height:0}
-html.embed .layerbox,html.embed #layersBtn,html.embed #moreBtn,html.embed .mtool,html.embed .v3d-layers,html.embed .v3d-measure > :not(.v3d-tl):not(.v3d-zoom),html.embed #v3dSci,html.embed #v3dSciNo,html.embed #v3dPhotos,html.embed #v3dSect,html.embed .sv-panel{display:none!important}      /* the picture as the main viewer shows it: no layer menus, measuring, science mode, photographs */
+html.embed .layerbox,html.embed #layersBtn,html.embed #moreBtn,html.embed .mtool,html.embed .v3d-layers,html.embed .v3d-measure > :not(.v3d-tl):not(.v3d-zoom),html.embed #v3dPhotos,html.embed #v3dSect,html.embed .sv-panel{display:none!important}      /* the picture as the main viewer shows it: no layer menus, measuring, science mode, photographs */
 html.embed .mapbar .sep:nth-of-type(n+2){display:none}      /* the 3D toolbar keeps its timeline (play, pause) and the zoom buttons */
 html.embed .embed-open{display:block;position:absolute;top:10px;right:10px;z-index:730;background:var(--sheet);color:var(--accent);font-size:13px;font-weight:700;line-height:1;padding:9px 13px;border-radius:6px;box-shadow:0 1px 8px rgba(0,0,0,.28);text-decoration:none;white-space:nowrap}
 html.embed .embed-open:hover{background:var(--firn)}
 
-.landsat-info{margin:-13px 0 0;font-size:11.5px;line-height:1.4;color:var(--moraine)}
+.landsat-opt{display:none!important}      /* the old checkbox row: the "+ Landsat" chip in the year rows works it */
+.landsat-wrap{grid-column:span 2;display:flex;align-items:center;gap:2px;padding-right:4px;border:1px dashed var(--rule);background:var(--sheet)}      /* the box of the chip holds the "i" */
+.landsat-wrap:hover:not(:has(.landsat-chip:disabled)){border-color:var(--crevasse)}
+.landsat-wrap .landsat-chip,.landsat-wrap .landsat-chip:hover:not(:disabled){border:0;background:none;box-shadow:none}
+.landsat-wrap .info-btn{flex:none;border:1.5px solid var(--moraine);border-radius:50%;padding:0;background:none;border-color:var(--moraine);color:var(--moraine);width:18px;height:18px;font-size:11px}
+.landsat-wrap .info-btn[aria-expanded="true"]:not(:disabled){background:var(--moraine);color:#fff}
+.landsat-wrap .info-btn[hidden]{display:none}
+.years .landsat-chip{flex:1;border-style:dashed;color:var(--moraine);font-weight:600}
+.years .landsat-chip[aria-pressed="true"]{background:var(--sheet);box-shadow:none;color:var(--moraine);font-weight:600;border-color:var(--rule)}
+.years .landsat-chip.weak:not([aria-pressed="true"]){color:var(--faint)}
+.years .landsat-chip:disabled{color:#B6BEC2;border-style:dashed}
+.yr-landsat{display:block;margin-top:8px}
+#lsOne,#lsA{margin-top:0;margin-bottom:8px}      /* one year and slider: the switch sits above the year chips */
+.yr-landsat .landsat-wrap{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none}
+.yr-landsat .landsat-chip.as-switch{flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 0;border:0;background:none;cursor:pointer;font-size:12px;color:var(--moraine);font-weight:600;text-align:left}
+.yr-landsat .ls-label small{font-weight:500;font-size:11px;color:var(--faint);margin-left:4px}
+.yr-landsat .ls-track{flex:none;position:relative;width:30px;height:17px;border-radius:9px;background:var(--rule);transition:background .15s}
+.yr-landsat .ls-knob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.yr-landsat .as-switch[aria-checked="true"] .ls-track{background:var(--crevasse)}
+.yr-landsat .as-switch[aria-checked="true"] .ls-knob{transform:translateX(13px)}
+.yr-landsat .as-switch:disabled{cursor:default;opacity:.5}
+.yr-landsat .as-switch.weak:not([aria-checked="true"]) .ls-label{color:var(--faint)}
+.landsat-info{margin:0 0 6px;font-size:11.5px;line-height:1.4;color:var(--moraine)}
 .landsat-info[hidden]{display:none}
 #landsatI{margin-left:4px;vertical-align:middle;width:16px;height:16px;font-family:inherit;font-size:10px;font-weight:600;font-style:normal;color:var(--moraine);border-color:var(--moraine);background:none}
 #landsatI[aria-expanded="true"]{background:var(--moraine);color:#fff}
@@ -1711,8 +1775,37 @@ html.embed .embed-open:hover{background:var(--firn)}
 
 /* phone header: the region name is the picker (its menu opens below the title); the back link reads on the light header */
 .mhead{position:relative}
-.mhead .region-btn{display:inline-flex;align-items:center;gap:2px;margin:0;padding:0;border:0;background:none;font:inherit;color:var(--accent);cursor:pointer}
+.mhead .region-btn{display:inline-flex;align-items:center;gap:2px;margin:0;padding:0;border:0;background:none;font:inherit;color:#0A1B33;cursor:pointer}
 .mhead .region-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
 .mhead .region-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
 .mhead .region-menu{left:50%;top:100%;transform:translateX(-50%);text-align:left;z-index:900}
 .mhead .all-regions{display:block;margin:6px 0 0;font-size:12.5px;font-weight:600;color:var(--crevasse);text-decoration:none}
+
+/* the "i" next to a layer: what it shows, in words (hiking trails and the line of sight) */
+.lb-why{margin:0 0 6px 26px;padding:7px 9px;background:var(--firn);font-size:11.5px;line-height:1.45;color:var(--rock);border-left:3px solid var(--crevasse)}
+.lb-why[hidden]{display:none}
+.lb-count{flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--accent);color:#fff;font:700 11px/18px var(--sans);letter-spacing:0;text-align:center;font-variant-numeric:tabular-nums}
+.lb-count[hidden]{display:none}
+.lb-count.on-btn{position:absolute;top:-5px;right:-5px;box-shadow:0 0 0 2px #fff}
+#layersBtn,#v3mLayers{position:relative}
+.lb-head .lb-count{margin-left:-2px}
+.lb-i{flex:none;width:18px;height:18px;margin-left:auto;padding:0;border:1.5px solid var(--moraine);border-radius:50%;background:none;color:var(--moraine);font:600 11px/15px var(--sans);text-align:center;cursor:pointer}      /* the same "i" as the older-imagery switch */
+.lb-i:hover,.lb-i[aria-expanded="true"]{background:var(--moraine);color:#fff}
+@media (prefers-reduced-motion:reduce){.layerbox.nudge::after{animation:none;opacity:.6}}
+
+/* the tool buttons (cross-section, size comparison) above the tabs of the right panel */
+.story .tool-btns{display:flex;flex-direction:column;gap:6px;margin:16px 0 0}
+.story .tool-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:8px 10px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);font:inherit;font-size:13px;font-weight:500;text-align:center;text-decoration:none;cursor:pointer}
+.story .tool-btn:hover{background:var(--firn)}
+.story .tool-btn svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.story .tool-btn span{min-width:0}
+.story.empty .tool-btns{display:none}
+
+.brand-home{display:flex;flex:none}
+/* restore defaults: a small text button on the right of the step 2 heading */
+.step-reset{display:none;align-items:center;gap:5px;margin-left:auto;padding:3px 7px;border:1px solid var(--rule);background:var(--sheet);color:var(--moraine);font:600 11px/1.2 var(--sans);letter-spacing:0;text-transform:none;cursor:pointer}
+.step-reset svg{width:12px;height:12px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.step-reset:hover{color:var(--ink);background:var(--firn)}
+.app:not(.no-glacier) .step-reset{display:inline-flex}
+
+.chip-date{margin-left:5px;font-size:10px;font-weight:500;opacity:.7}

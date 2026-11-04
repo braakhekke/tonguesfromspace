@@ -89,15 +89,22 @@ def main():
     for gid in ids:
         (s, w), (n, e) = boxes[gid]['box']['bounds']
         box_pts = [(w + (e - w) * (i + .5) / NB, s + (n - s) * (j + .5) / NB) for i in range(NB) for j in range(NB)]
-        polys = gl[gid]['outline']['coordinates']; xs = [p[0] for pl in polys for r in pl for p in r]; ys = [p[1] for pl in polys for r in pl for p in r]
-        step = math.sqrt((max(xs) - min(xs)) * (max(ys) - min(ys)) / NG * 1.0) or .001
-        g_pts = []; x = min(xs)
-        while x <= max(xs):
-            y = min(ys)
-            while y <= max(ys):
-                if any(inside((x, y), pl) for pl in polys): g_pts.append((round(x, 6), round(y, 6)))
-                y += step
-            x += step
+        g_pts = []
+        for o in (gl[gid]['outline'], (gl[gid].get('oldest') or {}).get('outline')):      # the current outline AND the oldest one (the 1850 extent; 2026-11-04, owner: the oldest picture of the Gorner covered the 2023 outline but not the 1850 one)
+            if not o: continue
+            polys = o['coordinates']; xs = [p[0] for pl in polys for r in pl for p in r]; ys = [p[1] for pl in polys for r in pl for p in r]
+            step = math.sqrt((max(xs) - min(xs)) * (max(ys) - min(ys)) / NG * 1.0) or .001
+            x = min(xs)
+            while x <= max(xs):
+                y = min(ys)
+                while y <= max(ys):
+                    if any(inside((x, y), pl) for pl in polys): g_pts.append((round(x, 6), round(y, 6)))
+                    y += step
+                x += step
+            ring = [q for pl in polys for r in pl for q in r]; stride = max(1, len(ring) // 60)      # the edge of the outline and the tongue tip too (the grid inside the outline steps over a narrow tongue)
+            g_pts += [(round(q[0], 6), round(q[1], 6)) for q in ring[::stride]]
+        if boxes[gid].get('tip'): g_pts.append((boxes[gid]['tip'][1], boxes[gid]['tip'][0]))
+        g_pts = list(dict.fromkeys(g_pts))
         pts = {p: None for p in box_pts + g_pts}
         with cf.ThreadPoolExecutor(8) as ex:
             for p, r in zip(list(pts), ex.map(lambda q: ask(*q), list(pts))): pts[p] = r

@@ -1,9 +1,9 @@
 import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, GLACIER_INFO, lv95, $, PHONE } from './01-data.js';
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
-import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
+import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, landsatName, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
-import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN } from './05-map.js';
+import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, oldestOn, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
@@ -42,6 +42,8 @@ export function renderGlacierList(){
       sl.appendChild(sbtn); ul.appendChild(sl);
     });
   });
+  const keepChosenInView = () => { const row = ul.querySelector('button[aria-pressed="true"]'); if (!row) return; const top = row.offsetTop, bottom = top + row.offsetHeight; if (top < ul.scrollTop) ul.scrollTop = top; else if (bottom > ul.scrollTop + ul.clientHeight) ul.scrollTop = bottom - ul.clientHeight; };      // only the list scrolls, not the page; again on the next frame, because a click on the map changes the layout first
+  keepChosenInView(); requestAnimationFrame(keepChosenInView);
   document.getElementById('rankNote').innerHTML = REGION.rgi ? REGION.rankNote : `Ranked by area${fn('sgi')}`;
   renderLayerTitles();
   if (typeof wire.updateLandsatRow === 'function') wire.updateLandsatRow();
@@ -71,7 +73,8 @@ export function renderYearRange(){
     <div class="yr-track"><div class="yr-fill" id="yrFill"></div>
       <input type="range" id="yrA" min="0" max="${n}" step="1" value="${i(lo)}" aria-label="First year">
       <input type="range" id="yrB" min="0" max="${n}" step="1" value="${i(hi)}" aria-label="Last year"></div>
-    <div class="yr-ticks">${YEARS.map(y => `<i class="${state.available[y] ? '' : 'off'}" title="${y}${state.available[y] ? '' : ': no picture'}"></i>`).join('')}</div>`;
+    <div class="yr-ticks">${YEARS.map(y => `<i class="${state.available[y] ? '' : 'off'}" title="${y}${state.available[y] ? '' : ': no picture'}"></i>`).join('')}</div>${REGION.landsat ? '<div class="yr-landsat"></div>' : ''}`;
+  if (REGION.landsat) box.querySelector('.yr-landsat').appendChild(landsatChip(true));
   const A = box.querySelector('#yrA'), B = box.querySelector('#yrB'), fill = box.querySelector('#yrFill');
   const paint = () => { const a = +A.value, b = +B.value; fill.style.left = (Math.min(a, b) / n * 100) + '%'; fill.style.width = (Math.abs(b - a) / n * 100) + '%'; box.querySelector('#yrLo').textContent = YEARS[Math.min(a, b)]; box.querySelector('#yrHi').textContent = YEARS[Math.max(a, b)]; };
   const snap = (inp, other) => {            // the nearest year with a picture, in the direction the handle moved
@@ -85,6 +88,26 @@ export function renderYearRange(){
   });
   paint();
 }
+/* The older-imagery switch as a chip at the front of a year row, where 2015 would stand: "+ Landsat" adds the years before 2016, "− Landsat" takes them away again. It drives the hidden checkbox of the old switch (setLandsat, js/08-controls.js), which also holds the greyed-out and "not recommended" states. */
+let ccAltChecked = false;      // the fold of the second picture's colour composition is opened by a share link at most once (renderMode)
+export function landsatChip(asSwitch = false){
+  const sw = document.getElementById('landsatToggle'), row = document.getElementById('landsatRow'), b = document.createElement('button'), on = YEARS[0] < FIRST_YEAR;
+  b.type = 'button'; b.className = 'landsat-chip'; b.setAttribute('aria-pressed', on);
+  if (asSwitch) { b.classList.add('as-switch'); b.setAttribute('role', 'switch'); b.setAttribute('aria-checked', on); b.innerHTML = '<span class="ls-label">Older imagery <small>before 2016</small></span><span class="ls-track"><span class="ls-knob"></span></span>'; }      // timelapse: a switch row instead of the "+ Older" chip
+  else b.textContent = on ? '\u2212 Older' : '+ Older';
+  b.title = on ? 'Take the older years (before 2016) away again' : (row && row.classList.contains('not-recommended') ? 'These pictures have 30 m pixels. This glacier is so small that they look very blurry.' : 'Add older pictures (30 m pixels) for the years before 2016. They stay on in every view and mode until you switch them off.');
+  b.disabled = !!(sw && sw.disabled); if (b.disabled) b.title = 'No older pictures found for this glacier';
+  if (row && row.classList.contains('not-recommended')) b.classList.add('weak');
+  b.onclick = () => { if (sw) sw.click(); };
+  const info = document.getElementById('landsatInfo'), i = document.createElement('button'), wrap = document.createElement('span');      // the "i" in the box of the chip opens the note on 30 m pixels
+  i.type = 'button'; i.className = 'info-btn'; i.textContent = 'i'; i.setAttribute('aria-label', 'About the older imagery'); i.setAttribute('aria-expanded', landsatInfoOpen && !b.disabled);
+  i.onclick = () => { landsatInfoOpen = !landsatInfoOpen; document.querySelectorAll('.landsat-wrap .info-btn').forEach(x => x.setAttribute('aria-expanded', landsatInfoOpen)); if (info) { info.hidden = !landsatInfoOpen; if (landsatInfoOpen) wrap.parentElement.after(info); } };      // the note opens right under the row whose "i" was clicked
+  if (info) info.hidden = !landsatInfoOpen || b.disabled;
+  i.hidden = b.disabled; wrap.className = 'landsat-wrap'; wrap.append(b, i);
+  queueMicrotask(() => { if (info && landsatInfoOpen && !b.disabled && wrap.parentElement && wrap.parentElement.offsetParent && !info.offsetParent) wrap.parentElement.after(info); });      // another mode: an open note follows to the row that is on show
+  return wrap;
+}
+let landsatInfoOpen = false;
 export function yearChips(boxId, key, opts = {}){
   const box = document.getElementById(boxId); box.innerHTML = '';
   YEARS.forEach(y => {
@@ -95,8 +118,8 @@ export function yearChips(boxId, key, opts = {}){
     if (state.checked && !ok) { b.classList.add('missing'); b.title = `No ${y} imagery from this source`; }
     if (!state.checked) b.title = 'Checking…';
     const sc = state.available[y];
-    if (sc) { b.title = `${fmtDate(sc.date)}${sc.orbit ? ', orbit ' + sc.orbit : ''}${sc.clear ? '' : ' (some clouds)'}`; if (!sc.clear) b.classList.add('some'); }      // hover: the day and the orbit of the scene; a year with some clouds has a dashed border
-    b.setAttribute('aria-pressed', state[key] === y && !(key === 'one' && (state.latest || state.oldestAerial)) && !(key === 'b' && state.latest && state.latest.year === y) && !(key === 'a' && oldestPair()));
+    if (sc) { b.title = `${fmtDate(sc.date)}${sc.orbit ? ', orbit ' + sc.orbit : ''}${sc.clear ? '' : ' (some clouds)'}${isLandsat(sc) ? ', ' + landsatName(sc) : ''}`; if (!sc.clear) b.classList.add('some'); }      // hover: the day and the orbit of the scene; a year with some clouds has a dashed border
+    b.setAttribute('aria-pressed', state[key] === y && !(key === 'one' && (state.latest || state.oldestAerial)) && !((key === 'a' || key === 'b') && key === state.latestSide && state.latest && state.latest.year === y) && !((key === 'a' || key === 'b') && key === state.oldestSide && oldestPair()));
     if (opts.range && ok && y > Math.min(state.from, state.to) && y < Math.max(state.from, state.to)) b.classList.add('in-range');
     b.onclick = () => {
       if (key === 'one' || key === 'b') restoreLatest();      // the slider: Latest belongs to the second side, Oldest to the first
@@ -110,7 +133,7 @@ export function yearChips(boxId, key, opts = {}){
 }
 /* The specials row of One year: the oldest aerial image of the glacier's box, the newest scene of the last weeks */
 export function specialChips(){
-  const box = document.getElementById('yearsSpecial'), boxC = document.getElementById('yearsSpecialC'); box.innerHTML = ''; boxC.innerHTML = '';      // One year: Oldest and Latest; Slider: Latest on the right side (Oldest is one picture, no pair)
+  const box = document.getElementById('yearsSpecial'); box.innerHTML = '';      // One year: Oldest and Latest; Slider: the same two under each picture (below)
   if (!FEATURES.oldest && !FEATURES.latest) return;      // the chips need data of the region (the oldest aerial picture, the cloud masks of the Latest scene); without both the rows are hidden (applyRegionUi)
   const og = currentGlacier(); if (FEATURES.oldest) ensureOldest(og); if (FEATURES.swisstopo) updateMapYears(); const oldest = FEATURES.oldest ? oldestAerial.get(og.id) : null;      // {ed, flown}, null: no aerial image, undefined: still asked
   const chip = (text, title, on, disabled, click, cls, into = box) => {
@@ -118,15 +141,23 @@ export function specialChips(){
     b.type = 'button'; b.textContent = text; b.title = title; b.disabled = disabled; b.setAttribute('aria-pressed', on); if (cls) b.className = cls;
     b.onclick = click; into.appendChild(b); return b;
   };
-  chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest aerial image of this area: ${oldestWhat(oldest)}`,
-    !!state.oldestAerial, !oldest, () => { if (state.oldestAerial) { restoreOldest(); refreshAll(); } else showOldest(); });
+  const NA3D = 'Not available in 3D: the oldest aerial image is shown on the map only. Switch to Map to see it.', in3d = viewMode === '3d';      // 3D has no Oldest: the chip is greyed, the tip and a click say why
+  const naOldest = b => { if (in3d) { b.classList.add('is-na'); b.setAttribute('aria-disabled', 'true'); b.title = NA3D; b.onclick = () => wire.showNotice(NA3D); } };
+  naOldest(chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest aerial image of this area: ${oldestWhat(oldest)}`,
+    !!state.oldestAerial, !oldest && !in3d, () => { if (state.oldestAerial) { restoreOldest(); refreshAll(); } else showOldest(); }));
   const l = chip('Latest', `The newest clear-ish scene of the last ${LATEST.days} days, with at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue`,
     !!state.latest, !state.checked || latestBusy, () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
-  const firstYear = () => { const ys = YEARS.filter(y => state.available[y]); if (ys.length) { state.a = ys[0]; if (state.b === state.a) state.b = ys[ys.length - 1]; } };      // leaving Oldest in the slider: the first side goes back to the first year (2016)
-  chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest aerial image of this area (${oldestWhat(oldest)}) as the first picture of the slider`,
-    oldestPair(), !oldest, () => { if (oldestPair()) { restoreOldest(); firstYear(); refreshAll(); } else showOldest(); }, '', boxC);
-  const lc = chip('Latest', l.title, !!state.latest && state.latest.year === state.b, l.disabled, () => { if (state.latest) { restoreLatest(); refreshAll(); } else showLatest(); }, 'latest-chip', boxC);
-  if (!state.oldestAerial) { l.classList.add('sat-need'); lc.classList.add('sat-need'); }      // Oldest runs without the Sentinel-2 picture: the chips must stay usable then, to leave it
+  for (const side of ['a', 'b']) {      // the slider: each picture has its own Oldest and Latest (one picture per side; the same special is on one side at a time)
+    const into = document.getElementById(side === 'a' ? 'yearsSpecialA' : 'yearsSpecialB'), where = side === 'a' ? 'the left or top picture' : 'the right or bottom picture';
+    into.innerHTML = '';
+    naOldest(chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest aerial image of this area (${oldestWhat(oldest)}) as ${where}`,
+      oldestOn(side), !oldest && !in3d, () => { if (oldestOn(side)) { restoreOldest(); refreshAll(); } else showOldest(side); }, '', into));
+    const on = !!state.latest && state.latestSide === side && state[side] === state.latest.year;
+    const lc = chip('Latest', l.title, on, l.disabled, () => { if (on) { restoreLatest(); refreshAll(); } else showLatest(side); }, 'latest-chip', into);
+    { const ls = state.latest && state.available[state.latest.year]; if (on && ls) { const sm = document.createElement('small'); sm.className = 'chip-date'; sm.textContent = fmtDM(ls.date); lc.appendChild(sm); } }      // Latest on: the day of that picture, small on the chip
+    if (!state.oldestAerial) lc.classList.add('sat-need');      // Oldest runs without the Sentinel-2 picture on its side: the chips must stay usable then, to leave it
+  }
+  if (!state.oldestAerial) l.classList.add('sat-need');
 }
 /* The download pane shows the years it will use: refresh it whenever the selection or the frame on the map changes */
 export function syncPane(){
@@ -139,13 +170,13 @@ export function syncPane(){
     wire.updateFrame();
   } catch {}
 }
-/* Image metadata (dropdown under Image settings): the scene behind every year, the pictures on show marked, and what the pictures are made of */
+/* Image metadata (the Metadata button in Save and share): the scene behind every year, the pictures on show marked, and what the pictures are made of */
 export function renderMeta(){
   const box = document.getElementById('metaBody'); if (!box) return;
   const g = currentGlacier(), ys = okYears();
   if (!g || !state.checked || !ys.length) { box.innerHTML = '<p class="meta-note">Shown when the scenes have been found.</p>'; return; }
   const shown = state.mode === 'compare' ? [state.a, state.b] : tlFrames();
-  const open = !!(box.closest('details') && box.closest('details').open);      // the catalogue is asked only while the table is on show
+  const open = !document.getElementById('metaBox').hidden;      // the catalogue is asked only while the table is on show
   metaCsv = [['year', 'date', 'orbit', 'selection', 'satellite', 'tile', 'time_utc', 'sun_elevation_deg', 'product_ids']];
   let lastPs;
   const prod = sc => { const ps = lastPs = open && sc ? sceneProducts(g, sc) : undefined;      // image id: satellite and tile, the whole id on hover and copied by a click
@@ -172,11 +203,13 @@ export function downloadMetaCsv(){
   const a = document.createElement('a'), url = URL.createObjectURL(new Blob([metaCsv.map(r => r.map(q).join(',')).join('\n') + '\n'], {type: 'text/csv'}));
   a.href = url; a.download = `tonguesfromspace-${g.id}-image-metadata.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
-document.getElementById('metaBox').addEventListener('toggle', renderMeta);      // the catalogue is asked when the table opens
+document.getElementById('tuneSwitch').onclick = e => { const on = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', on); document.getElementById('tuneBody').hidden = !on; };      // Adjust image: the switch shows the sliders
+document.getElementById('metaBtn').onclick = () => { const b = document.getElementById('metaBox'), on = b.hidden; b.hidden = !on; document.getElementById('metaBtn').setAttribute('aria-expanded', on); renderMeta(); };      // the catalogue is asked when the table opens
 document.getElementById('metaBody').addEventListener('click', e => { if (e.target.id === 'metaDl') return downloadMetaCsv(); const c = e.target.closest('.copy'); if (!c || !navigator.clipboard) return;
   navigator.clipboard.writeText(c.dataset.copy.replace(/ /g, '\n')).then(() => { const t = c.textContent; c.textContent = 'Copied'; setTimeout(() => { c.textContent = t; }, 1200); }, () => {}); });
 export function renderYears(){
   yearChips('yearsA', 'a'); yearChips('yearsB', 'b');
+  ['lsA', 'lsOne'].forEach(id => { const slot = document.getElementById(id); slot.innerHTML = ''; if (REGION.landsat) slot.appendChild(landsatChip(true)); });      // the older-imagery switch: under the colour thumbnails of the first slider picture, under the year row of one year (timelapse: under its slider)
   renderYearRange(); yearChips('yearsOne', 'one'); specialChips(); renderMeta();
   if (typeof wire.renderMobileBar === 'function') wire.renderMobileBar();
   syncPane();
@@ -195,20 +228,33 @@ export function renderMode(){
   document.getElementById('orientSub').hidden = state.mode !== 'compare'; document.getElementById('modeGroup').classList.toggle('has-sub', state.mode === 'compare');      // the slider direction hangs under the Compare button
   document.getElementById('singleControls').hidden = state.mode !== 'single';
   document.getElementById('timelapseControls').hidden = state.mode !== 'timelapse';
-  ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl || (p === 'paneA' && oldestPair()) ? 'none' : '');
+  { const row = document.getElementById('landsatRow'), info = document.getElementById('landsatInfo'), label = document.querySelector(state.mode === 'single' ? '#singleControls .side-label' : state.mode === 'timelapse' ? '#timelapseControls .side-label' : null);      // the older-imagery switch hangs directly under the Year (Years) heading; in Compare it stays at the bottom
+    if (row) { if (label) label.after(row); else document.getElementById('status').before(row); } }
+  ['paneA','paneB'].forEach(p => map.getPane(p).style.display = tl || (p === (state.oldestSide === 'b' ? 'paneB' : 'paneA') && oldestPair()) ? 'none' : '');
   map.getPane('paneT').style.display = tl ? '' : 'none';
   updateTags(); wire.syncSatUi();
   document.getElementById('styleNatural').setAttribute('aria-pressed', state.style === 'natural');
   document.getElementById('styleFalse1').setAttribute('aria-pressed', state.style === 'false1');
   document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
   document.getElementById('styleFalse3').setAttribute('aria-pressed', state.style === 'false3');
+  { const cmpOn = state.mode === 'compare', sB = state.styleB || state.style;      // the slider: each picture has its year chips and its own colour composition, so the shared row and note give way
+    document.getElementById('colourGroup').hidden = cmpOn; document.getElementById('styleNote').hidden = cmpOn;
+    document.querySelectorAll('#swatchesA .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === state.style));
+    document.querySelectorAll('#swatchesB .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === sB));
+    if (!ccAltChecked && state.styleB) { ccAltChecked = true; if (state.styleB !== state.style) document.getElementById('ccAltB').open = true; } }      // a different composition from a share link: open the fold once; after that only the visitor opens or closes it
   applyBrightness();
   document.getElementById('styleNote').textContent = {
     natural: 'As the eye sees it: snow white, rock grey, plants green.',
-    false1: 'Infra: plants look red, snow white, bare ice grey, water dark/blue.',
-    false2: 'Bloody: snow and ice look red, clouds white, rock pale, water black.',
-    false3: 'Hot?: ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).'
+    false1: 'Plants look red, snow white, bare ice grey, water dark/blue.',
+    false2: 'Snow and ice look red, clouds white, rock pale, water black.',
+    false3: 'Ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).'
   }[state.style];
+}
+export function setStyleB(st){            // the second picture of the slider gets its own colour composition
+  state.styleB = st;
+  renderMode(); renderMeta();
+  if (state.checked) setCompareLayers();
+  renderStory(); wire.sync3D();
 }
 export function setStyle(st){
   state.style = prefs.style = st; savePrefs();
@@ -380,6 +426,8 @@ document.getElementById('styleNatural').onclick = () => setStyle('natural');
 document.getElementById('styleFalse1').onclick = () => setStyle('false1');
 document.getElementById('styleFalse2').onclick = () => setStyle('false2');
 document.getElementById('styleFalse3').onclick = () => setStyle('false3');
+document.querySelectorAll('#swatchesA .sw').forEach(b => b.onclick = () => setStyle(b.dataset.style));
+document.querySelectorAll('#swatchesB .sw').forEach(b => b.onclick = () => setStyleB(b.dataset.style));
 
 export let storyTab = HASH_TAB || (REGION.rgi ? 'look' : 'figures');     // tab in the right panel: Stats on start, then kept when switching glacier
 /* The cards of the Switzerland tab: the same stack as in Discover; one open at a time, the choice remembered */
@@ -416,11 +464,11 @@ export const landsatAbout = rule => `<h4>Before 2016: Landsat</h4>
           <li>For a glacier so small that its picture is under 400 Landsat pixels across, the switch says "not recommended".</li>
         </ul>`;
 /* The social links and the GitHub invitation: at the foot of the About block; on phones they sit below the For Your Ice box (js/09-phones.js fills #fyiSlot with them; css hides the other copy) */
-export const inviteHtml = () => `<div class="social" aria-label="Follow Tongues from Space"><a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.8" cy="7.2" r="1.2"/></svg></a><a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.5a3 3 0 1 1-3-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4c.4 2.4 1.8 3.8 4.2 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></a></div>
+export const inviteHtml = () => `<div class="social" aria-label="Follow Tongues from Space"><a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.8" cy="7.2" r="1.2"/></svg></a><a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.5a3 3 0 1 1-3-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4c.4 2.4 1.8 3.8 4.2 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></a><button type="button" class="social-share" aria-label="Share this view" title="Share this view: link, or the share sheet of your device"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.1 10.9l7.8-3.8M8.1 13.1l7.8 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
       <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>For questions, remarks, bugs, find me here.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/<wbr>tonguesfromspace</a></em></span></div>`;
 export const aboutFrame = chapters => `    <div class="about-wrap">
     <details class="about">
-      <summary><svg class="about-ico" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6"/><circle class="dot" cx="12" cy="7.6" r="1"/></svg> About Tongues from Space</summary>
+      <summary>About Tongues from Space</summary>
 ${chapters}
     </details>
     ${inviteHtml()}
@@ -452,7 +500,7 @@ export function aboutChaptersCh(){
         <h4>Left panel: three steps</h4>
         <ul>
           <li><em>1 Choose a glacier:</em> one of the ten largest Swiss glaciers, from the list or by clicking it on the map.</li>
-          <li><em>2 Compare:</em> the view is Map or 3D (the camera flies between the two; switch "Fly between map and 3D" off to change at once). The mode is <em>One year</em>, <em>Slider</em> (drag the line to compare two years) or <em>Timelapse</em> (one picture per year, with a speed and an optional loop). The colour composition has four choices (see The colours). Image settings change the brightness and the opacity of the image and of its surroundings, and Image metadata names the bands and the pixel size of the picture.</li>
+          <li><em>2 Compare:</em> the view is Map or 3D (the camera flies between the two; switch "Fly between map and 3D" off to change at once). The mode is <em>One year</em>, <em>Slider</em> (drag the line to compare two years) or <em>Timelapse</em> (one picture per year, with a speed and an optional loop). The colour composition has four choices (see The colours). "Adjust image" changes the brightness and the opacity of the image and of its surroundings, and the Metadata button (under Save and share) names the bands and the pixel size of the picture.</li>
           <li><em>3 Create and share</em> is described under Create and share.</li>
         </ul>
         <h4>Right panel: three tabs</h4>
@@ -479,10 +527,10 @@ export function aboutChaptersCh(){
         <p>The figures on the cards of pictures and videos follow the same rules as the right panel: the ice and water figures are the estimates described under Ice and water, and the outline, length and area figures are GLAMOS values.</p>
         <h4>Share, elevation model, gallery, size</h4>
         <ul>
-          <li><em>Share link</em> opens the share sheet of your device, or copies the link. The link opens this glacier with the same mode, years and colour composition.</li>
+          <li><em>Share</em> opens the share sheet of your device, or copies the link. The link opens this glacier with the same mode, years and colour composition.</li>
           <li><em>Elevation model</em> (3D view, glaciers with yearly surfaces) downloads the ice surface of a year as GeoTIFF, ESRI ASCII grid or XYZ points, in LV95 (EPSG:2056). It is a model, not a measurement, and for non-commercial use.</li>
           <li><em>Gallery</em> (button under the title) shows the pictures and videos that visitors have shared. When you send one you confirm that you made it and agree that it is shown. It is checked and waits for approval before it appears.</li>
-          <li><em>Size comparison with your city</em> (in step 2) opens a page where you drag the outline of the glacier onto your own city.</li>
+          <li><em>Compare it to your city size</em> (above the tabs in the right panel) opens a page where you drag the outline of the glacier onto your own city.</li>
         </ul>
       </div></details>
       <p class="about-group">The pictures</p>
@@ -610,7 +658,7 @@ export function aboutChaptersCh(){
           <li>2018 to 2025 are measured on most of the strip; 2016 is extrapolated, 2017 is measured on part of the ice, 2026 is a provisional estimate. Older pictures use the surface of 2016.</li>
           <li>ICESat-2 laser heights check the years that have shots.</li>
         </ul>
-        <p>A model, not a measurement, except on the days and cells a survey covers. <em>Science mode</em> (the pill in the top bar of the 3D view) shows for each year how the surface was found, its uncertainty and its checks. The full account is in the <a href="provenance.html?id=B36-26" target="_blank" rel="noopener">field notes</a>.</p>
+        <p>A model, not a measurement, except on the days and cells a survey covers. <em>Science mode</em> (open it from the Scientific field notes button at the top of this panel) shows for each year how the surface was found, its uncertainty and its checks. The full account is in the <a href="provenance.html?id=B36-26" target="_blank" rel="noopener">field notes</a>.</p>
         <p><em>The nine others</em> (each links to its field notes)</p>
         <ul>
           <li><em>Gornergletscher</em> (<a href="provenance.html?id=B56-07" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so a straight line in elevation fitted to the balances of five other glaciers drives the melt (computed, and said so in the field notes). Surveys: 9 swisstopo flights (2017-09-05 to 2025-09-06), lidar 2021-08-25 to 2022-08-23 and the two swissALTI3D editions (stand for 2015-06-17 and 2023-09-03, estimated). Measured: 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025 (partly: 2018). Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2026. ICESat-2 check (not in the fit): 1656 shots, model minus shot median +0.94 m, NMAD 1.32 m (computed).</li>
@@ -663,10 +711,21 @@ export function aboutChaptersCh(){
       </div></details>
 `;
 }
+document.getElementById('story').addEventListener('click', e => {      // the tool buttons above the tabs of the right panel start the cross-section on the map or in the 3D view
+  const b = e.target.closest && e.target.closest('[data-tool="sect"]'); if (!b) return;
+  const sb = document.getElementById(viewMode === '3d' ? 'v3mSect' : 'measureSect'); if (!sb || sb.hidden) return;
+  if (matchMedia('(max-width:720px)').matches) document.getElementById('stage').scrollIntoView({block: 'start', behavior: 'smooth'});      // on a phone the map is above the panel
+  sb.click();
+});
+const FIELD_NOTES = ['B36-26', 'B56-07', 'B43-03', 'B40-07', 'A54g-11', 'B83-03', 'B57-05', 'B56-03', 'B53-04', 'A54e-24'];      // the glaciers with yearly surfaces and so a provenance.html page (data/yearly/<id>.json)
+document.getElementById('story').addEventListener('click', e => {      // the field notes page gets the year on screen and the way back to this view
+  const a = e.target.closest && e.target.closest('.notes-btn'); if (!a) return;
+  const y = state.mode === 'single' ? state.one : state.mode === 'compare' ? state.b : state.to;
+  a.href = `/provenance.html?id=${a.dataset.notes}&${y ? `year=${y}&` : ''}back=${encodeURIComponent(location.href)}`;
+});
 export function renderStory(){
   if (REGION.rgi) return wire.renderStoryIcecap();      // js/07a-region-icecaps.js
   const g = currentGlacier(); if (typeof wire.updateRightTab === 'function') wire.updateRightTab();
-  { const a = document.getElementById('sizeLink'); if (a) a.href = sizeHref(g); }      // the size comparison opens with this glacier picked
   const [lo, hi] = state.mode === 'single' ? [state.one, state.one]
     : state.mode === 'timelapse' ? [Math.min(state.from, state.to), Math.max(state.from, state.to)]
     : [Math.min(state.a, state.b), Math.max(state.a, state.b)];
@@ -688,6 +747,11 @@ export function renderStory(){
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede.replace('by area,', `by area${fn('sgi')},`)}</p>
 
+    <div class="tool-btns">
+      ${g.inv && g.inv.radar ? `<button type="button" class="tool-btn tool-sect" data-tool="sect" title="Draw a line across the glacier and see the ice cut open: its thickness down to the rock"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h18c-4 12-14 12-18 0z" fill="currentColor" fill-opacity=".22"/><path d="M12 6.5v8.2" stroke-dasharray="1.6 2.2"/></svg><span>Draw a cross section of the ice</span></button>` : ''}
+      ${FEATURES.sizeTool ? `<a class="tool-btn size-btn" href="${sizeHref(g)}" title="Drag the outline of this glacier onto a city and see how big it is"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h6v10M14 20V4h6v16M2 20h20"/></svg><span>Compare it to your city size</span></a>` : ''}
+      ${FIELD_NOTES.includes(g.inv && g.inv.id) ? `<a class="tool-btn notes-btn" href="/provenance.html?id=${g.inv.id}" data-notes="${g.inv.id}" target="_blank" rel="noopener" title="How the 3D view of this glacier was made: pictures, terrain, ice surface of each year, checks and licences"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4M3 7h3M3 12h3M3 17h3"/></svg><span>Scientific field notes</span></a>` : ''}
+    </div>
     <div class="tabs" role="tablist" aria-label="About this glacier">
       <button type="button" ${tab('look')}>Discover</button>
       <button type="button" ${tab('figures')}>Stats</button>

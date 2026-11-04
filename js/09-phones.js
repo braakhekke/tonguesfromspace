@@ -139,7 +139,7 @@ export function swatchSvg(k){
     <path d="M40 18l9 3M43 26l11 1M47 33l8-3" stroke="${c.crev}" stroke-width="1.2" fill="none"/>
     <ellipse cx="52" cy="40" rx="9" ry="3.6" fill="${c.lake}"/></svg>`;
 }
-document.querySelectorAll('.sw').forEach(b => { const k = b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : b.id === 'styleFalse2' ? 'false2' : 'false3'; b.querySelector('i').innerHTML = swatchSvg(k); });
+document.querySelectorAll('.sw').forEach(b => { const k = b.dataset.style || (b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : b.id === 'styleFalse2' ? 'false2' : 'false3'); b.querySelector('i').innerHTML = swatchSvg(k); });
 
 export let pendingChoice = null;
 export function chooseGlacier(id){
@@ -163,26 +163,53 @@ export function chooseGlacier(id){
 /* the new glacier gets the same special picture as the old one had (its search has finished: the scenes of every year are known) */
 function keepSpecial(id, special, tries = 0){
   if (!special || state.glacier !== id || viewMode === '3d' || !state.checked) return;
-  if (special === 'latest') { showLatest(); return; }
+  if (special === 'latest') { showLatest(state.latestSide); return; }
   const g = currentGlacier(); ensureOldest(g);
   if (oldestAerial.get(id) === undefined && tries < 50) { setTimeout(() => keepSpecial(id, special, tries + 1), 200); return; }      // the oldest picture of this glacier is still being looked up
-  if (oldestAerial.get(id)) showOldest();
+  if (oldestAerial.get(id)) showOldest(state.oldestSide);
+}
+export function swipeToClose(head, panel, close, enabled = () => true){      // dragging a sheet's header down closes it; a short drag springs back (the sheets of phones: glaciers, create and share, full-screen layers)
+  let y0 = null, dy = 0, moved = false;
+  head.addEventListener('pointerdown', e => {
+    if (!enabled() || (e.target.closest && e.target.closest('input, select, a, .g-close, .vs-close'))) return;
+    y0 = e.clientY; dy = 0; moved = false; head.setPointerCapture(e.pointerId); panel.style.transition = 'none';
+  });
+  head.addEventListener('pointermove', e => { if (y0 === null) return; dy = Math.max(0, e.clientY - y0); if (dy > 6) moved = true; panel.style.transform = `translateY(${dy}px)`; });
+  const end = () => {
+    if (y0 === null) return;
+    y0 = null; panel.style.transition = 'transform .15s ease-out'; panel.style.transform = '';
+    if (dy > 80) close();
+  };
+  head.addEventListener('pointerup', end); head.addEventListener('pointercancel', end);
+  head.addEventListener('click', e => { if (moved) { e.stopImmediatePropagation(); e.preventDefault(); moved = false; } }, true);      // a drag is not a tap on the header button
 }
 export const MP_CHEV = '<svg class="mp-chev" viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
 export let gSheet = null;
 export function glacierSheet(){                 // the sheet with the ten glaciers, made the first time it is needed
   if (gSheet) return gSheet;
   gSheet = document.createElement('div'); gSheet.className = 'g-sheet'; gSheet.setAttribute('role', 'dialog'); gSheet.setAttribute('aria-modal', 'true'); gSheet.setAttribute('aria-label', 'Choose a glacier');
-  gSheet.innerHTML = '<div class="g-back"></div><div class="g-panel"><div class="g-head"><h2 class="step-h"><span class="num">01</span>Choose a glacier</h2><button type="button" class="g-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><ul class="g-list"></ul></div>';
+  gSheet.innerHTML = '<div class="g-back"></div><div class="g-panel"><div class="g-head"><span class="g-grip" aria-hidden="true"></span><h2 class="step-h"><span class="num">01</span>Choose a glacier</h2><button type="button" class="g-close" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div><ul class="g-list"></ul></div>';
   document.body.appendChild(gSheet);
   gSheet.querySelector('.g-back').onclick = gSheet.querySelector('.g-close').onclick = () => setGlacierSheet(false);
   gSheet.querySelector('.g-list').onclick = e => { const b = e.target.closest('button[data-id]'), sb = e.target.closest('button[data-sub]'); if (b) { setGlacierSheet(false); chooseGlacier(b.dataset.id); } else if (sb) { setGlacierSheet(false); focusSub(currentGlacier(), +sb.dataset.sub); } };
-  document.addEventListener('keydown', e => { if (e.key === 'Escape' && gSheet.classList.contains('open')) setGlacierSheet(false); });
+  document.addEventListener('keydown', e => {
+    if (!gSheet.classList.contains('open')) return;
+    if (e.key === 'Escape') { setGlacierSheet(false); return; }
+    if (e.key !== 'Tab') return;      // keep the focus inside the sheet (the page behind is inert, this covers browsers without it)
+    const f = [...gSheet.querySelectorAll('button:not([disabled])')];
+    if (!f.length) return;
+    const first = f[0], last = f[f.length - 1];
+    if (!gSheet.contains(document.activeElement)) { e.preventDefault(); first.focus(); }
+    else if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
+  swipeToClose(gSheet.querySelector('.g-head'), gSheet.querySelector('.g-panel'), () => setGlacierSheet(false));
   return gSheet;
 }
 export function setGlacierSheet(open){
   const s = glacierSheet(), btn = $('mGlacier');
   s.classList.toggle('open', open); btn.setAttribute('aria-expanded', open); document.body.classList.toggle('sheet-open', open);
+  for (const el of document.body.children) if (el !== s && el.tagName !== 'SCRIPT') el.toggleAttribute('inert', open);      // the page behind cannot be tabbed into or read while the sheet is open
   if (open) { const cur = s.querySelector('button[aria-pressed="true"]') || s.querySelector('.g-list button'); cur.focus(); cur.scrollIntoView({block: 'center'}); }
   else btn.focus({preventScroll: true});
 }
@@ -233,6 +260,8 @@ export function placeLayers(){
 }
 PHONE.addEventListener('change', placeLayers); placeLayers();
 export const LAND = matchMedia('(max-width:950px) and (orientation:landscape) and (max-height:520px)');      // phone held sideways: the menu slides in from the right edge of the map; its chevron (pointing right) and a press on the map close it
+swipeToClose($('layerbox').querySelector('.lb-head'), $('layerbox'), () => setLayers(false), () => document.body.classList.contains('has-full') && $('layerbox').classList.contains('in-flow') && $('layerbox').classList.contains('open'));      // full screen: the layer menu is a sheet from the bottom edge
+swipeToClose($('v3dLayers').querySelector('.lb-head'), $('v3dLayers'), () => setLayers(false), () => document.body.classList.contains('has-full') && $('v3dLayers').classList.contains('in-flow') && $('v3dLayers').classList.contains('open'));
 $('lbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
@@ -273,12 +302,14 @@ export async function shareView(){
   catch { prompt('Copy this link:', url); }
 }
 $('shareBtn').onclick = shareView;
+document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.social-share')) shareView(); });      // the share symbol beside the social links shares the view on screen, as the Share button in step 3 does
 
 /* Embed: the iframe code of the view on screen. The link is the shared link plus embed=1 (the page then shows the picture only); the colour style and the 1850 outline,
    which the address does not keep, are added to it. */
 export function embedLink(){
   const p = new URLSearchParams(location.hash.slice(1));
   if (state.style !== 'natural') p.set('s', state.style);
+  if (state.mode === 'compare' && state.styleB && state.styleB !== state.style) p.set('s2', state.styleB);
   if (prefs.old) p.set('ol', '1');
   p.set('embed', '1');
   return location.href.split('#')[0] + '#' + p.toString().replace(/%2C/g, ',');
