@@ -63,8 +63,9 @@
 .mapbar .mtool .lbl{display:none!important}
 .mapbar #zoomIn,.mapbar #zoomOut{font-size:18px;line-height:1;min-width:34px}
 .video-frame canvas{position:absolute;inset:0;width:100%;height:100%;display:block;border-radius:2px}
-.stage-reset{position:absolute;left:14px;bottom:32px;z-index:670;display:flex;align-items:center;gap:8px;padding:10px 16px 10px 12px;border:0;background:var(--accent);color:#fff;font:700 13.5px/1 var(--sans);cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4)}
+.stage-reset{position:absolute;left:14px;bottom:46px;z-index:670;display:flex;align-items:center;gap:8px;padding:10px 16px 10px 12px;border:0;background:var(--accent);color:#fff;font:700 13.5px/1 var(--sans);cursor:pointer;box-shadow:0 2px 12px rgba(0,0,0,.4)}
 .stage-reset:hover{background:#a92720}
+.mapbar{bottom:46px}      /* clear of the map credit, which takes two lines in a medium-width window */
 .stage-reset svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
 .mapbar .who{display:inline-flex;align-items:center;gap:6px;padding:0 8px;font-size:12px;color:var(--moraine);white-space:nowrap}
 .mapbar .who i{width:9px;height:9px;border-radius:50%;background:var(--c,#E5443B)}
@@ -87,7 +88,7 @@
 .cmp-bars div{display:grid;grid-template-columns:86px 1fr 74px;align-items:center;gap:8px;font-size:12px;color:var(--moraine)}
 .cmp-bars i{display:block;height:9px;background:var(--c);border-radius:1px}
 .cmp-bars b{color:var(--ink);font-weight:600;text-align:right;font-variant-numeric:tabular-nums}
-@media (max-width:720px){.stage-reset{left:8px;bottom:92px;padding:8px 12px 8px 10px}.mapbar .mtool{display:inline-flex}.mapbar .who{display:none}.rot{width:34px;height:34px;margin:-17px 0 0 -17px}}
+@media (max-width:720px){.mapbar{bottom:58px}.stage-reset{left:8px;bottom:176px;padding:8px 12px 8px 10px;border-radius:var(--r-pill)}.pick-note{top:auto;bottom:120px;left:12px;right:12px;transform:none;max-width:none;width:auto;font-size:13px;padding:9px 14px 9px 10px}.mapbar .mtool{display:inline-flex}.mapbar .who{display:none}.rot{width:34px;height:34px;margin:-17px 0 0 -17px}}
 </style>
 </head>
 <body>
@@ -774,3 +775,5 @@ build();
 </script>
 </body>
 </html>
+/* phones held sideways: the hint and the credit keep clear of the dock */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){.mapbar{bottom:58px}.stage-reset{left:8px;bottom:176px;border-radius:var(--r-pill)}.mapbar .mtool{display:inline-flex}}

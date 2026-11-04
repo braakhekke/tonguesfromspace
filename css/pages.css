@@ -12,6 +12,7 @@ button,select,input{font:inherit;color:inherit}
 .wrap{max-width:1100px;margin:0 auto;padding:20px 20px 60px}
 .lede{font-size:13.5px;line-height:1.55;margin:0 0 18px;max-width:760px}
 .note{font-size:11.5px;line-height:1.4;color:var(--moraine);margin:8px 0 0}
+.note a{color:var(--crevasse);font-weight:600}
 .step-h{display:flex;align-items:center;gap:8px;margin:22px 0 10px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
 .card{background:var(--sheet);border:1px solid var(--rule);border-radius:0;padding:14px 16px}
 .card-h{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine);margin:0 0 8px}
@@ -45,3 +46,22 @@ button,select,input{font:inherit;color:inherit}
 
 /* no underlined links anywhere */
 a,a:hover,a:focus{text-decoration:none}
+
+/* ---------- phones: the same design language as the dashboard (css/style.css "Phone design system"): soft cards, slim header, rounded controls ---------- */
+@media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .top{border-top-width:3px;border-bottom:0;box-shadow:var(--lift)}
+  .top .in{padding:14px var(--sp-4) 12px;gap:4px var(--sp-4)}
+  .top h1{font-size:21px;line-height:1.15;letter-spacing:-.02em}
+  .top a.back{padding:7px 12px;border:0;border-radius:var(--r-pill);background:var(--firn);font-size:12.5px}
+  .wrap{padding:var(--sp-4) var(--sp-3) 48px}
+  .lede{font-size:15px;line-height:1.55;margin:0 0 var(--sp-4);color:var(--rock)}
+  .card{border:0;border-radius:var(--r-lg);box-shadow:var(--lift);padding:var(--sp-4)}
+  .btn{padding:12px var(--sp-4);border:0;border-radius:var(--r-md);background:var(--firn);font-size:14px}
+  .btn.primary{background:var(--accent);color:#fff;min-height:52px;font-size:15.5px;font-weight:700;display:inline-flex;align-items:center;justify-content:center}
+  .years button{border:0;border-radius:var(--r-sm);background:var(--firn);padding:9px 12px}
+  .years button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .tabs{gap:2px;padding:3px;border:0;border-radius:var(--r-md);background:var(--firn)}
+  .tabs button{flex:1;margin:0;border-radius:11px;padding:10px 4px;text-align:center}
+  .tabs button[aria-selected="true"]{background:var(--sheet);box-shadow:var(--raise)}
+  .stat{border-radius:var(--r-sm)}
+}

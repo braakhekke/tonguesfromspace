@@ -204,7 +204,14 @@ export function downloadMetaCsv(){
   a.href = url; a.download = `tonguesfromspace-${g.id}-image-metadata.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 document.getElementById('tuneSwitch').onclick = e => { const on = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', on); document.getElementById('tuneBody').hidden = !on; };      // Adjust image: the switch shows the sliders
-document.getElementById('metaBtn').onclick = () => { const b = document.getElementById('metaBox'), on = b.hidden; b.hidden = !on; document.getElementById('metaBtn').setAttribute('aria-expanded', on); renderMeta(); };      // the catalogue is asked when the table opens
+/* The three panes under Save and share (the metadata table, the embed code, the elevation-model download) are one at a time: opening one closes the others */
+export function closeOtherSharePanes(keepBox) {
+  for (const [btn, box] of [['metaBtn', 'metaBox'], ['embedBtn', 'embedBox'], ['demBtn', 'demBox']]) {
+    if (box === keepBox) continue;
+    document.getElementById(box).hidden = true; document.getElementById(btn).setAttribute('aria-expanded', 'false');
+  }
+}
+document.getElementById('metaBtn').onclick = () => { const b = document.getElementById('metaBox'), on = b.hidden; if (on) closeOtherSharePanes('metaBox'); b.hidden = !on; document.getElementById('metaBtn').setAttribute('aria-expanded', on); renderMeta(); };      // the catalogue is asked when the table opens
 document.getElementById('metaBody').addEventListener('click', e => { if (e.target.id === 'metaDl') return downloadMetaCsv(); const c = e.target.closest('.copy'); if (!c || !navigator.clipboard) return;
   navigator.clipboard.writeText(c.dataset.copy.replace(/ /g, '\n')).then(() => { const t = c.textContent; c.textContent = 'Copied'; setTimeout(() => { c.textContent = t; }, 1200); }, () => {}); });
 export function renderYears(){
@@ -417,7 +424,7 @@ export function applyImgOpacity(){
 ['imgOpacity', 'mapOp'].forEach(id => document.getElementById(id).oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } });
 applyImgOpacity();
 export const setOutside = v => { prefs.outside = v; savePrefs(); syncOutsideUi(); refreshImages(); syncBackgrounds(); if (viewMode === '3d') wire.refresh3D(); };      // the 3D picture is made again too
-['outside', 'vOutside'].forEach(id => document.getElementById(id).oninput = e => setOutside(+e.target.value));
+['outside', 'vOutside'].forEach(id => { const el = document.getElementById(id); if (el) el.oninput = e => setOutside(+e.target.value); });      // (the download pane has no such slider any more)
 syncOutsideUi();
 document.getElementById('brightness').oninput = e => {
   prefs.bright = +e.target.value; savePrefs(); applyBrightness(); previewBrightness(); if (viewMode === '3d') wire.refresh3D();      // the 3D picture is made again too (it waits until the slider rests)

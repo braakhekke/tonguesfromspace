@@ -6,7 +6,7 @@ import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPi
 import { map, updateSight, updateTrailClip, updateAerial, updateMapYears, oldestAerial, ensureOldest, showOldest, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
 import { showLatest } from './03-imagery.js';
 import { checkYears, checkGen } from './06-scene-search.js';
-import { renderGlacierList, subTitle, focusSub, renderStory, inviteHtml } from './07-render.js';
+import { renderGlacierList, subTitle, focusSub, renderStory, inviteHtml, closeOtherSharePanes } from './07-render.js';
 import { showNotice, drawBoxes, updateBoxes, glaciersExtent, syncSatUi } from './08-controls.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'chooseGlacier', { get: () => chooseGlacier, configurable: true });
@@ -79,6 +79,7 @@ export function setFull(on){
     else if (fullState.saved) { setPanel('left', fullState.saved.l, false); setPanel('right', fullState.saved.r, false); fullState.saved = null; }
     app.classList.toggle('visual-only', on);
   }
+  immSync();
   ['fsBtn', 'v3dFs'].forEach(id => { const b = $(id); if (b) { const t = on ? 'Exit full screen (Esc)' : 'Full screen, visual only'; b.setAttribute('aria-label', t); b.title = t; } });      // the buttons show only an icon: the words are in the tooltip and for screen readers
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);
 }
@@ -88,6 +89,33 @@ $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) { setFull(false); e.preventDefault(); } });      // the key press is used up: leaving full screen is all it does (the 3D view's own Esc handler checks defaultPrevented)
 document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && $('stage').classList.contains('is-full')) setFull(false); });
+/* ---------- Immersive full screen (touch screens): the controls fade away and the picture gets the whole screen ----------
+   Dragging the picture clears the controls at once; they also fade after a few idle seconds; a tap on the bare picture brings them back (or clears them again).
+   They stay while something needs them: an open layer menu or tools row, measuring, a cross-section, a historic photograph, keyboard focus. The round exit button never goes away. */
+const IMM_DELAY = 3500, IMM_BUSY = '.layerbox.open, .v3d-photos.open, .v3d-sect:not([hidden]), .v3d.photo-on, .v3d.measuring, .v3d-mhint.show, .tools-open, #credits.open, #stage :focus-visible';
+const IMM_CONTROL = 'button, a, input, label, .layerbox, .v3d-measure, .mapbar, .v3d-top, .v3d-sect, .v3d-photos, .v3d-mhint, .credits, .full-exit';
+let immTimer = 0, immDrag = null;
+const immOn = () => COARSE && isFull();
+const immBusy = () => !!document.querySelector(IMM_BUSY);
+function immHide(){ clearTimeout(immTimer); if (immOn() && !immBusy()) document.body.classList.add('imm-idle'); }
+function immShow(){ clearTimeout(immTimer); document.body.classList.remove('imm-idle'); if (immOn()) immTimer = setTimeout(function again(){ if (!immOn()) return; if (immBusy()) immTimer = setTimeout(again, 1500); else document.body.classList.add('imm-idle'); }, IMM_DELAY); }
+export function immSync(){
+  const on = immOn(); document.body.classList.toggle('imm', on);
+  if (on) immShow(); else { clearTimeout(immTimer); document.body.classList.remove('imm-idle'); }
+}
+(function(){
+  const st = $('stage');
+  st.addEventListener('pointerdown', e => { immDrag = e.pointerType === 'mouse' ? null : {x: e.clientX, y: e.clientY, moved: false}; }, true);
+  st.addEventListener('pointermove', e => { if (immDrag && !immDrag.moved && immOn() && Math.hypot(e.clientX - immDrag.x, e.clientY - immDrag.y) > 8) { immDrag.moved = true; immHide(); } }, true);
+  st.addEventListener('pointercancel', () => { immDrag = null; }, true);
+  st.addEventListener('pointerup', e => {
+    const d = immDrag; immDrag = null; if (!d || !immOn()) return;
+    if (d.moved) return;                                                      // a drag ends with the picture clear
+    if (e.target.closest && e.target.closest(IMM_CONTROL)) { immShow(); return; }      // a control was used: the timer starts again
+    if (document.body.classList.contains('imm-idle')) immShow(); else immHide();
+  }, true);
+  st.addEventListener('focusin', () => { if (immOn()) immShow(); });
+})();
 /* the left panel scrolls: a cue at its bottom points to "Create and share" until that step is in view (not on phones, where the page scrolls) */
 (function(){
   const box = document.querySelector('.controls'), cue = $('scrollCue'), target = $('shareGroup');
@@ -139,7 +167,7 @@ export function swatchSvg(k){
     <path d="M40 18l9 3M43 26l11 1M47 33l8-3" stroke="${c.crev}" stroke-width="1.2" fill="none"/>
     <ellipse cx="52" cy="40" rx="9" ry="3.6" fill="${c.lake}"/></svg>`;
 }
-document.querySelectorAll('.sw').forEach(b => { const k = b.dataset.style || (b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : b.id === 'styleFalse2' ? 'false2' : 'false3'); b.querySelector('i').innerHTML = swatchSvg(k); });
+document.querySelectorAll('.swatches .sw').forEach(b => { const k = b.dataset.style || (b.id === 'styleNatural' ? 'natural' : b.id === 'styleFalse1' ? 'false1' : b.id === 'styleFalse2' ? 'false2' : 'false3'); b.querySelector('i').innerHTML = swatchSvg(k); });
 
 export let pendingChoice = null;
 export function chooseGlacier(id){
@@ -326,6 +354,7 @@ if (EMBED) {
 }
 $('embedBtn').onclick = () => {
   const box = $('embedBox'), open = box.hidden;
+  if (open) closeOtherSharePanes('embedBox');
   box.hidden = !open; $('embedBtn').setAttribute('aria-expanded', open);
   if (open) { $('embedCode').value = embedCode(); $('embedPreview').href = embedLink(); $('embedCopy').textContent = 'Copy code'; }
 };

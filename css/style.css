@@ -39,7 +39,7 @@ button,select,input{font:inherit;color:inherit}
 .region-menu li small{font-size:11px;font-weight:500;color:#A9B1B5}
 .brand-logo{flex:none;width:46px;height:auto;margin-top:1px}
 .brand h1{font-size:20px;line-height:1.15;margin:0 0 8px;font-weight:700;letter-spacing:-.018em;color:var(--accent)}
-.brand p{margin:0;color:var(--moraine);font-size:12.5px;text-align:justify;text-align-last:left;hyphens:auto}      /* the blurb fills the width of the panel; the last line of each paragraph stays at the left */
+.brand p{margin:0;color:var(--moraine);font-size:12.5px;text-align:left;hyphens:manual}      /* the blurb fills the width of the panel; the last line of each paragraph stays at the left */
 .brand .what{margin-top:2px;line-height:1.4}
 .step{display:flex;flex-direction:column;gap:10px}
 .controls .step ~ .step{border-top:1px solid var(--rule);margin:0 calc(-1 * var(--pad));padding:22px var(--pad) 0}      /* the thin line runs the full width of the panel */
@@ -178,6 +178,10 @@ body.sheet-open{overflow:hidden}
 .play:disabled{opacity:.4;cursor:not-allowed}
 select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule);border-radius:0;padding:6px 30px 6px 8px;font-size:13px;cursor:pointer;
   background:var(--sheet) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%236B7378' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 9px center/15px}      /* a chevron as big as on the cards, instead of the small system arrow */
+.vs-opts select.small{padding:4px 26px 4px 11px;border-radius:15px;font-size:12.5px;font-weight:600;color:var(--ink);background-color:var(--firn);background-position:right 8px center;background-size:12px;min-width:86px;transition:border-color .15s,opacity .15s}      /* the pane's choices: small pills */
+.vs-opts select.small:hover:not(:disabled){border-color:var(--crevasse)}
+.vs-opts select.small:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.vs-opts select.small:disabled{opacity:.45;cursor:default}
 .speed{display:inline-flex;align-items:center;gap:6px;min-width:0}
 .row .speed{flex:1 1 auto;margin-left:12px}
 #playBtn{min-width:104px;padding:6px 20px}
@@ -805,6 +809,13 @@ sup.fn a:hover{opacity:.7}
 .is-3d .video-frame{z-index:710}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
 .vs-opts .toggle input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent);flex:none}
+.toggle.optsw input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:30px;height:17px;margin:0;border-radius:9px;background:var(--rule);cursor:pointer;transition:background .15s}      /* a switch, like Adjust image; the checkbox keeps its id and events */
+.toggle.optsw input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.toggle.optsw input[type=checkbox]:checked{background:var(--crevasse)}
+.toggle.optsw input[type=checkbox]:checked::after{transform:translateX(13px)}
+.toggle.optsw input[type=checkbox]:disabled{opacity:.45;cursor:default}
+.toggle.optsw input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.vs-opts .toggle.optsw input[type=checkbox],.video-sheet > .toggle.optsw input[type=checkbox]{width:30px;height:17px}
 .vs-opts .toggle span{line-height:1.3}
 .vo-outside{margin:4px 0 2px;font-size:13px;grid-column:1 / -1}
 .vo-outside input[type=range]{width:100%;margin:0}
@@ -1340,7 +1351,7 @@ body.pane-open .app.is-3d .v3d-hint,body.pane-open .app.is-3d #videoFrameNote{di
 .tile-link{text-decoration:none}
 
 /* the right panel: sentences are justified; buttons centre their text */
-.story p,.story .dbody p,.story .about-sec p,.story .gh-invite span,.story .tr-row,.story .tr-t,.story .tr-maps,.story .cum-read,.story .w-live,.story .w-text,.story .span-note,.story .sub-note,.story .note,.story .srcline,.story small.src{text-align:justify;text-justify:inter-word;hyphens:auto;-webkit-hyphens:auto}
+.story p,.story .dbody p,.story .about-sec p,.story .gh-invite span,.story .tr-row,.story .tr-t,.story .tr-maps,.story .cum-read,.story .w-live,.story .w-text,.story .span-note,.story .sub-note,.story .note,.story .srcline,.story small.src{text-align:left;hyphens:manual;-webkit-hyphens:manual}      /* left-aligned: in a narrow column, justified text opens gaps between the words */
 .story .sub{text-align:left}
 .story .lede{text-align:left}
 .story .stat .k,.story .stat .v,.story .tr-row,.story .src-list li,.story small.src{text-align:left}
@@ -1719,8 +1730,11 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .embed-box[hidden]{display:none}
 .embed-box .hint{margin:0}
 #embedCode{width:100%;box-sizing:border-box;border:1px solid var(--rule);background:var(--firn);color:var(--rock);font:11px/1.45 ui-monospace,Menlo,Consolas,monospace;padding:8px;resize:none}
+/* links inside notes, hints and the About text: the site's blue, never the browser's */
+.hint a,.note a,.status a,.embed-box a,.about-sec a{color:var(--crevasse);font-weight:600}
 .embed-row{display:flex;gap:8px}
-.embed-row .act{min-width:0;padding-left:6px;padding-right:6px;white-space:nowrap}      /* three buttons share one row */
+.embed-row .act{min-width:0;padding-left:6px;padding-right:6px;line-height:1.2;text-align:center}      /* three buttons share one row; a long label wraps to two lines instead of spilling out */
+#demBtn{flex:1.5 1 0}      /* the longest label of the row */
 .embed-open{display:none}
 html.embed .controls,html.embed .story,html.embed .mhead,html.embed .panel-toggle,html.embed .scroll-cue,html.embed .fyi-slot,html.embed #fsBtn,html.embed #v3dFs{display:none!important}
 html.embed .app{display:block;height:100%}
@@ -1809,3 +1823,257 @@ html.embed .embed-open:hover{background:var(--firn)}
 .app:not(.no-glacier) .step-reset{display:inline-flex}
 
 .chip-date{margin-left:5px;font-size:10px;font-weight:500;opacity:.7}
+
+/* ---------- immersive full screen on touch screens (js/09-phones.js, "Immersive full screen") ----------
+   body.imm = full screen on a touch device; body.imm-idle = controls faded out. Desktop with a mouse is untouched. */
+body.imm{overscroll-behavior:none}
+body.imm .app .stage .full-exit{display:flex!important;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));z-index:2200;align-items:center;justify-content:center;width:42px;height:42px;border:0;border-radius:50%;padding:0;background:rgba(14,23,29,.6);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent;transition:opacity .35s}
+body.imm.imm-idle .app .stage .full-exit{opacity:.5}
+/* title and hint stop before the exit button; the north arrow moves below it */
+body.imm .app .stage .v3d-top{left:calc(14px + env(safe-area-inset-left,0px));right:calc(62px + env(safe-area-inset-right,0px))}
+body.imm .app.is-3d .stage .v3d-north{top:calc(60px + env(safe-area-inset-top,0px));bottom:auto;right:calc(14px + env(safe-area-inset-right,0px))}
+/* the controls keep clear of the home indicator, and the sources line floats on the picture instead of a white bar */
+body.imm .stage .mapbar,body.imm .stage .v3d-measure,body.imm .stage .v3d.photo-on .v3d-measure{bottom:calc(36px + env(safe-area-inset-bottom,0px))}
+body.imm .stage .credits:not(.open){height:calc(22px + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:linear-gradient(to bottom,rgba(0,0,0,0),rgba(0,0,0,.5));color:rgba(255,255,255,.88);text-shadow:0 1px 2px rgba(0,0,0,.6)}
+body.imm .stage .credits:not(.open) a{color:#cfe6f3}
+/* the fade */
+body.imm .stage .mapbar,body.imm .stage .v3d-measure,body.imm .stage .v3d-top,body.imm .stage .layerbox,body.imm .stage .v3d-layers,body.imm .stage .credits{transition:opacity .35s}
+body.imm.imm-idle .stage .mapbar,body.imm.imm-idle .stage .v3d-measure,body.imm.imm-idle .stage .v3d-top,body.imm.imm-idle .stage .layerbox:not(.open),body.imm.imm-idle .stage .v3d-layers:not(.open){opacity:0;pointer-events:none}
+body.imm.imm-idle .stage .credits:not(.open){opacity:.55}
+/* phone in landscape: full screen really is the whole screen (the stage is otherwise a 58vw column beside the panel) */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .app.visual-only .stage{width:100vw;z-index:2000}
+  .app.visual-only .mhead,.app.visual-only .controls,.app.visual-only .story,.app.visual-only .fyi-slot{display:none}
+}
+
+/* ---------- Phone design system (phones, portrait and landscape) ----------
+   One language for the whole dashboard: the page is a quiet grey ground (--firn) and every block is a white card of radius --r-lg with 16 px inside and 12 px between; choices are soft segmented controls and chips (radius --r-sm/--r-md, no outlines, the chosen one lifted or dark); headings are sentence-case; icons stay red, ice stays blue. Tokens: css/tokens.css. Desktop and landscape phones are untouched. */
+@media (max-width:720px) and (orientation:portrait), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  body:not(.has-full){background:var(--firn)}
+  .app{gap:var(--sp-3);padding-bottom:var(--sp-2)}
+
+  /* header: one slim row, the logo and name at the left, the region as a pill at the right */
+  .mhead{display:flex;align-items:center;gap:var(--sp-2);padding:10px var(--sp-4);text-align:left;border:0;border-top:3px solid var(--accent);position:relative}
+  .mhead strong{display:flex;align-items:center;flex:1;min-width:0;gap:var(--sp-3);font-size:0;line-height:1}
+  .mhead strong .home-link{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
+  .mhead-logo{height:28px;margin:0;flex:none}
+  .mhead strong .region-btn{margin-left:auto;gap:4px;padding:7px 10px 7px 13px;border-radius:var(--r-pill);background:var(--firn);font-size:13px;font-weight:600;letter-spacing:0;color:var(--rock);white-space:nowrap}
+  .mhead strong .region-btn svg{width:14px;height:14px}
+  .mhead > span{display:none}
+
+  /* the picture: a card with soft corners, a little air around it */
+  .stage:not(.is-full){margin:0 var(--sp-3);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--lift);min-height:340px}
+  .year-tag{font-size:28px;font-weight:800;letter-spacing:-.02em;text-shadow:0 1px 8px rgba(0,0,0,.45)}
+  .year-tag small{font-size:10.5px;font-weight:500;letter-spacing:.01em;opacity:.92;text-shadow:0 1px 4px rgba(0,0,0,.6)}
+  .mapbar,.v3d-measure{border-radius:var(--r-md)}
+
+  /* the steps are three cards */
+  .controls{background:none;border:0;padding:0 var(--sp-3);gap:var(--sp-3)}
+  .controls > .step,.controls .step ~ .step{background:var(--sheet);border:0;border-radius:var(--r-lg);box-shadow:var(--lift);margin:0;padding:var(--sp-4);gap:var(--sp-3)}
+  .step-h{gap:10px;font-size:16px;font-weight:700;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
+  .step-h .num{display:inline-grid;place-items:center;flex:none;width:24px;height:24px;border-radius:50%;background:#FBE8E6;color:var(--accent);font-size:11.5px;font-weight:700;letter-spacing:0}
+  .step-reset{padding:6px 11px;border:0;border-radius:var(--r-pill);background:var(--firn);font-size:12px}
+  .side-label{margin:var(--sp-2) 0 6px;font-size:11px;font-weight:600;letter-spacing:.08em;color:var(--moraine)}
+  .side-label:first-child{margin-top:0}
+
+  /* choose */
+  .m-pick{min-height:54px;padding:8px var(--sp-4);border:0;border-radius:var(--r-md);background:var(--firn);box-shadow:none;gap:var(--sp-3)}
+  .m-pick .mp-rank{display:none}
+  .m-pick .mp-name{font-size:17px;letter-spacing:-.01em}
+  .m-pick .mp-area{font-size:13.5px}
+  .down-hint:not([hidden]){margin:0;padding:2px 2px 0;font-size:12.5px;font-weight:500;color:var(--crevasse);text-align:left;text-wrap:balance}
+
+  /* segmented controls: map/3D, one year/slider/timelapse, the share formats, the tabs */
+  .modes,.modes.views,.segment{gap:2px;padding:3px;border-radius:var(--r-md);background:var(--firn)}
+  .modes button,.segment button{border:0;border-radius:11px;background:none;color:var(--moraine);box-shadow:none;font-size:13px;font-weight:600;gap:4px}
+  .modes button{padding:10px 4px 8px}
+  .modes.views button{padding:10px 4px}
+  .modes button svg{width:22px;height:22px}
+  .modes button[aria-pressed="true"],.segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink);font-weight:700}
+  .modes button[aria-pressed="true"] svg{stroke:var(--accent)}
+  .no-transition{font-size:12.5px;color:var(--moraine)}
+
+  /* colour compositions: four picture tiles, the chosen one framed in red */
+  .swatches{gap:var(--sp-2)}
+  .sw{padding:4px 4px 7px;border:0;border-radius:var(--r-md);background:var(--firn);box-shadow:none;font-size:12px;color:var(--moraine);gap:6px}
+  .sw i{height:46px;border-radius:10px}
+  .sw[aria-pressed="true"]{background:var(--sheet);box-shadow:0 0 0 2px var(--accent);color:var(--ink);font-weight:700}
+
+  /* years: chips, six to a row; the chosen year dark */
+  .stack .years:not(.specials),.years{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
+  .years button{padding:0;min-height:40px;border:0;border-radius:var(--r-sm);background:var(--firn);font-size:14px;font-weight:500;color:var(--rock)}
+  .years button[aria-pressed="true"]{background:var(--ink);color:#fff;font-weight:700;box-shadow:none}
+  .years button.in-range{background:#DCE8EE}
+  .years button:disabled,.years button.is-na{background:transparent;color:#B6BEC2;border:0;box-shadow:inset 0 0 0 1px var(--rule-2)}
+  .years button.some:not([aria-pressed="true"]){box-shadow:inset 0 0 0 1px var(--faint)}
+  .years.specials{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .years.specials button{min-height:38px;font-size:13px;font-weight:600;color:var(--crevasse)}
+  .years.specials button[aria-pressed="true"]{color:#fff}
+  .spec-row{gap:var(--sp-3)}
+  .status{padding:9px 12px;border-radius:var(--r-sm);font-size:12px}
+  .adj-switch{padding:6px 0;font-size:13px}
+
+  /* save and share: two rows with an icon disc, then three quiet buttons */
+  .dl-grid{grid-template-columns:1fr;gap:var(--sp-2)}
+  .dl{display:grid;grid-template-columns:40px minmax(0,1fr);align-items:center;column-gap:var(--sp-3);row-gap:0;padding:var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3);border:0;border-radius:var(--r-md);background:var(--firn);text-align:left}
+  .dl svg{grid-row:1 / 3;width:22px;height:22px;padding:9px;margin:0;box-sizing:content-box;border-radius:50%;background:var(--sheet);box-shadow:var(--raise)}
+  .dl b{align-self:end;font-size:15px}
+  .dl small{align-self:start;font-size:12px}
+  .dl:hover{background:var(--firn);box-shadow:none}
+  .dl[aria-expanded="true"]{background:var(--sheet);box-shadow:0 0 0 2px var(--accent)}      /* open: framed in red, like a chosen colour tile */
+  .embed-box{margin:0;padding:var(--sp-3);border:0;border-radius:var(--r-md);background:var(--firn)}
+  .embed-box select,.embed-box textarea,.embed-box input[type=text]{border:0;border-radius:var(--r-sm);background-color:var(--sheet);font-size:14px}
+  .embed-box select{min-height:44px;padding:0 var(--sp-3)}
+  .embed-box textarea{padding:var(--sp-3)}
+  .embed-box .hint{font-size:12.5px;line-height:1.5}
+  .embed-box a,.hint a{color:var(--crevasse);font-weight:600}
+  .embed-box .act{background:var(--ink);color:#fff;min-height:44px}
+  .dl-wide{grid-column:auto}
+  .dl-wide span{grid-row:1 / 3;align-self:center;gap:0}      /* its text is one block inside the button: the title and the line under it share one left edge */
+  .dl-wide span b,.dl-wide span small{align-self:flex-start}
+  .embed-row .act,.act{padding:11px 10px;border:0;border-radius:var(--r-sm);background:var(--firn);font-size:13.5px;font-weight:600;color:var(--rock)}
+
+  /* the story card */
+  .story{margin:0 var(--sp-3);padding:0 var(--sp-4) var(--sp-5);border:0;border-radius:var(--r-lg);box-shadow:var(--lift)}
+  .story::before{height:var(--sp-5)}
+  .story h2{font-size:28px;line-height:1.08;letter-spacing:-.025em;margin:0 0 2px}
+  .story .sub{font-size:13px}
+  .story .lede{font-size:15.5px;line-height:1.55;margin:var(--sp-3) 0 0}
+  .story .tool-btns{gap:var(--sp-2);margin-top:var(--sp-4)}
+  .story .tool-btn{justify-content:flex-start;gap:var(--sp-3);padding:13px var(--sp-4);border:0;border-radius:var(--r-md);background:var(--firn);font-size:14.5px;font-weight:600;text-align:left;position:relative}
+  .story .tool-btn::after{content:'';margin-left:auto;width:7px;height:7px;border:solid var(--faint);border-width:2px 2px 0 0;transform:rotate(45deg);flex:none}
+  .story .tool-btn svg{width:20px;height:20px}
+  .tabs{margin:var(--sp-5) 0 var(--sp-2);padding:3px;gap:2px;border:0;border-radius:var(--r-md);background:var(--firn)}
+  .tabs button{flex:1;margin:0;padding:10px 4px;border-radius:11px;font-size:13.5px;color:var(--moraine);text-align:center}
+  .tabs button[aria-selected="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink)}
+  .story .dcard > summary{padding:var(--sp-4) 0}
+  .story p,.story .dbody p,.story .about-sec p,.story .tr-row,.story .tr-t,.story .tr-maps,.story .cum-read,.story .w-live,.story .w-text,.story .span-note,.story .sub-note,.story .note,.story .srcline,.story small.src,.story .gh-invite span{text-align:left;hyphens:manual;-webkit-hyphens:manual}      /* narrow columns: justified text opens rivers */
+  .story .fact{border-radius:0 var(--r-sm) var(--r-sm) 0}
+  .stat{border-radius:var(--r-sm)}
+  details.about{margin:var(--sp-4) 0 0;padding:0;border:0;border-radius:var(--r-md);background:var(--firn)}
+  details.about > summary{justify-content:space-between;padding:var(--sp-4);font-size:12px}
+  details.about[open] > summary{padding-bottom:var(--sp-2)}
+  details.about > :not(summary){margin-left:var(--sp-4);margin-right:var(--sp-4)}
+  details.about > :last-child{margin-bottom:var(--sp-4)}
+
+  /* the invitation and the footer */
+  .fyi-slot{padding:0 var(--sp-3) var(--sp-5)}
+  .fyi{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:var(--sp-4);align-items:center;text-align:left;padding:var(--sp-4);border:0;border-radius:var(--r-lg);background:#FFF3D1;box-shadow:var(--lift)}
+  .fyi-img{grid-row:1 / 6;width:76px;margin:0;border-radius:3px}
+  .fyi-ask{font-size:10.5px}
+  .fyi-name{font-size:18px}
+  .fyi-text{margin-top:2px;font-size:12.5px}
+  .fyi-go{justify-self:start;margin-top:var(--sp-2);padding:8px var(--sp-4);border-radius:var(--r-pill);font-size:13px}
+  .gh-invite{border-radius:var(--r-md)}
+  .credits{border-radius:0}
+  /* lists, tiles and inputs of the size page and the glacier sheet */
+  .glaciers{gap:2px;padding:0}
+  .glaciers button{padding:9px 12px;border-radius:var(--r-sm)}
+  .glaciers button[aria-pressed="true"]{background:var(--firn);box-shadow:inset 3px 0 0 var(--accent)}
+  .cities{gap:var(--sp-2)}
+  .cities button{min-height:42px;border:0;border-radius:var(--r-sm);background:var(--firn);font-size:14px;font-weight:500}
+  .step .city-find input{min-height:44px;border:0;border-radius:var(--r-sm);background:var(--firn);padding:0 var(--sp-3);font-size:16px}
+  .step .city-find button{min-height:44px;border:0;border-radius:var(--r-sm);background:var(--ink);color:#fff;font-weight:600;padding:0 var(--sp-4)}
+  .story .sec .stat-row{gap:var(--sp-2);border:0}
+  .story .sec .stat{border:0;background:var(--firn);border-radius:var(--r-sm);padding:var(--sp-3)}
+  .story .head{padding-bottom:var(--sp-4)}
+}
+
+/* ---------- Phone design system, part 2: the map and 3D controls ----------
+   The docks, menus and overlays on the picture are the same soft white surfaces as the cards below it: light glass (white, 94 %, blurred), radius --r-md/--r-lg, ink text, icon buttons of 42 px with a soft round-rect hover, the active one dark like a chosen chip. Desktop keeps its black glass. */
+@media (max-width:720px) and (orientation:portrait), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .layerbox:not(.in-flow),.mapbar,.v3d-measure,.v3d-tune,.v3d-tip,.notice,.pick-note,.v3d-photos .ph-drop,.layerbox.in-flow{--rock:var(--ink);--moraine:#5C6B74;--rule:rgba(14,26,34,.1);--firn:rgba(14,26,34,.06);--sheet:#fff;color:var(--ink)}
+  .layerbox:not(.in-flow),.mapbar,.v3d-measure,.v3d-tune,.v3d-photos .ph-drop{background:rgba(255,255,255,.94);-webkit-backdrop-filter:blur(12px) saturate(1.2);backdrop-filter:blur(12px) saturate(1.2);box-shadow:0 1px 2px rgba(14,26,34,.12),0 6px 20px rgba(14,26,34,.22)}
+  .layerbox{--panel:#fff}
+  .layerbox.in-flow{background:var(--sheet)}
+
+  /* the docks */
+  .mapbar,.v3d-measure{border-radius:var(--r-lg);padding:var(--sp-1)}
+  .mapbar button,.v3d-measure > button{min-width:42px;min-height:42px;border-radius:var(--r-md);color:var(--ink)}
+  .v3d-measure > button,.v3d-measure > #v3dFs{min-width:clamp(32px,9.4vw,42px);padding-left:0!important;padding-right:0!important;justify-content:center}      /* eight tools fit one row at every phone width */
+  .mapbar button:hover,.v3d-measure > button:hover{background:rgba(14,26,34,.06)}
+  .mapbar button[aria-pressed="true"],.v3d-measure > button[aria-pressed="true"]{background:var(--ink);color:#fff}
+  .mapbar button[aria-pressed="true"] svg,.v3d-measure > button[aria-pressed="true"] svg{stroke:#fff}
+  .mapbar button:disabled{opacity:.3}
+  .mapbar .sep,.v3d-measure .sep{background:var(--rule)}
+  .v3d-measure .v3d-zoom{width:clamp(32px,9.4vw,42px);font-size:22px}
+
+  /* the timeline row in the docks: a year stepper and a thin line */
+  .tl-dots,.v3d-tl{color:var(--ink);border-bottom-color:var(--rule)}
+  .tl-step .tl-step-year{color:var(--ink);font-size:15px;font-weight:700}
+  .tl-prev,.tl-next,.mapbar .tl-prev,.mapbar .tl-next,.mapbar .tl-play,.mapbar .tl-tools,.v3d-measure .tl-tools{width:34px;height:34px;background:rgba(14,26,34,.07);color:var(--ink)}
+  .mapbar .tl-prev:disabled,.mapbar .tl-next:disabled{background:rgba(14,26,34,.07);opacity:.3}
+  .mapbar .tl-prev:hover:not(:disabled),.mapbar .tl-next:hover:not(:disabled),.mapbar .tl-play:hover{background:rgba(14,26,34,.13)}
+  .mapbar .tl2-ends,.v3d-measure .tl2-ends{opacity:1;color:var(--moraine);text-shadow:none}
+  .mapbar .tl2-track::before,.v3d-measure .tl2-track::before{background:rgba(14,26,34,.14)}
+  .mapbar .tl2-fill,.v3d-measure .tl2-fill{background:var(--accent)}
+  .mapbar .tl2-tick,.v3d-measure .tl2-tick{background:rgba(14,26,34,.22)}
+  .mapbar .tl2-tick.on,.v3d-measure .tl2-tick.on{background:var(--accent)}
+  .mapbar .tl2-dot,.v3d-measure .tl2-dot{background:#fff;border:3px solid var(--accent);box-sizing:border-box;box-shadow:0 1px 4px rgba(14,26,34,.35)}
+  .tl-play{background:rgba(255,255,255,.94);color:var(--ink);box-shadow:0 1px 2px rgba(14,26,34,.12),0 4px 14px rgba(14,26,34,.25)}
+  .stage.is-full .full-exit,.app.visual-only .full-exit,.app .full-play{background:rgba(255,255,255,.94);color:var(--ink);box-shadow:0 1px 2px rgba(14,26,34,.12),0 4px 14px rgba(14,26,34,.25)}
+
+  /* 3D dock: photos, cross-section */
+  .v3d-photos .ph-toggle,.v3d-photos .ph-cams,.v3d-photos .ph-btns button{border-radius:var(--r-md);color:var(--ink)}
+  .v3d-photos .ph-drop{border-radius:var(--r-md)}
+  .v3d-photos .ph{border-radius:var(--r-sm)}
+  .v3d-sect{border-radius:var(--r-lg);padding:var(--sp-3) var(--sp-3) var(--sp-2);box-shadow:0 1px 2px rgba(14,26,34,.12),0 6px 20px rgba(14,26,34,.25);font-size:12.5px}
+  .v3d-sect .hd .ex button{border:0;border-radius:var(--r-pill);background:var(--firn);padding:5px 10px}
+  .v3d-photocap{border-radius:var(--r-md);background:rgba(14,26,34,.78)}
+  .v3d-photocap button{border-radius:var(--r-pill)}
+
+  /* menus: the layer menu is a white card, headings in ink */
+  .layerbox:not(.in-flow){border-radius:var(--r-lg);padding:0 var(--sp-4) var(--sp-2)}
+  .layerbox .lb-head{padding:var(--sp-3) 0 var(--sp-2);font-size:14px;font-weight:700;letter-spacing:-.005em;text-transform:none;color:var(--ink)}
+  .layerbox .toggle{font-size:14px}
+  .layerbox.in-flow{padding:0 var(--sp-4) var(--sp-3)}
+  body.has-full .layerbox.in-flow.open{border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -6px 28px rgba(14,26,34,.3)}
+  body.has-full .layerbox.in-flow .lb-head span::after{color:var(--moraine)}
+
+  /* hints and notices: dark ink pills / light cards, one shape language */
+  .measure-hint,.v3d-mhint,.stage-busy{border-radius:var(--r-md);background:rgba(14,26,34,.88);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+  .measure-hint button,.v3d-mhint button{border-radius:var(--r-pill)}
+  .stage-busy{border-radius:var(--r-pill);padding:8px 14px}
+  .notice,.pick-note,.v3d-tip{border-radius:var(--r-md);background:rgba(255,255,255,.96);box-shadow:0 1px 2px rgba(14,26,34,.12),0 6px 20px rgba(14,26,34,.25)}
+  .video-sheet{border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -8px 32px rgba(14,26,34,.3)}
+  .vs-head::before{background:rgba(14,26,34,.18)}
+  .v3d-top > span,.year-tag small{text-shadow:0 1px 6px rgba(0,0,0,.65)}
+  .v3d:has(.v3d-mhint.show) .v3d-top > span{visibility:hidden}      /* the measuring hint takes the place of the line under the year */
+  .layerbox.in-flow .toggle{font-size:13.5px}
+  .layerbox.in-flow .sym{margin-right:8px}
+  .mhead strong .home-link{font-size:16.5px;white-space:nowrap}
+  .mhead strong .region-btn{padding:6px 9px 6px 12px;font-size:12.5px}
+  .pick-note{padding:var(--sp-3) var(--sp-4) var(--sp-3) var(--sp-3);gap:var(--sp-3);font:600 13.5px/1.35 var(--sans);letter-spacing:0;text-transform:none;color:var(--ink)}
+  .pick-note .pn-num{width:22px;height:22px;border-radius:50%;background:var(--accent);color:#fff;font:700 10.5px/1 var(--sans);letter-spacing:0;display:inline-flex;align-items:center;justify-content:center}
+  .leaflet-control-attribution{max-width:calc(100vw - 24px);padding:3px 10px;font-size:10.5px;line-height:14px}
+}
+@media (max-width:350px) and (orientation:portrait){.mhead-logo{display:none}}
+
+/* Phones held sideways: the same system. The picture is the left half (fixed), the cards sit in the right column. */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .app{gap:var(--sp-2);padding-bottom:var(--sp-3)}
+  .stage:not(.is-full){margin:0;border-radius:0;box-shadow:none;min-height:0}
+  .mhead{padding:8px var(--sp-4)}
+  .mhead strong .home-link{font-size:15px}
+  .mhead strong .region-btn{min-width:0;max-width:46%;padding:5px 8px 5px 11px;font-size:12px}
+  .mhead strong .region-btn .region-name{overflow:hidden;text-overflow:ellipsis}
+  .mhead-logo{height:22px}
+  .controls{padding:0 var(--sp-3) 0 var(--sp-3)}
+  .controls > .step,.controls .step ~ .step{padding:var(--sp-3) var(--sp-4)}
+  .story{margin:0 var(--sp-3) 0 calc(58vw + var(--sp-3))}
+  .story h2{font-size:24px}
+  .fyi-slot{padding:0 var(--sp-3) var(--sp-4)}
+  .video-sheet{border-radius:var(--r-lg) 0 0 0}
+  .years button{min-height:36px;font-size:13px}
+  .modes button{padding:8px 4px 6px}
+  .modes button svg{width:20px;height:20px}
+  .sw i{height:38px}
+  .v3d-measure > button,.v3d-measure > #v3dFs{min-width:34px}
+  .v3d-measure .v3d-zoom{width:34px}
+  .step-reset{white-space:nowrap;font-size:11.5px;padding:6px 10px}
+  .leaflet-control-scale{margin-bottom:128px!important}
+  .app.more-open .leaflet-control-scale{margin-bottom:178px!important}
+  .pick-note{top:auto;bottom:calc(var(--sp-6) + 58px + 8px);left:var(--sp-3);right:var(--sp-3);transform:none;max-width:none;width:auto;font-size:12.5px}
+}
+@media (max-width:760px) and (orientation:landscape) and (max-height:520px){.mhead-logo{display:none}}
+

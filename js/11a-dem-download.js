@@ -2,6 +2,7 @@ import { wire } from './wire.js';
 import { $ } from './01-data.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
 import { loadBundle, bundleId } from './11-view3d.js';
+import { closeOtherSharePanes } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'syncDemTile', { get: () => syncDemTile, configurable: true });
 /* =====================================================================
@@ -34,7 +35,7 @@ export async function syncDemTile(){            // called when the 3D view opens
   if (!$('demFmt').options.length) $('demFmt').innerHTML = Object.entries(DEM.FORMATS).map(([k, v]) => `<option value="${k}">${v}</option>`).join('');
   note(c);
 }
-$('demBtn').onclick = () => { const box = $('demBox'), open = box.hidden; box.hidden = !open; $('demBtn').setAttribute('aria-expanded', open); $('demMsg').textContent = ''; };
+$('demBtn').onclick = () => { const box = $('demBox'), open = box.hidden; if (open) closeOtherSharePanes('demBox'); box.hidden = !open; $('demBtn').setAttribute('aria-expanded', open); $('demMsg').textContent = ''; };
 $('demYear').onchange = $('demFmt').onchange = () => { if (cur) note(cur); };
 $('demGo').onclick = async () => {
   const g = currentGlacier(), btn = $('demGo'), msg = $('demMsg'); btn.disabled = true; msg.textContent = 'Preparing…';

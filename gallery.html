@@ -48,6 +48,36 @@
 .lightbox button{position:absolute;top:10px;right:12px;border:0;background:rgba(255,255,255,.15);color:#fff;font-size:26px;line-height:1;width:40px;height:40px;border-radius:50%;cursor:pointer}
 .empty{padding:28px 0;color:var(--moraine)}
 .cta{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:0 0 18px}
+
+/* phones: the filters are one card, every item a large soft card with a calm caption (the design language of css/style.css "Phone design system") */
+@media (max-width:600px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .cta{margin:0 0 var(--sp-4)}
+  .cta .btn{flex:1;text-align:center}
+  .filters{padding:var(--sp-4);border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift);margin:0 0 var(--sp-4);gap:var(--sp-3) var(--sp-3)}
+  .filters label{font-size:10.5px;letter-spacing:.08em;gap:6px}
+  .filters select{height:44px;padding:0 28px 0 12px;border:0;border-radius:var(--r-sm);background-color:var(--firn);font-size:14px}
+  .filters .count{margin:0;font-size:12.5px}
+  .grid{grid-template-columns:1fr;gap:var(--sp-3)}
+  .item{border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift)}
+  .media img,.media video{max-height:62vh}
+  .media .full{right:10px;bottom:10px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5)}
+  .item .meta{display:grid;grid-template-columns:minmax(0,1fr) auto;column-gap:var(--sp-3);row-gap:2px;align-items:center;padding:var(--sp-3) var(--sp-4) var(--sp-4)}
+  .item .kind{grid-column:1 / -1;font-size:10.5px;letter-spacing:.06em;color:var(--moraine)}
+  .item h2{font-size:17px;letter-spacing:-.015em}
+  .item .by{grid-column:1;font-size:12.5px}
+  .item .meta{grid-template-columns:minmax(0,1fr)}
+  .item .by{grid-column:1}
+  .item .acts{grid-column:1;grid-row:auto;margin:var(--sp-3) 0 0;gap:var(--sp-2)}
+  .item .dl,.item .acts .dl{flex:1;margin:0;padding:11px 12px;border-radius:var(--r-md);background:var(--firn);font-size:13.5px;text-align:center}
+  .item .acts .dl:last-child{flex:.6;background:var(--ink);color:#fff}
+}
+/* landscape phones: two columns of cards, the filters in one row */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .filters{display:flex;flex-wrap:wrap;align-items:flex-end}
+  .filters select{width:170px}
+  .filters .count{margin-left:auto}
+  .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
