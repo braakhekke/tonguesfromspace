@@ -3,7 +3,7 @@ import { IC_INFO } from './07b-icecap-texts.js';
 import { IS_CHANGE } from './07a-region-icecaps.js';
 import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS, $, COARSE, PHONE } from './01-data.js';
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
-import { styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, sideStyle, fmtDM } from './03-imagery.js';
+import { asset, styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, sideStyle, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
 import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
@@ -36,17 +36,18 @@ export const VIDEO = {
   fade: 0.4, hold: 0.8,          // no title slide (the header fades in over the first picture); the fact card closes a video (endLen)
   codecs: ['avc1.640028', 'avc1.4d0028', 'avc1.42e028']   // H.264 High, Main, Baseline (level 4.0)
 };
-/* "Image box": the export has the extent, the ratio and (up to the limits of the encoder) the size of the glacier's image box. Size and ratio come from the chosen glacier. */
-Object.defineProperty(VIDEO.formats, 'box', { enumerable: true, get(){
-  const fp = imageFootprint(currentGlacier()), long = vstate.kind === 'image' ? 2500 : 1920;      // a video stays inside H.264 level 4.0 (about 2.0 million pixels)
-  let k = Math.min(1, long / Math.max(fp.w, fp.h)); if (vstate.kind !== 'image') k = Math.min(k, Math.sqrt(2.0e6 / (fp.w * fp.h)));
-  return { w: Math.max(2, Math.round(fp.w * k / 2) * 2), h: Math.max(2, Math.round(fp.h * k / 2) * 2), safe: { top: 56, bottom: 56, left: 64, right: 64 } };
+/* "Custom": the frame on the map is dragged to any ratio (handles on its edges and corners); it starts as the glacier's image box (extent and ratio). The export has the ratio of the frame, its long side 1920 px (a picture 2500 px; a video stays inside H.264 level 4.0). */
+export const cust = { l: .08, t: .08, r: .92, b: .92 };      // the frame as fractions of the free area of the map
+Object.defineProperty(VIDEO.formats, 'custom', { enumerable: true, get(){
+  const r = frameRect(), long = vstate.kind === 'image' ? 2500 : 1920, k = long / Math.max(r.w, r.h);
+  let w = r.w * k, h = r.h * k; if (vstate.kind !== 'image') { const f = Math.min(1, Math.sqrt(2.0e6 / (w * h))); w *= f; h *= f; }
+  return { w: Math.max(2, Math.round(w / 2) * 2), h: Math.max(2, Math.round(h / 2) * 2), safe: { top: 56, bottom: 56, left: 64, right: 64 } };
 } });
 /* Where text may sit. Animations in 9:16 follow Instagram Reels and TikTok (clear of the app's buttons and captions); every picture, and 16:9 and 4:5,
    keep the text at the very top and bottom. */
-export const STILL_MARGINS = { box: { top: 56, bottom: 56, left: 64, right: 64 }, reel: { top: 74, bottom: 66, left: 64, right: 64 }, feed: { top: 74, bottom: 66, left: 64, right: 64 }, wide: { top: 56, bottom: 56, left: 90, right: 90 } };
+export const STILL_MARGINS = { custom: { top: 56, bottom: 56, left: 64, right: 64 }, reel: { top: 74, bottom: 66, left: 64, right: 64 }, feed: { top: 74, bottom: 66, left: 64, right: 64 }, wide: { top: 56, bottom: 56, left: 90, right: 90 } };
 export const marginsFor = (kind, fmt) => kind === 'image' || (fmt === 'reel' && !$('vSafe').checked) ? STILL_MARGINS[fmt] : VIDEO.formats[fmt].safe;      // 9:16 video: text clear of the apps' buttons, or (box unticked) plain, at the very top and bottom
-export const FMT_SUFFIX = { reel: '9x16', feed: '4x5', wide: '16x9', box: 'box' };
+export const FMT_SUFFIX = { reel: '9x16', feed: '4x5', wide: '16x9', custom: 'custom' };
 export const vstate = { fmt: 'wide', type: 'timelapse', kind: 'video', busy: false };      // kind: 'video' (animation) or 'image' (one picture)
 /* swipe: [position, seconds]. Position = where the later year starts: 1 = only the first year, 0 = only the later one.
    It starts in the middle, goes back and forth twice and settles in the middle again. A move eases from the previous position. */
@@ -81,12 +82,17 @@ export function visibleBox(){            // the part of the picture area the vis
   }
   return {side, x0, x1: Math.max(x0 + 100, x1), y0, y1: Math.max(y0 + 100, y1)};
 }
+export function frameAvail(){            // the free area of the map the frame may use: left, top, width, height
+  const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(70, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
+  return { x: vb.x0 + m, y: top, w: vb.x1 - vb.x0 - 2 * m, h: stageSize().y - top - m - bottom };
+}
 export function frameRect(){
-  const F = VIDEO.formats[vstate.fmt], vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(70, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
-  const availW = vb.x1 - vb.x0 - 2 * m, availH = stageSize().y - top - m - bottom;
-  let h = availH, w = h * F.w / F.h;
-  if (w > availW) { w = availW; h = w * F.h / F.w; }
-  return { x: vb.x0 + m + (availW - w) / 2, y: top + (availH - h) / 2, w, h };
+  const A = frameAvail();
+  if (vstate.fmt === 'custom') return { x: A.x + A.w * cust.l, y: A.y + A.h * cust.t, w: A.w * (cust.r - cust.l), h: A.h * (cust.b - cust.t) };
+  const F = VIDEO.formats[vstate.fmt];
+  let h = A.h, w = h * F.w / F.h;
+  if (w > A.w) { w = A.w; h = w * F.h / F.w; }
+  return { x: A.x + (A.w - w) / 2, y: A.y + (A.h - h) / 2, w, h };
 }
 export function frameSplit(){            // where the slider sits inside the frame (0 to 1, along the slider's direction)
   const r = frameRect(), size = map.getSize();
@@ -113,6 +119,7 @@ export function drawPreview(){
     tlYears: image ? [] : ys };      // a single picture has no timeline bar
   if (!swipe && $('vFacts').checked) { loadFacts(g); info.factSet = $('vFactSet').value; info.factBase = image ? FIRST_YEAR : ys[0]; }
   ctx.save(); ctx.scale(q, q);
+  if (vPrev.on && vPrev.endT0 != null && vPrev.endInfo) { drawEndSlide(ctx, W, H, S, vPrev.endInfo, (performance.now() - vPrev.endT0) / 1000); ctx.restore(); return; }      // the ending of the animation
   if (image && !swipe) drawStill(ctx, W, H, info, S);
   else if (swipe) drawSwipeLabels(ctx, W, H, S, info, image || vPrev.on ? frameSplit() * (info.horiz ? H : W) : (info.horiz ? H : W) / 2);
   else drawLabels(ctx, W, H, S, info, vPrev.on && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2));
@@ -122,11 +129,12 @@ export function drawPreview(){
 export const vPrev = {on: false, raf: 0};
 export const PV_ICON = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg>'};
 export function stopPreview(){
-  if (!vPrev.on) return; vPrev.on = false; cancelAnimationFrame(vPrev.raf);
+  if (!vPrev.on) return; vPrev.on = false; cancelAnimationFrame(vPrev.raf); vPrev.endT0 = null;
   if (state.playing) stopPlay();
   if (viewMode === '3d' && wire.v3d && vPrev.cam0) { wire.v3d.setCam(vPrev.cam0); vPrev.cam = null; if (wire.v3dCtx && wire.v3dCtx.cmp) wire.setSplit3D(vPrev.split0); else if (vPrev.year0 && wire.v3dCtx && wire.v3dCtx.follow) wire.v3dCtx.follow(vPrev.year0); wire.drawPreview3D(); }      // the view, the line and the year come back
   $('videoFrame').classList.remove('playing'); $('vfPlay').innerHTML = PV_ICON.play; $('vfPlay').setAttribute('aria-label', 'Play a preview'); syncPlayBtn();
-  if (vstate.kind !== 'image' && vstate.type === 'swipe') { clip(); drawPreview(); }
+  if (vstate.kind !== 'image' && vstate.type === 'swipe') clip();
+  if (viewMode !== '3d') drawPreview();      // back to the plain labels (the end card is gone)
 }
 export function startPreview3D(){            // the camera swings as in the video, the years change (timelapse) or the line moves (slider); everything is put back when it stops
   const c = wire.v3dCtx, viewer = wire.v3d; if (!c || !viewer) return;
@@ -140,22 +148,45 @@ export function startPreview3D(){            // the camera swings as in the vide
     }
     const swing = $('vSwing') && $('vSwing').checked, cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
     vPrev.off = off; vPrev.cam = {az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
-    if (c.cmp) { sPh += dt * 1.2 / perSec(0); wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * sPh / 6)); }
-    else if (ys && c.follow) { yPh += dt / perSec(ys.length); const sq = loopSeq(ys.length), y = ys[sq[Math.floor(yPh) % sq.length]]; if (y !== c.current()) c.follow(y); }      // the order of the video: loops, and back in time between them
+    if (c.cmp) { sPh += dt * 1.2 / perSec(0); if (sPh >= 6) return stopPreview(); wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * sPh / 6)); }
+    else if (ys && c.follow) {
+      yPh += dt / perSec(ys.length); const sq = loopSeq(ys.length), per = perSec(ys.length), cyc = sq.length + (vPrev.endInfo ? endLen(vstate.fmt) / per : 0), ph = yPh % cyc;
+      if (yPh >= cyc) return stopPreview();      // one run, like the video
+      if (ph >= sq.length) vPrev.endT0 = performance.now() - (ph - sq.length) * per * 1000;      // after the last year: the fact card, as in the video
+      else { vPrev.endT0 = null; const y = ys[sq[Math.floor(ph)]]; if (y !== c.current()) c.follow(y); }
+    }      // the order of the video: loops, and back in time between them
+    if (!c.cmp && !ys && t >= 7) return stopPreview();      // one swing
     wire.drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
   };
   vPrev.raf = requestAnimationFrame(tick);
 }
+/* The ending in the preview: after the last year the fact card shows as long as in the video (when "Fact card" is chosen), then the preview starts over. endT0: when the card began (null = not showing). */
+vPrev.endInfo = null; vPrev.endT0 = null;
+async function prepareEnd(){
+  vPrev.endInfo = null;
+  const ys = videoYears(); if ($('vEnd').value !== 'facts' || ys.length < 2) return;
+  const g = currentGlacier(), lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
+  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), style: state.style, lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0 };
+  if (await endInfo(g, info, lo, hi)) vPrev.endInfo = info;
+}
+function endCardHold(){            // the map timelapse reached its end: with the fact card, show it (redrawn every frame) for as long as the video holds it; then the preview stops, as the video does
+  if (!vPrev.endInfo) { stopPreview(); return -1; }
+  const ms = endLen(vstate.fmt) * 1000; vPrev.endT0 = performance.now();
+  setTimeout(stopPreview, ms);
+  const f = () => { if (!vPrev.on || vPrev.endT0 == null) return; drawPreview(); requestAnimationFrame(f); }; f();
+  return ms;
+}
 export function startPreview(){
   if (vstate.kind === 'image' || vPrev.on) return;
   const ys = videoYears();
+  if (vstate.type !== 'swipe') prepareEnd();      // the card's numbers are fetched while the preview starts
   if (viewMode === '3d') { vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn(); return startPreview3D(); }
   vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn();
   if (vstate.type === 'swipe') {            // the slider goes to and fro across the frame
     const t0 = performance.now(), r = frameRect(), a = horiz() ? (r.y + 0.05 * r.h) / map.getSize().y : (r.x + 0.05 * r.w) / map.getSize().x, b = horiz() ? (r.y + 0.95 * r.h) / map.getSize().y : (r.x + 0.95 * r.w) / map.getSize().x;
-    const tick = now => { if (!vPrev.on) return; const u = ((now - t0) / (2600 * Math.max(0.3, perSec(0) / 1.2))) % 2, e = u < 1 ? u : 2 - u, s = e * e * (3 - 2 * e); state.split = a + (b - a) * s; clip(); drawPreview(); vPrev.raf = requestAnimationFrame(tick); };
+    const tick = now => { if (!vPrev.on) return; const uu = (now - t0) / (2600 * Math.max(0.3, perSec(0) / 1.2)); if (uu >= 2) return stopPreview(); const u = uu % 2, e = u < 1 ? u : 2 - u, s = e * e * (3 - 2 * e); state.split = a + (b - a) * s; clip(); drawPreview(); vPrev.raf = requestAnimationFrame(tick); };
     vPrev.raf = requestAnimationFrame(tick);
-  } else { document.getElementById('loopToggle').checked = true; if (state.playing) stopPlay(); play(tlLayers.length === ys.length ? loopSeq(tlLayers.length) : null); }      // the map's timelapse plays; showFrame redraws the labels at every frame
+  } else { document.getElementById('loopToggle').checked = true; if (state.playing) stopPlay(); play(tlLayers.length === ys.length ? loopSeq(tlLayers.length) : null, endCardHold); }      // the map's timelapse plays; showFrame redraws the labels at every frame
 }
 export function syncPlayBtn(){ $('vsPlay').lastElementChild.textContent = vPrev.on ? 'Stop animation' : 'Play animation'; $('vsPlay').firstElementChild.innerHTML = vPrev.on ? '<path d="M7 7h10v10H7z"/>' : '<path d="M8 5v14l11-7z"/>'; }
 $('vfPlay').onclick = $('vsPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
@@ -166,12 +197,14 @@ export function guideText(){
   if (vstate.fmt === 'reel') return video && $('vSafe').checked ? 'Text stays clear of the Reels and TikTok buttons and captions.'
                                           : 'Text sits at the top and bottom edge, so the picture stays free.';
   if (vstate.fmt === 'feed') return 'Text sits at the top and bottom.';
-  return 'Text sits high and low, so the image stays free.';
+  if (vstate.fmt === 'custom') return 'Drag the edges and corners of the frame to any shape. Text sits at the top and bottom.';
+  return 'Text sits at the top and bottom, so the picture stays free.';
 }
 export function placeFrame(){
   sheetOverlap = measureSheetOverlap();               // the info line can change the panel height
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
+  $('videoFrame').classList.toggle('custom', vstate.fmt === 'custom');
 }
 /* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine).
    The limit is on the middle of the frame, not on the map view (Leaflet's maxBounds limits the whole view, which is far bigger than the frame, so it kept pulling the map back to the side). */
@@ -197,7 +230,7 @@ export function clampFrameToLimit(){
 map.on('moveend', clampFrameToLimit);
 /* Frame areas: the frame on the map fitted to the tongue or to the whole glacier */
 /* "Tongue" and "Whole glacier" light up when pressed and go out again as soon as the frame is changed: another ratio, or moving or zooming the map */
-export let areaSel = null, boxGlacier = '';
+export let areaSel = null;
 export function syncAreaButtons(){
   $('vaTongue').setAttribute('aria-pressed', !!areaSel && areaSel.which === 'tongue');
   $('vaWhole').setAttribute('aria-pressed', !!areaSel && areaSel.which === 'whole');
@@ -213,7 +246,7 @@ export function frameTo(whole){
     const fp = imageFootprint(g).bounds, a = map.project([fp[1][0], fp[0][1]], 0), c = map.project([fp[0][0], fp[1][1]], 0);
     const z = Math.log2(r.w / (c.x - a.x)), mid = L.point((a.x + c.x) / 2 * 2 ** z + (size.x / 2 - (r.x + r.w / 2)), (a.y + c.y) / 2 * 2 ** z + (size.y / 2 - (r.y + r.h / 2)));
     const snap = map.options.zoomSnap; map.options.zoomSnap = 0; map.setView(map.unproject(mid, z), z, {animate: false}); map.options.zoomSnap = snap;      // no rounding to quarter zooms: the frame must be exactly the box
-    boxGlacier = g.id; return markArea('image');
+    return markArea('image');
   }
   if (!whole) {
     const b = tongueBounds(g) || g.bounds;
@@ -245,9 +278,9 @@ export function earlyNote(years){            // years before the Sentinel-2 seri
 }
 export function updateFrame(){
   if ($('videoSheet').hidden) return;
+  $('vFactSet').disabled = !$('vFacts').checked;      // the choice of facts only matters while facts are on
   if (viewMode === '3d') return wire.update3DInfo();
   sheetOverlap = measureSheetOverlap();
-  if (vstate.fmt === 'box' && boxGlacier !== currentGlacier().id) frameTo('image');      // another glacier: its image box
   syncBackgrounds(); limitFrameView(); checkAreaSel();
   const res = frameGroundRes();
   $('videoFrameNote').textContent = res < 4 ? `Zoom out for a sharper ${vstate.kind === 'image' ? 'picture' : 'video'}` : '';
@@ -262,6 +295,7 @@ export function updateFrame(){
                                : `${ys.length} years, ${ys[0]}–${ys[ys.length - 1]}, about ${Math.round(videoDuration(loopSeq(ys.length).length))} s.`) +
       (res < 4 ? ' Images have 10 m pixels: this close, the video looks soft.' : '');
   earlyNote(ys);
+  $('vSnap').hidden = vstate.fmt !== 'custom';
   placeFrame(); $('vfPlay').style.display = $('vsPlay').style.display = vstate.kind === 'image' ? 'none' : '';      // the preview is for animations
   $('vsGuide').textContent = guideText();
   drawPreview();
@@ -300,9 +334,8 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
   $('vsTitle').textContent = 'Save and share';      // the same name as step 3 in the left panel
-  document.querySelector('.vs-move').textContent = in3D ? 'Turn, tilt and zoom until the tongue fits the frame.' : 'Or move and zoom the map yourself, until the frame shows what you want.';
+  document.querySelector('.vs-move').hidden = in3D;      // in 3D the frame needs no hint
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
-    if (vstate.fmt === 'box') setFmt('wide');      // the image box is a map extent: no meaning in 3D
     if (typeof wire.leavePhoto === 'function') wire.leavePhoto(true);      // a download shows the orbiting camera, not the view of a historic photograph
     $('videoSheet').hidden = false; $('videoFrame').hidden = false;
     $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
@@ -376,14 +409,37 @@ function pumpPane(){
   sh.animate([{transform: a + '(0)'}, {transform: a + '(14px)', offset: .3}, {transform: a + '(0)', offset: .55}, {transform: a + '(6px)', offset: .75}, {transform: a + '(0)'}], {duration: 520, easing: 'ease-out'});      // pushes toward its own screen edge and back: no gap opens
 }
 $('videoBtn').onclick = () => { openVideo('video'); pumpPane(); }; $('imageBtn').onclick = () => { openVideo('image'); pumpPane(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
-export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', box: 'vfBox' };
+export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', custom: 'vfCustom' };
+/* Custom frame: drag a handle; the frame stays inside the free area and at least 80 px wide and high */
+$('videoFrame').addEventListener('pointerdown', e => {
+  const h = /** @type {HTMLElement} */ (e.target).dataset && /** @type {HTMLElement} */ (e.target).dataset.h; if (!h || vstate.fmt !== 'custom') return;
+  e.preventDefault(); const el = /** @type {HTMLElement} */ (e.target), host = $('videoFrame').offsetParent.getBoundingClientRect(); el.setPointerCapture(e.pointerId);
+  const move = ev => {
+    const A = frameAvail(), x = Math.min(1, Math.max(0, (ev.clientX - host.left - A.x) / A.w)), y = Math.min(1, Math.max(0, (ev.clientY - host.top - A.y) / A.h)), mw = 80 / A.w, mh = 80 / A.h;
+    if (h.includes('w')) cust.l = Math.min(x, cust.r - mw); if (h.includes('e')) cust.r = Math.max(x, cust.l + mw);
+    if (h.includes('n')) cust.t = Math.min(y, cust.b - mh); if (h.includes('s')) cust.b = Math.max(y, cust.t + mh);
+    if (viewMode !== '3d') markArea(null);
+    updateFrame();
+  };
+  const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
+  el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
+});
+/* The custom frame as the glacier's image box: the frame takes its ratio (as large as fits) and the map is fitted to it */
+export function snapToImageBox(){
+  const fp = imageFootprint(currentGlacier()), A = frameAvail(), ratio = fp.w / fp.h;
+  let w = A.w, h = w / ratio; if (h > A.h) { h = A.h; w = h * ratio; }
+  const fw = w / A.w, fh = h / A.h; Object.assign(cust, { l: (1 - fw) / 2, r: (1 + fw) / 2, t: (1 - fh) / 2, b: (1 + fh) / 2 });
+  updateFrame(); frameTo('image'); updateFrame();
+}
+$('vSnap').onclick = snapToImageBox;
 export const setFmt = f => {
   stopPreview();
   if (viewMode !== '3d' && !$('videoSheet').hidden) checkAreaSel();
-  const keep = viewMode !== '3d' && areaSel && (areaSel.which !== 'image' || f === 'box') ? areaSel.which : null;      // Tongue or Whole glacier was pressed and the map not moved since: fit it again to the new frame
+  const keep = viewMode !== '3d' && areaSel && areaSel.which !== 'image' ? areaSel.which : null;      // Tongue or Whole glacier was pressed and the map not moved since: fit it again to the new frame
+  const wasCustom = vstate.fmt === 'custom';
   vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f));
   updateFrame();
-  if (f === 'box' && viewMode !== '3d') { frameTo('image'); updateFrame(); }
+  if (f === 'custom' && viewMode !== '3d' && !wasCustom) { snapToImageBox(); }
   else if (keep) { frameTo(keep === 'whole'); updateFrame(); }
 };
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
@@ -393,7 +449,7 @@ $('vSpeed').oninput = () => { syncSpeed('vSpeed'); updateFrame(); };
 $('speedSel').addEventListener('input', () => { syncSpeed('speedSel'); if (!$('videoSheet').hidden) updateFrame(); });
 syncSpeed('speedSel');
 $('vSafe').onchange = updateFrame;
-$('vMinimal').onchange = updateFrame; $('vEnd').onchange = updateFrame; $('vFacts').onchange = $('vFactSet').onchange = updateFrame;
+$('vInset').onchange = () => { loadCountries(); updateFrame(); }; $('vMinimal').onchange = updateFrame; $('vEnd').onchange = () => { updateFrame(); restartPreview(); }; $('vFacts').onchange = $('vFactSet').onchange = updateFrame;
 const restartPreview = () => { if (vPrev.on) { stopPreview(); startPreview(); } };      // the running preview takes the new order of the years
 export const syncLoops = () => { $('vBounce').disabled = +$('vLoops').value < 2; updateFrame(); restartPreview(); };
 $('vLoops').onchange = syncLoops; $('vBounce').onchange = () => { updateFrame(); restartPreview(); }; syncLoops();
@@ -500,7 +556,7 @@ export function brandCorner(ctx, x, y){
   else if (logoImg) { ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, x, y - h * .8, h * 200 / 190, h); ctx.restore(); tx = x + h * 200 / 190 + 12; }
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, 'TONGUES FROM SPACE', tx, y, {blur:8, color:'#FF5A4E'});
 }
-/* "Minimal text": no header, timeline, map key or legend; one small white line up the left edge, inside the picture: where it was made, glacier and year, the data credit.
+/* "Minimize text": no header, timeline, map key or legend; one small white line up the left edge, inside the picture: where it was made, glacier and year, the data credit.
    The glacier facts, when ticked, still sit at the bottom. */
 export const minimalOn = () => !!$('vMinimal') && $('vMinimal').checked;
 export function minimalLabels(ctx, W, H, S, name, yearText, credit, hA = 1, tiles = []){
@@ -527,6 +583,36 @@ export function mapKey(ctx, res, rightX, top){
   ctx.shadowBlur = 6; ctx.fillRect(bx, foot - 4, k.px, 4); ctx.fillRect(bx, foot - 13, 3, 13); ctx.fillRect(rightX - 3, foot - 13, 3, 13); ctx.restore();
   ctx.font = `700 22px ${FONT}`; shadowText(ctx, 'N', ax, labelY, {align:'center', blur:6});
   ctx.font = `600 22px ${FONT}`; shadowText(ctx, k.m >= 1000 ? `${k.m / 1000} km` : `${k.m} m`, bx + k.px / 2, labelY, {align:'center', blur:8});
+}
+/* The location inset: the country as a simple outline with a red dot at the glacier, under the map key (top right). Outlines: data/country-outlines.js (Natural Earth, public domain), loaded when the switch is on. */
+const COUNTRIES = () => /** @type {any} */ (window).COUNTRY_OUTLINES;
+export const insetOn = () => !!$('vInset') && $('vInset').checked;
+let countryLoad = null;
+export function loadCountries(){
+  if (COUNTRIES() || countryLoad) return;
+  countryLoad = new Promise(res => { const sc = document.createElement('script'); sc.src = asset('data/country-outlines.js'); sc.onload = res; sc.onerror = () => res(); document.head.appendChild(sc); }).then(() => { try { drawPreview(); } catch {} });
+}
+function insetGeo(W, g){            // the country's box and scale at this picture width; null when the inset is off or has no outline
+  if (!insetOn()) return null;
+  loadCountries();
+  const rings = COUNTRIES() && COUNTRIES()[REGION.id], ll = g && (g.tongue || (g.lat != null && [g.lat, g.lon]));
+  if (!rings || !ll) return null;
+  let a = 90, b = -90, c = 180, d = -180;
+  rings.forEach(r => r.forEach(([la, lo]) => { a = Math.min(a, la); b = Math.max(b, la); c = Math.min(c, lo); d = Math.max(d, lo); }));
+  const kx = Math.cos((a + b) / 2 * Math.PI / 180), u = W >= 1500 ? 1.3 : 1, ww = (d - c) * kx, hh = b - a, sc = Math.min(150 * u / ww, 100 * u / hh);
+  return { rings, ll, a, b, c, kx, u, sc, w: ww * sc };
+}
+export const insetWidth = (W, g) => { const m = insetGeo(W, g); return m ? m.w : 0; };      // the 3D view moves its north arrow aside by this much
+export function drawInset(ctx, W, S, g, top, hA = 1){
+  const m = insetGeo(W, g); if (!m) return;
+  const { rings, ll, a, b, c, kx, u, sc, w } = m, rightX = W - S.right, X = lo => rightX - w + (lo - c) * kx * sc, Y = la => top + (b - la) * sc;
+  ctx.save(); ctx.globalAlpha *= hA; ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.lineJoin = 'round';
+  ctx.beginPath(); rings.forEach(r => r.forEach(([la, lo], i) => i ? ctx.lineTo(X(lo), Y(la)) : ctx.moveTo(X(lo), Y(la))) || ctx.closePath());
+  ctx.fillStyle = 'rgba(255,255,255,.22)'; ctx.fill(); ctx.shadowBlur = 0; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.lineWidth = 2 * u; ctx.stroke();
+  const x = X(ll[1]), y = Y(ll[0]);
+  ctx.beginPath(); ctx.arc(x, y, 13 * u, 0, Math.PI * 2); ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2 * u; ctx.stroke();
+  ctx.beginPath(); ctx.arc(x, y, 6.5 * u, 0, Math.PI * 2); ctx.fillStyle = '#C8322A'; ctx.fill(); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.5 * u; ctx.stroke();
+  ctx.restore();
 }
 /* The top block, built like the year tag on screen: the brand, then the year as the big line, under it the glacier and its place, then the date and what the picture is, then the legend of the outlines.
    o: year (text), name, place, date [bold, long rest, short rest] or null, legend, keyW (width of the map key to keep clear), hA (opacity of everything but the brand and the year: the header fades in at the start of a video),
@@ -605,7 +691,7 @@ export function drawBottom(ctx, W, H, S, o){
   }
 }
 export function drawSwipeLabels(ctx, W, H, S, info, split){
-  if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(info.glacier), `${info.years[0]} | ${info.years[1]}`, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), info.hA ?? 1);
+  if (minimalOn()) return drawInset(ctx, W, S, info.glacier, S.top, info.hA ?? 1), minimalLabels(ctx, W, H, S, stillName(info.glacier), `${info.years[0]} | ${info.years[1]}`, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), info.hA ?? 1);
   shade(ctx, W, H, S, 300);
   const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
   const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(k === 1 && info.styleB || info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${styleName(k === 1 && info.styleB || info.style, sc[k])}`] : null;
@@ -613,6 +699,7 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
   drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
     yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
+  drawInset(ctx, W, S, g, hz ? S.top + 80 : heroBase(S) + 80, hA);
   // divider with a round handle
   const along = hz ? H : W;
   if (!info.noDivider && split > 2 && split < along - 2) {
@@ -642,11 +729,12 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
 /* The frame of a single year (a picture, or one frame of a timelapse): top block, map key, bottom block with facts and timeline */
 export function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){
   const g = info.glacier, hA = info.hA ?? 1;
-  if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(g), String(yr), shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]), hA, info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : []);
+  if (minimalOn()) return drawInset(ctx, W, S, g, S.top, hA), minimalLabels(ctx, W, H, S, stillName(g), String(yr), shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]), hA, info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : []);
   shade(ctx, W, H, S);
   drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : [],
     date: [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${styleName(info.style, scene)}`]});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
+  drawInset(ctx, W, S, g, S.top + 80, hA);
   drawBottom(ctx, W, H, S, {
     credit: shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]),
     tiles: info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : [],

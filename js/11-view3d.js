@@ -8,7 +8,7 @@ import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus, specialChips } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
 import { setLayers } from './09-phones.js';
-import { previewScale, shadowText, VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
+import { drawInset, insetWidth, previewScale, shadowText, VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, openVideo, startPreview, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'bundleId', { get: () => bundleId, configurable: true });
 Object.defineProperty(wire, 'download3D', { get: () => download3D, configurable: true });
@@ -1158,7 +1158,8 @@ export function setView(v){            // the stage shows the map or the 3D view
   if (v === viewMode) return;
   if (v === '3d' && !currentGlacier()) return showNotice('Choose a glacier first.');
   if (vstate.busy || v3dBusy) return;
-  if (!$('videoSheet').hidden) closeVideo();
+  const paneKind = $('videoSheet').hidden ? null : vstate.kind, wasPreviewing = vPrev.on;      // the download pane (and a running preview) comes back in the other view
+  if (paneKind) closeVideo();
   const [boxFrom, boxTo] = v === '3d' ? [$('layerbox'), $('v3dLayers')] : [$('v3dLayers'), $('layerbox')], menuOpen = !boxFrom.classList.contains('min'), sheetOpen = [$('layerbox'), $('v3dLayers')].some(x => x.classList.contains('open'));      // an open layer menu stays open in the other view
   if (v === '3d' && state.oldestAerial) { restoreOldest(); refreshAll(); }      // Oldest is for the map; Latest goes along into 3D, on the newest elevation model
   setViewMode(v); $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); specialChips();      // Oldest greyed in 3D
@@ -1167,6 +1168,13 @@ export function setView(v){            // the stage shows the map or the 3D view
   if (!boxTo.classList.contains('in-flow')) { boxTo.classList.toggle('min', !menuOpen); boxTo.querySelector('.lb-head').setAttribute('aria-expanded', menuOpen); }
   setLayers(sheetOpen); if (v === '3d') cancelMeasure(); else cancel3Measure();      // one measuring tool at a time
   if (v === '3d') { stopPlay(); open3D(); } else { close3D(); drawRadar(); loadDeferred(); }      // back on the map: its radar layer, if it was switched on or off meanwhile
+  if (paneKind) {
+    openVideo(paneKind, true);
+    if (wasPreviewing && paneKind === 'video') {            // the preview starts again as soon as the view is ready (3D: the terrain has loaded)
+      const t0 = Date.now(), wait = () => { if (viewMode !== v || $('videoSheet').hidden || vPrev.on) return; if ((v === 'map' || (v3dCtx && v3d)) && Date.now() - t0 > 700) return startPreview(); if (Date.now() - t0 < 30000) setTimeout(wait, 300); };
+      setTimeout(wait, 300);
+    }
+  }
 }
 $('viewMap').onclick = () => { flyOut(); syncTiltPill(); }; $('view3dBtn').onclick = () => flyIn();
 /* The layer menu of the 3D view: the same switches as on the map (an outline or the radar dots), drawn on the picture that covers the terrain */
@@ -2013,8 +2021,8 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && viewMode === '3d' &
 
 /* ---- download of the 3D view: the picture as it is on screen, or a video in which the camera swings over the terrain (timelapse: the years follow one another, compare: the slider moves) ---- */
 const northRot = cam => -(v3dNorthAz + (cam && v3d ? v3d.poseOf(cam).yaw : v3d ? v3d.getYaw() : 0));      // radians the north arrow turns clockwise: for the camera given (a video frame) or the one on screen
-function drawNorth3D(ctx, W, S, rot){            // the north arrow of the live view, top right of the frame: a small arrow that turns with the camera, an upright N under it
-  const u = W >= 1500 ? 1.3 : 1, r = 24 * u, x = W - S.right - r, y = S.top + r + 6 * u;
+function drawNorth3D(ctx, W, S, rot, aside = 0){            // the north arrow of the live view, top right of the frame: a small arrow that turns with the camera, an upright N under it
+  const u = W >= 1500 ? 1.3 : 1, r = 24 * u, x = W - S.right - r - aside, y = S.top + r + 6 * u;
   ctx.save(); ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = 8; ctx.globalAlpha = 0.85;
   ctx.translate(x, y); ctx.rotate(rot); ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r * 0.38, r * 0.62); ctx.lineTo(0, r * 0.38); ctx.lineTo(-r * 0.38, r * 0.62); ctx.closePath();
   ctx.fillStyle = '#fff'; ctx.fill(); ctx.restore();
@@ -2022,7 +2030,9 @@ function drawNorth3D(ctx, W, S, rot){            // the north arrow of the live 
 }
 export function draw3DLabels(ctx, W, H, S, L){
   const g = L.g;
-  if (L.north !== null) drawNorth3D(ctx, W, S, L.north === undefined ? northRot() : L.north);
+  const gIn = currentGlacier(), iw = insetWidth(W, gIn);      // the location map takes the top right corner, the north arrow stands beside it
+  if (L.north !== null) drawNorth3D(ctx, W, S, L.north === undefined ? northRot() : L.north, iw ? iw + 26 * (W >= 1500 ? 1.3 : 1) : 0);
+  drawInset(ctx, W, S, gIn, S.top + 6 * (W >= 1500 ? 1.3 : 1), L.hA ?? 1);
   if (minimalOn()) return minimalLabels(ctx, W, H, S, stillName(g), L.cmp ? `${L.cmp[0]} | ${L.cmp[1]}` : String(L.year), L.credit, L.hA ?? 1, L.facts && !L.cmp ? factTiles(g, L.year, L.facts.set, L.facts.base) : []);
   shade(ctx, W, H, S);
   ctx.textBaseline = 'alphabetic';
@@ -2076,7 +2086,9 @@ export function drawPreview3D(){            // placeholder labels over the frame
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!logoImg && !logoAsked) { setLogoAsked(true); loadLogo().then(() => drawPreview3D()); }      // the logo is part of every picture
   if (!c) return;
-  const S = marginsFor(vstate.kind, vstate.fmt), facts = !c.cmp && $('vFacts').checked ? {set: $('vFactSet').value, base: vstate.kind === 'image' || !c.years.length ? FIRST_YEAR : Math.min(...c.years)} : null;
+  const S = marginsFor(vstate.kind, vstate.fmt);
+  if (vPrev.on && vPrev.endT0 != null && vPrev.endInfo) { ctx.save(); ctx.scale(q, q); drawEndSlide(ctx, W, H, S, vPrev.endInfo, (performance.now() - vPrev.endT0) / 1000); ctx.restore(); return; }      // the ending of the animation
+  const facts = !c.cmp && $('vFacts').checked ? {set: $('vFactSet').value, base: vstate.kind === 'image' || !c.years.length ? FIRST_YEAR : Math.min(...c.years)} : null;
   if (facts) loadFacts(c.g);
   ctx.save(); ctx.scale(q, q); setBrandMotion(vstate.kind !== 'image' ? {cam: vPrev.on && vPrev.cam ? vPrev.cam : {az: 0, el: 0}, cam0: vPrev.on && vPrev.cam0 ? vPrev.cam0 : {az: 0, el: 0}} : null); try { draw3DLabels(ctx, W, H, S, labels3D(c, facts)); } finally { setBrandMotion(null); } ctx.restore();
 }
@@ -2103,6 +2115,7 @@ export function hint3D(){            // the line in the pane, and the note on th
 }
 export function update3DInfo(){            // the line in the download pane, the frame on the 3D view and the options that fit it
   const c = v3dCtx, sec = n => Math.round(n), video = vstate.kind !== 'image';
+  $('vFactSet').disabled = !$('vFacts').checked;
   $('vsSource').textContent = ''; $('videoFrameNote').textContent = '';      // the zoom hint of the map frame does not apply here
   vstate.type = c && c.cmp ? 'swipe' : 'timelapse'; $('videoSheet').classList.toggle('is-swipe', vstate.type === 'swipe');
   $('vSpeed').closest('label').style.display = c && (c.cmp || c.years.length > 1) ? '' : 'none';
@@ -2117,7 +2130,17 @@ export function update3DInfo(){            // the line in the download pane, the
   hint3D();
   $('vsGuide').textContent = guideText();
   $('vFactsRow').style.display = c && c.cmp ? 'none' : '';      // the facts belong to a single year
-  placeFrame(); drawPreview3D();
+  placeFrame(); drawPreview3D(); watchYaw();
+}
+let yawRun = 0;
+function watchYaw(){            // while the pane is open the north arrow in the frame turns with the camera: redraw the preview when the view turns (a running preview redraws itself)
+  const run = ++yawRun; let last = null;
+  const tick = () => {
+    if (run !== yawRun || viewMode !== '3d' || $('videoSheet').hidden || !v3d) return;
+    const yaw = v3d.getYaw(); if (last !== null && yaw !== last && !vPrev.on && !v3dBusy) drawPreview3D(); last = yaw;
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
 }
 export async function download3D(kind){
   const c = v3dCtx, viewer = v3d; if (!c || !viewer || v3dBusy) return;

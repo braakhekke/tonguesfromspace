@@ -204,7 +204,7 @@ export function downloadMetaCsv(){
   a.href = url; a.download = `tonguesfromspace-${g.id}-image-metadata.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 document.getElementById('tuneSwitch').onclick = e => { const on = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', on); document.getElementById('tuneBody').hidden = !on; };      // Adjust image: the switch shows the sliders
-/* The three panes under Save and share (the metadata table, the embed code, the elevation-model download) are one at a time: opening one closes the others */
+/* The panes under Save and share (the metadata table, the embed code, the elevation-model download) are one at a time: opening one closes the others */
 export function closeOtherSharePanes(keepBox) {
   for (const [btn, box] of [['metaBtn', 'metaBox'], ['embedBtn', 'embedBox'], ['demBtn', 'demBox']]) {
     if (box === keepBox) continue;
@@ -1404,7 +1404,7 @@ export function wireWater(){
 export function renderOutlineControls(){
   if (REGION.rgi) {      // the outlines of the region's institute, cut to the glacier: the old one and the newest
     document.getElementById('oldLabel').textContent = `Outline ${REGION.outlines.old}`; document.getElementById('newLabel').textContent = `Outline ${REGION.outlines.new}`;
-    document.getElementById('vOutlineLabel').textContent = `Show ${REGION.outlines.old} outline`;
+    document.getElementById('vOutlineLabel').textContent = `${REGION.outlines.old} outline`;
     document.getElementById('outlineNote').textContent = '';      // the sources and limits of the outlines are in About, not in the menu
     return;
   }

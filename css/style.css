@@ -12,11 +12,12 @@ button,select,input{font:inherit;color:inherit}
 .scroll-cue{position:sticky;bottom:-28px;height:0;margin-top:-24px;z-index:5;pointer-events:none}
 .scroll-cue[hidden]{display:none}
 .scroll-cue::before{content:"";position:absolute;left:-20px;right:-20px;bottom:-28px;height:96px;background:linear-gradient(to bottom,rgba(255,255,255,0),var(--sheet) 80%)}
-.scroll-cue button{position:absolute;left:50%;bottom:6px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:8px;padding:8px 14px;border:1px solid var(--rule);border-radius:999px;background:#fff;color:#0A1B33;font:600 10.5px/1 var(--sans);letter-spacing:.09em;text-transform:uppercase;box-shadow:0 2px 10px rgba(0,0,0,.12);cursor:pointer;white-space:nowrap}      /* the look of the step labels: grey capitals, the step number in red */
-.scroll-cue button .num{color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
-.scroll-cue svg{width:14px;height:14px;fill:none;stroke:var(--accent);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;animation:cueBob 1.6s ease-in-out infinite}
+.scroll-cue button{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:10px;padding:14px 22px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:700 14px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 18px rgba(200,50,42,.45),0 0 0 3px #fff;cursor:pointer;white-space:nowrap;animation:cuePulse 2s ease-in-out infinite}      /* big, solid red: it must be seen */
+.scroll-cue button .num{color:#fff;font-weight:800;font-variant-numeric:tabular-nums;opacity:.85}
+.scroll-cue svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;animation:cueBob 1.6s ease-in-out infinite}
+@keyframes cuePulse{0%,100%{box-shadow:0 4px 18px rgba(200,50,42,.45),0 0 0 3px #fff}50%{box-shadow:0 6px 26px rgba(200,50,42,.7),0 0 0 3px #fff,0 0 0 9px rgba(200,50,42,.18)}}
 @keyframes cueBob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
-@media (prefers-reduced-motion:reduce){.scroll-cue svg{animation:none}}
+@media (prefers-reduced-motion:reduce){.scroll-cue svg,.scroll-cue button{animation:none}}
 .controls{--pad:20px;background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
 .brand-top{display:flex;align-items:center;gap:12px;margin:0 0 8px}
 .brand .brand-top h1{margin:0;line-height:1.1}   /* two lines of 20 px x 1.1 = the height of the logo (46 x 44 px) */
@@ -163,7 +164,6 @@ body.sheet-open{overflow:hidden}
 .years button:disabled.missing{text-decoration:line-through}
 .years button.is-na{color:#B6BEC2;background:var(--firn);border-color:var(--firn);cursor:not-allowed}      /* greyed but still hoverable and clickable: the tooltip and the notice say why (a disabled button gets no hover) */
 .years button.is-na:hover{border-color:var(--firn)}
-.years button.some:not([aria-pressed="true"]){border-style:dashed}      /* the best scene of this year still has some clouds */
 .spec-row{display:flex;align-items:center;gap:10px;margin-top:-4px}
 .spec-row .side-label{margin:0;flex:none;font-size:11.5px;font-weight:500;font-style:italic;text-transform:none;letter-spacing:0}      /* a sub-choice of the years: not a capital label of its own */
 .years.specials{flex:1;grid-template-columns:repeat(2,1fr)}
@@ -806,6 +806,12 @@ sup.fn a:hover{opacity:.7}
 .video-sheet.is-3d #vfBox{display:none}
 .is-framing #map{background:radial-gradient(1.2px 1.2px at 12% 22%,#fff,transparent),radial-gradient(1px 1px at 47% 61%,#cfe3ff,transparent),radial-gradient(1.6px 1.6px at 78% 18%,#fff,transparent),radial-gradient(1px 1px at 31% 84%,#fff,transparent),radial-gradient(1.3px 1.3px at 90% 72%,#ffe9c4,transparent),radial-gradient(.9px .9px at 64% 40%,#fff,transparent),#070b14;background-size:230px 230px}
 .video-sheet:not(.is-3d) .vo-3d{display:none}
+.vs-snap{flex:0 0 auto;align-self:flex-start;height:auto;min-height:0;padding:5px 12px;font-size:12.5px}
+.vs-snap[hidden]{display:none}
+.vf-h{display:none;position:absolute;width:16px;height:16px;margin:-8px 0 0 -8px;background:#fff;border:2px solid var(--rock);border-radius:50%;pointer-events:auto;touch-action:none;z-index:2}
+.video-frame.custom .vf-h{display:block}
+.vf-h[data-h=nw]{left:0;top:0;cursor:nwse-resize}.vf-h[data-h=n]{left:50%;top:0;cursor:ns-resize}.vf-h[data-h=ne]{left:100%;top:0;cursor:nesw-resize}.vf-h[data-h=e]{left:100%;top:50%;cursor:ew-resize}
+.vf-h[data-h=se]{left:100%;top:100%;cursor:nwse-resize}.vf-h[data-h=s]{left:50%;top:100%;cursor:ns-resize}.vf-h[data-h=sw]{left:0;top:100%;cursor:nesw-resize}.vf-h[data-h=w]{left:0;top:50%;cursor:ew-resize}
 .is-3d .video-frame{z-index:710}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
 .vs-opts .toggle input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent);flex:none}
@@ -833,8 +839,9 @@ sup.fn a:hover{opacity:.7}
 .vs-share .toggle{font-size:13px;margin-bottom:0}
 .vs-close{border:0;background:none;font-size:24px;line-height:1;cursor:pointer;padding:0 4px;color:var(--moraine)}
 .vs-opts{display:grid;grid-template-columns:1fr;gap:2px;margin:0}
-.vs-opts .toggle{margin:0;font-size:13px}
+.vs-opts .toggle{margin:0;font-size:13px;min-height:30px}      /* every row of the pane has the same height, so the switches sit evenly (the facts row carries a dropdown) */
 .vs-opts .toggle.speed-row{justify-content:space-between}
+.vs-opts .speed{min-height:30px}
 .vs-progress{height:6px;background:var(--firn);border-radius:3px;overflow:hidden;margin:0}
 .vs-progress div{height:100%;width:0;background:var(--crevasse);transition:width .2s}
 
@@ -1054,7 +1061,8 @@ body.has-full{overflow:hidden}
   .stage.mini .v3d-sect,.stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
   .stage.mini .leaflet-control-scale{display:none}
   .stage.mini .notice{width:calc(100% - 16px);padding:8px 10px;font-size:12px;line-height:1.3;text-align:center;z-index:710}      /* a message from the controls below ("turn on the Sentinel-2 layer") shows in the small window too */
-  .stage.mini .v3d{pointer-events:none}      /* a touch on the small window scrolls the page, it does not turn the terrain */
+  .stage.mini{touch-action:none;cursor:grab}      /* a touch on the small window drags it (it no longer scrolls the page) */
+  .stage.mini .v3d{pointer-events:none}      /* the 3D view in the small window is not turned by a touch */
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
   .stage.mini .mini-ctl{display:contents}      /* enlarge and full screen at the bottom right, the closing cross in the top right corner */
@@ -1734,7 +1742,8 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .hint a,.note a,.status a,.embed-box a,.about-sec a{color:var(--crevasse);font-weight:600}
 .embed-row{display:flex;gap:8px}
 .embed-row .act{min-width:0;padding-left:6px;padding-right:6px;line-height:1.2;text-align:center}      /* three buttons share one row; a long label wraps to two lines instead of spilling out */
-#demBtn{flex:1.5 1 0}      /* the longest label of the row */
+#demBtn{flex:1.5 1 0}
+#demBtn:disabled{opacity:.45;cursor:not-allowed}      /* the longest label of the row */
 .embed-open{display:none}
 html.embed .controls,html.embed .story,html.embed .mhead,html.embed .panel-toggle,html.embed .scroll-cue,html.embed .fyi-slot,html.embed #fsBtn,html.embed #v3dFs{display:none!important}
 html.embed .app{display:block;height:100%}
@@ -1840,6 +1849,11 @@ body.imm .stage .credits:not(.open) a{color:#cfe6f3}
 body.imm .stage .mapbar,body.imm .stage .v3d-measure,body.imm .stage .v3d-top,body.imm .stage .layerbox,body.imm .stage .v3d-layers,body.imm .stage .credits{transition:opacity .35s}
 body.imm.imm-idle .stage .mapbar,body.imm.imm-idle .stage .v3d-measure,body.imm.imm-idle .stage .v3d-top,body.imm.imm-idle .stage .layerbox:not(.open),body.imm.imm-idle .stage .v3d-layers:not(.open){opacity:0;pointer-events:none}
 body.imm.imm-idle .stage .credits:not(.open){opacity:.55}
+/* full screen with a mouse (js/09-phones.js, "Full screen with a mouse"): the docks and menus fade after a few idle seconds, the pointer hides with them */
+body.fade .stage .mapbar,body.fade .stage .v3d-measure,body.fade .stage .v3d-top,body.fade .stage .layerbox,body.fade .stage .v3d-layers,body.fade .stage .credits{transition:opacity .35s}
+body.fade.fade-idle .stage .mapbar,body.fade.fade-idle .stage .v3d-measure,body.fade.fade-idle .stage .v3d-top,body.fade.fade-idle .stage .layerbox:not(.open),body.fade.fade-idle .stage .v3d-layers:not(.open){opacity:0;pointer-events:none}
+body.fade.fade-idle .stage .credits:not(.open){opacity:.55}
+body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 /* phone in landscape: full screen really is the whole screen (the stage is otherwise a 58vw column beside the panel) */
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .app.visual-only .stage{width:100vw;z-index:2000}
@@ -1894,10 +1908,10 @@ body.imm.imm-idle .stage .credits:not(.open){opacity:.55}
   .no-transition{font-size:12.5px;color:var(--moraine)}
 
   /* colour compositions: four picture tiles, the chosen one framed in red */
-  .swatches{gap:var(--sp-2)}
-  .sw{padding:4px 4px 7px;border:0;border-radius:var(--r-md);background:var(--firn);box-shadow:none;font-size:12px;color:var(--moraine);gap:6px}
-  .sw i{height:46px;border-radius:10px}
-  .sw[aria-pressed="true"]{background:var(--sheet);box-shadow:0 0 0 2px var(--accent);color:var(--ink);font-weight:700}
+  .swatches{gap:2px;padding:3px;border-radius:var(--r-md);background:var(--firn)}
+  .sw{padding:4px 4px 7px;border:0;border-radius:11px;background:none;box-shadow:none;font-size:12px;color:var(--moraine);gap:6px}
+  .sw i{height:46px;border-radius:9px}
+  .sw[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink);font-weight:700}
 
   /* years: chips, six to a row; the chosen year dark */
   .stack .years:not(.specials),.years{grid-template-columns:repeat(6,minmax(0,1fr));gap:6px}
@@ -1905,10 +1919,8 @@ body.imm.imm-idle .stage .credits:not(.open){opacity:.55}
   .years button[aria-pressed="true"]{background:var(--ink);color:#fff;font-weight:700;box-shadow:none}
   .years button.in-range{background:#DCE8EE}
   .years button:disabled,.years button.is-na{background:transparent;color:#B6BEC2;border:0;box-shadow:inset 0 0 0 1px var(--rule-2)}
-  .years button.some:not([aria-pressed="true"]){box-shadow:inset 0 0 0 1px var(--faint)}
   .years.specials{grid-template-columns:repeat(2,minmax(0,1fr))}
-  .years.specials button{min-height:38px;font-size:13px;font-weight:600;color:var(--crevasse)}
-  .years.specials button[aria-pressed="true"]{color:#fff}
+  .years.specials button{min-height:38px;font-size:13px;font-weight:600}
   .spec-row{gap:var(--sp-3)}
   .status{padding:9px 12px;border-radius:var(--r-sm);font-size:12px}
   .adj-switch{padding:6px 0;font-size:13px}
@@ -1939,11 +1951,11 @@ body.imm.imm-idle .stage .credits:not(.open){opacity:.55}
   .story h2{font-size:28px;line-height:1.08;letter-spacing:-.025em;margin:0 0 2px}
   .story .sub{font-size:13px}
   .story .lede{font-size:15.5px;line-height:1.55;margin:var(--sp-3) 0 0}
-  .story .tool-btns{gap:var(--sp-2);margin-top:var(--sp-4)}
+  .story .tool-btns{gap:var(--sp-2);margin-top:var(--sp-4);padding-bottom:var(--sp-4);border-bottom:1px solid var(--rule)}
   .story .tool-btn{justify-content:flex-start;gap:var(--sp-3);padding:13px var(--sp-4);border:0;border-radius:var(--r-md);background:var(--firn);font-size:14.5px;font-weight:600;text-align:left;position:relative}
   .story .tool-btn::after{content:'';margin-left:auto;width:7px;height:7px;border:solid var(--faint);border-width:2px 2px 0 0;transform:rotate(45deg);flex:none}
   .story .tool-btn svg{width:20px;height:20px}
-  .tabs{margin:var(--sp-5) 0 var(--sp-2);padding:3px;gap:2px;border:0;border-radius:var(--r-md);background:var(--firn)}
+  .tabs{margin:var(--sp-4) 0 var(--sp-2);padding:3px;gap:2px;border:0;border-radius:var(--r-md);background:var(--firn)}
   .tabs button{flex:1;margin:0;padding:10px 4px;border-radius:11px;font-size:13.5px;color:var(--moraine);text-align:center}
   .tabs button[aria-selected="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink)}
   .story .dcard > summary{padding:var(--sp-4) 0}
@@ -2077,3 +2089,82 @@ body.imm.imm-idle .stage .credits:not(.open){opacity:.55}
 }
 @media (max-width:760px) and (orientation:landscape) and (max-height:520px){.mhead-logo{display:none}}
 
+
+/* ---------- Desktop: what the phone design brought over ----------
+   The desktop keeps its flat panel, its black glass on the picture and its compact sizes (no 40 px touch targets). It takes the phone design's shapes: soft segmented controls, sentence-case step headings with a number disc, the Save and share rows with an icon disc, a red timeline and a light pill for the active tool, the same corner radii (tokens --r-*). Phones, tablets in portrait up to 720 px and landscape phones have their own block above. */
+@media (min-width:721px) and (min-height:521px), (min-width:951px){
+  /* step headings */
+  .step-h{gap:10px;font-size:15px;font-weight:700;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
+  .step-h .num{display:inline-grid;place-items:center;flex:none;width:23px;height:23px;border-radius:50%;background:#FBE8E6;color:var(--accent);font-size:11px;font-weight:700;letter-spacing:0}
+
+  /* segmented controls: map/3D, one year/slider/timelapse, the colour modes */
+  .modes,.modes.views,.segment{gap:2px;padding:3px;border-radius:var(--r-md);background:var(--firn)}
+  .modes button,.segment button{border:0;border-radius:11px;background:none;color:var(--moraine);box-shadow:none}
+  .modes button:hover:not([aria-pressed="true"]):not(:disabled),.segment button:hover:not([aria-pressed="true"]):not(:disabled){color:var(--ink)}
+  .modes button[aria-pressed="true"],.segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink);font-weight:700}
+  .modes button[aria-pressed="true"] svg{stroke:var(--accent)}
+
+  /* save and share: rows with an icon disc, then quiet buttons */
+  .dl-grid{grid-template-columns:1fr;gap:var(--sp-2)}
+  .dl{display:grid;grid-template-columns:36px minmax(0,1fr);align-items:center;column-gap:var(--sp-3);row-gap:0;padding:var(--sp-2) var(--sp-3) var(--sp-2) var(--sp-2);border:0;border-radius:var(--r-md);background:var(--firn);text-align:left}
+  .dl svg{grid-row:1 / 3;width:20px;height:20px;padding:8px;margin:0;box-sizing:content-box;border-radius:50%;background:var(--sheet);box-shadow:var(--raise)}
+  .dl b{align-self:end}
+  .dl small{align-self:start}
+  .dl:hover{background:var(--firn);box-shadow:none}
+  .dl[aria-expanded="true"]{background:var(--sheet);box-shadow:0 0 0 2px var(--accent)}
+  .dl-wide{grid-column:auto;justify-content:normal}
+  .dl-wide svg{width:20px;height:20px;margin:0}
+  .dl-wide span{grid-row:1 / 3;align-self:center;gap:0}
+  .dl-wide span b,.dl-wide span small{align-self:flex-start}
+  .embed-box{padding:var(--sp-3);border:0;border-radius:var(--r-md);background:var(--firn)}
+  .embed-box select,.embed-box textarea,.embed-box input[type=text]{border:0;border-radius:var(--r-sm);background-color:var(--sheet)}
+  .embed-box .act{background:var(--ink);color:#fff}
+  .embed-row .act,.act{border:0;border-radius:var(--r-sm);background:var(--firn);font-weight:600;color:var(--rock)}
+  .embed-box .act:hover{background:var(--rock)}
+  .embed-row .act:hover,.act:hover{background:var(--rule)}
+  .step-reset{border:0;border-radius:var(--r-pill);background:var(--firn)}
+
+  /* the docks on the picture: black glass stays; red timeline, a light pill for the active tool, one set of radii */
+  .mapbar,.v3d-measure{border-radius:var(--r-lg)}
+  .mapbar button,.v3d-measure > button{border-radius:var(--r-sm)}
+  .mapbar button[aria-pressed="true"],.v3d-measure > button[aria-pressed="true"]{background:rgba(255,255,255,.94);color:var(--ink)}
+  .mapbar button[aria-pressed="true"] svg{stroke:var(--ink)}
+  .mapbar .tl2-fill,.v3d-measure .tl2-fill{background:var(--accent)}
+  .mapbar .tl2-tick.on,.v3d-measure .tl2-tick.on{background:var(--accent)}
+  .mapbar .tl2-dot,.v3d-measure .tl2-dot{background:#fff;border:3px solid var(--accent);box-sizing:border-box}
+  .layerbox:not(.in-flow),.v3d-tune,.v3d-tip,.notice,.pick-note,.v3d-photos .ph-drop,.measure-hint,.v3d-mhint{border-radius:var(--r-md)}
+  .v3d-sect{border-radius:var(--r-lg)}
+  .v3d-photos .ph-toggle,.v3d-photos .ph-cams,.v3d-photos .ph-btns button{border-radius:var(--r-sm)}
+  .stage-busy{border-radius:var(--r-pill)}
+
+  /* colour compositions, year chips, city chips, lists, inputs, tabs: the same soft shapes */
+  .swatches{gap:2px;padding:3px;border-radius:var(--r-md);background:var(--firn)}      /* one segmented box, like View and Mode */
+  .sw{padding:4px 4px 7px;border:0;border-radius:11px;background:none;box-shadow:none}
+  .sw i{border-radius:9px}
+  .sw:not([aria-pressed="true"]):hover{background:var(--rule-2)}
+  .sw[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink);font-weight:700}
+  .years button{border:0;border-radius:var(--r-sm);background:var(--firn);color:var(--rock)}
+  .years button:hover:not(:disabled):not([aria-pressed="true"]){background:var(--rule)}
+  .years button[aria-pressed="true"]{background:var(--ink);color:#fff;font-weight:700;box-shadow:none}
+  .years button.in-range{background:#DCE8EE}
+  .years button:disabled,.years button.is-na,.years button.is-na:hover{background:transparent;color:#B6BEC2;border:0;box-shadow:inset 0 0 0 1px var(--rule-2)}
+  .years.specials button{font-weight:600}
+  .years .landsat-chip{border:0;box-shadow:inset 0 0 0 1px var(--rule)}
+  .years .landsat-chip[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}
+  .status{border-radius:var(--r-sm)}
+  .glaciers button{border-radius:var(--r-sm)}
+  .glaciers button[aria-pressed="true"]{background:var(--firn);box-shadow:inset 3px 0 0 var(--accent);border-radius:0 var(--r-sm) var(--r-sm) 0}
+  .step .city-find input{border:0;border-radius:var(--r-sm);background:var(--firn);padding:7px 10px}
+  .step .city-find button{border:0;border-radius:var(--r-sm);background:var(--ink);color:#fff;font-weight:600}
+  .tabs{margin:var(--sp-4) 0 var(--sp-2);padding:3px;gap:2px;border:0;border-radius:var(--r-md);background:var(--firn)}
+  .tabs button{flex:1;margin:0;padding:8px 4px;border-radius:11px;text-align:center;color:var(--moraine);opacity:1;box-shadow:none}
+  .tabs button:hover{color:var(--ink);opacity:1}
+  .tabs button[aria-selected="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink)}
+  .story .tool-btn{border:0;border-radius:var(--r-md);background:var(--firn)}
+  .story .tool-btns{padding-bottom:var(--sp-4);border-bottom:1px solid var(--rule)}      /* a line between the tool buttons and the tabs */
+  .story .tool-btn:hover{background:var(--rule)}
+  .stat{border-radius:var(--r-sm)}
+  .fyi{border-radius:var(--r-lg)}
+  .fyi-go{border-radius:var(--r-pill)}
+  .gh-invite{border-radius:var(--r-md)}
+}

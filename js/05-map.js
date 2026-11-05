@@ -510,7 +510,7 @@ export function syncFullPlay(){          // the round play / pause button of the
   syncDock();
   document.querySelectorAll('.tl-play').forEach(b => { b.innerHTML = state.playing ? FULL_ICONS.pause : FULL_ICONS.play; b.setAttribute('aria-label', state.playing ? 'Pause' : 'Play'); });
 }
-export function play(seq = null){            // seq: the frames in the order to show them (a preview of loops and going back in time); without it the years run 0..n-1
+export function play(seq = null, onWrap = null){            // seq: the frames in the order to show them (a preview of loops and going back in time); without it the years run 0..n-1
   if (tlLayers.length < 2) return;
   state.playing = true; document.getElementById('playBtn').innerHTML = PAUSE_ICON; syncFullPlay();
   const begun = Date.now();
@@ -536,7 +536,14 @@ export function play(seq = null){            // seq: the frames in the order to 
   if (seq) showFrame(seq[0]); else if (state.frame >= tlLayers.length - 1) showFrame(0);
   const tick = () => {
     let next;
-    if (seq) { if (++pos >= seq.length) pos = 0; next = seq[pos]; }
+    if (seq) {
+      if (++pos >= seq.length) {
+        pos = 0; const hold = onWrap ? onWrap() : 0;      // the preview shows its ending here: wait, then start over (negative: it has stopped)
+        if (hold < 0) return;
+        if (hold) { state.timer = setTimeout(() => { showFrame(seq[0]); state.timer = setTimeout(tick, speedMs()); }, hold); return; }
+      }
+      next = seq[pos];
+    }
     else {
       next = state.frame + 1;
       if (next >= tlLayers.length) {

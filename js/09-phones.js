@@ -79,7 +79,7 @@ export function setFull(on){
     else if (fullState.saved) { setPanel('left', fullState.saved.l, false); setPanel('right', fullState.saved.r, false); fullState.saved = null; }
     app.classList.toggle('visual-only', on);
   }
-  immSync();
+  immSync(); fadeSync();
   ['fsBtn', 'v3dFs'].forEach(id => { const b = $(id); if (b) { const t = on ? 'Exit full screen (Esc)' : 'Full screen, visual only'; b.setAttribute('aria-label', t); b.title = t; } });      // the buttons show only an icon: the words are in the tooltip and for screen readers
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);
 }
@@ -103,6 +103,24 @@ export function immSync(){
   const on = immOn(); document.body.classList.toggle('imm', on);
   if (on) immShow(); else { clearTimeout(immTimer); document.body.classList.remove('imm-idle'); }
 }
+/* ---------- Full screen with a mouse: the same fade, on the pointer ----------
+   After a few seconds without mouse movement the docks and menus fade out and the pointer hides; any movement, key or click brings them back. They stay while the pointer is over them or something is open (immBusy). */
+const FADE_DELAY = 3500;
+let fadeTimer = 0;
+const fadeOn = () => !COARSE && isFull();
+function fadeShow(){
+  clearTimeout(fadeTimer); document.body.classList.remove('fade-idle'); if (!fadeOn()) return;
+  fadeTimer = setTimeout(function again(){
+    if (!fadeOn()) return;
+    if (immBusy() || document.querySelector('.stage .mapbar:hover, .stage .v3d-measure:hover, .stage .layerbox:hover, .stage .v3d-top:hover')) fadeTimer = setTimeout(again, 1500);
+    else document.body.classList.add('fade-idle');
+  }, FADE_DELAY);
+}
+export function fadeSync(){
+  const on = fadeOn(); document.body.classList.toggle('fade', on);
+  if (on) fadeShow(); else { clearTimeout(fadeTimer); document.body.classList.remove('fade-idle'); }
+}
+['pointermove', 'pointerdown', 'wheel', 'keydown'].forEach(t => $('stage').addEventListener(t, () => { if (fadeOn()) fadeShow(); }, {passive: true, capture: true}));
 (function(){
   const st = $('stage');
   st.addEventListener('pointerdown', e => { immDrag = e.pointerType === 'mouse' ? null : {x: e.clientX, y: e.clientY, moved: false}; }, true);
@@ -135,8 +153,36 @@ export let miniClosed = false;
 export function setMini(on){
   const stage = $('stage'); if (stage.classList.contains('mini') === on) return;
   const c = map.getCenter(), z = map.getZoom();            // the small window shows the middle of what the big one showed, at the same scale
-  stage.classList.toggle('mini', on); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
+  stage.classList.toggle('mini', on); miniPlace(); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
+/* the small window can be dragged anywhere on the screen (it keeps its place until the page is reloaded or turned) */
+let miniPos = null, miniDrag = null, miniMoved = false;
+function miniPlace(){
+  const st = $('stage').style, on = $('stage').classList.contains('mini');
+  if (!on || !miniPos) { st.left = st.top = st.right = st.bottom = ''; return; }
+  const w = $('stage').offsetWidth, h = $('stage').offsetHeight;
+  miniPos.x = Math.max(4, Math.min(innerWidth - w - 4, miniPos.x)); miniPos.y = Math.max(4, Math.min(innerHeight - h - 4, miniPos.y));      // stays on the screen
+  st.left = miniPos.x + 'px'; st.top = miniPos.y + 'px'; st.right = st.bottom = 'auto';
+}
+(function(){
+  const st = $('stage'), mini = () => st.classList.contains('mini');
+  st.addEventListener('pointerdown', e => {
+    if (!mini() || e.target.closest('.mini-ctl')) return;
+    const r = st.getBoundingClientRect(); miniDrag = {id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY}; miniMoved = false;
+    e.stopPropagation();                                                      // the map under it does not pan
+  }, true);
+  st.addEventListener('pointermove', e => {
+    if (!miniDrag || e.pointerId !== miniDrag.id) return;
+    if (!miniMoved && Math.hypot(e.clientX - miniDrag.x0, e.clientY - miniDrag.y0) < 8) return;
+    if (!miniMoved) { miniMoved = true; try { st.setPointerCapture(e.pointerId); } catch {} }
+    miniPos = {x: e.clientX - miniDrag.dx, y: e.clientY - miniDrag.dy}; miniPlace(); e.stopPropagation();
+  }, true);
+  const end = e => { if (miniDrag && e.pointerId === miniDrag.id) miniDrag = null; };
+  st.addEventListener('pointerup', end, true); st.addEventListener('pointercancel', end, true);
+  st.addEventListener('click', e => { if (miniMoved) { miniMoved = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);      // the end of a drag is not a tap (which would enlarge the window)
+  addEventListener('resize', () => { if (mini()) miniPlace(); });
+  addEventListener('orientationchange', () => { miniPos = null; miniPlace(); });
+})();
 export function evalMini(){            // the small window shows while the visual is scrolled out above the screen
   const below = $('stageSlot').getBoundingClientRect().bottom < 0;
   if (!below) miniClosed = false;

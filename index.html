@@ -180,8 +180,8 @@
           <input type="range" class="speed-range" id="speedSel" min="0" max="4" step="1" value="2" aria-label="Speed"><output class="speed-out" id="speedOut" for="speedSel">2 fps</output></label>
         </div>
         <div class="frame-row sat-need">
+          <label class="toggle optsw loop"><input type="checkbox" id="loopToggle"> <span>Loop</span></label>
           <input type="range" class="frame" id="frameSlider" min="0" max="0" value="0" aria-label="Timelapse frame">
-          <label class="toggle loop"><input type="checkbox" id="loopToggle"> <span>Loop</span></label>
         </div>
       </div>
       <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span> <button type="button" class="info-btn" id="landsatI" aria-expanded="false" aria-controls="landsatInfo" aria-label="About the older imagery">i</button></span></label>
@@ -220,7 +220,7 @@
         <textarea id="embedCode" readonly rows="9" spellcheck="false" aria-label="Embed code"></textarea>
         <div class="embed-row"><button type="button" class="act" id="embedCopy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
       </div>
-      <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share</button><button type="button" class="act" id="demBtn" aria-expanded="false" aria-controls="demBox" hidden title="The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)">Elevation model</button><button type="button" class="act" id="metaBtn" aria-expanded="false" aria-controls="metaBox">Metadata</button></div>
+      <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share</button><button type="button" class="act" id="demBtn" aria-expanded="false" aria-controls="demBox" disabled title="The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)">Elevation model</button><button type="button" class="act" id="metaBtn" aria-expanded="false" aria-controls="metaBox">Metadata</button></div>
       <div class="embed-box" id="demBox" hidden>
         <div class="dem-row"><label>Year <select id="demYear" aria-label="Year of the surface"></select></label><label>Format <select id="demFmt" aria-label="File format"></select></label></div>
         <p class="hint" id="demNote"></p>
@@ -399,7 +399,7 @@
     </div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
-    <div class="video-frame" id="videoFrame" hidden><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
+    <div class="video-frame" id="videoFrame" hidden><i class="vf-h" data-h="nw"></i><i class="vf-h" data-h="n"></i><i class="vf-h" data-h="ne"></i><i class="vf-h" data-h="e"></i><i class="vf-h" data-h="se"></i><i class="vf-h" data-h="s"></i><i class="vf-h" data-h="sw"></i><i class="vf-h" data-h="w"></i><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span class="pt-label" id="toggleRightLabel">Discover facts and figures</span></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
@@ -427,23 +427,24 @@
     <button type="button" id="vfWide" aria-pressed="true">16:9<small>(landscape)</small></button>
     <button type="button" id="vfReel" aria-pressed="false">9:16<small>(portrait)</small></button>
     <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Insta feed)</small></button>
-    <button type="button" id="vfBox" aria-pressed="false" title="The extent, ratio and size of the glacier's image box">Image box<small>(full picture)</small></button>
+    <button type="button" id="vfCustom" aria-pressed="false" title="Any ratio you like: drag the edges and corners of the frame on the map. It starts as the glacier's image box.">Custom<small>(drag the frame)</small></button>
   </div>
   <label class="toggle optsw vo-video" id="vSafeRow" hidden title="Instagram Reels and TikTok cover the top, the bottom and the right edge with their own buttons and captions. Switch off for a plain 9:16 video, with the text at the very top and bottom."><input type="checkbox" id="vSafe" checked> <span>Keep text clear of Reels and TikTok buttons</span></label>
   <p class="hint vs-guide" id="vsGuide"></p>
   <div class="segment vs-area vo-image" role="group" aria-label="Area shown"><button type="button" id="vaTongue" aria-pressed="false" title="Zoom the frame to the tongue">Tongue</button><button type="button" id="vaWhole" aria-pressed="false" title="Fit the whole glacier in the frame">Whole glacier</button></div>
   <p class="hint vs-move">Move and zoom the map to change what the frame shows.</p>
+  <button type="button" class="act vs-snap" id="vSnap" hidden title="Back to the extent and ratio of the glacier's image box">Reset frame to the image box</button>
   <div class="vs-opts">
-    <label class="toggle optsw vo-outline"><input type="checkbox" id="vOutline"> <span id="vOutlineLabel">Show 1850 outline</span></label>
+    <label class="toggle optsw vo-outline"><input type="checkbox" id="vOutline"> <span id="vOutlineLabel">1850 outline</span></label>
     <label class="toggle optsw speed-row" id="vFactsRow" title="Three facts about the glacier on the picture or video: Ice (volume, estimate), Retreat (length, area, thickness) or Size (area, thickness, tongue height)"><span class="fk"><input type="checkbox" id="vFacts"> <span>Glacier facts</span></span> <select class="small" id="vFactSet" aria-label="Which facts"><option value="ice">Ice</option><option value="retreat">Retreat</option><option value="size">Size</option></select></label>
-    <label class="toggle optsw" title="A small outline of the country with a dot at the glacier"><input type="checkbox" id="vInset" checked> <span>Location map</span></label>
-    <label class="toggle optsw" title="Only one small line up the left edge: Tongues from Space, the site, glacier, year and the data credit. No header, facts, timeline or scale."><input type="checkbox" id="vMinimal"> <span>Minimal text</span></label>
+    <label class="toggle optsw" title="A small outline of the country with a dot at the glacier"><input type="checkbox" id="vInset" checked> <span>Location inset</span></label>
+    <label class="toggle optsw" title="Only one small line up the left edge: Tongues from Space, the site, glacier, year and the data credit. No header, facts, timeline or scale."><input type="checkbox" id="vMinimal"> <span>Minimize text</span></label>
     <label class="toggle optsw vo-video vo-3d" title="The camera swings over the terrain during the video. Off keeps the viewpoint fixed."><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
     <label class="speed speed-row vo-video" title="Speed in frames (years) per second: the same setting as in the left panel"><svg class="speed-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0"/><path id="vSpeedNeedle" d="M12 18V9"/><circle cx="12" cy="18" r="1.4"/></svg><span>Speed</span>
       <input type="range" class="speed-range" id="vSpeed" min="0" max="4" step="1" value="2" aria-label="Speed"><output class="speed-out" id="vSpeedOut" for="vSpeed">2 fps</output></label>
     <label class="toggle speed-row vo-video vo-tl vo-loops"><span>Loops</span> <select class="small" id="vLoops"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
     <label class="toggle optsw vo-video vo-tl vo-loops"><input type="checkbox" id="vBounce"> <span>Run backwards between loops</span></label>
-    <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">Last year</option></select></label>
+    <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">No end card</option></select></label>
   </div>
   <p class="hint vs-note" id="vsInfo"></p>
   <p class="hint vs-note" id="vsEarly" hidden></p>

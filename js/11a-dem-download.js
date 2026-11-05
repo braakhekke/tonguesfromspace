@@ -25,7 +25,9 @@ function note(c){
 export async function syncDemTile(){            // called when the 3D view opens or closes (open3D, close3D): the tile shows in 3D for a glacier that has yearly surfaces
   const btn = $('demBtn'), run = ++gen, g = viewMode === '3d' ? currentGlacier() : null, c = g ? await surfacesOf(g).catch(() => null) : null;
   if (run !== gen) return;
-  btn.hidden = !c; if (!c) { $('demBox').hidden = true; btn.setAttribute('aria-expanded', 'false'); return; }
+  const tip = 'The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)';
+  btn.disabled = !c; btn.title = c ? tip : tip + '. Available in the 3D view of a glacier with yearly surfaces.';      // always in place; it works where the surfaces exist
+  if (!c) { $('demBox').hidden = true; btn.setAttribute('aria-expanded', 'false'); return; }
   const years = c.b.yearly.years, keep = +$('demYear').value;
   if (!years.includes(keep) || $('demYear').dataset.id !== c.id) {
     $('demYear').innerHTML = years.map(y => `<option value="${y}">${y}</option>`).join(''); $('demYear').dataset.id = c.id;
