@@ -6,7 +6,7 @@ import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLab
 import { asset, styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, sideStyle, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
 import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
-import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN } from './07-render.js';
+import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN, closeOtherSharePanes } from './07-render.js';
 import { showNotice } from './08-controls.js';
 import { setFull, setMini, evalMini, setLayers, swipeToClose } from './09-phones.js';
 // registered for the files below it in the load order (see wire.js)
@@ -191,14 +191,12 @@ export function startPreview(){
 export function syncPlayBtn(){ $('vsPlay').lastElementChild.textContent = vPrev.on ? 'Stop animation' : 'Play animation'; $('vsPlay').firstElementChild.innerHTML = vPrev.on ? '<path d="M7 7h10v10H7z"/>' : '<path d="M8 5v14l11-7z"/>'; }
 $('vfPlay').onclick = $('vsPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
 $('vfClose').onclick = () => closeVideo();      // the cross under the preview, beside the play button (alone when the preview is a picture)
-export function guideText(){
+export function guideText(){            // only the choices that need a word: the Reels / TikTok text zone and the custom frame
   const video = vstate.kind !== 'image';
   $('vSafeRow').hidden = !(video && vstate.fmt === 'reel');      // the Reels / TikTok choice only exists for a 9:16 video
-  if (vstate.fmt === 'reel') return video && $('vSafe').checked ? 'Text stays clear of the Reels and TikTok buttons and captions.'
-                                          : 'Text sits at the top and bottom edge, so the picture stays free.';
-  if (vstate.fmt === 'feed') return 'Text sits at the top and bottom.';
-  if (vstate.fmt === 'custom') return 'Drag the edges and corners of the frame to any shape. Text sits at the top and bottom.';
-  return 'Text sits at the top and bottom, so the picture stays free.';
+  if (vstate.fmt === 'reel' && video && $('vSafe').checked) return 'Text stays clear of the Reels and TikTok buttons and captions.';
+  if (vstate.fmt === 'custom') return 'Drag the edges and corners of the frame to any shape.';
+  return '';
 }
 export function placeFrame(){
   sheetOverlap = measureSheetOverlap();               // the info line can change the panel height
@@ -229,13 +227,9 @@ export function clampFrameToLimit(){
 }
 map.on('moveend', clampFrameToLimit);
 /* Frame areas: the frame on the map fitted to the tongue or to the whole glacier */
-/* "Tongue" and "Whole glacier" light up when pressed and go out again as soon as the frame is changed: another ratio, or moving or zooming the map */
+/* The map is fitted to the frame (the image box, for Custom); the fit is forgotten as soon as the frame is changed: another ratio, or moving or zooming the map */
 export let areaSel = null;
-export function syncAreaButtons(){
-  $('vaTongue').setAttribute('aria-pressed', !!areaSel && areaSel.which === 'tongue');
-  $('vaWhole').setAttribute('aria-pressed', !!areaSel && areaSel.which === 'whole');
-}
-export function markArea(which){ areaSel = which ? {which, z: map.getZoom(), c: map.getCenter(), fmt: vstate.fmt} : null; syncAreaButtons(); }
+export function markArea(which){ areaSel = which ? {which, z: map.getZoom(), c: map.getCenter(), fmt: vstate.fmt} : null }
 export function checkAreaSel(){
   if (!areaSel) return;
   if (areaSel.fmt !== vstate.fmt || Math.abs(map.getZoom() - areaSel.z) > 0.01 || map.latLngToContainerPoint(areaSel.c).distanceTo(map.getSize().divideBy(2)) > 3) markArea(null);
@@ -270,8 +264,6 @@ export function frameExceedsImage(){            // the frame reaches beyond the 
   const nw = ll([r.x, r.y]), se = ll([r.x + r.w, r.y + r.h]);
   return nw.lat > fp[1][0] || se.lat < fp[0][0] || nw.lng < fp[0][1] || se.lng > fp[1][1];
 }
-$('vaTongue').onclick = () => frameTo(false);
-$('vaWhole').onclick = () => frameTo(true);
 export function earlyNote(years){            // years before the Sentinel-2 series (Landsat pictures): the facts and statistics start at FIRST_YEAR
   const e = $('vsEarly'), early = (years || []).some(y => +y < FIRST_YEAR);
   e.hidden = !early; e.textContent = early ? `Pictures from before ${FIRST_YEAR} are Landsat. Facts and statistics only run from ${FIRST_YEAR} onwards.` : '';
@@ -334,7 +326,6 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
   $('vsTitle').textContent = 'Save and share';      // the same name as step 3 in the left panel
-  document.querySelector('.vs-move').hidden = in3D;      // in 3D the frame needs no hint
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
     if (typeof wire.leavePhoto === 'function') wire.leavePhoto(true);      // a download shows the orbiting camera, not the view of a historic photograph
     $('videoSheet').hidden = false; $('videoFrame').hidden = false;
@@ -408,7 +399,7 @@ function pumpPane(){
   const a = PHONE.matches ? 'translateY' : 'translateX';
   sh.animate([{transform: a + '(0)'}, {transform: a + '(14px)', offset: .3}, {transform: a + '(0)', offset: .55}, {transform: a + '(6px)', offset: .75}, {transform: a + '(0)'}], {duration: 520, easing: 'ease-out'});      // pushes toward its own screen edge and back: no gap opens
 }
-$('videoBtn').onclick = () => { openVideo('video'); pumpPane(); }; $('imageBtn').onclick = () => { openVideo('image'); pumpPane(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
+$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo('video'); pumpPane(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', custom: 'vfCustom' };
 /* Custom frame: drag a handle; the frame stays inside the free area and at least 80 px wide and high */
 $('videoFrame').addEventListener('pointerdown', e => {
@@ -896,6 +887,7 @@ export function factTiles(g, year, set, base){
   }
   return t;
 }
+export const imageFile = () => !shareOnly && $('vImgFmt').value === 'png' ? { type: 'image/png', ext: 'png', q: undefined } : { type: 'image/jpeg', ext: 'jpg', q: 0.92 };      // the gallery takes JPEG only
 export async function makeImage(){
   const ys = videoYears();
   if (!ys.length) return showNotice('No picture available for this year.');
@@ -917,9 +909,9 @@ export async function makeImage(){
       ctx.save(); ctx.beginPath(); if (info.horiz) ctx.rect(0, split, W, H - split); else ctx.rect(split, 0, W - split, H); ctx.clip(); ctx.drawImage(bases[1], 0, 0); ctx.restore();
       drawSwipeLabels(ctx, W, H, S, info, split);
     } else drawStill(ctx, W, H, info, S);               // a picture is not a Reel: text sits at the very top and bottom
-    const blob = await new Promise(res => canvas.toBlob(res, 'image/jpeg', 0.92));
-    const name = `tonguesfromspace-${shortSlug(g.name)}-${ys.join('-')}${cmpImg ? '-slider' : ''}-${FMT_SUFFIX[vstate.fmt]}.jpg`;
-    const file = new File([blob], name, { type: 'image/jpeg' });
+    const IF = imageFile(), blob = await new Promise(res => canvas.toBlob(res, IF.type, IF.q));
+    const name = `tonguesfromspace-${shortSlug(g.name)}-${ys.join('-')}${cmpImg ? '-slider' : ''}-${FMT_SUFFIX[vstate.fmt]}.${IF.ext}`;
+    const file = new File([blob], name, { type: IF.type });
     progress(1, 'Image ready');
     lastExport = { file, sig: exportSignature(), meta: { type: 'still', years: ys, fmt: vstate.fmt, style: state.style, glacier: g.id, name: g.name } };
     if (shareOnly) { /* for the gallery: no download */ }

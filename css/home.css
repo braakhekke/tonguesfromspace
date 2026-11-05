@@ -228,6 +228,8 @@ footer{background:#070b14 center bottom/cover no-repeat;color:rgba(255,255,255,.
 footer .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px}
 footer .brand{margin-bottom:12px}
 footer p{margin:0 0 8px;line-height:1.55}
+footer .tagline b{display:block;max-width:22ch;font-size:17px;font-weight:700;line-height:1.3;color:#fff}
+footer .tagline span{display:block;margin-top:6px;font-size:12px;font-weight:300;letter-spacing:.04em}
 footer a{color:#fff;text-underline-offset:3px}
 footer .src{font-size:11.5px;color:rgba(255,255,255,.55)}
 footer .credits-fold > summary{display:none}      /* phones only: see the phone block */

@@ -8,7 +8,7 @@ import { statusLine } from './06-scene-search.js';
 import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus, specialChips } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
 import { setLayers } from './09-phones.js';
-import { drawInset, insetWidth, previewScale, shadowText, VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, openVideo, startPreview, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
+import { imageFile, drawInset, insetWidth, previewScale, shadowText, VIDEO, marginsFor, FMT_SUFFIX, vstate, SWIPE_KEYS, swipeLength, stillYear, FONT, frameRect, vPrev, guideText, placeFrame, earlyNote, endLen, tailLength, perSec, loopSeq, centre3D, closeVideo, openVideo, startPreview, progress, shade, logoImg, loadLogo, easeIO, placeOf, shortCredit, minimalOn, minimalLabels, drawHeader, drawBottom, drawEndSlide, pickCodec, stillName, loadFacts, factSetOn, factTiles, endInfo, shortSlug, downloadFile, offerShare, shareOnly, exportSignature, muxMp4, brandMotion, stopPreview, lastExport, logoAsked, setBrandMotion, setLastExport, setLogoAsked } from './10-animation.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'bundleId', { get: () => bundleId, configurable: true });
 Object.defineProperty(wire, 'download3D', { get: () => download3D, configurable: true });
@@ -2169,9 +2169,9 @@ export async function download3D(kind){
       if (radar3D(g)) { await radarPinsFor(c); drawRadarPins(ctx, c, viewer, W, H, null, view, H / 1080, -1, -1); }
       drawMarks3D(ctx, projectMarks(c, viewer, W, H, null, view), 0.35, H / 1080);      // the marks, in a still moment of their movement
       draw3DLabels(ctx, W, H, S, labels3D(c, facts));
-      const blob = await new Promise(res => out.toBlob(res, 'image/jpeg', 0.92));
+      const IF = imageFile(), blob = await new Promise(res => out.toBlob(res, IF.type, IF.q));
       years = c.cmp || [yr0];
-      file = new File([blob], `tonguesfromspace-${shortSlug(g.name)}-3d-${years.join('-')}${c.cmp ? '-slider' : ''}-${FMT_SUFFIX[fmt]}.jpg`, {type: 'image/jpeg'});
+      file = new File([blob], `tonguesfromspace-${shortSlug(g.name)}-3d-${years.join('-')}${c.cmp ? '-slider' : ''}-${FMT_SUFFIX[fmt]}.${IF.ext}`, {type: IF.type});
     } else {
       const P = plan3D(c), longest = P.main + endLen(fmt);      // the gallery takes files up to 15 MB: the bitrate follows the length, aiming at about 11 MB
       const cfg = await pickCodec(W, H, Math.round(Math.min(8e6, Math.max(2.5e6, 11e6 * 8 / longest)))); if (!cfg) throw new Error('This browser cannot create MP4 (H.264) videos. Try Chrome, Edge, or Safari on iPhone, iPad or Mac.');

@@ -128,7 +128,7 @@
           <button type="button" id="viewMap" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5L15 20.5 9 18l-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg><span>Map</span></button>
           <button type="button" id="view3dBtn" aria-pressed="false" title="The tongue in 3D: the satellite picture draped over the terrain"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>3D</span></button>
         </div>
-        <label class="no-transition" title="Fly the camera between the map and the 3D view. Switch off to change at once."><input type="checkbox" id="noTransition" checked> <span>Fly between map and 3D</span></label>
+        <label class="toggle optsw no-transition" title="Fly the camera between the map and the 3D view. Switch off to change at once."><input type="checkbox" id="noTransition" checked> <span>Fly between map and 3D</span></label>
       </div>
       <div id="modeGroup">
         <div class="side-label">Mode</div>
@@ -211,9 +211,8 @@
     <section class="step" id="shareGroup">
       <h2 class="step-h"><span class="num">03</span>Save and share<small class="step-lock">pick a glacier</small></h2>
       <div class="dl-grid sat-need">
-        <button type="button" class="dl" id="imageBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-8 8"/></svg><b>Your image</b><small>one picture, JPEG</small></button>
-        <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your animation</b><small>short video, MP4</small></button>
-        <button type="button" class="dl dl-wide" id="embedBtn" aria-expanded="false" aria-controls="embedBox" title="Code to show this view in your own page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4.5l-4 15"/></svg><span><b>Embed</b></span></button>
+        <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your visual</b></button>
+        <button type="button" class="dl" id="embedBtn" aria-expanded="false" aria-controls="embedBox" title="Code to show this view in your own page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4.5l-4 15"/></svg><b>Embed</b></button>
       </div>
       <div class="embed-box" id="embedBox" hidden>
         <p class="hint">Paste this into your page. It shows the view you have now: glacier, years and mode, with the credits.</p>
@@ -237,7 +236,7 @@
         <span class="fyi-text">Support Tongues from Space</span>
         <span class="fyi-go">See the prints →</span>
       </a>
-      <p class="byline fyi-by">Making glacier change visible to everyone - by J. Braakhekke</p>
+      <p class="byline fyi-by"><b>Glacier visuals, done your way</b><span>J. Braakhekke</span></p>
     </section>
 
     <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn"><span class="num">03</span><span>Save and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
@@ -399,7 +398,7 @@
     </div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
-    <div class="video-frame" id="videoFrame" hidden><i class="vf-h" data-h="nw"></i><i class="vf-h" data-h="n"></i><i class="vf-h" data-h="ne"></i><i class="vf-h" data-h="e"></i><i class="vf-h" data-h="se"></i><i class="vf-h" data-h="s"></i><i class="vf-h" data-h="sw"></i><i class="vf-h" data-h="w"></i><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
+    <div class="video-frame" id="videoFrame" hidden><i class="vf-h" data-h="nw"></i><i class="vf-h" data-h="n"></i><i class="vf-h" data-h="ne"></i><i class="vf-h" data-h="e"></i><i class="vf-h" data-h="se"></i><i class="vf-h" data-h="s"></i><i class="vf-h" data-h="sw"></i><i class="vf-h" data-h="w"></i><span id="videoFrameNote"></span><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-fmt" id="vfWide" aria-pressed="true" aria-label="16:9, landscape" title="16:9 (landscape)">16:9</button><button type="button" class="vf-fmt" id="vfReel" aria-pressed="false" aria-label="9:16, portrait" title="9:16 (portrait)">9:16</button><button type="button" class="vf-fmt" id="vfFeed" aria-pressed="false" aria-label="4:5, Instagram feed" title="4:5 (Instagram feed)">4:5</button><button type="button" class="vf-fmt" id="vfCustom" aria-pressed="false" aria-label="Custom ratio" title="Custom: drag the edges and corners of the frame. It starts as the glacier's image box."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" stroke-dasharray="3 2.5"/><circle cx="19" cy="19" r="2.2"/></svg></button><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span class="pt-label" id="toggleRightLabel">Discover facts and figures</span></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
@@ -422,17 +421,9 @@
 <!-- ================= VIDEO EXPORT PANEL ================= -->
 <section class="video-sheet" id="videoSheet" role="dialog" aria-label="Create and share" hidden>
   <div class="vs-head"><strong id="vsTitle">Create and share</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
-  <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Your image</button><button type="button" id="vkVideo" aria-pressed="true">Your animation</button></div>
-  <div class="segment" role="group" aria-label="Format">
-    <button type="button" id="vfWide" aria-pressed="true">16:9<small>(landscape)</small></button>
-    <button type="button" id="vfReel" aria-pressed="false">9:16<small>(portrait)</small></button>
-    <button type="button" id="vfFeed" aria-pressed="false">4:5<small>(Insta feed)</small></button>
-    <button type="button" id="vfCustom" aria-pressed="false" title="Any ratio you like: drag the edges and corners of the frame on the map. It starts as the glacier's image box.">Custom<small>(drag the frame)</small></button>
-  </div>
+  <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Image</button><button type="button" id="vkVideo" aria-pressed="true">Animation</button></div>
   <label class="toggle optsw vo-video" id="vSafeRow" hidden title="Instagram Reels and TikTok cover the top, the bottom and the right edge with their own buttons and captions. Switch off for a plain 9:16 video, with the text at the very top and bottom."><input type="checkbox" id="vSafe" checked> <span>Keep text clear of Reels and TikTok buttons</span></label>
   <p class="hint vs-guide" id="vsGuide"></p>
-  <div class="segment vs-area vo-image" role="group" aria-label="Area shown"><button type="button" id="vaTongue" aria-pressed="false" title="Zoom the frame to the tongue">Tongue</button><button type="button" id="vaWhole" aria-pressed="false" title="Fit the whole glacier in the frame">Whole glacier</button></div>
-  <p class="hint vs-move">Move and zoom the map to change what the frame shows.</p>
   <button type="button" class="act vs-snap" id="vSnap" hidden title="Back to the extent and ratio of the glacier's image box">Reset frame to the image box</button>
   <div class="vs-opts">
     <label class="toggle optsw vo-outline"><input type="checkbox" id="vOutline"> <span id="vOutlineLabel">1850 outline</span></label>
@@ -445,13 +436,14 @@
     <label class="toggle speed-row vo-video vo-tl vo-loops"><span>Loops</span> <select class="small" id="vLoops"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
     <label class="toggle optsw vo-video vo-tl vo-loops"><input type="checkbox" id="vBounce"> <span>Run backwards between loops</span></label>
     <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">No end card</option></select></label>
+    <label class="toggle speed-row vo-image" title="JPG is smaller; PNG is lossless. A picture for the gallery is always JPG."><span>File</span> <select class="small" id="vImgFmt"><option value="jpg" selected>JPG</option><option value="png">PNG</option></select></label>
   </div>
   <p class="hint vs-note" id="vsInfo"></p>
   <p class="hint vs-note" id="vsEarly" hidden></p>
   <p class="hint vs-help"><span id="vsSource"></span> <span class="vo-video">Result: MP4, ready for Instagram or TikTok.</span></p>
   <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
   <button type="button" class="act vs-play vo-video" id="vsPlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Play animation</span></button>
-  <button type="button" class="play" id="vsGo" style="width:100%;padding:9px 12px;font-size:14px">Download video</button>
+  <button type="button" class="play" id="vsGo">Download video</button>
   <div class="vs-share" id="vsShareBox" hidden>
     <button type="button" id="vsShare" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg><span>Share it in the gallery</span></button>
     <form id="vsShareForm" hidden>
@@ -460,7 +452,7 @@
       <input type="text" id="vsNick" maxlength="30" placeholder="Name to show (optional)" autocomplete="off" aria-label="Name to show (optional)">
       <label class="toggle"><input type="checkbox" id="vsConsent"> <span>I made this and agree that it is shown in the public gallery</span></label>
       <div id="vsTurnstile"></div>
-      <button type="submit" class="play" id="vsSend" style="width:100%;padding:8px 12px;font-size:13.5px">Send to the gallery</button>
+      <button type="submit" class="play" id="vsSend" style="width:100%">Send to the gallery</button>
       <p class="hint" id="vsShareMsg" role="status"></p>
     </form>
   </div>

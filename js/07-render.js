@@ -521,9 +521,9 @@ export function aboutChaptersCh(){
         <p>The map comes first, then the left panel, then the story. Two fingers move the map. The map can be opened in the 3D view from the same switch.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-17"><summary>Create and share</summary><div class="about-sec">
-        <h4>Your image</h4>
+        <h4>Image</h4>
         <p>The view as it is shown, map or 3D, as one JPEG picture.</p>
-        <h4>Your animation</h4>
+        <h4>Animation</h4>
         <p>A short MP4 video made in your browser from the slider, the timelapse or the 3D view. You choose:</p>
         <ul>
           <li>the format: 16:9 landscape, 9:16 portrait or 4:5 for the Instagram feed;</li>

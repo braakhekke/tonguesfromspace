@@ -295,7 +295,6 @@ export function applyRegionUi(){
     document.querySelectorAll('#trailsToggle, #l3Trails').forEach(el => { const lab = el.closest('label'); lab.title = 'Footpaths and tracks (OpenStreetMap)'; lab.lastElementChild.lastChild.textContent = 'Footpaths and tracks'; });
   }
   if (!FEATURES.glamos) {      // the download panes: no tongue tip, no 1850 outline, no glacier facts and no fact card (their figures are GLAMOS's)
-    if (!GLACIERS[0].tongue) document.getElementById('vaTongue').style.display = 'none';
     document.querySelectorAll('.vo-outside').forEach(e => { e.style.display = 'none'; }); if (!GLACIERS[0].outlines) document.querySelectorAll('.vo-outline').forEach(e => { e.style.display = 'none'; });
     if (GLACIERS[0].rgi) { const ice = document.querySelector('#vFactSet option[value="ice"]'); if (ice) ice.remove(); document.getElementById('vFactSet').value = 'retreat'; }      // Iceland: facts of Retreat and Size (no ice volume)
     else document.getElementById('vFacts').checked = false;
