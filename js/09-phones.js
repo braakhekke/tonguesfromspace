@@ -108,8 +108,8 @@ export function orientSync(){
 const PHONE_DEVICE = () => matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 520;
 SIDEWAYS.addEventListener('change', orientSync);
 addEventListener('orientationchange', () => setTimeout(orientSync, 100));
-orientSync();
 export const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
+orientSync();      // after isFull is defined
 $('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
 $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);
