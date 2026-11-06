@@ -159,35 +159,58 @@ export let miniClosed = false;
 export function setMini(on){
   const stage = $('stage'); if (stage.classList.contains('mini') === on) return;
   const c = map.getCenter(), z = map.getZoom();            // the small window shows the middle of what the big one showed, at the same scale
-  stage.classList.toggle('mini', on); miniPlace(); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
+  stage.classList.toggle('mini', on); miniPlace(); miniSync(); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
-/* the small window can be dragged anywhere on the screen (it keeps its place until the page is reloaded or turned) */
-let miniPos = null, miniDrag = null, miniMoved = false;
-function miniPlace(){
-  const st = $('stage').style, on = $('stage').classList.contains('mini');
-  if (!on || !miniPos) { st.left = st.top = st.right = st.bottom = ''; return; }
-  const w = $('stage').offsetWidth, h = $('stage').offsetHeight;
-  miniPos.x = Math.max(4, Math.min(innerWidth - w - 4, miniPos.x)); miniPos.y = Math.max(4, Math.min(innerHeight - h - 4, miniPos.y));      // stays on the screen
-  st.left = miniPos.x + 'px'; st.top = miniPos.y + 'px'; st.right = st.bottom = 'auto';
+/* the small window is dragged and lands in the nearest of the four corners; dragged (or flicked) over the left or right edge, or with its arrow button, it slides off the screen and leaves a small arrow tab */
+let miniCorner = 'br', miniHidden = false, miniDrag = null, miniMoved = false, miniLast = null, miniV = 0;
+const miniTab = document.createElement('button');
+miniTab.type = 'button'; miniTab.className = 'mini-tab'; miniTab.hidden = true; miniTab.setAttribute('aria-label', 'Show the small window again'); miniTab.title = 'Show';
+miniTab.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
+document.body.appendChild(miniTab);
+function miniSync(){
+  const st = $('stage'), on = st.classList.contains('mini');
+  st.dataset.corner = miniCorner; if (miniHidden) st.dataset.hidden = ''; else delete st.dataset.hidden;
+  miniTab.dataset.corner = miniCorner; miniTab.hidden = !(on && miniHidden);
+}
+function miniPlace(){            // while dragging the window follows the finger (it may reach over the side edges); otherwise the corner decides
+  const st = $('stage'), on = st.classList.contains('mini'), s = st.style;
+  if (!on || !miniDrag) { s.left = s.top = s.right = s.bottom = ''; miniSync(); }
+}
+function miniDrop(){            // after a drag: which corner, or off the edge, and glide there from where the finger left it
+  const st = $('stage'), r = st.getBoundingClientRect(), w = r.width, cx = r.left + w / 2, cy = r.top + r.height / 2;
+  const side = cx < innerWidth / 2 ? 'l' : 'r', over = Math.max(-r.left, r.right - innerWidth);
+  const fling = Math.abs(miniV) > 0.8 && (miniV < 0) === (side === 'l') && over > -w * 0.25;      // a quick flick toward the near edge, from a place already close to it
+  miniCorner = (cy < innerHeight / 2 ? 't' : 'b') + side; miniHidden = over > w * 0.35 || fling;
+  st.style.transition = 'none'; st.style.left = st.style.top = st.style.right = st.style.bottom = ''; st.style.transform = ''; miniSync();
+  const to = st.getBoundingClientRect();
+  st.style.transform = `translate(${r.left - to.left}px, ${r.top - to.top}px)`; void st.offsetWidth;
+  st.style.transition = ''; st.style.transform = '';
 }
 (function(){
   const st = $('stage'), mini = () => st.classList.contains('mini');
   st.addEventListener('pointerdown', e => {
+    miniMoved = false;                                                        // a drag that ended without a click must not swallow the next tap
     if (!mini() || e.target.closest('.mini-ctl')) return;
-    const r = st.getBoundingClientRect(); miniDrag = {id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY}; miniMoved = false;
+    const r = st.getBoundingClientRect(); miniDrag = {id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY}; miniLast = null; miniV = 0;
     e.stopPropagation();                                                      // the map under it does not pan
   }, true);
   st.addEventListener('pointermove', e => {
     if (!miniDrag || e.pointerId !== miniDrag.id) return;
     if (!miniMoved && Math.hypot(e.clientX - miniDrag.x0, e.clientY - miniDrag.y0) < 8) return;
-    if (!miniMoved) { miniMoved = true; try { st.setPointerCapture(e.pointerId); } catch {} }
-    miniPos = {x: e.clientX - miniDrag.dx, y: e.clientY - miniDrag.dy}; miniPlace(); e.stopPropagation();
+    if (!miniMoved) { miniMoved = true; st.style.transition = 'none'; try { st.setPointerCapture(e.pointerId); } catch {} }
+    const w = st.offsetWidth, h = st.offsetHeight, now = e.timeStamp;
+    if (miniLast && now > miniLast.t) miniV = 0.6 * miniV + 0.4 * (e.clientX - miniLast.x) / (now - miniLast.t);      // sideways speed in px per ms, smoothed
+    miniLast = {x: e.clientX, t: now};
+    const x = Math.max(-w * 0.7, Math.min(innerWidth - w * 0.3, e.clientX - miniDrag.dx)), y = Math.max(4, Math.min(innerHeight - h - 4, e.clientY - miniDrag.dy));
+    st.style.left = x + 'px'; st.style.top = y + 'px'; st.style.right = st.style.bottom = 'auto'; e.stopPropagation();
   }, true);
-  const end = e => { if (miniDrag && e.pointerId === miniDrag.id) miniDrag = null; };
+  const end = e => { if (miniDrag && e.pointerId === miniDrag.id) { const moved = miniMoved; miniDrag = null; if (moved) miniDrop(); } };
   st.addEventListener('pointerup', end, true); st.addEventListener('pointercancel', end, true);
-  st.addEventListener('click', e => { if (miniMoved) { miniMoved = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);      // the end of a drag is not a tap (which would enlarge the window)
-  addEventListener('resize', () => { if (mini()) miniPlace(); });
-  addEventListener('orientationchange', () => { miniPos = null; miniPlace(); });
+  st.addEventListener('click', e => { if (miniHidden && !miniMoved) { e.stopImmediatePropagation(); e.preventDefault(); miniHidden = false; miniSync(); return; }      // a tap on the visible edge brings it back
+    if (miniMoved) { miniMoved = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);      // the end of a drag is not a tap (which would enlarge the window)
+  addEventListener('resize', () => { if (mini() && !miniDrag) miniPlace(); });
+  $('miniHide').onclick = () => { miniHidden = true; miniSync(); };
+  miniTab.onclick = () => { miniHidden = false; miniSync(); };
 })();
 export function evalMini(){            // the small window shows while the visual is scrolled out above the screen
   const below = $('stageSlot').getBoundingClientRect().bottom < 0;
