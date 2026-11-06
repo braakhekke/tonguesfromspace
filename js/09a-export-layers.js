@@ -6,6 +6,7 @@ import { $ } from './01-data.js';
 import { eachPiece, newOutlineGeom, hasOldOutline } from './02-glaciers.js';
 import { currentGlacier, viewMode, state } from './04-state.js';
 import { imageFootprint } from './03-imagery.js';
+import { map } from './05-map.js';
 import { thickestSpot, spotText, getVar, strokeEdgeFade, osm, topo, alti, bgTiles, BG_YEAR, mapYears, siYear, flownYear, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedYear, speedId, speedMask, speedCanvas, speedPeak, speedYearOk, SPEED_LUT, SPEED_MIN, SPEED_MAX, labels, trails, namesData, loadRadar, radarColor, arcsFor, arcStroke, arcEdgeFade, arcLabel, flightsShown, flightHas, liveTile, flightStreamZ } from './05-map.js';
 import { wire } from './wire.js';
 import { layersOnCount } from './08-controls.js';
@@ -137,7 +138,24 @@ export function exportLayers(kind = 'image'){
 }
 
 /* The credits the picture owes to the background maps in it */
-export const layerCredits = (kind = 'image', ys = [], rasters = null) => exportLayers(kind).filter(l => l.credit && (!l.raster || !rasters || l.native || rasters.some(r => r.id === l.id))).map(l => l.credit(ys));      // a colour layer with no picture for this year is not credited
+export const layerCredits = (kind = 'image', ys = [], rasters = null, seen = null) => exportLayers(kind).filter(l => l.credit && (!l.raster || !rasters || l.native || rasters.some(r => r.id === l.id)) && (!seen || !l.bg || l.aerial || seen.has(l.id))).map(l => l.credit(ys));      // seen: the background layers that can really be seen in the picture (a map hidden under another, or without any picture here, is not credited)      // a colour layer with no picture for this year is not credited
+/* The frame on the map, looked at in small: which background layers can be seen in it (the preview's credit line follows). Found a moment after the map stops moving; null until then. */
+let pr = { key: '', want: '', seen: null, t: 0 };
+export function previewSeen(kind, redraw){
+  const g = currentGlacier(); if (!g || !layersOn() || viewMode === '3d' || !wire.frameRect) return null;
+  const r = wire.frameRect(), c = map.getCenter(), key = [g.id, kind, exportLayers(kind).map(l => l.id).join(), map.getZoom(), c.lat.toFixed(5), c.lng.toFixed(5), [r.x, r.y, r.w, r.h].map(Math.round).join()].join('|');
+  if (pr.key === key) return pr.seen;
+  if (pr.want !== key) {
+    pr.want = key; clearTimeout(pr.t);
+    pr.t = setTimeout(async () => {
+      const nw = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x, r.y])), se = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x + r.w, r.y + r.h])), fp = imageFootprint(g), crop = { x0: nw.x, x1: se.x, y1: nw.y, fp }, W = 160, H = Math.max(2, Math.round(W * r.h / r.w));
+      const a = await buildBackground(crop, W, H, kind, null, fp), o = await buildBackground(crop, W, H, kind, null, fp, true); if (pr.want !== key) return;
+      pr = { key, want: key, seen: new Set([...(a ? a.seen : []), ...(o ? o.seen : [])]), t: 0 }; if (redraw) redraw();
+    }, 300);
+  }
+  return null;
+}
+export const bgSeenOf = (...bgs) => new Set(bgs.flatMap(b => b ? [...b.seen] : []));
 export const hasBackground = (kind = 'image') => exportLayers(kind).some(l => l.bg);
 export const overlayCards = (kind = 'image') => exportLayers(kind).filter(l => l.over && l.card).map(l => l.card);      // legend cards of the overlay tiles (trails)
 export const perYearBackground = (kind = 'image') => exportLayers(kind).some(l => l.aerial);      // the background differs from picture to picture
@@ -151,7 +169,7 @@ export async function buildBackground(crop, W, H, kind = 'image', year = null, f
   const s = W / (crop.x1 - crop.x0), y0 = crop.y1 - H / s, res = 1 / s;
   const out = document.createElement('canvas'); out.width = W; out.height = H;
   const ctx = out.getContext('2d'); ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
-  let failed = 0, total = 0;
+  let failed = 0, total = 0; const cover = [];
   for (const l of layers) {
     const tpl = l.url(year); if (!tpl) continue;
     let z = Math.min(l.maxNative, Math.max(0, Math.ceil(Math.log2(TILE_M0 / res))));
@@ -172,12 +190,18 @@ export async function buildBackground(crop, W, H, kind = 'image', year = null, f
       for (let i = 0; i < px.length; i += 4) { px[i] = Math.min(255, px[i] * l.bright); px[i + 1] = Math.min(255, px[i + 1] * l.bright); px[i + 2] = Math.min(255, px[i + 2] * l.bright); }
       lc.putImageData(d, 0, 0);
     }
+    { const N = 48, sc = document.createElement('canvas'); sc.width = N; sc.height = Math.max(1, Math.round(N * H / W)); const sx = sc.getContext('2d', { willReadFrequently: true }); sx.drawImage(layer, 0, 0, sc.width, sc.height); cover.push({ id: l.id, d: sx.getImageData(0, 0, sc.width, sc.height).data, solid: !over && (l.alpha ?? 1) > .95 }); }      // how much of the picture this layer's tiles cover
     ctx.save();
     ctx.globalAlpha = l.alpha ?? 1;
     if ((l.aerial || l.clipFp) && fp) { const x = (fp.bbox[0] - crop.x0) * s, y = (crop.y1 - fp.bbox[3]) * s; ctx.beginPath(); ctx.rect(x, y, (fp.bbox[2] - fp.bbox[0]) * s, (fp.bbox[3] - fp.bbox[1]) * s); ctx.clip(); }      // only inside the picture box, as on the map
     ctx.drawImage(layer, 0, 0); ctx.restore();
   }
-  return { canvas: out, failed, total };
+  const seen = new Set(), n = cover.length ? cover[0].d.length / 4 : 0, hidden = new Uint8Array(n);
+  for (let i = cover.length - 1; i >= 0; i--) {      // from the top layer down: seen when some of its pixels are not hidden by a solid layer above
+    const { id, d, solid } = cover[i]; let vis = 0; for (let q = 0; q < n; q++) if (d[q * 4 + 3] > 8 && !hidden[q]) vis++;
+    if (vis >= 3) seen.add(id); if (solid) for (let q = 0; q < n; q++) if (d[q * 4 + 3] > 240) hidden[q] = 1;
+  }
+  return { canvas: out, failed, total, seen };
 }
 
 /* Drawing. P maps [lng, lat] to canvas pixels, u is the size of one screen pixel in the picture (W / 1080 * 1.6). */

@@ -399,7 +399,7 @@ export function updateFlights(){
   const vis = !!(g && flightsData.get(g.id)), one = vis && state.mode === 'single', e = one ? flightsEntry(g, state.one) : null;      // the row is in every mode and view of a glacier with flights; greyed unless One year has a flight
   [['flightsRow', 'flightsToggle', 'flightsLabel'], ['l3FlightsRow', 'l3Flights', 'l3FlightsLabel']].forEach(([row, inp, lab]) => {
     const r = document.getElementById(row), i = document.getElementById(inp); r.hidden = !vis; r.classList.toggle('is-unavail', !e); i.disabled = !e; if (document.getElementById('flightsToggle')) i.checked = document.getElementById('flightsToggle').checked;
-    document.getElementById(lab).textContent = 'swisstopo special flight';      // the dates are in the dock; a year without a flight greys the row (the tooltip says why)
+    document.getElementById(lab).textContent = 'swisstopo special';      // the dates are in the dock; a year without a flight greys the row (the tooltip says why)
     r.title = e ? `Project the swisstopo special-flights imagery of ${state.one} (${e.product}) on the ${row === 'flightsRow' ? 'map' : 'terrain'}. Only where a flight touched the glacier: ${e.share_of_outline_2023} % of the 2023 outline.` : !vis ? '' : !one ? 'swisstopo special-flights imagery: can only be used in One year (map or 3D view), not in the Slider or Timelapse.' : 'swisstopo special-flights imagery: no flight touched this glacier in this year.';
   });
   const on = !!e && document.getElementById('flightsToggle').checked, dock = document.getElementById('flightsDock'), key = on ? e.flights.map(f => f.id).join() + '|' + state.one : '';

@@ -17,8 +17,67 @@
 <meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/pages.css">
-<link rel="stylesheet" href="css/sitebar.css">
 <style>
+/* header and footer: the same as the home page (copied from css/home.css); on this light page the bar is dark and in the flow */
+.bar{background:#0E1A22 center top/cover no-repeat}
+.bar .wrap,footer .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+.bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px}
+.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.brand img{height:25px;width:auto}
+.brand b{font-size:22px;line-height:30px;font-weight:700;letter-spacing:-.018em;white-space:nowrap}
+.bar nav{display:flex;gap:26px;align-items:center}
+.bar nav a{font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none}
+.bar nav a:hover{color:#fff}
+.btn-red,.btn-ghost{display:inline-flex;align-items:center;gap:9px;padding:13px 20px;font-weight:600;font-size:14px;text-decoration:none;cursor:pointer;border:1px solid var(--accent);border-radius:0}
+.btn-red{background:var(--accent);color:#fff}
+.btn-red:hover{background:#A9261F;border-color:#A9261F}
+.btn-ghost svg,.btn-red svg{width:14px;height:14px;fill:currentColor;flex:none}
+.closing{color:#fff;padding:88px 0 72px}
+.closing .wrap{display:flex;align-items:center;justify-content:space-between;gap:32px;flex-wrap:wrap}
+.closing h2 span{display:block}
+.closing h2{margin:0;font-size:clamp(30px,4.4vw,56px);line-height:1.02;font-weight:800;letter-spacing:-.03em}
+/* footer */
+footer{background:#070b14 center bottom/cover no-repeat;color:rgba(255,255,255,.7);padding:0 0 36px;font-size:12.5px}
+footer .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px}
+footer .brand{margin-bottom:12px}
+footer p{margin:0 0 8px;line-height:1.55}
+footer .tagline{display:flex;flex-direction:column;gap:6px;white-space:nowrap}
+footer .tagline b{max-width:none;font-size:17px;font-weight:700;line-height:1.3;color:#fff}
+footer .tagline span{font-size:12px;font-weight:300;letter-spacing:.04em}
+footer .credit-list{margin:0;display:grid;gap:6px}
+footer .credit-list div{display:grid;grid-template-columns:92px 1fr;gap:12px;line-height:1.5}
+footer .credit-list dt{font-weight:600;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.06em;font-size:10.5px;padding-top:1px}
+footer .credit-list dd{margin:0}
+footer a{color:#fff;text-underline-offset:3px}
+footer .src{font-size:11.5px;color:rgba(255,255,255,.55)}
+footer .credits-fold > summary{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 14px;border-radius:8px;background:rgba(255,255,255,.08);list-style:none;cursor:pointer;font-size:12.5px;font-weight:600;color:#fff}
+footer .credits-fold > summary::-webkit-details-marker{display:none}
+footer .credits-fold > summary::after{content:"";width:8px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .2s}
+footer .credits-fold[open] > summary::after{transform:rotate(-135deg);margin:4px 4px 0 0}
+footer .credits-fold[open] > summary{margin-bottom:14px}
+@media (max-width:900px){.bar nav{gap:0}.brand b{font-size:18px}footer .wrap{grid-template-columns:1fr;gap:28px}.closing{padding:56px 0}
+  .closing .wrap{flex-direction:column;align-items:stretch;gap:22px}
+  .closing .btn-red.go{width:100%;justify-content:center;height:58px;font-size:16px;border:2px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}}
+.bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+/* phones (iPhone 16: 393 px wide): the same header and footer as the home page */
+@media (max-width:640px){
+  .bar .wrap,footer .wrap{padding:0 14px}
+  .bar .wrap{height:52px;gap:10px}
+  .brand{gap:10px}.brand img{height:24px}
+  .bar .brand b{display:none}
+  .bar nav{gap:14px}.bar nav a{font-size:12px}
+  footer{padding-bottom:max(24px,env(safe-area-inset-bottom))}
+  footer .wrap{gap:16px}
+  footer .brand{margin-bottom:8px}
+  footer .brand b{font-size:16px}
+  footer .tagline{white-space:normal}
+  footer .credits-fold > summary{padding:12px 16px;border-radius:12px;font-size:13px}
+  footer .credit-list div{grid-template-columns:1fr;gap:2px}
+  .closing{padding:40px 0 32px}
+  .closing h2{font-size:clamp(26px,7.6vw,32px);text-wrap:balance}
+  .closing .btn-red.go{height:52px;border-width:0;box-shadow:none}
+}
+.bar nav a[aria-current]{color:#fff}
 .filters{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin:0 0 16px}
 .filters label{display:flex;flex-direction:column;gap:3px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
 .filters select{-webkit-appearance:none;appearance:none;border:1px solid var(--rule);border-radius:0;padding:7px 32px 7px 10px;font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--rock);width:190px;max-width:100%;text-overflow:ellipsis;cursor:pointer;
@@ -64,7 +123,7 @@
 }
 .filters #fReset{border-radius:var(--r-pill)}
 .cta .btn.primary{border-radius:var(--r-sm)}
-@media (max-width:600px){.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 8px;align-items:end}.filters label{min-width:0}.filters .dd{width:100%;min-width:0}.filters .count{grid-column:2 / -1;grid-row:3;justify-self:end;margin-left:0}.filters #fReset{grid-column:1;grid-row:3;justify-self:start}.grid{columns:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.item{margin-bottom:0;border-radius:6px}.item .meta{padding:5px 7px 6px}}
+@media (max-width:600px){.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 8px;align-items:end}.filters label{min-width:0}.filters .dd{width:100%;min-width:0}.filters .count{grid-column:2 / -1;grid-row:3;justify-self:end;margin-left:0}.filters #fReset{grid-column:1;grid-row:3;justify-self:start}.grid{columns:2;column-gap:6px}.item{margin-bottom:6px;border-radius:6px}.item .meta{padding:5px 7px 6px}}
 .media{position:relative}
 .media .full{position:absolute;right:6px;bottom:6px;width:32px;height:32px;padding:0;border:0;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:grid;place-items:center}
 .media .full:hover{background:rgba(0,0,0,.8)}
@@ -87,7 +146,8 @@
   .filters .dd{width:100%}
   .filters .dd-btn{min-height:38px;border-radius:var(--r-sm);background:var(--firn);box-shadow:none}
   .filters .count{margin:0;font-size:12.5px}
-  .grid{grid-template-columns:1fr 1fr;gap:var(--sp-2)}
+  .grid{columns:2;column-gap:var(--sp-2)}
+  .item{margin-bottom:var(--sp-2)}
   .item{border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift)}
   .media img,.media video{max-height:62vh}
   .media .full{right:10px;bottom:10px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5)}
@@ -112,7 +172,17 @@
   <script defer src="js/track.js"></script>
 </head>
 <body>
-<header class="sitebar"><div class="in"><a class="brand" data-home href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a><nav><a data-dash href="index.html"><i aria-hidden="true"></i>Dashboard</a><a href="size.html">Glacier vs. city</a><a href="gallery.html" aria-current="page">Gallery</a></nav></div></header>
+<header class="bar"><div class="wrap">
+  <a class="brand" data-home href="home.html">
+    <img src="images/home/logo-white.svg" alt="" width="32" height="30">
+    <b>Tongues from Space</b>
+  </a>
+  <nav>
+    <a data-dash href="index.html">Dashboard</a>
+    <a href="size.html">Size visualizer</a>
+    <a href="gallery.html" aria-current="page">Gallery</a>
+  </nav>
+</div></header>
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Full size picture"><img alt=""><button type="button" aria-label="Close">×</button></div>
 <main class="wrap">
   <p class="lede">Pictures and animations of glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
@@ -121,7 +191,7 @@
     <label>Region<select id="fRegion"><option value="">All regions</option></select></label>
     <label>Glacier<select id="fGlacier"><option value="">All glaciers</option></select></label>
     <label>Year<select id="fYear"><option value="">All years</option></select></label>
-    <label>Type<select id="fType"><option value="">All types</option><option value="still">Image</option><option value="timelapse">Timelapse</option><option value="slider">Slider (before and after)</option><option value="3d">3D view</option></select></label>
+    <label>Type<select id="fType"><option value="">All types</option><option value="still">Image</option><option value="timelapse">Timelapse</option><option value="slider">Slider (before and after)</option><option value="3d">3D view</option><option value="area">Area comparison (2D)</option><option value="volume">Volume comparison (3D)</option></select></label>
     <label>Colour composition<select id="fStyle"><option value="">All compositions</option><option value="natural">Natural (B04, B03, B02)</option><option value="false1">Infra (B08, B04, B03)</option><option value="false2">Bloody (B8A, B11, B12)</option><option value="false3">Hot? (B04, B11, B02, ratio)</option></select></label>
     <button type="button" id="fReset" hidden>Clear filters</button>
     <span class="count" id="count" aria-live="polite"></span>
@@ -129,24 +199,36 @@
   <div class="grid" id="grid"></div>
   <p class="empty" id="empty" hidden></p>
 </main>
-<footer class="site-foot">
-  <div class="in">
-    <div class="who"><a class="brand" href="home.html"><img src="images/home/logo-white.svg" alt="" width="28" height="26"><b>Tongues from Space</b></a>
-      <p class="tagline"><b>Glacier visuals, done your way</b><span>By J. Braakhekke</span></p></div>
-    <details class="credits-fold"><summary>Sources and credits</summary>
-      <dl class="credit-list">
-        <div><dt>Pictures</dt><dd>Contains modified Copernicus Sentinel data, processed via the Copernicus Data Space Ecosystem.</dd></div>
-        <div><dt>Outlines</dt><dd>GLAMOS.</dd></div>
-        <div><dt>Gallery</dt><dd>Items are shared by visitors; to have one removed, open an issue on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>.</dd></div>
-      </dl>
+<footer>
+<section class="closing">
+  <div class="wrap">
+    <h2><span>Every glacier ends in a tongue.</span> <span>Now go look at yours.</span></h2>
+    <a class="btn-red go" data-dash href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+</section>
+<div class="wrap">
+  <div>
+    <a class="brand" data-home href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
+    <p class="tagline"><b>Glacier visuals, done your way</b><span>By J. Braakhekke</span></p>
+  </div>
+  <div class="src">
+    <details class="credits-fold" id="creditsFold"><summary>Sources and credits</summary>
+    <dl class="credit-list">
+      <div><dt>Pictures</dt><dd>Contains modified Copernicus Sentinel data 2016–2026 (Sentinel-2), processed via the Copernicus Data Space Ecosystem. Older pictures: Landsat 5 and 7, USGS.</dd></div>
+      <div><dt>Terrain</dt><dd>swissALTI3D © swisstopo via Mapterhorn; the ice surface of each year is an estimate from the swissALTI3D editions and the GLAMOS mass balance.</dd></div>
+      <div><dt>Statistics</dt><dd>Switzerland: GLAMOS.</dd></div>
+      <div><dt>Background</dt><dd>Sentinel-2 cloudless by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> (CC BY-NC-SA 4.0), © OpenStreetMap contributors.</dd></div>
+      <div><dt>Licence</dt><dd>Non-commercial. Code MIT, own texts CC BY 4.0.</dd></div>
+    </dl>
     </details>
   </div>
-</footer>
+</div></div></footer>
 <script src="config.js"></script>
 <script defer src="js/home-link.js"></script>
 <script>
 const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
-const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider' };
+const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider', area: 'Image', areafly: 'Animation', volume: 'Image', volumefilm: 'Animation' };
+const SIZEVIEW = { area: 'Area · 2D', volume: 'Volume · 3D' };      // the pictures of the size page ("How big are glaciers?") have no colour composition
 const STYLE = { natural: 'Natural', false1: 'Infra', false2: 'Bloody', false3: 'Hot?' };
 const FMT = { reel: '9:16', feed: '4:5', wide: '16:9' };
 /*regions:start*/
@@ -174,8 +256,8 @@ function card(it){
   }
   const meta = el('div', 'meta');
   const yrs = it.years.length > 1 ? `${it.years[0]}–${it.years[it.years.length - 1]}` : String(it.years[0]);
-  meta.append(el('p', 'kind', `${regionName(regionOf(it))} · ${it.view === '3d' ? '3D · ' : ''}${TYPE[it.type] || it.type} · ${FMT[it.fmt] || ''}`), el('h2', '', it.name),
-    el('p', 'by', [yrs, STYLE[it.style], it.nick && 'by ' + it.nick].filter(Boolean).join(' · ')));
+  meta.append(el('p', 'kind', `${regionName(regionOf(it))} · ${it.view === '3d' ? '3D · ' : ''}${SIZEVIEW[it.view] ? SIZEVIEW[it.view] + ' · ' : ''}${TYPE[it.type] || it.type} · ${FMT[it.fmt] || ''}`), el('h2', '', it.name),
+    el('p', 'by', [yrs, !SIZEVIEW[it.view] && STYLE[it.style], it.nick && 'by ' + it.nick].filter(Boolean).join(' · ')));
   const dl = el('a', 'btn dl', it.kind === 'video' ? 'Download video' : 'Download image'); dl.href = src + '?download=1'; dl.rel = 'noopener';
   const sh = el('button', 'dl', 'Share'); sh.type = 'button';
   sh.onclick = async () => {
@@ -202,7 +284,7 @@ function fill(sel, values, label){
 function render(){
   syncDD();
   const f = { region: $('fRegion').value, glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value };
-  const list = items.filter(it => (!only || it.id === only) && (!f.region || regionOf(it) === f.region) && (!f.glacier || it.glacier === f.glacier) && (!f.year || it.years.includes(+f.year)) && (!f.type || (f.type === '3d' ? it.view === '3d' : it.type === f.type)) && (!f.style || it.style === f.style));
+  const list = items.filter(it => (!only || it.id === only) && (!f.region || regionOf(it) === f.region) && (!f.glacier || it.glacier === f.glacier) && (!f.year || it.years.includes(+f.year)) && (!f.type || (f.type === '3d' ? it.view === '3d' : f.type === 'area' || f.type === 'volume' ? it.view === f.type : it.type === f.type)) && (!f.style || (it.style === f.style && !SIZEVIEW[it.view])));
   const grid = $('grid'); grid.replaceChildren(...list.map(card));
   $('count').textContent = items.length ? `${list.length} of ${items.length}` : '';
   $('fReset').hidden = !(only || f.region || f.glacier || f.year || f.type || f.style);
@@ -273,6 +355,32 @@ function applyHash(){
   [['glacier', 'fGlacier'], ['year', 'fYear'], ['type', 'fType'], ['style', 'fStyle']].forEach(([k, id]) => { $(id).value = only ? '' : p.get(k) || ''; if ($(id).selectedIndex < 0) $(id).value = ''; });
   render();
 }
+</script>
+<script>
+/* Deep space, drawn like the map viewer's backdrop (spaceCanvas in js/05-map.js): dark blue gradient, a soft Milky Way band, nebula glows, small stars. Fixed seed. */
+(() => {
+  const w = 1600, h = 1000, perStar = 2400, scale = 1;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  let seed = 20261009; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04070d'); g.addColorStop(1, '#0a1426'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const glow = (cx, cy, r, rgb, a) => { const q = x.createRadialGradient(cx, cy, 0, cx, cy, r); q.addColorStop(0, `rgba(${rgb},${a})`); q.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = q; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
+  glow(w * .22, h * .28, w * .55, '84,72,170', .11); glow(w * .84, h * .72, w * .5, '38,110,170', .10); glow(w * .5, h * .5, w * .4, '60,70,120', .05);
+  x.save(); x.translate(w / 2, h / 2); x.rotate(-0.38);
+  const band = x.createLinearGradient(0, -h * .22, 0, h * .22); band.addColorStop(0, 'rgba(150,170,230,0)'); band.addColorStop(.5, 'rgba(150,170,230,.055)'); band.addColorStop(1, 'rgba(150,170,230,0)');
+  x.fillStyle = band; x.fillRect(-w, -h * .22, 2 * w, h * .44);
+  for (let i = 0, n = Math.round(w * h / perStar * 1.6); i < n; i++) {
+    const px = (rnd() - .5) * w * 1.5, py = (rnd() + rnd() + rnd() - 1.5) * h * .2, a = 0.12 + rnd() * 0.35;
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.fillRect(px, py, .9 * scale, .9 * scale);
+  }
+  x.restore();
+  for (let i = 0, n = Math.round(w * h / perStar); i < n; i++) {
+    const px = rnd() * w, py = rnd() * h, k = rnd(), bright = k > .975, big = k > .88, r = (0.4 + Math.pow(rnd(), 4) * 1.0) * scale * (bright ? 2.8 : big ? 1.7 : 1), a = bright ? 0.9 : 0.2 + rnd() * 0.5;
+    if (big) glow(px, py, r * (bright ? 7 : 5), '190,210,255', bright ? .3 : .18);
+    if (bright) { x.strokeStyle = 'rgba(225,235,255,.45)'; x.lineWidth = .8 * scale; x.beginPath(); x.moveTo(px - r * 4, py); x.lineTo(px + r * 4, py); x.moveTo(px, py - r * 4); x.lineTo(px, py + r * 4); x.stroke(); }
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+  }
+  c.toBlob(blob => { const u = 'url(' + URL.createObjectURL(blob) + ')'; document.querySelectorAll('.bar, footer').forEach(el => { el.style.backgroundImage = u; }); });
+})();
 </script>
 <script defer src="js/turn-upright.js"></script>
 </body>

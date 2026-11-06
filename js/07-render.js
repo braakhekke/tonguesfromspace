@@ -537,7 +537,31 @@ export function aboutChaptersCh(){
           <li><em>Share</em> opens the share sheet of your device, or copies the link. The link opens this glacier with the same mode, years and colour composition.</li>
           <li><em>Elevation model</em> (3D view, glaciers with yearly surfaces) downloads the ice surface of a year as GeoTIFF, ESRI ASCII grid or XYZ points, in LV95 (EPSG:2056). It is a model, not a measurement, and for non-commercial use.</li>
           <li><em>Gallery</em> (button under the title) shows the pictures and videos that visitors have shared. When you send one you confirm that you made it and agree that it is shown. It is checked and waits for approval before it appears.</li>
-          <li><em>Compare it to your city size</em> (above the tabs in the right panel) opens a page where you drag the outline of the glacier onto your own city.</li>
+          <li><em>Size visualizer</em> (above the tabs in the right panel) opens a page where you see the ice of the glacier as a block next to your own city (Volume 3D), or drag its outline onto the city (Area 2D).</li>
+        </ul>
+      </div></details>
+      <details class="about-ch" name="aboutch" id="ch-19"><summary>Size visualizer</summary><div class="about-sec">
+        <p>A separate page (<a href="size.html">size.html</a>) that answers one question: how big is a glacier? It is opened from the button above the tabs in the right panel, and it works for the ten glaciers of this site.</p>
+        <h4>Two ways to look</h4>
+        <ul>
+          <li><em>Area (2D):</em> a map on which you drag the outline of a glacier onto a city. The outlines are those of the Swiss Glacier Inventory.${fn('sgi')}</li>
+          <li><em>Volume (3D):</em> the ice of the glacier as a block, or as a ball, that you can drop onto the terrain next to a city or a landmark. The volumes are the estimates described under Ice and water.</li>
+        </ul>
+        <h4>Choosing</h4>
+        <ul>
+          <li>Pick a glacier from the list or on the map; the last two you pick are compared. <em>All ten</em> shows the ten at once.</li>
+          <li>Pick a city, or type the name of one of your own. In 3D there are landmarks too.</li>
+        </ul>
+        <h4>Saving and sharing</h4>
+        <p><em>Your visual</em> makes a picture of the view to save, <em>Share</em> copies a link to exactly this view and <em>Embed</em> gives code to show it in your own page.</p>
+        <p>The block and the ball are drawings to help you see the size.</p>
+      </div></details>
+      <details class="about-ch" name="aboutch" id="ch-20"><summary>Other pages</summary><div class="about-sec">
+        <ul>
+          <li><em>Start page</em> (<a href="home.html">home.html</a>): a map of the regions and glaciers, and the way into the dashboard and the Size visualizer.</li>
+          <li><em>Gallery</em> (<a href="gallery.html">gallery.html</a>): the pictures and videos that visitors have shared (see Create and share).</li>
+          <li><em>Field notes</em> (<a href="provenance.html">provenance.html</a>): for each glacier with yearly ice surfaces, how the surface of every year was found, its uncertainty and its checks (see The 3D view).</li>
+          <li><em>Other regions:</em> the ice cap Vatnajökull in Iceland is in the making and other regions are planned. Switzerland is the only region that is complete.</li>
         </ul>
       </div></details>
       <p class="about-group">The pictures</p>
@@ -716,6 +740,14 @@ export function aboutChaptersCh(){
       <details class="about-ch" name="aboutch" id="ch-9"><summary>Sources</summary><div class="about-sec">
         <ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}${dynSources.map((h, i) => `<li id="fn-g${i + 1}" title="Click to go back to the text">${h}</li>`).join('')}</ol>
       </div></details>
+      <p class="about-group">Behind the site</p>
+      <details class="about-ch" name="aboutch" id="ch-21"><summary>About me</summary><div class="about-sec">
+        <p>I am Jochem Braakhekke, originally from the Netherlands, and the mountains became my home ground. I have worked on glaciers all over the globe and have been a polar expedition guide in both the Arctic and the Antarctic.</p>
+        <p>I hold a bachelor's degree in Earth Sciences from the University of Amsterdam and a master's degree in Earth Science from ETH Zürich, with glaciology and geology as my main fields. Today I am an academic associate at the remote sensing lab at UZH and a scientific consultant at the Swiss NPOC.</p>
+        <p>I made Tongues from Space on my own, and I keep it up to date: the pictures, the numbers, the texts and the code.</p>
+        <p>I believe in pictures: a before-and-after image of a glacier is understood at once and remembered. I hope the site sparks awareness of glaciers and of why they matter to society, for instance because of the water they store.</p>
+        <p>The code is open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>, where you can also write to me with questions, remarks and bugs. The site is non-commercial; the licences of the code, the texts and the data are listed in the README and under Sources. Follow along on <a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener">Instagram</a> and <a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener">TikTok</a>. See also <a href="https://recognice.org/" target="_blank" rel="noopener">Recogn.ice</a> and <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+      </div></details>
 `;
 }
 document.getElementById('story').addEventListener('click', e => {      // the tool buttons above the tabs of the right panel start the cross-section on the map or in the 3D view
@@ -745,7 +777,7 @@ export function renderStory(){
 
   const info = GLACIER_INFO[g.id] || GLACIER_INFO[wire.shortSlug(g.name)];
   const tab = t => `role="tab" data-tab="${t}" aria-selected="${storyTab === t}"`;
-  const storyEl = document.getElementById('story'), aboutOpen = !!(storyEl.querySelector('details.about') || {}).open, keepScroll = storyEl.scrollTop, sameGlacier = storyEl.dataset.glacier === g.id;
+  const storyEl = document.getElementById('story'), aboutOpen = !!(document.querySelector('details.about') || {}).open, keepScroll = storyEl.scrollTop, sameGlacier = storyEl.dataset.glacier === g.id;
   storyEl.dataset.glacier = g.id; storyEl.classList.toggle('empty', !glacierPicked);
   const openCards = sameGlacier ? [...storyEl.querySelectorAll('details.coll[open]')].map(cardKey) : [];      // the cards you had open stay open when the panel is redrawn
   storyEl.innerHTML = `
@@ -755,8 +787,7 @@ export function renderStory(){
     <p class="lede">${g.lede.replace('by area,', `by area${fn('sgi')},`)}</p>
 
     <div class="tool-btns">
-      ${g.inv && g.inv.radar ? `<button type="button" class="tool-btn tool-sect" data-tool="sect" title="Draw a line across the glacier and see the ice cut open: its thickness down to the rock"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h18c-4 12-14 12-18 0z" fill="currentColor" fill-opacity=".22"/><path d="M12 6.5v8.2" stroke-dasharray="1.6 2.2"/></svg><span>Draw a cross section of the ice</span></button>` : ''}
-      ${FEATURES.sizeTool ? `<a class="tool-btn size-btn" href="${sizeHref(g)}" title="Drag the outline of this glacier onto a city and see how big it is"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h6v10M14 20V4h6v16M2 20h20"/></svg><span>Compare it to your city size</span></a>` : ''}
+      ${FEATURES.sizeTool ? `<a class="tool-btn size-btn" href="${sizeHref(g, '3d')}" title="See how big the ice of this glacier is next to a city (3D), or drag its outline onto the city (2D)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h6v10M14 20V4h6v16M2 20h20"/></svg><span>Size visualizer</span></a>` : ''}
       ${FIELD_NOTES.includes(g.inv && g.inv.id) ? `<a class="tool-btn notes-btn" href="/provenance.html?id=${g.inv.id}" data-notes="${g.inv.id}" target="_blank" rel="noopener" title="How the 3D view of this glacier was made: pictures, terrain, ice surface of each year, checks and licences"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4M3 7h3M3 12h3M3 17h3"/></svg><span>Scientific field notes</span></a>` : ''}
     </div>
     <div class="tabs" role="tablist" aria-label="About this glacier">
@@ -801,7 +832,7 @@ ${aboutFrame(aboutChaptersCh())}`;
   restoringCards = true;
   storyEl.querySelectorAll('details.coll').forEach(d => { if (openCards.includes(cardKey(d))) d.open = true; else if (sameGlacier && d.open) d.open = false; });
   setTimeout(() => { restoringCards = false; }, 100);
-  if (aboutOpen) storyEl.querySelector('details.about').open = true;      // a year click must not close it or move the panel
+  if (aboutOpen) { const ab = storyEl.querySelector('details.about') || document.querySelector('details.about'); if (ab) ab.open = true; }      // a year click must not close it or move the panel
   storyEl.scrollTop = sameGlacier ? keepScroll : 0;      // another glacier starts at the top
 }
 
@@ -825,7 +856,7 @@ export function copernicusBrowserUrl(year){
 export function cbButtonsHtml(){ return cbYears().map(y => `<button type="button" class="cb" data-year="${y}">Open ${fmtDate(state.available[y].date)} in Copernicus Browser</button>`).join(''); }
 /* About closes when another tab or card of the right panel is clicked (a click inside About itself, or on a source number that opens it, leaves it open) */
 document.getElementById('story').addEventListener('click', e => {
-  const about = document.querySelector('#story details.about'); if (!about || !about.open) return;
+  const about = document.querySelector('details.about'); if (!about || !about.open) return;
   if (e.target.closest('details.about') || e.target.closest('a[data-fn]')) return;
   if (e.target.closest('.tabs button, details.dcard > summary, .blist li.go')) about.open = false;
 });
@@ -920,7 +951,7 @@ export const fn = k => `<sup class="fn"><a href="#fn-${k}" id="fnr-${k}-${++fnSe
 document.addEventListener('click', e => {
   const a = e.target.closest && e.target.closest('a[data-fn]'); if (!a) return;
   e.preventDefault();
-  const about = document.querySelector('#story details.about'), ch = document.getElementById('ch-9'), li = document.getElementById('fn-' + a.dataset.fn);
+  const about = document.querySelector('details.about'), ch = document.getElementById('ch-9'), li = document.getElementById('fn-' + a.dataset.fn);
   if (!about || !ch || !li) return;
   about.open = true; ch.open = true;
   document.querySelectorAll('#story .src-list li.hit').forEach(x => x.classList.remove('hit'));
@@ -1158,7 +1189,7 @@ export function retreatChart(g, lo, hi){
   return barChart('Retreat per year', 'm', items, `Length change per year, ${first} to ${last}`) + (items.some(i => i.avg) ? '<p class="chart-note">Dashed bars: GLAMOS measured these years only together, so the change is spread evenly over them.</p>' : '') + (items.some(i => i.v == null) ? '<p class="chart-note">Empty years have no length survey.</p>' : '');
 }
 /* The size comparison page (size.html): the glacier is passed by its inventory id (the SGI code, glaciers.js `inv.id`). */
-export const sizeHref = g => '/size.html' + (g && g.inv && g.inv.id ? '#g=' + g.inv.id : '');
+export const sizeHref = (g, mode) => '/size.html' + (g && g.inv && g.inv.id ? '#g=' + g.inv.id + (mode ? '&mode=' + mode : '') : (mode ? '#mode=' + mode : ''));      // mode '3d': the page opens on Volume 3D
 export function renderStats(g, lo, hi){
   const S = stats(g, lo, hi);
   const group = (key, title) => { return `

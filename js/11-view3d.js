@@ -298,7 +298,11 @@ export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.B
   const projectAt = (pts, w, h, c, view) => {            // places in the scene [x, height, z] -> pixels of a picture w x h (null: behind the camera), the camera c (default: the one on screen)
     const keep = {...cam}; Object.assign(cam, c || {}); cam.el = Math.min(E1, Math.max(E0, cam.el)); cam.dist = Math.min(D1, Math.max(D0, cam.dist)); cam.az = Math.min(A, Math.max(-A, cam.az));
     const M = viewM(w, h, view), {eye} = rig(); Object.assign(cam, keep);
-    const hidden = (x, y, z) => { const dist = Math.hypot(x - eye[0], y - eye[1], z - eye[2]); for (let k = 1; k < 46; k++) { const t = k / 48; if (t * dist < 150) continue; if (groundNow(eye[0] + (x - eye[0]) * t, eye[2] + (z - eye[2]) * t) > eye[1] + (y - eye[1]) * t + 10) return true; } return false; };      // a ridge between the camera and the place
+    const hidden = (x, y, z) => {      // a ridge between the camera and the place: the line of sight to the ground under the label (a name stands on its summit; if that is hidden, so is the name), dense along the line, the last stretch on the summit's own flank left out
+      const ty = groundNow(x, z) + 8, dist = Math.hypot(x - eye[0], ty - eye[1], z - eye[2]), n = Math.min(500, Math.max(46, Math.round(dist / 25)));
+      for (let k = 1; k < n; k++) { const t = k / n; if (t * dist < 150 || (1 - t) * dist < 70) continue; if (groundNow(eye[0] + (x - eye[0]) * t, eye[2] + (z - eye[2]) * t) > eye[1] + (ty - eye[1]) * t + 4) return true; }
+      return false;
+    };
     return pts.map(([x, y, z, occ]) => { const cw = M[3] * x + M[7] * y + M[11] * z + M[15]; if (cw <= 0) return null; return [((M[0] * x + M[4] * y + M[8] * z + M[12]) / cw * 0.5 + 0.5) * w, (1 - ((M[1] * x + M[5] * y + M[9] * z + M[13]) / cw * 0.5 + 0.5)) * h, !(occ && hidden(x, y, z))]; });
   };
   const eyeOf = c => {            // where the camera is (default: the one on screen), to see whether something stands behind a ridge
@@ -598,12 +602,12 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH, style = state.styl
       draw(d.tracks, 'rgba(0,0,0,.55)', 4.5); draw(d.paths, 'rgba(0,0,0,.55)', 5); draw(d.tracks, '#FF3B30', 2.5); draw(d.paths, '#FDC200', 3.2); ctx.restore(); } }
   }
   const toXY = ll => { const q = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return toTexM(q.x, q.y); };
-  const rings = (geom, color) => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); strokeEdgeFade(ctx, geom, toXY, color, .7); ctx.restore(); };      // an outline, drawn on the picture so that it follows the terrain
+  const rings = (geom, color) => { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); strokeEdgeFade(ctx, geom, toXY, color, 1.25); ctx.restore(); };      // an outline, drawn on the picture so that it follows the terrain (a little heavier than the map's, so the line stays clear when the ground is seen at a low angle)
   if (outlineNew3D(g) && !photoOn) rings(newOutlineGeom(g), getVar('--new'));
   if (outline3D(g) && !photoOn) rings(oldOutlineGeom(g), '#F2A93B');
   if ($('arcsToggle').checked && !photoOn) {      // the experimental outline of the year, on the picture like the others
     await loadArcs(); const A = arcsFor(g), a = A && A.arcs[yr];
-    if (a) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); arcEdgeFade(ctx, a.line.map(toXY), '#C8322A', 1, .9, 3.2); ctx.restore(); }
+    if (a) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); arcEdgeFade(ctx, a.line.map(toXY), '#C8322A', 1, .9, 4); ctx.restore(); }
   }
   return tc;
 }
@@ -878,7 +882,7 @@ export async function open3D(){
       o.putImageData(im, 0, 0); return out;
     };
     const texOf = async y => { const base = await strip3DTexture(g, S, y, nA, nB, hillH, cmp && y === cmp[1] ? sideStyle(1) : state.style), srC = v3dCtx && v3dCtx.sr ? await srTex(y).catch(() => null) : null, c = srC ? sharpen(base, srC) : base; if (!(v3dCtx && v3dCtx.iceOff && bb && bb.bed)) return c; if (!rockCache.has(c)) rockCache.set(c, rockLook(c, hy(y), bb.bed, nA, nB, 2 * S.half / nB)); return rockCache.get(c); };
-    v3dCtx = {g, S, bundle: bb, latest: heights, dem, grid: {nA, nB}, cmp, years, pin: pinData(g, S), tip: tipData(g, S), names: null, namesP: null, hz: horiz(), tex: texOf, iceOff: false, sr: false, srMeta: srP, surface: hy, usesDem, elevFirst, follow: null, current: () => cmp ? null : current, restore: () => cmp ? null : showYear(current)};      sync3DMenu(); detectTrails(v3dCtx);
+    v3dCtx = {g, S, bundle: bb, latest: heights, dem, grid: {nA, nB}, cmp, years, pin: pinData(g, S), tip: tipData(g, S), names: null, namesP: null, places: null, placesP: null, hz: horiz(), tex: texOf, iceOff: false, sr: false, srMeta: srP, surface: hy, usesDem, elevFirst, follow: null, current: () => cmp ? null : current, restore: () => cmp ? null : showYear(current)};      sync3DMenu(); detectTrails(v3dCtx);
     if (viewMode === '3d' && !$('videoSheet').hidden) update3DInfo();
     update3Measure(); pinLoop(); setupPhotos(g, v3dCtx);
     if (!tilt) applyMapSection();      // a line drawn on the map: cut it now (in a flight, tiltFinish does it)
@@ -1014,9 +1018,13 @@ $('thenNowRow').querySelector('.fd-x').onclick = () => { thenNowOn = false; $('l
    the choice itself (thenNowOn) is kept, so it is back on when the visitor returns to One year. */
 const photosModeOk = () => state.mode === 'single';
 let photosTold = false;
+$('l3PhotosRow').addEventListener('click', e => {      // greyed in the Slider or Timelapse: a click goes straight to One year with the layer on
+  if (photosModeOk() || $('l3PhotosRow').hidden) return;
+  e.preventDefault(); thenNowOn = true; $('modeSingle').click(); syncPhotosRow(); showThenNow();
+});
 export function syncPhotosRow(){
   const row = $('l3PhotosRow'), ok = photosModeOk(), has = !row.hidden;
-  row.classList.toggle('is-unavail', !ok); row.title = ok ? 'Historical images of this glacier: switch on to open the list of thumbnails in the dock.' : 'Historical images of this glacier: can only be used in the 3D view of one year, not in the Slider or Timelapse.'; $('l3Photos').disabled = !ok; $('l3Photos').checked = ok && thenNowOn;
+  row.classList.toggle('is-unavail', !ok); row.title = ok ? 'Historical images of this glacier: switch on to open the list of thumbnails in the dock.' : 'Historical images of this glacier: can only be used in the 3D view of one year, not in the Slider or Timelapse. Click to go to One year.'; $('l3Photos').disabled = !ok; $('l3Photos').checked = ok && thenNowOn;
   if (ok) photosTold = false;
   else if (has && thenNowOn && !photosTold && viewMode === '3d') { photosTold = true; showNotice(`"Historical images" is off in the ${state.mode === 'compare' ? 'Slider' : 'Timelapse'}: the old photographs are for one year. It comes back in One year.`); }      // said once when the mode takes it away
   syncThenNowChip();
@@ -1198,7 +1206,7 @@ export function sync3DMenu(){
   if ($('l3TrailLegend').hidden || $('l3SightLegend').hidden) { $('l3TrailsWhy').hidden = true; const ib = document.querySelector('#l3SightLegend .lb-i'); if (ib) ib.setAttribute('aria-expanded', 'false'); }
   $('l3RadarLegend').hidden = !$('radarToggle').checked;
   $('l3RadarNote').textContent = !R ? 'No radar measurements for this glacier.' : `Surveys ${R.years ? (R.years[0] === R.years[1] ? R.years[0] : R.years.join(' and ')) : ''}. The ice has thinned since. The 3D view shows only about ten pins, a representative one on the middle line of the ice in each stretch of the glacier, to keep loading and moving fast. Hover a pin for the thickness, click to keep it.`;
-  $('l3Names').checked = prefs.names3d === true; $('l3GNames').checked = prefs.gnames3d === true;
+  $('l3Places').checked = prefs.places3d === true; $('l3Names').checked = prefs.names3d === true; $('l3GNames').checked = prefs.gnames3d === true;
   syncPhotosRow(); $('l3SvRow').hidden = $('svRow').hidden;      // the panoramas of this glacier, if it has any
   { const tk = FEATURES.swisstopo && g && g.inv; $('l3ThickRow').style.display = tk ? '' : 'none'; $('l3ThickLegend').hidden = !tk || !$('thickToggle').checked; if (!$('l3ThickLegend').hidden && !$('l3ThickImg').src) $('l3ThickImg').src = `https://api3.geo.admin.ch/static/images/legends/${THICK_LAYER}_en.png`; }
   $('l3SpeedRow').style.display = FEATURES.speed ? '' : 'none'; $('l3SpeedLegend').hidden = !FEATURES.speed || !$('speedToggle').checked; { const n = $('l3SpeedNote'), base = ''; n.textContent = base; const sid = FEATURES.speed && g && speedId(g);
@@ -1263,6 +1271,48 @@ export function ensureNames(c){            // loads the names once for the open 
     catch (e) { console.error(e); c.names = []; }
   })();
 }
+/* Villages and lakes of the strip, as names on the overlay. Switzerland: swissNAMES3D (kinds Ort and See), asked for in nine parts of the strip because one answer holds at most 200 names and the summits fill it.
+   Elsewhere: places and lakes of OpenStreetMap (Overpass). Few, far apart, nearest the glacier first. */
+export const placesCache = new Map();
+export function placesFor(g, S){
+  if (!placesCache.has(g.id)) {
+    const HALF = S.half, corner = (a, b) => S.merc(a, b), cs = [[-S.back, -HALF], [-S.back, HALF], [S.up, -HALF], [S.up, HALF]].map(([a, b]) => corner(a, b));
+    const x0 = Math.min(...cs.map(c => c[0])), x1 = Math.max(...cs.map(c => c[0])), y0 = Math.min(...cs.map(c => c[1])), y1 = Math.max(...cs.map(c => c[1]));
+    let pr;
+    if (!FEATURES.swisstopo) {
+      const sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1)), bb = `${sw.lat},${sw.lng},${ne.lat},${ne.lng}`,
+        q = `[out:json][timeout:25];(node["place"~"^(city|town|village|hamlet)$"]["name"](${bb});nwr["natural"="water"]["name"](${bb}););out center;`;
+      pr = fetch('https://overpass-api.de/api/interpreter', {method: 'POST', body: 'data=' + encodeURIComponent(q), headers: {'Content-Type': 'application/x-www-form-urlencoded'}}).then(r => { if (!r.ok) throw new Error('overpass ' + r.status); return r.json(); })
+        .then(j => (j.elements || []).filter(el => el.tags && el.tags.name && (el.lat !== undefined || el.center)).map(el => { const m = L.CRS.EPSG3857.project(L.latLng(el.lat !== undefined ? el.lat : el.center.lat, el.lon !== undefined ? el.lon : el.center.lon)); return {name: el.tags.name, kind: el.tags.natural === 'water' ? 'See' : 'Ort', m: [m.x, m.y]}; }));
+    } else {
+      const jobs = []; for (let i = 0; i < 3; i++) for (let j = 0; j < 3; j++) {
+        const env = [x0 + (x1 - x0) * i / 3, y0 + (y1 - y0) * j / 3, x0 + (x1 - x0) * (i + 1) / 3, y0 + (y1 - y0) * (j + 1) / 3].join(',');
+        jobs.push(fetch('https://api3.geo.admin.ch/rest/services/api/MapServer/identify?' + new URLSearchParams({geometryType: 'esriGeometryEnvelope', geometry: env, imageDisplay: '1000,1000,96', mapExtent: env, tolerance: '0', layers: 'all:ch.swisstopo.swissnames3d', sr: '3857', returnGeometry: 'true', limit: '200', lang: 'en'})).then(r => { if (!r.ok) throw new Error('swisstopo names ' + r.status); return r.json(); })
+          .then(j => (j.results || []).filter(r => (r.attributes.objektart === 'Ort' || r.attributes.objektart === 'See') && r.attributes.name).map(r => {      // a village is a point, a lake a polygon: the middle of its bounding box
+            const gm = r.geometry || {}, pts = gm.points ? [gm.points[0]] : gm.rings ? gm.rings[0] : null; if (!pts || !pts.length) return null;
+            const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]); return {name: r.attributes.name, kind: r.attributes.objektart, m: [(Math.min(...xs) + Math.max(...xs)) / 2, (Math.min(...ys) + Math.max(...ys)) / 2]};
+          }).filter(Boolean)));
+      }
+      pr = Promise.all(jobs).then(a => a.flat());
+    }
+    pr.catch(() => placesCache.delete(g.id)); placesCache.set(g.id, pr);
+  }
+  return placesCache.get(g.id);
+}
+export function pickPlaces(list, S, avoid){
+  const seen = new Set(), out = [];
+  list.map(n => ({...n, ...stripXZ(S, n.m[0], n.m[1])})).filter(n => n.inside && Math.abs(n.x) < S.half - 150 && n.a > -S.back + 100 && n.a < S.up - 100 && !seen.has(n.name) && seen.add(n.name))
+    .sort((a, b) => Math.hypot(a.x, a.z) - Math.hypot(b.x, b.z)).forEach(n => { if (out.length < 8 && [...out, ...avoid].every(o => Math.hypot(o.x - n.x, o.z - n.z) > 600)) out.push({x: n.x, z: n.z, text: n.name, kind: n.kind}); });
+  return out;
+}
+export function ensurePlaces(c){            // loads and chooses the place names once for the open view (an export waits for the promise)
+  if (c.placesP) return c.placesP;
+  if (!$('l3Places').checked) return Promise.resolve();
+  return c.placesP = (async () => {
+    try { const list = await placesFor(c.g, c.S); if (c !== v3dCtx || !v3d) return; c.places = pickPlaces(list, c.S, [c.tip, c.pin].filter(Boolean)); }
+    catch (e) { console.error(e); c.places = []; }
+  })();
+}
 export function ensureGlacierNames(c){            // the glaciers named in the strip (data/glacier-names.js), chosen once for the open view: the glacier itself first, then the others, few and far apart
   if (c.gnamesP) return c.gnamesP;
   if (!$('l3GNames').checked) return Promise.resolve();
@@ -1279,6 +1329,7 @@ export function markItems(c){
   const m = [];
   if (photoOn) { if (photoOn.rod && photoOn.rodOn) m.push({type: 'rod', ...photoOn.rod}); return m; }      // Then and now shows the old-ice rod only: the thickest-ice pin, tip, names and speed would crowd the photograph
   if ($('l3GNames').checked && c.gnames) c.gnames.forEach(n => m.push({type: 'gname', ...n}));
+  if ($('l3Places').checked && c.places) c.places.forEach(n => m.push({type: 'place', ...n}));
   if ($('l3Names').checked && c.names) c.names.forEach(n => m.push({type: 'name', ...n}));
   if ($('pinToggle').checked && c.tip) m.push({type: 'tip', ...c.tip});
   if ($('maxToggle').checked && c.pin) m.push({type: 'max', ...c.pin});
@@ -1291,7 +1342,7 @@ export function projectMarks(c, viewer, W, H, cam, view){            // the mark
   items.forEach(it => {
     const gy = viewer.groundY(it.x, it.z); at.push(pts.length);
     if (it.type === 'rod') pts.push([it.x, gy, it.z, false], [it.x, gy + it.mid, it.z, false], [it.x - it.half, gy + it.mid, it.z, false], [it.x + it.half, gy + it.mid, it.z, false]);
-    else { const nm = it.type === 'name' || it.type === 'gname', lift = nm ? 60 : PIN_LIFT; pts.push([it.x, gy, it.z, false], [it.x, gy + lift, it.z, nm]); }
+    else { const nm = it.type === 'name' || it.type === 'gname' || it.type === 'place', lift = nm ? 60 : PIN_LIFT; pts.push([it.x, gy, it.z, false], [it.x, gy + lift, it.z, nm]); }
   });
   const pr = viewer.projectAt(pts, W, H, cam, view);
   return items.map((it, i) => {
@@ -1310,12 +1361,18 @@ export function drawMarks3D(ctx, list, t, u){            // t: seconds (the move
   });
   ctx.restore();
   list.filter(m => m.type === 'rod').forEach(m => drawRod3D(ctx, m, u));
+  list.filter(m => m.type === 'place').forEach(m => {            // villages and lakes: a dot on the ground, the name above it (lakes italic, light blue)
+    const [gx, gy] = m.g, [hx, hy] = m.h, lake = m.kind === 'See';
+    ctx.shadowColor = 'rgba(0,0,0,.75)'; ctx.shadowBlur = 5 * u; ctx.strokeStyle = lake ? 'rgba(160,215,245,.8)' : 'rgba(255,236,190,.85)'; ctx.lineWidth = 1.1 * u; ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(hx, hy); ctx.stroke();
+    ctx.fillStyle = ctx.strokeStyle; ctx.beginPath(); ctx.arc(gx, gy, 2.2 * u, 0, 7); ctx.fill();
+    ctx.fillStyle = lake ? '#cfeaff' : '#ffeccb'; ctx.font = `${lake ? 'italic ' : ''}500 ${11 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
+  });
   list.filter(m => m.type === 'gname').forEach(m => {            // glacier names: ice blue, italic, to tell them from the peaks
     const [gx, gy] = m.g, [hx, hy] = m.h;
     ctx.shadowColor = 'rgba(0,0,0,.75)'; ctx.shadowBlur = 5 * u; ctx.strokeStyle = 'rgba(160,215,245,.9)'; ctx.lineWidth = 1.3 * u; ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(hx, hy); ctx.stroke();
     ctx.fillStyle = '#bfe6ff'; ctx.font = `italic 600 ${11.5 * u}px ${FONT}`; ctx.textAlign = 'center'; ctx.textBaseline = 'bottom'; ctx.fillText(m.text, hx, hy - 3 * u);
   });
-  list.filter(m => m.type !== 'name' && m.type !== 'gname' && m.type !== 'rod').forEach(m => drawPin3D(ctx, m, t, u, m.type === 'tip' ? (getVar('--accent') || '#C8322A') : (getVar('--crevasse') || '#2D6E8E')));
+  list.filter(m => m.type !== 'name' && m.type !== 'gname' && m.type !== 'rod' && m.type !== 'place').forEach(m => drawPin3D(ctx, m, t, u, m.type === 'tip' ? (getVar('--accent') || '#C8322A') : (getVar('--crevasse') || '#2D6E8E')));
 }
 export function drawRod3D(ctx, m, u){            // the rod on today's ice: its top is the old ice level (what the photograph shows), its foot is today's ice (what the 3D view shows). Whichever picture covers the rod lights up its end; moving the slider across the rod swaps them.
   const [gx, gy] = m.g, [hx, hy] = m.h, [x1, y1] = m.l, [x2, y2] = m.r, amber = '#F2A93B', box = photoOn && photoOn.lay, sc = box ? ctx.canvas.width / $('v3dCanvas').clientWidth : 1;
@@ -1575,7 +1632,7 @@ export function bindSvPicking(cv){            // hovering and clicking the panor
   });
 }
 export let pinRun = 0;
-export const marksOn = () => photoOn ? !!(photoOn.rod && photoOn.rodOn) : svOn3() || $('pinToggle').checked || $('maxToggle').checked || ($('speedToggle').checked && FEATURES.speed) || $('l3Names').checked || $('l3GNames').checked || !!(v3dCtx && radar3D(v3dCtx.g));
+export const marksOn = () => photoOn ? !!(photoOn.rod && photoOn.rodOn) : svOn3() || $('pinToggle').checked || $('maxToggle').checked || ($('speedToggle').checked && FEATURES.speed) || $('l3Names').checked || $('l3GNames').checked || $('l3Places').checked || !!(v3dCtx && radar3D(v3dCtx.g));
 /* ---------- measuring in the 3D view: length of a line and area of a shape on the terrain (ground distances, as on the map) ----------
    A tap puts a point on the terrain (viewer.pick), the lines follow the ground and are drawn on the overlay with the other marks. Drags still turn the camera. */
 export const M3 = {mode: null, pts: [], shapes: [], gid: null};      // points are [x, z] of the strip scene, in ground metres
@@ -1973,7 +2030,7 @@ export function drawCut3D(ctx, viewer, w, h, u, sh, caption){            // the 
 export function pinLoop(){            // while the 3D view shows marks: draw them over the picture, again and again, so that they move
   const cv = $('v3dOver'), run = ++pinRun, clear = () => { const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); radarHits = []; camHits = []; svHits = []; cutHit = null; if (v3d) v3d.setCut(null); $('v3dCutCap').hidden = true; $('v3dTip').hidden = true; $('v3dCamTip').hidden = true; };
   if (viewMode !== '3d' || (!marksOn() && !measureOn3() && !camsOn()) || !v3dCtx || !v3d) return clear();
-  ensureNames(v3dCtx); ensureGlacierNames(v3dCtx); if (radar3D(v3dCtx.g) && !v3dCtx.radarList) radarPinsFor(v3dCtx);
+  ensureNames(v3dCtx); ensureGlacierNames(v3dCtx); ensurePlaces(v3dCtx); if (radar3D(v3dCtx.g) && !v3dCtx.radarList) radarPinsFor(v3dCtx);
   const tick = now => {
     if (run !== pinRun) return;
     const c = v3dCtx, viewer = v3d, kc = $('v3dCanvas'); if (!c || !viewer || viewMode !== '3d' || (!marksOn() && !measureOn3() && !camsOn())) return clear();
@@ -2022,6 +2079,7 @@ $('l3Sr').onchange = e => {      // the super-resolved picture on or off: the pi
 };
 $('l3Space').onchange = e => { prefs.space3d = e.target.checked; savePrefs(); sync3DMenu(); };      // the night sky behind the terrain, 3D only
 $('l3GNames').onchange = e => { prefs.gnames3d = e.target.checked; savePrefs(); sync3DMenu(); };
+$('l3Places').onchange = e => { prefs.places3d = e.target.checked; savePrefs(); sync3DMenu(); };      // villages and lakes, drawn on the overlay
 $('l3Names').onchange = e => { prefs.names3d = e.target.checked; savePrefs(); sync3DMenu(); };      // 3D only: the map's own labels are pictures
 $('l3Op').oninput = e => { prefs.imgOpacity = +e.target.value; savePrefs(); applyImgOpacity(); sync3DMenu(); refresh3D(); retitle3D(); };      // the map's own handlers keep the setting
 $('v3dLayers').classList.add('min'); $('v3dLbToggle').setAttribute('aria-expanded', 'false');      // closed at the start, like the map's
@@ -2084,6 +2142,7 @@ export function updateCredits3D(){            // the sources of the 3D view, in 
   if ($('l3GNames').checked) parts.push('Glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0');
   if ($('l3Thick').checked && FEATURES.swisstopo) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via swisstopo');
   if ($('l3Speed').checked && FEATURES.speed) parts.push('Ice speed: ITS_LIVE (CC BY 4.0), NASA MEaSUREs, Gardner et al.');
+  if ($('l3Places').checked) parts.push(FEATURES.swisstopo ? `Place names: ${A_SWT} (swissNAMES3D)` : 'Place names © OpenStreetMap contributors');
   if ($('l3Names').checked) parts.push(FEATURES.swisstopo ? `Peak names: ${A_SWT} (swissNAMES3D)` : 'Place names © OpenStreetMap contributors');
   $('credits').innerHTML = parts.join(' · ');
 }
@@ -2165,7 +2224,7 @@ export async function download3D(kind){
   stopPreview(); v3dBusy = true; stopPlay(); buttons.forEach(b => b.disabled = true);      // a running preview would swing the camera under the export and hand it a swung start view
   let failed = false;
   try {
-    await ensureNames(c); await ensureGlacierNames(c);
+    await ensureNames(c); await ensureGlacierNames(c); await ensurePlaces(c);
     await Promise.all([loadLogo(), ...['600 30px', '800 120px', '500 30px', '700 40px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))]);
     const yr0 = c.cmp ? null : c.current(), cam0 = viewer.getCam(), outline = outline3D(g);
     let file, years;

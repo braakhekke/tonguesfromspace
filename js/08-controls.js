@@ -397,7 +397,7 @@ export async function updateLandsatRow(){
 /* Reset in the layer menus (map and 3D): every switch back to how the page starts (the checked state written in index.html), the image opacity to full, the 3D-only extras off */
 function resetLayers(){
   document.querySelectorAll('#layerbox input[type=checkbox]').forEach(c => { if (!c.disabled && c.checked !== (c.id === 'satToggle')) { c.checked = c.id === 'satToggle'; c.dispatchEvent(new Event('change')); } });
-  [['l3Names', 'names3d'], ['l3GNames', 'gnames3d']].forEach(([id, k]) => { if (prefs[k] === true) { const el = document.getElementById(id); if (el) { el.checked = false; el.dispatchEvent(new Event('change')); } } });
+  [['l3Names', 'names3d'], ['l3GNames', 'gnames3d'], ['l3Places', 'places3d']].forEach(([id, k]) => { if (prefs[k] === true) { const el = document.getElementById(id); if (el) { el.checked = false; el.dispatchEvent(new Event('change')); } } });
   if (prefs.space3d !== true) { const sp = document.getElementById('l3Space'); if (sp) { sp.checked = true; sp.dispatchEvent(new Event('change')); } }      // Space is the one 3D extra that starts on
   prefs.imgOpacity = 1; savePrefs(); applyImgOpacity();
   if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); }

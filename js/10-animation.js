@@ -9,10 +9,11 @@ import { satOn, map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpe
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN, closeOtherSharePanes } from './07-render.js';
 import { showNotice } from './08-controls.js';
 import { setFull, setMini, evalMini, setLayers, scrollCompareTop } from './09-phones.js';
-import { drawExportLayers, drawExportArcs, drawExportRasters, drawLegendCard, prepareRasters, cachedRasters, layerLegend, hasNewOutline, layerCredits, buildBackground, perYearBackground, overlayCards, exportLayers, layersOn, syncExportRows } from './09a-export-layers.js';
+import { drawExportLayers, drawExportArcs, drawExportRasters, drawLegendCard, prepareRasters, cachedRasters, layerLegend, hasNewOutline, layerCredits, previewSeen, bgSeenOf, buildBackground, perYearBackground, overlayCards, exportLayers, layersOn, syncExportRows } from './09a-export-layers.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'closeVideo', { get: () => closeVideo, configurable: true });
 Object.defineProperty(wire, 'drawPreview', { get: () => drawPreview, configurable: true });
+Object.defineProperty(wire, 'frameRect', { get: () => frameRect, configurable: true });
 Object.defineProperty(wire, 'frameExceedsImage', { get: () => frameExceedsImage, configurable: true });
 Object.defineProperty(wire, 'openVideo', { get: () => openVideo, configurable: true });
 Object.defineProperty(wire, 'perSec', { get: () => perSec, configurable: true });
@@ -116,7 +117,7 @@ export function drawPreview(){
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!ys.length) return;
   const g = currentGlacier(), S = marginsFor(vstate.kind, vstate.fmt), swipe = vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe', image = vstate.kind === 'image';
-  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: oldOutlineOn(g), xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys), res: frameGroundRes(), style: state.style, styleB: sideStyle(1), compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: oldOutlineOn(g), xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys, null, previewSeen(vstate.kind, drawPreview)), res: frameGroundRes(), style: state.style, styleB: sideStyle(1), compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
     tlYears: image ? [] : ys };      // a single picture has no timeline bar
   if (!swipe && $('vFacts').checked) { loadFacts(g); info.factSet = $('vFactSet').value; info.factBase = image ? FIRST_YEAR : ys[0]; }
   ctx.save(); ctx.scale(q, q);
@@ -181,6 +182,7 @@ function endCardHold(){            // the map timelapse reached its end: with th
 }
 export function startPreview(){
   if (vstate.kind === 'image' || vPrev.on) return;
+  if (state.playing) stopPlay();      // a timelapse that is already playing (map or 3D) would run beside the preview
   const ys = videoYears();
   if (vstate.type !== 'swipe') prepareEnd();      // the card's numbers are fetched while the preview starts
   if (viewMode === '3d') { vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn(); return startPreview3D(); }
@@ -326,6 +328,7 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
     return showNotice('Making videos needs a recent browser: Chrome, Edge, Firefox, or Safari on iPhone, iPad or Mac (iOS 16.4 or newer).');
   }
   stopPreview();      // switching between image and animation ends a running preview
+  if (state.playing) stopPlay();      // the page's own timelapse may be running: it stops when the pane opens, the preview is the only thing that plays
   vstate.kind = kind; $('vfPlay').style.display = kind === 'image' ? 'none' : '';
   document.body.classList.add('pane-open'); drawOutlines(); setLayers(false); if (typeof cancelMeasure === 'function') cancelMeasure(); map.removeLayer(M.group);      // no layer menu (it would open out of sight, behind the pane) and no measurements: neither is part of a download
   const image = kind === 'image', in3D = viewMode === '3d';
@@ -864,7 +867,7 @@ export async function frameBases(ys, W, H){
   }
   if (lost) showNotice(`${lost} of ${all} map tiles could not be loaded: the background has gaps.`);
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
-  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys, rasters), xCards: [...rasters.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean), res: frameGroundRes(), style: state.style, styleB: sideStyle(1),
+  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys, rasters, bgSeenOf(bgr, ovr)), xCards: [...rasters.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean), res: frameGroundRes(), style: state.style, styleB: sideStyle(1),
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
     site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
   return { g, bases, outline, info };

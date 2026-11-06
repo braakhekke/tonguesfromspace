@@ -477,7 +477,10 @@ async function ask(request, env, url, cors) {
    Set an R2 lifecycle rule on the prefix pending/ (delete after 14 days) so unapproved items disappear by themselves. */
 const GAL = { maxVideo: 15e6, maxImage: 4e6, maxPending: 200, perHour: 4, adminFails: 10 };
 const GAL_FORMATS = { reel: [1080, 1920], feed: [1080, 1350], wide: [1920, 1080] };
-const GAL_TYPES = { still: 'image', timelapse: 'video', slider: 'video' };
+const GAL_TYPES = { still: 'image', timelapse: 'video', slider: 'video', area: 'image', areafly: 'video', volume: 'image', volumefilm: 'video' };
+/* size.html ("How big are glaciers?"): Area 2D (outlines laid onto a city or each other; the video is the fly-in) and Volume 3D (ice cubes; the video is the film). They have no colour composition
+   and one reference year, and are made in the same three formats. */
+const GAL_SIZE_VIEW = { area: 'area', areafly: 'area', volume: 'volume', volumefilm: 'volume' };
 const GAL_STYLES = ['natural', 'false1', 'false2', 'false3'];
 const galUploads = new Map();                                        // ip -> [timestamps in ms]
 const galFails = new Map();                                          // ip -> [timestamps of wrong admin tokens]
@@ -619,8 +622,10 @@ function cleanMeta(m) {
   if (typeof m.glacier !== 'string' || !/^[A-Za-z0-9_.-]{1,30}$/.test(m.glacier)) return 'glacier';
   if (typeof m.name !== 'string' || !/^[\p{L}\p{N} .'’-]{1,40}$/u.test(m.name)) return 'glacier name';
   if (!Array.isArray(m.years) || m.years.length < 1 || m.years.length > 15 || !m.years.every(yearOk)) return 'years';
-  const view = m.view === '3d' ? '3d' : 'map';                              // the 3D view of a tongue; its camera video may show a single year
-  if (GAL_TYPES[type] === 'image' ? m.years.length > 2 : m.years.length < (view === '3d' ? 1 : 2)) return 'years';      // a picture shows one year, or two (Compare)
+  const size = GAL_SIZE_VIEW[type];                                           // a size-page item: its view follows from its type, one reference year
+  if (size && (m.view !== size || m.years.length !== 1 || style !== 'natural')) return 'size view';
+  const view = size || (m.view === '3d' ? '3d' : 'map');                    // the 3D view of a tongue; its camera video may show a single year
+  if (!size && (GAL_TYPES[type] === 'image' ? m.years.length > 2 : m.years.length < (view === '3d' ? 1 : 2))) return 'years';      // a picture shows one year, or two (Compare)
   let nick = '';
   if (m.nick !== undefined && m.nick !== '') {
     if (typeof m.nick !== 'string' || !/^[\p{L}\p{N} ._'’@-]{1,30}$/u.test(m.nick.trim())) return 'nickname';

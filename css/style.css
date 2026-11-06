@@ -994,6 +994,13 @@ sup.fn a:hover{opacity:.7}
   .story .about-wrap .social,.story .about-wrap .gh-invite{display:none}      /* on phones they sit below the For Your Ice box (.phone-invite) */
   .phone-invite .gh-invite{text-align:center;justify-content:center;align-items:center;margin-top:10px}
   .phone-invite .social{margin-top:14px}
+  /* the foot under the card: About, For Your Ice, social links, GitHub note, byline; one even gap between them */
+  .fyi-slot{display:flex;flex-direction:column;align-items:stretch;gap:var(--sp-5);padding-bottom:calc(var(--sp-6) + env(safe-area-inset-bottom))}
+  .fyi-slot > *{margin:0}
+  .fyi-slot > details.about{margin:0}
+  .fyi-slot > details.about > summary{padding:0}
+  .phone-invite{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4)}
+  .phone-invite .social,.phone-invite .gh-invite{margin:0}
 }
 
 /* Phones in portrait: the layer menu opens as a panel directly under the visual (thumb reach, the visual stays where it is), in two columns */
@@ -1209,7 +1216,8 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 /* the arrows that hide the side panels stay in front of the 3D view */
 .is-3d .panel-toggle{z-index:710}
 .is-3d.no-right #toggleRight{z-index:710}
-@media (min-width:721px) and (min-height:521px){.app.no-right .layerbox:not(.min),.app.no-right .v3d .v3d-layers:not(.min){right:56px}}      /* the open layer menu (map and 3D) sits beside the red tab of the closed right panel, not over it */
+@media (min-width:721px) and (min-height:521px){.layerbox:not(.min):not(.in-flow),.v3d .v3d-layers:not(.min){right:38px}.app.no-right .layerbox:not(.min),.app.no-right .v3d .v3d-layers:not(.min){right:56px}}      /* the open layer menu keeps clear of the collapse arrow (open panel: 22 px wide) */
+@media (min-width:721px) and (min-height:521px){.layerbox.min:not(.in-flow){box-shadow:0 0 0 1px rgba(255,255,255,.4),0 2px 12px rgba(0,0,0,.35)}}      /* the closed menu button keeps a thin light edge, so it stays visible on dark ground (space, empty) */
 
 /* in full screen (visual only) the arrows of the side panels are not shown */
 .app.visual-only .panel-toggle,.stage.is-full .panel-toggle,body.has-full .panel-toggle{display:none!important}
@@ -2023,8 +2031,8 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .story p,.story .dbody p,.story .about-sec p,.story .tr-row,.story .tr-t,.story .tr-maps,.story .cum-read,.story .w-live,.story .w-text,.story .span-note,.story .sub-note,.story .note,.story .srcline,.story small.src,.story .gh-invite span{text-align:left;hyphens:manual;-webkit-hyphens:manual}      /* narrow columns: justified text opens rivers */
   .story .fact{border-radius:0 var(--r-sm) var(--r-sm) 0}
   .stat{border-radius:var(--r-sm)}
-  details.about{margin:var(--sp-4) 0 0;padding:0;border:0;border-radius:var(--r-md);background:var(--firn)}
-  details.about > summary{justify-content:space-between;padding:var(--sp-4);font-size:12px}
+  details.about{margin:var(--sp-4) 0 0;padding:0;border:0;border-radius:0;background:none}
+  details.about > summary{justify-content:center;text-align:center;padding:var(--sp-4);font-size:12px}
   details.about[open] > summary{padding-bottom:var(--sp-2)}
   details.about > :not(summary){margin-left:var(--sp-4);margin-right:var(--sp-4)}
   details.about > :last-child{margin-bottom:var(--sp-4)}
@@ -2370,9 +2378,9 @@ body.x-layers .layerbox{max-width:none}
   html:has(body.pane-open),body.pane-open{overflow:hidden;overscroll-behavior:none}
   body.pane-open .stage-slot .stage{position:fixed;left:0;right:0;top:0;bottom:var(--vs-h,44dvh);width:auto;height:auto!important;min-height:0;z-index:1}
   /* the layer menu (opened by the line on the frame) is a sheet pinned right above the pane: in the page flow it would sit behind the pane, out of reach */
-  body.pane-open.x-layers .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:var(--vs-h,44dvh);top:auto;z-index:2100;max-height:calc(100dvh - var(--vs-h,44dvh) - 24px - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;border-radius:0;border-bottom:1px solid var(--rule);box-shadow:none}
+  body.pane-open.x-layers .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:calc(100dvh - var(--vs-h,44dvh));z-index:2100;max-height:none;overflow-y:auto;overscroll-behavior:contain;border-radius:0;border-top:1px solid var(--rule);border-bottom:0;box-shadow:none;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
   body.pane-open.x-layers .layerbox.in-flow.open .lb-head{display:flex;position:sticky;top:0;z-index:3;background:transparent;padding:12px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
-  body.pane-open.x-layers .layerbox.in-flow.open{background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}      /* slightly see-through: the preview outline shows behind it while you change layers */
+  body.pane-open.x-layers .layerbox.in-flow.open{background:var(--sheet)}      /* the menu covers the pane, right under the picture: the preview stays visible above it while you change layers */
 }
 
 /* phones: the dock is light, so the play button is solid red with a white triangle (it was white on white) */

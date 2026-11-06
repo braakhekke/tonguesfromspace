@@ -383,9 +383,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 
 /* ---------- feedback round 2026-11: say where the dashboard is and that it works ---------- */
 .bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
-.bar nav i{width:8px;height:8px;border-radius:50%;background:#7CE08A;flex:none;animation:dotPump 1.8s ease-in-out infinite}
-@keyframes dotPump{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(124,224,138,.55)}50%{transform:scale(1.25);box-shadow:0 0 0 5px rgba(124,224,138,0)}}
-@media (prefers-reduced-motion:reduce){.bar nav i{animation:none}}
 .herotext .cta{display:flex;flex-wrap:wrap;align-items:center;gap:20px}
 .stepsband{background:var(--firn);border-bottom:1px solid var(--rule)}
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;list-style:none;margin:0 auto;padding:0 24px}

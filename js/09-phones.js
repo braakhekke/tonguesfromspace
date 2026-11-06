@@ -374,15 +374,21 @@ if (window.ResizeObserver) new ResizeObserver(updateLayerMore).observe(document.
 /* On phones the For Your Ice box sits at the very bottom of the page; elsewhere it stays in the settings panel */
 export const FYI = document.querySelector('a.fyi'), FYI_HOME = FYI.parentNode, FYI_PHONE = matchMedia('(max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px)');
 export const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under the box, wherever the box is
-export function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); }
+/* phones: About Tongues from Space is not part of the white glacier card, it sits loose under it (the story is redrawn often, so the new copy is moved out each time; wide screens put it back) */
+export function placeAbout(){
+  const slot = $('fyiSlot'), story = $('story');
+  if (FYI_PHONE.matches) { const fresh = story.querySelector('.about-wrap > details.about'); if (fresh) { slot.querySelectorAll(':scope > details.about').forEach(x => x.remove()); slot.insertBefore(fresh, slot.firstChild); } }
+  else { const d = slot.querySelector(':scope > details.about'), w = story.querySelector('.about-wrap'); if (d && w) { w.querySelectorAll(':scope > details.about').forEach(x => x.remove()); w.insertBefore(d, w.firstChild); } }
+}
+export function placeFyi(){ if (FYI_PHONE.matches) { const slot = $('fyiSlot'), inv = slot.querySelector('.phone-invite'); slot.appendChild(FYI); if (inv) slot.appendChild(inv); slot.appendChild(FYI_BY); } else { FYI_HOME.appendChild(FYI); $('story').appendChild(FYI_BY); } placeAbout(); }      // phones: For Your Ice, the social links and GitHub note, then the byline last, loose under the About card
 /* The byline ("Glacier visuals, done your way / By J. Braakhekke") sits at the bottom of the right panel; the panel is redrawn often, so it is put back last each time */
 {
-  const story = $('story'), keep = () => { if (story.lastElementChild !== FYI_BY) story.appendChild(FYI_BY); };
+  const story = $('story'), keep = () => { if (!FYI_PHONE.matches && story.lastElementChild !== FYI_BY) story.appendChild(FYI_BY); placeAbout(); };
   keep(); new MutationObserver(keep).observe(story, { childList: true });
 }
 FYI_PHONE.addEventListener('change', placeFyi); placeFyi();
 /* on phones the social links and the GitHub note sit below the For Your Ice box (css hides the copy in the About block there) */
-{ const d = document.createElement('div'); d.className = 'phone-invite'; d.innerHTML = inviteHtml(); $('fyiSlot').appendChild(d); }
+{ const d = document.createElement('div'); d.className = 'phone-invite'; d.innerHTML = inviteHtml(); $('fyiSlot').appendChild(d); placeFyi(); }
 
 /* phones in portrait: the map's layer box moves out of the visual, to a panel below it; the dock button opens it */
 export function placeLayers(){
