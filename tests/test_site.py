@@ -267,6 +267,10 @@ class TestRegions(SiteCase):
       const v = startViewer(cv, b.heights, tc, b.nA, b.nB, S.up, S.back, S.dist, S.half); const cam = v.getCam(); v.setCam(cam); v.destroy(); cv.remove(); return {half: S.half, el: cam.el, dist: cam.dist}; }"""
 
     def test_3d_viewer_starts_on_the_terrain_file_of_each_region(self):      # a plain script error in the viewer (a comment that swallowed a definition once) would show as "3D view failed"
+        import json
+        man = json.load(open(os.path.join(ROOT, "data", "terrain", "manifest.json")))
+        if not os.path.exists(os.path.join(ROOT, "data", "terrain", man.get("breidamerkurjokull", "-"))):
+            self.skipTest("the Icelandic terrain files are kept out of the repository")
         for h in ("#r=is&g=breidamerkurjokull&m=single&v=map", "#g=gorner&m=single&v=map"):
             page = self.open(h)
             r = page.evaluate(self.VIEWER_JS)
@@ -276,6 +280,8 @@ class TestRegions(SiteCase):
         self.assertEqual(self.open("#r=is&g=breidamerkurjokull&m=single&v=map").evaluate(self.VIEWER_JS)["half"], 9000)
 
     def test_landsat_switch_adds_and_removes_the_years_before_sentinel2(self):      # Iceland: the checkbox under the years; the Landsat pictures are static files (no relay), 30 m, natural colour
+        if not os.path.exists(os.path.join(ROOT, "data", "landsat", "breidamerkurjokull.json")):
+            self.skipTest("the Icelandic Landsat files are kept out of the repository")
         page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
         page.wait_for_function("state.checked", timeout=30000)
         self.assertEqual(page.evaluate("YEARS[0]"), 2016, "off at first: the years start with Sentinel-2")
