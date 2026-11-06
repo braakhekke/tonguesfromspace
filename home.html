@@ -285,9 +285,8 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
     fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off');
     $('dragHint').classList.add('on');
     setTimeout(() => vid.pause(), 1000);
-    const touched = () => {      // the first touch ends the loop and the hint; the view is then the visitor's
+    const touched = () => {      // the first touch ends the hint only; the timelapse keeps looping while the visitor turns the view
       $('dragHint').classList.remove('on');
-      try { const d = fr.contentDocument; if (d.querySelector('.tl-play[aria-label="Pause"]')) d.querySelector('.tl-play').click(); } catch {}
     };
     try { fr.contentDocument.addEventListener('pointerdown', touched, {once: true, capture: true}); } catch {}
     fig.addEventListener('pointerdown', touched, {once: true});

@@ -2354,3 +2354,10 @@ body.x-layers .layerbox{max-width:none}
 .layerbox.in-sheet .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
 .layerbox.in-sheet input[type=range]{accent-color:var(--crevasse)}
 .layerbox.in-sheet .lb-count{background:var(--accent);color:#fff}
+
+/* phones in portrait: the layer panel has two columns, "For this glacier" on the left and "Background" on the right; the docks (map and 3D) sit just above the credit line (22 px) */
+@media (max-width:720px) and (orientation:portrait){
+  .layerbox.in-flow .lb-group:not(.lb-titlerow){break-before:column;-webkit-column-break-before:always;margin-top:0}
+  .mapbar{bottom:26px}
+  .v3d-measure,.v3d.photo-on .v3d-measure{bottom:26px}
+}
