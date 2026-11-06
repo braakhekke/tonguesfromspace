@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tongues from Space | Swiss glaciers</title>
+<meta name="description" content="Explore the ten largest Swiss glaciers through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.">
+<meta property="og:title" content="Tongues from Space - Swiss glaciers">
+<meta property="og:description" content="Watch the ten largest Swiss glaciers retreat: Sentinel-2 satellite images since 2016 and 3D terrain.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
+<meta property="og:url" content="https://tonguesfromspace.org/switzerland/">
+<link rel="canonical" href="https://tonguesfromspace.org/switzerland/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 200%27%3E%3Cdefs%3E%3Cmask id=%27ringcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Ccircle cx=%27164%27 cy=%2736%27 r=%2727%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%275%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Ccircle cx=%27100%27 cy=%27100%27 r=%2790%27 fill=%27none%27 stroke=%27%230A1B33%27 stroke-width=%2710%27 mask=%27url(%23ringcut)%27/%3E%3Cg transform=%27translate(100 100) scale(0.78) translate(-96 -101)%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url(%23mouthcut)%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url(%23groovecut)%27/%3E%3C/g%3E%3Cpath transform=%27translate(164 36) scale(1.65) translate(-164 -36)%27 d=%27M164 24 Q165 35 176 36 Q165 37 164 48 Q163 37 152 36 Q163 35 164 24 Z%27/%3E%3C/g%3E%3C/svg%3E">
+<link rel="preload" href="/fonts/SchibstedGrotesk-Variable.woff2" as="font" type="font/woff2" crossorigin>
+
+<link rel="preconnect" href="https://cdnjs.cloudflare.com" crossorigin>
+<link rel="preconnect" href="https://tiles.maps.eox.at">
+<link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" as="script" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous">
+<script src="/js/regions.33ce4880d0.js"></script>
+<script src="/js/dem-export.e9530f59a8.js"></script>
+<script src="/js/00-regions.51c4ba859b.js"></script>
+<script src="/js/search.703918d7a5.js"></script>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
+<!--
+  Swiss glacier comparison dashboard
+  ----------------------------------
+  Files that belong together:
+    swiss-glacier-compare.html  this page
+    glaciers.js                 optional, made by build_outlines.py: top-10 ranking from the newest
+                                Swiss Glacier Inventory plus oldest/newest outlines (GLAMOS, CC BY 4.0)
+  Imagery: Copernicus Sentinel-2 L2A, the clearest late-summer scene of each year (September, else
+    August, else July), found with the Statistical API and rendered with the Process API.
+    All Copernicus requests go through a relay that holds the credentials:
+    worker/worker.js (Cloudflare) on the public site, scripts/serve.py locally.
+  Base map: OpenStreetMap (can be switched off on the map).
+-->
+<link rel="stylesheet" href="/css/style.cbceb36158.css">
+<link rel="stylesheet" href="/css/tokens.be7a0b8cb4.css">
+<style>
+.speed-img{image-rendering:auto}.speed-sw{display:block;width:22px;height:8px;border-radius:4px;background:linear-gradient(90deg,#30123b,#36aaf9,#72fe5e,#fabb39,#cb2a04)}#speedRamp,#l3SpeedRamp{background:linear-gradient(90deg,#4662d7,#36aaf9 20%,#1ae4b6 38%,#72fe5e 55%,#c7ef34 68%,#fabb39 80%,#f56918 90%,#cb2a04)}
+.space-sw{display:block;width:26px;height:16px;border-radius:3px;background:radial-gradient(1px 1px at 5px 4px,#fff,transparent),radial-gradient(1px 1px at 15px 11px,#fff,transparent),radial-gradient(1.2px 1.2px at 21px 5px,#e8e0cc,transparent),linear-gradient(#0b1230,#04070f)}
+.sub-pin{position:relative;width:10px;height:10px;border-radius:50%;border:2px solid #fff;background:rgba(200,50,42,.55);box-shadow:0 1px 3px rgba(0,0,0,.5);cursor:pointer;transition:transform .12s}
+.sub-pin:hover{transform:scale(1.35);background:var(--accent)}
+.sub-pin .lab{position:absolute;left:100%;top:50%;transform:translateY(-50%);margin-left:6px;white-space:nowrap;font:600 12px/1 var(--sans);color:#fff;text-shadow:0 0 3px rgba(0,0,0,.9),0 0 7px rgba(0,0,0,.7)}
+.sub-pin sup{font-size:9px;margin-left:1px}
+.glaciers li.sub button{padding:3px 10px 3px 13px}
+.glaciers li.sub .name{font-weight:400;font-size:12px;color:var(--moraine);padding-left:4px}
+.glaciers li.sub .area{font-size:11px;color:var(--moraine)}
+.glaciers li.sub sup{font-size:9px;margin-left:1px}
+.g-list li.sub button{padding-top:4px;padding-bottom:4px}
+.g-list li.sub .name{font-weight:400}
+.g-list li.sub .g-bar{display:none}
+
+/* region menu: a country with several areas is a heading with its areas below it (css/style.css is shared with the sister sites, so this rule lives here) */
+.region-menu li[aria-disabled="true"]{font-weight:600}      /* the countries without data ("soon") keep the weight of the others: only their colour is lighter */
+.region-menu li.group{cursor:default}      /* a country with areas: same font and size as the other countries, not a choice itself */
+.region-menu li.group:hover{background:none}
+.region-menu li.sub{padding-left:24px}      /* its areas: the same font and size, indented */
+/* the way back to the front page (the region picker): js/home-link.js sets where it goes */
+.all-regions{display:inline-block;margin:0 0 8px;font-size:12.5px;font-weight:600;color:var(--crevasse);text-decoration:none}
+.all-regions:hover{text-decoration:underline}
+.mhead .all-regions{display:block;margin:6px 0 0;color:var(--ice)}
+@media (max-width:720px) and (orientation:portrait){.brand .all-regions{display:none}}
+/* the layer "Other glacier names" (js/05-map.js, updateNames): a label stands on its glacier, the chosen glacier larger */
+.gname span{position:absolute;transform:translate(-50%,-50%);white-space:nowrap;font:600 12px var(--sans);color:#fff;text-shadow:0 0 3px #000,0 0 3px #000,0 1px 2px rgba(0,0,0,.9);letter-spacing:.01em}
+.gname.self span{font-size:14px;font-weight:800}
+.sr-svg{display:block;width:22px;height:16px}.sr-svg .c1{fill:#8fb6c9}.sr-svg .c2{fill:#b7d2df}.sr-svg .f{fill:var(--crevasse)}.sr-svg .g{fill:#9ccbe3}
+.names-svg{display:block;width:22px;height:16px;overflow:visible}.names-svg rect{fill:#fff;stroke:var(--crevasse);stroke-width:1.6}.names-svg text{fill:var(--crevasse);font:italic 800 9.5px var(--sans)}.block-svg{display:block;width:22px;height:16px}.block-svg path{stroke:var(--rock);stroke-width:1;stroke-linejoin:round}.block-svg .bt{fill:#d6ecf6}.block-svg .bl{fill:#a39a8f}.block-svg .br{fill:#7d746a}.block-svg .bi{fill:#6fb4d4;stroke:none}
+.names-sw{display:block;font:italic 700 11px var(--sans);color:var(--ink);line-height:1;letter-spacing:-.02em}
+/* the link from the Area card to the size comparison (size.html) */
+.size-link{display:block;margin-top:14px;font-size:12.5px;font-weight:600;color:var(--crevasse)}
+  .landsat-opt{align-items:flex-start;margin:8px 0 4px}
+  .landsat-opt input{margin-top:3px}
+  .landsat-opt.not-recommended #landsatText{color:#9a5b00}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs>
+  <!-- small pictures for the layer menus (26 x 16): a scene from space, an aerial photograph, the cloudless mosaic, OpenStreetMap, the swisstopo map and a hillshade -->
+  <symbol id="sw-s2" viewBox="0 0 26 16"><rect width="26" height="16" fill="#6b705f"/><path d="M0 0h9l2 4-3 3 2 4-2 5H0z" fill="#8a8e7c"/><path d="M13 0h13v16H16l-1-5 3-3-2-4z" fill="#555c4a"/><path d="M7 0h6c1 3 0 5 2 8s2 5 4 8H9c1-3 0-5-1-8S6 3 7 0z" fill="#eef3f6"/><path d="M10 2c1 2 0 4 1 6M12.5 4c1 2 0 3 1 5" stroke="#b7cdd8" stroke-width=".5" fill="none"/><ellipse cx="21.5" cy="12.5" rx="2.6" ry="1.5" fill="#3f93a3"/><path d="M0 13h5l2 3H0z" fill="#566a4a"/></symbol>
+  <symbol id="sw-air" viewBox="0 0 26 16"><rect width="26" height="16" fill="#82925f"/><path d="M0 0h10L8 5 4 8 0 7z" fill="#566b3d"/><path d="M16 0h10v6l-6 2-4-3z" fill="#5d7242"/><path d="M0 11l8-2 5 3 13-2v6H0z" fill="#a89a76"/><path d="M12 0c0 4 1 6 4 9" stroke="#9fc4d6" stroke-width=".9" fill="none"/><path d="M0 6c6 1 10 3 14 7s8 2 12 3" stroke="#dcd7c8" stroke-width="1.1" fill="none"/><rect x="17" y="2.5" width="3.4" height="2.4" fill="#e6e0d5"/><rect x="17" y="2.5" width="3.4" height=".9" fill="#9b5a45"/><rect x="21.5" y="9" width="2.4" height="2" fill="#e6e0d5"/><rect x="21.5" y="9" width="2.4" height=".8" fill="#9b5a45"/></symbol>
+  <symbol id="sw-mosaic" viewBox="0 0 26 16"><rect width="26" height="16" fill="#8fa58a"/><rect x="8.67" width="8.67" height="8" fill="#b9c3b4"/><rect x="17.33" width="8.67" height="8" fill="#dfe6e8"/><rect y="8" width="8.67" height="8" fill="#6f8776"/><rect x="8.67" y="8" width="8.67" height="8" fill="#a9a58f"/><rect x="17.33" y="8" width="8.67" height="8" fill="#c3ccce"/><path d="M19 6l2-3 3 3zM11 4l2-2 2 2z" fill="#fff" fill-opacity=".8"/><path d="M8.67 0v16M17.33 0v16M0 8h26" stroke="#fff" stroke-opacity=".6" stroke-width=".6"/></symbol>
+  <symbol id="sw-osm" viewBox="0 0 26 16"><rect width="26" height="16" fill="#f2efe9"/><path d="M0 11l6-1 4 6H0z" fill="#cde6b0"/><path d="M17 0h9v7l-5 1-4-3z" fill="#aad3df"/><path d="M7 0v16M18 8v8" stroke="#c9c4bd" stroke-width="1.5" fill="none"/><path d="M7 0v16M18 8v8" stroke="#fff" stroke-width="1" fill="none"/><path d="M0 5l10 1 6 5 10 1" stroke="#d9874f" stroke-width="2.8" fill="none"/><path d="M0 5l10 1 6 5 10 1" stroke="#fcd6a4" stroke-width="1.7" fill="none"/><rect x="9.5" y="8.5" width="3.4" height="3" fill="#d9d0c9" stroke="#bfb6ae" stroke-width=".4"/><rect x="2.5" y="0.8" width="3" height="2.8" fill="#d9d0c9" stroke="#bfb6ae" stroke-width=".4"/><rect x="20" y="11" width="3.4" height="3" fill="#d9d0c9" stroke="#bfb6ae" stroke-width=".4"/></symbol>
+  <symbol id="sw-topo" viewBox="0 0 26 16"><rect width="26" height="16" fill="#f6f2e8"/><path d="M0 8c4-2 8-1 10 2s2 6 2 6H0z" fill="#cfe2b7"/><path d="M14 0h12v10c-5 0-8-3-9-6z" fill="#e5eef5"/><path d="M0 4c5 1 9-1 12-4M0 6.5c6 0 11 2 14 0M14 13c4 0 8-1 12-4" stroke="#c8a27a" stroke-width=".6" fill="none"/><path d="M15 3c3 1 6 0 9-2M16 6c3 1 6 1 9-1" stroke="#8fb6d8" stroke-width=".6" fill="none"/><path d="M10 16c1-3 3-4 6-5" stroke="#69b3e0" stroke-width=".9" fill="none"/><path d="M2 14l6-3 4 1" stroke="#d6403a" stroke-width=".7" stroke-dasharray="1.5 1" fill="none"/></symbol>
+  <symbol id="sw-topo-bw" viewBox="0 0 26 16"><rect width="26" height="16" fill="#f1f1f1"/><path d="M0 8c4-2 8-1 10 2s2 6 2 6H0z" fill="#d9d9d9"/><path d="M14 0h12v10c-5 0-8-3-9-6z" fill="#e8e8e8"/><path d="M0 4c5 1 9-1 12-4M0 6.5c6 0 11 2 14 0M14 13c4 0 8-1 12-4" stroke="#555" stroke-width=".6" fill="none"/><path d="M15 3c3 1 6 0 9-2M16 6c3 1 6 1 9-1" stroke="#777" stroke-width=".6" fill="none"/><path d="M10 16c1-3 3-4 6-5" stroke="#222" stroke-width=".9" fill="none"/><path d="M2 14l6-3 4 1" stroke="#222" stroke-width=".7" stroke-dasharray="1.5 1" fill="none"/></symbol>
+  <symbol id="sw-shade" viewBox="0 0 26 16"><rect width="26" height="16" fill="#b9b9b9"/><path d="M0 16V9l5-7 4 6 3-3 5 8 5-4v7z" fill="#ececec"/><path d="M5 2l4 6-4 8H0V9z" fill="#6c6c6c"/><path d="M12 5l5 8-4 3-4-8z" fill="#7b7b7b"/><path d="M17 13l4-4 5 3v4h-9z" fill="#8e8e8e"/></symbol>
+</defs></svg>
+<div class="app" id="app">
+
+  <!-- ================= MOBILE HEADER (phones only) ================= -->
+  <header class="mhead" id="mhead">
+    <strong><a class="home-link" data-home href="/home.html" title="Back to the start"><img class="mhead-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="30" height="28"><span class="t1">Tongues from Space</span></a> - <button type="button" class="t2 region-btn m-region-btn" id="regionBtnM" data-track="region-menu" aria-haspopup="listbox" aria-expanded="false" aria-label="Region: Switzerland. Change region"><span class="region-name">Switzerland</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></strong>
+    <ul class="region-menu m-region-menu" id="regionMenuM" role="listbox" aria-label="Region" hidden></ul>
+    <span>Discover the ten largest Swiss glaciers. Compare, create and share your visuals.</span>
+  </header>
+
+  <!-- ================= LEFT ================= -->
+  <aside class="controls" aria-label="Settings">
+    <div class="brand">
+      <div class="brand-top">
+        <a class="brand-home" data-home href="/home.html" title="Back to the start" aria-label="Tongues from Space: back to the start"><img class="brand-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="52" height="49"></a>
+        <h1><a class="home-link" data-home href="/home.html" title="Back to the start"><span class="t1">Tongues from Space</span></a> <button type="button" class="t2 region-btn" id="regionBtn" data-track="region-menu" aria-haspopup="listbox" aria-expanded="false" aria-label="Region: Switzerland. Change region"><span class="region-name">Switzerland</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></h1>
+        <ul class="region-menu" id="regionMenu" role="listbox" aria-label="Region" hidden></ul>
+      </div>
+      <p id="brandLede">Discover the ten largest Swiss glaciers. Compare, create and share your visuals.</p>
+      <div class="brand-btns"><button type="button" class="teaser-btn" id="teaserBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Watch the demo</button><a class="teaser-btn" href="/gallery.html" title="Pictures and videos that visitors have shared"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg>Gallery</a></div>
+    </div>
+
+    <section class="step" id="glacierGroup">
+      <h2 class="step-h"><span class="num">01</span>Choose</h2>
+      <button type="button" id="mGlacier" data-track="glacier-picker" class="m-pick" aria-haspopup="dialog" aria-expanded="false" aria-label="Glacier"></button>
+      <input type="search" id="glacierSearch" class="g-search" placeholder="Search glaciers" aria-label="Search glaciers" autocomplete="off" hidden>
+      <ul class="glaciers" id="glacierList"></ul>
+      <p class="note" id="rankNote"></p>
+      <button type="button" class="down-hint" id="downHint" data-track="scroll-hint" hidden>Stats, stories and hikes for this glacier are further down <span aria-hidden="true">↓</span></button>
+    </section>
+
+    <section class="step" id="vizGroup">
+      <h2 class="step-h"><span class="num">02</span>Compare<small class="step-lock">pick a glacier</small><button type="button" class="step-reset" id="resetBtn" title="Back to the start: one year, natural colour, all layers off. The view (map or 3D) stays."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 108-8M4 4v5h5"/></svg>Restore defaults</button></h2>
+      <div id="viewGroup">
+        <div class="side-label">View</div>
+        <div class="modes views" role="group" aria-label="View">
+          <button type="button" id="viewMap" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5L15 20.5 9 18l-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg><span>Map</span></button>
+          <button type="button" id="view3dBtn" aria-pressed="false" title="The tongue in 3D: the satellite picture draped over the terrain"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg><span>3D</span></button>
+        </div>
+        <label class="toggle optsw no-transition" title="Fly the camera between the map and the 3D view. Switch off to change at once."><input type="checkbox" id="noTransition" checked> <span>Fly between map and 3D</span></label>
+      </div>
+      <div id="modeGroup">
+        <div class="side-label">Mode</div>
+        <div class="modes" role="group" aria-label="View mode">
+          <button type="button" id="modeSingle" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 9"/></svg><span>One year</span></button>
+          <button type="button" id="modeCompare" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2.5"/><path d="M12 4v16M8 10l-2 2 2 2M16 10l2 2-2 2"/></svg><span>Slider</span></button>
+          <button type="button" id="modeTimelapse" class="sat-need" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg><span>Timelapse</span></button>
+        </div>
+        <div class="orient-sub" id="orientSub" hidden><div class="orient-pad" role="group" aria-label="Slider direction"><button type="button" id="orientV" aria-pressed="true" aria-label="Vertical slider: left and right" title="Vertical slider: left and right"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M12 4v16M8.5 10l-2 2 2 2M15.5 10l2 2-2 2"/></svg></button><button type="button" id="orientH" aria-pressed="false" aria-label="Horizontal slider: top and bottom" title="Horizontal slider: top and bottom"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 12h18M10 8.500l2-2 2 2M10 15.500l2 2 2-2"/></svg></button></div></div>
+      </div>
+
+      <div id="colourGroup" class="sat-need"><div class="side-label">Colour composition</div>
+      <div class="swatches" id="imageGroup" role="group" aria-label="Colour composition">
+        <button type="button" class="sw sw-natural" id="styleNatural" aria-pressed="true"><i></i><span>Natural</span></button>
+        <button type="button" class="sw sw-false1" id="styleFalse1" aria-pressed="false"><i></i><span>Infra</span></button>
+        <button type="button" class="sw sw-false2" id="styleFalse2" aria-pressed="false"><i></i><span>Bloody</span></button>
+        <button type="button" class="sw sw-false3" id="styleFalse3" aria-pressed="false"><i></i><span>Hot?</span></button>
+      </div></div>
+      <p class="note sat-need" id="styleNote"></p>
+
+      <div class="stack" id="compareControls">
+        <div><div class="side-label" id="labelA">Left image</div><div class="swatches sat-need" id="swatchesA" role="group" aria-label="Colour composition of the first picture">
+          <button type="button" class="sw sw-natural" data-style="natural" data-side="a" aria-pressed="false"><i></i><span>Natural</span></button>
+          <button type="button" class="sw sw-false1" data-style="false1" data-side="a" aria-pressed="false"><i></i><span>Infra</span></button>
+          <button type="button" class="sw sw-false2" data-style="false2" data-side="a" aria-pressed="false"><i></i><span>Bloody</span></button>
+          <button type="button" class="sw sw-false3" data-style="false3" data-side="a" aria-pressed="false"><i></i><span>Hot?</span></button>
+        </div>
+        <div class="yr-landsat" id="lsA"></div>
+        <div class="years" id="yearsA" role="group" aria-label="Year for left image"></div>
+        <div class="years specials slider-specials" id="yearsSpecialA" role="group" aria-label="Special scenes for the left image"></div></div>
+        <div><div class="side-label" id="labelB">Right image</div><details class="cc-alt sat-need" id="ccAltB"><summary>Different colour composition?</summary><div class="swatches" id="swatchesB" role="group" aria-label="Colour composition of the second picture">
+          <button type="button" class="sw sw-natural" data-style="natural" data-side="b" aria-pressed="false"><i></i><span>Natural</span></button>
+          <button type="button" class="sw sw-false1" data-style="false1" data-side="b" aria-pressed="false"><i></i><span>Infra</span></button>
+          <button type="button" class="sw sw-false2" data-style="false2" data-side="b" aria-pressed="false"><i></i><span>Bloody</span></button>
+          <button type="button" class="sw sw-false3" data-style="false3" data-side="b" aria-pressed="false"><i></i><span>Hot?</span></button>
+        </div></details>
+        <div class="years" id="yearsB" role="group" aria-label="Year for right image"></div>
+        <div class="years specials slider-specials" id="yearsSpecialB" role="group" aria-label="Special scenes for the right image"></div></div>
+      </div>
+      <div class="stack" id="singleControls" hidden>
+        <div><div class="side-label">Year</div><div class="yr-landsat" id="lsOne"></div><div class="years" id="yearsOne" role="group" aria-label="Year to show"></div></div>
+        <div class="spec-row"><div class="side-label">Specials</div><div class="years specials" id="yearsSpecial" role="group" aria-label="Special scenes"></div></div>
+      </div>
+      <div class="stack" id="timelapseControls" hidden>
+        <div><div class="side-label">Years</div><div class="yr-range" id="yearsRange" role="group" aria-label="First and last year of the timelapse"></div></div>
+        <div class="row sat-need">
+          <button type="button" class="play" id="playBtn"></button>
+          <input type="range" class="frame" id="frameSlider" min="0" max="0" value="0" aria-label="Timelapse frame">
+        </div>
+        <div class="row sat-need">
+          <label class="speed" title="Speed in frames (years) per second"><svg class="speed-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0"/><path id="speedNeedle" d="M12 18V9"/><circle cx="12" cy="18" r="1.4"/></svg>
+          <input type="range" class="speed-range" id="speedSel" min="0" max="9" step="1" value="3" aria-label="Speed"><output class="speed-out" id="speedOut" for="speedSel">2 fps</output></label>
+          <label class="toggle optsw loop"><span>Loop</span> <input type="checkbox" id="loopToggle"></label>
+        </div>
+      </div>
+      <label class="toggle landsat-opt" id="landsatRow" style="display:none" title="Landsat pictures (30 m) for the years before 2016. They stay on in every view and mode until you switch them off."><input type="checkbox" id="landsatToggle"> <span><span id="landsatText">Include older imagery</span> <button type="button" class="info-btn" id="landsatI" data-track="landsat-info" aria-expanded="false" aria-controls="landsatInfo" aria-label="About the older imagery">i</button></span></label>
+      <p class="landsat-info" id="landsatInfo" hidden>Before 2016, the imagery has 30 m pixels instead of 10 m, so less detail. The dynamic statistics in the right panel start in 2016. The elevation models are reconstructed from 2016 onwards, so earlier imagery is projected onto the 2016 elevation model.</p>
+      <p class="status busy" id="status">Looking for the clearest scene of each year…</p>
+
+      <div class="tune-adjust sat-need" id="tuneBox">
+      <button type="button" class="adj-switch" id="tuneSwitch" data-track="adjust-image" role="switch" aria-checked="false" aria-controls="tuneBody"><span class="adj-label">Adjust image</span><span class="adj-track"><span class="adj-knob"></span></span></button>
+      <div id="tuneBody" hidden>
+      <div class="tune-row">
+        <label class="slider-row" for="brightness"><span>Brightness</span><output id="brightnessOut">100 %</output></label>
+        <input type="range" class="frame" id="brightness" min="0.6" max="1.8" step="0.05" value="1" aria-label="Image brightness">
+      </div>
+      <div class="tune-row">
+        <label class="slider-row" for="imgOpacity" title="How opaque the satellite images are: lower values let the background layers show through everywhere"><span>Image opacity</span><output id="imgOpacityOut">100 %</output></label>
+        <input type="range" class="frame" id="imgOpacity" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite images">
+      </div>
+      <div class="tune-row">
+        <label class="slider-row" for="outside" title="How visible the satellite image is around the glacier, outside the 1850 outline: 0 % shows only the background there"><span>Surroundings opacity</span><output id="outsideOut">100 %</output></label>
+        <input type="range" class="frame" id="outside" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the picture outside the outline">
+      </div>
+      </div>
+      </div>
+      <p class="hint outside-note" id="outsideNote" hidden></p>
+    </section>
+
+    <section class="step" id="shareGroup">
+      <h2 class="step-h"><span class="num">03</span>Save and share<small class="step-lock">pick a glacier</small></h2>
+      <div class="dl-grid sat-need">
+        <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your visual</b></button>
+        <button type="button" class="dl" id="embedBtn" aria-expanded="false" aria-controls="embedBox" title="Code to show this view in your own page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4.5l-4 15"/></svg><b>Embed</b></button>
+      </div>
+      <div class="embed-box" id="embedBox" hidden>
+        <p class="hint">Paste this into your page. It shows the view you have now: glacier, years and mode, with the credits.</p>
+        <textarea id="embedCode" readonly rows="9" spellcheck="false" aria-label="Embed code"></textarea>
+        <div class="embed-row"><button type="button" class="act" id="embedCopy" data-track="embed-copy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
+      </div>
+      <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share</button><button type="button" class="act" id="demBtn" aria-expanded="false" aria-controls="demBox" disabled title="The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)">Elevation model</button><button type="button" class="act" id="metaBtn" aria-expanded="false" aria-controls="metaBox">Metadata</button></div>
+      <div class="embed-box" id="demBox" hidden>
+        <div class="dem-row"><label>Year <select id="demYear" aria-label="Year of the surface"></select></label><label>Format <select id="demFmt" aria-label="File format"></select></label></div>
+        <p class="hint" id="demNote"></p>
+        <button type="button" class="act" id="demGo" data-track="dem-download">Download</button>
+        <p class="hint" id="demMsg" role="status"></p>
+      </div>
+      <div class="embed-box" id="metaBox" hidden>
+        <div class="meta-body" id="metaBody"></div>
+      </div>
+      <a class="fyi" href="https://foryourice.org/" target="_blank" rel="noopener">
+        <img class="fyi-img" src="/images/foryourice.jpg" alt="A framed glacier art print by For Your Ice" width="420" height="517" loading="lazy">
+        <span class="fyi-ask">A glacier worth keeping</span>
+        <span class="fyi-name">For Your Ice</span>
+        <span class="fyi-text">Support Tongues from Space</span>
+        <span class="fyi-go">See the prints →</span>
+      </a>
+      <p class="byline fyi-by"><b>Glacier visuals, done your way</b><span>J. Braakhekke</span></p>
+    </section>
+
+    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn" data-track="scroll-cue"><span class="num">03</span><span>Save and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+  </aside>
+
+  <!-- ================= CENTRE ================= -->
+  <div class="stage-slot" id="stageSlot"><main class="stage" id="stage">
+    <div id="map" role="application" aria-label="Satellite image map"></div>
+    <div class="stage-busy" id="stageBusy" role="status" aria-live="polite" hidden></div>
+    <div class="year-tag" id="tagA">–<small>Sentinel-2</small></div>
+    <div class="year-tag" id="tagB">–<small>Sentinel-2</small></div>
+    <div class="year-tag" id="tagT">–<small id="tagTsub">Timelapse</small></div>
+    <div class="left-stack" id="leftStack" hidden>
+      <div class="ls-card then-now" id="thenNowRow" hidden><div class="fd-h"><span class="fd-t"><svg class="cam-pin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" style="fill:#fff;stroke:#C8322A;stroke-width:2.4"/><rect x="5.5" y="9.2" width="13" height="8.6" rx="1.8" style="fill:#C8322A;stroke:none"/><rect x="9.4" y="7" width="5.2" height="2.6" style="fill:#C8322A;stroke:none"/><circle cx="12" cy="13.5" r="2.5" style="fill:#fff;stroke:none"/></svg>Historical images</span><span class="fd-btns"><button type="button" class="fd-x" aria-label="Close" title="Close">×</button></span></div><div class="v3d-photos open" id="v3dPhotos" role="group" aria-label="Historic photographs of this glacier"></div><button type="button" class="fd-chev" aria-label="Show the list of historical images" title="Back to 3D with the list of historical images"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+      <div class="flights-dock ls-card" id="flightsDock" hidden role="group" aria-label="Special flights of this year"></div>
+    </div>
+    <div class="divider" id="divider"></div>
+    <button class="handle" id="handle" data-track="compare-slider" type="button" role="slider" aria-label="Comparison slider" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50">
+      <svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg><span class="handle-hint">Drag the line to compare</span>
+    </button>
+    <div class="measure-hint" id="measureHint" role="status">
+      <span id="measureText">Click to add points.</span>
+      <button type="button" id="measureFinish">Finish</button>
+      <button type="button" class="ghost" id="measureCancel">Cancel</button>
+    </div>
+    <div class="layerbox" id="layerbox" role="group" aria-label="Map layers">
+      <button type="button" class="lb-head" id="lbToggle" aria-expanded="true"><svg class="lb-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Layers</span><b class="lb-count" data-menu="layerbox" hidden></b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+      <div class="lb-body">
+      <div class="lb-group lb-titlerow gl-only"><span id="lbTitle">For this glacier</span><button type="button" class="lb-reset" title="All layers off, only the satellite image on, at 100%">Reset</button></div>
+      <p class="hint lb-xnote gl-only">Greyed layers are not part of a download.</p>
+      <label class="toggle gl-only" title="The Sentinel-2 image of the chosen year(s) on the map"><input type="checkbox" id="satToggle" checked> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-s2"/></svg></span><span id="satLabel">Sentinel-2 image</span></span></label>
+      <label class="slider-row gl-only" for="mapOp" title="How opaque the Sentinel-2 and aerial images are: lower values let the background show through"><span>Image opacity</span><output id="mapOpOut">100 %</output></label>
+      <input type="range" class="frame gl-only" id="mapOp" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite images">
+      <label class="toggle gl-only"><input type="checkbox" id="oldToggle"> <span><span class="sym"><i class="swatch" style="border-color:var(--old)"></i></span><span id="oldLabel">Outline 1850</span></span></label>
+      <label class="toggle gl-only"><input type="checkbox" id="newToggle"> <span><span class="sym"><i class="swatch" style="border-color:var(--new)"></i></span><span id="newLabel">Outline 2023</span></span></label>
+      <label class="toggle gl-only" id="arcsRow" hidden title="Experiment: a yearly outline of the lowest 2 km of the tongue, modelled from the Sentinel-2 picture of each year. Not an official outline."><input type="checkbox" id="arcsToggle"> <span><span class="sym"><i class="swatch" style="border-color:var(--accent)"></i></span>Experimental outline</span></label>
+      <label class="toggle gl-only" title="The lowest point of the 2023 outline"><input type="checkbox" id="pinToggle"> <span><span class="sym"><i class="pin-sw"></i></span><span id="pinLabel">Tongue tip 2023</span></span></label>
+      <label class="toggle gl-only" title="Where the ice is thickest (thickness map of Grab et al. 2021, or a newer radar survey)"><input type="checkbox" id="maxToggle"> <span><span class="sym"><i class="pin-sw blue"></i></span>Thickest ice</span></label>
+      <p class="hint gl-only" id="maxNote" hidden>No thickness data for this glacier.</p>
+      <label class="toggle gl-only" title="Glacier thickness around 2016 (a model, not a measurement)"><input type="checkbox" id="thickToggle"> <span><span class="sym"><i class="area-sw thick"></i></span>Glacier thickness 2016</span></label>
+      <div class="trail-legend radar-legend gl-only" id="thickLegendBox" hidden><img id="thickLegendImg" alt="Legend: modelled ice thickness in metres" width="105"><small>Model result, not a measurement <span data-fn-slot="grab"></span>, state around 2016. The green lines are the radar surveys it is based on.</small></div>
+      <label class="toggle gl-only" title="Ice thickness measured by ground-penetrating radar"><input type="checkbox" id="radarToggle"> <span><span class="sym"><i class="dots-sw"><b></b><b></b><b></b></i></span>Radar points</span></label>
+      <div class="trail-legend radar-legend gl-only" id="radarLegend" hidden><i class="ramp" id="radarRamp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="radarNote"></small><span class="multi-row"><b class="multi-dot"></b>Measured in several years; click to see all</span><small>Each dot is the mean of the radar points in a 50 m cell.</small></div>
+      <label class="toggle gl-only" id="speedRow" title="How fast the ice moves: yearly mean surface speed from satellite image pairs (ITS_LIVE). Shows the year of the picture on the map."><input type="checkbox" id="speedToggle"> <span><span class="sym"><i class="speed-sw"></i></span>Ice speed</span></label>
+      <div class="trail-legend radar-legend gl-only" id="speedLegend" hidden><i class="ramp" id="speedRamp"></i><span class="ticks"><b>5 m/yr</b><b>50</b><b>100</b><b>150+</b></span><small id="speedNote"></small></div>
+      <label class="toggle gl-only" title="Hiking trails"><input type="checkbox" id="trailsToggle"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
+      <div class="trail-legend gl-only" id="trailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="sightLegend" hidden title="Where the glacier tongue can be seen from the trail (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view<button type="button" class="lb-i" data-why="trailsWhy" aria-expanded="false" aria-label="About the tongue-in-view band">i</button></span></div>
+      <p class="lb-why gl-only" id="trailsWhy" hidden><b>Tongue in view.</b> The violet band marks where the glacier tongue can be seen from the trail. Calculated from the elevation model alone: trees and buildings are not counted, so in forest the tongue may be hidden. A guide, not a promise.</p>
+      <label class="toggle gl-only" id="svRow" title="Panoramas: the best Street View panoramas of this glacier (Google)" hidden><input type="checkbox" id="svToggle"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Panoramas</span></label>
+        <label class="toggle gl-only" id="mapPhotosRow" style="opacity:.45" title="Historical images: shown in the 3D view, for one year (not on the map)"><input type="checkbox" id="mapPhotos" disabled> <span><span class="sym"><svg class="cam-pin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" style="fill:#fff;stroke:#C8322A;stroke-width:2.4"/><rect x="5.5" y="9.2" width="13" height="8.6" rx="1.8" style="fill:#C8322A;stroke:none"/><rect x="9.4" y="7" width="5.2" height="2.6" style="fill:#C8322A;stroke:none"/><circle cx="12" cy="13.5" r="2.5" style="fill:#fff;stroke:none"/></svg></span>Historical images</span></label>
+      <div class="lb-group">Background</div>
+      <label class="toggle"><input type="checkbox" id="osmToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-osm"/></svg></span>OpenStreetMap</span></label>
+      <label class="toggle gl-only" id="flightsRow" hidden><input type="checkbox" id="flightsToggle"> <span><span class="sym"><svg class="plane-sw" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span id="flightsLabel">swisstopo special flight</span></span></label>
+      <label class="toggle gl-only" title="swisstopo aerial photographs (SWISSIMAGE) of the year you picked on the left. Switch the Sentinel-2 image off to see them."><input type="checkbox" id="aerialToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-air"/></svg></span><span id="aerialLabel">swisstopo aerial</span></span></label>
+      <label class="toggle"><input type="checkbox" id="topoToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo"/></svg></span><span id="topoLabel">swisstopo map</span></span></label>
+      <label class="toggle" title="The oldest swisstopo map (Journey through time) that covers the picture box"><input type="checkbox" id="oldMapToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo-bw"/></svg></span><span id="oldMapLabel">swisstopo map</span></span></label>
+      <label class="toggle" title="Relief shading of the terrain"><input type="checkbox" id="altiToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-shade"/></svg></span>Hillshade</span></label>
+      <label class="toggle" title="Cloudless Sentinel-2 mosaic of Europe"><input type="checkbox" id="mosaicToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-mosaic"/></svg></span>Sentinel-2</span></label>
+      <label class="toggle gl-only" id="mapSrRow" style="opacity:.45" title="Super-resolution: the Sentinel-2 picture run through a super-resolution model. Can only be used in the 3D view."><input type="checkbox" id="mapSr" disabled> <span><span class="sym"><svg class="sr-svg" viewBox="0 0 22 16" aria-hidden="true"><rect class="c1" x="1" y="4" width="4.5" height="4.5"/><rect class="c2" x="5.5" y="4" width="4.5" height="4.5"/><rect class="c2" x="1" y="8.5" width="4.5" height="4.5"/><rect class="c1" x="5.5" y="8.5" width="4.5" height="4.5"/><rect x="12.0" y="3.0" width="1.8" height="1.8" class="f"/><rect x="14.2" y="3.0" width="1.8" height="1.8" class="g"/><rect x="16.4" y="3.0" width="1.8" height="1.8" class="f"/><rect x="18.6" y="3.0" width="1.8" height="1.8" class="g"/><rect x="12.0" y="5.2" width="1.8" height="1.8" class="g"/><rect x="14.2" y="5.2" width="1.8" height="1.8" class="f"/><rect x="16.4" y="5.2" width="1.8" height="1.8" class="g"/><rect x="18.6" y="5.2" width="1.8" height="1.8" class="f"/><rect x="12.0" y="7.4" width="1.8" height="1.8" class="f"/><rect x="14.2" y="7.4" width="1.8" height="1.8" class="g"/><rect x="16.4" y="7.4" width="1.8" height="1.8" class="f"/><rect x="18.6" y="7.4" width="1.8" height="1.8" class="g"/><rect x="12.0" y="9.6" width="1.8" height="1.8" class="g"/><rect x="14.2" y="9.6" width="1.8" height="1.8" class="f"/><rect x="16.4" y="9.6" width="1.8" height="1.8" class="g"/><rect x="18.6" y="9.6" width="1.8" height="1.8" class="f"/></svg></span>Super-resolution</span></label>
+      <label class="toggle" id="mapSpaceRow" style="opacity:.45" title="Space: a night sky with stars behind the terrain. Can only be used in the 3D view."><input type="checkbox" id="mapSpace" disabled> <span><span class="sym"><i class="space-sw"></i></span>Space</span></label>
+      <label class="toggle"><input type="checkbox" id="labelsToggle" checked> <span><span class="sym"><svg class="label-sw" viewBox="0 0 14 16" aria-hidden="true"><path fill-rule="evenodd" d="M7 .8a5.6 5.6 0 0 1 5.6 5.6c0 3.9-5.6 8.8-5.6 8.8S1.4 10.3 1.4 6.4A5.6 5.6 0 0 1 7 .8zM7 4.4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span>Place labels</span></label>
+      <label class="toggle gl-only" id="namesRow" title="The names of this glacier and of the other glaciers inside its picture (Wikidata and the Randolph Glacier Inventory)"><input type="checkbox" id="namesToggle"> <span><span class="sym"><svg class="names-svg" viewBox="0 0 22 16" aria-hidden="true"><rect x="1" y="2.5" width="20" height="11" rx="3.5"/><text x="11" y="11.4" text-anchor="middle">Ab</text></svg></span>Other glacier names</span></label>
+      <label class="toggle swiss-only" id="swissAllRow" title="All glaciers of the Swiss Glacier Inventory SGI2023 as outlines. Hover one for its name, area, length and elevation."><input type="checkbox" id="swissAllToggle"> <span><span class="sym"><svg class="gl-icon" viewBox="0 0 20 14" aria-hidden="true"><path d="M2 3c3-2 6-1 8 0s5 0 7 1c1 2 0 4-2 6-2 2-3 3-5 3s-3-2-5-3S1 8 1 6c0-1 0-2 1-3z" fill="rgba(31,111,168,.15)" stroke="var(--crevasse)" stroke-width="1.6" stroke-linejoin="round"/></svg></span>All Swiss glaciers</span></label>
+      <p class="hint" id="outlineNote"></p>
+      </div>
+      <div class="lb-more" id="lbMore" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg></div>
+    </div>
+    <div class="mapbar" role="toolbar" aria-label="Map tools">
+      <div class="tl-dots" id="tlDots"></div>
+      <div class="mapbar-row">
+      <button type="button" id="zoomOut" aria-label="Zoom out" title="Zoom out">−</button>
+      <button type="button" id="zoomIn" aria-label="Zoom in" title="Zoom in">+</button>
+      <span class="sep"></span>
+      <button type="button" id="tongueBtn" aria-label="Tongue" title="Zoom to the tongue tip"><svg viewBox="66 74 110 114" aria-hidden="true"><defs><mask id="tongueIcoCut" maskUnits="userSpaceOnUse" x="60" y="70" width="120" height="124"><rect x="60" y="70" width="120" height="124" fill="#fff"/><path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="5" stroke-linecap="round"/></mask></defs><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#tongueIcoCut)" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Tongue</span></button>
+      <button type="button" id="fitBtn" aria-label="Whole glacier" title="Fit the whole glacier"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 8V3.5H8M20.5 8V3.5H16M3.5 16v4.5H8M20.5 16v4.5H16"/><path d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" transform="translate(2.1 1.8) scale(.085)" style="fill:currentColor;stroke:none"/></svg><span class="lbl">Whole glacier</span></button>
+      <span class="sep"></span>
+      <button type="button" id="measureDist" class="mtool" aria-pressed="false" aria-label="Measure length" title="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span class="lbl">Measure length</span></button>
+      <button type="button" id="measureArea" class="mtool" aria-pressed="false" aria-label="Measure area" title="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span class="lbl">Measure area</span></button>
+      <button type="button" id="measureSect" class="mtool" aria-pressed="false" aria-label="Thickness cross-section" title="Thickness cross-section: draw a line across the glacier, then fly into 3D to see it cut"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h18c-4 12-14 12-18 0z" fill="currentColor" fill-opacity=".22"/><path d="M12 6.5v8.2" stroke-dasharray="1.6 2.2"/></svg><span class="lbl">Cross-section</span></button>
+      <button type="button" id="measureClear" class="mtool" aria-label="Clear measurements" title="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg><span class="lbl">Clear</span></button>
+      <button type="button" id="fsBtn" aria-label="Full screen, visual only" title="Full screen, visual only (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+      <button type="button" id="layersBtn" class="mobile-only" aria-label="Map layers" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><b class="lb-count on-btn" data-menu="layerbox" hidden></b></button>
+      <button type="button" id="moreBtn" class="mobile-only" aria-label="Measuring tools" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
+      </div>
+    </div>
+    <div class="pick-hint" id="pickHint" aria-live="polite"><div class="pick-note" id="pickNote"></div></div>
+    <div class="sv-panel" id="svPanel" hidden role="dialog" aria-label="Street View panorama">
+      <div class="sv-head">
+        <span class="sv-title"><b id="svTitle"></b><small id="svMeta"></small></span>
+        <button type="button" class="sv-btn" id="svPrev" aria-label="Previous panorama">‹</button>
+        <button type="button" class="sv-btn" id="svNext" aria-label="Next panorama">›</button>
+        <a class="sv-open" id="svOpen" target="_blank" rel="noopener">Google Maps ↗</a>
+        <button type="button" class="sv-btn" id="svFull" aria-label="Full screen" aria-pressed="false"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+        <button type="button" class="sv-btn" id="svClose" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+      </div>
+      <iframe id="svFrame" title="Street View panorama" allowfullscreen referrerpolicy="no-referrer-when-downgrade"></iframe>
+    </div>
+    <div class="v3d" id="v3d" hidden role="dialog" aria-label="3D view of the tongue">
+      <canvas id="v3dCanvas"></canvas>
+      <canvas class="v3d-over" id="v3dOver"></canvas>
+      <div class="v3d-north" id="v3dNorth" aria-hidden="true" title="North"><svg viewBox="0 0 24 24"><path d="M12 3l4.5 15L12 15.5 7.5 18z"/></svg><b>N</b></div>
+      <div class="tongue-loading" id="tongueLoading" hidden aria-live="polite"><span>Reconstruction in progress</span><em><i></i></em></div>
+      <div class="v3d-top"><div class="year-tag v3d-year" id="v3dTitle">3D view</div><span class="h-full">Drag to turn all the way round and tilt, Shift or right-drag (two fingers) to move, scroll or pinch to zoom.</span><span class="h-short">Drag to turn · two fingers to move and zoom</span></div>
+      <div class="layerbox v3d-layers" id="v3dLayers" role="group" aria-label="Layers of the 3D view">
+        <button type="button" class="lb-head" id="v3dLbToggle" aria-expanded="true"><svg class="lb-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Layers</span><b class="lb-count" data-menu="v3dLayers" hidden></b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></button>
+        <div class="lb-body">
+          <div class="lb-group lb-titlerow"><span id="l3Title">For this glacier</span><button type="button" class="lb-reset" title="All layers off, only the satellite image on, at 100%">Reset</button></div>
+          <label class="toggle" title="The Sentinel-2 image of the chosen year on the terrain"><input type="checkbox" id="l3Sat"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-s2"/></svg></span><span id="l3SatLabel">Sentinel-2 image</span></span></label>
+          <label class="slider-row" for="l3Op" title="How opaque the Sentinel-2 image is: lower values let the background show through"><span>Image opacity</span><output id="l3OpOut">100 %</output></label>
+          <input type="range" class="frame" id="l3Op" min="0" max="1" step="0.05" value="1" aria-label="Opacity of the satellite image">
+          <label class="toggle"><input type="checkbox" id="l3Old"> <span><span class="sym"><i class="swatch" style="border-color:var(--old)"></i></span><span id="l3OldLabel">Outline 1850</span></span></label>
+          <label class="toggle"><input type="checkbox" id="l3New"> <span><span class="sym"><i class="swatch" style="border-color:var(--new)"></i></span><span id="l3NewLabel">Outline 2023</span></span></label>
+          <label class="toggle" id="l3ArcsRow" hidden title="Experiment: a yearly outline of the lowest 2 km of the tongue, modelled from the Sentinel-2 picture of each year. Not an official outline."><input type="checkbox" id="l3Arcs"> <span><span class="sym"><i class="swatch" style="border-color:var(--accent)"></i></span>Experimental outline</span></label>
+          <label class="toggle" title="The lowest point of the 2023 outline"><input type="checkbox" id="l3Pin"> <span><span class="sym"><i class="pin-sw"></i></span><span id="l3PinLabel">Tongue tip 2023</span></span></label>
+          <label class="toggle" title="Where the ice is thickest (thickness map of Grab et al. 2021, or a newer radar survey)"><input type="checkbox" id="l3Max"> <span><span class="sym"><i class="pin-sw blue"></i></span>Thickest ice</span></label>
+          <p class="hint" id="l3MaxNote" hidden>No thickness data for this glacier.</p>
+          <label class="toggle" id="l3ThickRow" title="Modelled ice thickness around 2016 (Grab et al. 2021, GLAMOS, via swisstopo), the same for every year"><input type="checkbox" id="l3Thick"> <span><span class="sym"><i class="area-sw thick"></i></span>Glacier thickness 2016</span></label>
+          <div class="trail-legend radar-legend" id="l3ThickLegend" hidden><img id="l3ThickImg" alt="Legend: modelled ice thickness in metres" width="105"><small>Model result, not a measurement. The same picture for every year.</small></div>
+          <label class="toggle" title="Ice thickness measured by ground-penetrating radar"><input type="checkbox" id="l3Radar"> <span><span class="sym"><i class="dots-sw"><b></b><b></b><b></b></i></span>Radar points</span></label>
+          <div class="trail-legend radar-legend" id="l3RadarLegend" hidden><i class="ramp"></i><span class="ticks"><b>0 m</b><b>200</b><b>400</b><b>600+</b></span><small id="l3RadarNote"></small></div>
+          <label class="toggle" id="l3SpeedRow" title="How fast the ice moves: yearly mean surface speed from satellite image pairs (ITS_LIVE), for the year of the picture"><input type="checkbox" id="l3Speed"> <span><span class="sym"><i class="speed-sw"></i></span>Ice speed</span></label>
+          <div class="trail-legend radar-legend" id="l3SpeedLegend" hidden><i class="ramp" id="l3SpeedRamp"></i><span class="ticks"><b>5 m/yr</b><b>50</b><b>100</b><b>150+</b></span><small id="l3SpeedNote"></small></div>
+          <label class="toggle" title="Hiking trails"><input type="checkbox" id="l3Trails"> <span><span class="sym"><i class="trail-sw"><i></i></i></span>Hiking trails</span></label>
+          <div class="trail-legend" id="l3TrailLegend" hidden><span><i style="--c:#FDC200"></i>Hiking trail</span><span><i style="--c:#FF0000"></i>Mountain trail</span><span><i style="--c:#0000FF"></i>Alpine trail</span><span id="l3SightLegend" hidden title="Where the glacier tongue can be seen from the trail (trees and buildings not counted)"><i class="sight-sw"></i>Tongue in view<button type="button" class="lb-i" data-why="l3TrailsWhy" aria-expanded="false" aria-label="About the tongue-in-view band">i</button></span></div>
+          <p class="lb-why" id="l3TrailsWhy" hidden><b>Tongue in view.</b> The violet band marks where the glacier tongue can be seen from the trail. Calculated from the elevation model alone: trees and buildings are not counted, so in forest the tongue may be hidden. A guide, not a promise.</p>
+          <label class="toggle" id="l3SvRow" title="Panoramas: the best Street View panoramas of this glacier (Google). Marks stand on the terrain; click one to open it." hidden><input type="checkbox" id="l3Sv"> <span><span class="sym"><i class="sv-pin sv-sw"></i></span>Panoramas</span></label>
+          <label class="toggle" id="l3PhotosRow" hidden title="Historical images of this glacier: switch on to open the list of thumbnails in the dock. Can only be used in the 3D view of one year."><input type="checkbox" id="l3Photos"> <span><span class="sym"><svg class="cam-pin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" style="fill:#fff;stroke:#C8322A;stroke-width:2.4"/><rect x="5.5" y="9.2" width="13" height="8.6" rx="1.8" style="fill:#C8322A;stroke:none"/><rect x="9.4" y="7" width="5.2" height="2.6" style="fill:#C8322A;stroke:none"/><circle cx="12" cy="13.5" r="2.5" style="fill:#fff;stroke:none"/></svg></span>Historical images</span></label>
+          <div class="lb-group">Background</div>
+          <label class="toggle"><input type="checkbox" id="l3Osm"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-osm"/></svg></span>OpenStreetMap</span></label>
+          <label class="toggle" id="l3FlightsRow" hidden><input type="checkbox" id="l3Flights"> <span><span class="sym"><svg class="plane-sw" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg></span><span id="l3FlightsLabel">swisstopo special flight</span></span></label>
+          <label class="toggle" title="swisstopo aerial photographs (SWISSIMAGE) of the year you picked on the left, under the Sentinel-2 image: lower its opacity to see them"><input type="checkbox" id="l3Aerial"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-air"/></svg></span><span id="l3AerialLabel">swisstopo aerial</span></span></label>
+          <label class="toggle"><input type="checkbox" id="l3Topo"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo"/></svg></span><span id="l3TopoLabel">swisstopo map</span></span></label>
+          <label class="toggle"><input type="checkbox" id="l3OldMap"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo-bw"/></svg></span><span id="l3OldMapLabel">swisstopo map</span></span></label>
+          <label class="toggle" title="Relief shading of the terrain"><input type="checkbox" id="l3Alti"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-shade"/></svg></span>Hillshade</span></label>
+          <label class="toggle" id="l3SrRow" hidden title="The Sentinel-2 picture run through a super-resolution model (SEN2SR, 10 m to 2.5 m): extra detail is the model's estimate, not measured. Only for the years that have such a picture; other years show the normal picture"><input type="checkbox" id="l3Sr"> <span><span class="sym"><svg class="sr-svg" viewBox="0 0 22 16" aria-hidden="true"><rect class="c1" x="1" y="4" width="4.5" height="4.5"/><rect class="c2" x="5.5" y="4" width="4.5" height="4.5"/><rect class="c2" x="1" y="8.5" width="4.5" height="4.5"/><rect class="c1" x="5.5" y="8.5" width="4.5" height="4.5"/><rect x="12.0" y="3.0" width="1.8" height="1.8" class="f"/><rect x="14.2" y="3.0" width="1.8" height="1.8" class="g"/><rect x="16.4" y="3.0" width="1.8" height="1.8" class="f"/><rect x="18.6" y="3.0" width="1.8" height="1.8" class="g"/><rect x="12.0" y="5.2" width="1.8" height="1.8" class="g"/><rect x="14.2" y="5.2" width="1.8" height="1.8" class="f"/><rect x="16.4" y="5.2" width="1.8" height="1.8" class="g"/><rect x="18.6" y="5.2" width="1.8" height="1.8" class="f"/><rect x="12.0" y="7.4" width="1.8" height="1.8" class="f"/><rect x="14.2" y="7.4" width="1.8" height="1.8" class="g"/><rect x="16.4" y="7.4" width="1.8" height="1.8" class="f"/><rect x="18.6" y="7.4" width="1.8" height="1.8" class="g"/><rect x="12.0" y="9.6" width="1.8" height="1.8" class="g"/><rect x="14.2" y="9.6" width="1.8" height="1.8" class="f"/><rect x="16.4" y="9.6" width="1.8" height="1.8" class="g"/><rect x="18.6" y="9.6" width="1.8" height="1.8" class="f"/></svg></span><span class="tx2">Super-resolution<small id="l3SrYears"></small></span></span></label>
+          <label class="toggle" title="A night sky with stars behind the terrain"><input type="checkbox" id="l3Space"> <span><span class="sym"><i class="space-sw"></i></span>Space</span></label>
+          <label class="toggle" id="l3GNamesRow" title="Names of this glacier and of the other glaciers in the strip (Wikidata and the Randolph Glacier Inventory)"><input type="checkbox" id="l3GNames"> <span><span class="sym"><svg class="names-svg" viewBox="0 0 22 16" aria-hidden="true"><rect x="1" y="2.5" width="20" height="11" rx="3.5"/><text x="11" y="11.4" text-anchor="middle">Ab</text></svg></span>Other glacier names</span></label>
+          <label class="toggle" title="Names of peaks and passes"><input type="checkbox" id="l3Names"> <span><span class="sym"><svg class="peak-sw" viewBox="0 0 16 12" aria-hidden="true"><path d="M0.5 11.5 6 2l3 5 2-3 4.5 7.5z"/></svg></span>Peak names</span></label>
+          <label class="toggle" id="l3BlockRow" hidden title="The terrain as a block diagram: the sides of the strip cut open, ice above the bed, bedrock below (swissBEDROCK, a model)"><input type="checkbox" id="l3Block"> <span><span class="sym"><svg class="block-svg" viewBox="0 0 22 16" aria-hidden="true"><path class="bt" d="M2 5 11 1.5 20 5 11 8.5z"/><path class="bl" d="M2 5 11 8.5v6L2 11z"/><path class="br" d="M20 5 11 8.5v6L20 11z"/><path class="bi" d="M2 5 11 8.5 20 5v1.6L11 10.1 2 6.6z"/></svg></span>Block diagram</span></label>
+        </div>
+      </div>
+      <div class="v3d-measure" id="v3dMeasure" role="toolbar" aria-label="Measuring tools and old photographs">
+        <div class="v3d-tl" id="v3dTlLine"></div>
+        <button type="button" id="v3mOut" class="v3d-zoom" aria-label="Zoom out" title="Zoom out">−</button>
+        <button type="button" id="v3mIn" class="v3d-zoom" aria-label="Zoom in" title="Zoom in">+</button>
+        <button type="button" id="v3mHome" class="v3d-zoom" aria-label="Reset the view" title="Reset the view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg></button>
+        <span class="sep"></span>
+        <button type="button" id="v3mDist" aria-pressed="false" aria-label="Measure length" title="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span>Measure length</span></button>
+        <button type="button" id="v3mArea" aria-pressed="false" aria-label="Measure area" title="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span>Measure area</span></button>
+        <button type="button" id="v3mSect" aria-pressed="false" aria-label="Thickness cross-section" title="Thickness cross-section: draw a line across the glacier" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h18c-4 12-14 12-18 0z" fill="currentColor" fill-opacity=".22"/><path d="M12 6.5v8.2" stroke-dasharray="1.6 2.2"/></svg><span>Thickness cross-section</span></button>
+
+        <button type="button" id="v3mClear" hidden aria-label="Clear measurements" title="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg><span>Clear</span></button>
+        <button type="button" id="v3mLayers" class="mobile-only" aria-label="Layers" title="Layers of the 3D view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Layers</span><b class="lb-count on-btn" data-menu="v3dLayers" hidden></b></button>
+        <button type="button" id="v3dFs" aria-label="Full screen, visual only" title="Full screen, visual only (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span class="fs-in">Full screen</span><span class="fs-out">Exit full screen</span></button>
+      </div>
+      <div class="measure-hint v3d-mhint" id="v3dMHint" role="status"><span id="v3dMText"></span><button type="button" id="v3mFinish">Finish</button><button type="button" class="ghost" id="v3mCancel">Cancel</button></div>
+      <div class="v3d-cutcap" id="v3dCutCap" hidden><div class="tx"><b id="v3dCutCap1"></b><span id="v3dCutCap2"></span><span id="v3dCutCap3" hidden></span><span id="v3dCutCap4" hidden></span></div><button type="button" id="v3dCutYears" aria-pressed="false" aria-label="Surface of the other years" title="Show the ice surface of the other years on the cut" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7c4-3 6 3 9 0s6-3 9 0"/><path d="M3 12c4-3 6 3 9 0s6-3 9 0"/><path d="M3 17c4-3 6 3 9 0s6-3 9 0"/></svg></button><button type="button" id="v3mSect2d" aria-pressed="false" aria-label="Cross-section as 2D chart" title="Show the cross-section as a 2D chart, with export"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4v16h16"/><path d="M7 9c3 0 3 7 6 7s2-4 5-4"/></svg></button><button type="button" id="v3dCutClose" aria-label="Close the cross-section" title="Close the cross-section"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
+      <div class="v3d-sect" id="v3dSect" hidden role="group" aria-label="Thickness cross-section"><div class="hd"><b>Thickness cross-section</b><span id="v3dSectInfo"></span><span class="ex"><button type="button" id="v3dSectSvgDl" title="Download the chart as an SVG drawing">SVG</button><button type="button" id="v3dSectPngDl" title="Download the chart as a PNG picture">PNG</button><button type="button" id="v3dSectCsvDl" title="Download the profile and the radar cells as a CSV table">CSV</button></span><button type="button" id="v3dSectX" aria-label="Close the 2D chart">×</button></div><svg id="v3dSectSvg" role="img" aria-label="Ice surface and ice depth along the line"></svg><div class="ft" id="v3dSectNote"></div></div>
+      <div class="v3d-msg" id="v3dMsg"></div>
+      <div class="v3d-div" id="v3dDiv" hidden role="slider" tabindex="0" aria-label="Move the line between the two years" aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"><span class="v3d-handle"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l-6 6 6 6M15 6l6 6-6 6"/></svg></span><span class="v3d-hint">Drag the line to compare</span></div>
+      <div class="v3d-lab" id="v3dLabA" hidden></div><div class="v3d-lab" id="v3dLabB" hidden></div>
+      <img class="v3d-photo" id="v3dPhoto" alt="" hidden>
+      <div class="v3d-photocap" id="v3dPhotoCap" hidden></div>
+      <div class="v3d-tune" id="v3dTune" hidden></div>
+      <div class="v3d-tip" id="v3dTip" hidden></div>
+      <div class="v3d-tip v3d-camtip" id="v3dCamTip" hidden></div>
+      <div class="v3d-tip v3d-cuttip" id="v3dCutTip" hidden></div>
+      <div class="v3d-bottom"><input type="range" id="v3dExag" min="1" max="2" step="0.1" value="1" hidden aria-hidden="true"><span id="v3dNote"></span></div>
+    </div>
+    <div class="notice" id="notice" role="alert"></div>
+    <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
+    <div class="video-frame" id="videoFrame" hidden><i class="vf-h" data-h="nw"></i><i class="vf-h" data-h="n"></i><i class="vf-h" data-h="ne"></i><i class="vf-h" data-h="e"></i><i class="vf-h" data-h="se"></i><i class="vf-h" data-h="s"></i><i class="vf-h" data-h="sw"></i><i class="vf-h" data-h="w"></i><span id="videoFrameNote"></span><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><button type="button" class="vf-layers" id="vfLayers" title="Open the Layers box to change what is printed"><em id="vfLayersText"></em><b>Change</b></button><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-fmt" id="vfWide" aria-pressed="true" aria-label="16:9, landscape" title="16:9 (landscape)">16:9</button><button type="button" class="vf-fmt" id="vfReel" aria-pressed="false" aria-label="9:16, portrait" title="9:16 (portrait)">9:16</button><button type="button" class="vf-fmt" id="vfFeed" aria-pressed="false" aria-label="4:5, Instagram feed" title="4:5 (Instagram feed)">4:5</button><button type="button" class="vf-fmt" id="vfCustom" aria-pressed="false" aria-label="Custom ratio" title="Custom: drag the edges and corners of the frame. It starts as the glacier's image box."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" stroke-dasharray="3 2.5"/><circle cx="19" cy="19" r="2.2"/></svg></button><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div></div>
+    <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
+    <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span class="pt-label" id="toggleRightLabel">Discover facts and figures</span></button>
+    <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
+    <a class="embed-open" id="embedOpen" target="_blank" rel="noopener" title="Open this view on Tongues from Space">Explore more on tonguesfromspace.org ↗</a>
+    <div class="mini-ctl" id="miniCtl">
+      <button type="button" id="miniBig" aria-label="Back to the full visual" title="Enlarge"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 15V5h10M5 5l7 7M19 9v10H9"/></svg></button>
+      <button type="button" id="miniFull" aria-label="Full screen" title="Full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      <button type="button" id="miniHide" aria-label="Slide the small window off the screen" title="Slide away"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button>
+      <button type="button" id="miniClose" aria-label="Close the small window" title="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    </div>
+    <button type="button" class="full-exit" id="fullExit" aria-label="Leave full screen" title="Leave full screen"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
+  </main></div>
+
+  <!-- ================= RIGHT ================= -->
+  <article class="story" id="story" aria-live="polite"></article>
+
+  <!-- On phones the For Your Ice box is moved here, to the very bottom of the page -->
+  <div class="fyi-slot" id="fyiSlot"></div>
+</div>
+
+<!-- ================= VIDEO EXPORT PANEL ================= -->
+<section class="video-sheet" id="videoSheet" role="dialog" aria-label="Create and share" hidden>
+  <div class="vs-head"><strong id="vsTitle">Create and share</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
+  <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Image</button><button type="button" id="vkVideo" aria-pressed="true">Animation</button></div>
+  <label class="toggle optsw vo-video" id="vSafeRow" hidden title="Instagram Reels and TikTok cover the top, the bottom and the right edge with their own buttons and captions. Switch off for a plain 9:16 video, with the text at the very top and bottom."><input type="checkbox" id="vSafe" checked> <span>Keep text clear of Reels and TikTok buttons</span></label>
+  <p class="hint vs-guide" id="vsGuide"></p>
+  <button type="button" class="act vs-snap" id="vSnap" hidden title="Back to the extent and ratio of the glacier's image box">Reset frame to the image box</button>
+  <div class="vs-opts">
+    <label class="toggle optsw vo-no3d" title="Print the layers ticked in the Layers box: the outlines, tongue tip, thickest ice, ice thickness, ice speed (pictures only) and one background map under the satellite image."><input type="checkbox" id="vLayers" checked> <span>Map layers</span></label>
+    <label class="toggle optsw speed-row" id="vFactsRow" title="Three facts about the glacier on the picture or video: Ice (volume, estimate), Retreat (length, area, thickness) or Size (area, thickness, tongue height)"><span class="fk"><input type="checkbox" id="vFacts"> <span>Glacier facts</span></span> <select class="small" id="vFactSet" aria-label="Which facts"><option value="ice">Ice</option><option value="retreat">Retreat</option><option value="size">Size</option></select></label>
+    <label class="toggle optsw" title="A small outline of the country with a dot at the glacier"><input type="checkbox" id="vInset" checked> <span>Location inset</span></label>
+    <label class="toggle optsw" title="Only one small line up the left edge: Tongues from Space, the site, glacier, year and the data credit. No header, facts, timeline or scale."><input type="checkbox" id="vMinimal"> <span>Minimize text</span></label>
+    <label class="toggle optsw vo-video vo-3d" title="The camera swings over the terrain during the video. Off keeps the viewpoint fixed."><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
+    <label class="speed speed-row vo-video" title="Speed in frames (years) per second: the same setting as in the left panel"><svg class="speed-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 18a8.5 8.5 0 1 1 16 0"/><path id="vSpeedNeedle" d="M12 18V9"/><circle cx="12" cy="18" r="1.4"/></svg><span>Speed</span>
+      <input type="range" class="speed-range" id="vSpeed" min="0" max="9" step="1" value="3" aria-label="Speed"><output class="speed-out" id="vSpeedOut" for="vSpeed">2 fps</output></label>
+    <label class="toggle speed-row vo-video vo-tl vo-loops"><span>Loops</span> <select class="small" id="vLoops"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
+    <label class="toggle optsw vo-video vo-tl vo-loops"><input type="checkbox" id="vBounce"> <span>Run backwards between loops</span></label>
+    <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">No end card</option></select></label>
+    <label class="toggle speed-row vo-image" title="JPG is smaller; PNG is lossless. A picture for the gallery is always JPG."><span>File</span> <select class="small" id="vImgFmt"><option value="jpg" selected>JPG</option><option value="png">PNG</option></select></label>
+  </div>
+  <p class="hint vs-note" id="vsInfo"></p>
+  <p class="hint vs-note" id="vsEarly" hidden></p>
+  <p class="hint vs-help"><span id="vsSource"></span> <span class="vo-video">Result: MP4, ready for Instagram or TikTok.</span></p>
+  <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
+  <button type="button" class="act vs-play vo-video" id="vsPlay"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg><span>Play animation</span></button>
+  <button type="button" class="play" id="vsGo">Download video</button>
+  <div class="vs-share" id="vsShareBox" hidden>
+    <button type="button" id="vsShare" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7" rx="1"/><rect x="13.5" y="3.5" width="7" height="7" rx="1"/><rect x="3.5" y="13.5" width="7" height="7" rx="1"/><rect x="13.5" y="13.5" width="7" height="7" rx="1"/></svg><span>Share it in the gallery</span></button>
+    <form id="vsShareForm" hidden>
+      <div class="vs-head"><strong>Share in the gallery</strong><button type="button" class="vs-close" id="vsShareClose" aria-label="Close the sharing form">×</button></div>
+      <p class="hint">Your creation goes to the <a href="/gallery.html" target="_blank" rel="noopener">gallery</a> once it has been looked at. I keep only what is in the file and the details below. The picture or video is made as you send it, as it is framed now.</p>
+      <input type="text" id="vsNick" maxlength="30" placeholder="Name to show (optional)" autocomplete="off" aria-label="Name to show (optional)">
+      <label class="toggle"><input type="checkbox" id="vsConsent"> <span>I made this and agree that it is shown in the public gallery</span></label>
+      <div id="vsTurnstile"></div>
+      <button type="submit" class="play" id="vsSend" style="width:100%">Send to the gallery</button>
+      <p class="hint" id="vsShareMsg" role="status"></p>
+    </form>
+  </div>
+</section>
+
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
+<!-- optional: written by the deploy workflow; sets the address of the Copernicus relay (Cloudflare Worker) -->
+<script defer src="/config.js"></script><script defer src="/js/track.59941745ad.js"></script>
+<script defer src="/js/home-link.a1550126d2.js"></script>
+<script type="module" src="/js/app.348e0452fb.js"></script>
+
+</body>
+</html>

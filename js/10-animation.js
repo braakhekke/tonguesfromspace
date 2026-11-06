@@ -5,10 +5,10 @@ import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUM
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
 import { asset, styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, sideStyle, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
-import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS, speedAngle } from './05-map.js';
+import { satOn, map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS, speedAngle } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN, closeOtherSharePanes } from './07-render.js';
 import { showNotice } from './08-controls.js';
-import { setFull, setMini, evalMini, setLayers, swipeToClose, scrollCompareTop } from './09-phones.js';
+import { setFull, setMini, evalMini, setLayers, scrollCompareTop } from './09-phones.js';
 import { drawExportLayers, drawExportArcs, drawExportRasters, drawLegendCard, prepareRasters, cachedRasters, layerLegend, hasNewOutline, layerCredits, buildBackground, perYearBackground, overlayCards, exportLayers, layersOn, syncExportRows } from './09a-export-layers.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'closeVideo', { get: () => closeVideo, configurable: true });
@@ -84,7 +84,7 @@ export function visibleBox(){            // the part of the picture area the vis
   return {side, x0, x1: Math.max(x0 + 100, x1), y0, y1: Math.max(y0 + 100, y1)};
 }
 export function frameAvail(){            // the free area of the map the frame may use: left, top, width, height
-  const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(112, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
+  const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(62, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
   return { x: vb.x0 + m, y: top, w: vb.x1 - vb.x0 - 2 * m, h: stageSize().y - top - m - bottom };
 }
 export function frameRect(){
@@ -206,7 +206,7 @@ export function placeFrame(){
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
   $('videoFrame').classList.toggle('custom', vstate.fmt === 'custom');
-  const bt = $('videoFrame').querySelector('.vf-btns'), vb = visibleBox(), sr = $('stage').getBoundingClientRect(), ar = document.querySelector('aside.controls').getBoundingClientRect(), lo = Math.max(vb.x0, ar.right - sr.left);      // the buttons under the frame are centred on it, but a narrow custom frame near the edge would push them off the screen: they slide back
+  const bt = $('videoFrame').querySelector('.vf-btns'), vb = visibleBox(), sr = $('stage').getBoundingClientRect(), ar = document.querySelector('aside.controls').getBoundingClientRect(), beside = ar.bottom > sr.top && ar.top < sr.bottom, lo = Math.max(vb.x0, beside ? ar.right - sr.left : 0);      // (phones: the controls are below the picture, not beside it) the buttons under the frame are centred on it, but a narrow custom frame near the edge would push them off the screen: they slide back
   if (bt) { const bw = bt.offsetWidth; bt.style.left = bw ? Math.min(Math.max(r.x + r.w / 2 - bw / 2, lo + 8), Math.max(lo + 8, vb.x1 - bw - 8)) - r.x + 'px' : ''; bt.style.transform = bw ? 'none' : ''; }
 }
 /* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine).
@@ -404,7 +404,6 @@ export function closeVideo(){
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
 }
 $('vkImage').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('video'); };      // switch between the two panes without closing
-swipeToClose($('videoSheet').querySelector('.vs-head'), $('videoSheet'), () => $('vsClose').click(), () => PHONE.matches);      // phones: the pane is a bottom sheet
 /* the pane gives a short bounce when a button opens or switches it, so the visitor notices where it appeared (not with reduced motion) */
 function pumpPane(){
   const sh = $('videoSheet');
@@ -513,7 +512,7 @@ export async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1
       maskGeom.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const [x, y] = P0(pt); i ? tc.lineTo(x, y) : tc.moveTo(x, y); }); tc.closePath(); }));
       tc.clip('evenodd'); tc.globalCompositeOperation = 'destination-out'; tc.globalAlpha = 1 - o; tc.fillRect(0, 0, W, H); tc.restore();
     }
-    ctx.drawImage(bg, 0, 0); ctx.save(); ctx.globalAlpha = imgOpacity(); ctx.drawImage(t, 0, 0); ctx.restore();
+    ctx.drawImage(bg, 0, 0); ctx.save(); ctx.globalAlpha = satOn() ? imgOpacity() : 0; ctx.drawImage(t, 0, 0); ctx.restore();      // the picture switched off: the download shows the map layers alone, as the frame does
     drawExportRasters(ctx, P0, rasters);
     drawExportArcs(ctx, P0, W, arcs, kind);
     if (outline) { ctx.save(); strokeEdgeFade(ctx, outline, P0, '#F2A93B', W / 1080 * 1.2); ctx.restore(); }
@@ -655,6 +654,7 @@ export function drawInset(ctx, W, S, g, top, hA = 1){
    yearAlpha / yearClip (the first year of a slider picture fades and is cut with its image), shortDate (only the short rest of the date line). Returns the baseline of the last line. */
 export const YEAR_PX = 88, NAME_PX = 34, SUB_PX = 24;
 export const heroBase = S => S.top + 24 + 46 + Math.round(0.72 * YEAR_PX);      // the later year of a vertical slider sits under the map key on the right      // where the baseline of a year at full size lies
+export const noPicture = () => !satOn() || imgOpacity() <= 0;      // the Sentinel-2 picture is off or fully transparent: its year, date and description are left out of the frame
 export function drawHeader(ctx, W, S, o){
   const x = S.left, textW = W - S.left - S.right - (o.keyW ? o.keyW + 36 : 0);
   ctx.save(); ctx.textBaseline = 'alphabetic';
@@ -733,7 +733,8 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
   const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
   const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(k === 1 && info.styleB || info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${styleName(k === 1 && info.styleB || info.style, sc[k])}`] : null;
   const al = Math.min(1, split / (W * 0.25)), ar = Math.min(1, (W - split) / (W * 0.25));      // a year fades when its image is almost hidden
-  drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
+  const np = noPicture();
+  drawHeader(ctx, W, S, {year: np ? '' : String(info.years[0]), name: stillName(g), place: placeOf(g), date: np ? null : dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
     yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: [...(info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []), ...(info.xLegend || [])], cards: info.xCards});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawInset(ctx, W, S, g, hz ? S.top + 80 : heroBase(S) + 80, hA);
@@ -753,7 +754,7 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
     if (align === 'right') { shadowText(ctx, db[2], x, y, {blur:8, color:'rgba(255,255,255,.9)', align:'right'}); ctx.font = `600 ${SUB_PX}px ${FONT}`; shadowText(ctx, db[0], x - rw, y, {blur:8, align:'right'}); }
     else { ctx.font = `600 ${SUB_PX}px ${FONT}`; shadowText(ctx, db[0], x, y, {blur:8}); ctx.font = `500 ${SUB_PX}px ${FONT}`; shadowText(ctx, db[2], x + bw, y, {blur:8, color:'rgba(255,255,255,.9)'}); } };
   ctx.font = `800 ${YEAR_PX}px ${FONT}`;
-  if (hz) {
+  if (np) { /* no picture: no second year either */ } else if (hz) {
     ctx.save(); ctx.beginPath(); ctx.rect(0, split, W, H - split); ctx.clip();
     shadowText(ctx, String(info.years[1]), S.left - 4, base - 112, {blur:14}); dateLine(S.left, base - 72, 'left'); ctx.restore();
   } else {
@@ -768,8 +769,9 @@ export function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){
   const g = info.glacier, hA = info.hA ?? 1;
   if (minimalOn()) return drawInset(ctx, W, S, g, S.top, hA), minimalLabels(ctx, W, H, S, stillName(g), String(yr), shortCredit(creditYears(info), [(info.outline || info.xNew) && REGION.outlines.credit, ...(info.xCredit || [])]), hA, info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : []);
   shade(ctx, W, H, S);
-  drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: [...(info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []), ...(info.xLegend || [])], cards: info.xCards,
-    date: [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${styleName(info.style, scene)}`]});
+  const np = noPicture();
+  drawHeader(ctx, W, S, {year: np ? '' : String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: [...(info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []), ...(info.xLegend || [])], cards: info.xCards,
+    date: np ? null : [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${styleName(info.style, scene)}`]});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawInset(ctx, W, S, g, S.top + 80, hA);
   drawBottom(ctx, W, H, S, {
@@ -1208,6 +1210,7 @@ export function muxMp4({ width, height, fps, avcC, samples }){
 
 /* The credits on the preview follow the layers: a switch changed while a download pane is open redraws the frame (outlines, radar, trails, aerial images change the source list) */
 document.addEventListener('change', e => { if (!$('videoSheet').hidden && e.target.closest && e.target.closest('.layerbox, #v3dLayers')) setTimeout(updateFrame, 0); });
+document.addEventListener('input', e => { if (!$('videoSheet').hidden && viewMode !== '3d' && e.target.id === 'imgOpacity' || e.target.id === 'mapOp') setTimeout(() => { if (!$('videoSheet').hidden && viewMode !== '3d') drawPreview(); }, 0); });      // the year and date leave the frame as the picture fades out
 export function setLastExport(v){ return lastExport = v; }      // the other files may not assign to an imported variable
 export function setBrandMotion(v){ return brandMotion = v; }      // the other files may not assign to an imported variable
 export function setLogoAsked(v){ return logoAsked = v; }      // the other files may not assign to an imported variable
@@ -1224,6 +1227,6 @@ const placeLayerBox = on => {      // a pane at the side: the Layers box opens i
 $('vfLayers').onclick = () => {
   const on = document.body.classList.toggle('x-layers'), d3 = viewMode === '3d', b = d3 ? $('v3dLayers') : $('layerbox'); setLayers(on); placeLayerBox(on);
   if (d3) b.classList.toggle('open', on);      // (the phone's own menu button opens the 3D box through setLayers)
-  if (on && b.classList.contains('min')) (d3 ? $('v3dLbToggle') : $('lbToggle')).click();
+  if (on && b.classList.contains('min') && !b.classList.contains('in-flow')) (d3 ? $('v3dLbToggle') : $('lbToggle')).click();      // (the phone's panel has no minimised state: its toggle would close it again)
 };
 $('vLayers').addEventListener('change', () => { syncExportRows(); drawPreview(); });

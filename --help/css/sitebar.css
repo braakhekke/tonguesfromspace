@@ -1,0 +1,22 @@
+/* The site header of the public pages (gallery, glacier-vs-city); the front page has the same look in css/home.css (.bar). Dark bar, logo, three links: Dashboard (green dot), Glacier vs. city, Gallery. */
+.sitebar{background:#070b14;color:#fff;font-family:var(--sans,'Schibsted Grotesk',system-ui,sans-serif)}
+.sitebar .in{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;height:60px}
+.sitebar .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+.sitebar .brand img{height:25px;width:auto}
+.sitebar .brand b{font-size:20px;line-height:30px;font-weight:700;letter-spacing:-.018em;white-space:nowrap}
+.sitebar nav{display:flex;gap:22px;align-items:center}
+.sitebar nav a{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none;white-space:nowrap}
+.sitebar nav a:hover,.sitebar nav a[aria-current]{color:#fff}
+.sitebar nav a[aria-current]{box-shadow:0 2px 0 var(--accent,#C8322A);padding-bottom:2px}
+.sitebar nav i{width:8px;height:8px;border-radius:50%;background:#7CE08A;flex:none;animation:dotPump 1.8s ease-in-out infinite}
+@keyframes dotPump{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(124,224,138,.55)}50%{transform:scale(1.25);box-shadow:0 0 0 5px rgba(124,224,138,0)}}
+@media (prefers-reduced-motion:reduce){.sitebar nav i{animation:none}}
+@media (max-width:640px){
+  .sitebar .in{padding:0 14px;gap:10px;height:52px}
+  .sitebar .brand{gap:8px}.sitebar .brand b{font-size:16px}
+  .sitebar nav{gap:14px}.sitebar nav a{font-size:12px}
+}
+@media (max-width:520px){.sitebar .brand b{display:none}}
+/* the size page is a full-height app: the bar takes its share */
+body.has-sitebar .app{height:calc(100% - 60px)}
+@media (max-width:900px){body.has-sitebar .app{height:auto}}

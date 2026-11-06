@@ -896,7 +896,6 @@ sup.fn a:hover{opacity:.7}
   .mhead strong{display:block;font-size:17px;font-weight:800;letter-spacing:-.01em;line-height:1.2;color:#0A1B33}
   .mhead strong span{display:inline;font-size:inherit;margin:0;color:#0A1B33}
   .mhead strong span.t1{color:#0A1B33}
-  .mhead{border-top:4px solid var(--accent)}
   .mhead span{display:block;font-size:12.5px;color:var(--moraine);margin-top:2px}
   .stage{order:1;height:60vh;height:60dvh;min-height:330px}
   .controls{--pad:16px;order:2;height:auto;border-right:0;border-bottom:1px solid var(--rule);padding:14px 16px 18px;gap:18px}
@@ -937,7 +936,7 @@ sup.fn a:hover{opacity:.7}
   .measure-hint{top:56px;font-size:12.5px;padding:4px 5px 4px 10px;gap:6px;flex-wrap:nowrap;max-width:calc(100% - 16px)}
   .measure-hint #measureText{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
   .measure-hint button{min-height:30px;padding:3px 10px;font-size:12.5px;flex:none}
-  .video-sheet{top:auto;left:0;right:0;bottom:0;width:100%;max-height:44dvh;border-left:0;border-radius:14px 14px 0 0;animation:none;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:6px}
+  .video-sheet{top:auto;left:0;right:0;bottom:0;width:100%;max-height:44dvh;border-left:0;border-top:1px solid var(--rule);border-radius:0;box-shadow:none;animation:none;padding:10px 14px calc(12px + env(safe-area-inset-bottom,0px));gap:6px}
   .video-sheet .vs-help{display:none}
   .vs-opts{grid-template-columns:1fr 1fr;column-gap:10px}
   .vs-opts .toggle{min-height:30px;font-size:13px}
@@ -1015,8 +1014,7 @@ sup.fn a:hover{opacity:.7}
   body.has-full .layerbox.in-flow .lb-head{position:sticky;top:0;z-index:3;background:var(--sheet);touch-action:none;padding-top:16px}
   body.has-full .layerbox.in-flow .lb-head::before{content:'';position:absolute;top:6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--rule)}
   /* the create-and-share pane is a bottom sheet here: a handle, and the header can be dragged down (js/09-phones.js, swipeToClose) */
-  .vs-head{position:relative;touch-action:none;min-height:36px}
-  .vs-head::before{content:'';position:absolute;top:-6px;left:50%;width:36px;height:4px;margin-left:-18px;border-radius:2px;background:var(--rule)}
+  .vs-head{position:relative;min-height:36px}
   .vs-close{min-width:44px;min-height:44px;margin:-8px -8px -8px 0}
   body.has-full .layerbox.in-flow .lb-head span::after{content:' · tap to close';font-weight:500;color:var(--moraine);font-size:12.5px}
 }
@@ -1341,7 +1339,7 @@ body.pane-open .tfs-scale{display:none!important}      /* no scale bar while a d
 body.pane-open .mapbar{display:none!important}      /* no toolbar under the picture while a download pane is open (zoom with the wheel or two fingers) */
 
 /* the preview play button under the frame of the animation pane; while it plays the outside of the frame gets darker */
-.vf-btns{position:absolute;left:50%;bottom:-52px;transform:translateX(-50%);display:none;gap:12px;pointer-events:none}      /* play (animations only) and close, side by side under the frame */
+.vf-btns{position:absolute;left:50%;bottom:-52px;transform:translateX(-50%);width:max-content;display:none;gap:12px;pointer-events:none}      /* play (animations only) and close, side by side under the frame */
 body.pane-open .video-frame .vf-btns{display:flex}
 /* The map while a download pane is open shows only what the download prints: the Sentinel-2 / Landsat picture and (if ticked) the 1850 outline. Base maps, aerial images, thickness, speed, trails, the sight band, names and marks are left out of the picture, so they are left out of the preview (the layers stay as they are set and come back when the pane closes). */
 body.pane-open:not(.x-bg) #map .leaflet-labels-pane,body.pane-open:not(.x-bg) #map .leaflet-tile-pane,body.pane-open:not(.x-bg) #map .leaflet-bg-pane,body.pane-open:not(.x-aerial) #map .leaflet-siA-pane,body.pane-open:not(.x-aerial) #map .leaflet-siB-pane,body.pane-open:not(.x-aerial) #map .leaflet-siT-pane,body.pane-open #map .leaflet-thick-pane,body.pane-open #map .leaflet-speed-pane,body.pane-open #map .leaflet-sight-pane,body.pane-open #map .leaflet-marker-pane,body.pane-open #map .leaflet-shadow-pane,body.pane-open #map .leaflet-tooltip-pane,body.pane-open #map .leaflet-popup-pane,body.pane-open:not(.x-bg) #map .leaflet-flights-pane{display:none!important}
@@ -1928,7 +1926,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .app{gap:var(--sp-3);padding-bottom:var(--sp-2)}
 
   /* header: one slim row, the logo and name at the left, the region as a pill at the right */
-  .mhead{display:flex;align-items:center;gap:var(--sp-2);padding:10px var(--sp-4);text-align:left;border:0;border-top:3px solid var(--accent);position:relative}
+  .mhead{display:flex;align-items:center;gap:var(--sp-2);padding:10px var(--sp-4);text-align:left;border:0;position:relative}
   .mhead strong{display:flex;align-items:center;flex:1;min-width:0;gap:var(--sp-3);font-size:0;line-height:1}
   .mhead strong .home-link{display:flex;align-items:center;gap:10px;min-width:0;text-decoration:none;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
   .mhead-logo{height:28px;margin:0;flex:none}
@@ -2110,8 +2108,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .measure-hint button,.v3d-mhint button{border-radius:var(--r-pill)}
   .stage-busy{border-radius:var(--r-pill);padding:8px 14px}
   .notice,.pick-note,.v3d-tip{border-radius:var(--r-md);background:rgba(255,255,255,.96);box-shadow:0 1px 2px rgba(14,26,34,.12),0 6px 20px rgba(14,26,34,.25)}
-  .video-sheet{border-radius:var(--r-lg) var(--r-lg) 0 0;box-shadow:0 -8px 32px rgba(14,26,34,.3)}
-  .vs-head::before{background:rgba(14,26,34,.18)}
+  .video-sheet{border-radius:0;box-shadow:none}
   .v3d-top > span,.year-tag small{text-shadow:0 1px 6px rgba(0,0,0,.65)}
   .v3d:has(.v3d-mhint.show) .v3d-top > span{visibility:hidden}      /* the measuring hint takes the place of the line under the year */
   .layerbox.in-flow .toggle{font-size:13.5px}
@@ -2329,10 +2326,10 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 
 /* map layers in a download: the line on the frame, the switch in the pane, and the greyed rows of the Layers box */
 .video-sheet.is-3d .vo-no3d{display:none}
-.vf-layers{position:absolute;left:50%;transform:translateX(-50%);bottom:-100px;max-width:100%;display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:5px 11px;background:rgba(10,18,22,.78);color:#fff;font:600 11.5px/1.2 var(--font,inherit);cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
-.vf-layers em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
-.vf-layers b{flex:none;color:#fff;text-decoration:underline;font-weight:700}
-body.pane-open .video-frame .vf-layers{display:flex}
+.vf-layers{position:relative;margin-right:6px;overflow:visible;background:rgba(10,18,22,.78)}      /* round layers button left of the ratio buttons; the red count sits on its corner like an app-icon badge */
+.vf-layers:hover{background:rgba(10,18,22,.92)}
+.vf-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--accent);color:#fff;font:700 11px/18px var(--sans);font-style:normal;text-align:center;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px rgba(10,18,22,.9);pointer-events:none}
+.vf-badge[hidden]{display:none}      /* (not .lb-count: the script in 08-controls.js counts those from the menu and would overwrite it) */
 body.pane-open .layerbox .toggle.x-off{opacity:.45}
 .lb-xnote{display:none;margin:2px 0 6px;font-size:11px}
 body.pane-open .layerbox .lb-xnote{display:block}
@@ -2373,6 +2370,96 @@ body.x-layers .layerbox{max-width:none}
   html:has(body.pane-open),body.pane-open{overflow:hidden;overscroll-behavior:none}
   body.pane-open .stage-slot .stage{position:fixed;left:0;right:0;top:0;bottom:var(--vs-h,44dvh);width:auto;height:auto!important;min-height:0;z-index:1}
   /* the layer menu (opened by the line on the frame) is a sheet pinned right above the pane: in the page flow it would sit behind the pane, out of reach */
-  body.pane-open.x-layers .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:var(--vs-h,44dvh);top:auto;z-index:2100;max-height:calc(100dvh - var(--vs-h,44dvh) - 120px);overflow-y:auto;overscroll-behavior:contain;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45)}
-  body.pane-open.x-layers .layerbox.in-flow.open .lb-head{display:flex;position:sticky;top:0;z-index:3;background:var(--sheet);padding:12px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
+  body.pane-open.x-layers .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:var(--vs-h,44dvh);top:auto;z-index:2100;max-height:calc(100dvh - var(--vs-h,44dvh) - 24px - env(safe-area-inset-top,0px));overflow-y:auto;overscroll-behavior:contain;border-radius:0;border-bottom:1px solid var(--rule);box-shadow:none}
+  body.pane-open.x-layers .layerbox.in-flow.open .lb-head{display:flex;position:sticky;top:0;z-index:3;background:transparent;padding:12px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
+  body.pane-open.x-layers .layerbox.in-flow.open{background:rgba(255,255,255,.82);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}      /* slightly see-through: the preview outline shows behind it while you change layers */
 }
+
+/* phones: the dock is light, so the play button is solid red with a white triangle (it was white on white) */
+@media (max-width:720px) and (orientation:portrait), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .stage .tl-play,.stage .mapbar .tl-play,.stage .v3d-tl .tl-play,.stage .v3d-measure .tl-play{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(200,50,42,.35)}
+  .stage .tl-play:hover,.stage .mapbar .tl-play:hover,.stage .v3d-tl .tl-play:hover{background:#A9271F}
+  .stage .tl-play svg{opacity:1}
+}
+
+/* phones, download pane open: notices sit at the top of the picture, clear of the ratio and play buttons under the frame */
+@media (max-width:720px) and (orientation:portrait){
+  body.pane-open .notice{top:56px;transform:translateX(-50%)}
+}
+
+/* long year lists (Landsat years from 1984 on): 2.5 rows show, the rest scrolls; the half row hints that there is more. Phone and desktop alike. */
+.years:not(.specials){--yr-row:40px;--yr-gap:6px;grid-auto-rows:var(--yr-row);gap:var(--yr-gap);max-height:calc(2.25 * var(--yr-row) + 2 * var(--yr-gap));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.stack .years:not(.specials){gap:var(--yr-gap)}
+.years:not(.specials) button{min-height:0;height:var(--yr-row)}
+
+/* Layers header: the count sits next to the chevron, the title takes the free space */
+.lb-head span{flex:1 1 auto;text-align:left}
+.lb-head .lb-count{margin-left:0}
+
+/* Layer menu switches: like "Fly between map and 3D" (a plain track, no outline); the off track is the panel's text colour at low strength, so it shows on the white sheets and on the dark glass */
+.layerbox .toggle input[type=checkbox]:not(:checked){box-shadow:none;background:rgba(128,138,144,.45);background:color-mix(in srgb,currentColor 24%,transparent)}
+.layerbox .toggle input[type=checkbox]:checked{box-shadow:none}
+.layerbox .toggle input[type=checkbox]:not(:checked)::after{box-shadow:0 1px 2px rgba(0,0,0,.3)}
+
+/* desktop: smaller year buttons (the 40px rows are for fingers) */
+@media (min-width:721px){
+  .years:not(.specials){--yr-row:28px;--yr-gap:4px}
+  .years:not(.specials) button{font-size:13px}
+  .years.specials button{min-height:30px}
+}
+
+/* layer menu switches: the same size as the other switches (30 x 17, knob 13), on phones too */
+.layerbox .toggle input[type=checkbox]{width:30px;height:17px;border-radius:9px}
+.layerbox .toggle input[type=checkbox]::after{width:13px;height:13px}
+.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
+@media (max-width:720px){
+  .layerbox .toggle input[type=checkbox]{width:30px;height:17px;border-radius:9px}
+  .layerbox .toggle input[type=checkbox]::after{width:13px;height:13px}
+  .layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
+}
+
+/* years: one grey segmented box like the glacier list, View and Mode; the chosen year is a white raised pill */
+.years{padding:3px;border-radius:var(--r-md);background:var(--firn)}
+.years:not(.specials){max-height:calc(2.25 * var(--yr-row) + 2 * var(--yr-gap) + 6px)}
+.years button,.years .landsat-chip{border:0;background:transparent;box-shadow:none;border-radius:var(--r-sm);color:var(--rock);font-weight:500}
+.years button:hover:not(:disabled):not(.is-na):not([aria-pressed="true"]){background:var(--rule-2,rgba(14,26,34,.06))}
+.years button[aria-pressed="true"],.years .landsat-chip[aria-pressed="true"]{background:var(--sheet,#fff);color:var(--ink);font-weight:700;box-shadow:var(--raise)}
+.years button.in-range:not([aria-pressed="true"]){background:rgba(45,110,142,.16)}
+.years button:disabled,.years button.is-na,.years button.is-na:hover{background:transparent;box-shadow:none;color:#B6BEC2}
+.years.specials button{font-weight:600}
+.years.specials button[aria-pressed="true"]{font-weight:700}
+
+/* the small i next to a label: grey ring, filled while its note is open (like the one of the older imagery) */
+.side-label .info-btn{width:16px;height:16px;margin-left:4px;vertical-align:-3px;border-color:var(--moraine);color:var(--moraine);font-size:10px;text-transform:none;letter-spacing:0}
+.side-label .info-btn[aria-expanded="true"]{background:var(--moraine);color:#fff}
+
+/* status under the years: one short line; the rest is behind the small i */
+.status:has(.st-i){display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
+.status .st-main{flex:1 1 0;min-width:0}
+.status .st-i{width:16px;height:16px;font-size:10px;border-color:var(--moraine);color:var(--moraine);flex:none}
+.status .st-i[aria-expanded="true"]{background:var(--moraine);color:#fff}
+.status .st-more{flex:1 0 100%;padding-top:2px;border-top:1px solid var(--rule)}
+.status .st-more[hidden]{display:none}
+.slider-row .info-btn{width:15px;height:15px;margin-left:4px;vertical-align:-2px;font-size:9.5px;border-color:var(--moraine);color:var(--moraine)}
+.slider-row .info-btn[aria-expanded="true"]{background:var(--moraine);color:#fff}
+.slider-row .info-btn[hidden]{display:none}
+
+/* colour composition: the i sits at the right end of the row, centred on the label's line */
+#colourGroup .side-label{display:flex;align-items:center;justify-content:space-between;gap:8px}
+#colourGroup .side-label .info-btn{margin:0;vertical-align:baseline;flex:none}
+
+/* less space between the status line and "Adjust image" (the step's 10px gap and the 6px margin added up to 16px) */
+.tune-adjust{margin-top:-6px}
+
+/* step numbers 01 / 02 / 03: twice the size, the circle and the figure; the title keeps its size and stays centred on the circle */
+.step-h .num{width:48px;height:48px;font-size:23px;line-height:1}
+
+/* step numbers: 70 % of the doubled size; the bottom of the circle lines up with the bottom of the title */
+.step-h{align-items:flex-end}
+.step-h .num{width:34px;height:34px;font-size:16px}
+
+/* the red Play button in the left panel: less tall */
+.play{min-height:32px;padding:5px 16px}
+
+/* the byline at the bottom of the right panel */
+.story > .fyi-by{margin:0 0 -26px;padding:28px 0 0;flex:none;align-self:stretch;text-align:center}      /* centred, right under the About block (which takes the free space above it with its auto margin, so About, social icons and GitHub sit on top of the byline) */

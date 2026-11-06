@@ -35,7 +35,19 @@ document.getElementById('modeSingle').onclick = () => { state.mode = 'single'; s
 
 export function setStatus(t){             // a message ending in "…" means work in progress: show the spinner
   const el = document.getElementById('status');
-  el.textContent = t; el.classList.toggle('busy', /…$/.test(t));
+  el.classList.toggle('busy', /…$/.test(t));
+  const cut = /…$/.test(t) ? -1 : t.search(/[.)] (?=\S)/);      // a finished message: the first sentence stays, the rest is behind a small i (a busy one is a single short line)
+  if (cut < 0) el.textContent = t;
+  else {
+    const open = el.dataset.more === '1';
+    el.textContent = '';
+    const main = Object.assign(document.createElement('span'), { className: 'st-main', textContent: t.slice(0, cut + 1) }),
+      btn = Object.assign(document.createElement('button'), { type: 'button', className: 'info-btn st-i', textContent: 'i', title: 'More about the scenes' }),
+      more = Object.assign(document.createElement('span'), { className: 'st-more', textContent: t.slice(cut + 2), hidden: !open });
+    btn.setAttribute('aria-expanded', open); btn.setAttribute('aria-label', 'More about the scenes');
+    btn.onclick = e => { e.preventDefault(); more.hidden = !more.hidden; el.dataset.more = more.hidden ? '0' : '1'; btn.setAttribute('aria-expanded', !more.hidden); };
+    el.append(main, btn, more);
+  }
   if (viewMode === '3d' && !state.checked) document.getElementById('v3dMsg').textContent = t;      // the 3D view shows the progress of the search too
 }
 /* The status under the years is in the left panel; the same message, with its spinner, also shows on the stage, so it is seen while looking at the picture. */
@@ -191,12 +203,17 @@ document.getElementById('resetBtn').onclick = () => {
 };
 /* The "i" next to a layer opens its short explanation under it (the click does not switch the layer) */
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.lb-i'); if (!b) return; e.preventDefault(); e.stopPropagation(); const w = document.getElementById(b.dataset.why); w.hidden = !w.hidden; b.setAttribute('aria-expanded', !w.hidden); }, true);      // delegated: the legend of a region without swisstopo is built by applyRegionUi
+/* The number of layers that are on in a Layers menu ('layerbox' or 'v3dLayers'): the switches on screen (not hidden by the region, the glacier or the mode, and not greyed out
+   for the download that is open). One count for the badge in the menu header and for the one under the preview frame. */
+export function layersOnCount(id){
+  const shown = el => { const l = el.closest('label') || el; return !el.disabled && !l.closest('[hidden]') && !l.classList.contains('x-off') && getComputedStyle(l).display !== 'none'; };
+  return [...document.querySelectorAll(`#${id} .lb-body input[type=checkbox]`)].filter(el => el.checked && shown(el)).length;
+}
 /* How many layers are on: a small count in the Layers header of each menu, and on the Layers buttons of the phone bars (they open the menu of the view on show). Counted from the switches
    that are on screen (not hidden by the region, the glacier or the mode); read again after every change and twice a second, because the pages set switches without an event too. */
 {
   const badges = [...document.querySelectorAll('.lb-count')], app = document.getElementById('app');
-  const shown = el => { const l = el.closest('label') || el; return !el.disabled && !l.closest('[hidden]') && getComputedStyle(l).display !== 'none'; };
-  const countOf = id => [...document.querySelectorAll(`#${id} .lb-body input[type=checkbox]`)].filter(el => el.checked && shown(el)).length;
+  const countOf = layersOnCount;
   const update = () => {
     const in3d = app.classList.contains('is-3d'), cache = {};
     badges.forEach(b => {
@@ -354,6 +371,7 @@ export async function setLandsat(on){
   state.frame = 0; setStatus(statusLine()); refreshAll();
 }
 export const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
+document.getElementById('styleI').onclick = e => { e.preventDefault(); const p = document.getElementById('styleNote'), on = p.hidden; if (on) p.dataset.open = ''; else delete p.dataset.open; p.hidden = !on; e.currentTarget.setAttribute('aria-expanded', on); };      // the note on what the colours mean
 document.getElementById('landsatI').onclick = e => { e.preventDefault(); const p = document.getElementById('landsatInfo'); p.hidden = !p.hidden; e.currentTarget.setAttribute('aria-expanded', !p.hidden); };
 { const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');
   if (REGION.landsat) { row.dataset.title = row.title; box.checked = YEARS[0] < FIRST_YEAR; box.addEventListener('change', () => setLandsat(box.checked)); updateLandsatRow(); } }

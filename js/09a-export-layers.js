@@ -8,6 +8,7 @@ import { currentGlacier, viewMode, state } from './04-state.js';
 import { imageFootprint } from './03-imagery.js';
 import { thickestSpot, spotText, getVar, strokeEdgeFade, osm, topo, alti, bgTiles, BG_YEAR, mapYears, siYear, flownYear, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedYear, speedId, speedMask, speedCanvas, speedPeak, speedYearOk, SPEED_LUT, SPEED_MIN, SPEED_MAX, labels, trails, namesData, loadRadar, radarColor, arcsFor, arcStroke, arcEdgeFade, arcLabel, flightsShown, flightHas, liveTile, flightStreamZ } from './05-map.js';
 import { wire } from './wire.js';
+import { layersOnCount } from './08-controls.js';
 
 /* The layers the download can draw. `image` / `video`: where it makes sense (a layer that differs by year cannot be one fixed pass over an animation). */
 const tipOf = g => g && (g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue);      // [lat, lng]
@@ -243,15 +244,24 @@ export const layerLegend = (kind = 'image') => [...(exportLayers(kind).some(l =>
 export const hasNewOutline = (kind = 'image') => exportLayers(kind).some(l => l.id === 'newToggle');
 
 /* The line on the frame: what the file contains, and a link to the Layers box */
-const refreshSummary = () => { const t = $('vfLayersText'); if (t) t.textContent = summaryText(); };
-export function summaryText(){
+const refreshSummary = () => { const t = $('vfLayersText'); if (t) paintSummary(t); };
+/* The button beside the ratio buttons: a layers symbol with a red count of the layers in the file; the list is its tooltip */
+function paintSummary(t){
+  const n = layersOnCount(viewMode === '3d' ? 'v3dLayers' : 'layerbox'), btn = $('vfLayers'), text = summaryText();      // the same count as the badge in the Layers menu
+  t.textContent = n ? String(n) : ''; t.hidden = !n;
+  if (btn) { btn.title = `${text}. Change visible layers`; btn.setAttribute('aria-label', `Change visible layers (${n} on)`); }
+}
+function summaryNames(){
   if (viewMode === '3d') {      // the 3D picture draws the layers of the 3D menu as they are ticked there
-    const names = [...document.querySelectorAll('#v3dLayers label.toggle')].filter(l => { const i = l.querySelector('input[type=checkbox]'); return i && i.checked && !i.disabled && l.style.display !== 'none' && !l.hidden && i.id !== 'l3Sat'; }).map(rowText);
-    return names.length ? `Layers: ${names.join(', ')}` : 'No map layers';
+    return [...document.querySelectorAll('#v3dLayers label.toggle')].filter(l => { const i = l.querySelector('input[type=checkbox]'); return i && i.checked && !i.disabled && l.style.display !== 'none' && !l.hidden && i.id !== 'l3Sat'; }).map(rowText);
   }
-  if (!layersOn()) return 'Map layers: not included';
+  if (!layersOn()) return [];
   const kind = videoKind(), ra = cachedRasters(kind, refreshSummary);      // a colour layer with no picture for this year (speed) is not listed
-  const names = [...($('oldToggle').checked && hasOldOutline(currentGlacier()) ? [labelOf('oldToggle')] : []), ...exportLayers(kind).filter(l => !l.raster || l.native || ra.some(r => r.id === l.id)).map(l => labelOf(l.id))];
+  return [...($('oldToggle').checked && hasOldOutline(currentGlacier()) ? [labelOf('oldToggle')] : []), ...exportLayers(kind).filter(l => !l.raster || l.native || ra.some(r => r.id === l.id)).map(l => labelOf(l.id))];
+}
+export function summaryText(){
+  const names = summaryNames();
+  if (viewMode !== '3d' && !layersOn()) return 'Map layers: not included';
   return names.length ? `Layers: ${names.join(', ')}` : 'No map layers';
 }
 const videoKind = () => $('videoSheet').classList.contains('is-image') ? 'image' : 'video';
@@ -266,5 +276,5 @@ export function syncExportRows(){
     if (why) { if (row.dataset.xt === undefined) row.dataset.xt = row.title; row.title = why; }
     else if (row.dataset.xt !== undefined) { row.title = row.dataset.xt; delete row.dataset.xt; }
   });
-  const line = $('vfLayersText'); if (line) line.textContent = summaryText();
+  const line = $('vfLayersText'); if (line) paintSummary(line);
 }

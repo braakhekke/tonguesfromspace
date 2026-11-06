@@ -184,16 +184,19 @@ export function setMini(on){
   stage.classList.toggle('mini', on); miniPlace(); miniSync(); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
 /* the small window is dragged and lands in the nearest of the four corners; dragged (or flicked) over the left or right edge, or with its arrow button, it slides off the screen and leaves a small arrow tab */
-let miniCorner = 'br', miniHidden = false, miniDrag = null, miniMoved = false, miniLast = null, miniV = 0;
+let miniCorner = 'tr', miniHidden = false, miniDrag = null, miniMoved = false, miniLast = null, miniV = 0;
 const miniTab = document.createElement('button');
 miniTab.type = 'button'; miniTab.className = 'mini-tab'; miniTab.hidden = true; miniTab.setAttribute('aria-label', 'Show the small window again'); miniTab.title = 'Show';
 miniTab.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
 document.body.appendChild(miniTab);
 function miniSync(){
   const st = $('stage'), on = st.classList.contains('mini');
-  st.dataset.corner = miniCorner; if (miniHidden) st.dataset.hidden = ''; else delete st.dataset.hidden;
-  miniTab.dataset.corner = miniCorner; miniTab.hidden = !(on && miniHidden);
+  const away = miniHidden || miniLayersOpen();      // an open Layers menu slides the small window off, so it never covers a layer; it comes back when the menu closes
+  st.dataset.corner = miniCorner; if (away) st.dataset.hidden = ''; else delete st.dataset.hidden;
+  miniTab.dataset.corner = miniCorner; miniTab.hidden = !(on && miniHidden && !miniLayersOpen());
 }
+const miniLayersOpen = () => !!document.querySelector('.layerbox.open, .layerbox.in-flow.open');
+['layerbox', 'v3dLayers'].forEach(id => { const b = document.getElementById(id); if (b) new MutationObserver(() => miniSync()).observe(b, {attributes: true, attributeFilter: ['class']}); });
 function miniPlace(){            // while dragging the window follows the finger (it may reach over the side edges); otherwise the corner decides
   const st = $('stage'), on = st.classList.contains('mini'), s = st.style;
   if (!on || !miniDrag) { s.left = s.top = s.right = s.bottom = ''; miniSync(); }
@@ -371,7 +374,12 @@ if (window.ResizeObserver) new ResizeObserver(updateLayerMore).observe(document.
 /* On phones the For Your Ice box sits at the very bottom of the page; elsewhere it stays in the settings panel */
 export const FYI = document.querySelector('a.fyi'), FYI_HOME = FYI.parentNode, FYI_PHONE = matchMedia('(max-width:720px), (max-width:950px) and (orientation:landscape) and (max-height:520px)');
 export const FYI_BY = document.querySelector('.fyi-by');      // the byline stays under the box, wherever the box is
-export function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); home.appendChild(FYI_BY); }
+export function placeFyi(){ const home = FYI_PHONE.matches ? $('fyiSlot') : FYI_HOME; home.appendChild(FYI); }
+/* The byline ("Glacier visuals, done your way / By J. Braakhekke") sits at the bottom of the right panel; the panel is redrawn often, so it is put back last each time */
+{
+  const story = $('story'), keep = () => { if (story.lastElementChild !== FYI_BY) story.appendChild(FYI_BY); };
+  keep(); new MutationObserver(keep).observe(story, { childList: true });
+}
 FYI_PHONE.addEventListener('change', placeFyi); placeFyi();
 /* on phones the social links and the GitHub note sit below the For Your Ice box (css hides the copy in the About block there) */
 { const d = document.createElement('div'); d.className = 'phone-invite'; d.innerHTML = inviteHtml(); $('fyiSlot').appendChild(d); }
@@ -393,7 +401,7 @@ $('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.c
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
 /* A press on the viewer (map or 3D picture) closes an open layer menu; presses inside the menus and on their buttons do not */
 document.addEventListener('pointerdown', e => {
-  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn')) return;
+  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn, .tl-row, .tl-dots')) return;      // the dock's year steps and timeline change the year: the layer menu stays open
   if ($('layerbox').classList.contains('in-flow')) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
   if (LAND.matches) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
   [[$('layerbox'), $('lbToggle')], [$('v3dLayers'), $('v3dLbToggle')]].forEach(([box, btn]) => { if (!box.classList.contains('min')) btn.click(); });
@@ -454,6 +462,8 @@ $('embedBtn').onclick = () => {
   box.hidden = !open; $('embedBtn').setAttribute('aria-expanded', open);
   if (open) { $('embedCode').value = embedCode(); $('embedPreview').href = embedLink(); $('embedCopy').textContent = 'Copy code'; }
 };
+/* a click or tap anywhere outside the embed button and its box closes the box */
+document.addEventListener('pointerdown', e => { const box = $('embedBox'); if (box.hidden || e.target.closest('#embedBox, #embedBtn')) return; box.hidden = true; $('embedBtn').setAttribute('aria-expanded', 'false'); });
 $('embedCopy').onclick = async () => {
   $('embedCode').value = embedCode(); $('embedPreview').href = embedLink();      // the view may have changed since the box opened
   try { await navigator.clipboard.writeText($('embedCode').value); $('embedCopy').textContent = 'Copied'; }

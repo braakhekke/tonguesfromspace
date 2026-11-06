@@ -360,8 +360,13 @@ const flightName = f => `${fmtDM(f.date)}${f.time ? ' ' + f.time : ''}`;
 const cogs = new Map();      // href (and stretch) -> Cog (read through range requests)
 const cogFor = (l, c) => { const k = c.href + (l.stretch ? '|nir' : ''); if (!cogs.has(k)) cogs.set(k, new Cog(c.href, {stretch: l.stretch})); return cogs.get(k); };
 export const flightStreamZ = l => l.cogs && l.cogs[0] && l.cogs[0].gsd ? Math.min(21, Math.round(Math.log2(107950 / l.cogs[0].gsd))) : 20;      // the zoom whose ground pixel matches the picture (107950 = metres per pixel at zoom 0 times cos 46.4 degrees)
+let flightFailT = 0;
+function flightLoadFailed(){      // a tile of the flights could not be read from swisstopo: say so on the viewer (at most once in 30 s, whether the map, the 3D view or a picture asks)
+  const now = Date.now(); if (now - flightFailT < 30000) return; flightFailT = now;
+  wire.showNotice('Special flights imagery could not be loaded completely (swisstopo did not answer). Some of it may be missing; try again in a moment.');
+}
 export async function liveTile(l, z, x, y, opt){      // one 256 px tile of a layer, cut live from its file(s) at swisstopo (a near-infrared layer has one file per flight line, drawn in turn); null where there is nothing
-  const parts = await Promise.all(l.cogs.map(c => renderMapTile(cogFor(l, c), z, x, y, lv95f, opt).catch(() => null))), got = parts.filter(Boolean); if (!got.length) return null;
+  const parts = await Promise.all(l.cogs.map(c => renderMapTile(cogFor(l, c), z, x, y, lv95f, opt).catch(() => { flightLoadFailed(); return null; }))), got = parts.filter(Boolean); if (!got.length) return null;
   if (got.length === 1) return got[0]; const out = document.createElement('canvas'); out.width = out.height = 256; const ctx = out.getContext('2d'); got.forEach(p => ctx.drawImage(p, 0, 0)); return out;
 }
 const FlightStream = L.GridLayer.extend({      // first a quick coarse picture (3.2 m, the smallest overview, soon in the cache), then the one the zoom needs, up to the file's own 0.1 m (0.25 m in 2020-08-08)
@@ -469,7 +474,8 @@ export function applySatVisibility(){          // the Sentinel-2 pictures can be
   document.getElementById('map').classList.toggle('sat-off', !on);      // a class, not the panes' own display: syncPane sets that on every year change
   document.getElementById('mapOp').disabled = !on;
   wire.syncSatUi(); wire.updateTags(); if (tlLayers.length) showFrame(state.frame);
-  if (!satShown() && !document.getElementById('videoSheet').hidden) wire.closeVideo();      // a download pane needs the picture
+  if ((!glacierPicked || oldestPair()) && !document.getElementById('videoSheet').hidden) wire.closeVideo();      // a download pane needs a glacier (the picture itself may be off: the frame then shows the other layers, without the year and date)
+  else if (!document.getElementById('videoSheet').hidden) wire.updateFrame();
 }
 export function imageryLayer(yr, pane, opacity=1, style){
   const g = currentGlacier(), ov = L.imageOverlay(BLANK, imageFootprint(g).bounds, {pane, opacity, interactive:false, className: 'scene-img'});

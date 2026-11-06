@@ -1,6 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Scientific field notes</title>
+<link rel="stylesheet" href="css/tokens.css">
 <style>
   :root { --bg:#F4F6F7; --card:#fff; --ink:#0E1A22; --muted:#66757E; --faint:#93A0A7; --rule:#DDE3E6; --ice:#2D6E8E; --iceLight:#CFE3EA; --loss:#C8322A; --amber:#F2A93B; }
   @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --bg:#10171B; --card:#1A242A; --ink:#E8EEF1; --muted:#9FB0B8; --faint:#6D7F88; --rule:#2B3A42; --ice:#6FB1E8; --iceLight:#24404F; --loss:#E5594F; --amber:#F2B65C; } }
@@ -41,20 +42,69 @@
   .bednote .read { margin-top:12px; padding-top:10px; border-top:1px solid var(--rule); display:grid; grid-template-columns:repeat(auto-fit,minmax(300px,1fr)); gap:10px 22px; }
   .bednote .read h3 { margin:0 0 2px; font-size:10.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--loss); font-weight:600; } .bednote .read p, .bednote .read li { margin:0; color:var(--muted); font-size:12px; line-height:1.45; } .bednote .read ul { margin:0; padding-left:16px; } .bednote .read b { color:var(--ink); }
   .bednote .src { margin-top:10px; color:var(--faint); font-size:11px; }
-  .fn { margin-top:18px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px 16px 12px; }
+  .fn { margin-top:22px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:14px 16px 12px; }
   .fn h2 { margin:0 0 8px; font-size:15px; color:var(--loss); }
   .fn details { border-top:1px solid var(--rule); padding:7px 0; } .fn summary { cursor:pointer; font-weight:600; font-size:13px; }
   .fn p { margin:4px 0 2px; color:var(--muted); font-size:12.5px; line-height:1.45; max-width:900px; } .fn .r { display:flex; gap:10px; margin-top:3px; font-size:12.5px; } .fn .r span:first-child { flex:0 0 90px; color:var(--muted); } .fn b { color:var(--ink); font-weight:600; }
-  .toc { display:flex; flex-wrap:wrap; gap:4px 16px; margin:0 0 14px; font-size:12px; } .toc a { color:var(--ice); text-decoration:none; } .toc a:hover { text-decoration:underline; } .toc a.hot { background:var(--loss); color:#fff; padding:2px 10px; border-radius:999px; font-weight:600; } .toc a.hot:hover { text-decoration:none; opacity:.9; }
+  .toc { display:flex; flex-wrap:wrap; gap:6px 18px; margin:0 0 18px; font-size:13px; } .toc a { color:var(--ice); text-decoration:none; } .toc a:hover { text-decoration:underline; } .toc a.hot { background:var(--loss); color:#fff; padding:2px 10px; border-radius:999px; font-weight:600; } .toc a.hot:hover { text-decoration:none; opacity:.9; }
   #viewer { border-color:var(--loss); }
-  .fn > h2 .no { color:var(--muted); font-weight:500; margin-right:6px; } .fn > .lead { margin:-4px 0 10px; color:var(--muted); max-width:860px; font-size:12.5px; }
+  .fn > h2 .no, .bednote > h2 .no { color:var(--muted); font-weight:500; margin-right:6px; } .fn > .lead { margin:-4px 0 10px; color:var(--muted); max-width:860px; font-size:12.5px; }
   .fn h3.fnh { margin:14px 0 2px; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:var(--loss); font-weight:600; } .fn h3.fnh:first-child { margin-top:2px; }
-  ul.fnl { margin:4px 0 8px; padding-left:18px; color:var(--muted); font-size:12.5px; line-height:1.45; max-width:900px; } ul.fnl li { margin:0 0 4px; } ul.fnl b { color:var(--ink); font-weight:600; } .anc { margin:0 0 12px; } .anc p { margin:0; } .notes ul.fnl { font-size:12px; padding-left:16px; margin:2px 0 0; } .mapcap ul.fnl { font-size:inherit; }
+  html { scroll-behavior:smooth; } .fn, .bednote { scroll-margin-top:14px; } .fn > .lead { line-height:1.55; } ul.fnl li { line-height:1.55; }
+  ul.fnl { margin:4px 0 8px; padding-left:18px; color:var(--muted); font-size:12.5px; line-height:1.45; max-width:900px; } ul.fnl li { margin:0 0 7px; } ul.fnl b { color:var(--ink); font-weight:600; } .anc { margin:0 0 12px; } .anc p { margin:0; } .notes ul.fnl { font-size:12px; padding-left:16px; margin:2px 0 0; } .mapcap ul.fnl { font-size:inherit; }
   .fn .notes { margin-top:14px; } .fn .legend { margin-top:10px; } .fn #detail { margin-top:12px; }
   .fn .row0 { display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; flex:0 0 520px; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:560px; } .fn .row0 .mapcap p { margin:0 0 8px; }
   #overview { display:none; } .ov #overview { display:block; } .ov #allFn { display:none; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
   .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
   @media (max-width:640px) { main { padding:16px 12px 32px; } .mapcard { flex:1 1 100%; min-width:0; max-width:100%; } .maps svg#map0 { flex:0 0 28%; } .fn, .bednote { padding:12px 12px 10px; } .bednote figure svg { width:100%; } .bednote figcaption { max-width:none; } .bednote .figkey svg { width:100%; max-width:230px; } .fn .r span:first-child { flex-basis:70px; } }
+    /* the field notes as a notebook: one chapter per page, the page turns (renumber() below builds the pages, menu and buttons) */
+  :root { --paper:#FFFEFA; --spine:#ECE8DD; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --paper:#1E2A31; --spine:#151E23; } }
+  .toc { gap:6px; margin:0 0 6px; font-size:12.5px; align-items:center; }
+  .toc a { padding:4px 11px; border-radius:999px; border:1px solid var(--rule); background:var(--card); color:var(--muted); white-space:nowrap; }
+  .toc a:hover { text-decoration:none; color:var(--ink); border-color:var(--faint); } .toc a.on { background:var(--loss); border-color:var(--loss); color:#fff; font-weight:600; }
+  :root { --cover:#1C2A33; --dot:rgba(102,117,126,.30); --gut:rgba(14,26,34,.16); }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { --cover:#0B1115; --dot:rgba(159,176,184,.22); --gut:rgba(0,0,0,.35); } }
+  .nb { position:relative; margin:16px 4px 18px 0; padding:9px 9px 9px 34px; background:var(--cover); border-radius:8px 16px 16px 8px; perspective:1800px; box-shadow:0 1px 2px rgba(14,26,34,.2), 0 10px 26px rgba(14,26,34,.16); }
+  .nb::before { content:""; position:absolute; left:15px; top:12px; bottom:12px; border-left:2px dashed rgba(255,255,255,.28); }      /* the stitching of the spine */
+  .nb > section { display:none; position:relative; margin:0; padding:26px 32px 12px 52px; border:0; border-radius:3px 10px 10px 3px; box-shadow:none; transform-origin:left center; backface-visibility:hidden; overflow:hidden;
+    background:linear-gradient(to right, transparent 36px, rgba(200,50,42,.22) 36px 37px, transparent 37px), var(--paper); }
+  .nb > section::before { content:""; position:absolute; left:0; top:0; bottom:0; width:30px; background:linear-gradient(to right, var(--gut), transparent); pointer-events:none; }      /* the gutter: the page curves into the binding */
+  :root { --ph:clamp(580px, 86vh, 920px); --gap:40px; }
+  .nb > section { height:var(--ph); box-sizing:border-box; }
+  .nb > section.cur, .nb > section.turn-out { display:flex; flex-direction:column; } .nb > section[hidden] { display:none; }
+  .nb > section > h2 { flex:none; }
+  .vp { position:relative; flex:1 1 0; min-height:0; overflow:hidden; }      /* the fixed page: what does not fit flows on to the next page of the chapter (CSS columns, one page wide, moved sideways) */
+  .fl { position:absolute; inset:0; columns:1; column-gap:var(--gap); column-fill:auto; transition:none; }
+  .formula { margin:4px 0 10px; padding:8px 12px; background:var(--bg); border-radius:8px; font:13px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; color:var(--ink); overflow-x:auto; }
+  .tiles { display:grid; grid-template-columns:repeat(auto-fill,minmax(112px,1fr)); gap:6px; margin:6px 0 12px; max-width:900px; } .tiles div { display:flex; flex-direction:column; gap:1px; padding:6px 9px; background:var(--bg); border-radius:8px; } .tiles span { font-size:10.5px; color:var(--muted); } .tiles b { font-size:14px; font-weight:600; color:var(--ink); font-variant-numeric:tabular-nums; }
+  .fn .notes .wide { grid-column:1/-1; } .fn .notes ul ul { margin:4px 0 4px; padding-left:16px; }
+  .fl .pb { break-before:column; }      /* a page break chosen by hand: the chapter goes on a new page here */
+  .yrs { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; } .yrs button { font:inherit; font-size:12.5px; padding:4px 11px; border-radius:999px; border:1px solid var(--rule); background:var(--card); color:var(--ink); cursor:pointer; font-variant-numeric:tabular-nums; } .yrs button:hover { border-color:var(--faint); } .yrs button.on { background:var(--loss); border-color:var(--loss); color:#fff; font-weight:600; }
+  .nb > section > h2 .no::after { content:attr(data-pg); color:var(--muted); font-weight:500; }
+  .nbf .mid { flex:1; display:flex; flex-direction:column; align-items:center; gap:5px; color:var(--faint); font-size:11.5px; letter-spacing:.04em; min-width:0; } .nbf .mid .pt { max-width:100%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+  .nbf .dots { display:flex; gap:7px; } .nbf .dots button { width:9px; height:9px; padding:0; border-radius:50%; border:1.5px solid var(--faint); background:none; cursor:pointer; max-width:none; } .nbf .dots button.on { background:var(--loss); border-color:var(--loss); }
+  .nb .curl { display:none; position:absolute; right:9px; bottom:9px; z-index:6; width:46px; height:46px; padding:0; border:0; cursor:pointer; border-radius:0 0 10px 0; background:linear-gradient(135deg, transparent 50%, var(--spine) 50%); } .nb.more .curl { display:block; } .nb .curl:hover { background:linear-gradient(135deg, transparent 50%, var(--rule) 50%); }
+  details.dd { margin:8px 0; border-top:1px solid var(--rule); break-inside:avoid; } details.dd > summary { cursor:pointer; list-style:none; padding:8px 0; font-size:12.5px; font-weight:600; color:var(--ice); } details.dd > summary::-webkit-details-marker { display:none; }
+  details.dd > summary::before { content:""; display:inline-block; width:6px; height:6px; margin:0 9px 2px 2px; border-right:2px solid currentColor; border-bottom:2px solid currentColor; transform:rotate(-45deg); transition:transform .15s; } details.dd[open] > summary::before { transform:rotate(45deg); margin-bottom:4px; }
+  details.dd > summary:hover { color:var(--ink); } details.dd > .dd-body { max-height:calc(var(--ph) * .42); overflow:auto; padding:2px 4px 6px 2px; }
+  .fl p, .fl li, .fl .card, .fl .notes > section, .fl .anc, .fl .dl, .fl figure, .fl .row0, .fl .legend, .fl #detail, .fl .chk, .fl .read > div, .fl table, .fl .mapcard { break-inside:avoid; }
+  .fl h3, .fl .lead { break-after:avoid; }
+  .fl .figrow { break-inside:avoid; }
+  .fl table { display:block; max-width:100%; overflow-x:auto; }
+  #vwrap iframe { height:calc(var(--ph) - 210px) !important; min-height:300px !important; }
+  .nb > section > h2 { display:block; margin:0 0 14px; padding:0 0 12px; border-bottom:1px solid var(--rule); background:none; font-size:21px; line-height:1.2; font-weight:600; letter-spacing:0; text-transform:none; color:var(--ink); }
+  .nb > section > h2 .no { display:block; margin-bottom:3px; width:auto; height:auto; background:none; border-radius:0; font-size:10.5px; font-weight:600; letter-spacing:.1em; text-transform:uppercase; color:var(--loss); } .nb > section > h2 .no::before { content:"Chapter "; }
+  .nb > section > .lead:first-of-type { margin-top:0; }
+  .nb > section.turn-out { position:absolute; left:34px; right:9px; top:9px; z-index:5; animation:pgOut .5s ease-in forwards; }
+  .nb > section.turn-in { animation:pgIn .5s ease-out; }
+  @keyframes pgOut { to { transform:rotateY(-100deg); box-shadow:-20px 0 30px rgba(14,26,34,.25); opacity:.85; } }
+  @keyframes pgIn { from { transform:rotateY(-100deg); opacity:.85; } to { transform:none; opacity:1; } }
+  .nbf { display:flex; align-items:center; gap:12px; padding:2px 20px 14px 40px; margin:0; }
+  .nbf button { font:inherit; font-size:12.5px; color:var(--ice); background:none; border:0; padding:6px 0; cursor:pointer; max-width:32%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; } .nbf button:hover { color:var(--ink); } .nbf button:disabled { visibility:hidden; }
+  .nbf .nx { text-align:right; }
+  @media (prefers-reduced-motion: reduce) { .nb > section.turn-out, .nb > section.turn-in { animation:none; } }
+  @media (max-width:640px) { .nb { padding:7px 7px 7px 22px; margin-right:2px; } .nb::before { left:9px; } .nb > section { padding:20px 14px 6px 34px; background-image:linear-gradient(to right, transparent 22px, rgba(200,50,42,.22) 22px 23px, transparent 23px); } .nb > section.turn-out { left:22px; right:7px; top:7px; } .nb > section > h2 { font-size:18px; } .nbf { padding:2px 12px 12px 26px; } }
   g.col:hover rect.hit { fill:var(--iceLight); opacity:.55; } rect.hit { fill:transparent; cursor:pointer; }
   .stab { border-collapse:collapse; font-size:12px; margin:8px 0; } .stab th, .stab td { text-align:left; padding:3px 12px 3px 0; border-top:1px solid var(--rule); font-weight:400; } .stab th { color:var(--muted); font-size:11px; } .fn table { border-collapse:collapse; font-size:12px; } .fn table th, .fn table td { text-align:left; padding:3px 10px 3px 0; border-top:1px solid var(--rule); }
 </style></head><body><main>
@@ -63,32 +113,32 @@
 <p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">See the field notes for all glaciers</a></p>
 <p class="sub" id="sub">The satellite pictures on the site are real images. This page is about the 3D ice surface under them for <span id="gname">this glacier</span>: what is measured, what I modelled, and how I checked it. Every number is for the tongue (section 1) only, taken from my source ledger or marked as computed.</p>
 <div id="overview"><p class="sub">One page for each glacier whose 3D view has an ice surface for every year: what is measured, what is modelled and how it is checked. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
-<nav class="toc" aria-label="Sections"><a href="#area">Study area</a><a href="#surface">Ice surface through time</a><a href="#anchors">Measured surfaces</a><a href="#validation">Validation and limits</a><a href="#bed" id="tocBed">Ice bed</a><a href="#licences">Data not used, licences</a></nav>
+<nav class="toc" aria-label="Chapters"></nav>
 
-<section class="fn" id="area"><h2><span class="no">1</span>Study area: <span id="areaT">the tongue</span></h2>
+<section class="fn" id="area" data-toc="Study area"><h2><span class="no"></span>Study area: <span id="areaT">the tongue</span></h2>
 <div class="row0"><div class="card mapcard"><div class="maps"><svg id="map0" role="img" aria-label="The glacier as a whole, the box marks the tongue map"></svg><svg id="map" role="img" aria-label="Map of the tongue area"></svg></div></div>
 <div class="mapcap" id="mapcap"></div></div></section>
 
 
-<section class="fn" id="surface"><h2><span class="no">2</span>Ice surface through time: how each year was made</h2>
-<p class="lead" id="fnSummary"></p><p class="lead">One column per year: how the surface was found, its 1σ uncertainty, the measured surfaces it hangs on, what shapes the change between them and what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p>
+<section class="fn" id="surface" data-toc="Ice surface through time" data-p0="How each year was made"><h2><span class="no"></span>Ice surface through time: how each year was made</h2>
+<p class="lead" id="fnSummary"></p>
 <div class="card"><svg id="chart" role="img" aria-label="Provenance of the yearly surfaces"></svg></div>
 <div class="legend" id="legend"></div>
-<p class="lead" style="margin:10px 0 4px"><b>Click a year</b> in the chart to show its details here.</p>
-<div id="detail">Click a year.</div>
-<div class="notes">
+<div class="pb" data-title="One year at a time"><p class="lead" style="margin-top:0">One column per year: how the surface was found, its 1σ uncertainty, the measured surfaces it hangs on, what shapes the change between them and what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p><p class="lead" style="margin:0 0 8px"><b>Choose a year</b> (or click it in the chart on the previous page).</p><div class="yrs" id="yrs"></div>
+<div id="detail">Choose a year.</div></div>
+<div class="notes pb" data-title="Kinds, uncertainty and checks">
   <section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a dated DEM or lidar surface.</li><li><b>interpolated</b>: between two measured surfaces.</li><li><b>extrapolated</b>: beyond the last one, at its rate.</li><li><b>provisional</b>: 2026.</li><li><b>Date</b>: every year is the surface on 30 September of that year (the end of the glaciological year).</li></ul><p>A measured surface is moved from its survey day to 30 September by the same model. So the surface shown for a surveyed year is not the raw survey: it is the survey surface lowered by the melt between the survey day and 30 September (for a survey in August, the weeks in between).</p></section>
   <section><h3>Sharing the loss between years</h3><div id="nShare"><ul class="fnl"><li><b>Solid</b>: the GLAMOS balance sets how the loss between two measured surfaces falls into each year.</li><li><b>Dashed</b>: extrapolated at the last segment's rate (2026 also with its own balance).</li><li><b>Not used</b>: measured years.</li></ul></div></section>
   <section><h3>Uncertainty</h3><p id="nUnc">Median over the tongue ice, red whisker the 90th percentile. Calibrated on the same ICESat-2 shots. 2026 has none yet: it is provisional and its balance was read from the GLAMOS figure.</p></section>
   <section><h3>Independent checks</h3><div id="nInd"><ul class="fnl"><li><b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out).</li><li><b>ASTER</b> and <b>stakes</b> are checks only.</li></ul><p>Click a year for their numbers.</p></div></section>
 </div>
-<div id="fnView">Loading…</div>
-<div id="dlbox" class="dl" hidden></div></section>
+<div class="pb" data-title="3D viewer and download"><div id="fnView">Loading…</div>
+<div id="dlbox" class="dl" hidden></div></div></section>
 
-<section class="fn" id="anchors"><h2><span class="no">3</span>Measured surfaces: the anchors</h2><div id="fnAnch">Loading…</div></section>
-<section class="fn" id="validation"><h2><span class="no">4</span>Validation, limits and caveats</h2><div id="fnVal">Loading…</div></section>
-<section class="bednote" id="bed" hidden>
-  <h2><span class="no" style="color:var(--muted);font-weight:500;margin-right:6px">5</span>Ice bed: radar points against the bed model</h2>
+<section class="fn" id="anchors" data-toc="Measured surfaces"><h2><span class="no"></span>Measured surfaces: the anchors</h2><div id="fnAnch">Loading…</div></section>
+<section class="fn" id="validation" data-toc="Validation and limits"><h2><span class="no"></span>Validation, limits and caveats</h2><div id="fnVal">Loading…</div></section>
+<section class="bednote" id="bed" data-toc="Ice bed" hidden>
+  <h2><span class="no"></span>Ice bed: radar points against the bed model</h2>
   <p class="lead" id="bedLead"></p>
   <div class="checks" id="bedChecks"></div>
   <div class="figrow">
@@ -99,40 +149,134 @@
   <div class="read" id="bedRead"></div>
   <div class="src" id="bedSrc"></div>
 </section>
-<section class="fn" id="arcsnote" hidden><h2>Experimental outlines of the tongue</h2>
-<p>The yearly lines of the lowest 2 km of the tongue in the main viewer (layer "Experimental outline") are an experiment, not an official outline and not a measurement. They are drawn by a neural network, <b>GlaViTU</b> (Maslov, Persello, Schellenberger and Stein, "Globally scalable glacier mapping by deep learning matches expert delineation accuracy", <i>Nature Communications</i> 16, 43, 2025, <a href="https://doi.org/10.1038/s41467-024-54956-x" target="_blank" rel="noopener" style="color:var(--ice)">doi 10.1038/s41467-024-54956-x</a>), with the weights <b>glavitu_regional_ALP</b> from that study. The model gets the six optical Sentinel-2 bands and a height model (heights and slope) and returns, for each 10 m pixel, a probability of glacier ice.</p>
-<ul class="fnl"><li><b>The picture.</b> For each year the model runs on the same Sentinel-2 scene that the site shows for that year, cut to the tongue with a margin; the outline is the 0.5 probability line, cleaned of small pieces.</li>
-<li><b>Smoothing.</b> The 10 m pixel steps are smoothed away: each outline is resampled every 5 m and smoothed along its length by 20 m (Gaussian). This is cosmetic; the raw lines stay as they are in the experiment.</li>
+<section class="fn" id="arcsnote" data-toc="Experimental outlines" hidden><h2>Experimental outlines of the tongue</h2>
+<p class="lead">Yearly lines around the lowest 2 km of the tongue (layer "Experimental outline"). This is an experiment: not an official outline and not a measurement.</p>
+<ul class="fnl"><li><b>Who draws them.</b> A neural network, <b>GlaViTU</b> (Maslov, Persello, Schellenberger and Stein, "Globally scalable glacier mapping by deep learning matches expert delineation accuracy", <i>Nature Communications</i> 16, 43, 2025, <a href="https://doi.org/10.1038/s41467-024-54956-x" target="_blank" rel="noopener" style="color:var(--ice)">doi 10.1038/s41467-024-54956-x</a>), with the weights <b>glavitu_regional_ALP</b> from that study. It reads the six optical Sentinel-2 bands plus height and slope, and gives every 10 m pixel a probability of glacier ice.</li>
+<li><b>Which picture.</b> The same Sentinel-2 scene the site shows for that year. The line is where the probability is 0.5, cleaned of small pieces.</li>
+<li><b>Smoothing.</b> Each line is resampled every 5 m and smoothed along its length by 20 m, to remove the 10 m pixel steps. This is cosmetic.</li>
 <li><b>Scenes.</b> <span id="arcsScenes">…</span></li>
-<li><b>The line.</b> Only the lowest 2 km of the tongue is kept, as an open line around the tip. It fades out towards its loose ends on the map.</li>
-<li><b>What can go wrong.</b> One scene per year means one day: fresh snow on the tongue or cloud shadow makes the model move the line, and a year can look like an advance for that reason. Debris-covered and snow-covered ice are the hard cases for such models. The lines were not checked against a survey, and yearly changes of the front should not be read as measurements.</li>
-<li><b>Computed here.</b> Areas and distances of the outlines are computed from the pixels, not taken from a source. The reference outline in the viewer is the official inventory outline (SGI 2023).</li>
+<li><b>What is shown.</b> Only the lowest 2 km, as an open line around the tip. It fades out towards its loose ends.</li>
+<li><b>What can go wrong.</b> One scene is one day. Fresh snow or cloud shadow can move the line, so a year can look like an advance for that reason. Debris-covered and snow-covered ice are hard for such models. The lines were not checked against a survey: do not read yearly changes as measurements.</li>
+<li><b>Computed here.</b> Areas and distances come from the pixels, not from a source. The reference outline in the viewer is the official inventory outline (SGI 2023).</li>
 <li><b>Not settled.</b> The licences of the weights and of the height tiles are still to be read before anything like this is published.</li></ul></section>
-<section class="fn" id="flights" hidden><h2><span class="no">5</span>swisstopo special flights on the site</h2><div id="fnFlights"></div></section>
-<section class="fn" id="thicknote"><h2>Glacier thickness 2016 (layer)</h2>
-<p>The layer "Glacier thickness 2016" in the map and 3D menus colours the glacier by its ice thickness. It is the ice thickness map of Grab et al. (2021), "Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling", <i>Journal of Glaciology</i> 67(266), read from the ice thickness layer of swisstopo (GLAMOS data).</p>
-<ul class="fnl"><li><b>A model, not a measurement.</b> The thickness is modelled from ground-penetrating radar surveys and glaciological modelling. Only the radar points (layer "Radar points") are measurements, on the days and places a survey covers.</li>
-<li><b>One state for every year.</b> The map shows the glacier around 2016. The reference year of the map differs by glacier (2017 for Aletsch), so the menu says 2016 as a round name. The ice has thinned since; the layer stays the same when you change the year.</li>
-<li><b>Cut to the glacier.</b> The picture is cut to the glacier, so nothing is shown on rock around it.</li></ul></section>
-<section class="fn" id="radarnote"><h2>Radar points (layer)</h2>
-<p>The layer "Radar points" shows ice thickness measured by ground-penetrating radar. The source is GLAMOS, "Glacier ice thickness from ground-penetrating radar", release 2020 (doi:10.18750/icethickness.2020.r2020, CC BY 4.0). The surveys were made between 1958 and 2017, depending on the glacier.</p>
-<ul class="fnl"><li><b>Measured, with a date.</b> These are the only thickness numbers on the site that come from a measurement. The ice has thinned since the survey, so a point is the thickness of the survey year, not of the year you are looking at.</li>
-<li><b>One dot is a cell.</b> Each dot is the mean of the radar points inside a 50 m cell (computed here from the points). Where a cell was measured in several years, the dot is marked and a click shows all of them.</li>
-<li><b>In 3D.</b> The 3D view shows only about ten pins, a representative one on the middle line of the ice in each stretch of the glacier, to keep loading and moving fast.</li>
-<li><b>Against the model.</b> The modelled layer "Glacier thickness 2016" is built on radar surveys like these; where the two differ, the radar points are the measurement.</li></ul></section>
-<section class="fn" id="speednote"><h2>Ice speed (layer)</h2>
-<p>The layer "Ice speed" shows how fast the ice surface moves, as a yearly mean. It comes from the ITS_LIVE annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024), NASA MEaSUREs ITS_LIVE project, Gardner et al. (its-live.jpl.nasa.gov, CC BY 4.0). The product follows features of the ice surface between pairs of satellite images (Landsat 8/9, Sentinel-2 and Sentinel-1).</p>
-<ul class="fnl"><li><b>Copied, not made here.</b> The values are the product's; they are only cut to the picture box of the glacier. The map shows the year of the picture you are looking at, and years without a map show nothing.</li>
-<li><b>Slow ice is left clear.</b> Under 5 m/yr the product cannot tell ice from rock (rock beside the glaciers reads 1 to 2 m/yr), so nothing is drawn there. Only the ice inside the oldest outline is shown.</li>
-<li><b>A surface speed.</b> It is the speed of the surface, not of the ice deeper down, and a yearly mean says nothing about the season.</li>
-<li><b>Resolution.</b> At 120 m the mosaic cannot show narrow ice streams or the last tens of metres of a thin tongue.</li></ul></section>
-<section class="fn" id="srnote"><h2>Super-resolution layer (3D view)</h2>
-<p>The optional layer "Super-resolution" in the 3D view shows the Sentinel-2 picture of a year after a super-resolution model, <b>SEN2SR</b> (tacofoundation, model card licence cc0-1.0), has been run over it: 10 m pixels become 2.5 m pixels. It exists for the years 2016 to 2026 of the ten Swiss glaciers of this site that have such a picture; other years show the normal picture.</p>
-<ul class="fnl"><li><b>An estimate, not a measurement.</b> The extra detail is the model's guess at what lies between the 10 m pixels. The satellite did not see it. Do not read crevasses, boulders or debris edges off this layer as data.</li>
-<li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened this way. The layer is only a view; no number on the site is taken from it.</li>
+<section class="fn" id="flights" data-toc="Special flights" hidden><h2>swisstopo special flights on the site</h2><div id="fnFlights"></div></section>
+<section class="fn" id="thicknote" data-toc="Ice thickness layer"><h2>Glacier thickness 2016 (layer)</h2>
+<p class="lead">The layer "Glacier thickness 2016" colours the glacier by ice thickness. It is the ice thickness map of Grab et al. (2021), "Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling", <i>Journal of Glaciology</i> 67(266), read from the ice thickness layer of swisstopo (GLAMOS data).</p>
+<ul class="fnl"><li><b>A model, not a measurement.</b> Only the radar points (next chapter) are measured.</li>
+<li><b>One state for every year.</b> The map shows the glacier around 2016 ("2016" is a round name: the reference year differs by glacier, 2017 for Aletsch). The ice has thinned since, and the layer does not change with the year you choose.</li>
+<li><b>Cut to the glacier.</b> Nothing is drawn on the rock around it.</li></ul></section>
+<section class="fn" id="radarnote" data-toc="Radar points"><h2>Radar points (layer)</h2>
+<p class="lead">The layer "Radar points" shows ice thickness measured by ground-penetrating radar. Source: GLAMOS, "Glacier ice thickness from ground-penetrating radar", release 2020 (doi:10.18750/icethickness.2020.r2020, CC BY 4.0). The surveys were made between 1958 and 2017, depending on the glacier.</p>
+<ul class="fnl"><li><b>Measured, with a date.</b> These are the only thickness numbers on the site that come from a measurement. A point is the thickness in the survey year, not in the year you are looking at.</li>
+<li><b>One dot is one cell.</b> Each dot is the mean of the radar points inside a 50 m cell (computed here). Where a cell was measured in several years, the dot is marked and a click shows all of them.</li>
+<li><b>In 3D.</b> Only about ten pins are shown, one on the middle line in each stretch of the glacier, to keep the view fast.</li>
+<li><b>Against the model.</b> Where the radar points and the thickness layer differ, the radar points are the measurement.</li></ul></section>
+<section class="fn" id="speednote" data-toc="Ice speed"><h2>Ice speed (layer)</h2>
+<p class="lead">The layer "Ice speed" shows how fast the ice surface moves, as a yearly mean. Source: ITS_LIVE annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024), NASA MEaSUREs ITS_LIVE project, Gardner et al. (its-live.jpl.nasa.gov, CC BY 4.0). The product follows features of the ice surface between pairs of satellite images (Landsat 8/9, Sentinel-2 and Sentinel-1).</p>
+<ul class="fnl"><li><b>Copied, not made here.</b> The values are the product's, only cut to the picture box. The map shows the year of the picture you are looking at; years without a map show nothing.</li>
+<li><b>Slow ice is left clear.</b> Under 5 m/yr the product cannot tell ice from rock (rock beside the glaciers reads 1 to 2 m/yr), so nothing is drawn there. Only ice inside the oldest outline is shown.</li>
+<li><b>Surface speed.</b> It is the speed of the surface, not of deeper ice, and a yearly mean says nothing about the season.</li>
+<li><b>Coarse.</b> At 120 m the mosaic misses narrow ice streams and the last tens of metres of a thin tongue.</li></ul></section>
+<section class="fn" id="srnote" data-toc="Super-resolution layer"><h2>Super-resolution layer (3D view)</h2>
+<p class="lead">The optional layer "Super-resolution" in the 3D view shows the Sentinel-2 picture of a year after the super-resolution model <b>SEN2SR</b> (tacofoundation, model card licence cc0-1.0) has been run over it: 10 m pixels become 2.5 m pixels. It exists for the years 2016 to 2026 of the ten Swiss glaciers of this site that have such a picture; other years show the normal picture.</p>
+<ul class="fnl"><li><b>An estimate, not a measurement.</b> The extra detail is the model's guess. The satellite did not see it. Do not read crevasses, boulders or debris edges off this layer.</li>
+<li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened. No number on the site is taken from this layer.</li>
 <li><b>Credit.</b> Contains modified Copernicus Sentinel data.</li></ul></section>
-<section class="fn" id="licences"><h2><span class="no">6</span>Data not used, and licences</h2><div id="fnLic">Loading…</div></section>
+<section class="fn" id="licences" data-toc="Data not used, licences"><h2>Data not used, and licences</h2><div id="fnLic">Loading…</div></section>
 <script src="js/dem-export.js"></script>
+<script>
+// the chapters: every visible <section data-toc> in page order gets a number and an entry in the menu at the top; called again whenever a chapter appears
+let nbCur=null, nbBusy=false, nbPicked=false, nbSub=0, nbN=1, nbRaf=0, nbT=[];
+const NBGAP=40, nbSecs=()=>[...document.querySelectorAll('section[data-toc]')].filter(x=>!x.hidden);
+function renumber(){
+  const toc=document.querySelector('.toc'); if(!toc) return;
+  const secs=[...document.querySelectorAll('section[data-toc]')];
+  let nb=document.querySelector('.nb');
+  if(!nb){ nb=document.createElement('div'); nb.className='nb'; secs[0].before(nb);
+    secs.forEach(x=>{ nb.appendChild(x); const h=x.querySelector('h2'), vp=document.createElement('div'), fl=document.createElement('div'); vp.className='vp'; fl.className='fl'; while(h.nextSibling) fl.appendChild(h.nextSibling); vp.appendChild(fl); x.appendChild(vp); });
+    const f=document.createElement('div'); f.className='nbf'; f.innerHTML='<button type="button" class="pv"></button><div class="mid"><div class="dots"></div><span class="pt"></span></div><button type="button" class="nx"></button>'; nb.after(f);
+    const cu=document.createElement('button'); cu.type='button'; cu.className='curl'; cu.title='Turn the page'; cu.setAttribute('aria-label','Turn the page'); cu.onclick=()=>nbStep(1); nb.appendChild(cu);
+    document.addEventListener('click',e=>{ const g=e.target.closest&&e.target.closest('g.col'); if(g) document.querySelectorAll('.yrs button').forEach(b=>b.classList.toggle('on',b.dataset.y===g.dataset.y)); });
+    f.querySelector('.pv').onclick=()=>nbStep(-1); f.querySelector('.nx').onclick=()=>nbStep(1);
+    document.addEventListener('keydown',e=>{ if(e.altKey||e.ctrlKey||e.metaKey||/^(INPUT|SELECT|TEXTAREA|IFRAME)$/.test((document.activeElement||{}).tagName)) return; if(e.key==='ArrowRight') nbStep(1); else if(e.key==='ArrowLeft') nbStep(-1); });
+    let t0=null; nb.addEventListener('touchstart',e=>{ t0=e.touches.length===1?[e.touches[0].clientX,e.touches[0].clientY]:null; },{passive:true});
+    nb.addEventListener('touchend',e=>{ if(!t0||e.target.closest('#map,#map0,.card,iframe,table')) return; const dx=e.changedTouches[0].clientX-t0[0], dy=e.changedTouches[0].clientY-t0[1]; t0=null; if(Math.abs(dx)>70&&Math.abs(dx)>2*Math.abs(dy)) nbStep(dx<0?1:-1); },{passive:true});
+    nb.addEventListener('click',e=>{ if(e.target.closest('g.col')) setTimeout(()=>nbReveal(document.getElementById('detail')),40); });
+    window.addEventListener('hashchange',()=>{ const id=location.hash.slice(1); if(nbSecs().some(x=>x.id===id)) nbGo(id); });
+    const soon=()=>{ cancelAnimationFrame(nbRaf); nbRaf=requestAnimationFrame(nbLayout); };      // content arrives and changes after load: measure the pages again
+    new MutationObserver(soon).observe(nb,{childList:true,subtree:true,characterData:true}); window.addEventListener('resize',()=>{ nbUnwrap(); soon(); }); window.addEventListener('load',soon); if(document.fonts) document.fonts.ready.then(soon); }
+  const V=nbSecs();
+  V.forEach((s,i)=>{ const h=s.querySelector('h2'); let no=h.querySelector('.no'); if(!no){ no=document.createElement('span'); no.className='no'; h.insertBefore(no,h.firstChild); } no.textContent=i+1; });
+  if(!nbPicked){ const hid=location.hash.slice(1), want=V.find(x=>x.id===hid)||(new URLSearchParams(location.search).get('year')?V.find(x=>x.id==='surface'):null); if(want){ nbCur=want.id; if(hid===want.id) nbPicked=true; } }
+  if(!nbCur||!V.some(x=>x.id===nbCur)) nbCur=V[0].id;
+  nbShow(nbCur); nbLayout();
+}
+function nbFit(s,vp,fl,W){      // what would spill onto an extra page of its own group becomes a dropdown at the bottom of the page it starts on
+  const col=e=>Math.floor((e.offsetLeft+4)/(W+NBGAP)), skip='li,details,svg,#detail,.card,.dl,#fnView,#dlbox,.legend,.tiles,.formula,.yrs,.cov,.lead,button,select';
+  const label=e=>{ if(e.dataset.dd) return e.dataset.dd; if(e.tagName==='TABLE') return 'Table: '+[...e.querySelectorAll('th')].slice(0,3).map(x=>x.textContent.trim()).join(', '); const b=e.querySelector('b'); const t=(b?b.textContent:e.textContent).trim().replace(/\s+/g,' '); return t.length>58?t.slice(0,56)+'…':t; };
+  for(let n=0;n<30;n++){
+    const pbs=[...fl.querySelectorAll('.pb')].map(x=>[x,col(x)]);
+    const stOf=e=>{ let st=0; pbs.forEach(([x,c])=>{ if(x.compareDocumentPosition(e)&4) st=c; }); return st; };
+    const dd=[...fl.querySelectorAll('details.dd')].find(d=>!d.parentElement.closest('details')&&col(d)>stOf(d)&&d.previousElementSibling&&d.previousElementSibling.matches('details.dd'));
+    if(dd){ const pv=dd.previousElementSibling, k=(+pv.dataset.more||0)+1; pv.dataset.more=k; pv._label=pv._label||pv.firstChild.textContent; pv.firstChild.textContent=pv._label+' (+'+k+' more)'; pv.querySelector('.dd-body').appendChild(dd); continue; }      // dropdowns that still do not fit go inside the one before
+    const spill=[...fl.querySelectorAll('p,ul,ol,table')].find(e=>{ if(e.closest(skip)||(e.tagName!=='TABLE'&&e.textContent.length<50)) return false; const st=stOf(e); return col(/^[UO]L$/.test(e.tagName)&&e.lastElementChild?e.lastElementChild:e)>st; });      // a list also counts when only its last item has spilled
+    if(!spill) break;
+    const d=document.createElement('details'), sm=document.createElement('summary'), body=document.createElement('div'); d.className='dd'; body.className='dd-body'; sm.textContent=label(spill); d._orig=spill;
+    const h=spill.previousElementSibling; if(h&&/^H[2-6]$/.test(h.tagName)){ sm.textContent=h.textContent.trim(); h.replaceWith(d); d.append(sm,body); body.append(h,spill); h.style.display='none'; }      // a heading goes with its block: it becomes the title of the dropdown
+    else { spill.replaceWith(d); d.append(sm,body); body.appendChild(spill); }
+  }
+}
+function nbUnwrap(){ document.querySelectorAll('details.dd').forEach(d=>d.replaceWith(d._orig)); }
+function nbLayout(){      // how many pages the chapter on screen has, and which one is shown
+  const s=document.getElementById(nbCur), vp=s&&s.querySelector('.vp'), fl=s&&s.querySelector('.fl');
+  if(vp&&vp.clientWidth){ const W=vp.clientWidth; nbFit(s,vp,fl,W); nbN=Math.max(1,Math.round((fl.scrollWidth+NBGAP)/(W+NBGAP))); nbSub=Math.max(0,Math.min(nbSub,nbN-1)); fl.style.transform='translateX('+(-nbSub*(W+NBGAP))+'px)';
+    const T=[s.dataset.p0||s.dataset.toc]; fl.querySelectorAll('.pb[data-title]').forEach(e=>{ const k=Math.floor((e.offsetLeft+4)/(W+NBGAP)); if(k>0&&T[k]==null) T[k]=e.dataset.title; }); for(let k=0;k<nbN;k++) if(T[k]==null) T[k]='Continued'; nbT=T; }
+  nbMenu();
+}
+function nbMenu(){
+  const secs=nbSecs(), toc=document.querySelector('.toc'), f=document.querySelector('.nbf'), i=secs.findIndex(x=>x.id===nbCur), nb=document.querySelector('.nb');
+  toc.textContent=''; secs.forEach((s,k)=>{ const a=document.createElement('a'); a.href='#'+s.id; a.textContent=(k+1)+' '+s.dataset.toc; if(k===i) a.className='on'; a.onclick=e=>{ e.preventDefault(); nbGo(s.id); }; toc.appendChild(a); });
+  const pv=f.querySelector('.pv'), nx=f.querySelector('.nx'), first=i<=0&&nbSub===0, last=i>=secs.length-1&&nbSub>=nbN-1, T=nbT.length===nbN?nbT:[];
+  pv.disabled=first; nx.disabled=last; nb.classList.toggle('more',nbSub<nbN-1);
+  pv.textContent=nbSub>0?'‹ '+(T[nbSub-1]||'Previous page'):(i>0?'‹ '+secs[i-1].dataset.toc:''); nx.textContent=nbSub<nbN-1?(T[nbSub+1]||'Next page')+' ›':(i<secs.length-1?secs[i+1].dataset.toc+' ›':'');
+  const dots=f.querySelector('.dots'); dots.textContent=''; if(nbN>1) for(let k=0;k<nbN;k++){ const d=document.createElement('button'); d.type='button'; d.title=T[k]||('Page '+(k+1)); d.setAttribute('aria-label','Page '+(k+1)+(T[k]?': '+T[k]:'')); if(k===nbSub) d.className='on'; d.onclick=()=>nbPage(k); dots.appendChild(d); }
+  f.querySelector('.pt').textContent=nbN>1?'Page '+(nbSub+1)+' of '+nbN+(T[nbSub]?' · '+T[nbSub]:''):'Chapter '+(i+1)+' of '+secs.length;
+  secs.forEach(s=>{ const no=s.querySelector('h2 .no'); if(no) no.dataset.pg=(s.id===nbCur&&nbN>1)?' · page '+(nbSub+1)+' of '+nbN:''; });
+}
+function nbPage(k){ if(!nbBusy&&k!==nbSub) nbTurnPage(k>nbSub?1:-1,k); }
+function yearPills(ys){      // the year buttons of the 'One year at a time' page: each acts like a click on that year in the chart
+  const b=document.getElementById('yrs'); if(!b) return; b.textContent='';
+  ys.forEach(y=>{ const x=document.createElement('button'); x.type='button'; x.dataset.y=y; x.textContent=y; x.onclick=()=>{ const g=document.querySelector('#chart g.col[data-y="'+y+'"]'); if(g) g.dispatchEvent(new MouseEvent('click',{bubbles:true})); }; b.appendChild(x); });
+}
+function nbReveal(el){      // turn to the page of the chapter that holds this element (the details under the chart, after a click on a year)
+  const s=document.getElementById(nbCur), vp=s&&s.querySelector('.vp'); if(!el||!vp||!vp.contains(el)||!vp.clientWidth) return;
+  const k=Math.floor((el.offsetLeft+4)/(vp.clientWidth+NBGAP)); if(k!==nbSub&&!nbBusy) nbTurnPage(k>nbSub?1:-1,k);
+}
+function nbShow(id){ document.querySelectorAll('.nb > section').forEach(x=>x.classList.toggle('cur',x.id===id)); }
+const nbStill=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+function nbStep(d){
+  if(nbBusy) return; if(d>0&&nbSub<nbN-1) return nbTurnPage(1); if(d<0&&nbSub>0) return nbTurnPage(-1);
+  const V=nbSecs(), i=V.findIndex(x=>x.id===nbCur), j=i+d; if(j>=0&&j<V.length) nbGo(V[j].id,d<0);
+}
+function nbTurnPage(d,to){      // the next or earlier page of the same chapter (or page number `to`)
+  const s=document.getElementById(nbCur), nb=document.querySelector('.nb'); nbSub=to==null?nbSub+d:to;
+  if(nbStill()){ nbLayout(); return; }
+  nbBusy=true;
+  if(d>0){ const c=s.cloneNode(true); c.removeAttribute('id'); c.removeAttribute('data-toc'); c.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id')); c.classList.remove('cur'); c.classList.add('turn-out'); nb.appendChild(c); nbLayout(); setTimeout(()=>{ c.remove(); nbBusy=false; },500); }
+  else { nbLayout(); s.classList.add('turn-in'); setTimeout(()=>{ s.classList.remove('turn-in'); nbBusy=false; },500); }
+}
+function nbGo(id,toEnd){      // turn to another chapter: forward the current page swings away to the left, back the earlier page swings in over it
+  if(nbBusy||id===nbCur) return; nbPicked=true;
+  const V=nbSecs(), from=document.getElementById(nbCur), to=document.getElementById(id), fwd=V.indexOf(to)>V.indexOf(from), still=nbStill();
+  nbCur=id; nbSub=toEnd?1e6:0; try{ history.replaceState(null,'','#'+id); }catch(e){}
+  const done=()=>{ from.classList.remove('turn-out'); to.classList.remove('turn-in'); nbBusy=false; nbShow(id); nbLayout(); window.scrollTo({top:Math.max(0,document.querySelector('.toc').getBoundingClientRect().top+scrollY-12)}); };
+  if(still){ done(); return; }
+  nbBusy=true;
+  if(fwd){ to.classList.add('cur'); nbLayout(); from.classList.add('turn-out'); setTimeout(done,500); }
+  else { to.classList.add('cur','turn-in'); nbLayout(); from.classList.remove('cur'); from.classList.add('turn-out'); from.style.animation='none'; from.style.display='none'; setTimeout(()=>{ from.style.animation=''; from.style.display=''; done(); },500); }
+}
+renumber();
+</script>
 <script>
 let demCache = null;
 async function demLoad(id){      // the terrain file of a glacier, parsed (heights of every year) with the LV95 position of every node
@@ -334,20 +478,19 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     MAP=CL.map; STRIP=MAP.strip; drawMap(); drawOverview();
     $('mapcap').innerHTML=prose(CL.mapcap,true,2)+`<div class="cov"><label for="covsel2">Footprint of a flight or the lidar</label><select id="covsel2"><option value="">none</option>${MAP.cover.map((c,i)=>`<option value="${i}">${esc(c.label)} · ${c.kind} · ${c.km2} km² of the strip, ${Math.round(100*c.ice)} % of the ice</option>`).join('')}</select><p class="covnote" id="covnote"></p></div>`;
     $('covsel2').onchange=e=>{ const g=$('covg'); if(g) g.remove(); const i=e.target.value; $('covnote').textContent=''; if(i==='') return; const c=MAP.cover[i], X=x=>(x-MT.x0)*MT.k, Y=y=>(MT.y1-y)*MT.k; $('map').insertAdjacentHTML('beforeend',`<g id="covg"><path d="${c.rings.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join('')}" fill="#ED730F" fill-opacity=".45" stroke="#ED730F" stroke-width=".8"/></g>`); $('covnote').innerHTML='<i></i>'+c.km2+' km² of the strip, '+Math.round(100*c.ice)+' % of the glacier ice (computed).'+(c.ice<0.01?' Over rock only: it is not an observation of the ice, it only helps tie the other flights to the ground.':''); };
-    $('fnSummary').innerHTML=unwrap(S['What this is']); YEARS=CY; css; drawClean();
+    $('fnSummary').innerHTML=unwrap(S['What this is']); YEARS=CY; css; drawClean(); yearPills(CY);
     $('legend').innerHTML=[['--ice','measured: a flight or the lidar of that year covers most of the ice'],['--ice','partial (lighter) or edition: part of the ice measured, or anchored on a swissALTI3D edition'],['--faint','interpolated between flights'],['--amber','extrapolated beyond the first or last flight'],['--loss','provisional (2026: balance estimated)']].map(([c,t])=>`<span><i style="width:16px;height:10px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('');
-    $('detail').innerHTML='Click a year.'; [...document.querySelectorAll('#surface p.lead')].forEach(q=>{ if(q.textContent.startsWith('One column per year')) q.textContent='One column per year: how the surface was found, the dated surveys under it, what shapes the change between them and what checks it. Click a year for its ICESat-2 and stake numbers and how much of its ice a flight covers.'; });
-    document.querySelector('.notes').innerHTML=`<section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a flight or the lidar of that year covers most of the ice; there the surface of the picture day is reproduced to about 0.2 m.</li><li><b>partial</b>: a flight covers part of the ice; the rest follows the model.</li><li><b>edition</b>: the picture day is the day a swissALTI3D edition stands for (estimated from the flights, or documented where there are none): the stereo surface of that edition, stated accuracy 1 to 3 m.</li><li><b>between flights</b> and <b>beyond the flights</b>: the model, from the balance, melt timing and the fitted ice flow.</li></ul></section><section><h3>Physics and fitted numbers</h3>${S['Physics and fitted numbers']}</section><section><h3>Uncertainty</h3>${S['Uncertainty']}</section>`+(S['Lakes']?`<section><h3>Lakes</h3>${S['Lakes']}</section>`:'');
-    $('anchors').querySelector('h2').innerHTML='<span class="no">3</span>Surveys used';
+    $('detail').innerHTML='Choose a year.'; [...document.querySelectorAll('#surface p.lead')].forEach(q=>{ if(q.textContent.startsWith('One column per year')) q.textContent='One column per year: how the surface was found, the dated surveys under it, what shapes the change between them and what checks it. Click a year for its ICESat-2 and stake numbers and how much of its ice a flight covers.'; });
+    { const nt=document.querySelector('.notes'); nt.dataset.title='How the model works'; nt.innerHTML=`<section class="wide"><h3>Physics and fitted numbers</h3>${S['Physics and fitted numbers']}</section>`; nt.insertAdjacentHTML('afterend','<div class="notes pb" data-title="Kinds of surface and uncertainty"></div>'); nt.nextElementSibling.innerHTML=`<section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a flight or the lidar of that year covers most of the ice; there the surface of the picture day is reproduced to about 0.2 m.</li><li><b>partial</b>: a flight covers part of the ice; the rest follows the model.</li><li><b>edition</b>: the picture day is the day a swissALTI3D edition stands for (estimated from the flights, or documented where there are none): the stereo surface of that edition, stated accuracy 1 to 3 m.</li><li><b>between flights</b> and <b>beyond the flights</b>: the model, from the balance, melt timing and the fitted ice flow.</li></ul></section><section><h3>Uncertainty</h3>${S['Uncertainty']}</section>`+(S['Lakes']?`<section><h3>Lakes</h3>${S['Lakes']}</section>`:''); }
+    $('anchors').querySelector('h2').innerHTML='<span class="no"></span>Surveys used';
     const tb=CL.surveys.map(v=>`<tr><td>${stacA(v)}</td><td>${v.ice_share==null?'–':Math.round(100*v.ice_share)+' %'}</td><td>${v.cells.toLocaleString('en')}</td><td>${v.stable.toLocaleString('en')}</td><td>${sgn(v.offset,2)}</td><td>${sgn(v.tilt_E,2)} / ${sgn(v.tilt_N,2)}</td><td>${num(v.nmad_before,2)} → ${num(v.nmad_after,2)}</td></tr>`).join('');
-    $('fnAnch').innerHTML=S['Observations']+`<table class="stab"><tr><th>Flight</th><th>Share of the ice covered</th><th>Cells in the strip</th><th>Rock cells</th><th>Tie to rock, offset m</th><th>Tilt E / N, m per km</th><th>Rock NMAD before → after, m</th></tr>${tb}</table><p class="small" style="color:var(--muted)">Each flight DSM is tied to the swissALTI3D rock by a plane (offset and tilt) fitted on cells outside the ice; the tie is computed here. Cells in the strip are 8 m cells.</p>`;
+    $('fnAnch').innerHTML=S['Observations']+`<div class="pb" data-title="Each survey, tied to the rock"></div><table class="stab"><tr><th>Flight</th><th>Share of the ice covered</th><th>Cells in the strip</th><th>Rock cells</th><th>Tie to rock, offset m</th><th>Tilt E / N, m per km</th><th>Rock NMAD before → after, m</th></tr>${tb}</table><p class="small" style="color:var(--muted)">Each flight DSM is tied to the swissALTI3D rock by a plane (offset and tilt) fitted on cells outside the ice; the tie is computed here. Cells in the strip are 8 m cells.</p>`;
     $('fnVal').innerHTML=S['Validation']+S['Not done, and remarks'];
     $('fnView').innerHTML=`<p>${CL.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}" target="_blank" rel="noopener" style="color:var(--ice)">open it in its own tab</a></p><div id="vwrap"></div>`;
     $('vbtn').onclick=()=>{ $('vwrap').innerHTML='<iframe src="'+VIEW+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; $('vbtn').hidden=true; };
     $('fnLic').innerHTML=S['Data and licences'];
     dlInit(d,ID);
-    const tb5=document.getElementById('tocBed'); if(tb5) tb5.remove();
-    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent.replace(/^\d+ /,''); const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });
+    renumber();
     const yq=+(new URLSearchParams(location.search).get('year')||0); if(yq&&CL.perYear[yq]) showClean(yq);
   }
   fetch(`/data/yearly/${ID}.json`).then(r=>r.ok?r.json():Promise.reject()).then(d=>{
@@ -356,8 +499,8 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     PG=d.page; YEARS=ys; KIND={}; ys.forEach(v=>KIND[v]=KMAP[d.kind[v]]); TIER=d.tier; SIG=PG.sig; ANCHOR=PG.anchors; ICESAT=PG.icesat; ASTER=PG.aster; ASTERD=PG.asterd; STAKER=PG.staker; STAKE=PG.stake; MAP=PG.map; STRIP=MAP.strip;
     $('gname').textContent=PG.short; $('areaT').textContent=PG.areaTitle||'the tongue of '+PG.short; $('mapcap').innerHTML=prose(PG.mapcap,true,2); $('nUnc').outerHTML='<div id="nUnc">'+prose(PG.notes.uncertainty,false,1)+'</div>'; $('nInd').innerHTML=parts(PG.notes.independent)+'<p>Click a year for the numbers.</p>'; $('nShare').innerHTML=parts(PG.notes.sharing);
     document.title='Field notes: '+PG.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+PG.short+' 3D'; }
-    if(PG.bed){ const B=PG.bed; BM=B.BM; $('bed').hidden=false; $('bedLead').innerHTML=prose(B.lead,true,9); $('bedChecks').innerHTML=B.checks.map(c=>`<div class="chk">${c}</div>`).join(''); $('bedCap1').innerHTML=B.figs[0]; $('bedCap2').innerHTML=B.figs[1]; $('bedKey').innerHTML=B.key; $('bedRead').innerHTML=B.read; $('bedSrc').innerHTML=B.src; $('bm1').setAttribute('aria-label',B.aria1); $('bm2').setAttribute('aria-label',B.aria2); } else $('tocBed').remove();
-    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent.replace(/^\d+ /,''); const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });      // numbered by what is on the page
+    if(PG.bed){ const B=PG.bed; BM=B.BM; $('bed').hidden=false; $('bedLead').innerHTML=prose(B.lead,true,9); $('bedChecks').innerHTML=B.checks.map(c=>`<div class="chk">${c}</div>`).join(''); $('bedCap1').innerHTML=B.figs[0]; $('bedCap2').innerHTML=B.figs[1]; $('bedKey').innerHTML=B.key; $('bedRead').innerHTML=B.read; $('bedSrc').innerHTML=B.src; $('bm1').setAttribute('aria-label',B.aria1); $('bm2').setAttribute('aria-label',B.aria2); }
+    renumber();      // numbered by what is on the page
     $('fnAnch').innerHTML=d.anchors.map(a=>`<div class="anc"><p><b>${esc(a.id)}</b> ${esc(a.source)}</p><ul class="fnl">${sents(a.survey).map(x=>`<li>${esc(x)}</li>`).join('')}<li><b>Placed at</b> ${esc(a.placed_at.replace(/\.$/,''))}</li></ul></div>`).join('')+`<h3 class="fnh">How the years in between are made</h3>`+prose(d.shape,false,1);
     $('fnSummary').textContent=d.summary;
     const VH={icesat2:'Against ICESat-2 laser heights',datum:'Height datum',extended_area:'Where there is no check',not_checked:'What is not checked'};
@@ -365,7 +508,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('fnView').innerHTML=`<p>${PG.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}?v=${PG.viewerV||''}" target="_blank" rel="noopener" style="color:var(--ice)">Open it in its own tab</a></p><div id="vwrap"></div>`;
     $('fnLic').innerHTML=`<h3 class="fnh">Not used</h3>`+prose(d.not_used,false,1)+`<h3 class="fnh">Licences</h3>`+prose(d.licences,false,1);
     const vb=$('vbtn'), load=()=>{$('vwrap').innerHTML='<iframe src="'+VIEW+'?v='+(PG.viewerV||'')+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; vb.hidden=true;}; vb.onclick=load; if(q.get('viewer'))load();
-    draw(); drawMap(); drawOverview(); if(PG.bed) bedMaps();
+    draw(); yearPills(ys); drawMap(); drawOverview(); if(PG.bed) bedMaps();
     dlInit(d,ID);
     if(y)show(y);      // the year on screen is chosen, but the page stays at its top
   }).catch(()=>{['fnAnch','fnVal','fnView','fnLic'].forEach(i=>$(i).textContent='The field notes could not be loaded.');});
@@ -378,7 +521,7 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(!P
 <script>
 // the experimental-outline note: shown for the glacier it belongs to; reached from a click on an outline in the main viewer (#arcsnote)
 (function(){var q=new URLSearchParams(location.search).get('id'),n=document.getElementById('arcsnote');if(!n||!q)return;
-var sc=document.createElement('script');sc.src='data/tongue-arcs.js';sc.onload=function(){var T=window.TONGUE_ARCS||{},k=Object.keys(T).filter(function(x){return T[x].inv===q;})[0];if(!k)return;var A=T[k];n.hidden=false;
+var sc=document.createElement('script');sc.src='data/tongue-arcs.js';sc.onload=function(){var T=window.TONGUE_ARCS||{},k=Object.keys(T).filter(function(x){return T[x].inv===q;})[0];if(!k)return;var A=T[k];n.hidden=false;renumber();
 document.getElementById('arcsScenes').textContent='Sentinel-2 acquisition date of the scene behind each line: '+Object.keys(A.arcs).sort().map(function(y){return y+' '+A.arcs[y].scenes;}).join('; ')+'.';
 if(location.hash==='#arcsnote')setTimeout(function(){n.scrollIntoView({behavior:'smooth',block:'start'});},900);};document.head.appendChild(sc);})();
 </script>
@@ -388,7 +531,7 @@ if(location.hash==='#arcsnote')setTimeout(function(){n.scrollIntoView({behavior:
 (function(){var q=new URLSearchParams(location.search).get('id'),n=document.getElementById('flights');if(!n||!q)return;
 fetch('data/special-flights/'+encodeURIComponent(q)+'.json').then(function(r){return r.ok?r.json():null;}).then(function(m){if(!m||!m.fieldNotes)return;
 document.getElementById('fnFlights').innerHTML=m.fieldNotes;n.hidden=false;
-var toc=document.querySelector('.toc'),lic=toc&&toc.querySelector('a[href="#licences"]');if(toc&&!toc.querySelector('a[href="#flights"]')){var a=document.createElement('a');a.href='#flights';a.textContent='swisstopo special flights';toc.insertBefore(a,lic||null);}
-var k=0;document.querySelectorAll('.toc a').forEach(function(a){k++;a.textContent=k+' '+a.textContent.replace(/^\d+ /,'');var h=document.querySelector(a.getAttribute('href')+' h2 .no');if(h)h.textContent=k;});}).catch(function(){});})();
+renumber();}).catch(function(){});})();
 </script>
+<script defer src="js/turn-upright.js"></script>
 </body></html>

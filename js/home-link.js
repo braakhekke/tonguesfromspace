@@ -3,4 +3,5 @@
 (() => {
   const built = /home-link\.[0-9a-f]{10}\.js/.test(document.currentScript ? document.currentScript.src : '');
   document.querySelectorAll('a[data-home]').forEach(a => { a.setAttribute('href', built ? '/' : 'home.html'); });
+  if (built) document.querySelectorAll('a[data-dash]').forEach(a => { a.setAttribute('href', '/switzerland/'); });      // index.html of the public build is the front page; the dashboard is at the address of its region
 })();

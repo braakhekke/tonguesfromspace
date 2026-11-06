@@ -1,0 +1,17 @@
+/* The design tokens of every page: colours, typeface. Change a value here and the dashboard, the size page, the front page and the gallery all change.
+   Every page links it; no other stylesheet defines tokens (tests/test_tokens.py). */
+/* Schibsted Grotesk (SIL Open Font Licence 1.1, see fonts/OFL.txt), served from this site: no request to Google */
+@font-face{font-family:"Schibsted Grotesk";src:url(../fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
+:root{
+  --firn:#F4F6F7; --sheet:#FFFFFF; --rock:#1C2A33; --moraine:#66757E; --faint:#93A0A7; --ink:#0E1A22; --rule-2:#EDF0F2;
+  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6;
+  --accent:#C8322A;
+  --old:#F2A93B; --new:#E5443B; --measure:#FFD84D;
+  --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
+  --serif:var(--sans);
+  /* shape and spacing of the phone design (css/style.css "Phone design system", css/pages.css, css/home.css): corner radii, a 4 px spacing scale, one soft shadow */
+  --r-sm:10px; --r-md:14px; --r-lg:20px; --r-pill:999px;
+  --sp-1:4px; --sp-2:8px; --sp-3:12px; --sp-4:16px; --sp-5:24px; --sp-6:32px;
+  --lift:0 1px 2px rgba(14,26,34,.06),0 4px 14px rgba(14,26,34,.06);
+  --raise:0 1px 2px rgba(14,26,34,.14),0 2px 6px rgba(14,26,34,.08);
+}

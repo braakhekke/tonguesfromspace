@@ -19,7 +19,7 @@
 <link rel="stylesheet" href="css/pages.css">
 <link rel="stylesheet" href="css/sitebar.css">
 <style>
-.filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:0 0 16px}
+.filters{display:flex;flex-wrap:wrap;gap:8px 10px;align-items:flex-end;margin:0 0 16px}
 .filters label{display:flex;flex-direction:column;gap:3px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
 .filters select{-webkit-appearance:none;appearance:none;border:1px solid var(--rule);border-radius:0;padding:7px 32px 7px 10px;font-size:13px;font-weight:500;letter-spacing:0;text-transform:none;color:var(--rock);width:190px;max-width:100%;text-overflow:ellipsis;cursor:pointer;
   background:var(--sheet) url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 12'><path d='M2 4l4 4 4-4' fill='none' stroke='%236B7378' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/></svg>") no-repeat right 10px center/15px}      /* the chevron sits close to the text, not at the far edge */
@@ -43,9 +43,9 @@
 .item .acts .dl:last-child:not(:only-child):hover{background:var(--rock)}
 .item{border-radius:var(--r-md);box-shadow:var(--lift)}
 /* the dropdowns of the Switzerland page: a white card, and a list of rows like the glacier list (bottom sheet on phones) */
-.filters .dd{position:relative;width:200px;max-width:100%}
+.filters .dd{position:relative;width:150px;max-width:100%}
 .filters select.native{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
-.filters .dd-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:8px 12px 8px 15px;border:0;border-radius:var(--r-md);background:var(--sheet);box-shadow:var(--lift);color:#0A1B33;font:inherit;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;text-align:left;cursor:pointer}
+.filters .dd-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:36px;padding:6px 10px 6px 12px;border:0;border-radius:var(--r-md);background:var(--sheet);box-shadow:var(--lift);color:#0A1B33;font:inherit;font-size:13px;font-weight:700;letter-spacing:0;text-transform:none;text-align:left;cursor:pointer}
 .filters .dd-btn:hover{background:var(--firn)}
 .dd-btn:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
 .dd-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -64,7 +64,7 @@
 }
 .filters #fReset{border-radius:var(--r-pill)}
 .cta .btn.primary{border-radius:var(--r-sm)}
-@media (max-width:600px){.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px 8px;align-items:end}.filters label{min-width:0}.filters .dd{width:100%;min-width:0}.filters .count{grid-column:1 / -1;margin-left:0}.filters #fReset{grid-column:1 / -1;justify-self:start}.grid{columns:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.item{margin-bottom:0;border-radius:6px}.item .meta{padding:5px 7px 6px}}
+@media (max-width:600px){.filters{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px 8px;align-items:end}.filters label{min-width:0}.filters .dd{width:100%;min-width:0}.filters .count{grid-column:2 / -1;grid-row:3;justify-self:end;margin-left:0}.filters #fReset{grid-column:1;grid-row:3;justify-self:start}.grid{columns:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.item{margin-bottom:0;border-radius:6px}.item .meta{padding:5px 7px 6px}}
 .media{position:relative}
 .media .full{position:absolute;right:6px;bottom:6px;width:32px;height:32px;padding:0;border:0;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:grid;place-items:center}
 .media .full:hover{background:rgba(0,0,0,.8)}
@@ -80,10 +80,12 @@
 @media (max-width:600px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .cta{margin:0 0 var(--sp-4)}
   .cta .btn{flex:1;text-align:center}
-  .filters{padding:var(--sp-4);border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift);margin:0 0 var(--sp-4);gap:var(--sp-3) var(--sp-3)}
-  .filters label{font-size:10.5px;letter-spacing:.08em;gap:6px}
+  .filters{border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift);margin:0 0 var(--sp-4);padding:var(--sp-3);gap:var(--sp-2) var(--sp-2)}
+  .filters label{font-size:9.5px;letter-spacing:.04em;gap:3px}
+  .filters .dd-btn{padding:6px 8px;font-size:12.5px;gap:4px}
+  .filters .dd-btn svg{width:14px;height:14px}
   .filters .dd{width:100%}
-  .filters .dd-btn{min-height:44px;border-radius:var(--r-sm);background:var(--firn);box-shadow:none}
+  .filters .dd-btn{min-height:38px;border-radius:var(--r-sm);background:var(--firn);box-shadow:none}
   .filters .count{margin:0;font-size:12.5px}
   .grid{grid-template-columns:1fr 1fr;gap:var(--sp-2)}
   .item{border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift)}
@@ -102,7 +104,7 @@
 /* landscape phones: two columns of cards, the filters in one row */
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .filters{display:flex;flex-wrap:wrap;align-items:flex-end}
-  .filters .dd{width:170px}
+  .filters .dd{width:140px}
   .filters .count{margin-left:auto}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
@@ -110,11 +112,11 @@
   <script defer src="js/track.js"></script>
 </head>
 <body>
-<header class="sitebar"><div class="in"><a class="brand" data-home href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a><nav><a href="index.html"><i aria-hidden="true"></i>Dashboard</a><a href="size.html">Glacier vs. city</a><a href="gallery.html" aria-current="page">Gallery</a></nav></div></header>
+<header class="sitebar"><div class="in"><a class="brand" data-home href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a><nav><a data-dash href="index.html"><i aria-hidden="true"></i>Dashboard</a><a href="size.html">Glacier vs. city</a><a href="gallery.html" aria-current="page">Gallery</a></nav></div></header>
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Full size picture"><img alt=""><button type="button" aria-label="Close">×</button></div>
 <main class="wrap">
   <p class="lede">Pictures and animations of glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
-  <div class="cta"><a class="btn primary" href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Your visual, pick Image or Animation, then Share it in the gallery.</span></div>
+  <div class="cta"><a class="btn primary" data-dash href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Your visual, pick Image or Animation, then Share it in the gallery.</span></div>
   <div class="filters" role="search" aria-label="Filter the gallery">
     <label>Region<select id="fRegion"><option value="">All regions</option></select></label>
     <label>Glacier<select id="fGlacier"><option value="">All glaciers</option></select></label>
@@ -126,8 +128,20 @@
   </div>
   <div class="grid" id="grid"></div>
   <p class="empty" id="empty" hidden></p>
-  <p class="note" style="margin-top:24px">Satellite images: contains modified Copernicus Sentinel data, processed via the Copernicus Data Space Ecosystem. Glacier outlines: GLAMOS. Items are shared by visitors; to have one removed, open an issue on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>.</p>
 </main>
+<footer class="site-foot">
+  <div class="in">
+    <div class="who"><a class="brand" href="home.html"><img src="images/home/logo-white.svg" alt="" width="28" height="26"><b>Tongues from Space</b></a>
+      <p class="tagline"><b>Glacier visuals, done your way</b><span>By J. Braakhekke</span></p></div>
+    <details class="credits-fold"><summary>Sources and credits</summary>
+      <dl class="credit-list">
+        <div><dt>Pictures</dt><dd>Contains modified Copernicus Sentinel data, processed via the Copernicus Data Space Ecosystem.</dd></div>
+        <div><dt>Outlines</dt><dd>GLAMOS.</dd></div>
+        <div><dt>Gallery</dt><dd>Items are shared by visitors; to have one removed, open an issue on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>.</dd></div>
+      </dl>
+    </details>
+  </div>
+</footer>
 <script src="config.js"></script>
 <script defer src="js/home-link.js"></script>
 <script>
@@ -260,5 +274,6 @@ function applyHash(){
   render();
 }
 </script>
+<script defer src="js/turn-upright.js"></script>
 </body>
 </html>

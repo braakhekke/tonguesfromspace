@@ -58,8 +58,8 @@ export function statusLine(){
   const normal = y => lt && lt.year === y ? lt.saved : state.available[y];      // the Latest scene stands in for its year's scene: the counts below use the year's own
   const ok = okYears().filter(normal), expected = YEARS.filter(summerStarted), missing = expected.filter(y => !normal(y));       // the current year is not counted before its summer
   if (!ok.length) return 'No satellite images available.';
-  const cloudy = ok.filter(y => !normal(y).clear), parts = [];
-  parts.push(`Scenes found for ${ok.length} of ${expected.length} years${cloudy.length ? `, ${cloudy.length} with some clouds${state.mode === 'timelapse' ? '' : ' (dashed)'}` : ''}.`);      // the year boxes the dashes belong to are not shown in a timelapse
+  const parts = [];
+  parts.push(`Status: scenes for ${ok.length}/${expected.length} years.`);
   if (missing.length) parts.push(`No usable scene for ${missing.join(', ')}.`);
   const ls = ok.filter(y => isLandsat(normal(y)));
   if (ls.length) parts.push(`${ls.length} Landsat picture${ls.length > 1 ? 's' : ''} (${ls[0]}–${ls[ls.length - 1]}, 30 m).`);

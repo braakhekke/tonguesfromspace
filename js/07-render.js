@@ -44,7 +44,7 @@ export function renderGlacierList(){
   });
   const keepChosenInView = () => { const row = ul.querySelector('button[aria-pressed="true"]'); if (!row) return; const top = row.offsetTop, bottom = top + row.offsetHeight; if (top < ul.scrollTop) ul.scrollTop = top; else if (bottom > ul.scrollTop + ul.clientHeight) ul.scrollTop = bottom - ul.clientHeight; };      // only the list scrolls, not the page; again on the next frame, because a click on the map changes the layout first
   keepChosenInView(); requestAnimationFrame(keepChosenInView);
-  document.getElementById('rankNote').innerHTML = REGION.rgi ? REGION.rankNote : `Ranked by area${fn('sgi')}`;
+  document.getElementById('rankNote').innerHTML = REGION.rgi ? REGION.rankNote : '';      // (Switzerland: the "Ranked by area" line is gone)
   renderLayerTitles();
   if (typeof wire.updateLandsatRow === 'function') wire.updateLandsatRow();
   if (typeof wire.refreshStreetView === 'function') wire.refreshStreetView();      // js/14-streetview.js: the panoramas of the chosen glacier
@@ -245,7 +245,7 @@ export function renderMode(){
   document.getElementById('styleFalse2').setAttribute('aria-pressed', state.style === 'false2');
   document.getElementById('styleFalse3').setAttribute('aria-pressed', state.style === 'false3');
   { const cmpOn = state.mode === 'compare', sB = state.styleB || state.style;      // the slider: each picture has its year chips and its own colour composition, so the shared row and note give way
-    document.getElementById('colourGroup').hidden = cmpOn; document.getElementById('styleNote').hidden = cmpOn;
+    document.getElementById('colourGroup').hidden = cmpOn; document.getElementById('styleNote').hidden = cmpOn || !('open' in document.getElementById('styleNote').dataset);      // (the note is behind the small i)
     document.querySelectorAll('#swatchesA .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === state.style));
     document.querySelectorAll('#swatchesB .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === sB));
     if (!ccAltChecked && state.styleB) { ccAltChecked = true; if (state.styleB !== state.style) document.getElementById('ccAltB').open = true; } }      // a different composition from a share link: open the fold once; after that only the visitor opens or closes it
@@ -391,8 +391,7 @@ export function syncOutsideUi(){            // the slider on the map panel and t
   });
   const bgOn = ['mosaicToggle', 'osmToggle', 'topoToggle', 'oldMapToggle', 'altiToggle', 'aerialToggle', 'labelsToggle'].some(id => document.getElementById(id).checked);
   const note = document.getElementById('outsideNote');      // the download pane switches the background layers off itself
-  note.hidden = !(has && o < 0.99);
-  note.textContent = bgOn ? 'Surroundings opacity is below 100 %, so the background layers show through. Turn them all off and set it to 0 to see this tongue floating in space.' : o < 0.05 ? 'Background layers off and surroundings at 0: the tongue floats in space.' : 'Set surroundings opacity to 0 to see this tongue floating in space.';
+  note.hidden = true;      // (the long note on surroundings opacity is gone)
 }
 ['mosaicToggle', 'osmToggle', 'topoToggle', 'oldMapToggle', 'altiToggle', 'aerialToggle', 'labelsToggle'].forEach(id => document.getElementById(id).addEventListener('change', () => syncOutsideUi()));
 /* While the download pane is open and the picture outside the outline is made transparent, the background layers are switched off: a download has no map underneath, so the preview must not show one.
@@ -1435,3 +1434,42 @@ export function setSubFocus(v){ return subFocus = v; }      // the other files m
 export function setRestoringCards(v){ return restoringCards = v; }      // the other files may not assign to an imported variable
 export function setStoryTab(v){ return storyTab = v; }      // the other files may not assign to an imported variable
 export function setDynSources(v){ return dynSources = v; }      // the other files may not assign to an imported variable
+
+/* A scrollable year list always shows its chosen year: after the list is drawn or the choice changes, and again when the visitor has scrolled it and let go or left it */
+{
+  const showChosen = box => {
+    const b = box.querySelector('button[aria-pressed="true"]'); if (!b || box.scrollHeight <= box.clientHeight + 1) return;
+    const top = b.offsetTop - box.offsetTop, want = top - (box.clientHeight - b.offsetHeight) / 2;      // (offsetTop is from the page's offset parent: measured against the box's own)
+    if (top < box.scrollTop || top + b.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTo({ top: Math.max(0, want), behavior: 'smooth' });
+  };
+  const watched = new WeakSet(), timers = new WeakMap();
+  const later = (box, ms) => { clearTimeout(timers.get(box)); timers.set(box, setTimeout(() => showChosen(box), ms)); };
+  const watch = box => {
+    if (watched.has(box)) return; watched.add(box);
+    new MutationObserver(() => later(box, 60)).observe(box, { childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed'] });
+    box.addEventListener('scroll', () => later(box, 1500), { passive: true });      // scrolled away and left alone: back to the chosen year
+    box.addEventListener('pointerleave', () => later(box, 600));
+    later(box, 60);
+  };
+  const scan = () => document.querySelectorAll('.years:not(.specials)').forEach(watch);
+  scan(); setInterval(scan, 1000);      // (the lists are filled by several sections, some after load)
+}
+
+/* The panes under Save and share (elevation model, embed, metadata) open below their button: scroll just far enough that the whole pane is on screen (again after a moment, when the metadata table has been filled in) */
+document.addEventListener('click', e => {
+  const b = e.target.closest && e.target.closest('#metaBtn, #embedBtn, #demBtn'); if (!b) return;
+  const box = document.getElementById(b.getAttribute('aria-controls'));
+  const show = () => { if (box && !box.hidden) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
+  requestAnimationFrame(show); setTimeout(show, 450);
+});
+
+/* The glacier list always shows the chosen glacier: when the visitor has scrolled it and let go or left it (the list itself already scrolls to it when it is drawn) */
+{
+  const ul = document.getElementById('glacierList'); let t = 0;
+  const back = () => { const r = ul.querySelector('button[aria-pressed="true"]'); if (!r || ul.scrollHeight <= ul.clientHeight + 1) return;
+    const top = r.offsetTop, bottom = top + r.offsetHeight;
+    if (top < ul.scrollTop || bottom > ul.scrollTop + ul.clientHeight) ul.scrollTo({ top: Math.max(0, top - (ul.clientHeight - r.offsetHeight) / 2), behavior: 'smooth' }); };
+  const later = ms => { clearTimeout(t); t = setTimeout(back, ms); };
+  ul.addEventListener('scroll', () => later(1500), { passive: true });
+  ul.addEventListener('pointerleave', () => later(600));
+}

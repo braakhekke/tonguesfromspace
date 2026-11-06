@@ -1,0 +1,85 @@
+{
+ "what": "COMPUTED: share of pixels inside the SGI2023 outline that are not ice or snow (grey or brown, not bright, not blue-tinted), from swisstopo SWISSIMAGE (latest edition, zoom 15). A mosaic of flights of different years: a rough measure.",
+ "glaciers": {
+  "B36-26": {
+   "name": "Aletsch",
+   "pixels": 7016895,
+   "debris": 1067625,
+   "share": 0.1522,
+   "missingTiles": 0,
+   "pixelAreaKm2": 75.93
+  },
+  "B56-07": {
+   "name": "Gorner",
+   "pixels": 3213053,
+   "debris": 455732,
+   "share": 0.1418,
+   "missingTiles": 0,
+   "pixelAreaKm2": 35.45
+  },
+  "B40-07": {
+   "name": "Fiescher",
+   "pixels": 2647597,
+   "debris": 424569,
+   "share": 0.1604,
+   "missingTiles": 0,
+   "pixelAreaKm2": 28.62
+  },
+  "A54g-11": {
+   "name": "Unteraar",
+   "pixels": 1895061,
+   "debris": 779087,
+   "share": 0.4111,
+   "missingTiles": 0,
+   "pixelAreaKm2": 20.44
+  },
+  "B83-03": {
+   "name": "Corbassi\u00e8re",
+   "pixels": 1281453,
+   "debris": 265659,
+   "share": 0.2073,
+   "missingTiles": 0,
+   "pixelAreaKm2": 14.13
+  },
+  "B57-05": {
+   "name": "Zmutt",
+   "pixels": 1248370,
+   "debris": 476263,
+   "share": 0.3815,
+   "missingTiles": 0,
+   "pixelAreaKm2": 13.75
+  },
+  "B43-03": {
+   "name": "Rhone",
+   "pixels": 1264170,
+   "debris": 122016,
+   "share": 0.0965,
+   "missingTiles": 0,
+   "pixelAreaKm2": 13.61
+  },
+  "B56-03": {
+   "name": "Findel",
+   "pixels": 1197695,
+   "debris": 80499,
+   "share": 0.0672,
+   "missingTiles": 0,
+   "pixelAreaKm2": 13.19
+  },
+  "B53-04": {
+   "name": "Fee",
+   "pixels": 1193368,
+   "debris": 156444,
+   "share": 0.1311,
+   "missingTiles": 0,
+   "pixelAreaKm2": 13.11
+  },
+  "A54e-24": {
+   "name": "Trift",
+   "pixels": 1204278,
+   "debris": 139541,
+   "share": 0.1159,
+   "missingTiles": 0,
+   "pixelAreaKm2": 12.95
+  }
+ }
+}

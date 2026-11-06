@@ -1,0 +1,632 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tongues from Space | Glaciers seen from orbit</title>
+<meta name="description" content="Glaciers in one viewer: satellite and historic imagery, field measurements and glacier data, each at its place, on the map and in 3D. Starting with Switzerland, more regions on the way.">
+<meta property="og:title" content="Tongues from Space - Glaciers seen from orbit">
+<meta property="og:description" content="Glaciers in one viewer: satellite and historic imagery, field measurements and glacier data, each at its place, on the map and in 3D. Starting with Switzerland, more regions on the way.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
+<meta property="og:url" content="https://tonguesfromspace.org/">
+<link rel="canonical" href="https://tonguesfromspace.org/">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 200%27%3E%3Cdefs%3E%3Cmask id=%27ringcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Ccircle cx=%27164%27 cy=%2736%27 r=%2727%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27%3E%3Crect x=%27-50%27 y=%27-50%27 width=%27300%27 height=%27300%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%275%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Ccircle cx=%27100%27 cy=%27100%27 r=%2790%27 fill=%27none%27 stroke=%27%230A1B33%27 stroke-width=%2710%27 mask=%27url(%23ringcut)%27/%3E%3Cg transform=%27translate(100 100) scale(0.78) translate(-96 -101)%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url(%23mouthcut)%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url(%23groovecut)%27/%3E%3C/g%3E%3Cpath transform=%27translate(164 36) scale(1.65) translate(-164 -36)%27 d=%27M164 24 Q165 35 176 36 Q165 37 164 48 Q163 37 152 36 Q163 35 164 24 Z%27/%3E%3C/g%3E%3C/svg%3E">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css">
+<link rel="stylesheet" href="css/tokens.be7a0b8cb4.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/home.css">
+  <script defer src="config.js"></script><script defer src="js/track.59941745ad.js"></script>
+</head>
+<body>
+
+<header class="bar"><div class="wrap">
+  <a class="brand" href="#top">
+    <img src="images/home/logo-white.svg" alt="" width="32" height="30">
+    <b>Tongues from Space</b>
+  </a>
+  <nav>
+    <a class="js-dash" id="navOpen" href="index.html"><i aria-hidden="true"></i>Dashboard</a>
+    <a href="size.html">Glacier vs. city</a>
+    <a href="gallery.html">Gallery</a>
+  </nav>
+</div></header>
+
+<main id="top">
+<section class="hero">
+  <div class="wrap">
+    <div class="herotext">
+      <h1><span>Glaciers don’t talk.</span> <span>Their <em>tongues</em> tell all.</span></h1>
+      <p class="lede">Explore how glaciers change: satellite and historic imagery, field measurements and glacier data in one viewer, on the map and in 3D. Then turn what you find into something worth sharing.</p>
+      <div class="cta">
+        <a class="btn-red js-dash" id="heroOpen" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <button class="btn-ghost" id="watch" type="button">
+          <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the tour</button>
+      </div>
+    </div>
+
+    <div class="flightbox">
+    <figure class="flight" id="flight">
+      <video id="flightVideo" muted playsinline preload="none" poster="images/home/hero-flight.jpg" aria-label="A 3D flight over the Grosser Aletsch glacier while the years 2016 to 2026 pass">
+        <source src="images/home/hero-flight.webm" type="video/webm">
+        <source src="images/home/hero-flight.mp4" type="video/mp4">
+      </video>
+      <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
+      <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span></figcaption>
+      <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around, scroll to zoom</div>
+    </figure>
+    </div>
+  </div>
+</section>
+<div class="stepsband"><ol class="wrap steps">
+  <li><b>1 · Choose</b>Pick a glacier on the map or from the list. Regions marked “In the making” can be looked at, not opened yet.</li>
+  <li><b>2 · Compare</b>Slide through the years, switch map layers, fly over the tongue in 3D.</li>
+  <li><b>3 · Share</b>Export a picture or a video, or embed the view in your page.</li>
+</ol></div>
+<div class="whyband" id="why"><div class="wrap whygrid">
+    <div class="whyhead">
+      <p class="eyebrow">Why Tongues from Space</p>
+      <h2 class="aud-title">For everyone who loves glaciers, from scientist to alpinist</h2>
+      <p class="aud-sub">Open the card that sounds like you.</p>
+      <p class="why-name">Every glacier ends in a tongue, the stretch of ice that reaches down into the valley. Retreat, and in rarer cases advance, shows first there, so that is where to look.</p>
+      <p class="why-name">Everything you see is built on <b>real satellite images</b>, not renderings. The viewer shows the one clear late-summer scene of each year, next to historic imagery, field measurements and other glacier data, on the map and in 3D.</p>
+    <p class="why-name why-made">Made for mountain lovers and curious minds, teachers, students and young researchers, storytellers and content creators. Choose a glacier, move through time, compare the landscape and make it your own. Open the card that sounds like you.</p>
+    </div>
+  </div>
+  <div class="wrap aud">
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 3h6M10 3v6l-5 9a2 2 0 002 3h10a2 2 0 002-3l-5-9V3"/></svg>Scientists</b><span>Explore the evidence. Trace every figure.</span></summary><div class="aud-more"><p class="aud-lede">Explore dated satellite imagery alongside published measurements, glacier outlines and field observations. Follow the sources, compare years, investigate the changes in the ice and download elevation models for your own analysis.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=compare&ol=1&t=stats" href="index.html#g=aletsch&m=compare&ol=1&t=stats">Explore imagery, outlines and sources <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h13v14H6a2 2 0 01-2-2V5zM17 9h3v8a2 2 0 01-2 2M7 9h7M7 13h7"/></svg>Journalists</b><span>Show the change. Tell the story.</span></summary><div class="aud-more"><p class="aud-lede">Turn glacier retreat into compelling visual stories. Create before-and-after images, short videos and interactive views ready to use in articles, reports and social media.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=compare" href="index.html#g=aletsch&m=compare">Try the before-and-after slider <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 9l10-5 10 5-10 5zM6 11.5V16c0 1.2 2.7 3 6 3s6-1.8 6-3v-4.5"/></svg>Educators</b><span>Make glacier change visible in the classroom.</span></summary><div class="aud-more"><p class="aud-lede">Let your students explore real glaciers, travel through time and discover how mountain landscapes are changing. Bring satellite imagery and interactive 3D exploration into your lessons.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=timelapse&v=3d" href="index.html#g=aletsch&m=timelapse&v=3d">Travel through time in 3D <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2zM4 19a2 2 0 012-2h13"/></svg>Students</b><span>Go beyond the headlines. Explore the data.</span></summary><div class="aud-more"><p class="aud-lede">Investigate glaciers through satellite images, historical maps and published measurements. Compare different data layers and discover how scientists observe and understand glacier change.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=compare&s=false1&t=discover" href="index.html#g=aletsch&m=compare&s=false1&t=discover">Compare the data layers <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></details>
+    <details class="aud-card" name="aud"><summary><b><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 20l7-12 4 7 2-3 7 8z"/></svg>Outdoor people</b><span>Know the ice before you go.</span></summary><div class="aud-more"><p class="aud-lede">Discover where glacier tongues end today and how far they have retreated. Explore hiking trails, viewpoints and the changing landscapes around the glaciers before your next mountain adventure.</p><a class="btn-red aud-go js-view" data-view="g=aletsch&m=single&ol=1&tr=1&t=discover" href="index.html#g=aletsch&m=single&ol=1&tr=1&t=discover">See the trails and how far the tongue retreated <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div></details>
+  </div>
+</div>
+
+<section class="split" id="regions">
+  <div class="pickband"><div class="wrap">
+    <div class="sh">
+      <div>
+        <p class="eyebrow">Choose a glacier</p>
+        <h3 class="pick-h">Which glacier do you want to see?</h3>
+        <p>Search or choose a glacier on the map, or click a region and then a glacier.</p>
+      </div>
+      <div class="sh-cta"><a class="btn-red js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+    </div>
+
+    <div class="mapbox">
+      <div id="map" role="application" aria-label="World map of the regions"></div>
+      <div class="map-ctl">
+      <div class="pickrow">
+        <div class="search" role="search">
+          <label for="gsearch2" class="sr">Search for a glacier, in any language</label>
+          <div class="sbox">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 3a7 7 0 105.2 11.7l4.8 4.8-1.4 1.4-4.8-4.8A7 7 0 0010 3zm0 2a5 5 0 100 10 5 5 0 000-10z"/></svg>
+            <input id="gsearch2" type="search" role="combobox" aria-expanded="false" aria-controls="gresults2" aria-autocomplete="list" aria-haspopup="listbox" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="Search a glacier, in any language">
+          </div>
+          <ul id="gresults2" class="res" role="listbox" aria-label="Glaciers you may mean" hidden></ul>
+          <p class="sstat" id="gstat" role="status" aria-live="polite" hidden></p>
+        </div>
+        <div class="pk" id="pk">
+          <select id="pick" aria-label="Glacier" hidden></select>
+          <button type="button" class="pk-btn" id="pickBtn" aria-haspopup="listbox" aria-expanded="false" aria-controls="pickMenu" aria-label="Glacier"><span class="pk-t" id="pickT">Choose a glacier…</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button>
+          <div class="pk-back" id="pickBack" hidden></div>
+          <ul class="pk-menu" id="pickMenu" role="listbox" aria-label="Glacier" hidden></ul>
+        </div>
+      </div>
+      </div>
+      <div class="info" id="info" hidden>
+        <button class="back" id="iBack" type="button" hidden></button>
+        <div class="lab" id="iLab"></div>
+        <h3 id="iName"></h3>
+        <p id="iText"></p>
+        <ul class="gl" id="iList"></ul>
+        <p class="making" id="iMaking" hidden><b>In the making.</b> You can fly to these glaciers, but their pictures are not open yet.</p>
+        <div class="row"><a class="btn-red" id="iGo" href="#">Open the dashboard</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
+        <p class="notready" id="iNot" role="status" hidden>This tongue isn't ready for Space yet.</p>
+      </div>
+      <div class="credit">Sentinel-2 cloudless 2025 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
+    </div>
+    <div class="tiles" id="tiles"></div>
+    <p class="maphint">Two fingers to move and zoom the map.</p>
+    <p class="tnote">Totals are the counts the inventories state; what an inventory counts as a glacier differs. Switzerland: the Swiss Glacier Inventory SGI2023 lists 1,289 glaciers (counted in the inventory file, GLAMOS). Iceland and Svalbard: Randolph Glacier Inventory 6.0 (regions Iceland and Svalbard and Jan Mayen). Norway: the 1999–2006 inventory, “3143 glaciers” (the count of the newer 2018–19 inventory could not be read). Sources: GLAMOS, SGI2023; rgidata.org; Andreassen et al. 2022, Journal of Glaciology.</p>
+    <p class="soonrow">Iceland, Norway and Svalbard are in the making. Their glaciers can be visited on the map, but not opened yet.</p>
+  </div></div>
+</section>
+
+
+<section class="s" id="how">
+  <div class="wrap">
+    <div class="sh">
+      <div>
+        <p class="eyebrow">Create and share</p>
+        <h2>Many ways to explore glacier tongues.</h2>
+        <p>Point at one, or tap it, to see it work.</p>
+      </div>
+    </div>
+    <div class="how">
+      <div class="vstage" id="vstage" aria-hidden="true"></div>
+      <ol class="feat" id="feat"></ol>
+    </div>
+    <div class="how-cta"><a class="btn-red js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+  </div>
+</section>
+<section class="quoteband">
+  <div class="wrap quotegrid">
+    <svg class="why-logo" viewBox="0 0 200 190" role="img" aria-label="Tongues from Space logo">
+      <defs>
+        <mask id="wlMouth" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><ellipse cx="100" cy="88" rx="48" ry="24" fill="#000"/></mask>
+        <mask id="wlGroove" maskUnits="userSpaceOnUse" x="-20" y="-20" width="240" height="240"><rect x="-20" y="-20" width="240" height="240" fill="#fff"/><path d="M92 90 C112 108 126 136 126 166" fill="none" stroke="#000" stroke-width="4" stroke-linecap="round"/></mask>
+      </defs>
+      <g fill="#0A1B33">
+        <path d="M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z" mask="url(#wlMouth)"/>
+        <path class="tongue" d="M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z" mask="url(#wlGroove)"/>
+        <path class="spark" d="M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z"/>
+      </g>
+    </svg>
+    <div class="qtext"><p>I believe in pictures. A before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p></div></div>
+</section>
+<section class="s alt" id="science">
+  <div class="wrap">
+    <div class="sh"><div>
+      <p class="eyebrow">Data and method</p>
+      <h2>What is measured and what is computed.</h2>
+      <p>The pictures are real satellite images. The figures come from published sources. Where the record has gaps I fill them by computation, with help from AI, and I mark it.</p><p>This site makes scientific monitoring easier to explore. It does not replace it. (In Switzerland it complements GLAMOS and the other published sources, which stay the authority for the figures.)</p>
+    </div></div>
+    <div class="sci" id="sciBody">
+      <details><summary><h3>Real satellite images, with their date</h3></summary><p>Each picture is an actual Sentinel-2 or Landsat scene. I crop it to a fixed frame and set the colours. I never paint in glaciers or generate scenes.</p></details>
+      <details><summary><h3>One clear picture per year</h3></summary><p>You do not have to wade through gigabytes of scenes. Every late-summer scene is scored for cloud, cloud shadow and snow on the tongue, the same way for every glacier and year. The clearest wins.</p></details>
+      <details><summary><h3>Gaps are filled, not hidden</h3></summary><p>Landsat 7 scenes after 2003 have missing stripes. I fill them from other scans of the same place.</p><p>Where no measured surface exists for a year, the 3D view uses an estimate from published elevation models and mass balance. That is my own computation, not a measurement.</p></details>
+      <details><summary><h3>Figures as the source states them</h3></summary><p>Lengths, areas, volumes and thicknesses appear as published, each with a note on where it is from. A value I calculate is marked as computed and never credited to the source. If I cannot read a figure in its source, I leave it out.</p></details>
+      <details><summary><h3>AI helps me build it</h3></summary><p>I use an AI assistant (Claude) to write code, find and read sources and draft texts. I decide what goes in, and I check what it produces before it is published.</p></details>
+      <details><summary><h3>Reviewed and tested</h3></summary><p>I review each glacier step by step: frame, outline, pictures, 3D view, figures and texts. Figures are compared with their source pages, and automated tests run before every release.</p></details>
+    </div>
+  </div>
+</section>
+</main>
+
+<footer>
+<section class="closing">
+  <div class="wrap">
+    <h2><span>Every glacier ends in a tongue.</span> <span>Now go look at yours.</span></h2>
+    <a class="btn-red go js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+  </div>
+</section>
+<div class="wrap">
+  <div>
+    <a class="brand" href="#top"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
+    <p class="tagline"><b>Glacier visuals,<br>done your way</b><span>J. Braakhekke</span></p>
+  </div>
+  <div class="src">
+    <details class="credits-fold" id="creditsFold" open><summary>Sources and credits</summary>
+    <p class="src-flight">Flight video: contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)</p>
+    <p>Non-commercial. Code MIT, own texts CC BY 4.0. Satellite pictures: contains modified Copernicus Sentinel data (Sentinel-2); older pictures from Landsat 5 and 7, USGS. Glacier statistics (Switzerland): GLAMOS. Background: Sentinel-2 cloudless by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> (CC BY-NC-SA 4.0), © OpenStreetMap contributors.</p>
+    </details>
+  </div>
+</div></footer>
+
+<dialog class="player" id="player">
+  <button type="button" id="closePlayer">Close ✕</button>
+  <video id="vid" controls playsinline muted preload="none" poster="teaser/teaser-wide-new-poster.d61bea0488.jpg">
+    <source src="teaser/teaser-wide-new.c38d62e109.webm" type="video/webm">
+    <source src="teaser/teaser-wide-new.457298ed70.mp4" type="video/mp4">
+  </video>
+</dialog>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js"></script>
+<script src="js/regions.33ce4880d0.js"></script>
+<script src="js/search.703918d7a5.js"></script>
+<script src="data/home-glaciers.js"></script>
+<script>
+const $ = id => document.getElementById(id);
+
+/* The picker is the front page (/); the dashboards live at the address of their region (js/00-regions.js, `path`).
+   Opened as /home.html (local use from the source tree) its links go to the local dashboard, index.html. */
+const LOCAL = /home\.html$/.test(location.pathname);
+const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r]).filter(c => c.path).flatMap(c => [c.id, ...(c.aliases || [])].map(id => [id, c.path])));      // aliases: the ids of old links (#r=is-rest)
+/* Links of the old site: /#g=aletsch&m=compare opened the Swiss dashboard at the root. Any hash that names a dashboard setting goes to the dashboard of its region. */
+(() => {
+  const h = location.hash.slice(1), q = new URLSearchParams(h);
+  if (!['g', 'm', 'a', 'b', 'from', 'to', 'one', 's', 'ol', 't', 'r', 'fun'].some(k => q.has(k))) return;
+  const region = q.get('r') || 'ch'; q.delete('r');
+  if (!LOCAL && REGIONS_ALL.flatMap(r => r.children || [r]).some(c => HIDDEN_REGIONS.includes(c.id) && [c.id, ...(c.aliases || [])].includes(region))) { history.replaceState(null, '', location.pathname); return; }      // a region in the making has no address: stay on the front page
+  const rest = q.toString();
+  location.replace(LOCAL ? 'index.html#' + h : (REGION_PATH[region] || REGION_PATH.ch) + '/' + (rest ? '#' + rest : ''));
+})();
+
+/* Deep space, drawn like the map viewer's backdrop (spaceCanvas in js/05-map.js): dark blue gradient, a soft Milky Way band, nebula glows, small stars. Fixed seed. */
+(() => {
+  const w = 1600, h = 1000, perStar = 2400, scale = 1;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  let seed = 20261009; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04070d'); g.addColorStop(1, '#0a1426'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const glow = (cx, cy, r, rgb, a) => { const q = x.createRadialGradient(cx, cy, 0, cx, cy, r); q.addColorStop(0, `rgba(${rgb},${a})`); q.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = q; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
+  glow(w * .22, h * .28, w * .55, '84,72,170', .11); glow(w * .84, h * .72, w * .5, '38,110,170', .10); glow(w * .5, h * .5, w * .4, '60,70,120', .05);
+  x.save(); x.translate(w / 2, h / 2); x.rotate(-0.38);
+  const band = x.createLinearGradient(0, -h * .22, 0, h * .22); band.addColorStop(0, 'rgba(150,170,230,0)'); band.addColorStop(.5, 'rgba(150,170,230,.055)'); band.addColorStop(1, 'rgba(150,170,230,0)');
+  x.fillStyle = band; x.fillRect(-w, -h * .22, 2 * w, h * .44);
+  for (let i = 0, n = Math.round(w * h / perStar * 1.6); i < n; i++) {
+    const px = (rnd() - .5) * w * 1.5, py = (rnd() + rnd() + rnd() - 1.5) * h * .2, a = 0.12 + rnd() * 0.35;
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.fillRect(px, py, .9 * scale, .9 * scale);
+  }
+  x.restore();
+  for (let i = 0, n = Math.round(w * h / perStar); i < n; i++) {
+    const px = rnd() * w, py = rnd() * h, k = rnd(), bright = k > .975, big = k > .88, r = (0.4 + Math.pow(rnd(), 4) * 1.0) * scale * (bright ? 2.8 : big ? 1.7 : 1), a = bright ? 0.9 : 0.2 + rnd() * 0.5;
+    if (big) glow(px, py, r * (bright ? 7 : 5), '190,210,255', bright ? .3 : .18);
+    if (bright) { x.strokeStyle = 'rgba(225,235,255,.45)'; x.lineWidth = .8 * scale; x.beginPath(); x.moveTo(px - r * 4, py); x.lineTo(px + r * 4, py); x.moveTo(px, py - r * 4); x.lineTo(px, py + r * 4); x.stroke(); }
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+  }
+  c.toBlob(blob => { const u = 'url(' + URL.createObjectURL(blob) + ')'; document.querySelectorAll('.hero, footer').forEach(el => { el.style.backgroundImage = u; }); });
+})();
+
+/* ---------- hero: a short 3D flight over Aletsch (video, scripts/record_home_hero.py), then the live 3D viewer of the dashboard in the same frame ----------
+   The viewer is index.html in an iframe (same origin) drawn 1280 x 720 and cropped to its stage (the left panel is 290 px wide), with the dashboard's own chrome hidden by a style
+   put into it from here: no change to the dashboard. It loads when the page is idle, plays the timelapse 2016 to 2026 in a loop, and takes over from the looping video as soon as it is
+   ready, and is the visitor's at once (drag or swipe to turn; the wheel scrolls the page). The slider this replaced is kept in
+   design/home-hero-slider/. Not loaded with reduced motion, "save data" or a slow connection: the video's poster stays. */
+(() => {
+  const fig = $('flight'), vid = $('flightVideo'), fr = $('flightLive'), what = $('flightWhat');
+  const c = navigator.connection || {};
+  if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;      // the poster stays
+  if (c.saveData || /(^|-)[23]g$/.test(c.effectiveType || '')) { vid.loop = true; vid.preload = 'auto'; vid.play().catch(() => {}); return; }      // slow connection: the flight video only
+  const STAGE_X = 290, STAGE_W = 990, STAGE_H = 720;
+  const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body .v3d-top{left:30px!important;top:22px!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
+  const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
+  new ResizeObserver(fit).observe(fig); fit();
+  let shown = false;
+  const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel zooms the view
+    if (shown) return; shown = true;
+    fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off');
+    $('dragHint').classList.add('on');
+    setTimeout(() => vid.pause(), 1000);
+    const touched = () => {      // the first touch ends the hint only; the timelapse keeps looping while the visitor turns the view
+      $('dragHint').classList.remove('on');
+    };
+    try { fr.contentDocument.addEventListener('pointerdown', touched, {once: true, capture: true}); } catch {}
+    fig.addEventListener('pointerdown', touched, {once: true});
+  };
+  const start = () => {
+    fr.src = 'index.html#g=aletsch&m=timelapse&from=2016&to=2026&v=3d';
+    fr.addEventListener('load', () => {
+      let tries = 0;
+      const poll = setInterval(() => {
+        try {
+          const d = fr.contentDocument, cv = d.getElementById('v3dCanvas');
+          if (++tries > 240) return clearInterval(poll);                       // a minute: the video stays
+          if (!cv || !cv.offsetWidth || !d.querySelector('.tl-play')) return;
+          d.body.classList.add('hint-done');                                       // the hero has its own hint pill; the viewer's "Drag to turn…" line stays off
+          if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's dashboard remembers; the classes only, so nothing is saved */
+          const st = d.createElement('style'); st.id = 'flightClean'; st.textContent = CLEAN; d.head.appendChild(st); const sp = d.getElementById('speedSel'); sp.value = 2; sp.dispatchEvent(new Event('input', {bubbles: true})); d.getElementById('loopToggle').checked = true; d.querySelector('.tl-play').click(); d.querySelectorAll('.mapbar,#v3dMeasure,#v3dTlLine,#tlDots,.tl-row').forEach(e => e.style.setProperty('display', 'none', 'important')); fr.contentWindow.dispatchEvent(new Event('resize')); }
+          clearInterval(poll); show();
+        } catch { clearInterval(poll); }
+      }, 250);
+    }, {once: true});
+  };
+  setTimeout(start, 300);      // the viewer loads at once, behind the video, so that it is ready when the flight ends
+})();
+
+/* ---------- the audience cards: opening one closes the others (the name attribute does it where supported) ---------- */
+document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle', () => { if (d.open) document.querySelectorAll('.aud-card[open]').forEach(o => { if (o !== d) o.open = false; }); }));
+
+/* ---------- what you can do: a clip per point (scripts/make_home_clips.py) ---------- */
+(() => {
+  const POINTS = [
+    ['years',   'Watch the years pass',   'The best picture of each year in one loop: snow, ice, lakes and green slopes shifting from year to year.'],
+    ['compare', 'Slide between summers',  'Drag a line across two years and watch one landscape turn into another.'],
+    ['fly',     'Fly over the ice in 3D', 'The satellite picture draped over the terrain: swoop along the glacier and look up at the peaks.'],
+    ['cross',   'Cut through the ice',    'Draw a line across the tongue and see the ice on top and the rock under it, with the radar measurements where they exist.'],
+    ['then',    'Step into old photographs', 'Historic photographs, set into the 3D view where the photographer stood (the Swiss glaciers for now).'],
+    ['numbers', 'Discover and read the numbers', 'What to look for, trails with the tongue in view, and the figures of every glacier; for Switzerland also thickness and volume, with their sources.'],
+    ['size',    'Size it up against a city', 'Drag the outline of a glacier onto Zürich, Bern or Basel and see how big it really is.'],
+    ['share',   'Take it with you',       'Download a picture or an animation for your phone, ready to post.']
+  ];
+  const stage = $('vstage'), feat = $('feat'), still = matchMedia('(prefers-reduced-motion:reduce)').matches;
+  const vids = [], btns = [];
+  let cur = -1, locked = false, started = false;
+  POINTS.forEach(([k, title, text], i) => {
+    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'metadata'; v.poster = 'images/home/clips/' + k + '.jpg'; v.src = 'images/home/clips/' + k + '.mp4';
+    v.addEventListener('ended', () => { if (!locked) select((i + 1) % POINTS.length); });
+    v.addEventListener('timeupdate', () => { if (v.duration) btns[i].style.setProperty('--p', (100 * v.currentTime / v.duration) + '%'); });
+    stage.appendChild(v); vids.push(v);
+    const li = document.createElement('li'), b = document.createElement('button'); b.type = 'button';
+    b.innerHTML = '<span class="n">' + (i + 1) + '</span><b>' + title + '</b><span class="t">' + text + '</span>';
+    b.onclick = () => { locked = true; select(i, true); };
+    if (matchMedia('(hover:hover)').matches) b.onpointerenter = () => { if (cur !== i) { locked = true; select(i, true); } };
+    li.appendChild(b); feat.appendChild(li); btns.push(b);
+  });
+  function select(i, user) {
+    if (i === cur && !user) return;
+    cur = i;
+    vids.forEach((v, j) => { v.classList.toggle('on', j === i); if (j !== i) { v.pause(); btns[j].style.setProperty('--p', '0%'); } });
+    btns.forEach((b, j) => j === i ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current'));
+    vids[i].loop = locked; vids[i].currentTime = 0; vids[i].play().catch(() => {});
+  }
+  // show the first poster at once; start playing when the section scrolls into view
+  vids[0].classList.add('on'); btns[0].setAttribute('aria-current', 'true'); cur = 0;
+  if (!still && 'IntersectionObserver' in window) new IntersectionObserver((es, o) => { if (es[0].isIntersecting && !started) { started = true; if (!locked) select(0, true); o.disconnect(); } }, { threshold: .4 }).observe(stage);
+})();
+
+/* ---------- teaser dialog ---------- */
+const player = $('player'), vid = $('vid');
+const openFilm = () => { player.showModal(); vid.muted = false; vid.play().catch(() => {}); };
+$('watch').onclick = openFilm;
+$('closePlayer').onclick = () => player.close();
+player.addEventListener('close', () => vid.pause());
+player.addEventListener('click', e => { if (e.target === player) player.close(); });
+
+/* ---------- regions: paths are the real addresses of js/00-regions.js ---------- */
+/* totals of glaciers as the inventories state them (read at the sources 2026-11-03; docs/SOURCES.md): ch SGI2023 1,289 entries (counted in data/glaciers.js inventory.count, from the GLAMOS file inventory_sgi2023_r2026); is, no-svalbard RGI 6.0 table of rgidata.org (06 Iceland 568, 07 Svalbard and Jan Mayen 1615); no-mainland "3143 glaciers" of the 1999-2006 inventory (Andreassen et al. 2022) */
+const TOTALS = { ch: '1,289', is: '568', 'no-svalbard': '1615', 'no-mainland': '3143' };
+const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picker).map(c => {      // the records of js/regions.js: the same list as the dashboard's region menu, plus the planned regions
+  const soon = !c.ready || HIDDEN_REGIONS.includes(c.id);      // not published (yet): shown, not clickable
+  const n = (window.HOME_GLACIERS || []).filter((g) => g.region === c.id && !g.parent).length;      // glaciers the data holds for the region
+  const making = soon && c.ready && n > 0;      // in the making: the map flies to its glaciers, but they cannot be opened
+  return { id: c.id, group: r.name, name: c.name, soon, making, href: c.path ? c.path + '/' : undefined, ...c.picker, n: c.ready ? (soon ? (making ? `In the making · ${n} glaciers` : 'In the making') : `${n} glaciers`) : undefined };
+}));
+
+
+const map = L.map('map', { worldCopyJump: true, minZoom: 2, maxZoom: 12, scrollWheelZoom: false, dragging: !L.Browser.mobile, tap: false }).setView([67, 8], 3);      // touch: one finger scrolls the page past the map, two fingers (pinch) move and zoom it      // the five regions; the planned ones are one zoom out
+map.on('focus', () => map.scrollWheelZoom.enable()); map.on('blur', () => map.scrollWheelZoom.disable());
+/* The glacier picker with its map is hidden on phones (css/home.css, "a short front page"), and on larger screens it sits below the first screen: its pictures are fetched when it is about to come into view (or when a window is widened so that it shows) */
+let mapTiles = false;
+function loadMapTiles() {
+  if (mapTiles || getComputedStyle(document.getElementById('regions')).display === 'none') return;
+  const r = document.getElementById('map').getBoundingClientRect();
+  if ('IntersectionObserver' in window && r.top > innerHeight + 400) return;      // far below: the observer below calls this again
+  mapTiles = true;
+  L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2025_3857/default/g/{z}/{y}/{x}.jpg', { maxNativeZoom: 14, maxZoom: 17 }).addTo(map);
+  L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/{z}/{y}/{x}.png', { maxNativeZoom: 16, maxZoom: 17, opacity: .9 }).addTo(map);
+  map.invalidateSize();
+}
+loadMapTiles();
+addEventListener('resize', loadMapTiles);
+if ('IntersectionObserver' in window) new IntersectionObserver(es => { if (es.some(e => e.isIntersecting)) loadMapTiles(); }, { rootMargin: '400px 0px' }).observe(document.getElementById('map'));
+
+const pick = $('pick'), tiles = $('tiles'), list = $('iList');
+const byRegion = id => (window.HOME_GLACIERS || []).filter(g => g.region === id);
+/* a region's glaciers, largest first, each ice cap followed by its own outlets (also largest first) */
+const ordered = id => { const all = byRegion(id), top = all.filter(g => !g.parent).sort((a, b) => b.area - a.area); return top.flatMap(g => [g, ...all.filter(x => x.parent === g.id).sort((a, b) => b.area - a.area)]); };
+const nameOf = g => g.name + (g.approx ? ' ≈' : '');      // ≈: the name of the outlet is inferred, not certain (as in the dashboard)
+const fmtArea = a => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
+const regionHref = r => LOCAL ? 'index.html' + (r.id === 'ch' ? '' : '#r=' + r.id) : r.href;
+{ const ch = REGIONS.find(r => r.id === 'ch'); if (ch) { document.querySelectorAll('.js-dash').forEach(a => { a.href = regionHref(ch); }); document.querySelectorAll('.js-view').forEach(a => { a.href = regionHref(ch) + '#' + a.dataset.view; }); } }      // the dashboard, one click from the top
+const glacierHref = (r, g) => { const q = 'g=' + encodeURIComponent(g.parent || g.id) + (g.parent ? '&sub=' + g.sub : ''); return LOCAL ? 'index.html#' + (r.id === 'ch' ? '' : 'r=' + r.id + '&') + q : r.href + '#' + q; };
+
+pick.innerHTML = '<option value="">Choose a glacier…</option>';
+const pickItems = [];      // the same list as the hidden select, for the menu: {head} or {value, text, area, indent, disabled}
+let lastGroup = null, grp = null;
+for (const r of REGIONS) {
+  if (r.group !== lastGroup) { lastGroup = r.group; }
+  grp = document.createElement('optgroup'); grp.label = r.group === r.name ? r.name : r.group + ' · ' + r.name; pick.appendChild(grp);
+  pickItems.push({head: grp.label});
+  const o = new Option(r.soon ? r.name + ' (in the making)' : 'All of ' + r.name, 'r:' + r.id); o.disabled = r.soon && !r.making; grp.appendChild(o);
+  pickItems.push({value: 'r:' + r.id, text: o.text, indent: 0, disabled: o.disabled, region: true});
+  if (!r.soon || r.making) for (const g of ordered(r.id)) { grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id)); pickItems.push({value: 'g:' + g.id, text: nameOf(g), area: fmtArea(g.area), indent: g.parent ? 1 : 0}); }
+  r.marker = L.marker(r.ll, { icon: L.divIcon({ className: 'pin' + (r.soon ? ' soon' : '') + (r.side ? ' ' + r.side : ''), html: '<span>' + r.name + '</span>', iconSize: [0, 0] }), keyboard: true, title: r.name }).addTo(map);
+  if (r.soon && !r.n) continue;
+  if (!r.soon || r.making) r.marker.on('click', () => chooseRegion(r.id));
+  const t = document.createElement('button'); t.type = 'button'; t.className = 'tile' + (r.making ? ' making' : ''); t.dataset.id = r.id; t.disabled = r.soon && !r.making;
+  t.innerHTML = '<span class="st ' + (r.soon || r.making ? 'soon' : 'open') + '">' + (r.soon || r.making ? 'In the making' : 'Open') + '</span><span class="c">' + r.group + '</span><b>' + r.name + '</b><small>' + r.n + '</small>' + (TOTALS[r.id] ? '<small class="of">out of ' + TOTALS[r.id] + ' total glaciers</small>' : '');
+  if (!r.soon || r.making) t.onclick = () => chooseRegion(r.id);
+  tiles.appendChild(t);
+}
+
+/* the opening view: all the region pins with room around them (the labels hang to the side of each pin) */
+{ const pins = REGIONS.filter(r => r.marker && !r.soon).map(r => r.ll); if (pins.length) { map.options.zoomSnap = 0.1; map.fitBounds(L.latLngBounds(pins), { paddingTopLeft: [90, 50], paddingBottomRight: [120, 50], maxZoom: 5, animate: false }); map.options.zoomSnap = 1; } }
+
+/* fly to a place, leaving it clear of the card on the left */
+function fly(ll, zoom) {
+  const off = matchMedia('(min-width:901px)').matches ? 170 : 0;
+  const c = map.unproject(map.project(ll, zoom).subtract([off, 0]), zoom);
+  map.flyTo(c, zoom, { duration: 1.1 });
+}
+/* fly to a region as close as all its glacier dots still fit, clear of the card on the left (on phones the card sits under the map) */
+function flyToDots(r) {
+  const ll = Object.values(glMarkers).map(m => m.getLatLng());
+  if (!ll.length) return fly(r.ll, r.zoom);
+  const wide = matchMedia('(min-width:901px)').matches;
+  map.flyToBounds(L.latLngBounds(ll), { paddingTopLeft: [wide ? 350 : 40, 50], paddingBottomRight: [50, 50], maxZoom: r.zoom + 2, duration: 1.1 });
+}
+const glLayer = L.layerGroup().addTo(map);
+/* The catchment of the chosen glacier: its outline (data/home-outlines.js, generated, thinned; loaded on the first choice). */
+const outLayer = L.layerGroup().addTo(map);
+let outlinesAsked = null, shownOutline = null;
+const loadOutlines = () => outlinesAsked || (outlinesAsked = new Promise(res => { const sc = document.createElement('script'); sc.src = 'data/home-outlines.js'; sc.onload = sc.onerror = () => res(window.HOME_OUTLINES || {}); document.head.appendChild(sc); }));
+function showOutline(gid) {
+  shownOutline = gid; outLayer.clearLayers();
+  if (!gid) return;
+  loadOutlines().then(all => {
+    if (shownOutline !== gid || !all[gid]) return;      // another glacier was chosen meanwhile
+    for (const ring of all[gid]) {      // a white casing under a red line: it shows on snow and on dark rock alike
+      L.polygon(ring, { color: '#fff', weight: 5, opacity: .7, fill: false, interactive: false }).addTo(outLayer);
+      L.polygon(ring, { color: '#C8322A', weight: 2, opacity: 1, fillColor: '#C8322A', fillOpacity: .12, interactive: false }).addTo(outLayer);
+    }
+  });
+}
+let glMarkers = {};
+function drawGlaciers(r) {
+  glLayer.clearLayers(); glMarkers = {};
+  if (!r) return;
+  for (const g of byRegion(r.id)) {
+    const m = L.marker(g.tip, { icon: L.divIcon({ className: 'gdot' + (g.parent ? ' sub' : ''), html: '<i></i>', iconSize: [0, 0] }), keyboard: true, title: g.name })
+      .bindTooltip(nameOf(g) + (g.parent ? ' · outlet' : ''), { direction: 'top', offset: [0, -8], className: 'gtip' }).addTo(glLayer);
+    m.on('click', () => chooseGlacier(g.id)); glMarkers[g.id] = m;
+  }
+}
+
+function clearMarks() {
+  document.querySelectorAll('.pin,.gdot').forEach(p => p.classList.remove('on'));
+  tiles.querySelectorAll('.tile').forEach(b => b.removeAttribute('aria-current'));
+}
+function reset() { showOutline(null); clearMarks(); drawGlaciers(null); $('info').hidden = true; $('iNot').hidden = true; setPick(''); history.replaceState(null, '', location.pathname); }
+
+function chooseRegion(id, doFly = true) {
+  const r = REGIONS.find(x => x.id === id);
+  if (!r || (r.soon && !r.making)) return reset();
+  $('iNot').hidden = true; $('iMaking').hidden = !r.making;
+  showOutline(null); clearMarks(); drawGlaciers(r);
+  setPick('r:' + id);
+  r.marker.getElement().classList.add('on');
+  tiles.querySelector('[data-id="' + id + '"]').setAttribute('aria-current', 'true');
+  const gs = ordered(id);
+  $('iBack').hidden = true;
+  $('iLab').textContent = r.group === r.name ? r.n : r.group + ' · ' + r.n;
+  $('iName').textContent = r.name; $('iText').textContent = r.text;
+  list.hidden = false; list.innerHTML = '';
+  for (const g of gs) { const li = document.createElement('li'); const b = document.createElement('button'); b.type = 'button'; if (g.parent) li.className = 'sub';
+    b.innerHTML = nameOf(g) + '<small>' + fmtArea(g.area) + '</small>'; b.onclick = () => chooseGlacier(g.id);
+    b.onmouseenter = () => glMarkers[g.id] && glMarkers[g.id].openTooltip(); b.onmouseleave = () => glMarkers[g.id] && glMarkers[g.id].closeTooltip();
+    li.appendChild(b); list.appendChild(li); }
+  $('iGo').textContent = 'Open the region'; $('iGo').href = regionHref(r); $('iGo').hidden = !!r.making; $('iGo2').hidden = true; $('info').hidden = false;
+  if (doFly) flyToDots(r);
+  history.replaceState(null, '', '#' + id);
+}
+
+function chooseGlacier(gid, doFly = true) {
+  const g = (window.HOME_GLACIERS || []).find(x => x.id === gid); if (!g) return;
+  const r = REGIONS.find(x => x.id === g.region); if (!r || (r.soon && !r.making)) return;
+  if (!$('info').dataset.region || $('info').dataset.region !== r.id || !glMarkers[gid]) { clearMarks(); drawGlaciers(r); r.marker.getElement().classList.add('on'); tiles.querySelector('[data-id="' + r.id + '"]').setAttribute('aria-current', 'true'); }
+  $('info').dataset.region = r.id;
+  document.querySelectorAll('.gdot').forEach(p => p.classList.remove('on')); glMarkers[gid].getElement().classList.add('on');
+  setPick('g:' + gid);
+  $('iBack').hidden = false; $('iBack').textContent = '← All of ' + r.name; $('iBack').onclick = () => chooseRegion(r.id);
+  $('iLab').textContent = r.group === r.name ? r.name : r.group + ' · ' + r.name;
+  const parent = g.parent && (window.HOME_GLACIERS || []).find(x => x.id === g.parent);
+  $('iName').textContent = g.name; $('iText').textContent = (parent ? 'Outlet of ' + parent.name + '. ' : '') + 'Area ' + fmtArea(g.area) + '.';
+  list.hidden = true; $('iGo').textContent = 'Open ' + g.name; $('iGo').href = r.making ? '#' : glacierHref(r, g); $('iGo').hidden = false;
+  $('iMaking').hidden = !r.making; $('iNot').hidden = true;      // a glacier of a region in the making: the button only says so
+  $('iGo').onclick = r.making ? e => { e.preventDefault(); $('iNot').hidden = false; } : null;
+  $('iGo2').hidden = true; $('info').hidden = false;
+  if (doFly) fly(g.tip, g.parent ? 11 : r.id === 'ch' ? 10 : 8);      // an outlet of an ice cap: close in on its tongue; (the map's zoom limit used to cap Switzerland at 10)
+  glMarkers[gid].openTooltip();
+  showOutline(gid);
+  history.replaceState(null, '', '#glacier=' + gid);      // the picker's own link; #g= is a dashboard link
+}
+/* the picker: the same look as the glacier list of the dashboard (white card, red bar at the left, area at the right); on phones the list is a sheet from the bottom */
+const pickBtn = $('pickBtn'), pickMenu = $('pickMenu'), pickBack = $('pickBack');
+function setPick(v) { pick.value = v; const it = pickItems.find(i => i.value === v); $('pickT').textContent = it ? it.text : 'Choose a glacier…'; pickBtn.classList.toggle('ph', !it); pickMenu.querySelectorAll('li[role=option]').forEach(li => li.setAttribute('aria-selected', li.dataset.v === v)); }
+pickMenu.innerHTML = pickItems.map(i => i.head ? '<li class="hd" role="presentation">' + i.head + '</li>' : '<li role="option" class="' + (i.indent ? 'sub' : '') + (i.region ? ' rg' : '') + '" data-v="' + i.value + '" aria-selected="false"' + (i.disabled ? ' aria-disabled="true"' : '') + '><span>' + i.text + '</span>' + (i.area ? '<small>' + i.area + '</small>' : '') + '</li>').join('');
+function openPick(on) { pickMenu.hidden = pickBack.hidden = !on; pickBtn.setAttribute('aria-expanded', on); document.body.classList.toggle('pk-open', on); if (on) { const s = pickMenu.querySelector('[aria-selected=true]'); if (s) s.scrollIntoView({ block: 'nearest' }); } }
+pickBtn.onclick = () => openPick(pickMenu.hidden);
+pickBack.onclick = () => openPick(false);
+pickMenu.onclick = e => { const li = e.target.closest('li[role=option]'); if (!li || li.getAttribute('aria-disabled') === 'true') return; openPick(false); setPick(li.dataset.v); pick.onchange(); };
+document.addEventListener('click', e => { if (!pickMenu.hidden && !e.target.closest('#pk')) openPick(false); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape' && !pickMenu.hidden) { openPick(false); pickBtn.focus(); } });
+pick.onchange = () => { const [k, id] = pick.value.split(/:(.+)/); if (k === 'r') chooseRegion(id); else if (k === 'g') chooseGlacier(id); else reset(); };
+const start = location.hash.slice(1);
+if (start.startsWith('glacier=')) chooseGlacier(decodeURIComponent(start.slice(8)));
+else if (REGIONS.some(r => r.id === start && (!r.soon || r.making))) chooseRegion(start, false);
+</script>
+<script>
+/* ---------- search: any language, forgiving of typos (js/search.js); the names in other languages (data/glacier-aliases.js, Wikidata, CC0) load when the box is first used.
+   Its own script on purpose: it needs the region records and nothing of the map, so it works when the map library cannot be loaded. ---------- */
+(() => {
+  const el = (id) => document.getElementById(id);
+  const LOCAL_PAGE = /home\.html$/.test(location.pathname);
+  const regions = REGIONS_ALL.flatMap((r) => r.children || [r]).filter((c) => c.ready && !HIDDEN_REGIONS.includes(c.id));      // the regions that are open
+  const regionOf = (id) => regions.find((r) => r.id === id);
+  const area = (a) => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
+  let items = [], aliasesAsked = false;
+  const boxes = [];      // one entry per search box on the page (the one in the first screen, the one at the map)
+  const lang = (c) => { try { return new Intl.DisplayNames(['en'], { type: 'language' }).of(c) || c; } catch (e) { return c; } };
+  const esc = (t) => String(t).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const build = () => {
+    const al = window.GLACIER_ALIASES || {};
+    items = (window.HOME_GLACIERS || []).filter((g) => regionOf(g.region)).map((g) => ({ id: g.id, label: g.name, names: (al[g.id] && al[g.id].names) || [], region: g.region, area: g.area, parent: g.parent, sub: g.sub, weight: Math.log10(1 + g.area) * 0.01 }));
+  };
+  build();
+  const askAliases = () => { if (aliasesAsked) return; aliasesAsked = true; const sc = document.createElement('script'); sc.src = 'data/glacier-aliases.js'; sc.onload = () => { build(); boxes.forEach((b) => { if (b.input.value.trim()) b.render(); }); }; document.head.appendChild(sc); };
+  /* a search that finds nothing: offer to tell us (the Worker accepts only glaciers on Wikidata's list, see worker.js "please add this glacier") */
+  let askCfg = null;
+  const askConfig = () => askCfg || (askCfg = fetch('/ask/config').then((r) => (r.ok ? r.json() : { open: false })).catch(() => ({ open: false })));
+  const loadTurnstile = () => (window.turnstile ? Promise.resolve() : new Promise((res, rej) => { const sc = document.createElement('script'); sc.src = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit'; sc.async = true; sc.onload = res; sc.onerror = rej; document.head.appendChild(sc); }));
+  const offerAsk = async (stat, q) => {
+    const cfg = await askConfig();
+    if (!cfg.open || stat.hidden || !stat.textContent.includes(`“${q}”`) || stat.querySelector('.ask')) return;
+    const w = document.createElement('div'); w.className = 'ask';
+    const b = document.createElement('button'); b.type = 'button'; b.textContent = 'Ask me to add this glacier';
+    const m = document.createElement('p'); m.className = 'askmsg'; m.setAttribute('role', 'status');
+    const t = document.createElement('div'); t.className = 'askcheck'; t.hidden = true;
+    w.append(b, t, m); stat.append(w);
+    b.onclick = async () => {
+      b.disabled = true; m.textContent = '';
+      try {
+        await loadTurnstile(); t.hidden = false;
+        window.turnstile.render(t, { sitekey: cfg.siteKey, theme: 'light', callback: async (token) => {
+          t.hidden = true; m.textContent = 'Sending…';
+          try {
+            const r = await fetch('/ask/glacier', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ name: q, token, lang: (navigator.language || '').slice(0, 2).toLowerCase() }) }), j = await r.json().catch(() => ({}));
+            if (r.ok) { b.hidden = true; m.textContent = `Thank you! I have noted ${j.label || q}.`; }
+            else { b.disabled = false; m.textContent = j.message || j.error || 'That did not work. Please try again.'; }
+          } catch { b.disabled = false; m.textContent = 'That did not work. Please try again.'; }
+        }, 'error-callback': () => { b.disabled = false; t.hidden = true; m.textContent = 'The check could not be loaded. Please try again.'; } });
+      } catch { b.disabled = false; m.textContent = 'The check could not be loaded. Please try again.'; }
+    };
+  };
+  const setup = (input) => {
+    const root = input.closest('.search'), box = root.querySelector('.res'), stat = root.querySelector('.sstat'), pre = input.id + '-r';
+    let active = -1, shown = [];
+    const close = () => { box.hidden = true; input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); active = -1; };
+    function render() {
+      const q = input.value.trim();
+      stat.hidden = true;
+      if (!q) { box.innerHTML = ''; return close(); }
+      shown = GlacierSearch.search(q, items, { limit: 8 });
+      if (!shown.length) { box.innerHTML = ''; close(); stat.hidden = false; stat.textContent = `No glacier found for “${q}”. Try another spelling, or choose a region on the map below.`; offerAsk(stat, q); return; }
+      const unsure = shown[0].score < 0.8;
+      box.innerHTML = (unsure ? '<li class="hd" role="presentation">Did you mean…</li>' : '') + shown.map((r, i) => {
+        const also = GlacierSearch.fold(r.name) !== GlacierSearch.fold(r.item.label) ? `<small class="al">also called “${esc(r.name)}”${r.lang ? ' (' + esc(lang(r.lang)) + ')' : ''}</small>` : '';
+        return `<li role="option" id="${pre}${i}" data-i="${i}"><span class="n"><b>${esc(r.item.label)}</b>${also}</span><small>${r.item.parent ? 'Outlet of ' + esc(items.find((x) => x.id === r.item.parent).label) : esc(regionOf(r.item.region).name)} · ${area(r.item.area)}</small></li>`;
+      }).join('');
+      box.hidden = false; input.setAttribute('aria-expanded', 'true'); setActive(unsure ? -1 : 0);
+    }
+    function setActive(i) {
+      active = i;
+      box.querySelectorAll('[role=option]').forEach((li, k) => li.setAttribute('aria-selected', k === i ? 'true' : 'false'));
+      if (i >= 0) input.setAttribute('aria-activedescendant', pre + i); else input.removeAttribute('aria-activedescendant');
+    }
+    function choose(i) {
+      const r = shown[i]; if (!r) return;
+      input.value = r.item.label; close();
+      if (typeof chooseGlacier === 'function') {      // the map is there: go to the region section and open the glacier's card
+        document.querySelector('.mapbox').scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion:reduce)').matches ? 'auto' : 'smooth', block: 'center' });      // the map itself, not the top of the section (the Why block is above it)
+        chooseGlacier(r.item.id);
+      } else {      // no map (its library did not load): open the glacier's page
+        const rg = regionOf(r.item.region), q = 'g=' + encodeURIComponent(r.item.parent || r.item.id) + (r.item.parent ? '&sub=' + r.item.sub : '');
+        location.href = LOCAL_PAGE ? 'index.html#' + (rg.id === 'ch' ? '' : 'r=' + rg.id + '&') + q : rg.path + '/#' + q;
+      }
+    }
+    input.addEventListener('focus', askAliases);
+    input.addEventListener('input', () => { askAliases(); render(); });
+    input.addEventListener('keydown', (e) => {
+      const n = shown.length;
+      if (e.key === 'ArrowDown' && n) { e.preventDefault(); if (box.hidden) render(); else setActive((active + 1) % n); }
+      else if (e.key === 'ArrowUp' && n) { e.preventDefault(); setActive((active - 1 + n) % n); }
+      else if (e.key === 'Enter') { if (!box.hidden && shown.length) { e.preventDefault(); choose(active >= 0 ? active : 0); } }
+      else if (e.key === 'Escape') { if (!box.hidden) { e.preventDefault(); close(); } else input.value = ''; }
+    });
+    box.addEventListener('mousedown', (e) => { const li = e.target.closest('[data-i]'); if (li) { e.preventDefault(); choose(Number(li.dataset.i)); } });
+    box.addEventListener('mousemove', (e) => { const li = e.target.closest('[data-i]'); if (li && Number(li.dataset.i) !== active) setActive(Number(li.dataset.i)); });
+    document.addEventListener('click', (e) => { if (!root.contains(e.target)) close(); });
+    boxes.push({ input, render });
+  };
+  document.querySelectorAll('.search input[role=combobox]').forEach(setup);
+})();
+
+/* the sources and credits in the footer: folded on phones (tap to open), always open on larger screens, where the toggle is hidden (css/home.css) */
+{ const fold = document.getElementById('creditsFold'), phone = matchMedia('(max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px)');
+  const sync = () => { fold.open = !phone.matches; };
+  sync(); phone.addEventListener('change', sync); }
+
+/* phones held sideways: the five audience buttons stay in one row and the opened text sits under the row (css/home.css); the row reserves the height of the opened text */
+{ const aud = document.querySelector('.whyband .aud');
+  const size = () => { const o = aud.querySelector('.aud-card[open] .aud-more'); aud.style.setProperty('--open-h', o ? o.offsetHeight + 'px' : '0px'); };
+  aud.addEventListener('toggle', size, true); addEventListener('resize', size); }
+</script>
+<script defer src="js/turn-upright.151645b964.js"></script>
+</body>
+</html>

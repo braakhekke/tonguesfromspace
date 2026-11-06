@@ -1,0 +1,80 @@
+{
+ "model": "tacofoundation/sen2sr SEN2SRLite (main), 10 bands, x4, model card licence cc0-1.0",
+ "gain": 2.6,
+ "strip": {
+  "azimuth": 271.9,
+  "half": 2507,
+  "back": 2435,
+  "up": 6657
+ },
+ "size": 4096,
+ "built": "2026-11-02",
+ "years": {
+  "2016": {
+   "date": "2016-09-09",
+   "bytes": 780850,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2017": {
+   "date": "2017-08-25",
+   "bytes": 677178,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2018": {
+   "date": "2018-08-15",
+   "bytes": 769622,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2019": {
+   "date": "2019-08-25",
+   "bytes": 791044,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2020": {
+   "date": "2020-08-09",
+   "bytes": 766358,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2021": {
+   "date": "2021-08-14",
+   "bytes": 800288,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2022": {
+   "date": "2022-08-09",
+   "bytes": 744682,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2023": {
+   "date": "2023-08-19",
+   "bytes": 718168,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2024": {
+   "date": "2024-08-23",
+   "bytes": 786256,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2025": {
+   "date": "2025-08-08",
+   "bytes": 732930,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  },
+  "2026": {
+   "date": "2026-08-13",
+   "bytes": 741578,
+   "m_per_px_across": 1.22,
+   "m_per_px_along": 2.22
+  }
+ }
+}

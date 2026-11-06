@@ -143,6 +143,12 @@ def main():
     blob = json.dumps({'glaciers': out, 'cities': cities}, separators=(',', ':'))
     html = PAGE.read_text()
     html = inject(html, 'DATA', '<script>window.SIZE_DATA=' + blob + ';</script>')
+    vols = ROOT / 'data' / 'ice-volumes.json'      # the 3D ice cubes (scripts/build_ice_volumes.py); the page works without them, 3D then has no volumes
+    if vols.exists():
+        html = inject(html, 'ICEVOL', '<script>window.ICE_VOLUMES=' + json.dumps(json.loads(vols.read_text()), separators=(',', ':')) + ';</script>')
+    deb = ROOT / 'data' / 'debris-share.json'      # share of non-ice pixels inside the SGI2023 outline (scripts/build_debris_share.py): how much grit the ice ball carries
+    if deb.exists():
+        html = inject(html, 'DEBRIS', '<script>window.DEBRIS_SHARE=' + json.dumps({k: v['share'] for k, v in json.loads(deb.read_text())['glaciers'].items()}, separators=(',', ':')) + ';</script>')
     idx = (ROOT / 'index.html').read_text()
     html = inject(html, 'SPRITE', re.search(r'<svg width="0" height="0".*?</defs></svg>', idx, re.S).group(0))
     html = inject(html, 'LOGO', re.search(r'<img class="brand-logo"[^>]*>', idx).group(0))
