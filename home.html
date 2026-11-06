@@ -58,7 +58,7 @@
       </video>
       <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
       <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span></figcaption>
-      <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around</div>
+      <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around, scroll to zoom</div>
     </figure>
     </div>
   </div>
@@ -278,7 +278,7 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
   const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
   new ResizeObserver(fit).observe(fig); fit();
   let shown = false;
-  const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel scrolls the page, it does not zoom
+  const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel zooms the view
     if (shown) return; shown = true;
     fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off');
     $('dragHint').classList.add('on');
@@ -288,7 +288,6 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
     };
     try { fr.contentDocument.addEventListener('pointerdown', touched, {once: true, capture: true}); } catch {}
     fig.addEventListener('pointerdown', touched, {once: true});
-    try { fr.contentDocument.addEventListener('wheel', e => { if (e.ctrlKey) return; e.stopImmediatePropagation(); e.preventDefault(); scrollBy(e.deltaX, e.deltaY); }, {capture: true, passive: false}); } catch {}
   };
   const start = () => {
     fr.src = 'index.html#g=aletsch&m=timelapse&from=2016&to=2026&v=3d';
@@ -299,6 +298,7 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
           const d = fr.contentDocument, cv = d.getElementById('v3dCanvas');
           if (++tries > 240) return clearInterval(poll);                       // a minute: the video stays
           if (!cv || !cv.offsetWidth || !d.querySelector('.tl-play')) return;
+          d.body.classList.add('hint-done');                                       // the hero has its own hint pill; the viewer's "Drag to turn…" line stays off
           if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's dashboard remembers; the classes only, so nothing is saved */
           const st = d.createElement('style'); st.id = 'flightClean'; st.textContent = CLEAN; d.head.appendChild(st); const sp = d.getElementById('speedSel'); sp.value = 2; sp.dispatchEvent(new Event('input', {bubbles: true})); d.getElementById('loopToggle').checked = true; d.querySelector('.tl-play').click(); d.querySelectorAll('.mapbar,#v3dMeasure,#v3dTlLine,#tlDots,.tl-row').forEach(e => e.style.setProperty('display', 'none', 'important')); fr.contentWindow.dispatchEvent(new Event('resize')); }
           clearInterval(poll); show();
