@@ -1210,7 +1210,7 @@ export function muxMp4({ width, height, fps, avcC, samples }){
 
 /* The credits on the preview follow the layers: a switch changed while a download pane is open redraws the frame (outlines, radar, trails, aerial images change the source list) */
 document.addEventListener('change', e => { if (!$('videoSheet').hidden && e.target.closest && e.target.closest('.layerbox, #v3dLayers')) setTimeout(updateFrame, 0); });
-document.addEventListener('input', e => { if (!$('videoSheet').hidden && viewMode !== '3d' && e.target.id === 'imgOpacity' || e.target.id === 'mapOp') setTimeout(() => { if (!$('videoSheet').hidden && viewMode !== '3d') drawPreview(); }, 0); });      // the year and date leave the frame as the picture fades out
+document.addEventListener('input', e => { if (!$('videoSheet').hidden && viewMode !== '3d' && /** @type {HTMLElement} */ (e.target).id === 'imgOpacity' || /** @type {HTMLElement} */ (e.target).id === 'mapOp') setTimeout(() => { if (!$('videoSheet').hidden && viewMode !== '3d') drawPreview(); }, 0); });      // the year and date leave the frame as the picture fades out
 export function setLastExport(v){ return lastExport = v; }      // the other files may not assign to an imported variable
 export function setBrandMotion(v){ return brandMotion = v; }      // the other files may not assign to an imported variable
 export function setLogoAsked(v){ return logoAsked = v; }      // the other files may not assign to an imported variable
