@@ -17,6 +17,7 @@
 <meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/sitebar.css">
 <style>
 .filters{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end;margin:0 0 16px}
 .filters label{display:flex;flex-direction:column;gap:3px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--moraine)}
@@ -40,8 +41,30 @@
 .item .dl:hover{background:var(--rule)}
 .item .acts .dl:last-child:not(:only-child){background:var(--ink);color:#fff}
 .item .acts .dl:last-child:not(:only-child):hover{background:var(--rock)}
-.item{border-radius:var(--r-md)}
-@media (max-width:600px){.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px 8px;align-items:end}.filters label{min-width:0}.filters select{width:100%;min-width:0;text-overflow:ellipsis;padding-right:26px}.filters .count{grid-column:1 / -1;margin-left:0}.filters button{grid-column:1 / -1;justify-self:start}.grid{columns:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.item{margin-bottom:0;border-radius:6px}.item .meta{padding:5px 7px 6px}}
+.item{border-radius:var(--r-md);box-shadow:var(--lift)}
+/* the dropdowns of the Switzerland page: a white card, and a list of rows like the glacier list (bottom sheet on phones) */
+.filters .dd{position:relative;width:200px;max-width:100%}
+.filters select.native{position:absolute;opacity:0;pointer-events:none;width:1px;height:1px}
+.filters .dd-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:42px;padding:8px 12px 8px 15px;border:0;border-radius:var(--r-md);background:var(--sheet);box-shadow:var(--lift);color:#0A1B33;font:inherit;font-size:14px;font-weight:700;letter-spacing:0;text-transform:none;text-align:left;cursor:pointer}
+.filters .dd-btn:hover{background:var(--firn)}
+.dd-btn:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.dd-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dd-btn svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--moraine);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.dd-menu{position:absolute;z-index:800;top:100%;left:0;min-width:100%;width:max-content;max-width:320px;margin:4px 0 0;padding:0;list-style:none;max-height:min(62vh,420px);overflow:auto;background:var(--sheet);border-radius:var(--r-md);box-shadow:0 12px 32px rgba(7,11,20,.28);text-transform:none;letter-spacing:0}
+.dd-menu[hidden],.dd-back[hidden]{display:none}
+.dd-menu li{padding:10px 14px;border-top:1px solid var(--rule-2);color:#0A1B33;font-size:14px;font-weight:500;cursor:pointer}
+.dd-menu li:first-child{border-top:0}
+.dd-menu li:hover{background:var(--firn)}
+.dd-menu li[aria-selected=true]{background:#E9EFF2;font-weight:800}
+@media (max-width:900px){
+  .dd-back:not([hidden]){display:block;position:fixed;inset:0;z-index:2999;background:rgba(10,20,28,.5)}
+  .dd-menu{position:fixed;z-index:3000;top:auto;left:0;right:0;bottom:0;margin:0;width:auto;max-width:none;max-height:78dvh;border-radius:14px 14px 0 0;box-shadow:0 -6px 24px rgba(0,0,0,.35);padding-bottom:env(safe-area-inset-bottom,0px)}
+  .dd-menu li{padding:14px 18px;font-size:16px}
+  body.dd-open{overflow:hidden}
+}
+.filters #fReset{border-radius:var(--r-pill)}
+.cta .btn.primary{border-radius:var(--r-sm)}
+@media (max-width:600px){.filters{display:grid;grid-template-columns:1fr 1fr;gap:8px 8px;align-items:end}.filters label{min-width:0}.filters .dd{width:100%;min-width:0}.filters .count{grid-column:1 / -1;margin-left:0}.filters #fReset{grid-column:1 / -1;justify-self:start}.grid{columns:auto;display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:start}.item{margin-bottom:0;border-radius:6px}.item .meta{padding:5px 7px 6px}}
 .media{position:relative}
 .media .full{position:absolute;right:6px;bottom:6px;width:32px;height:32px;padding:0;border:0;border-radius:6px;background:rgba(0,0,0,.55);color:#fff;cursor:pointer;display:grid;place-items:center}
 .media .full:hover{background:rgba(0,0,0,.8)}
@@ -59,9 +82,10 @@
   .cta .btn{flex:1;text-align:center}
   .filters{padding:var(--sp-4);border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift);margin:0 0 var(--sp-4);gap:var(--sp-3) var(--sp-3)}
   .filters label{font-size:10.5px;letter-spacing:.08em;gap:6px}
-  .filters select{height:44px;padding:0 28px 0 12px;border:0;border-radius:var(--r-sm);background-color:var(--firn);font-size:14px}
+  .filters .dd{width:100%}
+  .filters .dd-btn{min-height:44px;border-radius:var(--r-sm);background:var(--firn);box-shadow:none}
   .filters .count{margin:0;font-size:12.5px}
-  .grid{grid-template-columns:1fr;gap:var(--sp-3)}
+  .grid{grid-template-columns:1fr 1fr;gap:var(--sp-2)}
   .item{border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift)}
   .media img,.media video{max-height:62vh}
   .media .full{right:10px;bottom:10px;width:36px;height:36px;border-radius:50%;background:rgba(0,0,0,.5)}
@@ -78,7 +102,7 @@
 /* landscape phones: two columns of cards, the filters in one row */
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .filters{display:flex;flex-wrap:wrap;align-items:flex-end}
-  .filters select{width:170px}
+  .filters .dd{width:170px}
   .filters .count{margin-left:auto}
   .grid{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
@@ -86,17 +110,17 @@
   <script defer src="js/track.js"></script>
 </head>
 <body>
-<header class="top"><div class="in"><h1><a class="home-t" data-home href="home.html"><span class="t1">Tongues from Space</span></a> Gallery</h1></div></header>
+<header class="sitebar"><div class="in"><a class="brand" href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a><nav><a href="index.html"><i aria-hidden="true"></i>Dashboard</a><a href="size.html">Glacier vs. city</a><a href="gallery.html" aria-current="page">Gallery</a></nav></div></header>
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Full size picture"><img alt=""><button type="button" aria-label="Close">×</button></div>
 <main class="wrap">
   <p class="lede">Pictures and animations of glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
-  <div class="cta"><a class="btn primary" href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Your animation or Your image, then Share it in the gallery.</span></div>
+  <div class="cta"><a class="btn primary" href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Your visual, pick Image or Animation, then Share it in the gallery.</span></div>
   <div class="filters" role="search" aria-label="Filter the gallery">
     <label>Region<select id="fRegion"><option value="">All regions</option></select></label>
     <label>Glacier<select id="fGlacier"><option value="">All glaciers</option></select></label>
     <label>Year<select id="fYear"><option value="">All years</option></select></label>
     <label>Type<select id="fType"><option value="">All types</option><option value="still">Image</option><option value="timelapse">Timelapse</option><option value="slider">Slider (before and after)</option><option value="3d">3D view</option></select></label>
-    <label>Bands<select id="fStyle"><option value="">All band combinations</option><option value="natural">Natural colour (B04-B03-B02)</option><option value="false1">False colour 1 (B08-B04-B03)</option><option value="false2">False colour 2 (B8A-B11-B12)</option><option value="false3">False colour 3 (red/SWIR ratio)</option></select></label>
+    <label>Colour composition<select id="fStyle"><option value="">All compositions</option><option value="natural">Natural (B04, B03, B02)</option><option value="false1">Infra (B08, B04, B03)</option><option value="false2">Bloody (B8A, B11, B12)</option><option value="false3">Hot? (B04, B11, B02, ratio)</option></select></label>
     <button type="button" id="fReset" hidden>Clear filters</button>
     <span class="count" id="count" aria-live="polite"></span>
   </div>
@@ -109,7 +133,7 @@
 <script>
 const RELAY = ((window.TFS_CONFIG && TFS_CONFIG.relay) || '').trim().replace(/\/+$/, '');
 const TYPE = { still: 'Image', timelapse: 'Timelapse', slider: 'Slider' };
-const STYLE = { natural: 'Natural colour', false1: 'False colour 1', false2: 'False colour 2', false3: 'False colour 3' };
+const STYLE = { natural: 'Natural', false1: 'Infra', false2: 'Bloody', false3: 'Hot?' };
 const FMT = { reel: '9:16', feed: '4:5', wide: '16:9' };
 /*regions:start*/
 const REGIONS = [{"id":"ch","name":"Switzerland","glaciers":["aletsch","gorner","fiescher","unteraar","corbassiere","zmutt","rhone","sgi-B56-03","sgi-B53-04","trift"]},{"id":"is","name":"Iceland","glaciers":["breidamerkurjokull","skeidararjokull","bruarjokull","dyngjujokull","sidujokull","koldukvislarjokull","tungnaarjokull","heinabergsjokull","hoffellsjokull","svinafellsjokull","sylgjujokull","flaajokull","langjokull","hofsjokull","myrdalsjokull","drangajokull","eyjafjallajokull","tungnafellsjokull","thorisjokull","eiriksjokull","thrandarjokull","tindfjallajokull"]},{"id":"no-mainland","name":"Norway","glaciers":["jostedalsbreen","vestre-svartisen","sondre-folgefonna","ostre-svartisen","blamannsisen","hardangerjokulen","myklebustbreen","okstindbreen","oksfjordjokelen","nordre-folgefonna"]},{"id":"no-svalbard","name":"Svalbard","glaciers":["storisstraumen","brasvellbreen","negribreen","hinlopenbreen","kvitoyjokulen","etonbreen","stonebreen","hochstetterbreen","schweigaardbreen","monacobreen"]}];
@@ -162,6 +186,7 @@ function fill(sel, values, label){
   sel.value = keep;
 }
 function render(){
+  syncDD();
   const f = { region: $('fRegion').value, glacier: $('fGlacier').value, year: $('fYear').value, type: $('fType').value, style: $('fStyle').value };
   const list = items.filter(it => (!only || it.id === only) && (!f.region || regionOf(it) === f.region) && (!f.glacier || it.glacier === f.glacier) && (!f.year || it.years.includes(+f.year)) && (!f.type || (f.type === '3d' ? it.view === '3d' : it.type === f.type)) && (!f.style || it.style === f.style));
   const grid = $('grid'); grid.replaceChildren(...list.map(card));
@@ -178,6 +203,31 @@ $('fRegion').onchange = () => { only = ''; fillGlaciers(); render(); };      // 
 ['fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).onchange = () => { only = ''; render(); });
 $('fReset').onclick = () => { only = ''; ['fRegion', 'fGlacier', 'fYear', 'fType', 'fStyle'].forEach(id => $(id).value = ''); fillGlaciers(); render(); };
 
+
+// the dropdowns: the selects stay (they hold the value); each gets a card button and a list like the glacier list of the Switzerland page
+const DD = [];
+document.querySelectorAll('.filters select').forEach(sel => {
+  const wrap = el('div', 'dd'), btn = el('button', 'dd-btn'), t = el('span', 'dd-t'), menu = el('ul', 'dd-menu');
+  btn.type = 'button'; btn.setAttribute('aria-haspopup', 'listbox'); btn.setAttribute('aria-expanded', 'false'); menu.hidden = true; menu.setAttribute('role', 'listbox');
+  btn.append(t); btn.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
+  sel.classList.add('native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
+  sel.before(wrap); wrap.append(sel, btn, menu);
+  const sync = () => { t.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : ''; };
+  const close = () => { menu.hidden = true; back.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('dd-open'); };
+  btn.onclick = () => {
+    if (!menu.hidden) return close();
+    DD.forEach(d => d.close());
+    menu.replaceChildren(...[...sel.options].map(o => { const li = el('li', '', o.text); li.setAttribute('role', 'option'); li.setAttribute('aria-selected', o.value === sel.value); li.onclick = () => { sel.value = o.value; sync(); close(); sel.dispatchEvent(new Event('change')); }; return li; }));
+    menu.hidden = false; btn.setAttribute('aria-expanded', 'true');
+    if (matchMedia('(max-width:900px)').matches) { back.hidden = false; document.body.classList.add('dd-open'); }
+  };
+  DD.push({ sync, close });
+});
+const back = el('div', 'dd-back'); back.hidden = true; document.body.append(back);
+back.onclick = () => DD.forEach(d => d.close());
+document.addEventListener('click', e => { if (!e.target.closest('.dd')) DD.forEach(d => d.close()); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') DD.forEach(d => d.close()); });
+const syncDD = () => DD.forEach(d => d.sync());
 (async function boot(){
   if (!RELAY) { $('empty').hidden = false; $('empty').textContent = 'The gallery needs the relay address (config.js), which is written when the site is deployed.'; return; }
   try {

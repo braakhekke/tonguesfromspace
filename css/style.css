@@ -2361,3 +2361,18 @@ body.x-layers .layerbox{max-width:none}
   .mapbar{bottom:26px}
   .v3d-measure,.v3d.photo-on .v3d-measure{bottom:26px}
 }
+
+/* phone held sideways outside full screen: ask to turn it upright (js/09-phones.js, orientSync) */
+.turn-upright{position:fixed;inset:0;z-index:100000;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--sheet,#fff);color:var(--ink,#0E1A22);text-align:center;font-weight:600;font-size:16px;line-height:1.3}
+.turn-upright[hidden]{display:none}
+.turn-upright svg{color:var(--accent,#C8322A)}
+.turn-upright small{font-weight:400;font-size:12px;opacity:.7}
+
+/* Portrait phone, download pane open: the page does not scroll; the viewer is pinned above the pane (js/10-animation.js, syncPaneStage) */
+@media (max-width:720px) and (orientation:portrait){
+  html:has(body.pane-open),body.pane-open{overflow:hidden;overscroll-behavior:none}
+  body.pane-open .stage-slot .stage{position:fixed;left:0;right:0;top:0;bottom:var(--vs-h,44dvh);width:auto;height:auto!important;min-height:0;z-index:1}
+  /* the layer menu (opened by the line on the frame) is a sheet pinned right above the pane: in the page flow it would sit behind the pane, out of reach */
+  body.pane-open.x-layers .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:var(--vs-h,44dvh);top:auto;z-index:2100;max-height:calc(100dvh - var(--vs-h,44dvh) - 120px);overflow-y:auto;overscroll-behavior:contain;border-radius:14px 14px 0 0;border-bottom:0;box-shadow:0 -6px 24px rgba(0,0,0,.45)}
+  body.pane-open.x-layers .layerbox.in-flow.open .lb-head{display:flex;position:sticky;top:0;z-index:3;background:var(--sheet);padding:12px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}
+}

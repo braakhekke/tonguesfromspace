@@ -67,10 +67,12 @@ export function updateRightTab(){
 
 
 /* ---------- Full screen (visual only) and the small floating window (phones) ---------- */
-export const fullState = {saved: null};
+export const fullState = {saved: null, phone: false};
 export function setFull(on){
   const stage = $('stage'), app = $('app');
-  if (PHONE.matches) {
+  const phone = on ? PHONE.matches : fullState.phone;      // leaving takes the branch it was entered by: the phone may have been turned sideways meanwhile
+  fullState.phone = on && phone;
+  if (phone) {
     const c0 = map.getCenter(), z0 = map.getZoom();            // the middle of what is on show stays the middle (the small window's centre becomes the centre of the full screen)
     stage.classList.toggle('is-full', on); document.body.classList.toggle('has-full', on);
     if (on) [$('layerbox'), $('v3dLayers')].forEach(x => stage.appendChild(x)); else placeLayers();      // the browser's own full screen shows only the visual and what is inside it: the layer menus go in for the time being
@@ -83,16 +85,36 @@ export function setFull(on){
     else if (fullState.saved) { setPanel('left', fullState.saved.l, false); setPanel('right', fullState.saved.r, false); fullState.saved = null; }
     app.classList.toggle('visual-only', on);
   }
-  immSync(); fadeSync();
+  immSync(); fadeSync(); orientSync();
   ['fsBtn', 'v3dFs'].forEach(id => { const b = $(id); if (b) { const t = on ? 'Exit full screen (Esc)' : 'Full screen, visual only'; b.setAttribute('aria-label', t); b.title = t; } });      // the buttons show only an icon: the words are in the tooltip and for screen readers
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);
 }
+/* ---------- Phones stay upright, except in full screen ----------
+   Outside full screen a phone held sideways shows a "turn upright" sheet (browsers cannot lock the orientation there, iOS never); in full screen the phone may turn freely.
+   Where the browser allows it (Android, in full screen) the orientation is also unlocked on entering and locked to portrait on leaving. */
+const TURN = document.createElement('div'); TURN.className = 'turn-upright'; TURN.hidden = true; TURN.setAttribute('role', 'status');
+TURN.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><div>Turn your phone upright</div><small>Landscape is only used in full screen.</small>';
+document.body.appendChild(TURN);
+const SIDEWAYS = matchMedia('(pointer:coarse) and (orientation:landscape) and (max-height:520px)');
+export function orientSync(){
+  const full = isFull();
+  TURN.hidden = !(SIDEWAYS.matches && !full);
+  document.body.classList.toggle('turn-upright-on', !TURN.hidden);
+  try {
+    const so = /** @type {any} */ (screen.orientation);
+    if (so && so.lock && PHONE_DEVICE()) { if (full) so.unlock(); else so.lock('portrait').catch(() => {}); }
+  } catch {}
+}
+const PHONE_DEVICE = () => matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 520;
+SIDEWAYS.addEventListener('change', orientSync);
+addEventListener('orientationchange', () => setTimeout(orientSync, 100));
+orientSync();
 export const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
 $('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
 $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) { setFull(false); e.preventDefault(); } });      // the key press is used up: leaving full screen is all it does (the 3D view's own Esc handler checks defaultPrevented)
-document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && $('stage').classList.contains('is-full')) setFull(false); });
+document.addEventListener('fullscreenchange', () => { orientSync(); if (!document.fullscreenElement && $('stage').classList.contains('is-full')) setFull(false); });
 /* ---------- Immersive full screen (touch screens): the controls fade away and the picture gets the whole screen ----------
    Dragging the picture clears the controls at once; they also fade after a few idle seconds; a tap on the bare picture brings them back (or clears them again).
    They stay while something needs them: an open layer menu or tools row, measuring, a cross-section, a historic photograph, keyboard focus. The round exit button never goes away. */
@@ -366,8 +388,8 @@ swipeToClose($('layerbox').querySelector('.lb-head'), $('layerbox'), () => setLa
 swipeToClose($('v3dLayers').querySelector('.lb-head'), $('v3dLayers'), () => setLayers(false), () => document.body.classList.contains('has-full') && $('v3dLayers').classList.contains('in-flow') && $('v3dLayers').classList.contains('open'));
 $('lbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
 $('v3dLbToggle').addEventListener('click', e => { if (LAND.matches) { e.stopImmediatePropagation(); setLayers(false); } }, true);
-$('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
-$('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); } }, true);
+$('lbToggle').addEventListener('click', e => { if ($('layerbox').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); document.body.classList.remove('x-layers'); } }, true);
+$('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.contains('in-flow')) { e.stopImmediatePropagation(); setLayers(false); document.body.classList.remove('x-layers'); } }, true);
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
 /* A press on the viewer (map or 3D picture) closes an open layer menu; presses inside the menus and on their buttons do not */
 document.addEventListener('pointerdown', e => {

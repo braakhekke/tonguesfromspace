@@ -64,13 +64,13 @@ a{color:inherit}
 .whyhead{flex:1 1 auto;max-width:none}
 .whyhead .eyebrow{color:var(--accent);font-weight:700;margin:0 0 10px}
 .why-logo{display:block;flex:none;width:clamp(110px,12vw,160px);height:auto;overflow:visible}
-.why-logo .tongue{transform-box:view-box;transform-origin:96px 86px;animation:lick 5s ease-in-out infinite}      /* the tongue reaches out and pulls back */
-.why-logo .spark{transform-box:fill-box;transform-origin:center;animation:twinkle 3.2s ease-in-out infinite}
+.why-logo .tongue{transform-box:view-box;transform-origin:96px 86px;animation:lick 2.5s ease-in-out infinite}      /* the tongue reaches out and pulls back */
+.why-logo .spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2s ease-in-out infinite}
 @keyframes lick{0%,100%{transform:scaleY(.82) scaleX(.96);fill:#C8322A}50%{transform:scaleY(1.08) scaleX(1.02);fill:#0A1B33}}      /* advancing: dark blue; retreating: the red of loss */
 @keyframes twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.65) rotate(45deg);opacity:.55}}
 @media (prefers-reduced-motion:reduce){.why-logo .tongue,.why-logo .spark{animation:none}}
 .why-name + .why-name{margin-top:12px}
-.whyhead .why-name{max-width:800px}
+.whyhead .why-name,.whyhead .aud-title,.whyhead .aud-sub{max-width:800px}
 .why-name{margin:0;font-size:clamp(17px,1.5vw,20px);line-height:1.6;color:#0A1B33}
 .whyband .aud{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:36px;align-items:start}
 .aud-card{border:0;border-radius:var(--r-md);background:var(--firn)}
@@ -229,7 +229,7 @@ footer{background:#070b14 center bottom/cover no-repeat;color:rgba(255,255,255,.
 footer .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px}
 footer .brand{margin-bottom:12px}
 footer p{margin:0 0 8px;line-height:1.55}
-footer .tagline b{display:block;max-width:22ch;font-size:17px;font-weight:700;line-height:1.3;color:#fff}
+footer .tagline b{display:block;max-width:none;font-size:17px;font-weight:700;line-height:1.3;color:#fff}
 footer .tagline span{display:block;margin-top:6px;font-size:12px;font-weight:300;letter-spacing:.04em}
 footer a{color:#fff;text-underline-offset:3px}
 footer .src{font-size:11.5px;color:rgba(255,255,255,.55)}
@@ -373,9 +373,8 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .info .notready{margin:10px 0 0;font-size:13px;font-weight:600;color:var(--accent,#C8322A)}
 
 /* ---------- feedback round 2026-11: say where the dashboard is and that it works ---------- */
-.bar nav a.navopen{display:inline-flex;align-items:center;gap:8px;background:var(--accent);color:#fff;padding:9px 14px}
-.bar nav a.navopen:hover{background:#A9261F}
-.navopen i{width:8px;height:8px;border-radius:50%;background:#7CE08A;flex:none}
+.bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.bar nav i{width:8px;height:8px;border-radius:50%;background:#7CE08A;flex:none}
 .herotext .cta{display:flex;flex-wrap:wrap;align-items:center;gap:20px}
 .stepsband{background:var(--firn);border-bottom:1px solid var(--rule)}
 .steps{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;list-style:none;margin:0 auto;padding:0 24px}
@@ -387,14 +386,13 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .tile .st.soon{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7)}
 .tile:has(.st.open){box-shadow:inset 0 3px 0 var(--accent)}
 @media (max-width:900px){
-  .bar nav a:not(.navopen){display:none}
   .steps{grid-template-columns:1fr}
   .steps li,.steps li+li{padding:12px 0;border-left:0}
   .steps li+li{border-top:1px solid var(--rule)}
 }
 @media (max-width:640px){
   .bar .wrap{gap:10px}
-  .bar nav a.navopen{padding:8px 11px;font-size:12px;white-space:nowrap}
+  .bar nav{gap:14px}.bar nav a{font-size:12px}
   .brand b{font-size:16px}
 }
 
@@ -417,7 +415,8 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .wrap{padding:0 var(--sp-4)}
   .bar .wrap{padding:0 14px;gap:var(--sp-2)}
   .brand{gap:10px}.brand img{height:24px}
-  .bar nav a.navopen{padding:8px 11px;font-size:12px;white-space:nowrap;border-radius:var(--r-pill)}
+  .bar nav{gap:14px}.bar nav a{font-size:12px}
+  .bar .brand b{display:none}
   .brand b{font-size:16px}
 
   /* one button shape, one picture shape */
@@ -430,7 +429,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .whyband{padding:var(--sp-6) 0 var(--sp-5)}
   .whygrid{display:block}
   .whyhead .eyebrow{display:none}
-  .aud-title{display:block;margin:0;font-size:26px;line-height:1.08;font-weight:800;letter-spacing:-.03em;color:#0A1B33;text-wrap:balance}
+  .aud-title{display:block;margin:0;font-size:21px;line-height:1.08;font-weight:800;letter-spacing:-.03em;color:#0A1B33;text-wrap:balance}
   .aud-sub{display:block;margin:var(--sp-2) 0 0;font-size:15px;line-height:1.4;color:var(--moraine)}
   .whyband .aud{gap:var(--sp-2);margin-top:var(--sp-4)}
   .aud-card{border:0;border-radius:var(--r-md);background:var(--firn)}
@@ -452,8 +451,8 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   /* the footer's sources and credits are folded; one tap opens them */
   footer .credits-fold > summary{display:flex;align-items:center;justify-content:space-between;gap:var(--sp-3);padding:var(--sp-3) var(--sp-4);border-radius:var(--r-md);background:rgba(255,255,255,.08);list-style:none;cursor:pointer;font-size:13px;font-weight:600;color:rgba(255,255,255,.85)}
   footer .credits-fold > summary::-webkit-details-marker{display:none}
-  footer .credits-fold > summary::after{content:"+";font-size:20px;line-height:1;color:var(--accent)}
-  footer .credits-fold[open] > summary::after{content:"\2212"}
+  footer .credits-fold > summary::after{content:"";width:8px;height:8px;border:solid var(--accent);border-width:0 2px 2px 0;transform:rotate(45deg);margin:-4px 4px 0 0;transition:transform .2s}
+  footer .credits-fold[open] > summary::after{transform:rotate(-135deg);margin:4px 4px 0 0}
   footer .credits-fold[open] > summary{margin-bottom:var(--sp-3)}
 
 }
@@ -464,7 +463,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .hero .wrap{gap:var(--sp-5)}
   .herotext h1{font-size:clamp(30px,9vw,38px);line-height:1.02;letter-spacing:-.035em;order:1}
   .flightbox{order:2}.herotext .cta{order:3}
-  .flight{aspect-ratio:4/3}
+  .flight{aspect-ratio:99/72}      /* the video's own shape: a 4/3 crop cut the year at the top left */
   .hero .cta{display:flex;flex-direction:column;align-items:stretch;gap:var(--sp-2)}
   .hero .cta .btn-ghost{align-self:center;justify-content:center;padding:var(--sp-2) var(--sp-4);font-size:14px;color:rgba(255,255,255,.85)}
 }
@@ -489,3 +488,48 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .aud-more .aud-go,.aud-card .aud-more .aud-go{margin:var(--sp-3) 0 0}
 }
 }
+
+/* ---------- soft look on every width: the Switzerland page and the phone design (css/style.css "Phone design system") ----------
+   Rounded buttons, cards and pictures (--r-sm/--r-md/--r-lg), one soft shadow, no hard outlines; colours and spacing unchanged. */
+.btn-red,.btn-ghost,.btn-dark,.ask button{border-radius:var(--r-md)}
+.cta .btn-ghost,.herotext .cta .btn-ghost{border-radius:var(--r-md)}
+.flight{border-radius:var(--r-lg)}
+.flight .live,.flight video{border-radius:inherit}
+.aud-card{border-radius:var(--r-md)}
+.pk-btn,.sbox,.info .btn-line{border:0;border-radius:var(--r-md);box-shadow:var(--lift)}
+.pk-btn{box-shadow:var(--lift),inset 3px 0 0 var(--accent)}
+.pk-menu,.search ul{border:0;border-radius:var(--r-md);overflow:auto;box-shadow:0 12px 32px rgba(7,11,20,.28)}
+.mapbox{border:0;border-radius:var(--r-lg);overflow:hidden}
+.info{border:0;border-radius:var(--r-lg);box-shadow:var(--lift),0 8px 26px rgba(14,26,34,.25)}
+.credit{border-top-left-radius:var(--r-sm)}
+.pin span{border-radius:var(--r-sm)}
+.leaflet-tooltip.gtip{border-radius:var(--r-sm)}
+.tiles{gap:var(--sp-2);border:0}
+.tile{border:0;border-radius:var(--r-md);background:rgba(255,255,255,.06)}
+.tile:last-child{border-right:0}
+.tile:hover:not([disabled]){background:rgba(255,255,255,.12)}
+.tile[aria-current="true"]{background:rgba(255,255,255,.12);box-shadow:inset 0 0 0 2px var(--accent)}
+.tile:has(.st.open){box-shadow:none}
+.tile[aria-current="true"]:has(.st.open){box-shadow:inset 0 0 0 2px var(--accent)}
+.tile .st{border-radius:var(--r-pill);padding:2px 8px}
+.vstage{border:0;border-radius:var(--r-lg)}
+.feat{border-left:0;gap:var(--sp-2);margin-top:var(--sp-3)}
+.feat button{border:0;border-radius:var(--r-md);background:var(--firn);overflow:hidden}
+.feat button:hover{background:#E9EEF0}
+.feat button[aria-current="true"]{background:var(--sheet);box-shadow:var(--raise),inset 0 0 0 2px var(--accent)}
+.feat button::after{left:0;bottom:0;border-radius:0 2px 2px 0}
+.sci > details{border:0;border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift);padding:var(--sp-4) var(--sp-4) var(--sp-4)}
+.sci{gap:var(--sp-3) var(--sp-3)}
+section.s.alt{border-top:0;border-bottom:0}
+.quoteband{border-radius:0}
+footer .credits-fold > summary{border-radius:var(--r-md)}
+.info .making{border-radius:0 var(--r-sm) var(--r-sm) 0}
+@media (max-width:900px){
+  .info{border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:none}
+  .vstage{border-radius:var(--r-md)}
+  .feat button{background:var(--firn)}
+  .feat button[aria-current="true"]{background:var(--sheet)}
+}
+
+/* the red "Open the dashboard" buttons: rectangles with rounded corners */
+.btn-red,.btn-red.go,.closing .btn-red.go,.hero .cta .btn-red,.aud-card .aud-go{border-radius:var(--r-sm)}

@@ -379,8 +379,19 @@ export function bringVisualIntoView(stay){            // phones: the visual has 
   if (stay || !matchMedia('(max-width:720px)').matches) return;
   if ($('stage').classList.contains('is-full')) setFull(false);
   setMini(false);
-  $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
+  if (PHONE.matches) { if (paneScrollY == null) paneScrollY = scrollY; scrollTo(0, 0); syncPaneStage(); }      // portrait phone: the page is locked (css) and the viewer is pinned above the pane; the page scroll comes back on closing
+  else $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
 }
+let paneScrollY = null;
+/* Portrait phone, pane open: the viewer is fixed above the pane (css: body.pane-open .stage); --vs-h is the pane's height, kept up to date while it changes */
+function syncPaneStage(){
+  const sh = $('videoSheet'); if (sh.hidden || !PHONE.matches) return;
+  document.documentElement.style.setProperty('--vs-h', Math.ceil(sh.getBoundingClientRect().height) + 'px');
+  map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {}
+  updateFrame();
+}
+if (window.ResizeObserver) new ResizeObserver(syncPaneStage).observe($('videoSheet'));
+PHONE.addEventListener('change', () => { document.documentElement.style.removeProperty('--vs-h'); setTimeout(syncPaneStage, 50); });
 export function closeVideo(){
   if (vstate.busy) return; stopPreview();
   let shiftBack = null; if (paneCentred && viewMode !== '3d' && !$('videoSheet').hidden) { const c = frameCentre(), m = map.getSize().divideBy(2); shiftBack = {x: Math.round(c.x - m.x), y: Math.round(c.y - m.y)}; }
@@ -388,6 +399,8 @@ export function closeVideo(){
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; syncExportRows(); $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
   if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.setShift) wire.v3d.setShift(0, 0);
   if (paneCentred) { paneCentred = false; if (viewMode !== '3d' && shiftBack) map.panBy([shiftBack.x, shiftBack.y], {animate: false}); }      // back to the middle of the whole stage
+  document.documentElement.style.removeProperty('--vs-h'); map.invalidateSize({pan: false});
+  if (paneScrollY != null) { scrollTo(0, paneScrollY); paneScrollY = null; }      // phone: back to where the page was
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
 }
 $('vkImage').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('video'); };      // switch between the two panes without closing
