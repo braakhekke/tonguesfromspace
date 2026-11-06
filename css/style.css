@@ -1104,6 +1104,23 @@ body.has-full{overflow:hidden}
   .stage.mini .mini-ctl{display:contents}      /* enlarge and full screen at the bottom right, the closing cross in the top right corner */
   .stage.mini .mini-ctl button{position:absolute;z-index:700;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer}
   .stage.mini #miniFull{right:4px;bottom:4px}.stage.mini #miniBig{right:38px;bottom:4px}.stage.mini #miniClose{right:4px;top:4px}
+  .stage.mini #miniHide{left:4px;bottom:4px}      /* the arrow points to the edge it slides off to */
+  .stage.mini[data-corner$="l"] #miniHide svg{transform:rotate(180deg)}
+  /* the small window sits in one of the four corners (data-corner) and can slide off the left or right edge (data-hidden), leaving only the arrow tab */
+  .stage.mini{transition:transform .25s ease}
+  .stage.mini[data-corner="tl"]{left:10px;top:calc(10px + env(safe-area-inset-top,0px));right:auto;bottom:auto}
+  .stage.mini[data-corner="tr"]{right:10px;top:calc(10px + env(safe-area-inset-top,0px));left:auto;bottom:auto}
+  .stage.mini[data-corner="bl"]{left:10px;right:auto}
+  .stage.mini[data-hidden][data-corner$="l"]{transform:translateX(calc(-100% - 13px))}
+  .stage.mini[data-hidden][data-corner$="r"]{transform:translateX(calc(100% + 13px))}
+  .stage.mini[data-hidden] .mini-ctl button,.stage.mini[data-hidden] .year-tag{visibility:hidden}      /* only the picture shows in the sliver */
+  .mini-tab:not([hidden]){display:grid;place-items:center;position:fixed;z-index:900;width:18px;height:84px;padding:0;border:1px solid rgba(255,255,255,.28);background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(10,18,32,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25);cursor:pointer}      /* dark glass; where backdrop blur is missing it is simply a dark translucent bar */
+  .mini-tab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  .mini-tab[data-corner$="l"]{left:7px;border-left:0;border-radius:0 10px 10px 0}
+  .mini-tab[data-corner$="r"]{right:7px;border-right:0;border-radius:10px 0 0 10px}.mini-tab[data-corner$="r"] svg{transform:rotate(180deg)}
+  .mini-tab[data-corner^="t"]{top:calc(65px + env(safe-area-inset-top,0px))}      /* level with the middle of the window (10px + (195px - 84px) / 2) */
+  .mini-tab[data-corner^="b"]{bottom:calc(65px + env(safe-area-inset-bottom,0px))}
+}
 }
 /* ---------- collapsible side panels (desktop and tablet) ---------- */
 .panel-toggle{display:none}
