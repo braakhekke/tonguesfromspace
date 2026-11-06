@@ -3,9 +3,9 @@ import { FIRST_YEAR, YEARS, LANDSAT_YEARS, $ } from './01-data.js';
 import { ICECAP, areaText, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, imageFootprint, landsatFile, landsatScene, restoreLatest } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, OPEN_ON_GLACIER, glacierPicked } from './04-state.js';
-import { updateNames, map, updateCredits, osm, topo, updateMapYears, swisstopoMapsFile, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
+import { updateFlights, drawArcs, updateNames, updateSwissAll, map, updateCredits, osm, topo, updateMapYears, swisstopoMapsFile, alti, trails, updateSight, updateTrailClip, setBackground, updateAerial, satShown, SAT_MSG, OLDEST_MSG, satMsg, applySatVisibility, clip, showFrame, stopPlay, getVar, setThickness, drawRadar, updateSpeed, drawMax, drawTonguePin, wholeGlacierZoom, focusTongue, tlLayers, trailClipKey, setTrailClipKey } from './05-map.js';
 import { checkYears, statusLine, updateTags, checkGen } from './06-scene-search.js';
-import { focusSub, syncPane, outlineGeom, maxLinkText, speedLinkText, refreshAll, renderYears } from './07-render.js';
+import { focusSub, syncPane, outlineGeom, maxLinkText, speedLinkText, refreshAll, renderYears, applyImgOpacity } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'setStatus', { get: () => setStatus, configurable: true });
 Object.defineProperty(wire, 'showNotice', { get: () => showNotice, configurable: true });
@@ -124,15 +124,13 @@ export function updateBoxes(){
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked;
   const sel = picked && GLACIERS.find(g => g.id === state.glacier), fpb = sel && imageFootprint(sel).bounds;
   const small = !!fpb && map.getZoom() !== undefined && (map.project(L.latLng(fpb[0][0], fpb[0][1])).y - map.project(L.latLng(fpb[1][0], fpb[1][1])).y) * 2 <= map.getSize().y;      // the map is at least twice as high as the picture area of the chosen glacier
-  const show = document.getElementById('boxToggle').checked && (fpb ? small : map.getZoom() <= BOX_MAX_ZOOM) && !$('app').classList.contains('is-framing');      // the layer switch decides: on at the start, off with the first choice. Not in a download frame
+  const show = (fpb ? small : map.getZoom() <= BOX_MAX_ZOOM) && !$('app').classList.contains('is-framing');      // at the overview zoom the red outlines show (also after a choice); not in a download frame
   if (show && !map.hasLayer(basinLayer)) basinLayer.addTo(map);
   if (!show && map.hasLayer(basinLayer)) map.removeLayer(basinLayer);
   if (show && !map.hasLayer(boxLayer)) boxLayer.addTo(map);
   if (!show && map.hasLayer(boxLayer)) map.removeLayer(boxLayer);
   $('app').classList.toggle('overview', show);      // the overview look: dimmed background, no tongue or whole-glacier buttons
-  const others = small && !$('boxToggle').checked && !show && !$('app').classList.contains('is-framing');
-  if (others && !map.hasLayer(otherLayer)) otherLayer.addTo(map);
-  if (!others && map.hasLayer(otherLayer)) map.removeLayer(otherLayer);
+  if (map.hasLayer(otherLayer)) map.removeLayer(otherLayer);
   const subs = picked && sel.subs && !$('app').classList.contains('is-framing');      // the outlets of an ice cap stay on the map at every zoom
   if (subs && !map.hasLayer(subLayer)) subLayer.addTo(map);
   if (!subs && map.hasLayer(subLayer)) map.removeLayer(subLayer);
@@ -159,6 +157,8 @@ map.on('zoomend', () => { drawBoxes(); updateBoxes(); });
 map.on('resize', updateBoxes);   // the rounded corners are a fixed number of pixels
 document.getElementById('pinToggle').checked = prefs.pin === true;
 document.getElementById('pinToggle').onchange = e => { prefs.pin = e.target.checked; savePrefs(); drawTonguePin(); };
+document.getElementById('arcsToggle').checked = prefs.arcs === true;
+document.getElementById('arcsToggle').onchange = e => { prefs.arcs = e.target.checked; savePrefs(); drawArcs(true); };
 document.getElementById('thickToggle').checked = prefs.thick === true;
 document.getElementById('thickToggle').onchange = e => { prefs.thick = e.target.checked; savePrefs(); setThickness(); };      // drawOutlines() at the end of the boot applies a saved choice
 document.getElementById('maxToggle').checked = prefs.maxspot === true;
@@ -169,8 +169,9 @@ document.getElementById('speedToggle').checked = prefs.speed === true;
 document.getElementById('speedToggle').onchange = e => { prefs.speed = e.target.checked; savePrefs(); updateSpeed(); document.querySelectorAll('[data-act="speed-toggle"] .tl-t').forEach(n => { n.textContent = speedLinkText(); }); };
 document.getElementById('namesToggle').checked = prefs.names === true;
 document.getElementById('namesToggle').onchange = e => { prefs.names = e.target.checked; savePrefs(); updateNames(); };
-document.getElementById('boxToggle').checked = !OPEN_ON_GLACIER;      // on at the start; off as soon as a glacier is chosen (or the link opens on one)
-document.getElementById('boxToggle').onchange = e => { prefs.boxes = e.target.checked; savePrefs(); updateBoxes(); };
+document.getElementById('swissAllToggle').checked = false;      // the inventory outlines load when first switched on
+document.getElementById('swissAllToggle').onchange = () => updateSwissAll();
+document.getElementById('swissAllRow').hidden = !FEATURES.swisstopo;
 drawBoxes(); drawTonguePin();
 
 
@@ -255,6 +256,8 @@ document.getElementById('altiToggle').onchange = e => {
 /* swisstopo aerial images of the picked year(s): a background that, unlike the other base maps, can be on beside them (it only shows inside the ten image boxes, over the base map) */
 document.getElementById('aerialToggle').checked = false;      // always off at the start: the choice is not remembered
 document.getElementById('aerialToggle').onchange = e => { updateAerial(); updateTags(); if (tlLayers.length) showFrame(state.frame); };
+document.getElementById('flightsToggle').checked = false;      // special flights imagery (One year): always off at the start
+document.getElementById('flightsToggle').onchange = () => updateFlights();
 document.getElementById('satToggle').checked = prefs.sat !== false;
 document.getElementById('satToggle').onchange = e => { prefs.sat = e.target.checked; savePrefs(); applySatVisibility(); updateCredits(); };
 applySatVisibility(); updateAerial();
@@ -303,8 +306,6 @@ export function applyRegionUi(){
   if (!FEATURES.swisstopo) { prefs.topo = prefs.alti = false; }
   if (!FEATURES.swisstopo) {
     if (GLACIERS[0].half) { document.getElementById('tongueBtn').title = 'Zoom to the picture area (the tongue)'; document.getElementById('fitBtn').title = 'Fit the whole glacier'; }
-    document.getElementById('boxToggle').closest('label').title = `The ${REGION.units} you can choose, as red outlines you can click. Switched off when you choose one.`;
-    document.getElementById('boxToggle').parentElement.lastElementChild.lastChild.textContent = `Selectable ${REGION.units}`;
   }
 }
 export function regionItem(r, sub){ return `<li role="option" data-id="${r.id}"${sub ? ' class="sub"' : ''} aria-selected="${r.id === REGION.id}"${r.ready ? '' : ' aria-disabled="true"'}>${r.name}${r.ready ? '' : '<small>soon</small>'}</li>`; }
@@ -374,3 +375,13 @@ export async function updateLandsatRow(){
   document.getElementById('landsatI').style.display = none ? 'none' : ''; if (none) document.getElementById('landsatInfo').hidden = true;      // the note on 30 m pixels is about pictures that are not there
   renderYears();      // the "+ Landsat" chip at the front of the year rows follows the same state
 }
+
+/* Reset in the layer menus (map and 3D): every switch back to how the page starts (the checked state written in index.html), the image opacity to full, the 3D-only extras off */
+function resetLayers(){
+  document.querySelectorAll('#layerbox input[type=checkbox]').forEach(c => { if (!c.disabled && c.checked !== (c.id === 'satToggle')) { c.checked = c.id === 'satToggle'; c.dispatchEvent(new Event('change')); } });
+  [['l3Names', 'names3d'], ['l3GNames', 'gnames3d']].forEach(([id, k]) => { if (prefs[k] === true) { const el = document.getElementById(id); if (el) { el.checked = false; el.dispatchEvent(new Event('change')); } } });
+  if (prefs.space3d !== true) { const sp = document.getElementById('l3Space'); if (sp) { sp.checked = true; sp.dispatchEvent(new Event('change')); } }      // Space is the one 3D extra that starts on
+  prefs.imgOpacity = 1; savePrefs(); applyImgOpacity();
+  if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); }
+}
+document.querySelectorAll('.lb-reset').forEach(b => b.onclick = resetLayers);

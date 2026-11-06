@@ -21,6 +21,7 @@
 <link rel="stylesheet" href="css/tokens.css">
 <link rel="stylesheet" href="css/pages.css">
 <link rel="stylesheet" href="css/home.css">
+  <script defer src="config.js"></script><script defer src="js/track.js"></script>
 </head>
 <body>
 
@@ -53,14 +54,14 @@
 
     <div class="flightbox">
     <figure class="flight" id="flight">
-      <video id="flightVideo" autoplay loop muted playsinline preload="auto" poster="images/home/hero-flight.jpg" aria-label="A 3D flight over the Grosser Aletsch glacier while the years 2016 to 2026 pass">
+      <video id="flightVideo" muted playsinline preload="none" poster="images/home/hero-flight.jpg" aria-label="A 3D flight over the Grosser Aletsch glacier while the years 2016 to 2026 pass">
         <source src="images/home/hero-flight.webm" type="video/webm">
         <source src="images/home/hero-flight.mp4" type="video/mp4">
       </video>
       <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
-      <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span><small>Contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)</small></figcaption>
+      <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span></figcaption>
+      <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around</div>
     </figure>
-      <p class="flight-credit">Contains modified Copernicus Sentinel data 2016–2026, processed via the Copernicus Data Space Ecosystem · Terrain: swissALTI3D © swisstopo via Mapterhorn (ice surface of each year: estimate from the swissALTI3D editions and the GLAMOS mass balance)</p>
     </div>
   </div>
 </section>
@@ -241,7 +242,7 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
 
 /* Deep space, drawn like the map viewer's backdrop (spaceCanvas in js/05-map.js): dark blue gradient, a soft Milky Way band, nebula glows, small stars. Fixed seed. */
 (() => {
-  const w = 1600, h = 1000, perStar = 1000, scale = 1;
+  const w = 1600, h = 1000, perStar = 2400, scale = 1;
   const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
   let seed = 20261009; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
   const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04070d'); g.addColorStop(1, '#0a1426'); x.fillStyle = g; x.fillRect(0, 0, w, h);
@@ -272,17 +273,24 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
 (() => {
   const fig = $('flight'), vid = $('flightVideo'), fr = $('flightLive'), what = $('flightWhat');
   const c = navigator.connection || {};
-  if (matchMedia('(prefers-reduced-motion:reduce)').matches) { vid.removeAttribute('autoplay'); vid.pause(); return; }      // the poster stays
-  if (c.saveData || /(^|-)2g$/.test(c.effectiveType || '')) return;                                                          // the video only
+  if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;      // the poster stays
+  if (c.saveData || /(^|-)[23]g$/.test(c.effectiveType || '')) { vid.loop = true; vid.preload = 'auto'; vid.play().catch(() => {}); return; }      // slow connection: the flight video only
   const STAGE_X = 290, STAGE_W = 990, STAGE_H = 720;
-  const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
+  const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body .v3d-top{left:30px!important;top:22px!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
   const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
   new ResizeObserver(fit).observe(fig); fit();
   let shown = false;
   const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel scrolls the page, it does not zoom
     if (shown) return; shown = true;
-    fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off'); what.textContent = '\u00b7 live 3D view, drag to turn';
+    fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off');
+    $('dragHint').classList.add('on');
     setTimeout(() => vid.pause(), 1000);
+    const touched = () => {      // the first touch ends the loop and the hint; the view is then the visitor's
+      $('dragHint').classList.remove('on');
+      try { const d = fr.contentDocument; if (d.querySelector('.tl-play[aria-label="Pause"]')) d.querySelector('.tl-play').click(); } catch {}
+    };
+    try { fr.contentDocument.addEventListener('pointerdown', touched, {once: true, capture: true}); } catch {}
+    fig.addEventListener('pointerdown', touched, {once: true});
     try { fr.contentDocument.addEventListener('wheel', e => { if (e.ctrlKey) return; e.stopImmediatePropagation(); e.preventDefault(); scrollBy(e.deltaX, e.deltaY); }, {capture: true, passive: false}); } catch {}
   };
   const start = () => {
@@ -296,7 +304,6 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
           if (!cv || !cv.offsetWidth || !d.querySelector('.tl-play')) return;
           if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's dashboard remembers; the classes only, so nothing is saved */
           const st = d.createElement('style'); st.id = 'flightClean'; st.textContent = CLEAN; d.head.appendChild(st); const sp = d.getElementById('speedSel'); sp.value = 2; sp.dispatchEvent(new Event('input', {bubbles: true})); d.getElementById('loopToggle').checked = true; d.querySelector('.tl-play').click(); d.querySelectorAll('.mapbar,#v3dMeasure,#v3dTlLine,#tlDots,.tl-row').forEach(e => e.style.setProperty('display', 'none', 'important')); fr.contentWindow.dispatchEvent(new Event('resize')); }
-          if (d.querySelector('#playBtn .spin-s')) return;                     // the years' pictures are still on their way
           clearInterval(poll); show();
         } catch { clearInterval(poll); }
       }, 250);

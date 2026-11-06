@@ -457,19 +457,14 @@ class TestFunctions(SiteCase):
         self.assertEqual(self.page.evaluate(js % "set('osmToggle', true); state.oldestAerial = 2017"), ["aerialToggle"])
         self.assertIn("swissimage-product/default/2023/", self.page.evaluate("V3D_BASES.aerialToggle.url(15, 1, 2, 2023)"))
 
-    def test_then_and_now_row_stays_in_the_3d_menu_in_timelapse_and_slider_and_says_why(self):      # old photographs are for One year: the row is greyed (not removed), with the reason and a way to One year
+    def test_then_and_now_row_stays_in_the_3d_menu_in_timelapse_and_slider_greyed(self):      # old photographs are for One year: the row is greyed (not removed); the reason is its tooltip
         js = """mode => { $('l3PhotosRow').hidden = false; state.mode = mode; syncPhotosRow();
-          return {off: $('l3Photos').disabled, grey: $('l3PhotosRow').classList.contains('is-unavail'), note: !$('l3PhotosNote').hidden, why: $('l3PhotosWhy').textContent}; }"""
-        one = self.page.evaluate(js, "single")
-        self.assertEqual((one["off"], one["grey"], one["note"]), (False, False, False))
-        for mode, word in (("timelapse", "Timelapse"), ("compare", "Slider")):
+          return {grey: $('l3PhotosRow').classList.contains('is-unavail'), title: $('l3PhotosRow').title}; }"""
+        self.assertFalse(self.page.evaluate(js, "single")["grey"])
+        for mode in ("timelapse", "compare"):
             r = self.page.evaluate(js, mode)
-            self.assertEqual((r["off"], r["grey"], r["note"]), (True, True, True), mode)
-            self.assertIn(word, r["why"])
-        self.page.evaluate("() => { $('l3PhotosRow').hidden = true; syncPhotosRow(); }")      # a glacier without photographs: no row, no note
-        self.assertFalse(self.page.evaluate("() => !$('l3PhotosNote').hidden"))
-        self.page.evaluate("() => { state.mode = 'timelapse'; $('l3PhotosGo').click(); }")      # the link goes to One year
-        self.assertEqual(self.page.evaluate("state.mode"), "single")
+            self.assertTrue(r["grey"], mode)
+            self.assertIn("one year", r["title"], mode)
 
     def test_cross_section_in_the_slider_has_the_two_surfaces_and_its_button(self):      # the slider's two years: the first is the cut, the second a line (before: the section knew one surface and hid the button)
         r = self.page.evaluate("""() => {
@@ -483,8 +478,8 @@ class TestFunctions(SiteCase):
         self.assertTrue(len(r["oneYear"]) > 0, "one year still lists the other years")
         self.assertNotIn(2020, r["oneYear"])
 
-    def test_preview_has_a_cross_beside_the_play_button(self):
-        self.assertEqual(self.page.evaluate("[!!$('vfClose'), $('vfClose').parentElement === $('vfPlay').parentElement]"), [True, True])
+    def test_preview_has_a_cross(self):
+        self.assertTrue(self.page.evaluate("!!$('vfClose') && !!$('vfPlay')"))      # the cross sits above the top right corner of the frame, the play button inside it
 
     def test_scene_choice_prefers_september_then_august_then_cloudy(self):
         day = lambda d, cloud, snow=0: {"date": d, "orbit": "R108", "cloud": cloud, "snow": snow}

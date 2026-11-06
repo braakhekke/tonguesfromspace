@@ -19,7 +19,7 @@ ALLOWED_ORIGINS = "https://tonguesfromspace.org,https://www.tonguesfromspace.org
 directory = "../_site"
 not_found_handling = "404-page"
 binding = "ASSETS"      # the Worker reads the files itself for the videos (Range requests)
-run_worker_first = ["/api/*", "/cdse/*", "/gallery/*", "/ask/*", "/data/landsat/*", "/images/*.mp4", "/teaser/*.mp4"]
+run_worker_first = ["/api/*", "/cdse/*", "/gallery/*", "/ask/*", "/ev", "/data/landsat/*", "/images/*.mp4", "/teaser/*.mp4"]
 
 [[kv_namespaces]]
 binding = "CACHE"
@@ -32,3 +32,8 @@ bucket_name = "__R2_GALLERY_BUCKET__"
 [[r2_buckets]]
 binding = "LANDSAT"
 bucket_name = "__R2_LANDSAT_BUCKET__"
+
+# Which controls are used (js/track.js -> /ev). Query it with the SQL API: SELECT blob1 AS event, SUM(_sample_interval) AS n FROM tsf_events GROUP BY event ORDER BY n DESC
+[[analytics_engine_datasets]]
+binding = "EVENTS"
+dataset = "tsf_events"

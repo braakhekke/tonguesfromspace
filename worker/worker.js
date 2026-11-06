@@ -88,6 +88,7 @@ export default {
     if (request.method === 'OPTIONS') return new Response(null, { status: 204, headers: cors });
     if (url.pathname === '/cdse/ping') return json({ relay: true, managed: true }, 200, cors);
 
+    if (url.pathname === '/ev') return countEvent(request, env);
     if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors);
     if (url.pathname.startsWith('/ask/')) return ask(request, env, url, cors);
     if (url.pathname.startsWith('/data/landsat/')) return landsat(request, env, url);
@@ -353,6 +354,21 @@ async function cachePut(env, key, data, type, ttl) {
 const cacheUrl = key => `https://tonguesfromspace-cache.internal/${encodeURIComponent(key)}`;
 
 /* ---------- helpers ---------- */
+// Which controls are used (js/track.js). One data point per click in Workers Analytics Engine: blobs = event, glacier, page, device, country; no IP address, cookie or user id.
+// Same origin only; the name and glacier must look like names, the body is capped, and the answer is always 204 so nothing can be probed.
+async function countEvent(request, env) {
+  const ok = new Response(null, { status: 204 });
+  if (request.method !== 'POST' || !env.EVENTS) return ok;
+  const origin = request.headers.get('Origin') || '';
+  if (!(env.ALLOWED_ORIGINS || '').split(',').includes(origin)) return ok;
+  let b;
+  try { const text = await request.text(); if (text.length > 400) return ok; b = JSON.parse(text); } catch (e) { return ok; }
+  const name = /^[a-z0-9-]{1,40}$/, e = String(b.e || ''), g = String(b.g || ''), p = String(b.p || '');
+  if (!name.test(e) || (g && !name.test(g)) || !/^[a-z0-9\/._-]{0,60}$/i.test(p)) return ok;
+  env.EVENTS.writeDataPoint({ blobs: [e, g, p, b.d === 'm' ? 'm' : 'd', request.cf?.country || ''], indexes: [e] });
+  return ok;
+}
+
 function corsHeaders(request, env) {
   const origin = request.headers.get('Origin') || '';
   const allowed = (env.ALLOWED_ORIGINS || 'https://tonguesfromspace.org,https://www.tonguesfromspace.org,http://localhost:8000')

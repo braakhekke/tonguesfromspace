@@ -99,6 +99,38 @@
   <div class="read" id="bedRead"></div>
   <div class="src" id="bedSrc"></div>
 </section>
+<section class="fn" id="arcsnote" hidden><h2>Experimental outlines of the tongue</h2>
+<p>The yearly lines of the lowest 2 km of the tongue in the main viewer (layer "Experimental outline") are an experiment, not an official outline and not a measurement. They are drawn by a neural network, <b>GlaViTU</b> (Maslov, Persello, Schellenberger and Stein, "Globally scalable glacier mapping by deep learning matches expert delineation accuracy", <i>Nature Communications</i> 16, 43, 2025, <a href="https://doi.org/10.1038/s41467-024-54956-x" target="_blank" rel="noopener" style="color:var(--ice)">doi 10.1038/s41467-024-54956-x</a>), with the weights <b>glavitu_regional_ALP</b> from that study. The model gets the six optical Sentinel-2 bands and a height model (heights and slope) and returns, for each 10 m pixel, a probability of glacier ice.</p>
+<ul class="fnl"><li><b>The picture.</b> For each year the model runs on the same Sentinel-2 scene that the site shows for that year, cut to the tongue with a margin; the outline is the 0.5 probability line, cleaned of small pieces.</li>
+<li><b>Smoothing.</b> The 10 m pixel steps are smoothed away: each outline is resampled every 5 m and smoothed along its length by 20 m (Gaussian). This is cosmetic; the raw lines stay as they are in the experiment.</li>
+<li><b>Scenes.</b> <span id="arcsScenes">…</span></li>
+<li><b>The line.</b> Only the lowest 2 km of the tongue is kept, as an open line around the tip. It fades out towards its loose ends on the map.</li>
+<li><b>What can go wrong.</b> One scene per year means one day: fresh snow on the tongue or cloud shadow makes the model move the line, and a year can look like an advance for that reason. Debris-covered and snow-covered ice are the hard cases for such models. The lines were not checked against a survey, and yearly changes of the front should not be read as measurements.</li>
+<li><b>Computed here.</b> Areas and distances of the outlines are computed from the pixels, not taken from a source. The reference outline in the viewer is the official inventory outline (SGI 2023).</li>
+<li><b>Not settled.</b> The licences of the weights and of the height tiles are still to be read before anything like this is published.</li></ul></section>
+<section class="fn" id="flights" hidden><h2><span class="no">5</span>swisstopo special flights on the site</h2><div id="fnFlights"></div></section>
+<section class="fn" id="thicknote"><h2>Glacier thickness 2016 (layer)</h2>
+<p>The layer "Glacier thickness 2016" in the map and 3D menus colours the glacier by its ice thickness. It is the ice thickness map of Grab et al. (2021), "Ice thickness distribution of all Swiss glaciers based on extended ground-penetrating radar data and glaciological modeling", <i>Journal of Glaciology</i> 67(266), read from the ice thickness layer of swisstopo (GLAMOS data).</p>
+<ul class="fnl"><li><b>A model, not a measurement.</b> The thickness is modelled from ground-penetrating radar surveys and glaciological modelling. Only the radar points (layer "Radar points") are measurements, on the days and places a survey covers.</li>
+<li><b>One state for every year.</b> The map shows the glacier around 2016. The reference year of the map differs by glacier (2017 for Aletsch), so the menu says 2016 as a round name. The ice has thinned since; the layer stays the same when you change the year.</li>
+<li><b>Cut to the glacier.</b> The picture is cut to the glacier, so nothing is shown on rock around it.</li></ul></section>
+<section class="fn" id="radarnote"><h2>Radar points (layer)</h2>
+<p>The layer "Radar points" shows ice thickness measured by ground-penetrating radar. The source is GLAMOS, "Glacier ice thickness from ground-penetrating radar", release 2020 (doi:10.18750/icethickness.2020.r2020, CC BY 4.0). The surveys were made between 1958 and 2017, depending on the glacier.</p>
+<ul class="fnl"><li><b>Measured, with a date.</b> These are the only thickness numbers on the site that come from a measurement. The ice has thinned since the survey, so a point is the thickness of the survey year, not of the year you are looking at.</li>
+<li><b>One dot is a cell.</b> Each dot is the mean of the radar points inside a 50 m cell (computed here from the points). Where a cell was measured in several years, the dot is marked and a click shows all of them.</li>
+<li><b>In 3D.</b> The 3D view shows only about ten pins, a representative one on the middle line of the ice in each stretch of the glacier, to keep loading and moving fast.</li>
+<li><b>Against the model.</b> The modelled layer "Glacier thickness 2016" is built on radar surveys like these; where the two differ, the radar points are the measurement.</li></ul></section>
+<section class="fn" id="speednote"><h2>Ice speed (layer)</h2>
+<p>The layer "Ice speed" shows how fast the ice surface moves, as a yearly mean. It comes from the ITS_LIVE annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024), NASA MEaSUREs ITS_LIVE project, Gardner et al. (its-live.jpl.nasa.gov, CC BY 4.0). The product follows features of the ice surface between pairs of satellite images (Landsat 8/9, Sentinel-2 and Sentinel-1).</p>
+<ul class="fnl"><li><b>Copied, not made here.</b> The values are the product's; they are only cut to the picture box of the glacier. The map shows the year of the picture you are looking at, and years without a map show nothing.</li>
+<li><b>Slow ice is left clear.</b> Under 5 m/yr the product cannot tell ice from rock (rock beside the glaciers reads 1 to 2 m/yr), so nothing is drawn there. Only the ice inside the oldest outline is shown.</li>
+<li><b>A surface speed.</b> It is the speed of the surface, not of the ice deeper down, and a yearly mean says nothing about the season.</li>
+<li><b>Resolution.</b> At 120 m the mosaic cannot show narrow ice streams or the last tens of metres of a thin tongue.</li></ul></section>
+<section class="fn" id="srnote"><h2>Super-resolution layer (3D view)</h2>
+<p>The optional layer "Super-resolution" in the 3D view shows the Sentinel-2 picture of a year after a super-resolution model, <b>SEN2SR</b> (tacofoundation, model card licence cc0-1.0), has been run over it: 10 m pixels become 2.5 m pixels. It exists for the years 2016 to 2026 of the ten Swiss glaciers of this site that have such a picture; other years show the normal picture.</p>
+<ul class="fnl"><li><b>An estimate, not a measurement.</b> The extra detail is the model's guess at what lies between the 10 m pixels. The satellite did not see it. Do not read crevasses, boulders or debris edges off this layer as data.</li>
+<li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened this way. The layer is only a view; no number on the site is taken from it.</li>
+<li><b>Credit.</b> Contains modified Copernicus Sentinel data.</li></ul></section>
 <section class="fn" id="licences"><h2><span class="no">6</span>Data not used, and licences</h2><div id="fnLic">Loading…</div></section>
 <script src="js/dem-export.js"></script>
 <script>
@@ -293,6 +325,8 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
      +L('GLAMOS stakes', st?`${st.n} stake-years (elevations ${st.z[0]}–${st.z[1]} m). Average difference, stake minus GLAMOS bin balance: <b>${sgn(st.stake_minus_bin,0)} mm w.e.</b> Stake minus the flight-calibrated bin balance: <b>${sgn(st.stake_minus_kappa_bin,0)} mm w.e.</b> Both are annual balances at the elevation of the stake (negative = ice lost): the stake is GLAMOS's own reading, the bin balance is the GLAMOS elevation-band balance read at the same elevation (the flight-calibrated one uses winter + summer × the summer balance factor). A plus means the stake shows a higher balance (less loss or more gain) than the bin balance, a minus a lower one. It is a difference between two values, not an amount added on top. mm w.e. = millimetres of water equivalent (as in the GLAMOS file), not of ice. The average is over the stake-years listed, so stakes with opposite differences cancel.${v.kappa==null||v.kappa===1?' The two differences are equal this year because no flight changed the summer balance factor (1.00).':''}`:'no stake-year this year.')
      +L('Summer balance factor', v.kappa==null?'not fitted (no flight improved it): 1.00':v.kappa.toFixed(2))
      +(lk?L('Tip lake', `${lk.level.toFixed(2)} m (${{plateau:'measured on the flight, flat to '+num(lk.nmad,2)+' m',weak:'from the flight, but wavy water or shore in the mask: ±0.5 m',held:'no flight: the previous level held, ±1 m'}[lk.quality]}).`):''); }
+  // the catalogue entry (swisstopo STAC) of a flight of the table: its id is kry-<date>t<hhmm>0000 (all 108 flights of the ten glaciers were checked against the catalogue on 2026-11-06); the same item holds the DSM and the orthophotos
+  const stacA=v=>{ const m=/(\d{4}-\d\d-\d\d) (\d\d):(\d\d)/.exec(v.label||''); return m?`<a href="https://data.geo.admin.ch/browser/index.html#/collections/ch.swisstopo.spezialbefliegungen/items/kry-${m[1]}t${m[2]}${m[3]}0000" target="_blank" rel="noopener" title="the catalogue entry of this flight at swisstopo (DSM and orthophotos)">${v.day}</a>`:v.day; };
   function cleanPage(d){
     CL=d.clean; CY=d.years; const $=id=>document.getElementById(id), S=CL.sections;
     document.title='Field notes: '+d.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+d.short+' 3D'; }
@@ -305,7 +339,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('detail').innerHTML='Click a year.'; [...document.querySelectorAll('#surface p.lead')].forEach(q=>{ if(q.textContent.startsWith('One column per year')) q.textContent='One column per year: how the surface was found, the dated surveys under it, what shapes the change between them and what checks it. Click a year for its ICESat-2 and stake numbers and how much of its ice a flight covers.'; });
     document.querySelector('.notes').innerHTML=`<section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a flight or the lidar of that year covers most of the ice; there the surface of the picture day is reproduced to about 0.2 m.</li><li><b>partial</b>: a flight covers part of the ice; the rest follows the model.</li><li><b>edition</b>: the picture day is the day a swissALTI3D edition stands for (estimated from the flights, or documented where there are none): the stereo surface of that edition, stated accuracy 1 to 3 m.</li><li><b>between flights</b> and <b>beyond the flights</b>: the model, from the balance, melt timing and the fitted ice flow.</li></ul></section><section><h3>Physics and fitted numbers</h3>${S['Physics and fitted numbers']}</section><section><h3>Uncertainty</h3>${S['Uncertainty']}</section>`+(S['Lakes']?`<section><h3>Lakes</h3>${S['Lakes']}</section>`:'');
     $('anchors').querySelector('h2').innerHTML='<span class="no">3</span>Surveys used';
-    const tb=CL.surveys.map(v=>`<tr><td>${v.day}</td><td>${v.ice_share==null?'–':Math.round(100*v.ice_share)+' %'}</td><td>${v.cells.toLocaleString('en')}</td><td>${v.stable.toLocaleString('en')}</td><td>${sgn(v.offset,2)}</td><td>${sgn(v.tilt_E,2)} / ${sgn(v.tilt_N,2)}</td><td>${num(v.nmad_before,2)} → ${num(v.nmad_after,2)}</td></tr>`).join('');
+    const tb=CL.surveys.map(v=>`<tr><td>${stacA(v)}</td><td>${v.ice_share==null?'–':Math.round(100*v.ice_share)+' %'}</td><td>${v.cells.toLocaleString('en')}</td><td>${v.stable.toLocaleString('en')}</td><td>${sgn(v.offset,2)}</td><td>${sgn(v.tilt_E,2)} / ${sgn(v.tilt_N,2)}</td><td>${num(v.nmad_before,2)} → ${num(v.nmad_after,2)}</td></tr>`).join('');
     $('fnAnch').innerHTML=S['Observations']+`<table class="stab"><tr><th>Flight</th><th>Share of the ice covered</th><th>Cells in the strip</th><th>Rock cells</th><th>Tie to rock, offset m</th><th>Tilt E / N, m per km</th><th>Rock NMAD before → after, m</th></tr>${tb}</table><p class="small" style="color:var(--muted)">Each flight DSM is tied to the swissALTI3D rock by a plane (offset and tilt) fitted on cells outside the ice; the tie is computed here. Cells in the strip are 8 m cells.</p>`;
     $('fnVal').innerHTML=S['Validation']+S['Not done, and remarks'];
     $('fnView').innerHTML=`<p>${CL.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}" target="_blank" rel="noopener" style="color:var(--ice)">open it in its own tab</a></p><div id="vwrap"></div>`;
@@ -313,7 +347,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('fnLic').innerHTML=S['Data and licences'];
     dlInit(d,ID);
     const tb5=document.getElementById('tocBed'); if(tb5) tb5.remove();
-    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent; const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });
+    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent.replace(/^\d+ /,''); const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });
     const yq=+(new URLSearchParams(location.search).get('year')||0); if(yq&&CL.perYear[yq]) showClean(yq);
   }
   fetch(`/data/yearly/${ID}.json`).then(r=>r.ok?r.json():Promise.reject()).then(d=>{
@@ -323,7 +357,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('gname').textContent=PG.short; $('areaT').textContent=PG.areaTitle||'the tongue of '+PG.short; $('mapcap').innerHTML=prose(PG.mapcap,true,2); $('nUnc').outerHTML='<div id="nUnc">'+prose(PG.notes.uncertainty,false,1)+'</div>'; $('nInd').innerHTML=parts(PG.notes.independent)+'<p>Click a year for the numbers.</p>'; $('nShare').innerHTML=parts(PG.notes.sharing);
     document.title='Field notes: '+PG.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+PG.short+' 3D'; }
     if(PG.bed){ const B=PG.bed; BM=B.BM; $('bed').hidden=false; $('bedLead').innerHTML=prose(B.lead,true,9); $('bedChecks').innerHTML=B.checks.map(c=>`<div class="chk">${c}</div>`).join(''); $('bedCap1').innerHTML=B.figs[0]; $('bedCap2').innerHTML=B.figs[1]; $('bedKey').innerHTML=B.key; $('bedRead').innerHTML=B.read; $('bedSrc').innerHTML=B.src; $('bm1').setAttribute('aria-label',B.aria1); $('bm2').setAttribute('aria-label',B.aria2); } else $('tocBed').remove();
-    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent; const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });      // numbered by what is on the page
+    let nn=0; document.querySelectorAll('.toc a').forEach(a=>{ nn++; a.textContent=nn+' '+a.textContent.replace(/^\d+ /,''); const h=document.querySelector(a.getAttribute('href')+' h2 .no'); if(h) h.textContent=nn; });      // numbered by what is on the page
     $('fnAnch').innerHTML=d.anchors.map(a=>`<div class="anc"><p><b>${esc(a.id)}</b> ${esc(a.source)}</p><ul class="fnl">${sents(a.survey).map(x=>`<li>${esc(x)}</li>`).join('')}<li><b>Placed at</b> ${esc(a.placed_at.replace(/\.$/,''))}</li></ul></div>`).join('')+`<h3 class="fnh">How the years in between are made</h3>`+prose(d.shape,false,1);
     $('fnSummary').textContent=d.summary;
     const VH={icesat2:'Against ICESat-2 laser heights',datum:'Height datum',extended_area:'Where there is no check',not_checked:'What is not checked'};
@@ -340,5 +374,21 @@ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(!P
 </script></main><script>
 // back to the page we came from (?back= carries its full address incl. #g=...; the referrer drops the fragment); home when absent or foreign
 (function(){try{var r=new URLSearchParams(location.search).get('back')||document.referrer;var u=new URL(r,location.href);if(u.origin===location.origin&&u.pathname!==location.pathname){var a=document.getElementById('back');a.href=u.href;a.dataset.back='1';a.textContent='← Back';document.getElementById('allFnA').href='provenance.html?back='+encodeURIComponent(u.href);}}catch(e){}})();
+</script>
+<script>
+// the experimental-outline note: shown for the glacier it belongs to; reached from a click on an outline in the main viewer (#arcsnote)
+(function(){var q=new URLSearchParams(location.search).get('id'),n=document.getElementById('arcsnote');if(!n||!q)return;
+var sc=document.createElement('script');sc.src='data/tongue-arcs.js';sc.onload=function(){var T=window.TONGUE_ARCS||{},k=Object.keys(T).filter(function(x){return T[x].inv===q;})[0];if(!k)return;var A=T[k];n.hidden=false;
+document.getElementById('arcsScenes').textContent='Sentinel-2 acquisition date of the scene behind each line: '+Object.keys(A.arcs).sort().map(function(y){return y+' '+A.arcs[y].scenes;}).join('; ')+'.';
+if(location.hash==='#arcsnote')setTimeout(function(){n.scrollIntoView({behavior:'smooth',block:'start'});},900);};document.head.appendChild(sc);})();
+</script>
+<script>
+// the chapter on the swisstopo special flights (aerial photographs of single flights, switch "swisstopo special flight" in the layer menu): the HTML is written by scripts/build_special_flights.py into data/special-flights/<id>.json;
+// shown only for a glacier that has such a file, with its own entry in the table of contents, and the chapters are numbered again
+(function(){var q=new URLSearchParams(location.search).get('id'),n=document.getElementById('flights');if(!n||!q)return;
+fetch('data/special-flights/'+encodeURIComponent(q)+'.json').then(function(r){return r.ok?r.json():null;}).then(function(m){if(!m||!m.fieldNotes)return;
+document.getElementById('fnFlights').innerHTML=m.fieldNotes;n.hidden=false;
+var toc=document.querySelector('.toc'),lic=toc&&toc.querySelector('a[href="#licences"]');if(toc&&!toc.querySelector('a[href="#flights"]')){var a=document.createElement('a');a.href='#flights';a.textContent='swisstopo special flights';toc.insertBefore(a,lic||null);}
+var k=0;document.querySelectorAll('.toc a').forEach(function(a){k++;a.textContent=k+' '+a.textContent.replace(/^\d+ /,'');var h=document.querySelector(a.getAttribute('href')+' h2 .no');if(h)h.textContent=k;});}).catch(function(){});})();
 </script>
 </body></html>

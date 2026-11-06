@@ -5,10 +5,11 @@ import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUM
 import { rankArea, hasOldOutline, oldOutlineGeom, eachPiece, areaSeries, rankLabel } from './02-glaciers.js';
 import { asset, styleName, isLandsat, sensorName, styleLine, RELAY_BASE, imageFootprint, loadImage, sideStyle, fmtDM } from './03-imagery.js';
 import { state, currentGlacier, viewMode } from './04-state.js';
-import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS } from './05-map.js';
+import { map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS, speedAngle } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN, closeOtherSharePanes } from './07-render.js';
 import { showNotice } from './08-controls.js';
-import { setFull, setMini, evalMini, setLayers, swipeToClose } from './09-phones.js';
+import { setFull, setMini, evalMini, setLayers, swipeToClose, scrollCompareTop } from './09-phones.js';
+import { drawExportLayers, drawExportArcs, drawExportRasters, drawLegendCard, prepareRasters, cachedRasters, layerLegend, hasNewOutline, layerCredits, buildBackground, perYearBackground, overlayCards, exportLayers, layersOn, syncExportRows } from './09a-export-layers.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'closeVideo', { get: () => closeVideo, configurable: true });
 Object.defineProperty(wire, 'drawPreview', { get: () => drawPreview, configurable: true });
@@ -83,7 +84,7 @@ export function visibleBox(){            // the part of the picture area the vis
   return {side, x0, x1: Math.max(x0 + 100, x1), y0, y1: Math.max(y0 + 100, y1)};
 }
 export function frameAvail(){            // the free area of the map the frame may use: left, top, width, height
-  const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(70, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
+  const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(112, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
   return { x: vb.x0 + m, y: top, w: vb.x1 - vb.x0 - 2 * m, h: stageSize().y - top - m - bottom };
 }
 export function frameRect(){
@@ -115,11 +116,13 @@ export function drawPreview(){
   const ctx = cv.getContext('2d'); ctx.clearRect(0, 0, cv.width, cv.height);
   if (!ys.length) return;
   const g = currentGlacier(), S = marginsFor(vstate.kind, vstate.fmt), swipe = vstate.kind === 'image' ? imgCompare() : vstate.type === 'swipe', image = vstate.kind === 'image';
-  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: !!($('vOutline').checked && hasOldOutline(g)), res: frameGroundRes(), style: state.style, styleB: sideStyle(1), compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
+  const info = { glacier: g, years: ys, scenes: ys.map(y => state.available[y]), outline: oldOutlineOn(g), xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys), res: frameGroundRes(), style: state.style, styleB: sideStyle(1), compare: swipe, horiz: swipe && horiz(), noDivider: image,      // a picture: the slider of the map itself stays visible and can be moved
     tlYears: image ? [] : ys };      // a single picture has no timeline bar
   if (!swipe && $('vFacts').checked) { loadFacts(g); info.factSet = $('vFactSet').value; info.factBase = image ? FIRST_YEAR : ys[0]; }
   ctx.save(); ctx.scale(q, q);
   if (vPrev.on && vPrev.endT0 != null && vPrev.endInfo) { drawEndSlide(ctx, W, H, S, vPrev.endInfo, (performance.now() - vPrev.endT0) / 1000); ctx.restore(); return; }      // the ending of the animation
+  { const r = frameRect(), P = ll => { const p = map.latLngToContainerPoint([ll[1], ll[0]]); return [(p.x - r.x) * W / r.w, (p.y - r.y) * H / r.h]; }, ra = cachedRasters(vstate.kind, drawPreview);
+    drawExportRasters(ctx, P, ra); drawExportArcs(ctx, P, W, arcOptFor(ys, vPrev.on && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2)), vstate.kind); drawExportLayers(ctx, P, W / 1080 * 1.6, vstate.kind, ra, true); info.xCards = [...ra.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean); info.xCredit = layerCredits(vstate.kind, ys, ra); }      // the ticked map layers under the labels, from the frame on the live map
   if (image && !swipe) drawStill(ctx, W, H, info, S);
   else if (swipe) drawSwipeLabels(ctx, W, H, S, info, image || vPrev.on ? frameSplit() * (info.horiz ? H : W) : (info.horiz ? H : W) / 2);
   else drawLabels(ctx, W, H, S, info, vPrev.on && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2));
@@ -190,7 +193,7 @@ export function startPreview(){
 }
 export function syncPlayBtn(){ $('vsPlay').lastElementChild.textContent = vPrev.on ? 'Stop animation' : 'Play animation'; $('vsPlay').firstElementChild.innerHTML = vPrev.on ? '<path d="M7 7h10v10H7z"/>' : '<path d="M8 5v14l11-7z"/>'; }
 $('vfPlay').onclick = $('vsPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
-$('vfClose').onclick = () => closeVideo();      // the cross under the preview, beside the play button (alone when the preview is a picture)
+$('vfClose').onclick = () => closeVideo();      // the cross above the top right corner of the preview
 export function guideText(){            // only the choices that need a word: the Reels / TikTok text zone and the custom frame
   const video = vstate.kind !== 'image';
   $('vSafeRow').hidden = !(video && vstate.fmt === 'reel');      // the Reels / TikTok choice only exists for a 9:16 video
@@ -203,6 +206,8 @@ export function placeFrame(){
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
   $('videoFrame').classList.toggle('custom', vstate.fmt === 'custom');
+  const bt = $('videoFrame').querySelector('.vf-btns'), vb = visibleBox(), sr = $('stage').getBoundingClientRect(), ar = document.querySelector('aside.controls').getBoundingClientRect(), lo = Math.max(vb.x0, ar.right - sr.left);      // the buttons under the frame are centred on it, but a narrow custom frame near the edge would push them off the screen: they slide back
+  if (bt) { const bw = bt.offsetWidth; bt.style.left = bw ? Math.min(Math.max(r.x + r.w / 2 - bw / 2, lo + 8), Math.max(lo + 8, vb.x1 - bw - 8)) - r.x + 'px' : ''; bt.style.transform = bw ? 'none' : ''; }
 }
 /* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine).
    The limit is on the middle of the frame, not on the map view (Leaflet's maxBounds limits the whole view, which is far bigger than the frame, so it kept pulling the map back to the side). */
@@ -270,6 +275,7 @@ export function earlyNote(years){            // years before the Sentinel-2 seri
 }
 export function updateFrame(){
   if ($('videoSheet').hidden) return;
+  syncExportRows(); document.body.classList.toggle('x-bg', layersOn());  document.body.classList.toggle('x-aerial', exportLayers(vstate.kind).some(l => l.aerial));
   $('vFactSet').disabled = !$('vFacts').checked;      // the choice of facts only matters while facts are on
   if (viewMode === '3d') return wire.update3DInfo();
   sheetOverlap = measureSheetOverlap();
@@ -332,18 +338,12 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
     $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
     lastExport = null; $('vsShareBox').hidden = true; $('vsShareForm').hidden = true; offerShare();
     if (image && state.mode === 'timelapse') { const y = stillYear(); if (state.available[y]) state.one = y; $('modeSingle').click(); }      // a picture is of one year: the panel goes to One year, at the year on screen, as in Map view
-    const g3 = currentGlacier(), has3 = hasOldOutline(g3); $('vOutline').disabled = !has3;      // a download shows the 1850 outline when the glacier has one
-    if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); wire.sync3DMenu(); wire.refresh3D(); }      // the 1850 outline starts off in a download pane (tick it to add it)
-    $('vOutline').checked = has3 && $('oldToggle').checked;
     bringVisualIntoView(stay);
     wire.update3DInfo(); if (!wasOpen) centre3D();
     return;
   }
   setType(!image && state.mode === 'compare' ? 'swipe' : 'timelapse');
   stopPlay();
-  const g = currentGlacier(), hasOld = hasOldOutline(g);
-  if (!stay && $('oldToggle').checked) { $('oldToggle').checked = false; drawOutlines(); }      // the 1850 outline starts off in a download pane (tick it to add it)
-  $('vOutline').disabled = !hasOld; $('vOutline').checked = hasOld && $('oldToggle').checked;   // the same switch as the layer on the map
   $('videoSheet').hidden = false; $('videoFrame').hidden = false;
   $('app').classList.add('is-framing');
   $('vsProgress').hidden = true; $('vsGo').disabled = false; $('vsGo').textContent = image ? 'Download image' : 'Download video';
@@ -384,8 +384,8 @@ export function bringVisualIntoView(stay){            // phones: the visual has 
 export function closeVideo(){
   if (vstate.busy) return; stopPreview();
   let shiftBack = null; if (paneCentred && viewMode !== '3d' && !$('videoSheet').hidden) { const c = frameCentre(), m = map.getSize().divideBy(2); shiftBack = {x: Math.round(c.x - m.x), y: Math.round(c.y - m.y)}; }
-  document.body.classList.remove('pane-open'); drawOutlines(); M.group.addTo(map);
-  $('videoSheet').hidden = true; $('videoFrame').hidden = true; $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
+  document.body.classList.remove('pane-open', 'x-layers', 'x-bg', 'x-aerial'); placeLayerBox(false); drawOutlines(); M.group.addTo(map);
+  $('videoSheet').hidden = true; $('videoFrame').hidden = true; syncExportRows(); $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);
   if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.setShift) wire.v3d.setShift(0, 0);
   if (paneCentred) { paneCentred = false; if (viewMode !== '3d' && shiftBack) map.panBy([shiftBack.x, shiftBack.y], {animate: false}); }      // back to the middle of the whole stage
   syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
@@ -399,7 +399,7 @@ function pumpPane(){
   const a = PHONE.matches ? 'translateY' : 'translateX';
   sh.animate([{transform: a + '(0)'}, {transform: a + '(14px)', offset: .3}, {transform: a + '(0)', offset: .55}, {transform: a + '(6px)', offset: .75}, {transform: a + '(0)'}], {duration: 520, easing: 'ease-out'});      // pushes toward its own screen edge and back: no gap opens
 }
-$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo('video'); pumpPane(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
+$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo('video'); pumpPane(); scrollCompareTop(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', custom: 'vfCustom' };
 /* Custom frame: drag a handle; the frame stays inside the free area and at least 80 px wide and high */
 $('videoFrame').addEventListener('pointerdown', e => {
@@ -435,7 +435,7 @@ export const setFmt = f => {
 };
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
 /* the speed setter of the animation pane and the one under Compare / Timelapse are one setting */
-export function syncSpeed(from){ const v = +$(from).value; ['speedSel', 'vSpeed'].forEach(id => { $(id).value = v; }); updateSpeedIcon(); const o = $('vSpeedOut'); if (o) o.textContent = `${SPEED_FPS[v]} fps`; const nd = $('vSpeedNeedle'); if (nd) nd.setAttribute('transform', `rotate(${-60 + v * 30} 12 18)`); }
+export function syncSpeed(from){ const v = +$(from).value; ['speedSel', 'vSpeed'].forEach(id => { $(id).value = v; }); updateSpeedIcon(); const o = $('vSpeedOut'); if (o) o.textContent = `${SPEED_FPS[v]} fps`; const nd = $('vSpeedNeedle'); if (nd) nd.setAttribute('transform', `rotate(${speedAngle(v)} 12 18)`); }
 $('vSpeed').oninput = () => { syncSpeed('vSpeed'); updateFrame(); };
 $('speedSel').addEventListener('input', () => { syncSpeed('speedSel'); if (!$('videoSheet').hidden) updateFrame(); });
 syncSpeed('speedSel');
@@ -445,7 +445,6 @@ const restartPreview = () => { if (vPrev.on) { stopPreview(); startPreview(); } 
 export const syncLoops = () => { $('vBounce').disabled = +$('vLoops').value < 2; updateFrame(); restartPreview(); };
 $('vLoops').onchange = syncLoops; $('vBounce').onchange = () => { updateFrame(); restartPreview(); }; syncLoops();
 $('vSwing').onchange = () => { if (viewMode === '3d') wire.update3DInfo(); };
-$('vOutline').onchange = () => { $('oldToggle').checked = $('vOutline').checked; drawOutlines(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); } updateFrame(); };   // show the 1850 outline on the map as well
 /* The map behind the pane shows what the pane will make: Timelapse, Compare (the slider) or One year (a single image) */
 export function syncModeToPane(){
   const want = vstate.kind === 'image' ? (state.mode === 'compare' ? 'modeCompare' : 'modeSingle') : vstate.type === 'swipe' ? 'modeCompare' : 'modeTimelapse';
@@ -475,11 +474,40 @@ export function shadowText(ctx, text, x, y, opts = {}){
   ctx.restore();
 }
 /* One base picture per year: crop from the Copernicus image, brightness curve, optional 1850 outline */
-export async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1, smooth = true){
+/* The 1850 outline is a layer of the Layers box like the others: printed when it is ticked there, the glacier has one, and map layers are on */
+export const oldOutlineOn = g => layersOn() && $('oldToggle').checked && hasOldOutline(g);
+/* What the experimental outline shows in the picture of year ys[i]: one year, the two years of a slider, or (animation) the area lost since the first year up to it */
+export const arcOptFor = (ys, i) => vstate.kind === 'image' ? (imgCompare() ? { mode: 'compare', ys } : { mode: 'single', year: ys[0] }) : vstate.type === 'swipe' ? { mode: 'compare', ys } : { mode: 'timelapse', year: ys[i], first: ys[0] };
+export async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1, smooth = true, kind = 'image', bg = null, rasters = [], over = null, arcs = null){
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d', {willReadFrequently:true});
   ctx.drawImage(spaceCanvas(W, H, 8000, W / 1080 * 1.2), 0, 0);
   const fp = crop.fp, s = W / (crop.x1 - crop.x0);
+  if (bg) {      // background maps under the picture: the picture goes on its own canvas (brightness, fade outside the outline, opacity), then over the maps
+    const t = document.createElement('canvas'); t.width = W; t.height = H; const tc = t.getContext('2d', {willReadFrequently: true});
+    tc.imageSmoothingEnabled = smooth; tc.imageSmoothingQuality = 'high';
+    tc.drawImage(img, (fp.bbox[0] - crop.x0) * s, (crop.y1 - fp.bbox[3]) * s, (fp.bbox[2] - fp.bbox[0]) * s, (fp.bbox[3] - fp.bbox[1]) * s);
+    const b = brightness();
+    if (Math.abs(b - 1) > 0.01) {
+      const lut = new Uint8ClampedArray(256); for (let i = 0; i < 256; i++) lut[i] = 255 * Math.pow(i / 255, 1 / b);
+      const d = tc.getImageData(0, 0, W, H), px = d.data;
+      for (let i = 0; i < px.length; i += 4) { px[i] = lut[px[i]]; px[i + 1] = lut[px[i + 1]]; px[i + 2] = lut[px[i + 2]]; }
+      tc.putImageData(d, 0, 0);
+    }
+    const P0 = ll => { const p = L.CRS.EPSG3857.project(L.latLng(ll[1], ll[0])); return [(p.x - crop.x0) * s, (crop.y1 - p.y) * s]; };
+    if (maskGeom && o < 0.99) {      // outside the outline the picture becomes transparent: the maps show through
+      tc.save(); tc.beginPath(); tc.rect(0, 0, W, H);
+      maskGeom.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const [x, y] = P0(pt); i ? tc.lineTo(x, y) : tc.moveTo(x, y); }); tc.closePath(); }));
+      tc.clip('evenodd'); tc.globalCompositeOperation = 'destination-out'; tc.globalAlpha = 1 - o; tc.fillRect(0, 0, W, H); tc.restore();
+    }
+    ctx.drawImage(bg, 0, 0); ctx.save(); ctx.globalAlpha = imgOpacity(); ctx.drawImage(t, 0, 0); ctx.restore();
+    drawExportRasters(ctx, P0, rasters);
+    drawExportArcs(ctx, P0, W, arcs, kind);
+    if (outline) { ctx.save(); strokeEdgeFade(ctx, outline, P0, '#F2A93B', W / 1080 * 1.2); ctx.restore(); }
+    if (over) ctx.drawImage(over, 0, 0);      // place labels and trails above the picture and its outlines
+    drawExportLayers(ctx, P0, W / 1080 * 1.6, kind, rasters);
+    return c;
+  }
   ctx.imageSmoothingEnabled = smooth; ctx.imageSmoothingQuality = 'high';      // Landsat is smoothed like Sentinel-2
   ctx.drawImage(img, (fp.bbox[0] - crop.x0) * s, (crop.y1 - fp.bbox[3]) * s, (fp.bbox[2] - fp.bbox[0]) * s, (fp.bbox[3] - fp.bbox[1]) * s);
   const b = brightness();
@@ -495,11 +523,15 @@ export async function buildBase(img, crop, W, H, outline, maskGeom = null, o = 1
     maskGeom.coordinates.forEach(poly => poly.forEach(ring => { ring.forEach((pt, i) => { const [x, y] = P(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.closePath(); }));
     ctx.clip('evenodd'); ctx.globalAlpha = 1 - o; ctx.drawImage(spaceCanvas(W, H, 8000, W / 1080 * 1.2), 0, 0); ctx.restore();
   }
+  drawExportRasters(ctx, P, rasters);
+  drawExportArcs(ctx, P, W, arcs, kind);
   if (outline) {
     ctx.save();
     strokeEdgeFade(ctx, outline, P, '#F2A93B', W / 1080 * 1.2);
     ctx.restore();
   }
+  if (over) ctx.drawImage(over, 0, 0);
+  drawExportLayers(ctx, P, W / 1080 * 1.6, kind, rasters);      // the ticked map layers: their own pass over the picture
   return c;
 }
 /* Short dark gradients keep the text readable on bright ice and snow, instead of boxes: one at the top, one behind the bottom block (text, facts, year). */
@@ -637,6 +669,7 @@ export function drawHeader(ctx, W, S, o){
     ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.shadowColor = color; ctx.shadowBlur = 8; ctx.beginPath(); ctx.moveTo(x, y - 8); ctx.lineTo(x + 50, y - 8); ctx.stroke(); ctx.restore();
     ctx.font = `500 22px ${FONT}`; shadowText(ctx, text, x + 66, y, {blur:8});
   });
+  (o.cards || []).forEach(c => { y = drawLegendCard(ctx, x, y + 22, c) - 22; });      // legend cards of the colour layers (thickness, speed)
   ctx.restore(); return y;
 }
 /* Facts: flat dark tiles with a hairline edge (no blur: Safari ignores filters) */
@@ -682,13 +715,13 @@ export function drawBottom(ctx, W, H, S, o){
   }
 }
 export function drawSwipeLabels(ctx, W, H, S, info, split){
-  if (minimalOn()) return drawInset(ctx, W, S, info.glacier, S.top, info.hA ?? 1), minimalLabels(ctx, W, H, S, stillName(info.glacier), `${info.years[0]} | ${info.years[1]}`, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), info.hA ?? 1);
+  if (minimalOn()) return drawInset(ctx, W, S, info.glacier, S.top, info.hA ?? 1), minimalLabels(ctx, W, H, S, stillName(info.glacier), `${info.years[0]} | ${info.years[1]}`, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [(info.outline || info.xNew) && REGION.outlines.credit, ...(info.xCredit || [])]), info.hA ?? 1);
   shade(ctx, W, H, S, 300);
   const base = H - S.bottom, hz = info.horiz, hA = info.hA ?? 1, g = info.glacier, sc = info.scenes || [];
   const dateOf = k => sc[k] ? [fmtDM(sc[k].date), ` · ${styleLine(k === 1 && info.styleB || info.style, sc[k])}`, ` · ${sensorName(sc[k])} · ${styleName(k === 1 && info.styleB || info.style, sc[k])}`] : null;
   const al = Math.min(1, split / (W * 0.25)), ar = Math.min(1, (W - split) / (W * 0.25));      // a year fades when its image is almost hidden
   drawHeader(ctx, W, S, {year: String(info.years[0]), name: stillName(g), place: placeOf(g), date: dateOf(0), shortDate: !hz, hA, keyW: mapKeySize(info.res).w,
-    yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []});
+    yearAlpha: hz ? 1 : al, yearClip: hz ? [0, 0, W, split] : null, legend: [...(info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []), ...(info.xLegend || [])], cards: info.xCards});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawInset(ctx, W, S, g, hz ? S.top + 80 : heroBase(S) + 80, hA);
   // divider with a round handle
@@ -714,20 +747,20 @@ export function drawSwipeLabels(ctx, W, H, S, info, split){
     ctx.save(); ctx.globalAlpha = ar; const y = heroBase(S);
     shadowText(ctx, String(info.years[1]), W - S.right, y, {blur:14, align:'right'}); dateLine(W - S.right, y + 46, 'right'); ctx.restore();
   }
-  ctx.font = `500 22px ${FONT}`; shadowText(ctx, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [info.outline && REGION.outlines.credit]), S.left, base, {blur:6, color:'rgba(255,255,255,.78)'});
+  ctx.font = `500 22px ${FONT}`; shadowText(ctx, shortCredit(`${Math.min(...info.years)} and ${Math.max(...info.years)}`, [(info.outline || info.xNew) && REGION.outlines.credit, ...(info.xCredit || [])]), S.left, base, {blur:6, color:'rgba(255,255,255,.78)'});
   siteLine(ctx, W - S.right, base);
 }
 /* The frame of a single year (a picture, or one frame of a timelapse): top block, map key, bottom block with facts and timeline */
 export function drawYearFrame(ctx, W, H, S, info, yr, scene, tlYears){
   const g = info.glacier, hA = info.hA ?? 1;
-  if (minimalOn()) return drawInset(ctx, W, S, g, S.top, hA), minimalLabels(ctx, W, H, S, stillName(g), String(yr), shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]), hA, info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : []);
+  if (minimalOn()) return drawInset(ctx, W, S, g, S.top, hA), minimalLabels(ctx, W, H, S, stillName(g), String(yr), shortCredit(creditYears(info), [(info.outline || info.xNew) && REGION.outlines.credit, ...(info.xCredit || [])]), hA, info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : []);
   shade(ctx, W, H, S);
-  drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : [],
+  drawHeader(ctx, W, S, {year: String(yr), name: stillName(g), place: placeOf(g), hA, keyW: mapKeySize(info.res).w, legend: [...(info.outline ? [['#F2A93B', [14, 9], REGION.outlines.oldLegend]] : []), ...(info.xLegend || [])], cards: info.xCards,
     date: [fmtDM(scene.date), ` · ${styleLine(info.style, scene)}`, ` · ${sensorName(scene)} · ${styleName(info.style, scene)}`]});
   ctx.save(); ctx.globalAlpha *= hA; mapKey(ctx, info.res, W - S.right, S.top); ctx.restore();
   drawInset(ctx, W, S, g, S.top + 80, hA);
   drawBottom(ctx, W, H, S, {
-    credit: shortCredit(creditYears(info), [info.outline && REGION.outlines.credit]),
+    credit: shortCredit(creditYears(info), [(info.outline || info.xNew) && REGION.outlines.credit, ...(info.xCredit || [])]),
     tiles: info.factSet ? factTiles(g, yr, info.factSet, info.factBase) : [],
     tl: tlYears.length > 1 ? { years: tlYears, pos: Math.max(0, tlYears.indexOf(yr)) } : null
   });
@@ -796,20 +829,27 @@ export async function frameBases(ys, W, H){
   const nw = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x, r.y]));
   const se = L.CRS.EPSG3857.project(map.containerPointToLatLng([r.x + r.w, r.y + r.h]));
   const crop = { x0: nw.x, x1: se.x, y1: nw.y, fp };
-  const outline = $('vOutline').checked && hasOldOutline(g) ? oldOutlineGeom(g) : null;
+  const outline = oldOutlineOn(g) ? oldOutlineGeom(g) : null;
   await Promise.all([loadLogo(), ...['600 30px', '800 120px', '500 30px', '700 40px'].map(f => document.fonts.load(`${f} "Schibsted Grotesk"`).catch(() => {}))]);
 
   // images of all years (most are cached already), decoded one after the other with createImageBitmap: robust also on phones
   let done = 0;
   const urls = await Promise.all(ys.map((y, i) => loadImage(g, y, null, undefined, sideStyle(i)).then(url => { progress(0.2 * (++done) / ys.length, `Loading images ${done} of ${ys.length}…`); return url; })));
-  const bases = [];
+  const rasters = await prepareRasters(vstate.kind, { crop, W, H }), bgr = await buildBackground(crop, W, H, vstate.kind, null, fp), ovr = await buildBackground(crop, W, H, vstate.kind, null, fp, true), bases = [];      // the background maps, made once for all years
+  let lost = (bgr ? bgr.failed : 0) + (ovr ? ovr.failed : 0), all = (bgr ? bgr.total : 0) + (ovr ? ovr.total : 0);
   for (const [i, url] of urls.entries()) {
     const bmp = await createImageBitmap(await (await fetch(url)).blob());
-    bases.push(await buildBase(bmp, crop, W, H, outline, outlineGeom(g), outsideAlpha(), true)); bmp.close();
+    let bgc = bgr && bgr.canvas;
+    if (perYearBackground(vstate.kind)) {      // aerial photographs of this picture's year, on top of the maps
+      const ar = await buildBackground(crop, W, H, vstate.kind, ys[i], fp); lost += ar.failed; all += ar.total;
+      const m = document.createElement('canvas'); m.width = W; m.height = H; const mc = m.getContext('2d'); if (bgc) mc.drawImage(bgc, 0, 0); mc.drawImage(ar.canvas, 0, 0); bgc = m;
+    }
+    bases.push(await buildBase(bmp, crop, W, H, outline, outlineGeom(g), outsideAlpha(), true, vstate.kind, bgc, rasters, ovr && ovr.canvas, arcOptFor(ys, i))); bmp.close();
     progress(0.2 + 0.1 * (i + 1) / urls.length, 'Preparing frames…');
   }
+  if (lost) showNotice(`${lost} of ${all} map tiles could not be loaded: the background has gaps.`);
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
-  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, res: frameGroundRes(), style: state.style, styleB: sideStyle(1),
+  const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys, rasters), xCards: [...rasters.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean), res: frameGroundRes(), style: state.style, styleB: sideStyle(1),
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
     site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
   return { g, bases, outline, info };
@@ -1158,3 +1198,19 @@ document.addEventListener('change', e => { if (!$('videoSheet').hidden && e.targ
 export function setLastExport(v){ return lastExport = v; }      // the other files may not assign to an imported variable
 export function setBrandMotion(v){ return brandMotion = v; }      // the other files may not assign to an imported variable
 export function setLogoAsked(v){ return logoAsked = v; }      // the other files may not assign to an imported variable
+
+/* The line on the frame opens the Layers box (phones: the menu is closed while a pane is open, so it is opened here) */
+const layerHome = new Map();      // box -> where it lives (parent, next sibling) while it is moved into the pane
+const placeLayerBox = on => {      // a pane at the side: the Layers box opens inside the pane, under its last button (the pane scrolls); a pane at the bottom (phones) keeps the box where it is
+  const st = $('stage').getBoundingClientRect(), sh = $('videoSheet'), sr = sh.getBoundingClientRect(), side = on && sr.width < st.width * 0.9 && sr.height > innerHeight * 0.9, mineBox = viewMode === '3d' ? $('v3dLayers') : $('layerbox');
+  [$('layerbox'), $('v3dLayers')].forEach(b => {
+    if (layerHome.has(b) && !(side && b === mineBox)) { const h = layerHome.get(b); h.parent.insertBefore(b, h.next); layerHome.delete(b); b.classList.remove('in-sheet'); }
+    if (side && b === mineBox && !layerHome.has(b)) { layerHome.set(b, { parent: b.parentNode, next: b.nextSibling }); b.classList.add('in-sheet'); sh.appendChild(b); setTimeout(() => b.scrollIntoView({ block: 'nearest', behavior: 'smooth' }), 50); }
+  });
+};
+$('vfLayers').onclick = () => {
+  const on = document.body.classList.toggle('x-layers'), d3 = viewMode === '3d', b = d3 ? $('v3dLayers') : $('layerbox'); setLayers(on); placeLayerBox(on);
+  if (d3) b.classList.toggle('open', on);      // (the phone's own menu button opens the 3D box through setLayers)
+  if (on && b.classList.contains('min')) (d3 ? $('v3dLbToggle') : $('lbToggle')).click();
+};
+$('vLayers').addEventListener('change', () => { syncExportRows(); drawPreview(); });

@@ -128,11 +128,12 @@ export const TRAILS = {
   hike: { title: 'Naturweg, Riffelalp to Sunnegga', text: 'Through a stone-pine forest to the retreating glacier, with Matterhorn views: 6.2 km, about 1 h 40 min.', url: 'https://zermatt.swiss/p/naturweg-nr-19-01tVj000005EvuoIAC', kind: 'wander' }, bike: null }
 };
 /* swisstopo's approximate WGS84 to LV95 formulas (about 1 m), for the map links */
-export const lv95 = (lon, lat) => {
+export const lv95f = (lon, lat) => {      // not rounded (the special-flights tiles at 0.1 m need it)
   const p = (lat * 3600 - 169028.66) / 10000, l = (lon * 3600 - 26782.5) / 10000;
   return [2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3,
-          1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3].map(Math.round);
+          1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3];
 };
+export const lv95 = (lon, lat) => lv95f(lon, lat).map(Math.round);
 export const GLACIER_INFO = {
  "aletsch": {
   "fact": "The Aletsch region has its own legend: the Rollibock, a large buck with long horns, fiery eyes and icicles instead of fur, who lives in the eternal ice of the Great Aletsch Glacier. He rarely leaves it, only when someone provokes his anger. In one story a hunter from the Fieschertal, who had destroyed rock crystals and killed a chamois doe and her kid, is taken across Lake Märjelen by a ferryman who turns out to be the Rollibock: the glacier opens and the boat sinks in the icy water. Today he is more a mascot of the region than a legendary figure.",
