@@ -3,7 +3,7 @@ import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, landsatName, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
-import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, oldestOn, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN } from './05-map.js';
+import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, oldestOn, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN, drawArcs } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'cbButtonsHtml', { get: () => cbButtonsHtml, configurable: true });
@@ -401,12 +401,13 @@ export let bgOff = null, labelsAuto = false, trailsAuto = false;
 export function syncBackgrounds(){
   const open = !document.getElementById('videoSheet').hidden, labelsEl = document.getElementById('labelsToggle');
   const flipLabels = on => { labelsEl.checked = on; labelsEl.dispatchEvent(new Event('change')); };
-  if (open && labelsEl.checked && !labelsAuto) { labelsAuto = true; flipLabels(false); }              // place labels stay off while a download pane is open
+  const keepOverlays = wire.exportLayersOn();      // map layers are part of the download: place labels and trails stay
+  if (open && labelsEl.checked && !labelsAuto && !keepOverlays) { labelsAuto = true; flipLabels(false); }              // place labels stay off while a download pane is open
   else if (!open && labelsAuto) { labelsAuto = false; if (!labelsEl.checked) flipLabels(true); }      // and come back when it closes
   const trailsEl = document.getElementById('trailsToggle'), flipTrails = on => { const keepPref = prefs.trails; trailsEl.checked = on; trailsEl.dispatchEvent(new Event('change')); prefs.trails = keepPref; savePrefs(); };      // your saved choice is not touched
-  if (open && trailsEl.checked && !trailsAuto) { trailsAuto = true; flipTrails(false); }                 // the hiking trails are not in the downloads either
+  if (open && trailsEl.checked && !trailsAuto && !keepOverlays) { trailsAuto = true; flipTrails(false); }                 // the hiking trails are not in the downloads either
   else if (!open && trailsAuto) { trailsAuto = false; if (!trailsEl.checked) flipTrails(true); }
-  const low = open && ((outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier())) || wire.frameExceedsImage());      // reaching beyond the picture: space, no map and no other glaciers
+  const low = open && !wire.exportLayersOn() && ((outsideAlpha() < 0.99 && !!outlineGeom(currentGlacier())) || wire.frameExceedsImage());      // reaching beyond the picture: space, no map and no other glaciers (unless map layers are part of the download: then the maps stay, and the download prints them)
   const ids = ['mosaicToggle', 'osmToggle', 'topoToggle', 'oldMapToggle', 'altiToggle', 'aerialToggle', 'labelsToggle'], keep = { mosaic: prefs.mosaic, osm: prefs.osm, topo: prefs.topo, alti: prefs.alti };
   const flip = (id, on) => { const el = document.getElementById(id); el.checked = on; el.dispatchEvent(new Event('change')); };
   if (low && !bgOff) { bgOff = ids.filter(id => document.getElementById(id).checked); bgOff.forEach(id => flip(id, false)); }
@@ -500,7 +501,7 @@ export function aboutChaptersCh(){
       <details class="about-ch" name="aboutch" id="ch-1"><summary>Why Tongues from Space</summary><div class="about-sec">
         <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
         <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
-        <p>The pictures are real satellite images of the day shown, not renderings. The one exception, the optional Super-res (AI) layer in 3D, is labelled as such.</p>
+        <p>The pictures are real satellite images of the day shown, not renderings. The one exception, the optional Super-resolution layer in 3D, is labelled as such.</p>
         <p>I hope this dashboard sparks awareness of glaciers and of why they matter to society, for instance because of the water they store. That is why the ice is also shown in litres, swimming pools and Lake Zurich. — Jochem Braakhekke</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-14"><summary>How to use it</summary><div class="about-sec">
@@ -647,14 +648,14 @@ export function aboutChaptersCh(){
       <details class="about-ch" name="aboutch" id="ch-16"><summary>Map layers</summary><div class="about-sec">
         <p>Open <em>Layers</em> at the top right of the map. The same menu works in 3D, with a few layers of its own (see The 3D view).</p>
         <p><em>Pictures.</em> <em>Sentinel-2 image</em> is the picture of the chosen year, with its own opacity; <em>swisstopo aerial</em> shows SWISSIMAGE (see Aerial images, trails and panoramas). The setting <em>Surroundings opacity</em> in the left panel fades the picture outside the 1850 outline.</p>
-        <p><em>The glacier.</em> <em>Outline 1850</em> and <em>Outline 2023</em> are the outlines of the Swiss Glacier Inventory.${fn('sgi')} <em>Tongue tip 2023</em> is the lowest point of the 2023 outline. <em>Thickest ice</em> is where the ice is thickest, by the thickness map of Grab et al.${fn('grab')} (or by a newer radar survey, if there is one), and <em>Radar points</em> shows the radar measurements (the mean of every 50 m cell).${fn('radar')} <em>Modelled thickness 2016</em> is the ice thickness map of Grab et al.${fn('grab')} (the menu names 2016; the reference year of the map differs by glacier, 2017 for Aletsch). <em>Ice speed</em> is described under Ice speed.</p>
+        <p><em>The glacier.</em> <em>Outline 1850</em> and <em>Outline 2023</em> are the outlines of the Swiss Glacier Inventory.${fn('sgi')} <em>Tongue tip 2023</em> is the lowest point of the 2023 outline. <em>Thickest ice</em> is where the ice is thickest, by the thickness map of Grab et al.${fn('grab')} (or by a newer radar survey, if there is one), and <em>Radar points</em> shows the radar measurements (the mean of every 50 m cell).${fn('radar')} <em>Glacier thickness 2016</em> is the modelled ice thickness map of Grab et al.${fn('grab')} (the menu names 2016; the reference year of the map differs by glacier, 2017 for Aletsch). <em>Ice speed</em> is described under Ice speed.</p>
         <p><em>Around the glacier.</em> <em>Hiking trails</em> with the band where the tongue can be seen; <em>Panoramas</em> (Street View, Aletsch only); <em>Other glacier names</em> writes the name of the chosen glacier and of the other glaciers inside its picture (names from Wikidata and the Randolph Glacier Inventory${fn('names')}); <em>Selectable glaciers</em> draws the ten glaciers as red outlines you can click and is switched off when you choose one.</p>
         <p><em>Backgrounds</em> behind and around the picture: Sentinel-2 cloudless by EOX, OpenStreetMap, the swisstopo map, a hillshade and place labels.${fn('bg')} <em>Tools:</em> Tongue fits the view to the picture box and Whole glacier to the whole glacier, Measure length and Measure area draw on the map and give the value, Clear removes them.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-10"><summary>The 3D view</summary><div class="about-sec">
         <p>A strip along the glacier, from 1 km below the tongue tip up to about 6.5 km up the glacier and 4 km wide, with the real satellite picture of the chosen year draped over the terrain. The heights are the newest edition of swisstopo's swissALTI3D elevation model (served as tiles by Mapterhorn and stored with the page on a 14 m grid).${fn('terrain')}</p>
         <p>Drag to turn all the way round and tilt, Shift-drag or right-drag (two fingers on a phone) to move, scroll or pinch to zoom. The layers menu, the measuring tools and the downloads work here as on the map.</p>
-        <p>Layers of the 3D view: Then and now (see Old photographs), Space (a night sky behind the terrain), Peak names and, where the data exists, Bedrock and Super-res (AI), described below.</p>
+        <p>Layers of the 3D view: Historical images, Space (a night sky behind the terrain), Peak names and, where the data exists, Bedrock and Super-resolution, described below.</p>
         <h4>Ice surface of each year</h4>
         <p>Every year's surface is the ice on the day of that year's satellite picture. It is a physical model fitted to every dated elevation model of the glacier that exists (swisstopo flights since 2017, the 2021 and 2022 lidar, the two swissALTI3D editions), with the GLAMOS mass balance and a fitted rate of ice flow between and beyond them. Where a flight or the lidar was flown, the surface of that day is reproduced; elsewhere it is a model, and the page says so under the picture.</p>
         <p>Ten glaciers have a surface for each year from 2016 to 2026. Grosser Aletsch comes first; the nine others are made like it, and I list only what differs.</p>
@@ -682,14 +683,14 @@ export function aboutChaptersCh(){
         <p>Where the terrain file has a bed, the layer Bedrock cuts the strip open as a block diagram: ice above, bedrock below. The bed is swissBEDROCK, a model: under glaciers it is swissALTI3D minus a modelled ice thickness.${fn('bedrock')}</p>
         <p>Switching the ice off shows the bed with a rock look painted from the ice-free ground around it, and hollows in the bed get a small lake. The colours and the lakes are modelled, not measured.</p>
         <p>Where GLAMOS has radar for the glacier, <em>Thickness cross-section</em> draws a line across the glacier and gives its surface and bed as a chart (downloads as SVG, PNG and CSV).</p>
-        <h4>Super-res (AI)</h4>
+        <h4>Super-resolution</h4>
         <p>An optional layer for Aletsch, Gornergletscher, Fieschergletscher, Rhonegletscher, Unteraargletscher, Corbassière, Zmuttgletscher, Findelgletscher, Feegletscher and Triftgletscher, 2016 to 2026. The Sentinel-2 picture of the year has been run through a super-resolution model (SEN2SR, 10 m to 2.5 m).${fn('sr')}</p>
         <p>The extra detail is the model's estimate, not something the satellite saw. The layer is off until you switch it on. All other pictures on the site are never sharpened this way.</p>
         <h4>Lakes</h4>
         <p>In front of the Rhone, Findel and Zmutt glaciers a lake can have grown over ground that the model holds as a slope. Where the picture of a year shows water (found from its colour), the terrain there is set to the level of the lake that the model already holds, so the water lies flat. A lake without such a level in the model is left as it is.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-11"><summary>Old photographs</summary><div class="about-sec">
-        <p>"Then and now" (3D view, one year) shows historic photographs of the lower tongue for eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel and Fee. They come from the ETH Library's Bildarchiv; where the camera stood and looked was worked out by volunteers on Smapshot (HEIG-VD). Click a photograph, or a camera symbol on the terrain (switch it on in the dropdown), and the 3D view flies to that spot and looks the same way, with the same field of view. Drag the line to compare the photograph with the terrain of today.</p>
+        <p>"Historical images" (3D view, one year) shows historic photographs of the lower tongue for eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel and Fee. They come from the ETH Library's Bildarchiv; where the camera stood and looked was worked out by volunteers on Smapshot (HEIG-VD). Click a photograph, or a camera symbol on the terrain (switch it on in the dropdown), and the 3D view flies to that spot and looks the same way, with the same field of view. Drag the line to compare the photograph with the terrain of today.</p>
         <p>Only photographs whose date is known to about a year, and where the tongue is in the picture, were kept. Each photograph shows its own licence. A rod on the ice of today marks the estimated height of the ice surface then: from the thinning of the whole glacier in the GLAMOS volume surveys, and before the first survey from the 1850 area with area-volume scaling (Bahr et al. 1997). The range is wide and the figure is an estimate.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-12"><summary>Aerial images, trails and panoramas</summary><div class="about-sec">
@@ -1404,7 +1405,6 @@ export function wireWater(){
 export function renderOutlineControls(){
   if (REGION.rgi) {      // the outlines of the region's institute, cut to the glacier: the old one and the newest
     document.getElementById('oldLabel').textContent = `Outline ${REGION.outlines.old}`; document.getElementById('newLabel').textContent = `Outline ${REGION.outlines.new}`;
-    document.getElementById('vOutlineLabel').textContent = `${REGION.outlines.old} outline`;
     document.getElementById('outlineNote').textContent = '';      // the sources and limits of the outlines are in About, not in the menu
     return;
   }
@@ -1423,7 +1423,7 @@ export function refreshAll(){
   if (state.latest && (state.mode === 'timelapse' || (state.mode === 'compare' && state.a !== state.latest.year && state.b !== state.latest.year))) restoreLatest();        // the latest image belongs to One year, or to a side of the slider
   renderMode(); renderYears();
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
-  renderStory(); writeHash(); wire.sync3D();
+  renderStory(); writeHash(); wire.sync3D(); drawArcs(false);
   if (state.checked && !latestBusy) wire.setStatus(statusLine());      // the status box follows the choice: a year after Latest drops its "Latest clear-ish scene" line
 }
 

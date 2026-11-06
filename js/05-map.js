@@ -1,7 +1,8 @@
 import { wire } from './wire.js';
-import { YEARS, $, COARSE } from './01-data.js';
+import { YEARS, $, COARSE, lv95f } from './01-data.js';
+import { Cog, renderMapTile } from './cog.js';
 import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
-import { prefs, savePrefs, isLandsat, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, sideStyle, setLoading, fmtDM, latestBusy } from './03-imagery.js';
+import { prefs, savePrefs, isLandsat, landsatName, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, sideStyle, setLoading, fmtDM, latestBusy } from './03-imagery.js';
 import { state, okYears, currentGlacier, viewMode, glacierPicked } from './04-state.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'map', { get: () => map, configurable: true });
@@ -12,9 +13,10 @@ Object.defineProperty(wire, 'restoreOldest', { get: () => restoreOldest, configu
    ===================================================================== */
 export const TWO_FINGER = matchMedia('(pointer:coarse)').matches;   // touch screens: one finger scrolls the page, two move the map
 export const map = L.map('map', {zoomControl:false, attributionControl:false, minZoom:8, maxZoom:17, zoomSnap:0.25, zoomDelta:0.5, wheelPxPerZoomLevel:120, dragging: !TWO_FINGER});      // fine zoom steps: quarter levels, half a level per button press
-[['bgPane',205],['siA',207],['siB',208],['siT',209],['thickPane',300],['speedPane',310],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['sightPane',440],['labels',450],['measure',620]].forEach(([n,z]) => {
+[['bgPane',205],['siA',207],['siB',208],['siT',209],['flightsPane',235],['thickPane',300],['speedPane',310],['paneA',210],['paneB',220],['paneT',230],['outlines',430],['sightPane',440],['labels',450],['measure',620]].forEach(([n,z]) => {
   map.createPane(n); map.getPane(n).style.zIndex = z;
 });
+export let arcLayer = null;      // the experimental tongue arcs (canvas layer), null when off
 map.getPane('bgPane').style.filter = 'brightness(1.12) saturate(1)';   // background a little brighter than the plain tiles
 map.getPane('labels').style.pointerEvents = 'none';
 /* The scale bar: a white bar with a tick at each end and its length written centred above, the same as the scale bar of the map key on the downloads. It sits where Leaflet's own scale sat (same class, so the
@@ -50,7 +52,14 @@ export function placeScale(){
 { const lb = document.getElementById('layerbox'), st = document.getElementById('stage'), re = new ResizeObserver(() => placeScale()); re.observe(lb); re.observe(st);
   new MutationObserver(() => placeScale()).observe(document.getElementById('app'), {attributes: true, attributeFilter: ['class']}); addEventListener('resize', placeScale); placeScale(); }
 
+export function syncSatLabel(yrs){      // the satellite row of the layer menus names the sensor that is on show: Landsat for a Landsat year
+  const ys = (yrs || (state.mode === 'compare' ? [state.a, state.b] : [tlLayers[state.frame] ? tlLayers[state.frame].yr : state.one])).filter(Boolean), n = ys.filter(y => isLandsat(state.available[y])).length;
+  const names = [...new Set(ys.filter(y => isLandsat(state.available[y])).map(y => landsatName(state.available[y])))].join(' / ');      // e.g. Landsat 5
+  const txt = !n ? 'Sentinel-2 image' : n === ys.length ? `${names} image` : `Sentinel-2 / ${names} image`;
+  ['satLabel', 'l3SatLabel'].forEach(id => { const e = document.getElementById(id); if (e && e.textContent !== txt) e.textContent = txt; });
+}
 export function updateCredits(){
+  syncSatLabel();
   if (typeof viewMode !== 'undefined' && viewMode === '3d' && typeof wire.updateCredits3D === 'function') return wire.updateCredits3D();      // the 3D view names its sources in the same bar
   const yrs = state.mode !== 'compare'
     ? (tlLayers[state.frame] ? [tlLayers[state.frame].yr] : [])
@@ -61,6 +70,7 @@ export function updateCredits(){
   if (lsYrs.length && sat) parts.push(`${lsYrs.join(' and ')}: ${LANDSAT_CREDIT}`);
   if (!FEATURES.swisstopo && document.getElementById('aerialToggle').checked && state.oldestAerial) parts.push(`Aerial image ${flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial}: <a href="https://gatt.lmi.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0)`);
   else if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].map(ed => ed + (flownYear(glacierPicked ? currentGlacier() : null, ed) ? ` (flown ${flownYear(currentGlacier(), ed)})` : '')).join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
+  { const fe = flightsShown(); if (fe) parts.push(flightsCredit(fe)); }
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
   if (document.getElementById('osmToggle').checked) parts.push('Map © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors');
   if (document.getElementById('topoToggle').checked) parts.push('Map © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
@@ -69,6 +79,8 @@ export function updateCredits(){
   if (FEATURES.swisstopo && document.getElementById('altiToggle').checked) parts.push('Hillshade: swissALTI3D © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (document.getElementById('labelsToggle').checked) parts.push('Labels © OpenStreetMap contributors, EOX');
   if (document.getElementById('namesToggle').checked && map.hasLayer(namesLayer)) parts.push('Other glacier names: <a href="https://www.wikidata.org" target="_blank" rel="noopener">Wikidata</a> (CC0), Randolph Glacier Inventory 6.0 via <a href="https://www.glims.org/RGI/" target="_blank" rel="noopener">GLIMS</a>');
+  if (document.getElementById('swissAllToggle').checked && map.hasLayer(swissAllLayer)) parts.push('All Swiss glaciers: Swiss Glacier Inventory SGI2023, GLAMOS (CC BY 4.0), outlines simplified');
+  if (arcLayer) parts.push('Experimental outline: own experiment, outlines of the lowest 2 km modelled from Sentinel-2 pictures (GlaViTU), smoothed by 20 m; not official outlines');
   if (outlineLayers.old || outlineLayers.new) parts.push(REGION.outlines.html || 'Outlines GLAMOS (CC BY 4.0)');
   if (document.getElementById('thickToggle').checked) parts.push('Ice thickness (modelled, state around 2016): Grab et al. 2021, GLAMOS, via <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>');
   if (maxMarker) parts.push('Thickest ice: ' + (thickestSpot(currentGlacier()).kind === 'model' ? 'Grab et al. 2021, <a href="https://doi.org/10.3929/ethz-b-000434697" target="_blank" rel="noopener">SwissGlacierThickness-R2020</a> (CC BY 4.0)' : '<a href="https://doi.org/10.18750/icethickness.2020.r2020" target="_blank" rel="noopener">GLAMOS</a> radar (CC BY 4.0)'));
@@ -125,7 +137,7 @@ export const mapYears = () => (glacierPicked && swisstopoMaps[currentGlacier().i
 export let oldMap = null;
 export function updateMapYears(){      // the year(s) into the labels of both menus, and the layer in the year of the chosen glacier
   const y = mapYears(), old = y && y.oldest;
-  const tl = 'swisstopo map', ol = old ? 'Oldest swisstopo map ' + old : 'Oldest swisstopo map';
+  const tl = 'swisstopo map', ol = old ? 'swisstopo map ' + old : 'swisstopo map';
   [['topoLabel', tl], ['l3TopoLabel', tl], ['oldMapLabel', ol], ['l3OldMapLabel', ol]].forEach(([id, s]) => { const el = document.getElementById(id); if (el) el.textContent = s; });
   const on = document.getElementById('oldMapToggle'); if (!on) return;
   on.title = old ? '' : 'Choose a glacier to see its oldest swisstopo map';
@@ -321,6 +333,99 @@ export function restoreOldest(){
   $('satToggle').checked = s.sat; $('aerialToggle').checked = s.aerial; applySatVisibility(); $('aerialToggle').dispatchEvent(new Event('change')); updateCredits(); wire.setStatus(wire.statusLine());
 }
 export const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
+/* ---------- Special flights imagery (swisstopo Spezialbefliegungen), one year at a time ----------
+   One picture per year and glacier (data/special-flights/<id>.json + .webp in Web Mercator, scripts/build_special_flights.py): RGB (or, for a year without RGB, near-infrared) orthophotos of the flights that touch
+   the SGI 2023 outline, no rapid-mapping mosaics. The switch "Special flights" is in the layer menu of the map and of the 3D view, in One year only. LOCAL TRIAL, Aletsch only: the terms of use of the collection are not read yet. */
+let flightsIndex = null;      // the glaciers that have a data/special-flights file (written by scripts/build_special_flights.py), read once
+const flightIds = () => flightsIndex || (flightsIndex = fetch(asset('data/special-flights/index.json')).then(r => r.ok ? r.json() : []).catch(() => []));
+export const flightsData = new Map();      // glacier id -> {years: {...}} | null (none, or not loaded yet)
+export function ensureFlights(g){
+  const id = g && g.inv && g.inv.id; if (!id || flightsData.has(g.id)) return; flightsData.set(g.id, null);
+  flightIds().then(ids => ids.includes(id) ? fetch(asset(`data/special-flights/${id}.json`)).then(r => r.ok ? r.json() : null) : null).then(m => { if (m && m.years) { flightsData.set(g.id, m); updateFlights(); if (typeof wire.sync3DMenu === 'function') wire.sync3DMenu(); } }).catch(() => {});
+}
+export const flightsEntry = (g, yr) => { const m = g && flightsData.get(g.id); return m && m.years[yr] ? m.years[yr] : null; };
+export const flightsOn = () => document.getElementById('flightsToggle').checked && state.mode === 'single';
+export const flightsOff = new Set();      // ids of the flights switched off in the dock (not remembered)
+export const flightsNir = new Set();      // ids of the flights whose near-infrared layer is switched on in the dock
+const flightIdx = (o, minz, maxz) => o._idx || (o._idx = (() => { const m = new Map(); for (let z = minz; z <= maxz; z++) { const sh = maxz - z, set = new Set(); o.tiles.forEach(([x, y]) => set.add((x >> sh) + ',' + (y >> sh))); m.set(z, set); } return m; })());
+export const flightHas = (l, z, x, y) => { if (z > l.maxz) { const sh = z - l.maxz; z = l.maxz; x >>= sh; y >>= sh; } const set = l.idx.get(z); return !!set && set.has(x + ',' + y); };      // above the zoom of the list a tile belongs to its parent      // does the layer have this tile (the files only exist where the flight has data)?
+export function flightsShown(g = glacierPicked ? currentGlacier() : null){      // the layers on show (map and 3D), in the order they are painted (natural colour first, near infrared over it), or null
+  const m = g && flightsOn() ? flightsData.get(g.id) : null, e = m && flightsEntry(g, state.one); if (!e) return null;
+  const mk = (f, o, nir) => ({key: f.id + (nir ? ':nir' : ''), id: f.id, dir: o.dir, date: f.date, nir, tiles: o.tiles, bbox: o.bbox, idx: flightIdx(o, m.minzoom, m.maxzoom), minz: m.minzoom, maxz: m.maxzoom, sgi: g.inv.id, cogs: nir ? o.cogs : f.cogs, stretch: nir ? o.stretch : null});
+  const l = e.flights.filter(f => !flightsOff.has(f.id)).map(f => mk(f, f, false)).concat(e.flights.filter(f => f.nir && flightsNir.has(f.id)).map(f => mk(f, f.nir, true)));
+  return l.length ? l : null;
+}
+export const flightsCredit = l => `Special flights imagery ${[...new Set(l.map(f => f.date))].join(' and ')}: © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a> (Spezialbefliegungen)`;
+const flightName = f => `${fmtDM(f.date)}${f.time ? ' ' + f.time : ''}`;
+const cogs = new Map();      // href (and stretch) -> Cog (read through range requests)
+const cogFor = (l, c) => { const k = c.href + (l.stretch ? '|nir' : ''); if (!cogs.has(k)) cogs.set(k, new Cog(c.href, {stretch: l.stretch})); return cogs.get(k); };
+export const flightStreamZ = l => l.cogs && l.cogs[0] && l.cogs[0].gsd ? Math.min(21, Math.round(Math.log2(107950 / l.cogs[0].gsd))) : 20;      // the zoom whose ground pixel matches the picture (107950 = metres per pixel at zoom 0 times cos 46.4 degrees)
+export async function liveTile(l, z, x, y, opt){      // one 256 px tile of a layer, cut live from its file(s) at swisstopo (a near-infrared layer has one file per flight line, drawn in turn); null where there is nothing
+  const parts = await Promise.all(l.cogs.map(c => renderMapTile(cogFor(l, c), z, x, y, lv95f, opt).catch(() => null))), got = parts.filter(Boolean); if (!got.length) return null;
+  if (got.length === 1) return got[0]; const out = document.createElement('canvas'); out.width = out.height = 256; const ctx = out.getContext('2d'); got.forEach(p => ctx.drawImage(p, 0, 0)); return out;
+}
+const FlightStream = L.GridLayer.extend({      // first a quick coarse picture (3.2 m, the smallest overview, soon in the cache), then the one the zoom needs, up to the file's own 0.1 m (0.25 m in 2020-08-08)
+  createTile(coords, done){
+    const c = document.createElement('canvas'), l = this.options.lay; c.width = c.height = 256; const z = coords.z;
+    if (!flightHas(l, z, coords.x, coords.y)) { setTimeout(() => done(null, c), 0); return c; }
+    const ctx = c.getContext('2d'), paint = src => { if (src) { ctx.clearRect(0, 0, 256, 256); ctx.drawImage(src, 0, 0); } };
+    liveTile(l, z, coords.x, coords.y, {minScale: 3.2, trim: 12}).then(src => { paint(src); done(null, c); return liveTile(l, z, coords.x, coords.y, {trim: 12}); }).then(src => { if (src) paint(src); }).catch(err => done(err, c));
+    return c;
+  }
+});
+let flightsLayers = [];      // [{key, layer}] on the map, in painting order
+/* One zoom level closer while special flights are on (their tiles reach 0.4 m): the map and every tile layer (base maps, aerial, hillshade) may go to 18, otherwise they would vanish beyond 17. The map clamps the view back to 17 when the flights go off. */
+let zoomCap = 17;
+// a layer without a native limit (the labels) has no tiles beyond its own zoom, so it keeps its cap
+const capLayer = l => { if (!(l instanceof L.GridLayer) || l instanceof FlightStream || l.options.maxNativeZoom === undefined) return; if (l._mz0 === undefined) l._mz0 = l.options.maxZoom; l.options.maxZoom = Math.max(l._mz0, zoomCap); };
+map.on('layeradd', e => capLayer(e.layer));
+function setZoomCap(z){ zoomCap = z; map.setMaxZoom(z); map.eachLayer(capLayer); }
+export function placeLeftStack(){      // under the year and its lines (and the tilt hint in the map), in the map and in the 3D view: "Then and now" and the special flights
+  const d = document.getElementById('leftStack'); d.hidden = ![...d.children].some(c => !c.hidden); if (d.hidden) return;
+  const is3 = viewMode === '3d', host = document.getElementById(is3 ? 'v3d' : 'stage'); if (d.parentNode !== host) host.appendChild(d);      // the 3D view lies over the stage: the dock moves into it
+  const refs = is3 ? [document.querySelector('.v3d-top')] : [document.getElementById('tagT'), document.querySelector('.tilt-hint')], hr = host.getBoundingClientRect();
+  let bottom = 0, left = 12; refs.forEach(ref => { if (!ref || ref.hidden) return; const r = ref.getBoundingClientRect(); if (r.height) { bottom = Math.max(bottom, r.bottom - hr.top); left = r.left - hr.left; } });
+  d.style.top = Math.round(bottom + 10) + 'px'; d.style.left = Math.round(left + 2) + 'px';
+}
+{ const ro = new ResizeObserver(() => placeLeftStack()); ['tagT', 'v3d'].forEach(id => ro.observe(document.getElementById(id))); const v = document.querySelector('.v3d-top'); if (v) ro.observe(v); addEventListener('resize', placeLeftStack);
+  new MutationObserver(() => placeLeftStack()).observe(document.getElementById('stage'), {childList: true, attributes: true, attributeFilter: ['hidden', 'class']}); }
+export function updateFlights(){
+  const g = glacierPicked ? currentGlacier() : null; ensureFlights(g);
+  const vis = !!(g && flightsData.get(g.id)), one = vis && state.mode === 'single', e = one ? flightsEntry(g, state.one) : null;      // the row is in every mode and view of a glacier with flights; greyed unless One year has a flight
+  [['flightsRow', 'flightsToggle', 'flightsLabel'], ['l3FlightsRow', 'l3Flights', 'l3FlightsLabel']].forEach(([row, inp, lab]) => {
+    const r = document.getElementById(row), i = document.getElementById(inp); r.hidden = !vis; r.classList.toggle('is-unavail', !e); i.disabled = !e; if (document.getElementById('flightsToggle')) i.checked = document.getElementById('flightsToggle').checked;
+    document.getElementById(lab).textContent = 'swisstopo special flight';      // the dates are in the dock; a year without a flight greys the row (the tooltip says why)
+    r.title = e ? `Project the swisstopo special-flights imagery of ${state.one} (${e.product}) on the ${row === 'flightsRow' ? 'map' : 'terrain'}. Only where a flight touched the glacier: ${e.share_of_outline_2023} % of the 2023 outline.` : !vis ? '' : !one ? 'swisstopo special-flights imagery: can only be used in One year (map or 3D view), not in the Slider or Timelapse.' : 'swisstopo special-flights imagery: no flight touched this glacier in this year.';
+  });
+  const on = !!e && document.getElementById('flightsToggle').checked, dock = document.getElementById('flightsDock'), key = on ? e.flights.map(f => f.id).join() + '|' + state.one : '';
+  dock.hidden = !on;
+  if (on && dock.dataset.key !== key) {      // the list of the flights of this year: a switch each, oldest first; a flight with near-infrared lines gets a second, smaller switch
+    dock.dataset.key = key;
+    dock.innerHTML = `<div class="fd-h"><span class="fd-t"><svg class="plane-sw" viewBox="0 0 24 24" aria-hidden="true"><path d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/></svg>Special flights ${state.one}</span><button type="button" class="fd-x" aria-label="Close" title="Close">\u00d7</button></div>` + [...e.flights].sort((a, b) => (a.date + a.time).localeCompare(b.date + b.time)).map(f =>
+      `<label class="toggle optsw" title="${f.area}: ${f.share_of_outline_2023} % of the 2023 outline, ${f.product}"><input type="checkbox" data-f="${f.id}"${flightsOff.has(f.id) ? '' : ' checked'}> <span>${flightName(f)}<small>${f.area}</small></span></label>`
+      + (f.nir ? `<label class="toggle optsw fd-sub" title="The near-infrared lines of the same flight, shown as near infrared, red, green (false colour: plants and ice stand out)"><input type="checkbox" data-n="${f.id}"${flightsNir.has(f.id) ? ' checked' : ''}> <span>Near infrared<small>false colour</small></span></label>` : '')).join('');
+  }
+  dock.querySelectorAll('input[data-f]').forEach(i => { i.checked = !flightsOff.has(i.dataset.f); });
+  dock.querySelectorAll('input[data-n]').forEach(i => { i.checked = flightsNir.has(i.dataset.n) && !flightsOff.has(i.dataset.n); });
+  const want = on ? (flightsShown(g) || []) : [], have = flightsLayers.map(x => x.key).join(), need = want.map(f => f.key).join();
+  if (have !== need) {
+    flightsLayers.forEach(x => map.removeLayer(x.layer)); flightsLayers = [];
+    want.forEach(f => { const [x0, y0, x1, y1] = f.bbox, sw = L.CRS.EPSG3857.unproject(L.point(x0, y0)), ne = L.CRS.EPSG3857.unproject(L.point(x1, y1)), bnd = L.latLngBounds([sw.lat, sw.lng], [ne.lat, ne.lng]);
+      flightsLayers.push({key: f.key, layer: new FlightStream({pane: 'flightsPane', lay: f, bounds: bnd, minZoom: f.minz, maxZoom: 23, maxNativeZoom: flightStreamZ(f), tileSize: 256, keepBuffer: 1, updateWhenZooming: false}).addTo(map)}); });
+  }
+  setZoomCap(want.length ? 20 : 17);
+  placeLeftStack(); updateCredits(); if (typeof wire.syncThenNowChip === 'function') wire.syncThenNowChip();
+}
+document.getElementById('flightsDock').addEventListener('click', ev => {      // the cross beside the title closes the dock: the layer goes off
+  if (!ev.target.closest('.fd-x')) return;
+  document.getElementById('flightsToggle').checked = false; updateFlights(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); }
+});
+document.getElementById('flightsDock').addEventListener('change', ev => {      // a switch of the dock
+  const i = ev.target.closest('input[data-f], input[data-n]'); if (!i) return;
+  if (i.dataset.n) { if (i.checked) { flightsNir.add(i.dataset.n); flightsOff.delete(i.dataset.n); } else flightsNir.delete(i.dataset.n); }      // near infrared belongs to its flight: switching it on switches the flight on
+  else if (i.checked) flightsOff.delete(i.dataset.f); else { flightsOff.add(i.dataset.f); flightsNir.delete(i.dataset.f); }      // and switching the flight off switches its near infrared off
+  updateFlights(); if (viewMode === '3d') { wire.sync3DMenu(); wire.refresh3D(); }
+});
 export function updateAerial(){
   updateMapYears();      // every change of glacier comes through here: the oldest map follows it
   const eds = [...new Set(Object.values(aerialSlots()).filter(Boolean).map(siYear))].sort(), cg = glacierPicked ? currentGlacier() : null;
@@ -343,7 +448,7 @@ export function updateAerial(){
     }
     else if (yr && aerial[k].layer._key !== key) { aerial[k].layer._key = key; aerial[k].layer.setClip(myBoxes); }      // another glacier was chosen
   });
-  clip(); updateCredits(); updateSpeed(); updateNames();
+  clip(); updateCredits(); updateSpeed(); updateNames(); updateFlights();
 }
 export const satOn = () => document.getElementById('satToggle').checked;
 /* Is a picture of the glacier on show? The Sentinel-2 picture of a chosen glacier (map and 3D view). The controls and downloads that only make sense for it follow this. */
@@ -381,6 +486,7 @@ export function imageryLayer(yr, pane, opacity=1, style){
 }
 export const deferredLoads = [];
 export function loadDeferred(){ deferredLoads.splice(0).forEach(([ov, load]) => { if (ov._map) load(); }); }      // back on the map: the layers that are still on it get their pictures
+
 
 /* ---------- compare (swipe) ---------- */
 export let layerA = null, layerB = null;
@@ -423,6 +529,7 @@ export function clip(){
     h.style.left = px + 'px'; h.style.top = ''; tagB.style.top = '';
   }
   h.setAttribute('aria-valuenow', Math.round(state.split * 100)); h.setAttribute('aria-orientation', horiz() ? 'vertical' : 'horizontal');
+  if (arcLayer && state.mode === 'compare') arcLayer.draw();      // the arcs are dimmed by the side of the divider they are on
   try { if (!document.getElementById('videoSheet').hidden && wire.vstate.kind === 'image') wire.drawPreview(); } catch {}      // the picture pane shows where the slider is (not yet defined during start-up: ignored)
 }
 map.on('move zoom resize', clip);
@@ -465,7 +572,7 @@ export function tagLine(el, first, sc, style = state.style){ el.innerHTML = (fir
 export function showFrame(i){
   if (!tlLayers.length) { wire.setTag('tagT', '–'); return; }
   state.frame = i;
-  tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0)); updateSpeed();
+  tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0)); updateSpeed(); updateFlights();
   const off = !satOn(), yShown = off && (state.mode === 'timelapse' || state.oldestAerial) && aerialWanted().T ? aerialWanted().T : tlLayers[i].yr;      // no Sentinel-2 picture: a timelapse shows its newest aerial year, not the frames
   wire.setTag('tagT', yShown);
   const sc = state.available[tlLayers[i].yr];
@@ -480,17 +587,19 @@ export function showFrame(i){
   updateCredits();
   if (viewMode === '3d' && wire.v3dCtx && wire.v3dCtx.follow && wire.v3dCtx.years.includes(tlLayers[i].yr)) wire.v3dCtx.follow(tlLayers[i].yr);      // the 3D view shows the frame too
   wire.syncPane();
+  drawArcs(true);
   const cb = document.querySelector('.cb-links');
   if (cb) cb.innerHTML = wire.cbButtonsHtml();
 }
 export const PLAY_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12-7.5z"/></svg>Play';
 export const PAUSE_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 4.5h4v15H6zM14 4.5h4v15h-4z"/></svg>Pause';
 document.getElementById('playBtn').innerHTML = PLAY_ICON;
-export const SPEED_MS = [2200, 1200, 600, 300, 150], SPEED_FPS = ['0.5', '1', '2', '4', '8'];      // the slider steps: delay per frame, and the label
+export const SPEED_FPS = ['0.5', '1', '1.5', '2', '3', '4', '5', '6', '7', '8'], SPEED_MS = SPEED_FPS.map(f => Math.round(1000 / +f));      // the slider steps (frames per second, max 8): the label, and the delay per frame
+export const speedAngle = i => -60 + i * 120 / (SPEED_FPS.length - 1);      // the needle of the little gauge, from -60 to 60 degrees
 export const speedMs = () => typeof wire.vPrev !== 'undefined' && wire.vPrev.on && wire.vstate.type !== 'swipe' ? wire.perSec(tlLayers.length) * 1000 : SPEED_MS[+document.getElementById('speedSel').value];      // the preview in the animation pane runs at the pane's "Seconds per year"
 export function updateSpeedIcon(){                 // the needle of the little gauge and the label follow the chosen speed
   const i = +document.getElementById('speedSel').value;
-  document.getElementById('speedNeedle').setAttribute('transform', `rotate(${-60 + i * 30} 12 18)`);
+  document.getElementById('speedNeedle').setAttribute('transform', `rotate(${speedAngle(i)} 12 18)`);
   document.getElementById('speedOut').textContent = `${SPEED_FPS[i]} fps`;
 }
 document.getElementById('speedSel').oninput = updateSpeedIcon; updateSpeedIcon();
@@ -630,6 +739,7 @@ export function drawOutlines(){
   outlineLayers.old = outlineLayers.new = null;
   drawRadar();
   drawMax();
+  drawArcs(false);
   if (typeof setThickness === 'function' && document.getElementById('thickToggle')) setThickness();
   wire.syncOutsideUi();
   if (typeof glacierPicked !== 'undefined' && !glacierPicked) return updateCredits();     // the overview shows no outlines until a glacier is chosen
@@ -782,6 +892,33 @@ export async function updateNames(){
   namesLayer.addTo(map); declutterNames(); updateCredits();
 }
 map.on('zoomend moveend', () => { if (map.hasLayer(namesLayer)) declutterNames(); });
+/* ---------- All Swiss glaciers: every glacier of the Swiss Glacier Inventory SGI2023 (GLAMOS, CC BY 4.0) as an outline, with name, area, length and elevation range on hover. data/swiss-glaciers.json is made by
+   scripts/build_swiss_inventory.py (outlines simplified to about 25 m; the values are the inventory's, rounded to 2 decimals). Loaded when the layer is first switched on. ---------- */
+export let swissAllFile = null;
+export const loadSwissAll = () => swissAllFile || (swissAllFile = fetch(asset('data/swiss-glaciers.json')).then(r => r.ok ? r.json() : null).catch(() => null));
+export const swissAllLayer = L.layerGroup();
+let swissAllGen = 0;
+map.createPane('swissAll'); map.getPane('swissAll').style.zIndex = 425;
+const swissRenderer = L.canvas({pane: 'swissAll'});
+const swissTip = r => {
+  const f = (v, u) => v == null ? '' : `${(+v).toFixed(2).replace(/\.?0+$/, '')} ${u}`, rows = [];
+  if (r[2] != null) rows.push(`Area ${f(r[2], 'km²')}`); if (r[3] != null) rows.push(`Length ${f(r[3], 'km')}`); if (r[4] != null && r[5] != null) rows.push(`Elevation ${Math.round(r[4])} to ${Math.round(r[5])} m`);
+  return `<b>${escName(r[1] || 'Unnamed glacier')}</b><br>${rows.join('<br>')}<br><small>SGI2023 ${escName(r[0])}</small>`;
+};
+export async function updateSwissAll(){
+  const gen = ++swissAllGen, on = document.getElementById('swissAllToggle').checked && viewMode !== '3d';
+  if (!on) { map.removeLayer(swissAllLayer); updateCredits(); return; }
+  const f = await loadSwissAll(); if (gen !== swissAllGen) return;
+  if (!f) { document.getElementById('swissAllToggle').checked = false; return; }
+  if (!swissAllLayer.getLayers().length) f.glaciers.forEach(r => {
+    const rings = r[6].map(poly => poly.map(c => { const o = []; for (let i = 0; i < c.length; i += 2) o.push([c[i + 1], c[i]]); return o; }));
+    const style = {renderer: swissRenderer, color: getVar('--crevasse'), weight: 1.2, opacity: .9, fillColor: getVar('--crevasse'), fillOpacity: .12};
+    const pg = L.polygon(rings, style).bindTooltip(swissTip(r), {sticky: true, direction: 'top', className: 'swiss-tip'});
+    pg.on('mouseover', () => pg.setStyle({weight: 2.4, fillOpacity: .3})); pg.on('mouseout', () => pg.setStyle({weight: 1.2, fillOpacity: .12}));
+    swissAllLayer.addLayer(pg);
+  });
+  swissAllLayer.addTo(map); updateCredits();
+}
 export let speedLayer = null, speedPin = null, speedFile = null, speedKey = '', speedGen = 0;
 export const speedFiles = new Map(), speedArrays = new Map();      // glacier id -> the file; "id|year" -> Float of m/yr
 export const loadSpeedFile = id => { if (!speedFiles.has(id)) speedFiles.set(id, fetch(asset(`data/itslive/${id}.json`)).then(r => r.ok ? r.json() : null).catch(() => null)); return speedFiles.get(id); };
@@ -1036,6 +1173,147 @@ export function drawTonguePin(){
   const g = currentGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue;
   if (!document.getElementById('pinToggle').checked || !at) return;
   tonguePin = L.marker(at, {icon: L.divIcon({className: '', html: '<div class="tongue-pin"><span>Tongue</span></div>', iconSize: [30, 30], iconAnchor: [15, 15]}), interactive: false, keyboard: false}).addTo(map);
+}
+/* ---------- tongue arcs (experiment, local only) ----------
+   The yearly arcs of the lowest ~2 km of the outline of a glacier (data/tongue-arcs.js, made by scripts/build_tongue_arcs.py from the GlaViTU experiment).
+   Timelapse: the year on show is a red line that fades into the tongue (like the 1850 outline), the area lost since the first year of the range is one even tint outside it
+   (nothing before that first year is drawn), the newest band lights up for a moment, and the first year carries a small label. Slider: only the two chosen years. One image
+   (and Latest): that year. Canvas, one layer under the outlines. */
+let arcFile = null, arcAnim = null, arcShown = '';
+export const arcsFor = g => g && window.TONGUE_ARCS && window.TONGUE_ARCS[g.id];
+export const loadArcs = () => window.TONGUE_ARCS ? Promise.resolve() : arcFile || (arcFile = new Promise(res => { const sc = document.createElement('script'); sc.src = asset('data/tongue-arcs.js'); sc.onload = () => res(); sc.onerror = () => res(); document.head.appendChild(sc); }));
+function arcSet(A){      // which years are drawn: {mode, ys (ascending, only those with an arc), yr (the one on show), first}
+  const has = y => !!(A.arcs[y]), m = state.mode;
+  if (m === 'compare') { const ys = [...new Set([state.a, state.b])].filter(has).sort(); return {mode: m, ys, yr: ys[ys.length - 1], first: ys[0]}; }
+  if (m === 'timelapse') { const yr = tlLayers[state.frame] ? tlLayers[state.frame].yr : state.to, f = tlLayers[0] ? tlLayers[0].yr : yr; return {mode: m, ys: Object.keys(A.arcs).map(Number).filter(y => y >= f && y <= yr).sort(), yr, first: f}; }
+  const yr = state.latest ? state.latest.year : state.one; return {mode: m, ys: has(yr) ? [yr] : [], yr, first: yr};
+}
+function strokeUpTo(ctx, pts, frac){
+  if (frac <= 0) return;
+  let tot = 0; const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(tot += Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const lim = tot * Math.min(1, frac); ctx.beginPath(); ctx.moveTo(...pts[0]);
+  for (let i = 1; i < pts.length; i++) {
+    if (cum[i] <= lim) { ctx.lineTo(...pts[i]); continue; }
+    const k = (lim - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); ctx.lineTo(pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k); break;
+  }
+  ctx.stroke();
+}
+/* An arc is an open line: it fades out towards its two loose ends. It is cut into short pieces whose opacity follows a smooth ramp over the first and last fifth of its length. */
+function arcPieces(pts){
+  const cum = [0]; for (let i = 1; i < pts.length; i++) cum.push(cum[i - 1] + Math.hypot(pts[i][0] - pts[i - 1][0], pts[i][1] - pts[i - 1][1]));
+  const L = cum[cum.length - 1], F = .2, N = 8, ramp = x => x * x * (3 - 2 * x);
+  if (!(L > 0)) return [{pts, w: 1}];
+  const cut = (a, b) => {      // the points of the line between the lengths a and b
+    const at = d => { let i = 1; while (i < cum.length - 1 && cum[i] < d) i++; const k = (d - cum[i - 1]) / ((cum[i] - cum[i - 1]) || 1); return [pts[i - 1][0] + (pts[i][0] - pts[i - 1][0]) * k, pts[i - 1][1] + (pts[i][1] - pts[i - 1][1]) * k]; };
+    const out = [at(a)]; for (let i = 1; i < pts.length - 1; i++) if (cum[i] > a && cum[i] < b) out.push(pts[i]); out.push(at(b)); return out;
+  };
+  const out = [{pts: cut(F * L, (1 - F) * L), w: 1}];
+  for (let j = 0; j < N; j++) {
+    const w = ramp((j + .5) / N);
+    out.push({pts: cut(F * L * j / N, F * L * (j + 1) / N), w}, {pts: cut(L - F * L * (j + 1) / N, L - F * L * j / N), w});
+  }
+  return out;
+}
+export function arcStroke(ctx, pts, color, alpha, width){      // a plain line that fades out to its loose ends
+  ctx.save(); ctx.strokeStyle = color; ctx.lineWidth = width; ctx.lineJoin = 'round'; ctx.lineCap = 'butt';      // butt caps: round ones overlap at the joins and show as beads
+  arcPieces(pts).forEach(c => { ctx.globalAlpha = alpha * c.w; strokeUpTo(ctx, c.pts, 1); }); ctx.restore();
+}
+/* a line as the 1850 outline is drawn: hard on the edge, a colour that fades towards the inside of the tongue (the arc closed by a straight line across its top), and both fade out to the loose ends */
+export function arcEdgeFade(ctx, pts, color, alpha = 1, k = .3, w = 2){
+  const pieces = arcPieces(pts);
+  ctx.save(); ctx.strokeStyle = color; ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
+  ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip('evenodd');
+  pieces.forEach(c => { ctx.globalAlpha = .07 * alpha * c.w; for (let i = 0; i < 9; i++) { ctx.lineWidth = 2 * k * (34 - i * 3.6); strokeUpTo(ctx, c.pts, 1); } });
+  ctx.restore(); arcStroke(ctx, pts, color, alpha, w);
+}
+/* the year, small, at the tongue tip of its line (the point furthest from the arc's two ends), just outside; with a thin line to the tip when the label has to stand further out to be clear of the other lines */
+export function arcLabel(ctx, pts, others, text, color, alpha = 1){
+  const a = pts[0], z = pts[pts.length - 1], mx = (a[0] + z[0]) / 2, my = (a[1] + z[1]) / 2;
+  let tip = a, dd = -1; pts.forEach(p => { const d = Math.hypot(p[0] - mx, p[1] - my); if (d > dd) { dd = d; tip = p; } });
+  const ux = (tip[0] - mx) / (dd || 1), uy = (tip[1] - my) / (dd || 1), clear = (x, y) => others.every(o => Math.hypot(o[0] - x, o[1] - y) > 12);
+  let off = 11; for (const o of [11, 20, 30]) { off = o; if (clear(tip[0] + ux * o, tip[1] + uy * o)) break; }
+  const lx = tip[0] + ux * off, ly = tip[1] + uy * off;
+  ctx.save(); ctx.globalAlpha = alpha;
+  if (off > 11) { ctx.strokeStyle = color; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(tip[0], tip[1]); ctx.lineTo(tip[0] + ux * (off - 7), tip[1] + uy * (off - 7)); ctx.stroke(); }
+  ctx.font = '600 9px "Schibsted Grotesk", system-ui, sans-serif'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round'; ctx.lineWidth = 2.6; ctx.strokeStyle = 'rgba(10,20,38,.8)'; ctx.fillStyle = color;
+  ctx.strokeText(text, lx, ly); ctx.fillText(text, lx, ly); ctx.restore();
+}
+const arcFront = (A, y) => A.arcs[y] ? A.arcs[y].front_behind_sgi_front_m : null;      // as the experiment states it: the larger, the further back the front, the smaller the glacier
+const ArcCanvas = L.Layer.extend({
+  onAdd(m){
+    this._c = L.DomUtil.create('canvas', 'leaflet-zoom-hide'); this._c.style.pointerEvents = 'none'; m.getPane('outlines').appendChild(this._c);
+    m.on('move zoom viewreset resize', this.draw, this); m.on('mousemove', this._hoverAt, this); m.on('mouseout', this._unhover, this); m.on('click', this._click, this); this.draw();
+  },
+  onRemove(m){ m.off('move zoom viewreset resize', this.draw, this); m.off('mousemove', this._hoverAt, this); m.off('mouseout', this._unhover, this); m.off('click', this._click, this); this._unhover(); this._c.remove(); },
+  _near(p){      // the drawn arc nearest to a container point, within a few pixels
+    /** @type {{y: any, d: number} | null} */
+    let best = null;
+    (this._hit || []).forEach(({y, pts}) => { for (let i = 1; i < pts.length; i++) {
+      const [x1, y1] = pts[i - 1], [x2, y2] = pts[i], dx = x2 - x1, dy = y2 - y1, l = dx * dx + dy * dy, k = l ? Math.max(0, Math.min(1, ((p.x - x1) * dx + (p.y - y1) * dy) / l)) : 0;
+      const d = Math.hypot(p.x - (x1 + k * dx), p.y - (y1 + k * dy)); if (d < 7 && (!best || d < best.d)) best = {y, d};
+    } });
+    return best ? best.y : null;
+  },
+  _hoverAt(e){      // the nearest drawn arc: highlighted, with year, scene, source and model in a small tooltip; a click opens the field notes
+    const A = arcsFor(currentGlacier()), y = this._near(e.containerPoint);
+    if (y === this._hover) { if (this._tip && y) this._tip.setLatLng(e.latlng); return; }
+    this._hover = y; this._map.getContainer().style.cursor = y ? 'pointer' : ''; this.draw();
+    if (!y || !A) return this._unhover();
+    const html = `<b>${y}</b> · experimental outline<br><small>Click for more info</small>`;
+    this._tip = (this._tip || L.tooltip({direction: 'top', offset: [0, -6], opacity: .96})).setLatLng(e.latlng).setContent(html); this._map.openTooltip(this._tip);
+  },
+  _click(e){ const g = currentGlacier(); if (g && g.inv && this._near(e.containerPoint)) window.open(`provenance.html?id=${g.inv.id}#arcsnote`, '_blank', 'noopener'); },
+  _unhover(){ if (this._tip && this._map) this._map.closeTooltip(this._tip); this._tip = null; if (this._map) this._map.getContainer().style.cursor = ''; if (this._hover) { this._hover = null; if (this._map) this.draw(); } },
+  draw(){
+    const m = this._map, g = currentGlacier(), A = arcsFor(g); if (!m || !A) return;
+    const sz = m.getSize(), c = this._c, dpr = window.devicePixelRatio || 1;
+    c.width = sz.x * dpr; c.height = sz.y * dpr; c.style.width = sz.x + 'px'; c.style.height = sz.y + 'px'; L.DomUtil.setPosition(c, m.containerPointToLayerPoint([0, 0]));
+    const ctx = c.getContext('2d'); ctx.scale(dpr, dpr); ctx.lineJoin = ctx.lineCap = 'round';
+    const S = arcSet(A), {ys, yr, first} = S; this._hit = []; if (!ys.length) return;
+    const cache = {}, px = y => cache[y] || (cache[y] = A.arcs[y].line.map(([lng, lat]) => { const q = m.latLngToContainerPoint([lat, lng]); return [q.x, q.y]; }));
+    ys.forEach(y => this._hit.push({y, pts: px(y)}));
+    const t = arcAnim && arcAnim.yr === yr ? Math.min(1, (performance.now() - arcAnim.t0) / arcAnim.dur) : 1, e = 1 - Math.pow(1 - t, 3);
+    const kz = Math.max(.45, Math.min(1.1, Math.pow(2, m.getZoom() - 15) * .5)), RED = '#C8322A', BLUE = '#7FA6F0', PALE = '#EEF3FF';
+    const band = (y, cx = ctx) => { const lo = px(y - 1), up = px(y); cx.beginPath(); [...lo, ...up.slice().reverse()].forEach(([x, z], i) => i ? cx.lineTo(x, z) : cx.moveTo(x, z)); cx.closePath(); };      // the area between two years' arcs
+    const others = y => ys.filter(o => o !== y).flatMap(px);
+    if (S.mode === 'timelapse') {
+      const sc = this._s || (this._s = document.createElement('canvas')); sc.width = c.width; sc.height = c.height;      // the bands overlap where the arcs cross: they are drawn solid on a scratch canvas and put on the map once, so the tint is the same everywhere
+      const sx = sc.getContext('2d'); sx.scale(dpr, dpr); sx.fillStyle = RED;
+      ys.forEach(y => { if (y === first || !A.arcs[y - 1]) return; band(y, sx); sx.fill('evenodd'); });
+      ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.globalAlpha = .16; ctx.drawImage(sc, 0, 0); ctx.restore();      // one even tint for all the area lost since the first year
+      if (t < 1 && yr > first && A.arcs[yr - 1]) {      // the newest band: a warm flash and a glow towards the new line, both gone when the animation ends
+        ctx.save(); band(yr); ctx.clip('evenodd'); const pts = px(yr);
+        ctx.strokeStyle = RED; ctx.globalAlpha = .075 * Math.sin(Math.PI * t); for (let i = 0; i < 9; i++) { ctx.lineWidth = 2 * kz * (30 - i * 3.2); strokeUpTo(ctx, pts, 1); }
+        ctx.fillStyle = '#FFC98A'; ctx.globalAlpha = .5 * Math.sin(Math.PI * Math.min(1, t * 1.15)); ctx.fillRect(0, 0, sz.x, sz.y); ctx.restore();
+      }
+      ys.forEach(y => { if (y !== yr) arcStroke(ctx, px(y), PALE, y === first ? .65 : yr - y === 1 ? .6 : .3, 2.4 * kz); });      // earlier years: thin pale lines
+      arcEdgeFade(ctx, px(yr), RED);
+    } else if (S.mode === 'compare') {      // the slider: each side of the divider shows one year's picture; an outline of a smaller glacier is dimmed where the picture shows the bigger one
+      const horizontal = horiz(), cut = (horizontal ? sz.y : sz.x) * state.split, imgYear = {A: state.a, B: state.b};
+      const rect = side => horizontal ? (side === 'A' ? [0, 0, sz.x, cut] : [0, cut, sz.x, sz.y - cut]) : (side === 'A' ? [0, 0, cut, sz.y] : [cut, 0, sz.x - cut, sz.y]);
+      const dim = (y, r) => { const f = arcFront(A, y), fr = arcFront(A, r); return f !== null && fr !== null && f > fr ? .3 : 1; };
+      ['A', 'B'].forEach(side => { ctx.save(); ctx.beginPath(); ctx.rect(...rect(side)); ctx.clip(); ys.forEach(y => arcEdgeFade(ctx, px(y), y === yr ? RED : BLUE, dim(y, imgYear[side]))); ctx.restore(); });
+      ys.forEach(y => { const tip = px(y).reduce((a, b) => b[1] > a[1] ? b : a), side = (horizontal ? tip[1] : tip[0]) < cut ? 'A' : 'B'; arcLabel(ctx, px(y), others(y), String(y), y === yr ? RED : BLUE, dim(y, imgYear[side])); });
+    } else arcEdgeFade(ctx, px(yr), RED);
+    if (S.mode === 'timelapse' && yr > first && A.arcs[first]) arcLabel(ctx, px(first), others(first), String(first), PALE);      // the first year's line carries its year
+    if (this._hover && cache[this._hover]) arcStroke(ctx, cache[this._hover], '#fff', .95, 3.2);
+    ctx.globalAlpha = 1;
+  },
+});
+export function drawArcs(animate){
+  const g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier(), A = arcsFor(g), row = document.getElementById('arcsRow');
+  if (!window.TONGUE_ARCS && !arcFile) loadArcs().then(() => drawArcs(false));      // the file is small; the row appears once it is there
+  if (row) row.hidden = !A;
+  const on = !!(A && document.getElementById('arcsToggle').checked && !document.body.classList.contains('pane-open') && viewMode !== '3d');
+  if (!on) { if (arcLayer) { map.removeLayer(arcLayer); arcLayer = null; arcAnim = null; arcShown = ''; updateCredits(); } return; }
+  const S = arcSet(A), yr = S.yr, key = `${g.id}:${S.mode}:${S.first}:${yr}`;
+  if (!arcLayer) { arcLayer = new ArcCanvas().addTo(map); animate = true; updateCredits(); }
+  if (animate && key !== arcShown && S.mode === 'timelapse' && !matchMedia('(prefers-reduced-motion: reduce)').matches && A.arcs[yr]) {
+    arcAnim = {yr, t0: performance.now(), dur: 1500};
+    const step = () => { if (!arcLayer || !arcAnim || arcAnim.yr !== yr) return; arcLayer.draw(); if (performance.now() - arcAnim.t0 < arcAnim.dur) requestAnimationFrame(step); else { arcAnim = null; arcLayer.draw(); } };
+    requestAnimationFrame(step);
+  } else if (!arcAnim) arcLayer.draw();
+  arcShown = key;
 }
 /* The tongue view is always closer than the whole-glacier view: at least TONGUE_CLOSER zoom levels more. */
 export const TONGUE_CLOSER = 1;

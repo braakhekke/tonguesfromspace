@@ -46,7 +46,7 @@ HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in 
 PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
 VQ = lambda img: "?v=2" if img == "images/preview-social.jpg" else ""      # the general preview picture was replaced: a new address makes link previews fetch it again
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -288,7 +288,7 @@ def main():
     code = os.path.join(ROOT, "js")
     named = set()
     for f in sorted(os.listdir(code)):
-        if f in ("regions.js", "00-regions.js", "home-link.js", "search.js", "dem-export.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
+        if f in ("regions.js", "00-regions.js", "home-link.js", "track.js", "search.js", "dem-export.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
             text = read(f"js/{f}").decode("utf-8")
             # the data files of the regions: their hashed names go into the files that name them
             for plain in DATA_NAMES:
@@ -380,6 +380,9 @@ def main():
     sr = os.path.join(ROOT, "data", "sr")      # super-resolved strip pictures (optional 3D layer; made by experiments/aletsch-sen2sr/run_strip.py): not hashed, the page asks for them by name
     if os.path.isdir(sr):
         shutil.copytree(sr, os.path.join(out, "data", "sr"))
+    sf = os.path.join(ROOT, "data", "special-flights")      # swisstopo special flights (scripts/build_special_flights.py): only the per-glacier json files and index.json (where each flight has data, the addresses of swisstopo's files, the field-notes chapter); the pictures are read live from swisstopo. Not hashed
+    if os.path.isdir(sf):
+        shutil.copytree(sf, os.path.join(out, "data", "special-flights"), ignore=shutil.ignore_patterns("*.webp"))
     terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "data", "terrain"))
@@ -391,7 +394,7 @@ def main():
 
     prune_hidden_glaciers(out)
     rewrite_html(out, assets, relay)
-    config = "window.TFS_CONFIG = " + json.dumps({"relay": relay, "streetViewKey": os.environ.get("STREETVIEW_EMBED_KEY", "").strip(), "assets": assets}, separators=(",", ":")) + ";\n"
+    config = "window.TFS_CONFIG = " + json.dumps({"relay": relay, "streetViewKey": os.environ.get("STREETVIEW_EMBED_KEY", "").strip(), "webAnalytics": os.environ.get("CF_WEB_ANALYTICS_TOKEN", "").strip(), "assets": assets}, separators=(",", ":")) + ";\n"
     write(out, "config.js", config.encode("utf-8"))
     write(out, ".nojekyll", b"")
     print(f"{len(assets)} hashed files; relay: {relay or '(none)'}")

@@ -33,7 +33,8 @@ a{color:inherit}
 .flight .live.on{opacity:1}
 .flight .cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:44px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.66),transparent);font-size:12.5px;color:rgba(255,255,255,.92);pointer-events:none}
 .flight .cap b{font-weight:700;color:#fff}
-.flight-credit{display:none}
+.drag-hint{position:absolute;z-index:3;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(14,26,34,.62);color:#fff;font-size:12.5px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .6s;white-space:nowrap}
+.drag-hint.on{opacity:.92}.drag-hint svg{width:15px;height:15px}
 .flight .cap small{display:block;margin-top:4px;font-size:10px;line-height:1.35;color:rgba(255,255,255,.7)}
 .herotext .cta .btn-ghost{border:0;padding:6px 0;gap:10px;color:#fff}
 .herotext .cta .btn-ghost:hover{background:none;color:#fff;text-decoration:underline;text-underline-offset:4px}
@@ -233,7 +234,6 @@ footer .tagline span{display:block;margin-top:6px;font-size:12px;font-weight:300
 footer a{color:#fff;text-underline-offset:3px}
 footer .src{font-size:11.5px;color:rgba(255,255,255,.55)}
 footer .credits-fold > summary{display:none}      /* phones only: see the phone block */
-footer .src-flight{display:none}
 .whyhead .eyebrow,.why-made{display:none}      /* the title below says it; the closing sentence of the old text repeated it */
 .aud-title{margin:0 0 6px;font-size:clamp(28px,3.2vw,42px);line-height:1.06;font-weight:800;letter-spacing:-.03em;color:#0A1B33;text-wrap:balance}
 .aud-sub{margin:0 0 20px;font-size:17px;line-height:1.4;color:var(--moraine)}
@@ -298,9 +298,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .herotext .lede{font-size:16.5px;line-height:1.5;margin:-8px 0 0}
   .flight{box-shadow:0 0 0 1px rgba(255,255,255,.12)}
   .flight .cap{padding:30px 12px 10px;font-size:12px;line-height:1.35}
-  .flight .cap small{display:none}      /* the credits sit under the picture, not over it (same text, .flight-credit) */
-  .flight-credit{display:block;margin:10px 0 0;font-size:10.5px;line-height:1.45;color:rgba(255,255,255,.55)}
-  .hero .cta{border-top:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);margin:-26px 0 0}
+      .hero .cta{border-top:1px solid rgba(255,255,255,.16);border-bottom:1px solid rgba(255,255,255,.16);margin:-26px 0 0}
   .hero .cta .btn-ghost{width:100%;padding:14px 0;font-size:15px}
   .whyband{padding:40px 0}
   .why-name{font-size:16.5px;line-height:1.55}
@@ -415,8 +413,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 /* ---------- phones, portrait and landscape: the design language of the dashboard (css/style.css "Phone design system") and a short front page ----------
    The dashboard is the product, so the page is the hero, the audiences it is made for (names only) and the way in. The steps, the long "why" text, the glacier picker with its map, the feature list, the quote and the data-and-method section stay on larger screens; the dashboard explains itself. */
 @media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
-  .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.flight-credit,.why-name,.aud-card summary span,.why-logo{display:none}
-  footer .src-flight{display:block}
+  .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.why-name,.aud-card summary span,.why-logo{display:none}
   .wrap{padding:0 var(--sp-4)}
   .bar .wrap{padding:0 14px;gap:var(--sp-2)}
   .brand{gap:10px}.brand img{height:24px}

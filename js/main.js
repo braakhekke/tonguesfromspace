@@ -12,6 +12,7 @@ import './07a-region-icecaps.js';
 import './07b-icecap-texts.js';
 import './08-controls.js';
 import './09-phones.js';
+import './09a-export-layers.js';
 import './10-animation.js';
 import './11-view3d.js';
 import './11a-dem-download.js';

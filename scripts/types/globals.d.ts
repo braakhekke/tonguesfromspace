@@ -24,7 +24,7 @@ declare const L: any;
 // `new Promise(res => ...)` with `res()` and no value is used throughout.
 interface PromiseConstructor { new (executor: (resolve: (value?: any) => void, reject: (reason?: any) => void) => void): Promise<any>; }
 
-interface Window { turnstile: any; __lastVideo: any; }
+interface Window { turnstile: any; __lastVideo: any; TONGUE_ARCS: any; }
 // A few functions carry a timer on themselves (showNotice.t, sync3D.t) as a debounce handle.
 interface Function { t?: any; }
 

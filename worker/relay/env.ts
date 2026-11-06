@@ -7,6 +7,7 @@ export interface Env {
   CACHE?: KVNamespace;
   LANDSAT?: R2Bucket;
   GALLERY?: R2Bucket;
+  EVENTS?: AnalyticsEngineDataset;
   ALLOWED_ORIGINS?: string;
   TURNSTILE_SECRET?: string;
   TURNSTILE_SITEKEY?: string;

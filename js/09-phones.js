@@ -21,6 +21,11 @@ Object.defineProperty(wire, 'updateRightTab', { get: () => updateRightTab, confi
 /* Pick-a-glacier message: at the start until a glacier is chosen, and again whenever the map is zoomed out beyond the first view */
 /** @type {() => number} */
 export const START_ZOOM = () => map.getBoundsZoom(glaciersExtent(), false, L.point(80, 80));
+export function scrollCompareTop(){            // the left panel scrolls until "2 Compare" is its first line
+  if (PHONE.matches) return;
+  const box = document.querySelector('.controls'), v = $('vizGroup'), top = box.scrollTop + v.getBoundingClientRect().top - box.getBoundingClientRect().top - 14;
+  box.scrollTo({top: Math.max(0, top), behavior: 'smooth'});
+}
 export function updatePickHint(){
   const far = map.getZoom() < START_ZOOM() - 0.5, el = $('pickHint'), show = !glacierPicked || far;
   el.classList.toggle('show', show);
@@ -29,10 +34,7 @@ export function updatePickHint(){
   $('downHint').hidden = !glacierPicked;
   if (wasLocked && glacierPicked) {          // step 2 pops up as soon as a glacier is chosen
     const v = $('vizGroup'); v.classList.add('pop'); setTimeout(() => v.classList.remove('pop'), 1000);
-    if (!PHONE.matches) {            // the left panel scrolls until "2 Compare" is its first line
-      const box = document.querySelector('.controls'), top = box.scrollTop + v.getBoundingClientRect().top - box.getBoundingClientRect().top - 14;
-      box.scrollTo({top: Math.max(0, top), behavior: 'smooth'});
-    }
+    scrollCompareTop();
   }
   if (!show) return;
   $('pickNote').innerHTML = far ? '<span>Zoom in to see the glacier tongues</span>' : '<span>Choose a red outlined glacier on the map</span>';
@@ -43,6 +45,7 @@ map.on('zoomend moveend resize', updatePickHint);
 export function setPanel(side, hidden, save = true){
   $('app').classList.toggle(side === 'left' ? 'no-left' : 'no-right', hidden);
   $(side === 'left' ? 'toggleLeft' : 'toggleRight').setAttribute('aria-expanded', !hidden);
+  if (side === 'right' && !hidden) $('toggleRight').classList.remove('halo');      // opened once: the halo on the tab stops for the rest of the session
   if (save) { prefs[side === 'left' ? 'hideL' : 'hideR'] = hidden; savePrefs(); }
   map.invalidateSize({pan:false});
   setTimeout(() => { if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);      // the 3D view follows the new width once the panel has slid
@@ -54,6 +57,7 @@ $('toggleLeft').onclick = () => setPanel('left', !$('app').classList.contains('n
 $('toggleRight').onclick = () => setPanel('right', !$('app').classList.contains('no-right'));
 if (prefs.hideL) setPanel('left', true, false);
 if (prefs.hideR === undefined ? matchMedia('(min-width:1101px) and (min-height:521px)').matches : prefs.hideR) setPanel('right', true, false);      // collapsed at the first visit (wide screens): the tab on the edge invites to open it
+if ($('app').classList.contains('no-right')) $('toggleRight').classList.add('halo');      // moving halo on the collapsed tab until it was opened once (every page load is a new session)
 /* the tab of the collapsed right panel names the glacier in full */
 export function updateRightTab(){
   const l = $('toggleRightLabel'); if (!l) return;
@@ -137,10 +141,12 @@ export function fadeSync(){
 /* the left panel scrolls: a cue at its bottom points to "Create and share" until that step is in view (not on phones, where the page scrolls) */
 (function(){
   const box = document.querySelector('.controls'), cue = $('scrollCue'), target = $('shareGroup');
+  let used = false;            // once something in "Create and share" has been clicked, the cue has done its job
+  target.addEventListener('click', () => { used = true; upd(); }, true);
   const upd = () => {
     const scrollable = box.scrollHeight - box.clientHeight > 8 && getComputedStyle(box).overflowY !== 'visible' && !PHONE.matches;
     const inView = target.getBoundingClientRect().top < box.getBoundingClientRect().bottom - 80;
-    const hide = !(scrollable && !inView); if (cue.hidden !== hide) cue.hidden = hide;      // only on change: the observer below watches this element too
+    const hide = used || !(scrollable && !inView); if (cue.hidden !== hide) cue.hidden = hide;      // only on change: the observer below watches this element too
   };
   box.addEventListener('scroll', upd, {passive: true}); addEventListener('resize', upd);
   if (window.ResizeObserver) new ResizeObserver(upd).observe(box);
@@ -223,7 +229,6 @@ export function chooseGlacier(id){
   const first = !glacierPicked;
   setGlacierPicked(true); updatePickHint();
   const sat = $('satToggle'); if (!sat.checked) { sat.checked = true; sat.dispatchEvent(new Event('change')); }      // choosing a glacier switches the Sentinel-2 picture on (it may have been switched off in the layer menu)
-  if (first) { const bt = $('boxToggle'); if (bt.checked) { bt.checked = false; bt.dispatchEvent(new Event('change')); } }      // the selectable-glacier layer goes off with the first choice
   if (state.glacier === id) {                           // the glacier that was already selected: the first click still has to show its outlines
     stopPlay(); if (first) { if (state.checked) { setCompareLayers(); buildTimelapse(); } drawOutlines(); writeHash(); updateTrailClip(); updateAerial(); updateMapYears(); updateSight(); drawBoxes(); updateBoxes(); renderMobileBar(); renderGlacierList(); }      // the first click on the glacier that was preselected also has to set the trail area and the line of sight
     if (first && checkGen === 0) checkYears();      // a region that opens on its overview has not searched yet

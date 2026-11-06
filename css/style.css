@@ -120,7 +120,7 @@ body.sheet-open{overflow:hidden}
 .sw:not([aria-pressed="true"]):hover span{color:var(--rock)}
 .hint{font-size:11.5px;color:var(--moraine);margin:8px 0 0}
 .g-search{width:100%;box-sizing:border-box;margin:0 0 6px;padding:7px 10px;border:1px solid var(--line,#d5dbe0);border-radius:6px;font:inherit;font-size:13px}
-.glaciers{position:relative;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;max-height:113px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}      /* 3.5 rows: the cut-off row shows that the list scrolls */
+.glaciers{position:relative;list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0;max-height:122px;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin}      /* 3.5 rows (3px padding + 3.5 x 32.3px rows + 3 x 2px gaps):the cut-off row shows that the list scrolls */
 .glaciers button{width:100%;display:grid;grid-template-columns:24px 1fr auto;align-items:baseline;column-gap:6px;row-gap:0;text-align:left;padding:6px 10px 6px 13px;border:0;background:none;border-radius:0;cursor:pointer}
 .glaciers button:hover{background:var(--firn)}
 .glaciers button[aria-pressed="true"] .rank{color:var(--moraine);font-weight:400}
@@ -190,6 +190,9 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .frame-row{display:flex;align-items:center;gap:12px}
 .frame-row .frame{flex:1 1 auto;min-width:0}
 .frame-row .toggle{margin:0;min-height:0}
+#timelapseControls .row > .frame{flex:1 1 auto;min-width:0;width:auto;margin:0 0 0 4px}      /* the progress bar next to Play */
+#timelapseControls .row > .speed{margin-left:0}      /* speed and Loop on the second row */
+#timelapseControls .row > .loop{margin:0 0 0 14px;min-height:0;gap:8px}
 .speed-range{flex:1;min-width:0;width:100%;margin:0;accent-color:var(--accent);cursor:pointer}
 .speed-out{flex:none;min-width:42px;font-size:12px;color:var(--moraine);font-variant-numeric:tabular-nums;text-align:right}
 .speed-ico{width:20px;height:20px;flex:none;fill:var(--accent);stroke:var(--accent);stroke-width:2;stroke-linecap:round}
@@ -455,6 +458,7 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .measuring #map{cursor:crosshair}
 .measuring .leaflet-outlines-pane *{pointer-events:none!important}
 .layerbox{position:absolute;right:12px;top:104px;z-index:665;background:rgba(255,255,255,.95);border-radius:8px;padding:8px 12px 6px;box-shadow:0 2px 12px rgba(0,0,0,.25);max-width:220px}
+@media (min-width:721px){.layerbox:not(.in-flow){max-height:calc(100% - 104px - 128px);overflow-y:auto;overscroll-behavior:contain}.is-timelapse .layerbox,.is-horiz .layerbox{max-height:calc(100% - 12px - 128px)}}      /* tall menu: stops above the bottom docks (timeline and tool bar) and scrolls inside */
 .layerbox.nudge::after{content:"";position:absolute;inset:-4px;border:2px solid var(--accent);border-radius:11px;pointer-events:none;animation:lbNudge 1.8s ease-out infinite}
 @keyframes lbNudge{0%{opacity:.9;transform:scale(.97)}100%{opacity:0;transform:scale(1.08)}}
 .lb-tip{position:absolute;right:0;top:calc(100% + 10px);width:236px;background:var(--ink);color:#fff;font-size:12.5px;line-height:1.45;padding:10px 12px;border-radius:6px;box-shadow:0 4px 14px rgba(0,0,0,.3)}
@@ -532,6 +536,9 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .lb-more svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .lb-group{margin:8px 0 3px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--moraine)}
 .lb-group:first-child{margin-top:0}
+.lb-titlerow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.lb-reset{font:inherit;font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--accent);background:none;border:0;padding:0 2px;cursor:pointer}
+.lb-reset:hover{text-decoration:underline}
 .layerbox.min .lb-body{display:none}
 .layerbox.min .lb-head{padding:0}
 .layerbox.min .lb-head svg{transform:rotate(180deg)}
@@ -823,6 +830,27 @@ sup.fn a:hover{opacity:.7}
 .toggle.optsw input[type=checkbox]:checked::after{transform:translateX(13px)}
 .toggle.optsw input[type=checkbox]:disabled{opacity:.45;cursor:default}
 .toggle.optsw input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+/* the layer menus (map and 3D): every layer is a small switch; the checkbox keeps its id and events */
+.layerbox .toggle input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:26px;height:15px;margin:0;border-radius:8px;background:rgba(255,255,255,.32);cursor:pointer;transition:background .15s}
+.layerbox .toggle input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.layerbox .toggle input[type=checkbox]:checked{background:var(--accent)}      /* the red accent, like the Camera symbols switch in the 3D dock: the menus are dark glass, where the light ice blue is too faint */
+.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(11px)}
+.layerbox .toggle input[type=checkbox]:disabled{opacity:.45;cursor:default}
+.layerbox .toggle input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+@media (max-width:720px){.layerbox .toggle input[type=checkbox]{width:34px;height:20px;border-radius:10px}.layerbox .toggle input[type=checkbox]::after{width:16px;height:16px}.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(14px)}}      /* phones: a bigger target */
+.plane-sw{display:block;width:18px;height:18px;flex:none;fill:currentColor}      /* the airplane of the special flights, in the layer menus and the dock */
+.fd-t .plane-sw{fill:var(--accent)}
+.left-stack{position:absolute;left:12px;top:90px;z-index:655;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:calc(50% - 16px)}      /* under the year: "Then and now" and the special flights, in the map and in the 3D view */
+.left-stack[hidden],.left-stack > [hidden]{display:none}
+.is-framing .left-stack{visibility:hidden}
+.ls-card{min-width:176px;padding:7px 10px 6px;border-radius:10px;background:rgba(255,255,255,.93);color:var(--ink,#0E1A22);box-shadow:0 2px 10px rgba(0,0,0,.28);font-size:12px}
+.left-stack > .toggle{display:flex;flex-direction:row-reverse;justify-content:space-between;align-items:center;gap:10px;margin:0;min-height:32px;padding-top:3px;padding-bottom:3px;font-weight:600}
+.left-stack > .toggle > span{display:flex;align-items:center;gap:7px}
+.left-stack > .toggle svg{width:17px;height:17px;flex:none;fill:none;stroke:var(--accent);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.left-stack .fd-h{font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--accent);margin-bottom:3px}
+.flights-dock .toggle{display:flex;justify-content:space-between;flex-direction:row-reverse;gap:10px;margin:0;min-height:30px;font-size:12px}
+.flights-dock .fd-sub{min-height:24px;margin-left:14px;font-size:11.5px;color:#44525a}
+.flights-dock .toggle small{display:block;font-size:10.5px;color:#66757E;line-height:1.2}
 .vs-opts .toggle.optsw input[type=checkbox],.video-sheet > .toggle.optsw input[type=checkbox]{width:30px;height:17px}
 .vs-opts .toggle span{line-height:1.3}
 .vo-outside{margin:4px 0 2px;font-size:13px;grid-column:1 / -1}
@@ -1094,10 +1122,12 @@ body.has-full{overflow:hidden}
   .app.no-right #toggleRight svg{transform:rotate(180deg)}
   /* collapsed, the right panel is an inviting tab on the edge: red, the text written downwards, a soft glow like the "Then and now" pill */
   .pt-label{display:none}
-  .app.no-right #toggleRight{z-index:664;top:50%;margin-top:0;transform:translateY(-50%);width:38px;height:auto;max-height:86%;padding:12px 0;flex-direction:column;gap:10px;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:10px 0 0 10px;animation:tabGlow 2.6s ease-in-out infinite;transition:width .15s,background .15s}
+  .app.no-right #toggleRight{z-index:664;top:50%;margin-top:0;transform:translateY(-50%);width:38px;height:auto;max-height:86%;padding:12px 0;flex-direction:column;gap:10px;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:10px 0 0 10px;transition:width .15s,background .15s}
+  .app.no-right #toggleRight.halo{animation:tabPulse 2s ease-in-out infinite}      /* the halo of the "Save and share" cue; only until the panel was opened once in this session */
   .app.no-right #toggleRight:hover{width:44px;background:#B22C25}
   .app.no-right #toggleRight .pt-label{display:block;writing-mode:vertical-rl;font:600 13.5px/1.5 var(--sans);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:0}      /* line height 1.5: with 1 the descender of g and y was cut off by the overflow */
-  @keyframes tabGlow{0%,100%{box-shadow:0 0 0 0 rgba(200,50,42,.55),-2px 2px 10px rgba(0,0,0,.25)}50%{box-shadow:0 0 0 7px rgba(200,50,42,0),-2px 2px 10px rgba(0,0,0,.25)}}
+  @keyframes tabPulse{0%,100%{box-shadow:0 4px 18px rgba(200,50,42,.45),0 0 0 3px #fff}50%{box-shadow:0 6px 26px rgba(200,50,42,.7),0 0 0 3px #fff,0 0 0 9px rgba(200,50,42,.18)}}
+  @media (prefers-reduced-motion:reduce){.app.no-right #toggleRight.halo{animation:none}}
 }
 @media (min-width:721px) and (max-width:1100px){#toggleRight{display:none}}
 
@@ -1297,10 +1327,11 @@ body.pane-open .mapbar{display:none!important}      /* no toolbar under the pict
 .vf-btns{position:absolute;left:50%;bottom:-52px;transform:translateX(-50%);display:none;gap:12px;pointer-events:none}      /* play (animations only) and close, side by side under the frame */
 body.pane-open .video-frame .vf-btns{display:flex}
 /* The map while a download pane is open shows only what the download prints: the Sentinel-2 / Landsat picture and (if ticked) the 1850 outline. Base maps, aerial images, thickness, speed, trails, the sight band, names and marks are left out of the picture, so they are left out of the preview (the layers stay as they are set and come back when the pane closes). */
-body.pane-open #map .leaflet-tile-pane,body.pane-open #map .leaflet-bgPane-pane,body.pane-open #map .leaflet-siA-pane,body.pane-open #map .leaflet-siB-pane,body.pane-open #map .leaflet-siT-pane,body.pane-open #map .leaflet-thickPane-pane,body.pane-open #map .leaflet-speedPane-pane,body.pane-open #map .leaflet-sightPane-pane,body.pane-open #map .leaflet-labels-pane,body.pane-open #map .leaflet-marker-pane,body.pane-open #map .leaflet-shadow-pane,body.pane-open #map .leaflet-tooltip-pane,body.pane-open #map .leaflet-popup-pane{display:none!important}
+body.pane-open:not(.x-bg) #map .leaflet-labels-pane,body.pane-open:not(.x-bg) #map .leaflet-tile-pane,body.pane-open:not(.x-bg) #map .leaflet-bg-pane,body.pane-open:not(.x-aerial) #map .leaflet-siA-pane,body.pane-open:not(.x-aerial) #map .leaflet-siB-pane,body.pane-open:not(.x-aerial) #map .leaflet-siT-pane,body.pane-open #map .leaflet-thick-pane,body.pane-open #map .leaflet-speed-pane,body.pane-open #map .leaflet-sight-pane,body.pane-open #map .leaflet-marker-pane,body.pane-open #map .leaflet-shadow-pane,body.pane-open #map .leaflet-tooltip-pane,body.pane-open #map .leaflet-popup-pane,body.pane-open:not(.x-bg) #map .leaflet-flights-pane{display:none!important}
 .vf-play{position:static;width:40px;height:40px;border:0;border-radius:50%;padding:0;display:none;place-items:center;background:rgba(150,156,160,.92);color:#fff;cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .vf-play svg{width:18px;height:18px;fill:currentColor;stroke:none}
 .vf-close svg{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.video-frame>.vf-close{position:absolute;right:0;top:-48px;width:34px;height:34px}      /* the cross sits above the top right corner of the outline */
 .vf-play:hover{background:rgba(120,126,130,.96)}
 .vf-fmt{width:40px;height:40px;border:0;border-radius:50%;padding:0;display:none;place-items:center;background:rgba(150,156,160,.92);color:#fff;font:700 11.5px/1 var(--font,inherit);cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .vf-fmt svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
@@ -1313,7 +1344,7 @@ body.pane-open .video-frame .vf-play{display:grid}      /* a play button hidden 
 .video-frame.playing{box-shadow:0 0 0 9999px rgba(6,10,13,.88)}
 
 /* 3D view with a download pane open: the titles, labels and menus on the picture go, only the picture and the frame stay (the frame draws its own labels) */
-body.pane-open .v3d-top,body.pane-open .v3d-lab,body.pane-open .v3d-layers,body.pane-open .v3d-bottom,body.pane-open .v3d-tune,body.pane-open .v3d-camtip,body.pane-open .v3d-tl{display:none!important}
+body.pane-open .v3d-top,body.pane-open .v3d-lab,body.pane-open:not(.x-layers) .v3d-layers,body.pane-open .v3d-bottom,body.pane-open .v3d-tune,body.pane-open .v3d-camtip,body.pane-open .v3d-tl{display:none!important}
 body.pane-open .v3d-year{display:none!important}
 body.pane-open .app.is-3d .v3d-hint,body.pane-open .app.is-3d #videoFrameNote{display:none!important}      /* no 'zoom out' note or slider hint outside the frame in 3D */
 
@@ -1994,9 +2025,9 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .gh-invite{border-radius:var(--r-md)}
   .credits{border-radius:0}
   /* lists, tiles and inputs of the size page and the glacier sheet */
-  .glaciers{gap:2px;padding:0}
-  .glaciers button{padding:9px 12px;border-radius:var(--r-sm)}
-  .glaciers button[aria-pressed="true"]{background:var(--firn);box-shadow:inset 3px 0 0 var(--accent)}
+  .glaciers{gap:2px;padding:3px;border-radius:var(--r-md);background:var(--firn)}      /* a grey segment like the other controls, the chosen glacier white */
+  .glaciers button{padding:9px 12px;border-radius:11px}
+  .glaciers button[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise)}
   .cities{gap:var(--sp-2)}
   .cities button{min-height:42px;border:0;border-radius:var(--r-sm);background:var(--firn);font-size:14px;font-weight:500}
   .step .city-find input{min-height:44px;border:0;border-radius:var(--r-sm);background:var(--firn);padding:0 var(--sp-3);font-size:16px}
@@ -2169,8 +2200,10 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .years .landsat-chip{border:0;box-shadow:inset 0 0 0 1px var(--rule)}
   .years .landsat-chip[aria-pressed="true"]{background:var(--ink);color:#fff;box-shadow:none}
   .status{border-radius:var(--r-sm)}
-  .glaciers button{border-radius:var(--r-sm)}
-  .glaciers button[aria-pressed="true"]{background:var(--firn);box-shadow:inset 3px 0 0 var(--accent);border-radius:0 var(--r-sm) var(--r-sm) 0}
+  .glaciers{gap:2px;padding:3px;border-radius:var(--r-md);background:var(--firn)}
+  .glaciers button{border-radius:11px}
+  .glaciers button:hover{background:rgba(255,255,255,.6)}
+  .glaciers button[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise)}
   .step .city-find input{border:0;border-radius:var(--r-sm);background:var(--firn);padding:7px 10px}
   .step .city-find button{border:0;border-radius:var(--r-sm);background:var(--ink);color:#fff;font-weight:600}
   .tabs{margin:var(--sp-4) 0 var(--sp-2);padding:3px;gap:2px;border:0;border-radius:var(--r-md);background:var(--firn)}
@@ -2185,3 +2218,122 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .fyi-go{border-radius:var(--r-pill)}
   .gh-invite{border-radius:var(--r-md)}
 }
+
+/* "Then and now" dock (under the year, in .left-stack): the photographs' thumbnails left-aligned, the camera switch, the footnote; while a photograph is open only its buttons. It replaced the drop-up of the bottom bar. */
+#thenNowRow{width:max-content;min-width:0;max-width:min(318px,calc(100% - 24px))}
+#thenNowRow .v3d-photos{display:flex;flex-direction:column;align-items:stretch;margin:0;padding:0;border:0}
+#thenNowRow .v3d-photos .ph-drop{--rock:var(--ink,#0E1A22);--moraine:#66757E;--rule:#DDE3E6;--firn:rgba(14,26,34,.06);position:static;transform:none;display:flex;flex-direction:column;align-items:stretch;gap:4px;width:auto;max-width:none;padding:0;background:none;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:var(--ink,#0E1A22)}
+#thenNowRow .v3d-photos .ph-row{display:flex;flex-direction:column;align-items:stretch;gap:6px}
+#thenNowRow .v3d-photos .ph-list{display:flex;flex-direction:column;flex-wrap:nowrap;justify-content:flex-start;align-items:flex-start;gap:6px;margin:0;padding:0;max-height:none;overflow:visible}
+#thenNowRow .v3d-photos .ph{width:66px;height:50px;border-radius:6px}
+#thenNowRow .v3d-photos .ph span{font-size:10.5px;line-height:1.35}
+#thenNowRow .v3d-photos .ph.on{border-color:var(--accent)}
+#thenNowRow .v3d-photos .ph-cams{order:2;justify-content:flex-start;gap:8px;align-self:stretch;min-height:28px;padding:0;border:0;border-radius:6px;max-width:none;color:var(--ink,#0E1A22);font-weight:600;font-size:12px}
+#thenNowRow .v3d-photos .ph-cams > svg{stroke:var(--accent)}
+#thenNowRow .v3d-photos .ph-cams .sw-track{margin-left:auto}
+#thenNowRow .v3d-photos .ph-note{margin:0;max-width:none;text-align:left;align-self:stretch;font-size:10.5px;line-height:1.35;color:#66757E}
+#thenNowRow .v3d-photos .ph-btns{display:flex;flex-direction:column;align-items:stretch;gap:2px}
+#thenNowRow .v3d-photos .ph-btns button{min-height:30px;padding:0 8px;color:var(--ink,#0E1A22);font-weight:600;font-size:12px}
+#thenNowRow .v3d-photos .ph-btns button:hover{background:rgba(14,26,34,.06)}
+.v3d.photo-on #thenNowRow .ph-row,.v3d.photo-on #thenNowRow .ph-note{display:none}
+
+/* "Ice level" switch in the photograph buttons: the same slider as the other switches */
+.v3d-photos .ph-sw{justify-content:space-between}
+.v3d-photos .ph-sw .sw-track{margin-left:auto;width:28px;height:16px;border-radius:999px;background:#B9C2C6;position:relative;flex:none;transition:background .15s}
+.v3d-photos .ph-sw .sw-track i{position:absolute;top:2px;left:2px;width:12px;height:12px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.35);transition:transform .15s}
+.v3d-photos .ph-sw[aria-pressed="true"] .sw-track{background:var(--accent)}
+.v3d-photos .ph-sw[aria-pressed="true"] .sw-track i{transform:translateX(12px)}
+
+#thenNowRow .fd-h{display:flex;align-items:center;gap:6px}      /* the same camera symbol as the row in the 3D layer menu */
+#thenNowRow .fd-h svg{width:16px;height:16px;flex:none;fill:none;stroke:var(--accent);stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+
+/* Old photographs card: compact, left-aligned rows */
+#thenNowRow{min-width:150px}
+#thenNowRow .fd-h{white-space:nowrap;margin-bottom:5px}
+#thenNowRow .v3d-photos .ph-btns{gap:0;align-items:stretch}
+#thenNowRow .v3d-photos .ph-btns button{width:100%;min-height:30px;padding:0 2px;gap:8px;justify-content:flex-start;font:600 12px/1.2 var(--sans);color:var(--ink,#0E1A22)}
+#thenNowRow .v3d-photos .ph-btns .ph-sw{justify-content:space-between;gap:14px}
+#thenNowRow .v3d-photos .ph-btns .ph-back svg{width:15px;height:15px;flex:none;stroke:var(--accent)}
+
+/* Docks under the year (Historical images, Special flights): one header, a title with its symbol and a small cross; thumbnails fill the width */
+.left-stack .fd-h{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px;white-space:nowrap}
+.left-stack .fd-t{display:flex;align-items:center;gap:7px}
+.left-stack .fd-h svg.cam-pin{width:18px;height:18px;flex:none}
+.layerbox .sym svg.cam-pin{width:20px;height:20px}
+.layerbox .sym svg.plane-sw{width:20px;height:20px}
+.left-stack .fd-x{flex:none;width:22px;height:22px;margin:-3px -4px -3px 0;padding:0;border:0;border-radius:50%;background:none;color:#66757E;font:400 18px/1 var(--sans);cursor:pointer;display:flex;align-items:center;justify-content:center}
+.left-stack .fd-x:hover,.left-stack .fd-x:focus-visible{background:rgba(14,26,34,.08);color:var(--ink,#0E1A22)}
+#thenNowRow .v3d-photos .ph-list{align-items:stretch}
+#thenNowRow .v3d-photos .ph{width:100%;height:60px}
+
+/* Historical images dock, tidy: fixed width, header = symbol and title left, [chevron] and cross right; collapsed (chevron shown) while a photograph is open */
+#thenNowRow{width:158px;min-width:0;max-width:calc(100% - 24px);box-sizing:border-box}
+#thenNowRow .fd-h{display:flex;align-items:center;justify-content:space-between;gap:6px;margin-bottom:4px}
+#thenNowRow .fd-t{min-width:0;overflow:hidden;text-overflow:ellipsis}
+#thenNowRow .fd-btns{display:flex;align-items:center;gap:0;flex:none;margin-right:-5px}
+#thenNowRow .fd-x{margin:0}
+#thenNowRow .fd-chev{display:none;width:22px;height:22px;padding:0;border:0;border-radius:50%;background:none;color:#66757E;cursor:pointer;align-items:center;justify-content:center}
+#thenNowRow .fd-chev svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+#thenNowRow .fd-chev:hover,#thenNowRow .fd-chev:focus-visible{background:rgba(14,26,34,.08);color:var(--ink,#0E1A22)}
+.v3d.photo-on #thenNowRow .fd-chev{display:flex}
+#thenNowRow .v3d-photos .ph{width:100%;height:58px;box-sizing:border-box}
+#thenNowRow .v3d-photos .ph img{position:absolute;inset:0}
+
+/* collapsed dock: full title, the red chevron at the bottom */
+#thenNowRow{width:196px}
+#thenNowRow .fd-h{white-space:nowrap}
+#thenNowRow .fd-t{overflow:visible}
+#thenNowRow .fd-chev{width:100%;height:24px;margin-top:2px;border-radius:6px;color:var(--accent)}
+#thenNowRow .fd-chev svg{width:20px;height:20px}
+#thenNowRow .fd-chev:hover,#thenNowRow .fd-chev:focus-visible{background:rgba(200,50,42,.08);color:var(--accent)}
+
+/* the dock is as wide as its header needs (the title never runs under the cross); the thumbnails no longer widen it (their pictures are absolutely placed) */
+#thenNowRow{width:max-content;min-width:170px}
+#thenNowRow .fd-h{gap:16px}
+#thenNowRow .fd-t{flex:none;white-space:nowrap}
+#thenNowRow .fd-btns{margin-right:-4px}
+
+/* fixed inner width that fits symbol, title and cross (measured) */
+#thenNowRow{width:204px;min-width:0}
+#thenNowRow .fd-h{gap:8px}
+#thenNowRow{max-width:none}      /* a percentage max-width inside the shrink-wrapped stack made the card narrower than its header */
+
+#thenNowRow .fd-chev{display:flex}
+#thenNowRow .fd-chev svg{transform:rotate(180deg)}
+#thenNowRow.is-collapsed .fd-chev svg,.v3d.photo-on #thenNowRow .fd-chev svg{transform:none}
+#thenNowRow.is-collapsed .ph-row{display:none}
+
+/* while a historical image is open the dock is slightly transparent, so the picture behind it still shows */
+.v3d.photo-on #thenNowRow{background:rgba(255,255,255,.72);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+
+/* hover card of the layer "All Swiss glaciers" (SGI2023) */
+.leaflet-tooltip.swiss-tip{font:12px/1.4 var(--font, inherit);padding:6px 9px;border:0;border-radius:6px;box-shadow:0 2px 8px rgba(0,0,0,.25);color:#222}
+.leaflet-tooltip.swiss-tip small{color:#777;font-size:10.5px}
+
+/* map layers in a download: the line on the frame, the switch in the pane, and the greyed rows of the Layers box */
+.video-sheet.is-3d .vo-no3d{display:none}
+.vf-layers{position:absolute;left:50%;transform:translateX(-50%);bottom:-100px;max-width:100%;display:none;align-items:center;gap:8px;border:0;border-radius:999px;padding:5px 11px;background:rgba(10,18,22,.78);color:#fff;font:600 11.5px/1.2 var(--font,inherit);cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.vf-layers em{font-style:normal;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.vf-layers b{flex:none;color:#fff;text-decoration:underline;font-weight:700}
+body.pane-open .video-frame .vf-layers{display:flex}
+body.pane-open .layerbox .toggle.x-off{opacity:.45}
+.lb-xnote{display:none;margin:2px 0 6px;font-size:11px}
+body.pane-open .layerbox .lb-xnote{display:block}
+.is-framing .layerbox{transition:none}
+body.x-layers .is-framing .layerbox{visibility:visible}      /* the line on the frame shows the Layers box while a download pane is open */
+body.x-layers .layerbox{max-width:none}
+.layerbox.in-sheet,.layerbox.in-sheet:not(.in-flow):not(.min){position:static;top:auto;right:auto;width:100%;max-width:none;max-height:none;box-sizing:border-box;margin:8px 0 0;z-index:auto;overflow:visible;flex:none}
+/* the Layers box inside the download pane: a white card like the pane's own, not the dark glass of the menus on the picture */
+.layerbox.in-sheet:not(.in-flow){--rock:var(--ink);--moraine:#5C6B74;--rule:rgba(14,26,34,.1);--firn:rgba(14,26,34,.05);--sheet:#fff;--glass:#fff;--panel:#fff;--crevasse:#2D6E8E;color:var(--ink);background:#fff;-webkit-backdrop-filter:none;backdrop-filter:none;border:1px solid rgba(14,26,34,.12);border-radius:12px;padding:12px 14px 8px;box-shadow:none}
+.layerbox.in-sheet .lb-head{padding:0 0 8px;border-bottom:1px solid rgba(14,26,34,.08);margin-bottom:6px}
+.layerbox.in-sheet .lb-group{margin-top:10px;color:#5C6B74}
+.layerbox.in-sheet .toggle{font-size:13px;min-height:30px;margin-bottom:0}
+.layerbox.in-sheet .lb-reset{color:var(--accent)}
+.layerbox.in-sheet .lb-xnote{margin:0 0 8px;color:#5C6B74}
+.layerbox.in-sheet .toggle.x-off{opacity:.4}
+.layerbox.in-sheet .toggle input[type=checkbox]{width:30px;height:17px;border-radius:9px;background:#D3DADE}      /* the switches of the pane: grey track, blue when on */
+.layerbox.in-sheet .toggle input[type=checkbox]::after{width:13px;height:13px}
+.layerbox.in-sheet .toggle input[type=checkbox]:checked{background:var(--crevasse)}
+.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
+.layerbox.in-sheet input[type=range]{accent-color:var(--crevasse)}
+.layerbox.in-sheet .lb-count{background:var(--accent);color:#fff}
