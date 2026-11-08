@@ -2490,3 +2490,11 @@ body.x-layers .layerbox{max-width:none}
 
 /* the byline at the bottom of the right panel */
 .story > .fyi-by{margin:0 0 -26px;padding:28px 0 0;flex:none;align-self:stretch;text-align:center}      /* centred, right under the About block (which takes the free space above it with its auto margin, so About, social icons and GitHub sit on top of the byline) */
+
+/* slider: the i of the left image's colour composition at the right end of its label row */
+.side-label-cc{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.side-label-cc .info-btn{margin:0;flex:none}
+
+/* layer menu switches: the knob is centred in the track (the track is 17px with a 1.5px border, so 14px inside; a 13px knob sits 0.5px from the top and 1px from the sides) */
+.layerbox .toggle input[type=checkbox]::after{top:.5px;left:1px;width:13px;height:13px}
+.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(12px)}

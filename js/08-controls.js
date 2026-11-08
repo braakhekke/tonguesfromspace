@@ -370,6 +370,7 @@ export async function setLandsat(on){
   state.frame = 0; setStatus(statusLine()); refreshAll();
 }
 export const restoreLatestIfOld = () => { if (state.latest && state.latest.year < FIRST_YEAR) restoreLatest(); };
+document.getElementById('styleIA').onclick = e => { e.preventDefault(); const p = document.getElementById('styleNoteA'), on = p.hidden; p.hidden = !on; e.currentTarget.setAttribute('aria-expanded', on); };      // the same note, for the left picture of the slider
 document.getElementById('styleI').onclick = e => { e.preventDefault(); const p = document.getElementById('styleNote'), on = p.hidden; if (on) p.dataset.open = ''; else delete p.dataset.open; p.hidden = !on; e.currentTarget.setAttribute('aria-expanded', on); };      // the note on what the colours mean
 document.getElementById('landsatI').onclick = e => { e.preventDefault(); const p = document.getElementById('landsatInfo'); p.hidden = !p.hidden; e.currentTarget.setAttribute('aria-expanded', !p.hidden); };
 { const row = document.getElementById('landsatRow'), box = document.getElementById('landsatToggle');

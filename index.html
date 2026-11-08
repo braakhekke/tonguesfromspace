@@ -152,7 +152,7 @@
       <p class="note sat-need" id="styleNote" hidden></p>
 
       <div class="stack" id="compareControls">
-        <div><div class="side-label" id="labelA">Left image</div><div class="swatches sat-need" id="swatchesA" role="group" aria-label="Colour composition of the first picture">
+        <div><div class="side-label side-label-cc"><span id="labelA">Left image</span> <button type="button" class="info-btn sat-need" id="styleIA" aria-expanded="false" aria-controls="styleNoteA" aria-label="About this colour composition">i</button></div><p class="note sat-need" id="styleNoteA" hidden></p><div class="swatches sat-need" id="swatchesA" role="group" aria-label="Colour composition of the first picture">
           <button type="button" class="sw sw-natural" data-style="natural" data-side="a" aria-pressed="false"><i></i><span>Natural</span></button>
           <button type="button" class="sw sw-false1" data-style="false1" data-side="a" aria-pressed="false"><i></i><span>Infra</span></button>
           <button type="button" class="sw sw-false2" data-style="false2" data-side="a" aria-pressed="false"><i></i><span>Bloody</span></button>
@@ -222,7 +222,6 @@
         <div class="embed-row"><button type="button" class="act" id="embedCopy" data-track="embed-copy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
       </div>
       <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share</button><button type="button" class="act" id="demBtn" aria-expanded="false" aria-controls="demBox" disabled title="The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)">Elevation model</button><button type="button" class="act" id="metaBtn" aria-expanded="false" aria-controls="metaBox">Metadata</button></div>
-      <label class="share-only" title="The link opens the picture or animation on its own, without the panels, with a link to the full page"><input type="checkbox" id="shareOnly"> <span>Open as picture/animation only</span></label>
       <div class="embed-box" id="demBox" hidden>
         <div class="dem-row"><label>Year <select id="demYear" aria-label="Year of the surface"></select></label><label>Format <select id="demFmt" aria-label="File format"></select></label></div>
         <p class="hint" id="demNote"></p>

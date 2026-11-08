@@ -430,7 +430,7 @@ if (COARSE) {
 
 /* Sharing: the address already contains glacier, mode and years */
 export async function shareView(){
-  const g = currentGlacier(), only = $('shareOnly').checked, url = only ? embedLink() : location.href;      // the tick: the link opens the picture or animation only (embed=1)
+  const g = currentGlacier(), only = false, url = only ? embedLink() : location.href;      // the tick: the link opens the picture or animation only (embed=1)
   const text = state.mode === 'single' ? `${g.name}, ${state.one}` : state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
   if (navigator.share) {
     try { await navigator.share({title: REGION.shareTitle, text, url}); return; }

@@ -250,7 +250,7 @@ export function renderMode(){
     document.querySelectorAll('#swatchesB .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === sB));
     if (!ccAltChecked && state.styleB) { ccAltChecked = true; if (state.styleB !== state.style) document.getElementById('ccAltB').open = true; } }      // a different composition from a share link: open the fold once; after that only the visitor opens or closes it
   applyBrightness();
-  document.getElementById('styleNote').textContent = {
+  document.getElementById('styleNoteA').textContent = document.getElementById('styleNote').textContent = {
     natural: 'As the eye sees it: snow white, rock grey, plants green.',
     false1: 'Plants look red, snow white, bare ice grey, water dark/blue.',
     false2: 'Snow and ice look red, clouds white, rock pale, water black.',
