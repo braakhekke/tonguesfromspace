@@ -352,7 +352,7 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
         <button type="button" id="s3ZoomOut" aria-label="Zoom out" title="Zoom out">−</button>
         <button type="button" id="s3ZoomIn" aria-label="Zoom in" title="Zoom in">+</button>
         <span class="sep"></span>
-        <button type="button" id="s3Again" aria-label="Drop again" title="Drop the ice cubes again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9.5l5.5 3v6l-5.5 3-5.5-3v-6z"/><path d="M6.5 12.5l5.5 3 5.5-3M12 15.5v6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/></svg><span class="lbl">Drop again</span></button>
+        <button type="button" id="s3Again" aria-label="Drop again" title="Drop the ice balls again"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="15.5" r="6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/></svg><span class="lbl">Drop again</span></button>
         <button type="button" id="s3OnGl" aria-label="On their glaciers" title="Put the ice cubes on their own glaciers (clears the city)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5L12 4l8.5 7.5"/><path d="M5.5 10v10h13V10"/></svg><span class="lbl">On their glaciers</span></button>
       <span class="sep"></span><button type="button" class="lay-btn" aria-label="Map layers" aria-expanded="false" title="Layers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button><span class="sep"></span><button type="button" class="mtool dock-fs" aria-label="Full screen" title="Full screen (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
       </div></div></div>
@@ -1567,7 +1567,9 @@ function labelsUpdate(dt) {      // every frame: redraw the text when it changed
     const vol = en.V < en.v.V2016 ? en.V.toFixed(3) : String(en.v.V2016), edge = (SHP().word === 'edge' ? 'edge ' : 'diameter ') + fmtM(en.body.e);
     if (L.mid.key !== L.name + vol) { L.mid.key = L.name + vol; labText(L.mid.c, [{t: L.name, px: 92, y: 74}, {t: vol + ' km³', px: 60, y: 152}]); L.mid.tx.needsUpdate = true; }
     if (L.edge.key !== edge) { L.edge.key = edge; labText(L.edge.c, [{t: edge, px: 46, y: 34}]); L.edge.tx.needsUpdate = true; }
-    const b = en.body, calm = !b.held && (phys.asleep || (b.v.length() < b.e * .05 && b.w.length() < .35));
+    const b = en.body, still = !b.held && (phys.asleep || (b.v.length() < b.e * .008 && b.w.length() < .08));
+    en.calmT = still ? (en.calmT || 0) + dt : 0;      // the labels turn to the viewer only after the block has lain still for a moment, never while it still moves
+    const calm = en.calmT > .6;
     en.lab = calm ? Math.min(1, (en.lab || 0) + dt * 1.6) : Math.max(0, (en.lab || 0) - dt * 6);
     const k = en.lab, kk = k * k * (3 - 2 * k), Q = en.cube.quaternion, e = L.e;
     labD.copy(cam.position).sub(en.cube.position); labD.y = 0; if (labD.lengthSq() < 1e-6) labD.set(0, 0, 1); labD.normalize();
@@ -1733,7 +1735,7 @@ function frameStep(dtReal) {
   let hGoal = null;
   if (held) { const body = held.en.body, P = held.target.clone(); P.x = Math.min(W.x1 - body.e * .5, Math.max(W.x0 + body.e * .5, P.x)); P.z = Math.min(W.z1 - body.e * .5, Math.max(W.z0 + body.e * .5, P.z)); let lo = 1e9; for (const q of body.pts) { tmp.copy(q).applyQuaternion(body.q); lo = Math.min(lo, P.y + tmp.y - heightAt(P.x + tmp.x, P.z + tmp.z)); } if (lo < 2) P.y += 2 - lo; hGoal = P; phys.asleep = false; phys.rest = 0; }      // the held block moves towards the hand in the physics steps, with a velocity, so it shoves the others instead of passing through them
   if (melt) meltBy(melt * Math.min(dtReal, .1));
-  if (!phys.asleep) for (let i = 0, n = S3.ents.length > 4 ? 12 : STEPS; i < n; i++) {
+  if (!phys.asleep) for (let i = 0, n = Math.max(1, Math.min(2 * (S3.ents.length > 4 ? 12 : STEPS), Math.round((S3.ents.length > 4 ? 12 : STEPS) * 60 * dtReal))); i < n; i++) {      // steps follow the real time (the speed of a 60 fps screen), so a slow phone does not see slow motion
     if (hGoal && held) { const hb = held.en.body, st = hGoal.clone().sub(hb.p).divideScalar(n - i), cap = hb.e * .02; if (st.length() > cap) st.setLength(cap); hb.p.add(st); hb.v.copy(st).divideScalar(DT); hb.w.set(0, 0, 0); }
     stepWorld(); if (phys.asleep) break; }
 }
@@ -1837,11 +1839,12 @@ function s3SnapshotDraw(opt = {}) {      // the picture: the 3D view as on the s
 const intro3d = () => { const w = SHP(); return `All the ice of a glacier as one ${w.one}. Drag it, throw it, ${matchMedia('(pointer:coarse)').matches ? 'tap' : 'click'} to drop.`; }, INTRO2D = document.getElementById('introText').textContent, INTRO2M = document.getElementById('introMobile').textContent;
 function syncAllUi() {
   document.querySelectorAll('#allTen button').forEach(b => b.setAttribute('aria-pressed', String(S3.all)));
-  $('listNote').textContent = mode3d ? (S3.all ? 'All ten ice cubes at once. Click a glacier to go back to two.' : 'Click a glacier here. The last two you pick are shown as ' + SHP().many + '.') : 'Click a glacier here or on the map. The last two you pick are compared on the right.';
+  $('listNote').textContent = mode3d ? (S3.all ? 'All ten ' + SHP().many + ' at once. Click a glacier to go back to two.' : 'Click a glacier here. The last two you pick are shown as ' + SHP().many + '.') : 'Click a glacier here or on the map. The last two you pick are compared on the right.';
 }
 function syncShapeUi() {
   syncAllUi();
   $('hint3dTxt').textContent = `Drag an ${SHP().one} to throw it`;
+  $('s3Again').title = `Drop the ${SHP().many} again`; $('s3OnGl').title = `Put the ${SHP().many} on their own glaciers (clears the city)`;
   document.querySelectorAll('#shapeSw button[data-shape]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === S3.shape))); $('shapeSw').dataset.shape = S3.shape; $('shapeTrack').setAttribute('aria-checked', String(S3.shape === 'ball'));
   if (mode3d) for (const id of ['introText', 'introMobile']) $(id).textContent = intro3d();
 }
@@ -1892,7 +1895,7 @@ function s3StoryAll() {      // all ten at once: one table, sorted by volume, a 
 function s3Story() {      // the right panel in 3D: ice volumes and the cubes (stated figures as they are, computed ones said so)
   if (!mode3d) return; if (S3.all) return s3StoryAll();
   const picks = picksNow(), c = state.city, items = picks.map(p => ({p, v: p.v, e: edgeOf(p.v.V2016)}));
-  if (!items.length) { $('story').innerHTML = `<div class="head"><h2>Pick a glacier</h2><p class="sub">to see its ice as an ice cube</p></div><section class="sec"><p class="note">Pick one or two glaciers in the list.</p></section>`; return; }
+  if (!items.length) { $('story').innerHTML = `<div class="head"><h2>Pick a glacier</h2><p class="sub">to see its ice as ${SHP().one === 'ice ball' ? 'an ice ball' : 'an ice cube'}</p></div><section class="sec"><p class="note">Pick one or two glaciers in the list.</p></section>`; return; }
   const [a, b] = items, lines = [];
   if (b) { const r = a.v.V2016 / b.v.V2016; lines.push(r >= 1.05 ? `<b>${a.p.full}</b> holds <b>${times(r)}</b> the ice of ${b.p.full}` : r <= .95 ? `<b>${a.p.full}</b> holds about <b>${fmt(r * 100, 0)} %</b> of the ice of ${b.p.full}` : `<b>${a.p.full}</b> holds about as much ice as ${b.p.full}`); }
   const max = Math.max(...items.map(i => i.v.V2016)), bars = `<div class="cmp-bars">` + items.map(i => `<div style="--c:${COLOUR[i.p.role]}"><span>${i.p.full}</span><i style="width:${i.v.V2016 / max * 100}%"></i><b>${i.v.V2016} km³</b></div>`).join('') + `</div>`;
@@ -2124,7 +2127,7 @@ function syncPane() {
   $('vkVideo').disabled = !canFilm(); $('vkVideo').title = canFilm() ? '' : (typeof VideoEncoder !== 'undefined' ? 'Animations need a faster phone: use a computer, or save a picture' : 'This browser cannot make videos');
   document.querySelectorAll('.vf-fmt[data-fmt]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.fmt === fmtChoice)));
   $('vSafeRow').hidden = !(video && fmtChoice === '9:16'); $('videoFrame').classList.toggle('custom', fmtChoice === 'custom'); $('vfPlay').style.display = video ? '' : 'none';      // the preview is for animations
-  $('vsGuide').textContent = video && !mode3d ? (state.recent.length > 1 ? 'The glaciers fly from their origin onto where you drag them.' : 'The glacier flies from its origin onto where you drag it.') : video ? 'The ice cubes fall again from where they start and the camera turns round them. The video is what lies inside the frame.' : mode3d ? 'Turn and zoom the 3D view. The picture is what lies inside the frame.' : '';
+  $('vsGuide').textContent = video && !mode3d ? (state.recent.length > 1 ? 'The glaciers fly from their origin onto where you drag them.' : 'The glacier flies from its origin onto where you drag it.') : video ? 'The ' + SHP().many + ' fall again from where they start and the camera turns round them. The video is what lies inside the frame.' : mode3d ? 'Turn and zoom the 3D view. The picture is what lies inside the frame.' : '';
   $('vsGuide').hidden = !$('vsGuide').textContent;
   if (!vs.busy) $('vsGo').textContent = video ? 'Download video' : 'Download image';
   refreshFrame();

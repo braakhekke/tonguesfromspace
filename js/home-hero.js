@@ -6,7 +6,7 @@ import { startViewer } from './viewer3d-core.js';
 
 const $ = id => document.getElementById(id);
 const DIR = 'data/home-hero/', HOLD = 1100, HOLD_LAST = 2400;      // milliseconds per year; the last year stays a little longer before the loop starts again
-const fig = $('flight'), vid = $('flightVideo'), cv = $('flightCanvas'), fb = $('flPlay'), yearEl = $('flYear'), dateEl = $('flDate'), creditEl = $('flCredit');
+const fig = $('flight'), vid = $('flightVideo'), cv = $('flightCanvas'), fb = $('flPlay'), yearEl = $('flYear'), dateEl = $('flDate');
 if (fig && cv && !matchMedia('(prefers-reduced-motion:reduce)').matches) main().catch(e => { console.error('hero', e); fallback(); });
 
 function fallback() {      // the flight video instead of the live view
@@ -30,7 +30,6 @@ async function main() {
   cv.style.opacity = 1; fig.classList.remove('loading'); vid.classList.add('off'); $('dragHint').classList.add('on');
   const touched = () => $('dragHint').classList.remove('on');
   cv.addEventListener('pointerdown', touched, {once: true});
-  creditEl.textContent = meta.credit.replace(/(Sentinel data) \d{4},/, `$1 ${years[0]}–${years[years.length - 1]},`);
 
   let wantPaused = false, loaded = false, shown = years[0], timer = 0, visible = true;
   const show = y => {
