@@ -1,4 +1,4 @@
-/* A phone held sideways shows a "turn upright" sheet on the front page, gallery, glacier-vs-city and field notes (the dashboard does the same in js/09-phones.js, except in its full screen). */
+/* A phone held sideways shows a "turn upright" sheet on the front page, gallery, glacier-vs-city and field notes (the explorer does the same in js/09-phones.js, except in its full screen). */
 (() => {
   if (!matchMedia('(pointer:coarse)').matches) return;
   const st = document.createElement('style');

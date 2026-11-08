@@ -715,10 +715,13 @@ export function strokeEdgeFade(ctx, geom, toPt, color, k = 1){
   const path = onlyClosed => { ctx.beginPath(); eachPiece(geom, (ring, closed) => {
     if (onlyClosed && !closed) return;
     ring.forEach((pt, i) => { const [x, y] = toPt(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); if (closed) ctx.closePath(); }); };
+  /* the fade is no wider than 12 % of the outline's shorter side as drawn: zoomed out, a fixed width would fill the whole glacier with the colour (the hard line keeps its width) */
+  let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; eachPiece(geom, (ring, closed) => { if (closed) ring.forEach(pt => { const [x, y] = toPt(pt); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }); });
+  const kf = Math.max(.02, Math.min(k, .12 * Math.min(x1 - x0, y1 - y0) / 34));
   ctx.save(); ctx.lineJoin = 'round'; ctx.strokeStyle = color;
   ctx.save(); path(true); ctx.clip('evenodd');                 // only the inside: stacked strokes of shrinking width add up to a fade
   ctx.globalAlpha = .07;
-  for (let i = 0; i < 9; i++) { ctx.lineWidth = 2 * k * (34 - i * 3.6); path(true); ctx.stroke(); }
+  for (let i = 0; i < 9; i++) { ctx.lineWidth = 2 * kf * (34 - i * 3.6); path(true); ctx.stroke(); }
   ctx.restore();
   ctx.lineWidth = 2.2 * k; path(false); ctx.stroke(); ctx.restore();
 }

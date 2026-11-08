@@ -140,14 +140,17 @@ body.sheet-open{overflow:hidden}
 .modes.views button svg{width:20px;height:20px}
 .is-3d .map-only{display:none!important}
 .modes button:hover{border-color:var(--crevasse)}
-.orient-sub{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:-1.5px}
-.orient-sub[hidden]{display:none}
-.orient-pad{grid-column:2;display:flex;justify-content:center;gap:3px;padding:3px 4px 4px;border:1px solid var(--rule);border-top:0;border-radius:0;background:#E9EFF2}      /* hangs from the Compare button: same width, same red edge */
-.orient-pad button{display:inline-flex;align-items:center;justify-content:center;width:27px;height:22px;padding:0;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:var(--moraine);cursor:pointer}
-.orient-pad button svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.orient-pad button:hover{border-color:var(--crevasse)}
-.orient-pad button[aria-pressed="true"]{border-color:var(--rule);color:var(--rock);background:var(--sheet);box-shadow:inset 0 -2px 0 var(--accent)}
-#modeGroup.has-sub #modeCompare{border-bottom-color:transparent}
+#modeGroup{position:relative}
+.turn-hint{position:absolute;z-index:6;transform:translateX(-50%);padding:5px 10px;border-radius:999px;background:var(--rock);color:#fff;font-size:11.5px;font-weight:600;white-space:nowrap;pointer-events:none;opacity:0;transition:opacity .4s;box-shadow:0 2px 8px rgba(10,27,51,.3)}
+.turn-hint::before{content:'';position:absolute;left:50%;top:-4px;margin-left:-4px;width:8px;height:8px;background:inherit;transform:rotate(45deg)}
+.turn-hint.on{opacity:.95}
+@media (prefers-reduced-motion:reduce){.turn-hint{transition:none}}
+.modes button .mc-ico{transition:transform .4s cubic-bezier(.4,.1,.2,1)}
+.modes #modeCompare[data-o="h"] .mc-ico{transform:rotate(90deg)}      /* the icon itself turns with the slider */
+.modes #modeCompare .mc-turn{display:none;width:12px;height:12px;margin:0 0 -1.5px 4px;vertical-align:baseline;color:var(--accent);stroke-width:2.2;transition:transform .4s cubic-bezier(.4,.1,.2,1)}
+.modes #modeCompare[aria-pressed="true"] .mc-turn{display:inline-block}      /* only on the active button: tap again to turn */
+.modes #modeCompare[aria-pressed="true"]:hover .mc-turn,.modes #modeCompare[aria-pressed="true"]:active .mc-turn{transform:rotate(90deg)}
+@media (prefers-reduced-motion:reduce){.modes button .mc-ico,.modes #modeCompare .mc-turn{transition:none}}
 .modes button[aria-pressed="true"]{background:#E9EFF2;border-color:var(--rule);box-shadow:inset 0 -2px 0 var(--accent);color:var(--rock);font-weight:700}
 .segment button:disabled{color:#A9B1B5;cursor:not-allowed}
 .segment button{border:0;background:none;padding:8px 0;white-space:nowrap;border-radius:0;cursor:pointer;font-weight:500}
@@ -823,21 +826,32 @@ sup.fn a:hover{opacity:.7}
 .vf-h[data-h=se]{left:100%;top:100%;cursor:nwse-resize}.vf-h[data-h=s]{left:50%;top:100%;cursor:ns-resize}.vf-h[data-h=sw]{left:0;top:100%;cursor:nesw-resize}.vf-h[data-h=w]{left:0;top:50%;cursor:ew-resize}
 .is-3d .video-frame{z-index:710}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
-.vs-opts .toggle input[type=checkbox]{width:16px;height:16px;margin:0;accent-color:var(--accent);flex:none}
-.toggle.optsw input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:30px;height:17px;margin:0;border-radius:9px;background:var(--rule);cursor:pointer;transition:background .15s}      /* a switch, like Adjust image; the checkbox keeps its id and events */
-.toggle.optsw input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
-.toggle.optsw input[type=checkbox]:checked{background:var(--crevasse)}
-.toggle.optsw input[type=checkbox]:checked::after{transform:translateX(13px)}
-.toggle.optsw input[type=checkbox]:disabled{opacity:.45;cursor:default}
-.toggle.optsw input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
-/* the layer menus (map and 3D): every layer is a small switch; the checkbox keeps its id and events */
-.layerbox .toggle input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;width:26px;height:15px;margin:0;border-radius:8px;background:rgba(255,255,255,.32);cursor:pointer;transition:background .15s}
-.layerbox .toggle input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:11px;height:11px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
-.layerbox .toggle input[type=checkbox]:checked{background:var(--accent)}      /* the red accent, like the Camera symbols switch in the 3D dock: the menus are dark glass, where the light ice blue is too faint */
-.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(11px)}
-.layerbox .toggle input[type=checkbox]:disabled{opacity:.45;cursor:default}
-.layerbox .toggle input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
-@media (max-width:720px){.layerbox .toggle input[type=checkbox]{width:34px;height:20px;border-radius:10px}.layerbox .toggle input[type=checkbox]::after{width:16px;height:16px}.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(14px)}}      /* phones: a bigger target */
+/* every on/off control is the outlined switch of "All ten" in the size page: a ring in the blue of ice, a dot inside that moves across, a pale blue fill when on. One size on the page (30 x 16), smaller in the layer menus (dark glass: white ring, red when on). The checkbox keeps its id and events. */
+.toggle input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;box-sizing:border-box;width:30px;height:16px;margin:0;border:1.5px solid var(--crevasse);border-radius:999px;background:none;cursor:pointer;transition:background .2s}
+.toggle input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:var(--crevasse);transition:transform .2s}
+.toggle input[type=checkbox]:checked{background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
+.toggle input[type=checkbox]:checked::after{transform:translateX(14px)}
+.toggle input[type=checkbox]:disabled{opacity:.45;cursor:default}
+.toggle input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.layerbox .toggle input[type=checkbox]{width:24px;height:14px;border-color:rgba(255,255,255,.6)}
+.layerbox .toggle input[type=checkbox]::after{top:2px;left:2px;width:7px;height:7px;background:rgba(255,255,255,.85)}
+.layerbox .toggle input[type=checkbox]:checked{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 30%,transparent)}
+.layerbox .toggle input[type=checkbox]:checked::after{background:#fff;transform:translateX(10px)}
+.layerbox.in-pane .toggle input[type=checkbox],.layerbox.in-sheet .toggle input[type=checkbox]{border-color:var(--crevasse)}
+.layerbox.in-pane .toggle input[type=checkbox]::after,.layerbox.in-sheet .toggle input[type=checkbox]::after{background:var(--crevasse)}
+.layerbox.in-pane .toggle input[type=checkbox]:checked,.layerbox.in-sheet .toggle input[type=checkbox]:checked{border-color:var(--crevasse);background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
+.layerbox.in-pane .toggle input[type=checkbox]:checked::after,.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{background:var(--crevasse)}
+/* sliders: a thin track, a small ringed dot, in the same outlined look (the two-handle year range keeps its own) */
+input[type=range]:not(.yr-track input){-webkit-appearance:none;appearance:none;height:16px;background:none;cursor:pointer;accent-color:var(--crevasse)}
+input[type=range]:not(.yr-track input)::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:color-mix(in srgb,var(--crevasse) 28%,transparent)}
+input[type=range]:not(.yr-track input)::-moz-range-track{height:3px;border-radius:2px;background:color-mix(in srgb,var(--crevasse) 28%,transparent)}
+input[type=range]:not(.yr-track input)::-webkit-slider-thumb{-webkit-appearance:none;box-sizing:border-box;width:14px;height:14px;margin-top:-5.5px;border-radius:50%;border:1.5px solid var(--crevasse);background:#fff}
+input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;width:14px;height:14px;border-radius:50%;border:1.5px solid var(--crevasse);background:#fff}
+.layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-webkit-slider-runnable-track{background:rgba(255,255,255,.3)}
+.layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-moz-range-track{background:rgba(255,255,255,.3)}
+.layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-webkit-slider-thumb{width:11px;height:11px;margin-top:-4px;border-color:var(--accent)}
+.layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-moz-range-thumb{width:11px;height:11px;border-color:var(--accent)}
+@media (max-width:720px){.toggle input[type=checkbox]{width:34px;height:20px}.toggle input[type=checkbox]::after{width:13px;height:13px}.toggle input[type=checkbox]:checked::after{transform:translateX(14px)}.layerbox .toggle input[type=checkbox]::after{width:11px;height:11px}.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(14px)}}      /* phones: a bigger target */
 .plane-sw{display:block;width:18px;height:18px;flex:none;fill:currentColor}      /* the airplane of the special flights, in the layer menus and the dock */
 .fd-t .plane-sw{fill:var(--accent)}
 .left-stack{position:absolute;left:12px;top:90px;z-index:655;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:calc(50% - 16px)}      /* under the year: "Then and now" and the special flights, in the map and in the 3D view */
@@ -1361,7 +1375,10 @@ body.pane-open:not(.x-bg) #map .leaflet-labels-pane,body.pane-open:not(.x-bg) #m
 .vf-fmt:hover{background:rgba(120,126,130,.96)}
 .vf-fmt[aria-pressed="true"]{background:#fff;color:var(--rock)}
 body.pane-open .video-frame .vf-fmt{display:grid}
-.vf-btns .vf-fmt+.vf-play{margin-left:6px}      /* the ratio choices, a gap, then play and close */
+.vf-btns .vf-fmt+.vf-play{margin-left:6px}
+.vf-fs .fs-out{display:none}
+body.is-fs .vf-fs .fs-in,.stage.is-full .vf-fs .fs-in,.app.visual-only .vf-fs .fs-in{display:none}
+body.is-fs .vf-fs .fs-out,.stage.is-full .vf-fs .fs-out,.app.visual-only .vf-fs .fs-out{display:block}      /* full screen button beside the ratios: the arrows turn inward while it is on */      /* the ratio choices, a gap, then play and close */
 body.pane-open .video-frame .vf-play{display:grid}      /* a play button hidden by the page (a picture, not an animation) stays hidden: its inline style wins */
 .video-frame{transition:box-shadow .3s}
 .video-frame.playing{box-shadow:0 0 0 9999px rgba(6,10,13,.88)}
@@ -1808,6 +1825,8 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 /* links inside notes, hints and the About text: the site's blue, never the browser's */
 .hint a,.note a,.status a,.embed-box a,.about-sec a{color:var(--crevasse);font-weight:600}
 .embed-row{display:flex;gap:8px}
+.share-only{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:12.5px;font-weight:600;color:var(--moraine);cursor:pointer}
+.share-only input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
 .embed-row .act{min-width:0;padding-left:6px;padding-right:6px;line-height:1.2;text-align:center}      /* three buttons share one row; a long label wraps to two lines instead of spilling out */
 #demBtn{flex:1.5 1 0}
 #demBtn:disabled{opacity:.45;cursor:not-allowed}      /* the longest label of the row */
@@ -1928,7 +1947,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 }
 
 /* ---------- Phone design system (phones, portrait and landscape) ----------
-   One language for the whole dashboard: the page is a quiet grey ground (--firn) and every block is a white card of radius --r-lg with 16 px inside and 12 px between; choices are soft segmented controls and chips (radius --r-sm/--r-md, no outlines, the chosen one lifted or dark); headings are sentence-case; icons stay red, ice stays blue. Tokens: css/tokens.css. Desktop and landscape phones are untouched. */
+   One language for the whole explorer: the page is a quiet grey ground (--firn) and every block is a white card of radius --r-lg with 16 px inside and 12 px between; choices are soft segmented controls and chips (radius --r-sm/--r-md, no outlines, the chosen one lifted or dark); headings are sentence-case; icons stay red, ice stays blue. Tokens: css/tokens.css. Desktop and landscape phones are untouched. */
 @media (max-width:720px) and (orientation:portrait), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   body:not(.has-full){background:var(--firn)}
   .app{gap:var(--sp-3);padding-bottom:var(--sp-2)}

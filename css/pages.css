@@ -1,4 +1,4 @@
-/* Shared look of the public pages (front page, gallery): the same components as the dashboard; colours and the typeface are in css/tokens.css */
+/* Shared look of the public pages (front page, gallery): the same components as the explorer; colours and the typeface are in css/tokens.css */
 *{box-sizing:border-box}
 [hidden]{display:none!important}
 body{margin:0;background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
@@ -41,13 +41,13 @@ button,select,input{font:inherit;color:inherit}
 .stat .v{font-size:22px;font-weight:700;white-space:nowrap}
 .stat .k{font-size:12px;color:var(--moraine)}
 
-/* the logo and the name of the dashboard in the page title: "Tongues from Space" in dark blue, "Switzerland Gallery" in red */
+/* the logo and the name of the explorer in the page title: "Tongues from Space" in dark blue, "Switzerland Gallery" in red */
 .top h1 .t1{color:#0A1B33}
 
 /* no underlined links anywhere */
 a,a:hover,a:focus{text-decoration:none}
 
-/* ---------- phones: the same design language as the dashboard (css/style.css "Phone design system"): soft cards, slim header, rounded controls ---------- */
+/* ---------- phones: the same design language as the explorer (css/style.css "Phone design system"): soft cards, slim header, rounded controls ---------- */
 @media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .top{border-top-width:3px;border-bottom:0;box-shadow:var(--lift)}
   .top .in{padding:14px var(--sp-4) 12px;gap:4px var(--sp-4)}

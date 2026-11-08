@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Records the video of the landing page's hero (home.html): a 3D flight over Grosser Aletsch while the timelapse 2016 to 2026 runs in a loop.
-The real dashboard is driven in its 3D view (the page's own controls: the play button, the speed, a mouse drag to turn the camera), everything around the
+The real explorer is driven in its 3D view (the page's own controls: the play button, the speed, a mouse drag to turn the camera), everything around the
 picture is hidden, and the picture is the 3D stage as it is (990 x 720). Output: images/home/hero-flight.mp4 (+ .webm) and hero-flight.jpg (poster), and the
 credit line the page showed, in images/home/hero-flight.txt (home.html shows it under the video).
     python3 -m http.server 8000        # in the repository folder; the relay lets this origin in (worker ALLOWED_ORIGINS)

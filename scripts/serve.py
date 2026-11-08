@@ -5,7 +5,7 @@ serve.py  -  run Swiss Glacier Tongues from Space locally, with a Copernicus rel
     python3 scripts/serve.py            then open http://localhost:8000
     python3 scripts/serve.py --port 8080
 
-The dashboard gets its satellite images from the Copernicus Data Space Ecosystem (CDSE).
+The explorer gets its satellite images from the Copernicus Data Space Ecosystem (CDSE).
 Browsers block the Copernicus login when a web page calls it directly, so this script serves
 the site and passes the requests on, logged in with your CDSE OAuth client (the same role the
 Cloudflare Worker has on the public site):
@@ -114,9 +114,9 @@ class Handler(SimpleHTTPRequestHandler):
         return self._send(404, "text/plain", b"Not found") if self._hidden() else super().do_HEAD()
 
     def do_GET(self):
-        if self.path.split("?")[0] == "/":      # the front page of the public site is the region picker; the dashboard is /index.html here
+        if self.path.split("?")[0] == "/":      # the front page of the public site is the region picker; the explorer is /index.html here
             self.path = "/home.html" + self.path[1:]
-        # the addresses of the public site (/switzerland/#g=aletsch) exist only in the built site; here they open the dashboard (a #r= is added for the other regions, a link's own # is kept for Switzerland)
+        # the addresses of the public site (/switzerland/#g=aletsch) exist only in the built site; here they open the explorer (a #r= is added for the other regions, a link's own # is kept for Switzerland)
         seg = self.path.split("?")[0].strip("/")
         if seg in REGION_ADDRESS:
             self.send_response(302)
@@ -251,7 +251,7 @@ def main():
         srv = ThreadingHTTPServer(("127.0.0.1", a.port), Handler)
     except OSError:
         sys.exit(f"Port {a.port} is in use. Try: python3 scripts/serve.py --port {a.port + 1}")
-    print(f"Tongues from Space running at {url} (the region picker; the Swiss dashboard is {url}index.html)\nPress Ctrl+C to stop.")
+    print(f"Tongues from Space running at {url} (the region picker; the Swiss explorer is {url}index.html)\nPress Ctrl+C to stop.")
     if not a.no_browser:
         webbrowser.open(url)
     try:

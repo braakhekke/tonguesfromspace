@@ -4,14 +4,14 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Gallery - Tongues from Space</title>
-<meta name="description" content="Pictures and animations of glacier tongues made with the Tongues from Space dashboard and shared by visitors.">
+<meta name="description" content="Pictures and animations of glacier tongues made with the Tongues from Space explorer and shared by visitors.">
 <meta property="og:title" content="Gallery - Tongues from Space">
-<meta property="og:description" content="Pictures and animations of glacier tongues made with the Tongues from Space dashboard and shared by visitors.">
+<meta property="og:description" content="Pictures and animations of glacier tongues made with the Tongues from Space explorer and shared by visitors.">
 <meta property="og:type" content="website">
 <meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
+<meta property="og:image:alt" content="Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
 <meta property="og:url" content="https://tonguesfromspace.org/gallery.html">
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
@@ -178,14 +178,14 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
     <b>Tongues from Space</b>
   </a>
   <nav>
-    <a data-dash href="index.html">Dashboard</a>
+    <a data-dash href="index.html">Explorer</a>
     <a href="size.html">Size visualizer</a>
     <a href="gallery.html" aria-current="page">Gallery</a>
   </nav>
 </div></header>
 <div class="lightbox" id="lightbox" role="dialog" aria-label="Full size picture"><img alt=""><button type="button" aria-label="Close">×</button></div>
 <main class="wrap">
-  <p class="lede">Pictures and animations of glacier tongues, made with the dashboard and shared by visitors. Every item was looked at before it appeared here.</p>
+  <p class="lede">Pictures and animations of glacier tongues, made with the explorer and shared by visitors. Every item was looked at before it appeared here.</p>
   <div class="cta"><a class="btn primary" data-dash href="index.html">Make your own</a><span class="note" style="margin:0">Choose a glacier, press Your visual, pick Image or Animation, then Share it in the gallery.</span></div>
   <div class="filters" role="search" aria-label="Filter the gallery">
     <label>Region<select id="fRegion"><option value="">All regions</option></select></label>
@@ -203,7 +203,7 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
 <section class="closing">
   <div class="wrap">
     <h2><span>Every glacier ends in a tongue.</span> <span>Now go look at yours.</span></h2>
-    <a class="btn-red go" data-dash href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a class="btn-red go" data-dash href="index.html">Open the explorer <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
 </section>
 <div class="wrap">
@@ -291,7 +291,7 @@ function render(){
   $('fReset').textContent = only ? 'Show all items' : 'Clear filters';
   const none = !list.length;
   $('empty').hidden = !none;
-  $('empty').textContent = !items.length ? 'Nothing here yet. Be the first: make a picture or animation in the dashboard and share it.' : 'Nothing matches these filters.';
+  $('empty').textContent = !items.length ? 'Nothing here yet. Be the first: make a picture or animation in the explorer and share it.' : 'Nothing matches these filters.';
   const p = new URLSearchParams(Object.entries(only ? { item: only } : f).filter(([, v]) => v));
   history.replaceState(null, '', p.toString() ? '#' + p : location.pathname + location.search);
 }

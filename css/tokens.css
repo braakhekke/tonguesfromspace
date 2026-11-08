@@ -1,4 +1,4 @@
-/* The design tokens of every page: colours, typeface. Change a value here and the dashboard, the size page, the front page and the gallery all change.
+/* The design tokens of every page: colours, typeface. Change a value here and the explorer, the size page, the front page and the gallery all change.
    Every page links it; no other stylesheet defines tokens (tests/test_tokens.py). */
 /* Schibsted Grotesk (SIL Open Font Licence 1.1, see fonts/OFL.txt), served from this site: no request to Google */
 @font-face{font-family:"Schibsted Grotesk";src:url(../fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}

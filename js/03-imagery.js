@@ -128,7 +128,7 @@ export const LOCAL = location.protocol === 'file:' || ['localhost', '127.0.0.1',
 export const NO_RELAY = RELAY_BASE
   ? 'The connection to Copernicus (' + RELAY_BASE + ') did not answer. Check your internet connection and the Worker, then try again.'
   : LOCAL
-  ? 'To load the satellite images, start the dashboard with "python3 scripts/serve.py" and use the page it opens at http://localhost:8000.'
+  ? 'To load the satellite images, start the explorer with "python3 scripts/serve.py" and use the page it opens at http://localhost:8000.'
   : 'This site has no connection to Copernicus configured yet, so no satellite images can be shown. The maps, outlines and figures still work.';
 /* Copernicus reports errors as {"error": {"status", "reason", "message", "code"}}; the relays as
    {"relayError": "..."} or {"error": "..."}. Turn any of these into readable text. */

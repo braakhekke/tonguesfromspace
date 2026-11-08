@@ -18,7 +18,7 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 SITE = os.path.abspath(os.environ.get("TFS_SITE_DIR", ROOT))
 ALLOWED_EXTERNAL = ("https://cdnjs.cloudflare.com/",)
 BUILT = bool(os.environ.get("TFS_SITE_DIR"))
-DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss dashboard: on the built site at its region address (the front page / is the region picker)
+DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss explorer: on the built site at its region address (the front page / is the region picker)
 REGION_PATHS = {"is": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard"}
 
 
@@ -831,7 +831,7 @@ class TestSwissLayers(SiteCase):
 
 
 class TestPicker(SiteCase):
-    """The front page is the world map where a region is chosen; old dashboard links still reach their dashboard."""
+    """The front page is the world map where a region is chosen; old explorer links still reach their explorer."""
     def picker_at(self, path):
         ctx = self.browser.new_context(viewport={"width": 1280, "height": 860})
         self.addCleanup(ctx.close)
@@ -859,7 +859,7 @@ class TestPicker(SiteCase):
         self.assertEqual(href, "switzerland/" if BUILT else "index.html")
         page.evaluate("chooseGlacier('gorner')")
         self.assertEqual(page.evaluate("document.getElementById('iGo').getAttribute('href')"), ("switzerland/#g=gorner" if BUILT else "index.html#g=gorner"))
-        self.assertEqual(page.evaluate("location.hash"), "#glacier=gorner", "the picker's own link does not look like a dashboard link")
+        self.assertEqual(page.evaluate("location.hash"), "#glacier=gorner", "the picker's own link does not look like an explorer link")
         self.assertEqual(self.errors, [])
 
     def test_the_picker_lists_the_region_records_and_marks_the_unpublished_ones(self):
@@ -884,7 +884,7 @@ class TestPicker(SiteCase):
         want = "/" if BUILT else "home.html"
         page = self.open("#g=aletsch")
         link = page.locator(".brand a.home-link[data-home]")  # the title goes home; there is no separate "All regions" link any more
-        self.assertTrue(link.is_visible(), "a clear way back on the dashboard")
+        self.assertTrue(link.is_visible(), "a clear way back on the explorer")
         self.assertEqual(link.get_attribute("href"), want)
         self.assertEqual(page.locator("#mhead a.home-link[data-home]").get_attribute("href"), want, "also in the phone header")
         for path in ("/size.html", "/gallery.html"):
@@ -949,7 +949,7 @@ class TestPicker(SiteCase):
         page.wait_for_url(lambda u: "g=aletsch" in u and "home" not in u, timeout=15000)
         url = page.url
         self.assertIn("/switzerland/" if BUILT else "/index.html", url)
-        self.assertIn("#g=aletsch&m=compare&a=2016&b=2024", url)      # the dashboard adds its own defaults after it
+        self.assertIn("#g=aletsch&m=compare&a=2016&b=2024", url)      # the explorer adds its own defaults after it
         if not BUILT or os.environ.get("PUBLISH_ICELAND") == "1":      # on the public site Iceland is not published yet: it has no address
             page = self.picker("#r=is&g=hofsjokull")
             page.wait_for_url(lambda u: "g=hofsjokull" in u, timeout=15000)

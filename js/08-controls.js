@@ -16,7 +16,7 @@ Object.defineProperty(wire, 'updateLandsatRow', { get: () => updateLandsatRow, c
    ===================================================================== */
 export function setOrient(o){
   prefs.orient = o; savePrefs();
-  document.getElementById('orientV').setAttribute('aria-pressed', o !== 'h'); document.getElementById('orientH').setAttribute('aria-pressed', o === 'h');
+  document.getElementById('modeCompare').dataset.o = o === 'h' ? 'h' : 'v';      // the Slider button's icon turns to show which way the slider runs
   document.getElementById('labelA').textContent = o === 'h' ? 'Top image' : 'Left image'; document.getElementById('labelB').textContent = o === 'h' ? 'Bottom image' : 'Right image';
   document.getElementById('yearsA').setAttribute('aria-label', o === 'h' ? 'Year for top image' : 'Year for left image');
   document.getElementById('yearsB').setAttribute('aria-label', o === 'h' ? 'Year for bottom image' : 'Year for right image');
@@ -25,9 +25,8 @@ export function setOrient(o){
   syncPane(); if (typeof wire.sync3D === 'function') wire.sync3D();           // (the 3D file loads later than this one: not yet there at the first call)
   // an open download pane shows the new direction
 }
-document.getElementById('orientV').onclick = () => setOrient('v'); document.getElementById('orientH').onclick = () => setOrient('h');
 setOrient(prefs.orient === 'v' ? 'v' : 'h');
-document.getElementById('modeCompare').onclick = () => { state.mode = 'compare'; refreshAll(); };
+document.getElementById('modeCompare').onclick = () => { if (state.mode === 'compare') setOrient(prefs.orient === 'h' ? 'v' : 'h'); else { state.mode = 'compare'; refreshAll(); } };      // the Slider button again: turns the slider
 document.getElementById('modeTimelapse').onclick = () => { state.mode = 'timelapse'; state.frame = 0; refreshAll(); wire.mobileDataNote(); };
 document.getElementById('modeSingle').onclick = () => { state.mode = 'single'; state.frame = 0; refreshAll(); };
 

@@ -196,6 +196,7 @@ export function startPreview(){
 export function syncPlayBtn(){ $('vsPlay').lastElementChild.textContent = vPrev.on ? 'Stop animation' : 'Play animation'; $('vsPlay').firstElementChild.innerHTML = vPrev.on ? '<path d="M7 7h10v10H7z"/>' : '<path d="M8 5v14l11-7z"/>'; }
 $('vfPlay').onclick = $('vsPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
 $('vfClose').onclick = () => closeVideo();      // the cross above the top right corner of the preview
+$('vfFs').onclick = () => $('fsBtn').click();      // full screen from the preview, beside the ratios: the same as the dock's button (hidden while a pane is open)
 export function guideText(){            // only the choices that need a word: the Reels / TikTok text zone and the custom frame
   const video = vstate.kind !== 'image';
   $('vSafeRow').hidden = !(video && vstate.fmt === 'reel');      // the Reels / TikTok choice only exists for a 9:16 video

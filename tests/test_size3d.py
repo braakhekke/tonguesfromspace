@@ -88,12 +88,12 @@ class TestSizeVolume(SiteCase):
             if mode: page.wait_for_function("document.body.classList.contains('is-3d')")
             mine = page.evaluate("""() => { const bar = [...document.querySelectorAll('.mapbar')].find(b => b.getBoundingClientRect().width > 0), z = bar.querySelector('#zoomIn, #s3ZoomIn'), st = bar.closest('.stage').getBoundingClientRect(), r = bar.getBoundingClientRect(), c = getComputedStyle(z), b = getComputedStyle(bar);
                 return {bottom: Math.round(st.bottom - r.bottom), font: c.fontSize, padding: c.padding, radius: c.borderRadius, w: Math.round(z.getBoundingClientRect().width), h: Math.round(z.getBoundingClientRect().height), bg: b.backgroundColor, barRadius: b.borderRadius, z: b.zIndex}; }""")
-            self.assertEqual(mine, dash, "the dock of the size page" + (" in 3D" if mode else "") + " is the dashboard's dock: position, size, font, glass")
+            self.assertEqual(mine, dash, "the dock of the size page" + (" in 3D" if mode else "") + " is the explorer's dock: position, size, font, glass")
 
 
     def test_save_and_share_works_like_the_dashboards(self):
         page = self.size("#g=B36-26&b=B56-07&c=zurich")
-        self.assertEqual(page.evaluate("[...document.querySelectorAll('#shareGroup .dl b')].map(b => b.textContent)"), ["Your visual", "Embed"], "the same two tiles as the dashboard")
+        self.assertEqual(page.evaluate("[...document.querySelectorAll('#shareGroup .dl b')].map(b => b.textContent)"), ["Your visual", "Embed"], "the same two tiles as the explorer")
         self.assertTrue(page.evaluate("document.getElementById('videoSheet').hidden && document.getElementById('videoFrame').hidden"), "nothing of the pane before Your visual is clicked")
         self.assertFalse(page.evaluate("[...document.querySelectorAll('.vf-fmt')].some(b => b.offsetParent !== null)"), "the formats are not there yet")
         page.click("#videoBtn")

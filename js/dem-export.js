@@ -1,4 +1,4 @@
-/* Elevation-model export (classic script, window.DEM; used by provenance.html and the dashboard's 3D view, js/11a-dem-download.js).
+/* Elevation-model export (classic script, window.DEM; used by provenance.html and the explorer's 3D view, js/11a-dem-download.js).
    The ice surface of one year as GeoTIFF, ESRI ASCII grid or XYZ, made in the browser from the terrain file the 3D view uses (data/terrain/<id>.<hash>.bin).
    The file holds the surface on a grid that follows the strip (turned to lie along the glacier); GeoTIFF and ASCII grid are the same heights resampled (bilinear) onto a north-up LV95 grid
    of the same cell size, XYZ lists the original nodes unchanged. Heights are stored in decimetres in the file. */

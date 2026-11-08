@@ -1,0 +1,357 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Tongues from Space | Glacier Rangers game sheets</title>
+<meta name="description" content="Eleven game sheets for kids and students: spot, measure, predict and explain how glaciers change, using the satellite viewer. Play on screen or print.">
+<meta property="og:title" content="Glacier Rangers: game sheets for the classroom">
+<meta property="og:description" content="Eleven game sheets for kids and students: spot, measure, predict and explain how glaciers change, using the satellite viewer.">
+<meta property="og:type" content="website">
+<meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
+<meta property="og:url" content="https://tonguesfromspace.org/play.html">
+<link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/pages.css">
+<link rel="stylesheet" href="css/home.css">
+<link rel="stylesheet" href="css/play.css">
+<script defer src="config.js"></script><script defer src="js/track.js"></script><script defer src="js/home-link.js"></script>
+</head>
+<body>
+<header class="bar"><div class="wrap">
+  <a class="brand" data-home href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
+  <nav>
+    <a data-dash href="index.html">Explorer</a>
+    <a href="size.html">Size visualizer</a>
+    <a href="gallery.html">Gallery</a>
+    <a href="play.html" aria-current="page">Game sheets</a>
+  </nav>
+</div></header>
+
+<section class="pl-hero"><div class="in">
+  <div>
+    <h2>Glacier <em>Rangers</em></h2>
+    <p>Eleven game sheets. Each one is a short mission in the real viewer: you look, measure, bet and explain. Nobody tells you the answers; you find them in the satellite pictures. Play on screen or print the sheets.</p>
+  </div>
+  <div class="pl-me">
+    <input type="text" id="pName" placeholder="Ranger name (or team name)" maxlength="40" aria-label="Ranger or team name">
+    <div class="pl-rank"><div class="badge" id="rBadge">1</div><div style="flex:1"><b id="rName">Snowflake</b><small id="rPts">0 points</small><small id="rTongla" style="display:block"></small><div class="pl-bar"><i id="rBar"></i></div></div></div>
+  </div>
+</div></section>
+
+<main class="wrap">
+  <p class="lede" style="margin-top:4px">Pick a sheet in any order. Sheet 1 is the base camp where you learn the tools. Stars show how hard a step is: ★ explorer (about 9–12 years), ★★ ranger (about 13–15), ★★★ scientist (16 and up). Points are kept in this browser only; nothing is sent anywhere.</p>
+  <nav class="pl-nav" id="plNav" aria-label="Game sheets"></nav>
+
+  <div class="pl-rules">
+    <div class="card"><div class="card-h">The rules of the game</div><p><b>1. Look first.</b> Every answer is something you can see or measure in the viewer. If a number is on the screen, copy it exactly.</p></div>
+    <div class="card"><div class="card-h">Bet before you check</div><p><b>2.</b> In the bet steps you write your guess <em>before</em> you look. Points for being right, and extra honesty points for writing down how sure you were.</p></div>
+    <div class="card"><div class="card-h">Say what you cannot say</div><p><b>3.</b> A satellite picture shows what it shows. When a cloud, shadow or snow hides the ice, write that down. “Cannot tell” is a good answer.</p></div>
+  </div>
+  <div class="pl-tools">
+    <button class="btn" id="printAll" type="button">Print all sheets</button>
+    <button class="btn" id="resetAll" type="button">Start over (delete my answers)</button>
+  </div>
+
+  <div id="sheets"></div>
+
+  <section class="card teacher" id="teacher">
+    <h3>For teachers and parents</h3>
+    <p class="note" style="margin-top:0">What each sheet trains, and how to run it. The sheets contain no glacier facts of their own: every number the players use is read from the viewer, so it is always the source's number.</p>
+    <ul id="tList"></ul>
+    <p class="note"><b>Running a session.</b> One screen per pair works best; 40 minutes fit one or two sheets. Print the sheet for pairs without a device and let them look at one shared projector picture. For a tournament, add up the team points of sheets 3, 7 and 9. Play the debrief question of each sheet aloud: it is where the learning happens.</p>
+    <p class="note"><b>Honest points.</b> Ticks are on the honour system. Ask to see the screen for the steps marked ★★★. Predictions are scored by the page from what the players type, so a wrong guess still teaches.</p>
+    <p class="note"><b>Data and credits.</b> The viewer shows Sentinel-2 pictures (modified Copernicus Sentinel data) and glacier statistics from GLAMOS, for non-commercial use. See the credits on the explorer. These sheets: own text, CC BY 4.0.</p>
+  </section>
+</main>
+
+<script>
+(() => {
+'use strict';
+const BUILT = [...document.scripts].some(s => /home-link\.[0-9a-f]{10}\.js/.test(s.src));
+const DASH = BUILT ? '/switzerland/' : 'index.html';
+const GL = [['aletsch','Grosser Aletsch'],['gorner','Gorner'],['fiescher','Fiescher'],['unteraar','Unteraar'],['oberaletsch','Oberaletsch'],['corbassiere','Corbassière'],['morteratsch','Morteratsch'],['zmutt','Zmutt'],['rhone','Rhone'],['trift','Trift']];
+const RANKS = [['Snowflake',0],['Firn walker',.12],['Crevasse scout',.28],['Tongue tracker',.45],['Glacier ranger',.62],['Ice master',.8]];
+
+/* ---- the sheets. kinds: check, text, num (two numbers and their difference), rank (guess an order, then the real order), table, count ---- */
+const S = [
+{id:'base', t:'Base Camp', mech:'Scavenger hunt', who:'1 player', time:'20 min', go:{p:'dash', h:'m=single&s=natural'},
+ story:'You have just joined the Glacier Rangers. Your first job: learn your instruments. Open the viewer and tick off each tool once you have used it.',
+ tasks:[
+  {id:'a',k:'text',pts:5,tier:1,q:'Pick a glacier from the list (step 1). Write its name here:'},
+  {id:'b',k:'check',pts:5,tier:1,q:'Find the <b>tongue</b>: the lower end of the glacier where the ice stops. Say it out loud to your partner: “The tongue is…”'},
+  {id:'c',k:'check',pts:5,tier:1,q:'Change the <b>year</b> three times and watch what moves.'},
+  {id:'d',k:'check',pts:5,tier:1,q:'Switch to <b>Compare</b> and drag the slider. Look at one place before and after.'},
+  {id:'e',k:'check',pts:5,tier:1,q:'Press <b>Timelapse</b> and watch the whole series play.'},
+  {id:'f',k:'check',pts:5,tier:1,q:'Open the <b>3D view</b> and turn the glacier with your finger or mouse.'},
+  {id:'g',k:'check',pts:5,tier:2,q:'Try the three <b>false-colour</b> pictures. Which one do you like best?'},
+  {id:'h',k:'check',pts:5,tier:2,q:'Switch on a <b>map layer</b> (outline, thickness, hiking trails…) and find what it shows.'},
+  {id:'i',k:'check',pts:5,tier:2,q:'Use <b>Measure length</b> on any piece of the glacier.'},
+  {id:'j',k:'text',pts:10,tier:2,q:'Describe in one sentence what a glacier tongue is, in your own words.'},
+  {id:'k',k:'text',pts:10,tier:3,q:'The picture of one year can be wrong or unclear (clouds, snow). Find a year that looks odd and write down why.'}
+ ], debrief:'Which tool answered a question you did not know you had?'},
+
+{id:'detective', t:'Time Detective', mech:'Spot the difference + confidence bet', who:'1–2 players', time:'25 min', go:{p:'dash', h:'m=compare&a=2016'}, pick:true,
+ story:'Someone has swapped two photographs of the same place, taken years apart. Your job: find what changed, and how sure you are.',
+ tasks:[
+  {id:'a',k:'text',pts:5,tier:1,q:'In Compare mode put the <b>oldest</b> year on the left and the <b>newest</b> on the right. Before you drag the slider: what do you <b>expect</b> to change?'},
+  {id:'b',k:'sure',pts:5,tier:1,q:'How sure are you about your expectation? (1 = a guess, 3 = certain). Be honest: honest bets earn the points.'},
+  {id:'c',k:'text',pts:10,tier:1,q:'Find <b>three differences</b> between the two pictures. Write them as: <i>“Here… was… and now…”</i>'},
+  {id:'d',k:'check',pts:5,tier:1,q:'Drag the slider over the <b>tongue</b>. Does the ice end in a different place?'},
+  {id:'e',k:'text',pts:10,tier:2,q:'Is there something that is <b>not</b> ice that took the place of the ice (rock, water, grass…)? How can you tell the difference in colour?'},
+  {id:'f',k:'check',pts:5,tier:2,q:'Check an <b>in-between</b> year too. Did the change happen slowly, or in a jump?'},
+  {id:'g',k:'text',pts:15,tier:3,q:'Name one thing that could <b>fool</b> you when you compare two pictures (season, snow, shadows, clouds…) and how you checked that it did not.'}
+ ], debrief:'Was your expectation right? Did your confidence match? Next time, what would you bet?'},
+
+{id:'race', t:'Retreat Race', mech:'Snake draft + prediction', who:'2–4 players', time:'30 min', go:{p:'dash', h:'m=compare&a=2016'},
+ story:'Ten glaciers, one race. Which tongue pulls back most? Players take turns choosing glaciers (see the rule below) and then the data decides.',
+ rules:'<b>Draft:</b> player A picks a glacier, then B, C, D, then back D, C, B, A (a “snake”), until everyone has three. Nobody may pick a glacier already taken. <b>Winner:</b> the player whose glaciers show the most change, as read in the Figures tab. Ask yourself while drafting: is it better to pick first, or to pick last twice in a row?',
+ tasks:[
+  {id:'a',k:'text',pts:5,tier:1,q:'Write down the glaciers you drafted, and <b>why</b> you chose them.'},
+  {id:'b',k:'rank',n:3,pts:10,tier:1,q:'<b>Predict</b> three glaciers: which one will have the biggest change of tongue length since 2016, which second, which third? Pick the order <b>first</b>; then look it up in the Figures tab of each glacier and fill in the real order.',hint:'The page gives points for each place you got exactly right.'},
+  {id:'c',k:'text',pts:10,tier:2,q:'Copy the exact number the viewer shows for each of your three glaciers, with the unit, and write where on the screen you found it.'},
+  {id:'d',k:'check',pts:5,tier:2,q:'Check that all players looked at the <b>same period</b> of years. If not, the race is unfair: repeat with the same years.'},
+  {id:'e',k:'text',pts:15,tier:3,q:'Winners are not always the glaciers that “melt fastest”. A glacier can be long or short, steep or flat. Why is the length change not enough to say which glacier is “doing worst”? Find a second quantity in the viewer that tells more.'}
+ ], debrief:'Did anyone pick the glacier they predicted would lose most? What does “good strategy” mean in a game where the data is the opponent?'},
+
+{id:'colour', t:'Colour Lab', mech:'Decoder puzzle', who:'1–2 players', time:'25 min', go:{p:'dash', h:'m=single&s=natural'}, pick:true,
+ story:'Satellites do not see colours the way you do. They record light our eyes cannot see, and we paint it in colours we can. Crack the code.',
+ tasks:[
+  {id:'a',k:'table',pts:20,tier:1,q:'Fill in the table. Choose one glacier. In each colour mode, write which colour you see for <b>snow or ice</b>, <b>bare rock</b>, <b>water</b> and <b>plants</b>. Leave a cell empty if you cannot tell (5 points per mode with at least 3 cells filled).',
+   cols:['Colour mode','Snow / ice','Bare rock','Water','Plants'], rows:['Natural','False colour 1','False colour 2','False colour 3']},
+  {id:'b',k:'text',pts:10,tier:1,q:'Which mode would you use to show the ice to a friend? Which would you use to show where the water is? Why?'},
+  {id:'c',k:'check',pts:5,tier:2,q:'Read the note under the colour buttons: which light does each mode use? Write one thing you learned.'},
+  {id:'d',k:'text',pts:10,tier:2,q:'Find a place that <b>looks like ice in one mode but not in another</b>. What is it really?'},
+  {id:'e',k:'text',pts:15,tier:3,q:'A friend says: “False colour is fake, only natural colour is true.” Write a reply with one reason for and one reason against.'}
+ ], debrief:'When is a “wrong” colour the most honest picture?'},
+
+{id:'surveyor', t:'Ice Surveyor', mech:'Estimate, measure, compare error', who:'2 players', time:'30 min', go:{p:'dash', h:'m=single&s=natural'}, pick:true,
+ story:'Surveyors measure; good surveyors also know how wrong they can be. You will estimate first, measure second, and score yourself on how close you were.',
+ tasks:[
+  {id:'a',k:'num',pts:10,tier:1,unit:'m or km (write the unit)',q:'<b>Length.</b> Look at the tongue. Guess how long the visible glacier is (from the tongue up to the top of the picture). Write the guess, then use <b>Measure length</b> to measure it and write the result. The page computes the difference.'},
+  {id:'b',k:'num',pts:10,tier:2,unit:'as shown',q:'<b>Width.</b> Guess and measure the width of the glacier at the widest place you can see.'},
+  {id:'c',k:'num',pts:15,tier:3,unit:'as shown',q:'<b>Area.</b> Guess and measure the area of the glacier with <b>Measure area</b>.'},
+  {id:'d',k:'text',pts:5,tier:1,q:'Measure the <b>same line twice</b>. Do you get the same number? Write both.'},
+  {id:'e',k:'text',pts:10,tier:2,q:'Swap with your partner: each of you measures the same line. How much do your numbers differ? Why?'},
+  {id:'f',k:'text',pts:15,tier:3,q:'The computed difference is your own, it is not a number from a data source. Explain how you would report your measurement honestly (what you measured, with what tool, how sure you are).'}
+ ], debrief:'Who was closer, the one who guessed boldly or the one who played safe? What does it cost to be wrong?'},
+
+{id:'pilot', t:'Flight School', mech:'Treasure hunt in 3D', who:'1–2 players', time:'25 min', go:{p:'dash', h:'v=3d'}, pick:true,
+ story:'Fly low over the glacier. Use the 3D view like a pilot’s map and find the treasures. Each clue describes something you can see, not its name.',
+ tasks:[
+  {id:'a',k:'check',pts:5,tier:1,q:'Treasure 1: a place where the ice <b>ends</b> and something else begins. Mark it with your finger on the paper or screenshot it.'},
+  {id:'b',k:'check',pts:5,tier:1,q:'Treasure 2: a <b>dark stripe</b> that runs along the ice, like a road. What do you think it is made of?'},
+  {id:'c',k:'check',pts:5,tier:1,q:'Treasure 3: <b>water</b> near the tongue (a lake, a stream). Where does it come from?'},
+  {id:'d',k:'check',pts:5,tier:2,q:'Treasure 4: the <b>steepest</b> part of the glacier. How do you know it is steep?'},
+  {id:'e',k:'check',pts:5,tier:2,q:'Switch on <b>peak names</b> or the thickness layer and find a mountain or a thick part you can name.'},
+  {id:'f',k:'check',pts:10,tier:3,q:'Draw a <b>cross-section</b> line across the glacier and look at the cut. Where is the ice thickest?'},
+  {id:'g',k:'text',pts:10,tier:2,q:'If you were a cloud flying down this valley, where would the ice be melting first? Why?'},
+  {id:'h',k:'text',pts:10,tier:3,q:'The thickness layer is a model, not a measurement (the viewer says so). What can you do to check whether it looks believable?'}
+ ], debrief:'What did you notice in 3D that you had missed in the flat picture?'},
+
+{id:'machine', t:'Time Machine', mech:'Bet on the past', who:'2–4 players', time:'30 min', go:{p:'dash', h:'m=compare&a=2016&ol=1'}, pick:true,
+ story:'The viewer can go back further than the satellite years. Players bet on the past, then the old pictures open the vault.',
+ tasks:[
+  {id:'a',k:'check',pts:5,tier:1,q:'Switch on the <b>old outline</b> layer (the 1850 line, if the glacier has one). The line shows where the ice used to reach.'},
+  {id:'b',k:'text',pts:10,tier:1,q:'<b>Bet.</b> Before you look at the latest picture: how far from today’s tongue do you think the old outline is? Write a guess in your own words or draw it.'},
+  {id:'c',k:'check',pts:5,tier:1,q:'Now look. Was your bet too small, too big, or about right? Tick when you have decided.'},
+  {id:'d',k:'check',pts:5,tier:2,q:'Switch on the <b>older pictures</b> (Landsat) if the glacier has them. Use the oldest picture and the newest as left and right.'},
+  {id:'e',k:'text',pts:10,tier:2,q:'The old pictures are blurrier. Name one thing you can still see well and one you can no longer see.'},
+  {id:'f',k:'text',pts:15,tier:3,q:'Plot the story of the tongue as a comic with 4 panels (old line, oldest picture, first Sentinel-2 year, newest). Write a title for each panel.'},
+  {id:'g',k:'text',pts:15,tier:3,q:'<b>Prediction.</b> Based on what you saw, draw or describe where you think the tongue will be at the end of your own life. State what you assume and what you do not know.'}
+ ], debrief:'Is it fair to continue the line of the past into the future? What could break it?'},
+
+{id:'size', t:'Size Matters', mech:'Ordering and estimation', who:'2–4 players', time:'25 min', go:{p:'size'},
+ story:'It is hard to feel how big a glacier is. The size page lets you place one on a city you know. Guess the order first.',
+ tasks:[
+  {id:'a',k:'check',pts:5,tier:1,q:'Open the Size visualizer. Drag a glacier outline onto a place you know (your town, your school).'},
+  {id:'b',k:'text',pts:10,tier:1,q:'Describe what you see: does the glacier cover your school? Your neighbourhood? More?'},
+  {id:'c',k:'rank',n:3,pts:10,tier:2,q:'<b>Predict.</b> Pick three glaciers and order them from <b>largest to smallest area</b>. Then read the area on the page and fill in the real order.'},
+  {id:'d',k:'check',pts:5,tier:2,q:'Switch to <b>Volume 3D</b>. Compare area and volume of the same two glaciers.'},
+  {id:'e',k:'text',pts:15,tier:3,q:'A glacier can be big in area and still hold less ice than a smaller, thicker one. Find two glaciers where area and volume give a different order and write what you found, with the numbers as the page shows them.'}
+ ], debrief:'What size comparison would you use to explain a glacier to a younger child?'},
+
+{id:'mystery', t:'Mystery Glacier', mech:'20 questions (information game)', who:'2 players', time:'20 min', go:{p:'dash', h:'m=single&s=natural'},
+ story:'One player (the Hider) secretly picks a glacier from the list and keeps the viewer open on it. The other (the Seeker) must find it by asking yes/no questions that the Hider answers by looking.',
+ rules:'<b>Rules.</b> The Seeker asks one yes/no question at a time, counted below. Only questions that can be answered by <b>looking at the picture</b> are allowed (“Is there a lake at the tongue?”, not “Is it the biggest?”). The Hider must answer honestly. Seeker wins by naming the glacier in 10 questions or fewer. <b>Score</b> = 11 minus the questions used (the game’s rule, not a data value). Then swap.',
+ tasks:[
+  {id:'a',k:'count',pts:10,tier:1,q:'<b>Round 1.</b> How many questions did the Seeker need? (leave empty if not found)'},
+  {id:'b',k:'count',pts:10,tier:1,q:'<b>Round 2</b> (roles swapped). Questions needed?'},
+  {id:'c',k:'text',pts:10,tier:2,q:'Write down the <b>best</b> question you asked or heard: the one that cut the candidates most.'},
+  {id:'d',k:'text',pts:10,tier:2,q:'Which question was a waste? Why did it tell you almost nothing?'},
+  {id:'e',k:'text',pts:15,tier:3,q:'Design a three-question “decision tree” that always finds the glacier among the ten in the list. Draw it as a tree.'}
+ ], debrief:'Is a question that splits the ten glaciers 5 / 5 better than one that splits them 1 / 9? Try to prove it.'},
+
+{id:'story', t:'Storyteller', mech:'Create, share, peer review', who:'pairs + class', time:'40 min', go:{p:'dash', h:'m=compare&a=2016'}, pick:true,
+ story:'The best science is useless if nobody understands it. Make one picture or one film that explains a glacier to a stranger in 15 seconds.',
+ tasks:[
+  {id:'a',k:'text',pts:5,tier:1,q:'<b>Message.</b> Write the one sentence you want the viewer to remember.'},
+  {id:'b',k:'check',pts:10,tier:1,q:'Make your visual in step 3 of the viewer (a still, a before/after slider, or a video).'},
+  {id:'c',k:'text',pts:10,tier:2,q:'Write a headline (max 8 words) and a caption (max 25 words). The caption must say <b>what</b> and <b>when</b>.'},
+  {id:'d',k:'check',pts:10,tier:2,q:'<b>Peer review.</b> Swap with another team. They tick whether message, headline and caption fit together.'},
+  {id:'e',k:'text',pts:10,tier:2,q:'Rate another team’s visual from 1 to 5 and write one sentence on what you <b>would improve</b>.'},
+  {id:'g',k:'text',pts:15,tier:3,q:'Every number in your caption must be copied exactly from a source. Write the source of each number next to it. If you cannot, remove the number.'},
+  {id:'h',k:'check',pts:10,tier:3,q:'With a teacher’s okay, share your work in the gallery.'}
+ ], debrief:'Which picture made you understand fastest? What did it leave out?'},
+
+{id:'bank', t:'Ice Bank (class game)', mech:'Shared resource dilemma', who:'4–6 teams, teacher leads', time:'30 min', go:{p:'none'},
+ story:'A game without screens, about what happens when many players share one thing. It is a game model with made-up rules. It is not glacier data and does not say how real glaciers work.',
+ rules:'<b>Setup.</b> The bank starts with 24 ice cubes (use paper slips). Every team has its own pile of 0 points. <b>Each round</b> all teams secretly write <b>Take 1</b> or <b>Take 2</b>. Teams reveal together, take the slips from the bank and keep them as points. <b>Then the bank melts:</b> remove one slip for every team. The game ends when the bank cannot pay out a round. Whoever still has the most points wins. Nobody may talk during a round, but you may talk between rounds.',
+ tasks:[
+  {id:'a',k:'table',pts:20,tier:1,q:'Keep the score. Write each team’s choice and points per round (5 points per round filled in for at least 4 rounds).',cols:['Round','Bank at start','Choices','Bank after take','Bank after melt'],rows:['1','2','3','4','5','6']},
+  {id:'b',k:'text',pts:10,tier:1,q:'Which strategy did your team use? Did it change during the game?'},
+  {id:'c',k:'text',pts:10,tier:2,q:'Did anyone “take 2” while the others took 1? What happened to trust?'},
+  {id:'d',k:'text',pts:15,tier:3,q:'Name one way the game is <b>like</b> the real situation of a shared resource and one way it is <b>unlike</b> real glaciers. Use what you saw in the viewer.'},
+  {id:'e',k:'text',pts:15,tier:3,q:'Change one rule so that the group does better together. What did you change, and why would it work?'}
+ ], debrief:'In this game, what would make everyone take 1? In real life, who decides?'}
+];
+
+const TEACH = {
+ base:'Orientation. Players learn every tool by using it (learning by doing). Good opener for the whole class.',
+ detective:'Observation and calibration: players state a confidence level before checking, which trains honest self-assessment.',
+ race:'Drafting: first pick versus later picks, and why a single measure (length) is not a full ranking. Introduces prediction and fair comparison (same period).',
+ colour:'Remote sensing literacy: why false colour exists. Decoding as a puzzle.',
+ surveyor:'Estimation versus measurement, error and honest reporting. Error is computed by the page from the player’s own numbers and is labelled as such.',
+ pilot:'Spatial thinking in 3D, a treasure hunt written as descriptions rather than names, so players must reason about what they see.',
+ machine:'Time scales and uncertainty: betting on the past, then extrapolating to the future with stated assumptions.',
+ size:'Scale and magnitude: area versus volume, estimation of order. Uses the size page.',
+ mystery:'Information theory made playable: good questions split the candidates. A twenty-questions variant with a decision tree to design.',
+ story:'Science communication: message, headline, caption; peer review; source discipline for numbers.',
+ bank:'Game theory of a shared resource (tragedy of the commons), played offline. Fictional rules, said so on the sheet. Debrief links it to the viewer and real decisions.'
+};
+
+/* ---- storage ---- */
+const KEY = 'tfs-play-v1';
+let st = {name:'', v:{}};
+try { const r = JSON.parse(localStorage.getItem(KEY) || 'null'); if (r && r.v) st = r; } catch (e) {}
+const save = () => { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+const $ = (s, r = document) => r.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+const gv = k => st.v[k];
+const sv = (k, x) => { st.v[k] = x; save(); };
+const glSel = (id, val) => `<select data-k="${id}"><option value="">choose…</option>${GL.map(g => `<option value="${g[0]}"${val === g[0] ? ' selected' : ''}>${esc(g[1])}</option>`).join('')}</select>`;
+
+function href(sh) {
+  const g = gv(sh.id + '.glacier') || 'aletsch';
+  if (sh.go.p === 'size') return BUILT ? '/size.html' : 'size.html';
+  if (sh.go.p === 'none') return '';
+  return DASH + '#g=' + g + '&' + sh.go.h + '&play=1';
+}
+function stars(t) { return '★'.repeat(t); }
+
+/* ---- earned points per task ---- */
+function earned(sh, t) {
+  const k = sh.id + '.' + t.id, v = gv(k);
+  switch (t.k) {
+    case 'check': return v ? t.pts : 0;
+    case 'text': return (v || '').trim().length >= 3 ? t.pts : 0;
+    case 'sure': return v ? t.pts : 0;
+    case 'num': { const a = parseFloat(String(gv(k + '.a')||'').replace(',', '.')), b = parseFloat(String(gv(k + '.b')||'').replace(',', '.')); return isFinite(a) && isFinite(b) ? t.pts : 0; }
+    case 'rank': { const p = gv(k + '.p') || [], r = gv(k + '.r') || []; let n = 0; for (let i = 0; i < t.n; i++) if (p[i] && p[i] === r[i]) n++; return Math.round(t.pts * n / t.n * 10) / 10; }
+    case 'count': { const n = parseInt(v, 10); return isFinite(n) && n >= 1 ? Math.max(0, 11 - n) : 0; }
+    case 'table': { const rows = t.rows.length; let ok = 0; for (let r = 0; r < rows; r++) { const filled = t.cols.slice(1).filter((_, c) => (gv(k + '.' + r + '.' + c) || '').trim()).length; if (filled >= Math.min(3, t.cols.length - 1)) ok++; } return Math.min(t.pts, ok * (t.pts / Math.min(rows, 4))); }
+  }
+  return 0;
+}
+const maxOf = sh => sh.tasks.reduce((a, t) => a + (t.k === 'count' ? 10 : t.pts), 0);
+const totalOf = sh => sh.tasks.reduce((a, t) => a + earned(sh, t), 0);
+
+/* ---- render ---- */
+function taskHTML(sh, t) {
+  const k = sh.id + '.' + t.id, v = gv(k);
+  let ans = '';
+  if (t.k === 'text') ans = `<textarea data-k="${k}" placeholder="Your answer…">${esc(v || '')}</textarea>`;
+  if (t.k === 'sure') ans = `<select data-k="${k}"><option value="">choose…</option>${['1 — a guess','2 — fairly sure','3 — certain'].map((x,i)=>`<option value="${i+1}"${String(v)===String(i+1)?' selected':''}>${x}</option>`).join('')}</select>`;
+  if (t.k === 'num') {
+    const a = gv(k + '.a') || '', b = gv(k + '.b') || '';
+    ans = `<div class="mini"><label>${t.id === 'e' && sh.id === 'story' ? 'Your rating' : 'My guess'} <input type="number" step="any" inputmode="decimal" data-k="${k}.a" value="${esc(a)}"></label>
+      ${sh.id === 'story' ? '' : `<label>Measured <input type="number" step="any" inputmode="decimal" data-k="${k}.b" value="${esc(b)}"></label>`}
+      <span class="out" data-diff="${k}"></span></div><p class="hint">Unit: ${esc(t.unit)}. Use the same unit for both numbers.</p>`;
+  }
+  if (t.k === 'rank') {
+    const p = gv(k + '.p') || [], r = gv(k + '.r') || [];
+    const row = (kind, arr, label) => `<div><b style="font-size:12px">${label}</b><div class="rankrow">${Array.from({length:t.n},(_,i)=>`<div><label>${i+1}.</label><select data-rank="${k}.${kind}.${i}"><option value="">choose…</option>${GL.map(g=>`<option value="${g[0]}"${arr[i]===g[0]?' selected':''}>${esc(g[1])}</option>`).join('')}</select></div>`).join('')}</div></div>`;
+    ans = row('p', p, 'My prediction (fill in before you look)') + '<div style="height:8px"></div>' + row('r', r, 'What the viewer shows (fill in after)') + `<p class="out" data-rankout="${k}"></p>`;
+  }
+  if (t.k === 'count') ans = `<div class="mini"><input type="number" min="0" max="20" data-k="${k}" value="${esc(v ?? '')}"><span class="out" data-cnt="${k}"></span></div><p class="hint">Points: 11 minus the questions used. Leave empty if the glacier was not found.</p>`;
+  if (t.k === 'table') ans = `<div style="overflow-x:auto"><table class="grid-t"><thead><tr>${t.cols.map(c=>`<th>${esc(c)}</th>`).join('')}</tr></thead><tbody>${t.rows.map((r,ri)=>`<tr><th>${esc(r)}</th>${t.cols.slice(1).map((c,ci)=>`<td><input type="text" data-k="${k}.${ri}.${ci}" value="${esc(gv(k+'.'+ri+'.'+ci)||'')}" aria-label="${esc(r+' – '+c)}"></td>`).join('')}</tr>`).join('')}</tbody></table></div>`;
+  const tickBox = t.k === 'check' ? `<input class="tick" type="checkbox" data-k="${k}"${v ? ' checked' : ''} aria-label="Done">` : `<span class="tick" aria-hidden="true"></span>`;
+  const label = t.k === 'count' ? 'up to 10 pts' : `${t.pts} pts`;
+  return `<div class="task" data-task="${k}">${tickBox}<div class="q">${t.q}</div><div class="tier t${t.tier}">${stars(t.tier)} · ${label}</div>${ans ? `<div class="ans">${ans}</div>` : ''}</div>`;
+}
+function sheetHTML(sh, i) {
+  const launch = sh.go.p === 'none' ? '' :
+    `<div class="launch">${sh.pick ? `<label>Your glacier ${glSel(sh.id + '.glacier', gv(sh.id + '.glacier'))}</label>` : ''}<a class="btn primary" target="_blank" rel="noopener" data-launch="${sh.id}" href="${esc(href(sh))}">${sh.go.p === 'size' ? 'Open the Size visualizer' : 'Open the viewer for this mission'}</a><span class="note" style="margin:0">Opens in a new tab. Keep this sheet open next to it. Watch the buttons: Tongla the tongue may peek out.</span></div>`;
+  return `<section class="sheet" id="s-${sh.id}" data-sheet="${sh.id}">
+  <div class="sheet-h"><span class="no">Sheet ${i + 1}</span><h3>${esc(sh.t)}</h3><span class="pts" data-sp="${sh.id}"></span></div>
+  <div class="sheet-b">
+    <div class="meta"><span class="mech">${esc(sh.mech)}</span><span>${esc(sh.who)}</span><span>${esc(sh.time)}</span></div>
+    <p class="story">${esc(sh.story)}</p>
+    ${sh.rules ? `<div class="fiction">${sh.rules}</div>` : ''}
+    ${launch}
+    ${sh.tasks.map(t => taskHTML(sh, t)).join('')}
+    <p class="note"><b>Debrief question:</b> ${esc(sh.debrief)}</p>
+    <div class="pl-tools noprint"><button class="btn" type="button" data-print="${sh.id}">Print this sheet</button></div>
+  </div></section>`;
+}
+$('#sheets').innerHTML = S.map(sheetHTML).join('');
+$('#plNav').innerHTML = S.map((sh, i) => `<a href="#s-${sh.id}" data-nav="${sh.id}"><span class="n">${i + 1}</span>${esc(sh.t)}</a>`).join('');
+$('#tList').innerHTML = S.map((sh, i) => `<li><b>${i + 1}. ${esc(sh.t)}</b> (${esc(sh.mech)}): ${esc(TEACH[sh.id])}</li>`).join('');
+$('#pName').value = st.name || '';
+
+/* ---- refresh the scores ---- */
+function refresh() {
+  let tot = 0, max = 0;
+  S.forEach(sh => {
+    const e = totalOf(sh), m = maxOf(sh);
+    tot += e; max += m;
+    const el = $(`[data-sp="${sh.id}"]`); if (el) el.textContent = `${Math.round(e * 10) / 10} / ${m}`;
+    const nv = $(`[data-nav="${sh.id}"]`); if (nv) nv.classList.toggle('done', e >= m * .6);
+    sh.tasks.forEach(t => { const row = $(`[data-task="${sh.id}.${t.id}"]`); if (row) row.classList.toggle('got', earned(sh, t) > 0); });
+    sh.tasks.filter(t => t.k === 'num').forEach(t => {
+      const k = sh.id + '.' + t.id, a = parseFloat(String(gv(k + '.a')||'').replace(',', '.')), b = parseFloat(String(gv(k + '.b')||'').replace(',', '.')), o = $(`[data-diff="${k}"]`);
+      if (!o) return;
+      o.textContent = sh.id === 'story' ? '' : (isFinite(a) && isFinite(b) && b !== 0 ? `Computed by this page: you were off by ${Math.round(Math.abs(a - b) / Math.abs(b) * 100)} % of what you measured.` : '');
+    });
+    sh.tasks.filter(t => t.k === 'rank').forEach(t => {
+      const k = sh.id + '.' + t.id, p = gv(k + '.p') || [], r = gv(k + '.r') || [], o = $(`[data-rankout="${k}"]`);
+      if (!o) return;
+      const done = r.filter(Boolean).length === t.n && p.filter(Boolean).length === t.n;
+      let n = 0; for (let i = 0; i < t.n; i++) if (p[i] && p[i] === r[i]) n++;
+      o.textContent = done ? `${n} of ${t.n} places right.` : ''; o.classList.toggle('bad', n === 0);
+    });
+    sh.tasks.filter(t => t.k === 'count').forEach(t => {
+      const k = sh.id + '.' + t.id, n = parseInt(gv(k), 10), o = $(`[data-cnt="${k}"]`);
+      if (o) o.textContent = isFinite(n) ? `${Math.max(0, 11 - n)} points` : '';
+    });
+  });
+  const f = max ? tot / max : 0;
+  let ri = 0; RANKS.forEach((r, i) => { if (f >= r[1]) ri = i; });
+  $('#rBadge').textContent = ri + 1; $('#rName').textContent = RANKS[ri][0];
+  const nextAt = RANKS[ri + 1] ? RANKS[ri + 1][1] : null;
+  $('#rPts').textContent = `${Math.round(tot * 10) / 10} points` + (nextAt ? ` · next rank at ${Math.ceil(nextAt * max)}` : ' · top rank');
+  $('#rBar').style.width = (nextAt ? Math.min(100, (f - RANKS[ri][1]) / (nextAt - RANKS[ri][1]) * 100) : 100) + '%';
+}
+refresh();
+try { const t = JSON.parse(localStorage.getItem('tfs-tonga') || 'null'); if (t && t.on) $('#rTongla').textContent = `Tongla found: ${Object.keys(t.found || {}).length} · quests done: ${Object.keys(t.done || {}).length}`; else $('#rTongla').textContent = 'Open a viewer mission from a sheet: Tongla may be hiding there.'; } catch (e) {}
+
+/* ---- input handling ---- */
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.id === 'pName') { st.name = t.value; save(); return; }
+  if (t.dataset.rank) { const [id, kind, i] = [t.dataset.rank.split('.').slice(0, 2).join('.'), t.dataset.rank.split('.')[2], +t.dataset.rank.split('.')[3]]; const key = id + '.' + kind; const arr = gv(key) || []; arr[i] = t.value; sv(key, arr); refresh(); return; }
+  const k = t.dataset.k; if (!k) return;
+  sv(k, t.type === 'checkbox' ? t.checked : t.value);
+  if (k.endsWith('.glacier')) { const sid = k.split('.')[0], sh = S.find(x => x.id === sid), a = $(`[data-launch="${sid}"]`); if (a) a.href = href(sh); }
+  refresh();
+});
+document.addEventListener('click', e => {
+  const b = e.target.closest('[data-print]');
+  if (b) { const sec = $('#s-' + b.dataset.print); document.body.classList.add('print-one'); sec.classList.add('printing'); window.print(); }
+  if (e.target.id === 'printAll') { document.body.classList.remove('print-one'); window.print(); }
+  if (e.target.id === 'resetAll' && confirm('Delete all answers and points in this browser?')) { st = {name:'', v:{}}; save(); location.reload(); }
+});
+window.addEventListener('afterprint', () => { document.body.classList.remove('print-one'); document.querySelectorAll('.sheet.printing').forEach(s => s.classList.remove('printing')); });
+})();
+</script>
+</body>
+</html>

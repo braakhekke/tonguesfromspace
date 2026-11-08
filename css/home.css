@@ -1,5 +1,5 @@
 /* The front page (home.html): the region picker. Moved out of the page unchanged; the shared tokens and base rules of the public pages are in pages.css. */
-/* Mock-up of the landing page. Same tokens, font and square corners as the dashboard (css/pages.css). */
+/* Mock-up of the landing page. Same tokens, font and square corners as the explorer (css/pages.css). */
 :root{--night:#0E1A22;--night-2:#16252F}
 html{scroll-behavior:smooth}
 @media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
@@ -33,6 +33,20 @@ a{color:inherit}
 .flight .live.on{opacity:1}
 .flight .cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:44px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.66),transparent);font-size:12.5px;color:rgba(255,255,255,.92);pointer-events:none}
 .flight .cap b{font-weight:700;color:#fff}
+/* play / pause over the timelapse: a small glass disc bottom right; while the viewer loads, a ring turns round it and a faint line runs along the bottom edge */
+.fl-play{position:absolute;z-index:4;right:14px;bottom:14px;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:rgba(14,26,34,.55);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.28),0 4px 14px rgba(0,0,0,.35);opacity:.8;transition:opacity .2s,transform .2s,background .2s}
+.fl-play[hidden]{display:none}
+.fl-play:hover,.fl-play:focus-visible{opacity:1;background:rgba(14,26,34,.78);transform:scale(1.07)}
+.fl-play:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.fl-play svg{width:16px;height:16px;fill:currentColor;grid-area:1/1}
+.fl-play .i-play{display:none;margin-left:2px}.fl-play.paused .i-play{display:block}.fl-play.paused .i-pause{display:none}
+.fl-play::before{content:"";position:absolute;inset:-4px;border-radius:50%;border:2px solid transparent;border-top-color:rgba(255,255,255,.75);opacity:0;transition:opacity .4s}
+.flight.loading .fl-play::before{opacity:1;animation:flSpin 1.1s linear infinite}
+.flight.loading::after{content:"";position:absolute;z-index:3;left:0;bottom:0;height:2px;width:35%;background:linear-gradient(90deg,transparent,rgba(255,255,255,.7),transparent);animation:flSlide 1.6s ease-in-out infinite;pointer-events:none}
+@keyframes flSpin{to{transform:rotate(360deg)}}
+@keyframes flSlide{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
+@media (prefers-reduced-motion:reduce){.flight.loading .fl-play::before{animation:none;opacity:.6}.flight.loading::after{animation:none;width:100%;opacity:.35}}
+@media (pointer:coarse){.fl-play{width:42px;height:42px;right:12px;bottom:12px}}
 .drag-hint{position:absolute;z-index:3;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(14,26,34,.62);color:#fff;font-size:12.5px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .6s;white-space:nowrap}
 .drag-hint.on{opacity:.92}.drag-hint svg{width:15px;height:15px}
 .flight .cap small{display:block;margin-top:4px;font-size:10px;line-height:1.35;color:rgba(255,255,255,.7)}
@@ -113,7 +127,7 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 .pickband .sbox,.pickband .pk-btn{border-color:transparent}
 .pickrow .sstat{margin:6px 0 0;font-size:12px}
 .pk{position:relative;min-width:280px}
-.pk-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 12px 8px 15px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;box-shadow:inset 3px 0 0 var(--accent)}      /* the card of the dashboard's glacier list: white, red bar at the left */
+.pk-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 12px 8px 15px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;box-shadow:inset 3px 0 0 var(--accent)}      /* the card of the explorer's glacier list: white, red bar at the left */
 .pk-btn:hover{background:var(--firn)}
 .pk-btn.ph .pk-t{font-weight:500;color:var(--moraine)}
 .pk-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -246,7 +260,7 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
 .whyhead .eyebrow,.why-made{display:none}      /* the title below says it; the closing sentence of the old text repeated it */
 .aud-title{margin:0 0 6px;font-size:clamp(28px,3.2vw,42px);line-height:1.06;font-weight:800;letter-spacing:-.03em;color:#0A1B33;text-wrap:balance}
 .aud-sub{margin:0 0 20px;font-size:17px;line-height:1.4;color:var(--moraine)}
-.stepsband{display:none}      /* the steps strip repeats what the dashboard says */
+.stepsband{display:none}      /* the steps strip repeats what the explorer says */
 
 dialog.player{padding:0;border:0;background:#000;width:min(1100px,94vw);max-height:90vh}
 dialog.player::backdrop{background:rgba(8,14,18,.82)}
@@ -381,7 +395,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .info .making{margin:8px 0 10px;padding:8px 10px;border-left:3px solid var(--accent,#C8322A);background:rgba(200,50,42,.08);font-size:12.5px}
 .info .notready{margin:10px 0 0;font-size:13px;font-weight:600;color:var(--accent,#C8322A)}
 
-/* ---------- feedback round 2026-11: say where the dashboard is and that it works ---------- */
+/* ---------- feedback round 2026-11: say where the explorer is and that it works ---------- */
 .bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
 .herotext .cta{display:flex;flex-wrap:wrap;align-items:center;gap:20px}
 .stepsband{background:var(--firn);border-bottom:1px solid var(--rule)}
@@ -404,7 +418,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .brand b{font-size:16px}
 }
 
-/* feedback round 2: search and glacier menu on the map, dashboard buttons, buttons in the audience cards */
+/* feedback round 2: search and glacier menu on the map, explorer buttons, buttons in the audience cards */
 .map-ctl{position:absolute;z-index:1000;left:56px;top:12px;width:min(340px,calc(100% - 68px))}
 .map-ctl .pickrow{display:grid;grid-template-columns:1fr;gap:8px;margin:0}
 .map-ctl .search{margin-top:0;width:100%}
@@ -416,8 +430,8 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .aud-card .aud-go{display:flex;width:fit-content;max-width:calc(100% - 28px);margin:6px 0 16px 15px}
 .how-cta{display:flex;justify-content:center;margin-top:32px}
 
-/* ---------- phones, portrait and landscape: the design language of the dashboard (css/style.css "Phone design system") and a short front page ----------
-   The dashboard is the product, so the page is the hero, the audiences it is made for (names only) and the way in. The steps, the long "why" text, the glacier picker with its map, the feature list, the quote and the data-and-method section stay on larger screens; the dashboard explains itself. */
+/* ---------- phones, portrait and landscape: the design language of the explorer (css/style.css "Phone design system") and a short front page ----------
+   The explorer is the product, so the page is the hero, the audiences it is made for (names only) and the way in. The steps, the long "why" text, the glacier picker with its map, the feature list, the quote and the data-and-method section stay on larger screens; the explorer explains itself. */
 @media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.why-name,.aud-card summary span,.why-logo{display:none}
   .wrap{padding:0 var(--sp-4)}
@@ -539,5 +553,5 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
   .feat button[aria-current="true"]{background:var(--sheet)}
 }
 
-/* the red "Open the dashboard" buttons: rectangles with rounded corners */
+/* the red "Open the explorer" buttons: rectangles with rounded corners */
 .btn-red,.btn-red.go,.closing .btn-red.go,.hero .cta .btn-red,.aud-card .aud-go{border-radius:var(--r-sm)}

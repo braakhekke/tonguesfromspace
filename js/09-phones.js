@@ -430,13 +430,13 @@ if (COARSE) {
 
 /* Sharing: the address already contains glacier, mode and years */
 export async function shareView(){
-  const g = currentGlacier(), url = location.href;
+  const g = currentGlacier(), only = $('shareOnly').checked, url = only ? embedLink() : location.href;      // the tick: the link opens the picture or animation only (embed=1)
   const text = state.mode === 'single' ? `${g.name}, ${state.one}` : state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
   if (navigator.share) {
     try { await navigator.share({title: REGION.shareTitle, text, url}); return; }
     catch (e) { if (e.name === 'AbortError') return; }
   }
-  try { await navigator.clipboard.writeText(url); showNotice('Link copied. Paste it anywhere to share this view.'); }
+  try { await navigator.clipboard.writeText(url); showNotice(only ? 'Link copied. It opens the picture only, with a link to the full page.' : 'Link copied. Paste it anywhere to share this view.'); }
   catch { prompt('Copy this link:', url); }
 }
 $('shareBtn').onclick = shareView;

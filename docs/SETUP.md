@@ -44,4 +44,4 @@ The imagery part works anywhere Sentinel-2 does. The Swiss parts are the data so
 5. **Regenerate the data files:** run `make_cloud_masks.py`, pick scenes with `scripts/tools/pick-scenes.html` (optional) and, for 3D, the three terrain scripts.
 6. **Texts and credits:** the About chapter, sources list and credits line must list your data.
 
-Open an issue if you get stuck. I would be glad to hear about a dashboard for another region and to link to it.
+Open an issue if you get stuck. I would be glad to hear about an explorer for another region and to link to it.

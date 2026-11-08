@@ -1,0 +1,91 @@
+/* Game sheets (play.html): built on the shared page look (css/pages.css); colours and typeface come from css/tokens.css */
+.pl-hero{background:var(--sheet);border-bottom:1px solid var(--rule)}
+.pl-hero .in{max-width:1100px;margin:0 auto;padding:22px 20px 18px;display:grid;grid-template-columns:1fr auto;gap:14px 28px;align-items:end}
+.pl-hero h2{margin:0 0 6px;font-size:30px;line-height:1.1;letter-spacing:-.02em;color:var(--ink)}
+.pl-hero h2 em{color:var(--accent);font-style:normal}
+.pl-hero p{margin:0;max-width:640px;font-size:14px}
+.pl-me{display:flex;flex-direction:column;gap:8px;min-width:250px}
+.pl-me input[type=text]{border:1px solid var(--rule);padding:8px 10px;background:var(--sheet);width:100%}
+.pl-rank{display:flex;align-items:center;gap:12px}
+.pl-rank .badge{width:46px;height:46px;border-radius:50%;background:var(--rock);color:#fff;display:grid;place-items:center;font-weight:800;font-size:18px;flex:none}
+.pl-rank b{display:block;font-size:15px}
+.pl-rank small{color:var(--moraine);font-size:11.5px}
+.pl-bar{height:7px;background:var(--rule-2);border-radius:4px;overflow:hidden;margin-top:4px}
+.pl-bar i{display:block;height:100%;width:0;background:var(--crevasse);transition:width .3s}
+.pl-nav{display:flex;flex-wrap:wrap;gap:8px;margin:18px 0 6px}
+.pl-nav a{display:flex;align-items:center;gap:7px;border:1px solid var(--rule);background:var(--sheet);padding:7px 11px 7px 8px;font-size:12.5px;font-weight:600;color:var(--rock)}
+.pl-nav a:hover{border-color:var(--crevasse)}
+.pl-nav a .n{width:22px;height:22px;border-radius:50%;background:var(--firn);display:grid;place-items:center;font-size:11.5px;font-weight:800;color:var(--moraine)}
+.pl-nav a.done .n{background:var(--crevasse);color:#fff}
+.pl-rules{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:10px;margin:14px 0 0}
+.pl-rules .card p{margin:0;font-size:13px}
+.sheet{margin:26px 0 0;scroll-margin-top:12px}
+.sheet-h{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:baseline;border-top:3px solid var(--accent);background:var(--sheet);border-left:1px solid var(--rule);border-right:1px solid var(--rule);padding:14px 16px 4px}
+.sheet-h .no{font-size:10.5px;font-weight:700;letter-spacing:.09em;text-transform:uppercase;color:var(--accent)}
+.sheet-h h3{margin:0;font-size:22px;letter-spacing:-.015em;color:var(--ink)}
+.sheet-h .pts{margin-left:auto;font-weight:800;font-variant-numeric:tabular-nums;color:var(--crevasse)}
+.sheet-b{background:var(--sheet);border:1px solid var(--rule);border-top:0;padding:4px 16px 16px}
+.meta{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 10px}
+.meta span{font-size:11px;font-weight:600;background:var(--firn);padding:3px 8px;color:var(--moraine)}
+.meta span.mech{background:var(--ice);color:var(--ink)}
+.story{margin:0 0 12px;font-size:13.5px;max-width:760px}
+.launch{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 12px;padding:10px;background:var(--firn)}
+.launch label{font-size:12.5px;color:var(--moraine);font-weight:600}
+.launch select{border:1px solid var(--rule);background:var(--sheet);padding:6px 8px}
+.task{display:grid;grid-template-columns:auto 1fr auto;gap:4px 10px;align-items:start;padding:10px 0;border-top:1px solid var(--rule-2)}
+.task:first-of-type{border-top:0}
+.task .tick{width:22px;height:22px;margin-top:1px;accent-color:var(--crevasse)}
+.task .q{font-size:13.5px}
+.task .q b{color:var(--ink)}
+.task .tier{font-size:11px;font-weight:700;color:var(--moraine);white-space:nowrap}
+.task .tier.t3{color:var(--accent)}
+.task .ans{grid-column:2 / 4}
+.task textarea,.task input[type=text],.task input[type=number],.task select{width:100%;border:1px solid var(--rule);background:var(--sheet);padding:7px 9px;font-size:13px;border-radius:0}
+.task textarea{min-height:54px;resize:vertical}
+.task .hint{font-size:11.5px;color:var(--moraine);margin:3px 0 0}
+.task.got{background:linear-gradient(90deg,var(--ice) 0,transparent 5px)}
+.mini{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.mini input[type=number]{width:110px}
+.out{font-weight:700;color:var(--crevasse);font-size:13px}
+.out.bad{color:var(--accent)}
+.rankrow{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.rankrow label{font-size:11.5px;color:var(--moraine);font-weight:600;display:block;margin-bottom:2px}
+.grid-t{width:100%;border-collapse:collapse;font-size:12.5px}
+.grid-t th,.grid-t td{border:1px solid var(--rule);padding:4px 6px;text-align:left;vertical-align:top}
+.grid-t th{background:var(--firn);font-size:11px;letter-spacing:.04em;text-transform:uppercase;color:var(--moraine)}
+.grid-t input{width:100%;border:0;padding:5px;background:transparent;font-size:12.5px}
+.grid-t input:focus{background:var(--firn)}
+.fiction{border-left:3px solid var(--old);background:var(--firn);padding:8px 12px;font-size:12.5px;margin:8px 0}
+.teacher{margin:30px 0 0}
+.teacher h3{margin:0 0 8px}
+.teacher ul{margin:6px 0 0;padding-left:18px}
+.teacher li{margin:4px 0;font-size:13px}
+.pl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
+.pl-sr{position:absolute;left:-9999px}
+@media (max-width:760px){
+  .pl-hero .in{grid-template-columns:1fr}
+  .pl-hero h2{font-size:25px}
+  .task{grid-template-columns:auto 1fr}
+  .task .tier{grid-column:2}
+  .task .ans{grid-column:1 / 3}
+  .rankrow{grid-template-columns:1fr}
+}
+@media print{
+  body{background:#fff;font-size:12px}
+  .top a.back,.pl-nav,.pl-me input,.pl-tools,.launch,.pl-rules,.noprint{display:none!important}
+  .pl-hero{border:0}.pl-hero .in{padding:0 0 8px;grid-template-columns:1fr}
+  .wrap{padding:0 6px}
+  .sheet{break-before:page;margin:0}
+  .sheet:first-of-type{break-before:auto}
+  .sheet-b,.sheet-h{border-color:#bbb}
+  .task{break-inside:avoid}
+  .task textarea{min-height:70px;border:1px solid #999}
+  body.print-one .sheet:not(.printing),body.print-one .teacher{display:none!important}
+  body.print-one .sheet.printing{break-before:auto}
+  .teacher{break-before:page}
+}
+
+/* the shared bar sits over a dark hero on the front page; here it is a plain dark strip above the sheets */
+header.bar{position:static;background:var(--rock)}
+header.bar .wrap{padding-top:0;padding-bottom:0}
+@media print{header.bar{display:none}}

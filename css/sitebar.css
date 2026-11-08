@@ -1,4 +1,4 @@
-/* The site header of the public pages (gallery, glacier-vs-city); the front page has the same look in css/home.css (.bar). Dark bar, logo, three links: Dashboard (green dot), Glacier vs. city, Gallery. */
+/* The site header of the public pages (gallery, glacier-vs-city); the front page has the same look in css/home.css (.bar). Dark bar, logo, three links: Explorer (green dot), Glacier vs. city, Gallery. */
 .sitebar{background:#070b14;color:#fff;font-family:var(--sans,'Schibsted Grotesk',system-ui,sans-serif)}
 .sitebar .in{max-width:1100px;margin:0 auto;padding:0 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;height:60px}
 .sitebar .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}

@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Cuts the small clips of the landing page (home.html, "What you can do") out of the takes of the teaser film (teaser/work/*.mp4, made by
-make_teaser.py: the real page, recorded). Each clip is the whole 16:9 frame of the take (the dashboard as it is, 1280 x 720), H.264, no sound, one or more
+make_teaser.py: the real page, recorded). Each clip is the whole 16:9 frame of the take (the explorer as it is, 1280 x 720), H.264, no sound, one or more
 stretches of a take joined, and a poster frame next to it: images/home/clips/<name>.mp4 and <name>.jpg. Rerun after make_teaser.py when the look of the page
 changes. `numbers` also uses trails.mp4 (made by record_home_extras.py, as is size.mp4). ffmpeg from the PATH or imageio-ffmpeg."""
 import os, shutil, subprocess, sys

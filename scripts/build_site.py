@@ -33,7 +33,7 @@ import hashlib, json, os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
-HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html", "404.html"]      # index.html is the dashboard (written once per region page); home.html, the region picker, is written as the front page /index.html
+HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "play.html", "provenance.html", "404.html"]      # index.html is the explorer (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
@@ -43,7 +43,7 @@ GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trai
               "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js")}      # data files that belong to one group of regions
 GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-"}      # the records in data/regions/ of that group start with this
 HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
-PLAIN_FILES = ["css/pages.css", "css/sitebar.css","css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
+PLAIN_FILES = ["css/pages.css", "css/play.css", "css/sitebar.css","css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
 VQ = lambda img: "?v=2" if img == "images/preview-social.jpg" else ""      # the general preview picture was replaced: a new address makes link previews fetch it again
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
 HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
@@ -110,7 +110,7 @@ REGION_PAGES = [
      "og_title": "Tongues from Space - Swiss glaciers",
      "og_description": "Watch the ten largest Swiss glaciers retreat: Sentinel-2 satellite images since 2016 and 3D terrain.",
      "image": "images/preview-social.jpg", "image_w": "1200", "image_h": "630",
-     "image_alt": "Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"},
+     "image_alt": "Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"},
     {"path": "iceland", "canonical": "iceland/", "group": "iceland",
      "title": "Tongues from Space | Iceland",
      "description": "Explore the glaciers of Iceland, among them the outlets of Vatnajökull, Langjökull, Hofsjökull and Mýrdalsjökull, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
@@ -156,7 +156,7 @@ def region_page(html, page):
          f'<meta property="og:description" content="{src["og_description"]}">')
     swap('<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">',
          f'<meta property="og:image:width" content="{src["image_w"]}">\n<meta property="og:image:height" content="{src["image_h"]}">')
-    swap('content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"', f'content="{src["image_alt"]}"')
+    swap('content="Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"', f'content="{src["image_alt"]}"')
     swap('<meta property="og:url" content="https://tonguesfromspace.org/">', f'<meta property="og:url" content="{url}">')
     swap('<link rel="canonical" href="https://tonguesfromspace.org/">', f'<link rel="canonical" href="{url}">')
     swap('<meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">', f'<meta property="og:image" content="{SITE}/{src["image"]}{VQ(src["image"])}">')
@@ -188,7 +188,7 @@ def rewrite_html(out, assets, relay):
             continue
         if name == "404.html":      # shown at any missing address, also deep ones: its files are named from the root
             html = re.sub(r'((?:src|href)=")((?:css|fonts|js|images)/)', r"\g<1>/\g<2>", html)
-        if name != "index.html":      # the dashboard itself has no address of its own: only its region pages are written
+        if name != "index.html":      # the explorer itself has no address of its own: only its region pages are written
             write(out, name, html.encode("utf-8"))
         if name == "index.html":
             for page in [p for p in REGION_PAGES if GROUP_ON[p["group"]]]:
@@ -288,7 +288,7 @@ def main():
     code = os.path.join(ROOT, "js")
     named = set()
     for f in sorted(os.listdir(code)):
-        if f in ("regions.js", "00-regions.js", "home-link.js", "turn-upright.js", "track.js", "search.js", "dem-export.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
+        if f in ("regions.js", "00-regions.js", "home-link.js", "turn-upright.js", "track.js", "mascot.js", "search.js", "dem-export.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
             text = read(f"js/{f}").decode("utf-8")
             # the data files of the regions: their hashed names go into the files that name them
             for plain in DATA_NAMES:

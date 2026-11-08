@@ -163,7 +163,7 @@ export const Region = z.object({
 });
 export type Region = z.infer<typeof Region>;
 
-/** One scene as the dashboard needs it. Landsat and Sentinel-2 share the shape. */
+/** One scene as the explorer needs it. Landsat and Sentinel-2 share the shape. */
 export const SceneRef = z.object({
   sensor: SensorName,
   date: isoDay,

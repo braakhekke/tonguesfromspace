@@ -1,5 +1,5 @@
 /* =====================================================================
-   Region records: the data of every region, nothing else (js/00-regions.js has the logic that picks one, js/home.html and the dashboard both read this file).
+   Region records: the data of every region, nothing else (js/00-regions.js has the logic that picks one, js/home.html and the explorer both read this file).
    One entry per region (a country, or an area inside a country: Iceland > Vatnajökull). The page reads its data file, its scene season, its texts, its credits and
    its feature switches from the chosen region, so adding a region means adding an entry here (and its data, and its centre in worker/worker.js), not editing code.
    `picker` is what the front page needs: the map position, a line of text. build_site.py replaces the plain data names below (in quotes) with their hashed names.

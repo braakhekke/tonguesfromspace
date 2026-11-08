@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""build_about_static.py - writes data/about-static.html: the About block of the dashboard (js/07-render.js,
+"""build_about_static.py - writes data/about-static.html: the About block of the explorer (js/07-render.js,
 aboutChaptersCh) exactly as the page renders it, so size.html shows the same text. Run it after any change to
 the About chapters:  python3 scripts/build_about_static.py   (needs playwright + chromium, like the tests)."""
 import subprocess, sys, time, pathlib, urllib.request

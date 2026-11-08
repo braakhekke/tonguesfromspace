@@ -19,7 +19,7 @@ Needs only the standard library for 1 to 4; Playwright for 5 (skipped with a war
 import json, os, re, sys, time, urllib.error, urllib.request
 
 SITE = os.environ.get("TFS_LIVE_URL", "https://tonguesfromspace.org/").rstrip("/") + "/"
-DASH = SITE + "switzerland/"      # the Swiss dashboard; the front page SITE is the region picker
+DASH = SITE + "switzerland/"      # the Swiss explorer; the front page SITE is the region picker
 YEAR = int(os.environ.get("TFS_LIVE_YEAR", "2023"))
 results = []
 
@@ -57,7 +57,7 @@ def _():
     return f"{len(body) // 1024} kB"
 
 
-@check("the Swiss dashboard page is reachable")
+@check("the Swiss explorer page is reachable")
 def _():
     status, body = get(DASH)
     text = body.decode("utf-8", "replace")

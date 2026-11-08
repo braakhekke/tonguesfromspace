@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Writes data/home-glaciers.js for the landing page (home.html): one record per glacier of every region (and, with `parent`, one per outlet of an ice cap), `window.HOME_GLACIERS`.
-id = the id the dashboard takes in `#g=` (Swiss: the site id, see SITE_ID in audit_glaciers.py), name, region, area in km2 as the data
+id = the id the explorer takes in `#g=` (Swiss: the site id, see SITE_ID in audit_glaciers.py), name, region, area in km2 as the data
 files state it (Swiss: SGI2023 `area_km2`; the others: `areaKm2` of the outlet), lat/lon = the tongue tip of data/boxes.js.
 Also rewrites the marked block (regions) of gallery.html. Standard library only."""
 import json, os
@@ -23,7 +23,7 @@ for inv, site in SITE_ID.items():
 for region, f in REGION_FILES:
     for o in window('data/%s.js' % f, 'window.REGION_ICE')['outlets']:
         out.append({'id': o['id'], 'name': o['name'], 'region': region, 'area': o['areaKm2'], 'tip': boxes[o['id']]['tip']})
-        for k, sb in enumerate(o.get('subs') or []):      # the outlets of an ice cap are glaciers of their own on the map: id '<cap>~<k>', the dashboard opens the cap with the outlet in focus (#g=<cap>&sub=<k>)
+        for k, sb in enumerate(o.get('subs') or []):      # the outlets of an ice cap are glaciers of their own on the map: id '<cap>~<k>', the explorer opens the cap with the outlet in focus (#g=<cap>&sub=<k>)
             out.append({'id': '%s~%d' % (o['id'], k), 'name': sb['name'], 'region': region, 'area': sb['areaKm2'], 'tip': sb['tip'], 'parent': o['id'], 'sub': k, 'approx': bool(sb.get('approx'))})
 
 # the outlines the front page draws when a glacier is chosen (data/home-outlines.js, loaded on the first choice): the catchment of an ice-cap outlet (RGI 6.0 basin

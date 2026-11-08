@@ -5,7 +5,7 @@ build_outlines.py  -  GLAMOS glacier data for Swiss Glacier Tongues from Space (
 Downloads the Swiss Glacier Inventories 1850, 1973 and 2023 (CC BY 4.0) and the GLAMOS
 length-change series from GLAMOS, ranks glaciers by area in the newest inventory, matches
 each to its 1850 outline and 1973 area, adds its length-change figures, and writes
-glaciers.js to data/ in the repository. The dashboard picks it up automatically.
+glaciers.js to data/ in the repository. The explorer picks it up automatically.
 It also adds the GLAMOS volume-change survey of each glacier, the Swiss-wide glacier volume per
 year, and the radar ice thickness (thinned to one mean per 50 m cell, written to thickness.js).
 

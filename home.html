@@ -11,7 +11,7 @@
 <meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Tongues from Space: the dashboard with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
+<meta property="og:image:alt" content="Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
 <meta property="og:url" content="https://tonguesfromspace.org/">
 <link rel="canonical" href="https://tonguesfromspace.org/">
 <meta name="twitter:card" content="summary_large_image">
@@ -31,9 +31,10 @@
     <b>Tongues from Space</b>
   </a>
   <nav>
-    <a class="js-dash" id="navOpen" href="index.html">Dashboard</a>
+    <a class="js-dash" id="navOpen" href="index.html">Explorer</a>
     <a href="size.html">Size visualizer</a>
     <a href="gallery.html">Gallery</a>
+    <a href="play.html">Game sheets</a>
   </nav>
 </div></header>
 
@@ -44,7 +45,7 @@
       <h1><span>Glaciers don’t talk.</span> <span>Their <em>tongues</em> tell all.</span></h1>
       <p class="lede">Explore how glaciers change: satellite and historic imagery, field measurements and glacier data in one viewer, on the map and in 3D. Then turn what you find into something worth sharing.</p>
       <div class="cta">
-        <a class="btn-red js-dash" id="heroOpen" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+        <a class="btn-red js-dash" id="heroOpen" href="index.html">Open the explorer <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
         <button class="btn-ghost" id="watch" type="button">
           <svg viewBox="0 0 24 24"><path d="M6 4l14 8-14 8z"/></svg>Watch the tour</button>
       </div>
@@ -58,6 +59,7 @@
       </video>
       <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
       <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span></figcaption>
+      <button type="button" class="fl-play" id="flPlay" aria-label="Pause the timelapse" hidden><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.8" height="14" rx="1.4"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.4"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.9.9 0 0 0 1.4.8l10.4-6.8a.9.9 0 0 0 0-1.5L9.4 4.4A.9.9 0 0 0 8 5.2z"/></svg></button>
       <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around, scroll to zoom</div>
     </figure>
     </div>
@@ -95,7 +97,7 @@
         <h3 class="pick-h">Which glacier do you want to see?</h3>
         <p>Search or choose a glacier on the map, or click a region and then a glacier.</p>
       </div>
-      <div class="sh-cta"><a class="btn-red js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+      <div class="sh-cta"><a class="btn-red js-dash" href="index.html">Open the explorer <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
     </div>
 
     <div class="mapbox">
@@ -126,7 +128,7 @@
         <p id="iText"></p>
         <ul class="gl" id="iList"></ul>
         <p class="making" id="iMaking" hidden><b>In the making.</b> You can fly to these glaciers, but their pictures are not open yet.</p>
-        <div class="row"><a class="btn-red" id="iGo" href="#">Open the dashboard</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
+        <div class="row"><a class="btn-red" id="iGo" href="#">Open the explorer</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
         <p class="notready" id="iNot" role="status" hidden>This tongue isn't ready for Space yet.</p>
       </div>
       <div class="credit">Sentinel-2 cloudless 2025 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
@@ -152,7 +154,7 @@
       <div class="vstage" id="vstage" aria-hidden="true"></div>
       <ol class="feat" id="feat"></ol>
     </div>
-    <div class="how-cta"><a class="btn-red js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
+    <div class="how-cta"><a class="btn-red js-dash" href="index.html">Open the explorer <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a></div>
   </div>
 </section>
 <section class="quoteband">
@@ -193,7 +195,7 @@
 <section class="closing">
   <div class="wrap">
     <h2><span>Every glacier ends in a tongue.</span> <span>Now go look at yours.</span></h2>
-    <a class="btn-red go js-dash" href="index.html">Open the dashboard <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
+    <a class="btn-red go js-dash" href="index.html">Open the explorer <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></a>
   </div>
 </section>
 <div class="wrap">
@@ -229,11 +231,11 @@
 <script>
 const $ = id => document.getElementById(id);
 
-/* The picker is the front page (/); the dashboards live at the address of their region (js/00-regions.js, `path`).
-   Opened as /home.html (local use from the source tree) its links go to the local dashboard, index.html. */
+/* The picker is the front page (/); the explorers live at the address of their region (js/00-regions.js, `path`).
+   Opened as /home.html (local use from the source tree) its links go to the local explorer, index.html. */
 const LOCAL = /home\.html$/.test(location.pathname);
 const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r]).filter(c => c.path).flatMap(c => [c.id, ...(c.aliases || [])].map(id => [id, c.path])));      // aliases: the ids of old links (#r=is-rest)
-/* Links of the old site: /#g=aletsch&m=compare opened the Swiss dashboard at the root. Any hash that names a dashboard setting goes to the dashboard of its region. */
+/* Links of the old site: /#g=aletsch&m=compare opened the Swiss explorer at the root. Any hash that names an explorer setting goes to the explorer of its region. */
 (() => {
   const h = location.hash.slice(1), q = new URLSearchParams(h);
   if (!['g', 'm', 'a', 'b', 'from', 'to', 'one', 's', 'ol', 't', 'r', 'fun'].some(k => q.has(k))) return;
@@ -268,23 +270,31 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
   c.toBlob(blob => { const u = 'url(' + URL.createObjectURL(blob) + ')'; document.querySelectorAll('.hero, footer').forEach(el => { el.style.backgroundImage = u; }); });
 })();
 
-/* ---------- hero: a short 3D flight over Aletsch (video, scripts/record_home_hero.py), then the live 3D viewer of the dashboard in the same frame ----------
-   The viewer is index.html in an iframe (same origin) drawn 1280 x 720 and cropped to its stage (the left panel is 290 px wide), with the dashboard's own chrome hidden by a style
-   put into it from here: no change to the dashboard. It loads when the page is idle, plays the timelapse 2016 to 2026 in a loop, and takes over from the looping video as soon as it is
+/* ---------- hero: a short 3D flight over Aletsch (video, scripts/record_home_hero.py), then the live 3D viewer of the explorer in the same frame ----------
+   The viewer is index.html in an iframe (same origin) drawn 1280 x 720 and cropped to its stage (the left panel is 290 px wide), with the explorer's own chrome hidden by a style
+   put into it from here: no change to the explorer. It loads when the page is idle, plays the timelapse 2016 to 2026 in a loop, and takes over from the looping video as soon as it is
    ready, and is the visitor's at once (drag or swipe to turn; the wheel scrolls the page). The slider this replaced is kept in
    design/home-hero-slider/. Not loaded with reduced motion, "save data" or a slow connection: the video's poster stays. */
 (() => {
   const fig = $('flight'), vid = $('flightVideo'), fr = $('flightLive'), what = $('flightWhat');
   const c = navigator.connection || {};
   if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;      // the poster stays
-  if (c.saveData || /(^|-)[23]g$/.test(c.effectiveType || '')) { vid.loop = true; vid.preload = 'auto'; vid.play().catch(() => {}); return; }      // slow connection: the flight video only
+  /* play / pause: one small button over the picture. While the live viewer is on it drives the viewer's own timelapse button (its label says Pause or Play); before that, or on a slow connection, it drives the video.
+     While the viewer is still loading, the picture carries a faint moving line along its bottom edge and a ring round the button. */
+  const fb = $('flPlay'), live = () => fr.classList.contains('on'), viewerBtn = () => { try { return fr.contentDocument.querySelector('.tl-play'); } catch { return null; } };
+  const isPlaying = () => { if (live()) { const b = viewerBtn(); return !b || b.getAttribute('aria-label') === 'Pause'; } return !vid.paused; };
+  const syncBtn = () => { const p = isPlaying(); fb.classList.toggle('paused', !p); fb.setAttribute('aria-label', p ? 'Pause the timelapse' : 'Play the timelapse'); };
+  fb.hidden = false; fb.onclick = () => { if (live()) { const b = viewerBtn(); if (b) b.click(); } else if (vid.paused) vid.play().catch(() => {}); else vid.pause(); setTimeout(syncBtn, 60); };
+  ['play', 'pause'].forEach(ev => vid.addEventListener(ev, syncBtn)); setInterval(syncBtn, 400);
+  fig.classList.add('loading');      // until the viewer has its first picture
+  if (c.saveData || /(^|-)[23]g$/.test(c.effectiveType || '')) { fig.classList.remove('loading'); vid.loop = true; vid.preload = 'auto'; vid.play().catch(() => {}); return; }      // slow connection: the flight video only
   const STAGE_X = 290, STAGE_W = 990, STAGE_H = 720;
   const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body .v3d-top{left:30px!important;top:22px!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
   const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
   new ResizeObserver(fit).observe(fig); fit();
   let shown = false;
   const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel zooms the view
-    if (shown) return; shown = true;
+    if (shown) return; shown = true; fig.classList.remove('loading');
     fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off');
     $('dragHint').classList.add('on');
     setTimeout(() => vid.pause(), 1000);
@@ -301,10 +311,10 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
       const poll = setInterval(() => {
         try {
           const d = fr.contentDocument, cv = d.getElementById('v3dCanvas');
-          if (++tries > 240) return clearInterval(poll);                       // a minute: the video stays
+          if (++tries > 240) { fig.classList.remove('loading'); return clearInterval(poll); }                       // a minute: the video stays
           if (!cv || !cv.offsetWidth || !d.querySelector('.tl-play')) return;
           d.body.classList.add('hint-done');                                       // the hero has its own hint pill; the viewer's "Drag to turn…" line stays off
-          if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's dashboard remembers; the classes only, so nothing is saved */
+          if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's explorer remembers; the classes only, so nothing is saved */
           const st = d.createElement('style'); st.id = 'flightClean'; st.textContent = CLEAN; d.head.appendChild(st); const sp = d.getElementById('speedSel'); sp.value = 2; sp.dispatchEvent(new Event('input', {bubbles: true})); d.getElementById('loopToggle').checked = true; d.querySelector('.tl-play').click(); d.querySelectorAll('.mapbar,#v3dMeasure,#v3dTlLine,#tlDots,.tl-row').forEach(e => e.style.setProperty('display', 'none', 'important')); fr.contentWindow.dispatchEvent(new Event('resize')); }
           clearInterval(poll); show();
         } catch { clearInterval(poll); }
@@ -366,7 +376,7 @@ player.addEventListener('click', e => { if (e.target === player) player.close();
 /* ---------- regions: paths are the real addresses of js/00-regions.js ---------- */
 /* totals of glaciers as the inventories state them (read at the sources 2026-11-03; docs/SOURCES.md): ch SGI2023 1,289 entries (counted in data/glaciers.js inventory.count, from the GLAMOS file inventory_sgi2023_r2026); is, no-svalbard RGI 6.0 table of rgidata.org (06 Iceland 568, 07 Svalbard and Jan Mayen 1615); no-mainland "3143 glaciers" of the 1999-2006 inventory (Andreassen et al. 2022) */
 const TOTALS = { ch: '1,289', is: '568', 'no-svalbard': '1615', 'no-mainland': '3143' };
-const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picker).map(c => {      // the records of js/regions.js: the same list as the dashboard's region menu, plus the planned regions
+const REGIONS = REGIONS_ALL.flatMap(r => (r.children || [r]).filter(c => c.picker).map(c => {      // the records of js/regions.js: the same list as the explorer's region menu, plus the planned regions
   const soon = !c.ready || HIDDEN_REGIONS.includes(c.id);      // not published (yet): shown, not clickable
   const n = (window.HOME_GLACIERS || []).filter((g) => g.region === c.id && !g.parent).length;      // glaciers the data holds for the region
   const making = soon && c.ready && n > 0;      // in the making: the map flies to its glaciers, but they cannot be opened
@@ -395,10 +405,10 @@ const pick = $('pick'), tiles = $('tiles'), list = $('iList');
 const byRegion = id => (window.HOME_GLACIERS || []).filter(g => g.region === id);
 /* a region's glaciers, largest first, each ice cap followed by its own outlets (also largest first) */
 const ordered = id => { const all = byRegion(id), top = all.filter(g => !g.parent).sort((a, b) => b.area - a.area); return top.flatMap(g => [g, ...all.filter(x => x.parent === g.id).sort((a, b) => b.area - a.area)]); };
-const nameOf = g => g.name + (g.approx ? ' ≈' : '');      // ≈: the name of the outlet is inferred, not certain (as in the dashboard)
+const nameOf = g => g.name + (g.approx ? ' ≈' : '');      // ≈: the name of the outlet is inferred, not certain (as in the explorer)
 const fmtArea = a => a.toLocaleString('en-GB', { minimumFractionDigits: 0, maximumFractionDigits: 2 }) + ' km²';      // the value of the data file, no rounding
 const regionHref = r => LOCAL ? 'index.html' + (r.id === 'ch' ? '' : '#r=' + r.id) : r.href;
-{ const ch = REGIONS.find(r => r.id === 'ch'); if (ch) { document.querySelectorAll('.js-dash').forEach(a => { a.href = regionHref(ch); }); document.querySelectorAll('.js-view').forEach(a => { a.href = regionHref(ch) + '#' + a.dataset.view; }); } }      // the dashboard, one click from the top
+{ const ch = REGIONS.find(r => r.id === 'ch'); if (ch) { document.querySelectorAll('.js-dash').forEach(a => { a.href = regionHref(ch); }); document.querySelectorAll('.js-view').forEach(a => { a.href = regionHref(ch) + '#' + a.dataset.view; }); } }      // the explorer, one click from the top
 const glacierHref = (r, g) => { const q = 'g=' + encodeURIComponent(g.parent || g.id) + (g.parent ? '&sub=' + g.sub : ''); return LOCAL ? 'index.html#' + (r.id === 'ch' ? '' : 'r=' + r.id + '&') + q : r.href + '#' + q; };
 
 pick.innerHTML = '<option value="">Choose a glacier…</option>';
@@ -509,9 +519,9 @@ function chooseGlacier(gid, doFly = true) {
   if (doFly) fly(g.tip, g.parent ? 11 : r.id === 'ch' ? 10 : 8);      // an outlet of an ice cap: close in on its tongue; (the map's zoom limit used to cap Switzerland at 10)
   glMarkers[gid].openTooltip();
   showOutline(gid);
-  history.replaceState(null, '', '#glacier=' + gid);      // the picker's own link; #g= is a dashboard link
+  history.replaceState(null, '', '#glacier=' + gid);      // the picker's own link; #g= is an explorer link
 }
-/* the picker: the same look as the glacier list of the dashboard (white card, red bar at the left, area at the right); on phones the list is a sheet from the bottom */
+/* the picker: the same look as the glacier list of the explorer (white card, red bar at the left, area at the right); on phones the list is a sheet from the bottom */
 const pickBtn = $('pickBtn'), pickMenu = $('pickMenu'), pickBack = $('pickBack');
 function setPick(v) { pick.value = v; const it = pickItems.find(i => i.value === v); $('pickT').textContent = it ? it.text : 'Choose a glacier…'; pickBtn.classList.toggle('ph', !it); pickMenu.querySelectorAll('li[role=option]').forEach(li => li.setAttribute('aria-selected', li.dataset.v === v)); }
 pickMenu.innerHTML = pickItems.map(i => i.head ? '<li class="hd" role="presentation">' + i.head + '</li>' : '<li role="option" class="' + (i.indent ? 'sub' : '') + (i.region ? ' rg' : '') + '" data-v="' + i.value + '" aria-selected="false"' + (i.disabled ? ' aria-disabled="true"' : '') + '><span>' + i.text + '</span>' + (i.area ? '<small>' + i.area + '</small>' : '') + '</li>').join('');

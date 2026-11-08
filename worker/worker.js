@@ -3,9 +3,9 @@
  *
  * Lets visitors of the public site see Copernicus Sentinel-2 images without an account: the
  * Worker logs in to the Copernicus Data Space Ecosystem with YOUR credentials (stored as
- * encrypted Worker secrets), forwards the dashboard's requests and caches the answers.
+ * encrypted Worker secrets), forwards the explorer's requests and caches the answers.
  *
- * It serves two regions (see REGIONS-style constants below): Switzerland, and the Vatnajökull ice cap in Iceland. Only the two requests the dashboard makes are accepted, so the
+ * It serves two regions (see REGIONS-style constants below): Switzerland, and the Vatnajökull ice cap in Iceland. Only the two requests the explorer makes are accepted, so the
  * relay cannot be used to spend your quota on anything else:
  *   statistics  scoring of all Sentinel-2 L2A scenes of one season over a glacier, daily, at coarse resolution: Switzerland 1 July to 1 October-ish (see checkStatistics),
  *               Iceland 1 August to 15 October; or of the last 75 days at most (the "Latest" image, Switzerland), optionally over a polygon that lies inside the checked box
@@ -54,8 +54,8 @@ const CENTRES = {is: [[-16.305, 64.095], [-17.2692, 64.04367], [-15.9551, 64.717
 const SEASONS = {is: {from: '-08-01', last: '-10-16'}, no: {from: '-07-20', last: '-10-01'}, sj: {from: '-07-20', last: '-09-16'}};      // the scene search of a year: its first day, and the day after its last (statistics requests end there)
 const NEAR_KM = 25;                                                 // a picture box must have its centre this close to a glacier's centre (the box is up to 25 km a side)
 const MAX_PX = 2500;
-const MAX_BODY = 20000;                                             // characters; the dashboard's own requests are under 5,000
-const FIRST_YEAR = 2016, lastYear = () => new Date().getUTCFullYear();   // Sentinel-2 images in the dashboard start in 2016
+const MAX_BODY = 20000;                                             // characters; the explorer's own requests are under 5,000
+const FIRST_YEAR = 2016, lastYear = () => new Date().getUTCFullYear();   // Sentinel-2 images in the explorer start in 2016
 const yearOk = y => Number.isInteger(+y) && +y >= FIRST_YEAR && +y <= lastYear();
 const MIN_STATS_RES = 40;                                           // metres (CRS units); keeps scene scoring cheap
 const DAY = 86400;
@@ -225,7 +225,7 @@ async function callCdse(env, target, text, accept) {
   throw failure || new Error('No Copernicus account available.');
 }
 
-/* ---------- request checks: only what the dashboard needs ---------- */
+/* ---------- request checks: only what the explorer needs ---------- */
 function insideSwitzerland([w, s, e, n]) {
   return [w, s, e, n].every(Number.isFinite) && w < e && s < n &&
     w >= SWISS.west && e <= SWISS.east && s >= SWISS.south && n <= SWISS.north;
