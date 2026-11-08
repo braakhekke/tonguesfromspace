@@ -185,9 +185,9 @@ export function renderMeta(){
       `${ps[0].time} UTC · sun ${Math.round(ps[0].sun)}°`]; };
   const lt = state.latest, row = (label, sc, on) => { const [id, when] = prod(sc), ps = lastPs || []; 
     if (sc) metaCsv.push([label === 'Latest' ? 'latest' : label, sc.date, sc.orbit || '', sc.latest ? 'latest' : sc.curated ? 'hand-picked' : 'automatic', [...new Set(ps.map(p => p.sat))].join(' '), ps.map(p => p.tile).join(' '), ps.length ? ps[0].time : '', ps.length ? Math.round(ps[0].sun * 10) / 10 : '', ps.map(p => p.id).join(' ')]);
-    return `<tr${on ? ' class="on"' : ''}><th scope="row">${label}</th><td>${sc ? fmtDM(sc.date) : ''}</td><td>${(sc && sc.orbit) || '–'}</td><td>${id}</td><td>${when}</td></tr>`; };
+    return `<tr${on ? ' class="on"' : ''}><th scope="row">${label}</th><td data-l="Date">${sc ? fmtDM(sc.date) : ''}</td><td data-l="Orbit">${(sc && sc.orbit) || '–'}</td><td data-l="Image">${id}</td><td data-l="Time and sun">${when}</td></tr>`; };
   const one = state.mode === 'single', onLatest = !!(lt && lt.year === state.one), onOldest = !!state.oldestAerial;      // One year: only the row of the picture on show
-  const oa = oldestAerial.get(g.id), top = oa && (!one || onOldest) ? `<tr${state.oldestAerial ? ' class="on"' : ''}><th scope="row">${oa.flown}</th><td>${FEATURES.swisstopo ? `Aerial, edition ${oa.ed}` : 'Aerial mosaic'}</td><td>–</td><td>–</td><td>–</td></tr>` : '';      // before 2016: the oldest swisstopo aerial image
+  const oa = oldestAerial.get(g.id), top = oa && (!one || onOldest) ? `<tr${state.oldestAerial ? ' class="on"' : ''}><th scope="row">${oa.flown}</th><td data-l="Date">${FEATURES.swisstopo ? `Aerial, edition ${oa.ed}` : 'Aerial mosaic'}</td><td data-l="Orbit">–</td><td data-l="Image">–</td><td data-l="Time and sun">–</td></tr>` : '';      // before 2016: the oldest swisstopo aerial image
   const rows = ys.filter(y => !one || (!onOldest && !onLatest && y === state.one)).map(y => { const sc = lt && lt.year === y ? lt.saved : state.available[y]; return sc ? row(y, sc, shown.includes(y) && !(lt && lt.year === y)) : ''; }).join('');
   const bottom = one && !onLatest ? '' : lt && state.available[lt.year] ? row('Latest', state.available[lt.year], shown.includes(lt.year)) : '<tr><th scope="row">Latest</th><td colspan="4">Press Latest to look for it</td></tr>';      // after the last year: the latest scene, once it has been picked
   const bands = (STYLE_BANDS[state.style] || []).join(' · '), old = oldestAerial.get(g.id);
@@ -1337,7 +1337,10 @@ export async function renderGlacierSpeed(lo, hi){
   const g = currentGlacier(), slot = document.getElementById('gSpeed');
   if (!slot) return;
   slot.innerHTML = '';
-  const id = FEATURES.speed && speedId(g), f = id && await loadSpeedFile(id);
+  if (!FEATURES.speed || !speedId(g)) return;
+  if ('IntersectionObserver' in window) await new Promise(res => { const o = new IntersectionObserver(es => { if (es[0].isIntersecting) { o.disconnect(); res(); } }, { rootMargin: '300px' }); o.observe(slot); });      // the speed file is fetched when the card is about to be seen
+  if (currentGlacier() !== g || !slot.isConnected) return;
+  const id = speedId(g), f = await loadSpeedFile(id);
   if (!f || currentGlacier() !== g) return;
   const mask = speedMask(f, g), peaks = await Promise.all(f.years.map(async y => { const k = await speedYearOk(f, y) ? speedPeak(f, await speedArray(f, y), mask) : null; return k ? k.v : null; }));
   if (currentGlacier() !== g || !document.getElementById('gSpeed')) return;

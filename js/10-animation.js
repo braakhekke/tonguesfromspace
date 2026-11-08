@@ -1,4 +1,5 @@
 import { wire } from './wire.js';
+import { makeAudio, tickTimes } from './export-sound.js';
 import { IC_INFO } from './07b-icecap-texts.js';
 import { IS_CHANGE } from './07a-region-icecaps.js';
 import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS, $, COARSE, PHONE } from './01-data.js';
@@ -1075,7 +1076,8 @@ export async function makeVideo(){
     if (!desc) throw new Error('the encoder did not report its H.264 settings');
 
     // 4. MP4 file, then share (phones) or download
-    const mp4 = muxMp4({ width: W, height: H, fps, avcC: desc, samples: chunks });
+    const audio = vstate.type === 'swipe' ? null : await makeAudio(tickTimes(seq.length, per), n / fps);      // the year-change ticks of a timelapse; nothing for a slider
+    const mp4 = muxMp4({ width: W, height: H, fps, avcC: desc, samples: chunks, audio });
     const name = `tonguesfromspace-${shortSlug(g.name)}-${vstate.type === 'swipe' ? 'slider' : 'timelapse'}-${ys[0]}-${ys[ys.length - 1]}-${FMT_SUFFIX[vstate.fmt]}.mp4`;
     const file = new File([mp4], name, { type: 'video/mp4' });
     progress(1, 'Video ready');
@@ -1169,7 +1171,7 @@ $('vsShareForm').onsubmit = async ev => {
 };
 
 /* ---- minimal MP4 packer: one H.264 video track, all metadata before the video data ---- */
-export function muxMp4({ width, height, fps, avcC, samples }){
+export function muxMp4({ width, height, fps, avcC, samples, audio = null }){      // audio (optional): { sampleRate, channels, asc (AudioSpecificConfig), samples: [{ data }] } of AAC-LC, 1024 samples per sample
   const TS = fps * 1000, DUR = 1000;                       // timescale and ticks per frame
   const u8 = (...a) => Uint8Array.from(a), u16 = v => u8(v >> 8 & 255, v & 255);
   const u32 = v => u8(v >>> 24 & 255, v >>> 16 & 255, v >>> 8 & 255, v & 255);
@@ -1192,8 +1194,26 @@ export function muxMp4({ width, height, fps, avcC, samples }){
     full('stsc', 0, 0, u32(1), u32(1), u32(n), u32(1)),
     full('stsz', 0, 0, u32(0), u32(n), ...samples.map(s => u32(s.data.length))),
     full('stco', 0, 0, u32(1), u32(chunkOffset)));
-  const moov = off => box('moov',
-    full('mvhd', 0, 0, u32(0), u32(0), u32(1000), u32(durMs), u32(0x00010000), u16(0x0100), zeros(10), matrix, zeros(24), u32(2)),
+  const audioTrak = aOff => {            // one AAC track (mp4a + esds), all samples in one chunk
+    const A = audio, aN = A.samples.length, aDur = aN * 1024, esds = full('esds', 0, 0,
+      u8(0x03, 23 + A.asc.length, 0, 0, 0), u8(0x04, 15 + A.asc.length, 0x40, 0x15, 0, 0, 0), u32(0), u32(0), u8(0x05, A.asc.length), A.asc, u8(0x06, 1, 2));
+    return box('trak',
+      full('tkhd', 0, 3, u32(0), u32(0), u32(2), u32(0), u32(Math.round(aDur * 1000 / A.sampleRate)), zeros(8), u16(0), u16(0), u16(0x0100), u16(0), matrix, u32(0), u32(0)),
+      box('mdia',
+        full('mdhd', 0, 0, u32(0), u32(0), u32(A.sampleRate), u32(aDur), u16(0x55c4), u16(0)),
+        full('hdlr', 0, 0, u32(0), str('soun'), zeros(12), str('SoundHandler'), u8(0)),
+        box('minf',
+          full('smhd', 0, 0, zeros(4)),
+          box('dinf', full('dref', 0, 0, u32(1), full('url ', 0, 1))),
+          box('stbl',
+            full('stsd', 0, 0, u32(1), box('mp4a', zeros(6), u16(1), zeros(8), u16(A.channels), u16(16), u16(0), u16(0), u32(A.sampleRate * 65536), esds)),
+            full('stts', 0, 0, u32(1), u32(aN), u32(1024)),
+            full('stsc', 0, 0, u32(1), u32(1), u32(aN), u32(1)),
+            full('stsz', 0, 0, u32(0), u32(aN), ...A.samples.map(x => u32(x.data.length))),
+            full('stco', 0, 0, u32(1), u32(aOff))))));
+  };
+  const moov = (off, aOff) => box('moov',
+    full('mvhd', 0, 0, u32(0), u32(0), u32(1000), u32(durMs), u32(0x00010000), u16(0x0100), zeros(10), matrix, zeros(24), u32(audio ? 3 : 2)),
     box('trak',
       full('tkhd', 0, 3, u32(0), u32(0), u32(1), u32(0), u32(durMs), zeros(8), u16(0), u16(0), u16(0), u16(0), matrix, u32(width << 16), u32(height << 16)),
       ...(shift ? [box('edts', full('elst', 0, 0, u32(1), u32(durMs), u32(shift), u32(0x00010000)))] : []),
@@ -1203,12 +1223,13 @@ export function muxMp4({ width, height, fps, avcC, samples }){
         box('minf',
           full('vmhd', 0, 1, zeros(8)),
           box('dinf', full('dref', 0, 0, u32(1), full('url ', 0, 1))),
-          stbl(off)))));
+          stbl(off)))),
+    ...(audio ? [audioTrak(aOff)] : []));
   const ftyp = box('ftyp', str('isom'), u32(512), str('isom'), str('iso2'), str('avc1'), str('mp41'));
-  const moovLen = moov(0).length;                          // offsets do not change the size
+  const moovLen = moov(0, 0).length;                       // offsets do not change the size
   const dataStart = ftyp.length + moovLen + 8;
-  const mdatBody = cat(samples.map(s => s.data));
-  return cat([ftyp, moov(dataStart), u32(mdatBody.length + 8), str('mdat'), mdatBody]);
+  const videoBody = cat(samples.map(s => s.data)), mdatBody = audio ? cat([videoBody, ...audio.samples.map(x => x.data)]) : videoBody;
+  return cat([ftyp, moov(dataStart, dataStart + videoBody.length), u32(mdatBody.length + 8), str('mdat'), mdatBody]);
 }
 
 

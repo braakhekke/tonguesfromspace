@@ -33,7 +33,7 @@ import hashlib, json, os, re, shutil, subprocess, sys
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
 
-HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "play.html", "provenance.html", "404.html"]      # index.html is the explorer (written once per region page); home.html, the region picker, is written as the front page /index.html
+HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html", "404.html"]      # index.html is the explorer (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
@@ -43,7 +43,7 @@ GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trai
               "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js")}      # data files that belong to one group of regions
 GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-"}      # the records in data/regions/ of that group start with this
 HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
-PLAIN_FILES = ["css/pages.css", "css/play.css", "css/sitebar.css","css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
+PLAIN_FILES = ["css/pages.css", "css/sitebar.css","css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
 VQ = lambda img: "?v=2" if img == "images/preview-social.jpg" else ""      # the general preview picture was replaced: a new address makes link previews fetch it again
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
 HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
@@ -319,6 +319,15 @@ def main():
     rel = hashed_name("js/app.js", bundle.stdout)
     write(out, rel, bundle.stdout)
     assets["js/main.js"] = rel
+    hero = subprocess.run([esbuild, "js/home-hero.js", "--bundle", "--format=esm", "--target=es2022", "--minify-whitespace", "--minify-syntax", "--legal-comments=none"], cwd=ROOT, capture_output=True)      # the landing page's own 3D hero: the renderer alone, not the explorer
+    if hero.returncode:
+        sys.exit("esbuild failed (home-hero):\n" + hero.stderr.decode())
+    rel = hashed_name("js/home-hero.js", hero.stdout)
+    write(out, rel, hero.stdout)
+    assets["js/home-hero.js"] = rel
+    hh = os.path.join(ROOT, "data", "home-hero")      # what the hero draws (scripts/build_home_hero.py): plain names, the module asks for them by name
+    if os.path.isdir(hh):
+        shutil.copytree(hh, os.path.join(out, "data", "home-hero"))
     dem = os.path.join(ROOT, "data", "demchange")
     if os.path.isdir(dem):
         for f in sorted(os.listdir(dem)):

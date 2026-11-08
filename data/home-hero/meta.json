@@ -1,0 +1,89 @@
+{
+ "nA": 450,
+ "nB": 302,
+ "S": {
+  "half": 4248,
+  "up": 10127,
+  "back": 2468,
+  "dist": 1,
+  "cam": {
+   "az": -0.5403,
+   "el": 0.2833,
+   "dist": 8108
+  }
+ },
+ "cam": {
+  "az": -0.5403,
+  "el": 0.2833,
+  "dist": 8108
+ },
+ "credit": "Contains modified Copernicus Sentinel data 2016, processed via the Copernicus Data Space Ecosystem \u00b7 Terrain: swissALTI3D \u00a9 swisstopo via Mapterhorn; ice surface of each year: swissSURFACE3D, swissALTI3D and Spezialbefliegungen DSMs \u00a9 swisstopo (Federal Office of Topography swisstopo), mass balance GLAMOS (ice surface of each year: swisstopo surveys of 2017, 2021 and 2023 and the GLAMOS mass balance between and after them)",
+ "years": {
+  "2016": {
+   "date": "2016-08-23",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2017": {
+   "date": "2017-10-17",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2018": {
+   "date": "2018-09-27",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2019": {
+   "date": "2019-09-12",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2020": {
+   "date": "2020-08-27",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2021": {
+   "date": "2021-10-16",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2022": {
+   "date": "2022-10-06",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2023": {
+   "date": "2023-09-26",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2024": {
+   "date": "2024-08-31",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2025": {
+   "date": "2025-09-20",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  },
+  "2026": {
+   "date": "2026-09-12",
+   "sensor": "Sentinel-2",
+   "w": 1024,
+   "h": 2048
+  }
+ }
+}

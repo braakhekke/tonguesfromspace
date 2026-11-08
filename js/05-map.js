@@ -1309,9 +1309,13 @@ const ArcCanvas = L.Layer.extend({
     ctx.globalAlpha = 1;
   },
 });
+let arcIdle = false;
 export function drawArcs(animate){
   const g = typeof glacierPicked !== 'undefined' && !glacierPicked ? null : currentGlacier(), A = arcsFor(g), row = document.getElementById('arcsRow');
-  if (!window.TONGUE_ARCS && !arcFile) loadArcs().then(() => drawArcs(false));      // the file is small; the row appears once it is there
+  if (!window.TONGUE_ARCS && !arcFile) {      // the row appears once the file is there: at once when the layer is on, else when the browser is idle (not in the first view)
+    const go = () => loadArcs().then(() => drawArcs(false));
+    if (document.getElementById('arcsToggle').checked) go(); else if (!arcIdle) { arcIdle = true; (window.requestIdleCallback || (f => setTimeout(f, 4000)))(go, { timeout: 8000 }); }
+  }
   if (row) row.hidden = !A;
   const on = !!(A && document.getElementById('arcsToggle').checked && !document.body.classList.contains('pane-open') && viewMode !== '3d');
   if (!on) { if (arcLayer) { map.removeLayer(arcLayer); arcLayer = null; arcAnim = null; arcShown = ''; updateCredits(); } return; }

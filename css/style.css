@@ -229,6 +229,15 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
 .meta-table tbody th{font-weight:600}
 .meta-table .copy{cursor:copy;border-bottom:1px dotted currentColor}
 .meta-table tr.on{background:var(--firn);color:#0A1B33}
+@media (max-width:720px){      /* phone: two columns fit, five do not: each scene becomes a small block, the year on top, the other figures under it with their names */
+  .meta-table,.meta-table tbody,.meta-table tr,.meta-table th,.meta-table td{display:block}
+  .meta-table thead{display:none}
+  .meta-table tr{padding:6px 4px;border-bottom:1px solid var(--rule)}
+  .meta-table tbody th{padding:0 0 2px;font-size:13px}
+  .meta-table td{display:grid;grid-template-columns:84px minmax(0,1fr);gap:8px;padding:1px 0;white-space:normal}
+  .meta-table td[data-l]::before{content:attr(data-l);color:var(--moraine);opacity:.75;font-size:10px;letter-spacing:.08em;text-transform:uppercase;align-self:center}
+  .meta-table td[colspan]{display:block}
+}
 .meta-note{margin:6px 0 0;font-size:11px;line-height:1.4;color:var(--moraine)}
 .tune-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:center;column-gap:12px}
 .tune .slider-row{margin:0;font-size:12.5px;gap:6px;color:var(--moraine)}
@@ -2381,7 +2390,7 @@ body.x-layers .layerbox{max-width:none}
 
 /* phones in portrait: the layer panel has two columns, "For this glacier" on the left and "Background" on the right; the docks (map and 3D) sit just above the credit line (22 px) */
 @media (max-width:720px) and (orientation:portrait){
-  .layerbox.in-flow .lb-group:not(.lb-titlerow){break-before:column;-webkit-column-break-before:always;margin-top:0}
+  .layerbox.in-flow .lb-group:not(.lb-titlerow):not(:first-child){break-before:column;-webkit-column-break-before:always;margin-top:0}      /* the first group stays in column 1 (without a title row it used to start column 2 and push Background to a third column, off the phone) */
   .mapbar{bottom:26px}
   .v3d-measure,.v3d.photo-on .v3d-measure{bottom:26px}
 }

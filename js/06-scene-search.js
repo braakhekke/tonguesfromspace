@@ -14,7 +14,6 @@ Object.defineProperty(wire, 'updateTags', { get: () => updateTags, configurable:
 export let checkGen = 0;              // a newer search (e.g. another glacier) makes older results stale
 export async function checkYears(){
   const gen = ++checkGen, g = currentGlacier();
-  if (g && FEATURES.view3d) setTimeout(() => wire.loadBundle(wire.bundleId(g)), 1500);      // the terrain of this glacier comes along while the scenes are searched
   state.checked = false; state.available = {}; state.latest = null; restoreOldest();
   if (viewMode === '3d') wire.open3D();      // the 3D view of the old glacier goes and waits for the search
   [layerA, layerB].forEach(l => l && map.removeLayer(l)); setLayerA(setLayerB(null));

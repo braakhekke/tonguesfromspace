@@ -29,10 +29,14 @@ a{color:inherit}
 .flight video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;display:block}
 .flight video{transition:opacity .9s}
 .flight video.off{opacity:0}
-.flight .live{position:absolute;left:0;top:0;width:1280px;height:720px;border:0;transform-origin:0 0;opacity:0;pointer-events:none;transition:opacity .9s;background:#05080f}
-.flight .live.on{opacity:1}
+.flight .live{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:0;touch-action:pan-y;transition:opacity .9s;background:#05080f;cursor:grab}
+.flight .live:active{cursor:grabbing}
+.flight .fl-year{position:absolute;z-index:2;left:20px;top:16px;color:#fff;pointer-events:none;text-shadow:0 1px 12px rgba(0,0,0,.55)}
+.flight .fl-year b{display:block;font-size:clamp(28px,4vw,46px);line-height:1;font-weight:800;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.flight .fl-year small{display:block;margin-top:4px;font-size:12px;opacity:.85}
 .flight .cap{position:absolute;z-index:2;left:0;right:0;bottom:0;padding:44px 16px 12px;background:linear-gradient(to top,rgba(0,0,0,.66),transparent);font-size:12.5px;color:rgba(255,255,255,.92);pointer-events:none}
 .flight .cap b{font-weight:700;color:#fff}
+.flight .cap{padding-right:64px}
 /* play / pause over the timelapse: a small glass disc bottom right; while the viewer loads, a ring turns round it and a faint line runs along the bottom edge */
 .fl-play{position:absolute;z-index:4;right:14px;bottom:14px;width:36px;height:36px;padding:0;border:0;border-radius:50%;background:rgba(14,26,34,.55);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.28),0 4px 14px rgba(0,0,0,.35);opacity:.8;transition:opacity .2s,transform .2s,background .2s}
 .fl-play[hidden]{display:none}

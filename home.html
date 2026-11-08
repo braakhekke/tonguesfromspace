@@ -34,7 +34,6 @@
     <a class="js-dash" id="navOpen" href="index.html">Explorer</a>
     <a href="size.html">Size visualizer</a>
     <a href="gallery.html">Gallery</a>
-    <a href="play.html">Game sheets</a>
   </nav>
 </div></header>
 
@@ -57,10 +56,11 @@
         <source src="images/home/hero-flight.webm" type="video/webm">
         <source src="images/home/hero-flight.mp4" type="video/mp4">
       </video>
-      <iframe class="live" id="flightLive" title="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026" tabindex="-1" aria-hidden="true"></iframe>
-      <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D flight, 2016 to 2026</span></figcaption>
+      <canvas class="live" id="flightCanvas" role="img" aria-label="Interactive 3D view of the Grosser Aletsch glacier, 2016 to 2026"></canvas>
+      <div class="fl-year" aria-hidden="true"><b id="flYear"></b><small id="flDate"></small></div>
+      <figcaption class="cap"><b>Grosser Aletschgletscher, Switzerland</b> <span id="flightWhat">· 3D, 2016 to 2026</span><small id="flCredit"></small></figcaption>
       <button type="button" class="fl-play" id="flPlay" aria-label="Pause the timelapse" hidden><svg class="i-pause" viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="5" width="3.8" height="14" rx="1.4"/><rect x="13.7" y="5" width="3.8" height="14" rx="1.4"/></svg><svg class="i-play" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.2v13.6a.9.9 0 0 0 1.4.8l10.4-6.8a.9.9 0 0 0 0-1.5L9.4 4.4A.9.9 0 0 0 8 5.2z"/></svg></button>
-      <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around, scroll to zoom</div>
+      <div class="drag-hint" id="dragHint" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18M12 3l-3 3M12 3l3 3M12 21l-3-3M12 21l3-3M3 12l3-3M3 12l3 3M21 12l-3-3M21 12l-3 3" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>Drag to look around</div>
     </figure>
     </div>
   </div>
@@ -270,60 +270,6 @@ const REGION_PATH = Object.fromEntries(REGIONS_ALL.flatMap(r => r.children || [r
   c.toBlob(blob => { const u = 'url(' + URL.createObjectURL(blob) + ')'; document.querySelectorAll('.hero, footer').forEach(el => { el.style.backgroundImage = u; }); });
 })();
 
-/* ---------- hero: a short 3D flight over Aletsch (video, scripts/record_home_hero.py), then the live 3D viewer of the explorer in the same frame ----------
-   The viewer is index.html in an iframe (same origin) drawn 1280 x 720 and cropped to its stage (the left panel is 290 px wide), with the explorer's own chrome hidden by a style
-   put into it from here: no change to the explorer. It loads when the page is idle, plays the timelapse 2016 to 2026 in a loop, and takes over from the looping video as soon as it is
-   ready, and is the visitor's at once (drag or swipe to turn; the wheel scrolls the page). The slider this replaced is kept in
-   design/home-hero-slider/. Not loaded with reduced motion, "save data" or a slow connection: the video's poster stays. */
-(() => {
-  const fig = $('flight'), vid = $('flightVideo'), fr = $('flightLive'), what = $('flightWhat');
-  const c = navigator.connection || {};
-  if (matchMedia('(prefers-reduced-motion:reduce)').matches) return;      // the poster stays
-  /* play / pause: one small button over the picture. While the live viewer is on it drives the viewer's own timelapse button (its label says Pause or Play); before that, or on a slow connection, it drives the video.
-     While the viewer is still loading, the picture carries a faint moving line along its bottom edge and a ring round the button. */
-  const fb = $('flPlay'), live = () => fr.classList.contains('on'), viewerBtn = () => { try { return fr.contentDocument.querySelector('.tl-play'); } catch { return null; } };
-  const isPlaying = () => { if (live()) { const b = viewerBtn(); return !b || b.getAttribute('aria-label') === 'Pause'; } return !vid.paused; };
-  const syncBtn = () => { const p = isPlaying(); fb.classList.toggle('paused', !p); fb.setAttribute('aria-label', p ? 'Pause the timelapse' : 'Play the timelapse'); };
-  fb.hidden = false; fb.onclick = () => { if (live()) { const b = viewerBtn(); if (b) b.click(); } else if (vid.paused) vid.play().catch(() => {}); else vid.pause(); setTimeout(syncBtn, 60); };
-  ['play', 'pause'].forEach(ev => vid.addEventListener(ev, syncBtn)); setInterval(syncBtn, 400);
-  fig.classList.add('loading');      // until the viewer has its first picture
-  if (c.saveData || /(^|-)[23]g$/.test(c.effectiveType || '')) { fig.classList.remove('loading'); vid.loop = true; vid.preload = 'auto'; vid.play().catch(() => {}); return; }      // slow connection: the flight video only
-  const STAGE_X = 290, STAGE_W = 990, STAGE_H = 720;
-  const CLEAN = 'html body #stage :is(#v3dLbToggle,#v3dLayers,#v3dSci,#v3dSciNo,.mapbar,#v3dMeasure,#v3dTlLine,#toggleRight,#toggleLeft,#credits,#gestureHint,.notice,.v3d-year small){display:none!important} html body .v3d-top{left:30px!important;top:22px!important} html body #toggleRight,html body #toggleLeft,html body #credits,html body .mapbar,html body #v3dLayers{display:none!important}';
-  const fit = () => { const k = fig.clientWidth / STAGE_W; fr.style.transform = `scale(${k}) translateX(${-STAGE_X}px)`; };
-  new ResizeObserver(fit).observe(fig); fit();
-  let shown = false;
-  const show = () => {      // the viewer is ready: it replaces the looping video and is the visitor's at once (drag or swipe to turn); the wheel zooms the view
-    if (shown) return; shown = true; fig.classList.remove('loading');
-    fr.style.pointerEvents = 'auto'; fr.removeAttribute('aria-hidden'); fr.classList.add('on'); vid.classList.add('off');
-    $('dragHint').classList.add('on');
-    setTimeout(() => vid.pause(), 1000);
-    const touched = () => {      // the first touch ends the hint only; the timelapse keeps looping while the visitor turns the view
-      $('dragHint').classList.remove('on');
-    };
-    try { fr.contentDocument.addEventListener('pointerdown', touched, {once: true, capture: true}); } catch {}
-    fig.addEventListener('pointerdown', touched, {once: true});
-  };
-  const start = () => {
-    fr.src = 'index.html#g=aletsch&m=timelapse&from=2016&to=2026&v=3d';
-    fr.addEventListener('load', () => {
-      let tries = 0;
-      const poll = setInterval(() => {
-        try {
-          const d = fr.contentDocument, cv = d.getElementById('v3dCanvas');
-          if (++tries > 240) { fig.classList.remove('loading'); return clearInterval(poll); }                       // a minute: the video stays
-          if (!cv || !cv.offsetWidth || !d.querySelector('.tl-play')) return;
-          d.body.classList.add('hint-done');                                       // the hero has its own hint pill; the viewer's "Drag to turn…" line stays off
-          if (!d.getElementById('flightClean')) { const app = d.getElementById('app'); app.classList.remove('no-left'); app.classList.add('no-right');      /* the layout the crop expects (settings panel open, story closed), whatever the visitor's explorer remembers; the classes only, so nothing is saved */
-          const st = d.createElement('style'); st.id = 'flightClean'; st.textContent = CLEAN; d.head.appendChild(st); const sp = d.getElementById('speedSel'); sp.value = 2; sp.dispatchEvent(new Event('input', {bubbles: true})); d.getElementById('loopToggle').checked = true; d.querySelector('.tl-play').click(); d.querySelectorAll('.mapbar,#v3dMeasure,#v3dTlLine,#tlDots,.tl-row').forEach(e => e.style.setProperty('display', 'none', 'important')); fr.contentWindow.dispatchEvent(new Event('resize')); }
-          clearInterval(poll); show();
-        } catch { clearInterval(poll); }
-      }, 250);
-    }, {once: true});
-  };
-  setTimeout(start, 300);      // the viewer loads at once, behind the video, so that it is ready when the flight ends
-})();
-
 /* ---------- the audience cards: opening one closes the others (the name attribute does it where supported) ---------- */
 document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle', () => { if (d.open) document.querySelectorAll('.aud-card[open]').forEach(o => { if (o !== d) o.open = false; }); }));
 
@@ -343,7 +289,7 @@ document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle',
   const vids = [], btns = [];
   let cur = -1, locked = false, started = false;
   POINTS.forEach(([k, title, text], i) => {
-    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'metadata'; v.poster = 'images/home/clips/' + k + '.jpg'; v.src = 'images/home/clips/' + k + '.mp4';
+    const v = document.createElement('video'); v.muted = true; v.playsInline = true; v.preload = 'none'; v.dataset.k = k;      // poster and file are set by wake() when the section is near the screen
     v.addEventListener('ended', () => { if (!locked) select((i + 1) % POINTS.length); });
     v.addEventListener('timeupdate', () => { if (v.duration) btns[i].style.setProperty('--p', (100 * v.currentTime / v.duration) + '%'); });
     stage.appendChild(v); vids.push(v);
@@ -358,8 +304,13 @@ document.querySelectorAll('.aud-card').forEach(d => d.addEventListener('toggle',
     cur = i;
     vids.forEach((v, j) => { v.classList.toggle('on', j === i); if (j !== i) { v.pause(); btns[j].style.setProperty('--p', '0%'); } });
     btns.forEach((b, j) => j === i ? b.setAttribute('aria-current', 'true') : b.removeAttribute('aria-current'));
+    wake(); if (!vids[i].getAttribute('src')) vids[i].src = 'images/home/clips/' + vids[i].dataset.k + '.mp4';
     vids[i].loop = locked; vids[i].currentTime = 0; vids[i].play().catch(() => {});
   }
+  // the posters (and the clips) are fetched when the section is about to come into view; a clip's file when it is chosen
+  let awake = false;
+  const wake = () => { if (awake) return; awake = true; vids.forEach(v => { v.poster = 'images/home/clips/' + v.dataset.k + '.jpg'; }); vids[0].src = 'images/home/clips/' + vids[0].dataset.k + '.mp4'; vids[0].preload = 'metadata'; };
+  if ('IntersectionObserver' in window) new IntersectionObserver((es, o) => { if (es[0].isIntersecting) { wake(); o.disconnect(); } }, { rootMargin: '600px 0px' }).observe(stage); else wake();
   // show the first poster at once; start playing when the section scrolls into view
   vids[0].classList.add('on'); btns[0].setAttribute('aria-current', 'true'); cur = 0;
   if (!still && 'IntersectionObserver' in window) new IntersectionObserver((es, o) => { if (es[0].isIntersecting && !started) { started = true; if (!locked) select(0, true); o.disconnect(); } }, { threshold: .4 }).observe(stage);
@@ -640,5 +591,6 @@ else if (REGIONS.some(r => r.id === start && (!r.soon || r.making))) chooseRegio
   aud.addEventListener('toggle', size, true); addEventListener('resize', size); }
 </script>
 <script defer src="js/turn-upright.js"></script>
+<script type="module" src="js/home-hero.js"></script>
 </body>
 </html>

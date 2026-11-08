@@ -136,7 +136,7 @@ html.embed .embed-city #cityMsg{margin:0 0 6px;padding:6px 10px;background:var(-
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){.mapbar .mtool{display:inline-flex}}
 /* phones, portrait: the map stays pinned at the top; the choices scroll underneath it */
 @media (max-width:720px) and (orientation:portrait){
-  .stage{position:sticky;top:0;z-index:7;height:42vh;height:42dvh;min-height:240px;border-radius:0 0 var(--r-lg,16px) var(--r-lg,16px);box-shadow:0 6px 16px rgba(10,27,51,.22)}
+  .stage{position:sticky;top:0;z-index:7;height:42vh;height:42svh;min-height:240px;border-radius:0 0 var(--r-lg,16px) var(--r-lg,16px);box-shadow:0 6px 16px rgba(10,27,51,.22)}
   .controls{position:relative;z-index:1;padding-top:18px}
   .story{position:relative;z-index:1}
 }
@@ -242,7 +242,7 @@ body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:1
   .mhead .back-glacier,.controls .back-glacier,#introText{display:none!important}      /* phone: no back link, no intro line */
   .controls .brand-top{display:none}      /* the title is in the header above the picture */
   .controls .brand{padding-top:0}
-  .stage:not(.is-full){top:8px;height:52vh;height:52dvh;min-height:300px}
+  .stage:not(.is-full){top:0;height:52vh;height:52svh;min-height:300px}      /* svh: the picture keeps its size while the browser bar slides in and out; top 0: no strip above it for the text to show in */
   .controls{padding-top:0}
   /* Save and share open: the picture is pinned above the pane (css/style.css), everything else in the page stays out of the way */
   body.pane-open .mhead,body.pane-open .controls,body.pane-open .story,body.pane-open .fyi-slot{visibility:hidden}
@@ -1683,9 +1683,23 @@ function s3Resize() { if (!renderer) return; const b = $('view3d').getBoundingCl
 
 /* pick up and throw, or click the ground to drop the blocks there */
 function wirePointer(canvas) {
-  const setRay = e => { const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top) / r.height * 2 + 1); ray.setFromCamera(ndc, cam); };
+  const setRay = (e, dy = 0) => { const r = canvas.getBoundingClientRect(); ndc.set((e.clientX - r.left) / r.width * 2 - 1, -(e.clientY - r.top + dy) / r.height * 2 + 1); ray.setFromCamera(ndc, cam); };
+  const groundHit = () => {      // where the current ray meets the terrain: {p, t} or null (steps along the ray, then bisection)
+    const o = ray.ray.origin, d = ray.ray.direction; let tprev = 0;
+    for (let t = 0; t < 250000; t += Math.max(15, t * .004)) { const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t; if (!inMap(x, z, 500)) { tprev = t; continue; } if (y < heightAt(x, z)) { let a = tprev, b = t; for (let k = 0; k < 24; k++) { const mid = (a + b) / 2; if (o.y + d.y * mid < heightAt(o.x + d.x * mid, o.z + d.z * mid)) b = mid; else a = mid; } return {p: new THREE.Vector3(o.x + d.x * b, o.y + d.y * b, o.z + d.z * b), t: b}; } tprev = t; }
+    return null;
+  };
+  const aimTarget = e => {      // the held block follows what lies under the pointer: the terrain (a summit), or a face of another block; in the sky it keeps the old screen plane
+    setRay(e, e.pointerType === 'touch' ? -40 : 0);      // touch: aimed 40 px above the fingertip, so the finger does not hide the block
+    const half = held.en.body.e * .5; let cube = null;
+    for (const en of S3.ents) { if (en === held.en) continue; const h = ray.intersectObject(en.cube.children[0], false); if (h.length && (!cube || h[0].distance < cube.distance)) cube = h[0]; }
+    const g = groundHit();
+    if (cube && (!g || cube.distance < g.t)) { const n = cube.face ? cube.face.normal.clone().transformDirection(cube.object.matrixWorld) : new THREE.Vector3(0, 1, 0); held.target.copy(cube.point).addScaledVector(n, half + 1); }
+    else if (g) held.target.copy(g.p).add(new THREE.Vector3(0, half + 1, 0));
+    else if (ray.ray.intersectPlane(hold, hv)) held.target.copy(hv).add(held.off);
+  };
   const overCube = e => { if (!S3.ents.length || !H) return null; setRay(e); let best = null; for (const en of S3.ents) { const h = ray.intersectObject(en.cube.children[0], false); if (h.length && (!best || h[0].distance < best.hit.distance)) best = {en, hit: h[0]}; } return best; };
-  canvas.addEventListener('pointermove', e => { if (held) { setRay(e); if (ray.ray.intersectPlane(hold, hv)) held.target.copy(hv).add(held.off); samples.push({t: performance.now(), x: e.clientX, y: e.clientY}); while (samples.length > 2 && samples[0].t < performance.now() - 120) samples.shift(); } else canvas.style.cursor = overCube(e) ? 'grab' : ''; });
+  canvas.addEventListener('pointermove', e => { if (held) { aimTarget(e); samples.push({t: performance.now(), x: e.clientX, y: e.clientY}); while (samples.length > 2 && samples[0].t < performance.now() - 120) samples.shift(); } else canvas.style.cursor = overCube(e) ? 'grab' : ''; });
   canvas.addEventListener('pointerdown', e => {
     const o = overCube(e); if (o) { const body = o.en.body; cam.getWorldDirection(hv); hold.setFromNormalAndCoplanarPoint(hv, o.hit.point); ray.ray.intersectPlane(hold, hv);
       held = {en: o.en, target: body.p.clone(), off: body.p.clone().sub(hv), grab: o.hit.point.clone().sub(body.p), dist: cam.position.distanceTo(o.hit.point)}; body.held = true; body.v.set(0, 0, 0); body.w.set(0, 0, 0); wake(); samples.length = 0; samples.push({t: performance.now(), x: e.clientX, y: e.clientY});
@@ -1702,7 +1716,7 @@ function wirePointer(canvas) {
   }
   canvas.addEventListener('pointercancel', () => { if (held) release(); });
   canvas.addEventListener('pointerup', e => { if (held) { release(); return; } if (!down || !H) return; const moved = Math.hypot(e.clientX - down.x, e.clientY - down.y), dt = performance.now() - down.t; down = null; if (moved > 5 || dt > 500) return;
-    setRay(e); const o = ray.ray.origin, d = ray.ray.direction; let tprev = 0, hit = null; for (let t = 0; t < 250000; t += Math.max(15, t * .004)) { const x = o.x + d.x * t, y = o.y + d.y * t, z = o.z + d.z * t; if (!inMap(x, z, 500)) { tprev = t; continue; } if (y < heightAt(x, z)) { let a = tprev, b = t; for (let k = 0; k < 24; k++) { const mid = (a + b) / 2; if (o.y + d.y * mid < heightAt(o.x + d.x * mid, o.z + d.z * mid)) b = mid; else a = mid; } hit = [o.x + d.x * b, o.z + d.z * b]; break; } tprev = t; }
+    setRay(e); const g = groundHit(), hit = g ? [g.p.x, g.p.z] : null;
     if (hit) { $('hint3d').classList.remove('show'); S3.cityMode = true; spawn({mode: 'city', at: hit}); } });
 }
 const proj = (v, el, html) => { const p = v.clone().project(cam), ok = p.z < 1 && Math.abs(p.x) < 1.1 && Math.abs(p.y) < 1.1; el.hidden = !ok; if (ok) { if (html != null) el.innerHTML = html; const b = $('view3d'); el.style.left = (p.x + 1) / 2 * b.clientWidth + 'px'; el.style.top = (1 - p.y) / 2 * b.clientHeight + 'px'; } };
