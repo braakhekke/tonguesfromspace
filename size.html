@@ -336,7 +336,6 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
         <div class="embed-row"><button type="button" class="act" id="embedCopy" data-track="embed-copy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
       </div>
       <div class="embed-row"><button type="button" class="act" id="linkBtn">Share</button></div>
-      <label class="share-only" title="The link opens the picture or animation on its own, without the panels, with a link to the full page"><input type="checkbox" id="shareOnly"> <span>Open as picture/animation only</span></label>
       <p class="note" id="shareNote" role="status"></p>
     </section>
   </aside>
@@ -1163,9 +1162,9 @@ async function downloadImage(opt = {}) {      // opt.share: hand back the JPEG a
 }
 async function shareLink() {
   syncHash();
-  const only = $('shareOnly').checked, url = only ? embedLink() : location.href, title = 'How big are glaciers? | Tongues from Space';
+  const url = location.href, title = 'How big are glaciers? | Tongues from Space';
   try { if (navigator.share) { await navigator.share({title, url}); return; } } catch (e) { if (e && e.name === 'AbortError') return; }
-  try { await navigator.clipboard.writeText(url); $('shareNote').textContent = only ? 'Link copied. It opens the picture only, with a link to the full page.' : 'Link copied. It opens this view with the glaciers where you put them.'; }
+  try { await navigator.clipboard.writeText(url); $('shareNote').textContent = 'Link copied. It opens this view with the glaciers where you put them.'; }
   catch (_) { $('shareNote').textContent = 'Copy the address of this page: it holds this view.'; }
 }
 /* Embed: the iframe code of the view on screen (the shared link plus embed=1, which shows the picture only) */
@@ -2263,6 +2262,28 @@ const FOOT = () => `<div class="about-wrap">
   });
   st.addEventListener('click', e => { if (e.target.closest('.social-share')) shareLink(); }); }
 build();
+
+/* every scrollable list in the left panel (glaciers, cities) shows what is picked: when the visitor has scrolled it and let go or left it, it scrolls back so that a picked row (the first one, when two are picked) is in view; also after the picks change */
+{
+  const showPicked = box => {
+    if (box.scrollHeight <= box.clientHeight + 1) return;
+    const sel = [...box.querySelectorAll('button[aria-pressed="true"]')]; if (!sel.length) return;
+    const r = box.getBoundingClientRect(), inView = b => { const q = b.getBoundingClientRect(); return q.top >= r.top - 1 && q.bottom <= r.bottom + 1; };
+    if (sel.some(inView)) return;
+    const b = sel[0], q = b.getBoundingClientRect(), want = box.scrollTop + (q.top - r.top) - (box.clientHeight - q.height) / 2;
+    box.scrollTo({top: Math.max(0, want), behavior: 'smooth'});
+  };
+  const watched = new WeakSet(), timers = new WeakMap();
+  const later = (box, ms) => { clearTimeout(timers.get(box)); timers.set(box, setTimeout(() => showPicked(box), ms)); };
+  const watch = box => {
+    if (watched.has(box)) return; watched.add(box);
+    new MutationObserver(() => later(box, 60)).observe(box, {childList: true, subtree: true, attributes: true, attributeFilter: ['aria-pressed']});
+    box.addEventListener('scroll', () => later(box, 1500), {passive: true});
+    box.addEventListener('pointerleave', () => later(box, 600));
+    later(box, 60);
+  };
+  ['gList', 'cities'].forEach(id => { const el = document.getElementById(id); if (el) watch(el); });
+}
 </script>
 <script>
 /* the right panel collapses to the red tab with the halo, as on the explorer (css/style.css, .panel-toggle); the halo stops once it was opened */

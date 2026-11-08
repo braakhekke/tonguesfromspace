@@ -1834,8 +1834,6 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 /* links inside notes, hints and the About text: the site's blue, never the browser's */
 .hint a,.note a,.status a,.embed-box a,.about-sec a{color:var(--crevasse);font-weight:600}
 .embed-row{display:flex;gap:8px}
-.share-only{display:flex;align-items:center;gap:8px;margin:8px 0 0;font-size:12.5px;font-weight:600;color:var(--moraine);cursor:pointer}
-.share-only input{width:16px;height:16px;margin:0;accent-color:var(--accent)}
 .embed-row .act{min-width:0;padding-left:6px;padding-right:6px;line-height:1.2;text-align:center}      /* three buttons share one row; a long label wraps to two lines instead of spilling out */
 #demBtn{flex:1.5 1 0}
 #demBtn:disabled{opacity:.45;cursor:not-allowed}      /* the longest label of the row */
@@ -2507,3 +2505,7 @@ body.x-layers .layerbox{max-width:none}
 /* layer menu switches: the knob is centred in the track (the track is 17px with a 1.5px border, so 14px inside; a 13px knob sits 0.5px from the top and 1px from the sides) */
 .layerbox .toggle input[type=checkbox]::after{top:.5px;left:1px;width:13px;height:13px}
 .layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(12px)}
+
+/* every on/off switch, one rule for all (the earlier per-menu rules gave knobs that sat off-centre in the pill): the knob is the pill's inner height minus 2 px of air on every side, centred vertically; on, it slides to the right end by its own width (left: 100% - 2px, then back by its own width) */
+.toggle input[type=checkbox]::after,.layerbox .toggle input[type=checkbox]::after,.layerbox.in-pane .toggle input[type=checkbox]::after,.layerbox.in-sheet .toggle input[type=checkbox]::after{top:0;bottom:0;margin:auto 0;left:2px;height:calc(100% - 4px);width:auto;aspect-ratio:1;transform:none;transition:left .2s,transform .2s}
+.toggle input[type=checkbox]:checked::after,.layerbox .toggle input[type=checkbox]:checked::after,.layerbox.in-pane .toggle input[type=checkbox]:checked::after,.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{left:calc(100% - 2px);transform:translateX(-100%)}
