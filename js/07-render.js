@@ -718,7 +718,7 @@ export function aboutChaptersCh(){
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-12"><summary>Aerial images, trails and panoramas</summary><div class="about-sec">
         <p><em>swisstopo aerial</em> (SWISSIMAGE) can be switched on in the layers menu; it shows only inside the image box of the chosen glacier, in the year you picked. The layer is a series of editions; the year it names is the year the photographs were taken, which can be earlier than the edition (the 2025 edition shows photographs from 2023 at Aletsch). Switch the Sentinel-2 image off to see it alone.</p>
-        <p><em>Hiking trails</em> come from swisstopo. The violet band marks where a person 1.7 m tall can see the glacier tongue from the trail (my own calculation from the elevation model; trees and buildings are not counted). The distances in the hike and bike cards (how far a route passes from the tongue) are computed here too.</p>
+        <p><em>Hiking trails</em> come from swisstopo. The white outline around the trail marks where a person 1.7 m tall can see the glacier tongue from the trail (my own calculation from the elevation model; trees and buildings are not counted). The distances in the hike and bike cards (how far a route passes from the tongue) are computed here too.</p>
         <p><em>Panoramas</em> (Grosser Aletsch only) are the best Street View panoramas of the glacier, from the upper glacier down to the tongue. They open in Google's own viewer; nothing of them is stored here but their ids.${fn('streetview')}</p>
       </div></details>
       <p class="about-group">What to trust</p>

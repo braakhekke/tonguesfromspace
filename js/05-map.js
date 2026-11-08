@@ -181,7 +181,7 @@ export const TrailsVector = L.LayerGroup.extend({
 export const trails = FEATURES.swisstopo ? new TrailsLayer('https://wmts.geo.admin.ch/1.0.0/ch.swisstopo.swisstlm3d-wanderwege/default/current/3857/{z}/{x}/{y}.png',
   {pane:'labels', tileSize:128, zoomOffset:1, maxZoom:17, maxNativeZoom:17, opacity:.9, attribution:'Hiking trails © swisstopo'}) : new TrailsVector();
 export const trailsFor = g => { const d = (window.GLACIER_TRAILS || {})[g && wire.bundleId(g)]; return d && (d.paths.length || d.tracks.length) ? d : null; };      // Iceland: the footpaths and tracks of an outlet
-/* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a wide violet band with a white edge under the trail lines */
+/* Where on the hiking trails the glacier tongue is in view of a person 1.7 m tall (sightline.js, made by scripts/build_sightline.py): a white outline under the trail lines */
 export let sightTried = false, sightLoad = null;
 export const ensureSight = () => sightLoad || (sightLoad = new Promise(res => {      // the file (Switzerland: sightline.js, all glaciers, 135 kB; Iceland: trails-is.js) is fetched when the trails are on, not at the start; everyone who asks waits for the same load
   if (window.GLACIER_SIGHT) { sightTried = true; return res(); }
@@ -197,7 +197,7 @@ export function updateSight(){
   const picked = typeof glacierPicked !== 'undefined' && glacierPicked, d = picked ? sightFor(currentGlacier()) : null, on = document.getElementById('trailsToggle').checked && !!d;
   document.getElementById('sightLegend').hidden = !on;
   if (!on) { const w = document.getElementById('trailsWhy'); w.hidden = true; const b = document.querySelector('#sightLegend .lb-i'); if (b) b.setAttribute('aria-expanded', 'false'); }      // the explanation goes with the band
-  if (on) sightLayer = L.layerGroup([['#fff', 12, .85], ['#7B2CFF', 7, .9]].flatMap(([color, weight, opacity]) => d.lines.map(l => L.polyline(l, {pane: 'sightPane', color, weight, opacity, lineCap: 'round', lineJoin: 'round', interactive: false})))).addTo(map);      // all the white edges first, then the violet cores
+  if (on) sightLayer = L.layerGroup([['#fff', 8, .95]].flatMap(([color, weight, opacity]) => d.lines.map(l => L.polyline(l, {pane: 'sightPane', color, weight, opacity, lineCap: 'round', lineJoin: 'round', interactive: false})))).addTo(map);      // a white outline around the trail line
 }
 export let trailClipKey = '';
 export function updateTrailClip(){          // the selected glacier's image area; before one is chosen, the ten image areas of the overview

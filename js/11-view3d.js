@@ -217,6 +217,12 @@ export function thinLines(cv){
   for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const i = y * W + x, m = Math.min(t[i], y > 0 ? t[i - W] : 0, y < H - 1 ? t[i + W] : 0); px[4 * i + 3] = (a[i] + m) >> 1; }
   cx.putImageData(im, 0, 0);
 }
+/* With the white outline under them, thinned lines would blend with it and the satellite and shift in colour (red looks orange): the faded edge pixels are made solid again, so every trail keeps its own colour */
+export function solidLines(cv){
+  const cx = cv.getContext('2d', {willReadFrequently: true}), im = cx.getImageData(0, 0, cv.width, cv.height), px = im.data;
+  for (let k = 3; k < px.length; k += 4) px[k] = px[k] > 90 ? 255 : px[k] * 2 > 255 ? 255 : px[k] * 2;
+  cx.putImageData(im, 0, 0);
+}
 export const flightBitmaps = new Map();
 export async function drawFlights(ctx, l, S, toTexM){            // one special-flights layer onto the texture of the strip, over the satellite picture: the tiles of the zoom that matches the texture, only those the flight has
   const {WM} = V3D, HALF = S.half, corners = [[-S.back, -HALF], [-S.back, HALF], [S.up, -HALF], [S.up, HALF]].map(([a, b]) => S.merc(a, b));
@@ -283,11 +289,11 @@ export async function strip3DTexture(g, S, yr, nA, nB, hillH, style = state.styl
   const sight = $('trailsToggle').checked && !photoOn && sightFor(g);
   if (sight) {            // where the tongue is in view from the trail, under the trail lines
     ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    [['rgba(255,255,255,.85)', 14], ['rgba(123,44,255,.9)', 8]].forEach(([color, w]) => { ctx.strokeStyle = color; ctx.lineWidth = w; sight.lines.forEach(l => { ctx.beginPath(); l.forEach(([lat, lng], i) => { const q = L.CRS.EPSG3857.project(L.latLng(lat, lng)), [x, y] = toTexM(q.x, q.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }); });
+    [['rgba(255,255,255,.95)', 9]].forEach(([color, w]) => { ctx.strokeStyle = color; ctx.lineWidth = w; sight.lines.forEach(l => { ctx.beginPath(); l.forEach(([lat, lng], i) => { const q = L.CRS.EPSG3857.project(L.latLng(lat, lng)), [x, y] = toTexM(q.x, q.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }); });
     ctx.restore();
   }
   if ($('trailsToggle').checked && !photoOn) {
-    if (FEATURES.swisstopo) { const lc = document.createElement('canvas'); lc.width = TEX[0]; lc.height = TEX[1]; await drawTiles(lc.getContext('2d', {willReadFrequently: true}), S, toTexM, V3D_TRAILS, 15); thinLines(lc); ctx.drawImage(lc, 0, 0); }
+    if (FEATURES.swisstopo) { const lc = document.createElement('canvas'); lc.width = TEX[0]; lc.height = TEX[1]; await drawTiles(lc.getContext('2d', {willReadFrequently: true}), S, toTexM, V3D_TRAILS, 15); thinLines(lc); if (sight) solidLines(lc); ctx.drawImage(lc, 0, 0); }
     else { const d = trailsFor(g); if (d) { ctx.save(); ctx.setTransform(1, 0, 0, 1, 0, 0); ctx.lineJoin = ctx.lineCap = 'round';      // Iceland: the paths are lines, not tiles
       const draw = (list, color, w) => { ctx.strokeStyle = color; ctx.lineWidth = w; list.forEach(l => { ctx.beginPath(); l.forEach(([lat, lng], i) => { const q = L.CRS.EPSG3857.project(L.latLng(lat, lng)), [x, y] = toTexM(q.x, q.y); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); ctx.stroke(); }); };
       draw(d.tracks, 'rgba(0,0,0,.55)', 4.5); draw(d.paths, 'rgba(0,0,0,.55)', 5); draw(d.tracks, '#FF3B30', 2.5); draw(d.paths, '#FDC200', 3.2); ctx.restore(); } }

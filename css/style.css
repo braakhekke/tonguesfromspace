@@ -543,7 +543,7 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .radar-legend img{display:block;max-width:105px;height:auto;box-sizing:content-box;background:rgba(255,255,255,.94);border-radius:6px;padding:4px 6px}      /* the picture from swisstopo has dark text: it needs a light plate on the dark menus */
 .trail-legend span{display:flex;align-items:center;gap:7px}
 .trail-legend i{display:inline-block;width:22px;height:0;border-top:2px dashed var(--c)}
-.trail-legend i.sight-sw{border-top:6px solid #7B2CFF;border-radius:3px;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px rgba(0,0,0,.18)}
+.trail-legend i.sight-sw{border-top:6px solid #FDC200;border-radius:3px;box-shadow:0 0 0 2px #fff,0 0 0 3px rgba(0,0,0,.18)}
 .lb-more{display:none}      /* only used on phones, where the box scrolls; without this rule its unsized chevron shows huge on desktop */
 .lb-more svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
 .lb-group{margin:8px 0 3px;font-size:10.5px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;color:var(--moraine)}
