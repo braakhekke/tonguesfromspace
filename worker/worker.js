@@ -624,7 +624,7 @@ async function gallerySubmit(request, env, cors, ip, ctx) {
     const what = clean.kind === 'video' ? 'animation' : 'picture', who = clean.nick ? ' from ' + clean.nick : '';
     const ping = fetch(env.GALLERY_NOTIFY_URL, { method: 'POST', body: `New ${what} of ${clean.name} (${clean.years.join(', ')})${who} is waiting for approval in the gallery (${queue.objects.length + 1} in the queue).`,
       headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow', ...(env.GALLERY_NOTIFY_TOKEN ? { Authorization: 'Bearer ' + env.GALLERY_NOTIFY_TOKEN } : {}) } })
-      .then(r => { if (!r.ok) console.log('gallery ping refused', r.status); }).catch(e => console.log('gallery ping failed', String(e)));
+      .then(async r => { if (!r.ok) console.log('gallery ping refused', r.status, env.GALLERY_NOTIFY_TOKEN ? '(token sent)' : '(NO token set on this Worker)', (await r.text().catch(() => '')).slice(0, 300)); }).catch(e => console.log('gallery ping failed', String(e)));
     if (ctx && ctx.waitUntil) ctx.waitUntil(ping);
   }
   return json({ ok: true }, 200, cors);
