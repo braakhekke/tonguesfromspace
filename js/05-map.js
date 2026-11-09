@@ -715,9 +715,9 @@ export function strokeEdgeFade(ctx, geom, toPt, color, k = 1){
   const path = onlyClosed => { ctx.beginPath(); eachPiece(geom, (ring, closed) => {
     if (onlyClosed && !closed) return;
     ring.forEach((pt, i) => { const [x, y] = toPt(pt); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }); if (closed) ctx.closePath(); }); };
-  /* the fade is no wider than 12 % of the outline's shorter side as drawn: zoomed out, a fixed width would fill the whole glacier with the colour (the hard line keeps its width) */
+  /* the fade is no wider than 5 % of the outline's shorter side as drawn: zoomed out, a fixed width would fill the whole glacier with the colour (the hard line keeps its width) */
   let x0 = 1e9, x1 = -1e9, y0 = 1e9, y1 = -1e9; eachPiece(geom, (ring, closed) => { if (closed) ring.forEach(pt => { const [x, y] = toPt(pt); if (x < x0) x0 = x; if (x > x1) x1 = x; if (y < y0) y0 = y; if (y > y1) y1 = y; }); });
-  const kf = Math.max(.02, Math.min(k, .12 * Math.min(x1 - x0, y1 - y0) / 34));
+  const kf = Math.max(.02, Math.min(k, .05 * Math.min(x1 - x0, y1 - y0) / 34));
   ctx.save(); ctx.lineJoin = 'round'; ctx.strokeStyle = color;
   ctx.save(); path(true); ctx.clip('evenodd');                 // only the inside: stacked strokes of shrinking width add up to a fade
   ctx.globalAlpha = .07;
@@ -1230,6 +1230,9 @@ export function arcStroke(ctx, pts, color, alpha, width){      // a plain line t
 /* a line as the 1850 outline is drawn: hard on the edge, a colour that fades towards the inside of the tongue (the arc closed by a straight line across its top), and both fade out to the loose ends */
 export function arcEdgeFade(ctx, pts, color, alpha = 1, k = .3, w = 2){
   const pieces = arcPieces(pts);
+  /* like strokeEdgeFade, but thinner (5 % instead of 12 %): the fade is no wider than 5 % of the shorter side of the closed shape as drawn, so zoomed out it never fills the tongue */
+  const xs = pts.map(p => p[0]), ys = pts.map(p => p[1]);
+  k = Math.max(.01, Math.min(k, .05 * Math.min(Math.max(...xs) - Math.min(...xs), Math.max(...ys) - Math.min(...ys)) / 34));
   ctx.save(); ctx.strokeStyle = color; ctx.lineJoin = 'round'; ctx.lineCap = 'butt';
   ctx.beginPath(); pts.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.closePath(); ctx.clip('evenodd');
   pieces.forEach(c => { ctx.globalAlpha = .07 * alpha * c.w; for (let i = 0; i < 9; i++) { ctx.lineWidth = 2 * k * (34 - i * 3.6); strokeUpTo(ctx, c.pts, 1); } });
