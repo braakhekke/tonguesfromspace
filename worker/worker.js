@@ -33,6 +33,7 @@
  *   POST /cdse/process     -> Process API image
  *   GET  /gallery/config, /gallery/list, /gallery/file/<id>   public gallery (approved items only)
  *   POST /gallery/submit   upload of a finished picture or video (waits for approval)
+ *   GET  /gallery/likes, POST /gallery/like   thumbs up (counts in KV, once per visitor and item)
  *   /gallery/admin/*       moderation, needs the admin token
  *   GET  /ask/config, POST /ask/glacier   "please add this glacier" (only glaciers on Wikidata's list; see the section below); GET /ask/admin/list, DELETE /ask/admin/<Q-id> need the admin token
  */
@@ -382,7 +383,9 @@ function corsHeaders(request, env) {
     .split(',').map(s => s.trim().replace(/\/+$/, '')).filter(Boolean);
   const h = { 'Access-Control-Allow-Methods': 'GET, POST, OPTIONS', 'Access-Control-Allow-Headers': 'Content-Type, Accept, Authorization',
               'Access-Control-Max-Age': '86400', 'Vary': 'Origin' };
-  if (allowed.includes(origin) || origin === new URL(request.url).origin) h['Access-Control-Allow-Origin'] = origin;      // the site's own address always counts (the Worker serves the page too)
+  const self = new URL(request.url).origin;
+  if (allowed.includes(origin) || origin === self) h['Access-Control-Allow-Origin'] = origin;
+  else if (!origin && request.headers.get('Sec-Fetch-Site') === 'same-origin') h['Access-Control-Allow-Origin'] = self;      // a same-origin GET carries no Origin header; the browser sets Sec-Fetch-Site itself (the moderation page on the site)      // the site's own address always counts (the Worker serves the page too)
   return h;
 }
 /* Failures of the relay, one JSON line each in Workers Logs (dashboard: Workers -> this Worker -> Logs, or `npx wrangler tail`): what failed and for which request type.
@@ -529,6 +532,8 @@ async function gallery(request, env, url, cors, ctx) {
     if (cache) await ctxPut(cache, ckey, body);
     return new Response(body, { status: 200, headers: { ...cors, 'Content-Type': 'application/json', 'Cache-Control': 'public, max-age=60', 'X-Cache': 'MISS' } });
   }
+  if (path === 'likes' && m === 'GET') return galleryLikes(env, cors);
+  if (path === 'like' && m === 'POST') return galleryLike(request, env, cors, ip);
   const file = path.match(/^file\/([a-f0-9]{24})$/);
   if (file && (m === 'GET' || m === 'HEAD')) return galleryFile(request, env, 'approved/' + file[1], cors, 'public, max-age=86400', url.searchParams.get('download') === '1');
 
@@ -561,6 +566,41 @@ async function gallery(request, env, url, cors, ctx) {
     }
   }
   return json({ error: 'Not found' }, 404, cors);
+}
+
+/* Thumbs up. One counter per approved item in KV (like/<id>, the count in the key's metadata so that one list call returns all of them) and one marker per
+   item and visitor (liked/<id>/<hash of the address>, a year), so a visitor counts once per item and can take the thumb back. Needs CACHE; without it the
+   list is empty and the button stays hidden. */
+const galLikes = new Map();
+async function galleryLikes(env, cors) {
+  const counts = {};
+  if (!env.CACHE) return json({ counts, enabled: false }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' });
+  let cursor;
+  for (let page = 0; page < 5; page++) {
+    const l = await env.CACHE.list({ prefix: 'like/', cursor });
+    for (const k of l.keys) { const n = k.metadata && +k.metadata.n; if (n > 0) counts[k.name.slice(5)] = n; }
+    if (l.list_complete) break;
+    cursor = l.cursor;
+  }
+  return json({ counts, enabled: true }, 200, { ...cors, 'Cache-Control': 'public, max-age=30' });
+}
+async function galleryLike(request, env, cors, ip) {
+  if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
+  if (!(env.CACHE && env.GALLERY)) return json({ error: 'Thumbs up is not set up yet.' }, 503, cors);
+  let id, on; try { const b = await request.json(); id = b.id; on = b.on !== false; } catch {}
+  if (!ID.test(id || '')) return json({ error: 'Bad id' }, 400, cors);
+  if (overHourly(galLikes, ip, 120)) return json({ error: 'Too many thumbs from this address. Please try again later.' }, 429, { ...cors, 'Retry-After': '3600' });
+  if (!(await env.GALLERY.head('approved/' + id))) return json({ error: 'Not found' }, 404, cors);
+  const hash = [...new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(ip + '|' + id)))].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join('');
+  const mark = `liked/${id}/${hash}`, key = 'like/' + id;
+  const had = !!(await env.CACHE.get(mark));
+  const cur = (await env.CACHE.getWithMetadata(key)).metadata;
+  let n = cur && +cur.n > 0 ? +cur.n : 0;
+  if (on && !had) { n++; await env.CACHE.put(mark, '1', { expirationTtl: 366 * 86400 }); }
+  else if (!on && had) { n = Math.max(0, n - 1); await env.CACHE.delete(mark); }
+  else return json({ n, liked: had }, 200, cors);
+  await env.CACHE.put(key, '', { metadata: { n } });
+  return json({ n, liked: on }, 200, cors);
 }
 
 function itemOf(o, prefix) {
