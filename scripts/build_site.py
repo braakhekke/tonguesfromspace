@@ -393,6 +393,12 @@ def main():
     sf = os.path.join(ROOT, "data", "special-flights")      # swisstopo special flights (scripts/build_special_flights.py): only the per-glacier json files and index.json (where each flight has data, the addresses of swisstopo's files, the field-notes chapter); the pictures are read live from swisstopo. Not hashed
     if os.path.isdir(sf):
         shutil.copytree(sf, os.path.join(out, "data", "special-flights"), ignore=shutil.ignore_patterns("*.webp"))
+    ab = os.path.join(ROOT, "data", "about-static.html")      # the About block of the explorer, shown by size.html (scripts/build_about_static.py; run it after any change of the About chapters): fetched by name, not hashed
+    if os.path.isfile(ab):
+        shutil.copy(ab, os.path.join(out, "data", "about-static.html"))
+    tb = os.path.join(ROOT, "data", "tall-buildings.json")      # buildings over 25 m under the nine cities of the size page (scripts/build_tall_buildings.py; swissBUILDINGS3D 3.0 Beta, swisstopo free geodata, credit mandatory): fetched by name when the switch is on, not hashed
+    if os.path.isfile(tb):
+        shutil.copy(tb, os.path.join(out, "data", "tall-buildings.json"))
     ld = os.path.join(ROOT, "data", "lake-depth")      # lake floors of the size page (swissBATHY3D, scripts/build_lake_depth.py; terms read by the owner, ledger docs/sources/ch-swissbathy3d.md): index.json and one .bin per lake, asked for by name, not hashed
     if os.path.isdir(ld):
         shutil.copytree(ld, os.path.join(out, "data", "lake-depth"))
