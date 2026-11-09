@@ -1946,8 +1946,8 @@ html.embed .v3d-measure > .v3d-tl{min-width:0;width:100%}
 /* ---------- immersive full screen on touch screens (js/09-phones.js, "Immersive full screen") ----------
    body.imm = full screen on a touch device; body.imm-idle = controls faded out. Desktop with a mouse is untouched. */
 body.imm{overscroll-behavior:none}
-body.imm .app .stage .full-exit{display:flex!important;position:absolute;top:calc(10px + env(safe-area-inset-top,0px));right:calc(10px + env(safe-area-inset-right,0px));z-index:2200;align-items:center;justify-content:center;width:42px;height:42px;border:0;border-radius:50%;padding:0;background:rgba(14,23,29,.6);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35);-webkit-tap-highlight-color:transparent;transition:opacity .35s}
-body.imm.imm-idle .app .stage .full-exit{opacity:.5}
+body.imm .app .stage .full-exit{display:none!important}      /* the dock's own full screen button leaves full screen; no separate corner button */
+
 /* title and hint stop before the exit button; the north arrow moves below it */
 body.imm .app .stage .v3d-top{left:calc(14px + env(safe-area-inset-left,0px));right:calc(62px + env(safe-area-inset-right,0px))}
 body.imm .app.is-3d .stage .v3d-north{top:calc(60px + env(safe-area-inset-top,0px));bottom:auto;right:calc(14px + env(safe-area-inset-right,0px))}
