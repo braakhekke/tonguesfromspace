@@ -61,7 +61,6 @@
 .teacher ul{margin:6px 0 0;padding-left:18px}
 .teacher li{margin:4px 0;font-size:13px}
 .pl-tools{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}
-.pl-sr{position:absolute;left:-9999px}
 @media (max-width:760px){
   .pl-hero .in{grid-template-columns:1fr}
   .pl-hero h2{font-size:25px}
