@@ -1,0 +1,82 @@
+{
+ "aletsch": {
+  "date": "2026-09-12",
+  "id": "aletsch",
+  "local": "Grosser Aletschgletscher",
+  "name": "Grosser Aletsch",
+  "title": "Grosser Aletschgletscher",
+  "year": 2026
+ },
+ "corbassiere": {
+  "date": "2026-09-22",
+  "id": "corbassiere",
+  "local": "Glacier de Corbassière",
+  "name": "Corbassière",
+  "title": "Glacier de Corbassière",
+  "year": 2026
+ },
+ "fee": {
+  "date": "2026-09-27",
+  "id": "sgi-B53-04",
+  "local": "Feegletscher",
+  "name": "Fee",
+  "title": "Feegletscher",
+  "year": 2026
+ },
+ "fiescher": {
+  "date": "2026-09-27",
+  "id": "fiescher",
+  "local": "Fieschergletscher",
+  "name": "Fiescher",
+  "title": "Fieschergletscher",
+  "year": 2026
+ },
+ "findel": {
+  "date": "2026-09-22",
+  "id": "sgi-B56-03",
+  "local": "Findelgletscher",
+  "name": "Findel",
+  "title": "Findelgletscher",
+  "year": 2026
+ },
+ "gorner": {
+  "date": "2026-09-22",
+  "id": "gorner",
+  "local": "Gornergletscher",
+  "name": "Gorner",
+  "title": "Gornergletscher",
+  "year": 2026
+ },
+ "rhone": {
+  "date": "2026-09-27",
+  "id": "rhone",
+  "local": "Rhonegletscher",
+  "name": "Rhone",
+  "title": "Rhonegletscher",
+  "year": 2026
+ },
+ "trift": {
+  "date": "2026-08-03",
+  "id": "trift",
+  "local": "Triftgletscher (Gadmen)",
+  "name": "Trift",
+  "title": "Triftgletscher",
+  "year": 2026
+ },
+ "unteraar": {
+  "date": "2026-08-13",
+  "id": "unteraar",
+  "local": "Unteraargletscher",
+  "name": "Unteraar",
+  "title": "Unteraargletscher",
+  "year": 2026
+ },
+ "zmutt": {
+  "date": "2026-09-19",
+  "id": "zmutt",
+  "local": "Zmuttgletscher",
+  "name": "Zmutt",
+  "title": "Zmuttgletscher",
+  "year": 2026
+ }
+}

@@ -19,6 +19,8 @@ const PATH_REGION = (() => {
   for (const r of REGION_LIST) for (const p of [r.path, ...(r.pathAlso || [])]) {
     const m = p && r.ready && location.pathname.match(new RegExp('^(.*/)' + p + '(/(index\\.html)?)?$'));
     if (m) return {r, base: m[1]};
+    const g = p && r.ready && r.glacierPages && location.pathname.match(new RegExp('^(.*/)' + p + '/([a-z0-9-]+)(/(index\\.html)?)?$'));      // /switzerland/aletsch/: the page of one glacier
+    if (g) return {r, base: g[1], glacier: g[2]};
   }
   return null;
 })();
@@ -26,6 +28,13 @@ const SITE_BASE = PATH_REGION ? PATH_REGION.base : '';
 const siteFile = name => SITE_BASE + name;
 const REGION = (PATH_REGION && PATH_REGION.r) || regionById(new URLSearchParams(location.hash.slice(1)).get('r')) || regionById('ch');
 const FEATURES = REGION.features;
+/* Glacier pages (/switzerland/aletsch/): link previews and search engines do not see the #g= part, so the built site has a page for each glacier with its own title and picture. The page opens on its glacier;
+   writeHash (04-state.js) keeps the address in step with the chosen glacier, so every link the page hands out (share, embed) is the page of that glacier. */
+const glacierSlug = id => (REGION.glacierSlugs || {})[id] || id;
+const slugGlacier = slug => Object.keys(REGION.glacierSlugs || {}).find(k => REGION.glacierSlugs[k] === slug) || slug;
+const glacierPath = id => PATH_REGION && REGION.glacierPages ? PATH_REGION.base + REGION.path + '/' + (id ? glacierSlug(id) + '/' : '') + location.search : '';
+if (PATH_REGION && PATH_REGION.glacier && REGION.glacierPages && !new URLSearchParams(location.hash.slice(1)).get('g'))
+  history.replaceState(null, '', location.pathname + location.search + '#g=' + slugGlacier(PATH_REGION.glacier) + '&m=single');      // the page of a glacier opens on its newest year
 /* The link that opens a region: on the built site (it has the map of hashed names in config.js) a region with a path opens at its address, otherwise (local use) the plain address with #r= */
 const regionLink = id => {
   const r = REGION_LIST.find(x => x.id === id), built = PATH_REGION || (window.TFS_CONFIG && Object.keys(window.TFS_CONFIG.assets || {}).length);

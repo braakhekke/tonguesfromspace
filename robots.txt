@@ -1,0 +1,8 @@
+# Tongues from Space: pages are open to search engines; the Worker's endpoints are not pages.
+User-agent: *
+Disallow: /cdse/
+Disallow: /api/
+Disallow: /gallery/
+Disallow: /ask/
+
+Sitemap: https://tonguesfromspace.org/sitemap.xml

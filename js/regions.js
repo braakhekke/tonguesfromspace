@@ -15,6 +15,8 @@ const REGIONS_ALL = [
   { id: 'ch', name: 'Switzerland', adj: 'Swiss', ready: true,
     picker: { ll: [46.45, 8.1], zoom: 7, text: 'The ten largest Swiss glaciers, with GLAMOS statistics.' },      // the front page (home.html): where the region sits on the world map
     path: 'switzerland',                         // the address on the public site: /switzerland/ (the front page / is the region picker, home.html)
+    glacierPages: true,                        // the built site has a page for each glacier: /switzerland/aletsch/ (own title and picture for link previews); the address follows the chosen glacier
+    glacierSlugs: { 'sgi-B56-03': 'findel', 'sgi-B53-04': 'fee' },      // the address of a glacier is its id, except for these two (scripts/build_site.py reads this line)
     data: 'data/glaciers.js',                  // window.GLACIER_DATA, made by scripts/build_outlines.py (GLAMOS)
     docTitle: 'Tongues from Space | Swiss glaciers',
     brandLede: 'Discover the ten largest Swiss glaciers. Compare, create and share your visuals.',

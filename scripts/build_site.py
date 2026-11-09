@@ -29,6 +29,7 @@ Standard library only. Every replacement in the HTML must find its target, other
 a broken page is worse than no deploy.
 """
 import hashlib, json, os, re, shutil, subprocess, sys
+from html import escape as html_escape
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HASH_LEN = 10
@@ -43,8 +44,13 @@ GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trai
               "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js")}      # data files that belong to one group of regions
 GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-"}      # the records in data/regions/ of that group start with this
 HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
-PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
-VQ = lambda img: "?v=2" if img == "images/preview-social.jpg" else ""      # the general preview picture was replaced: a new address makes link previews fetch it again
+PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "robots.txt", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
+def VQ(img):      # a new address makes link previews fetch a replaced picture again
+    if img == "images/preview-social.jpg":
+        return "?v=2"
+    if img.startswith("images/og/") and exists(img):      # the glacier pictures: the version is their content
+        return "?v=" + digest(read(img))[:8]
+    return ""
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
 HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
@@ -135,6 +141,40 @@ REGION_PAGES = [
      "image": "images/preview-svalbard.jpg", "image_w": "1200", "image_h": "630",
      "image_alt": "Tongues from Space - Svalbard: a Sentinel-2 satellite picture of a calving glacier front with its older outline"},
 ]
+
+
+def swiss_glacier_pages():
+    """One page per Swiss glacier: /switzerland/<slug>/ (scripts/build_og_images.py makes its picture and images/og/index.json). The ids come from data/home-glaciers.js, the slugs from
+    js/regions.js (glacierSlugs: the id, except for two glaciers), the names and the scene of the picture from images/og/index.json. Link previews and search engines do not see the #g= of a link."""
+    txt = read("data/home-glaciers.js").decode("utf-8")
+    ids = [g["id"] for g in json.loads(txt[txt.index("["):txt.rindex("]") + 1]) if g["region"] == "ch"]
+    names = {g["id"]: g["name"] for g in json.loads(txt[txt.index("["):txt.rindex("]") + 1]) if g["region"] == "ch"}
+    m = re.search(r"glacierSlugs:\s*\{([^}]*)\}", read("js/regions.js").decode("utf-8"))
+    slugs = dict(re.findall(r"'([^']+)'\s*:\s*'([^']+)'", m.group(1))) if m else {}
+    og = json.loads(read("images/og/index.json")) if exists("images/og/index.json") else {}
+    pages = []
+    for gid in ids:
+        slug = slugs.get(gid, gid)
+        info = og.get(slug, {})
+        esc = lambda s: html_escape(s, quote=True)
+        name = info.get("title") or re.sub(r"\s*\(.*?\)", "", info.get("local") or names[gid])      # the full name without a disambiguation in brackets: what people search for
+        local = name
+        when = ""
+        if info.get("date"):
+            y, mo, d = info["date"].split("-")
+            when = f" of {int(d)} {['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'][int(mo) - 1]} {y}"
+        pages.append({"path": f"switzerland/{slug}", "canonical": f"switzerland/{slug}/", "group": "switzerland",
+                      "title": esc(f"{name} from space | Tongues from Space"),
+                      "description": esc(f"{local} in Sentinel-2 satellite pictures since 2016, with 3D terrain and glacier data. Compare years, explore in 3D, share your visual."),
+                      "og_title": esc(f"{name} from space"),
+                      "og_description": esc(f"See how the tongue of {name} changed: a Sentinel-2 satellite picture for every summer since 2016, and the terrain in 3D."),
+                      "image": f"images/og/{slug}.jpg", "image_w": "1200", "image_h": "630",
+                      "image_alt": esc(f"{name} in a Sentinel-2 satellite picture{when}")})
+    return pages
+
+
+GLACIER_PAGES = swiss_glacier_pages()
+REGION_PAGES += GLACIER_PAGES
 
 
 def region_page(html, page):
@@ -264,7 +304,14 @@ def main():
                 for page in REGION_PAGES:      # the address of every page of a group that is not published (/svalbard/ belongs to the group "norway", so the group's name is not in it)
                     if not GROUP_ON[page["group"]]:
                         data = re.sub(rb"\s*<url>\s*<loc>[^<]*/" + re.escape(page["path"]).encode() + rb"/?</loc>\s*</url>", b"", data)
+                extra = "".join(f"  <url>\n    <loc>{SITE}/{p['canonical']}</loc>\n  </url>\n" for p in GLACIER_PAGES if GROUP_ON[p["group"]])      # the page of each glacier
+                data = data.replace(b"</urlset>", extra.encode("utf-8") + b"</urlset>")
             write(out, name, data)
+    og = os.path.join(ROOT, "images", "og")      # the social pictures of the glacier pages (scripts/build_og_images.py)
+    if os.path.isdir(og):
+        for f in sorted(os.listdir(og)):
+            if f.endswith(".jpg"):
+                write(out, f"images/og/{f}", read(f"images/og/{f}"))
     for folder, _, files in os.walk(os.path.join(ROOT, "images", "home")):      # the pictures and clips of the front page (the clips are named in its script, so they keep their names)
         for f in sorted(files):
             rel = os.path.relpath(os.path.join(folder, f), ROOT)

@@ -44,7 +44,7 @@ export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the has
   glacierPicked = OPEN_ON_GLACIER; OPEN_3D = FEATURES.view3d && OPEN_ON_GLACIER && (p.get('v') === '3d' || (PLAIN_START && !p.get('m')));
   HASH_TAB = { discover: 'look', fun: 'look', stats: 'figures', switzerland: 'swiss' }[p.get('t')] || null;
 })();
-export const writeHash = () => history.replaceState(null, '', 
+export const writeHash = () => history.replaceState(null, '', glacierPath(typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : state.glacier) +
   `#${REGION.id === 'ch' || PATH_REGION ? '' : `r=${REGION.id}&`}${typeof glacierPicked !== 'undefined' && !glacierPicked ? '' : `g=${state.glacier}&`}m=${state.mode}&a=${state.a}&b=${state.b}&from=${state.from}&to=${state.to}&one=${state.one}${typeof viewMode !== 'undefined' && viewMode === '3d' ? '&v=3d' : ''}`);      // v=3d: the link opens the 3D view
 export const okYears = () => YEARS.filter(y => state.available[y]);
 export const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);

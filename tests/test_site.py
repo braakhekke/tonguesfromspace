@@ -384,6 +384,27 @@ class TestRegions(SiteCase):
         self.assertIn("Swiss glaciers", page.evaluate("document.title"))
         self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/switzerland/")
 
+    def test_each_glacier_has_its_own_page_on_the_built_site(self):      # /switzerland/<slug>/: own title and picture for link previews; the page opens on its glacier and the address follows the chosen glacier
+        if not os.path.isfile(os.path.join(SITE, "switzerland", "aletsch", "index.html")):
+            self.skipTest("not the built site")
+        for slug, gid in (("aletsch", "aletsch"), ("findel", "sgi-B56-03"), ("fee", "sgi-B53-04"), ("trift", "trift")):      # the slug is the id except for findel and fee
+            page = self.open(path=f"/switzerland/{slug}/")
+            self.assertEqual((page.evaluate("REGION.id"), page.evaluate("state.glacier")), ("ch", gid), slug)
+            self.assertEqual(page.evaluate("location.pathname"), f"/switzerland/{slug}/")
+            self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), f"https://tonguesfromspace.org/switzerland/{slug}/")
+            self.assertIn(f"images/og/{slug}.jpg", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
+            self.assertEqual(page.evaluate("SITE_BASE"), "/", "files are fetched from the root, the page sits two folders deep")
+            self.assertClean()
+        page = self.open(path="/switzerland/aletsch/", hash="#g=gorner&m=single&one=2023")      # a link that names a glacier wins over the page it was opened on
+        self.assertEqual(page.evaluate("state.glacier"), "gorner")
+        page.evaluate("chooseGlacier('sgi-B53-04')")
+        page.wait_for_function("state.glacier === 'sgi-B53-04'")
+        page.evaluate("writeHash()")
+        self.assertEqual(page.evaluate("location.pathname"), "/switzerland/fee/", "the address follows the chosen glacier: a link that is shared opens its page")
+        page.evaluate("setGlacierPicked(false); writeHash()")
+        self.assertEqual(page.evaluate("location.pathname"), "/switzerland/", "no glacier chosen: the page of the region")
+        self.assertClean()
+
     def test_vatnajokull_hides_what_has_no_data_and_choosing_the_outlet_works(self):
         page = self.open("#r=is")
         self.assertTrue(page.is_visible("#viewGroup"), "the 3D view is offered (terrain from the ArcticDEM file)")
