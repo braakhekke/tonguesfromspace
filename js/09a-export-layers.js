@@ -13,7 +13,7 @@ import { layersOnCount } from './08-controls.js';
 
 /* The layers the download can draw. `image` / `video`: where it makes sense (a layer that differs by year cannot be one fixed pass over an animation). */
 const tipOf = g => g && (g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue);      // [lat, lng]
-export const EXPORT_LAYERS = [
+const EXPORT_LAYERS = [
   { id: 'newToggle', image: true, video: true, has: g => !!newOutlineGeom(g) },
   { id: 'pinToggle', image: true, video: true, has: g => !!tipOf(g) },
   { id: 'maxToggle', image: true, video: true, has: g => !!thickestSpot(g), credit: () => 'Thickest ice: ' + (thickestSpot(currentGlacier()).kind === 'model' ? 'Grab et al. 2021, SwissGlacierThickness-R2020 (CC BY 4.0)' : 'GLAMOS radar (CC BY 4.0)') },
@@ -156,7 +156,7 @@ export function previewSeen(kind, redraw){
   return null;
 }
 export const bgSeenOf = (...bgs) => new Set(bgs.flatMap(b => b ? [...b.seen] : []));
-export const hasBackground = (kind = 'image') => exportLayers(kind).some(l => l.bg);
+const hasBackground = (kind = 'image') => exportLayers(kind).some(l => l.bg);
 export const overlayCards = (kind = 'image') => exportLayers(kind).filter(l => l.over && l.card).map(l => l.card);      // legend cards of the overlay tiles (trails)
 export const perYearBackground = (kind = 'image') => exportLayers(kind).some(l => l.aerial);      // the background differs from picture to picture
 
@@ -283,7 +283,7 @@ function summaryNames(){
   const kind = videoKind(), ra = cachedRasters(kind, refreshSummary);      // a colour layer with no picture for this year (speed) is not listed
   return [...($('oldToggle').checked && hasOldOutline(currentGlacier()) ? [labelOf('oldToggle')] : []), ...exportLayers(kind).filter(l => !l.raster || l.native || ra.some(r => r.id === l.id)).map(l => labelOf(l.id))];
 }
-export function summaryText(){
+function summaryText(){
   const names = summaryNames();
   if (viewMode !== '3d' && !layersOn()) return 'Map layers: not included';
   return names.length ? `Layers: ${names.join(', ')}` : 'No map layers';

@@ -60,7 +60,7 @@ void main(){
   }
   if (uSplit.x >= 0.0 && abs(pos - at) < 1.5) c = vec3(1.0);      /* the line between the two years */
   gl_FragColor = vec4(c, 1.0); }`;
-export let meshWideOk;
+let meshWideOk;
 export const meshWide = () => meshWideOk !== undefined ? meshWideOk : (meshWideOk = (() => { try { return !!document.createElement('canvas').getContext('webgl').getExtension('OES_element_index_uint'); } catch { return false; } })());      // 32-bit indices: the fine mesh
 export function startViewer(canvas, heights, texCanvas, nA, nB, up, BACK = V3D.BACK, distMul = 1, half = V3D.HALF){
   const HALF = half, SC = HALF / V3D.HALF, gl = canvas.getContext('webgl', {antialias: true}); gl.getExtension('OES_standard_derivatives');      // thin contour lines of the tongue loading

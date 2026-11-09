@@ -29,7 +29,6 @@ function decodeLzw16(data, lv, stretch){
     rgba[i * 4] = (a - lo[0]) / Math.max(1, hi[0] - lo[0]) * 255; rgba[i * 4 + 1] = (b - lo[1]) / Math.max(1, hi[1] - lo[1]) * 255; rgba[i * 4 + 2] = (c - lo[2]) / Math.max(1, hi[2] - lo[2]) * 255; rgba[i * 4 + 3] = 255; }
   return new ImageData(rgba, w, h);
 }
-export { lzwBytes };
 export class Cog {
   constructor(url, opt = {}){ this.url = url; this.stretch = opt.stretch || null;      // stretch [[lo x3], [hi x3]]: the 16-bit file is shown as near infrared, red, green with it
     this.bitmaps = new Map(); this.levels = null; this.pending = new Map(); this.opening = null; }

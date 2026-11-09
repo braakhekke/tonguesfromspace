@@ -22,7 +22,7 @@ function note(c){
   const y = +$('demYear').value, k = kindOf(c, y), dt = dateOf(c, y);
   $('demNote').innerHTML = `${y}: ${k || 'surface'}${dt ? ', the surface on ' + dt : ''}. ${DEM.FORMAT_TEXT[$('demFmt').value]} Heights in metres above sea level as in swissALTI3D, coordinates LV95 (EPSG:2056). A model, not a measurement, except on the days and cells a survey covers. For non-commercial use; how it was made and the licences: <a href="provenance.html?id=${c.id}" target="_blank" rel="noopener">field notes</a>.`;
 }
-export async function syncDemTile(){            // called when the 3D view opens or closes (open3D, close3D): the tile shows in 3D for a glacier that has yearly surfaces
+async function syncDemTile(){            // called when the 3D view opens or closes (open3D, close3D): the tile shows in 3D for a glacier that has yearly surfaces
   const btn = $('demBtn'), run = ++gen, g = viewMode === '3d' ? currentGlacier() : null, c = g ? await surfacesOf(g).catch(() => null) : null;
   if (run !== gen) return;
   const tip = 'The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)';
