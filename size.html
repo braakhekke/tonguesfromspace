@@ -361,7 +361,7 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
         <button type="button" id="s3ZoomOut" aria-label="Zoom out" title="Zoom out">−</button>
         <button type="button" id="s3ZoomIn" aria-label="Zoom in" title="Zoom in">+</button>
         <span class="sep"></span>
-        <button type="button" id="s3Again" aria-label="Drop again" title="Drop the ice balls again"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="15.5" r="6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/></svg><span class="lbl">Drop again</span></button>
+        <button type="button" id="s3Again" aria-label="Drop again" title="Drop the ice cubes again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 9.5l5.5 2.8v6L12 21l-5.5-2.7v-6zM6.5 12.3L12 15l5.5-2.7M12 15v6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/></svg><span class="lbl">Drop again</span></button>
         <button type="button" id="s3OnGl" aria-label="On their glaciers" title="Put the ice cubes on their own glaciers (clears the city)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 11.5L12 4l8.5 7.5"/><path d="M5.5 10v10h13V10"/></svg><span class="lbl">On their glaciers</span></button>
       <span class="sep"></span><button type="button" class="lay-btn" aria-label="Map layers" aria-expanded="false" title="Layers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button><span class="sep"></span><button type="button" class="mtool dock-fs" aria-label="Full screen" title="Full screen (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
       </div></div></div>
@@ -1962,6 +1962,7 @@ function syncAllUi() {
 function syncShapeUi() {
   syncAllUi();
   $('hint3dTxt').textContent = `Drag an ${SHP().one} to throw it`;
+  $('s3Again').querySelector('svg').innerHTML = S3.shape === 'ball' ? '<circle cx="12" cy="15.5" r="6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/>' : '<path d="M12 9.5l5.5 2.8v6L12 21l-5.5-2.7v-6zM6.5 12.3L12 15l5.5-2.7M12 15v6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/>';
   $('s3Again').title = `Drop the ${SHP().many} again`; $('s3OnGl').title = `Put the ${SHP().many} on their own glaciers (clears the city)`;
   document.querySelectorAll('#shapeSw button[data-shape]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === S3.shape))); $('shapeSw').dataset.shape = S3.shape; $('shapeTrack').setAttribute('aria-checked', String(S3.shape === 'ball'));
   if (mode3d) for (const id of ['introText', 'introMobile']) $(id).textContent = intro3d();
