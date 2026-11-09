@@ -597,6 +597,9 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .tab-panel[hidden]{display:none}
 .cb-links{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
 .cb-links .cb{flex:0 0 auto;padding:5px 10px;font-size:12.5px;border-radius:0}
+.story details.sources{padding:20px 0;margin:0;border-top:1px solid var(--rule)}      /* Sources: a folded block of its own above About, the same on the explorer and the size page */
+.story details.sources > summary .card-h{margin:0}
+.story details.sources[open] > summary{margin-bottom:12px}
 .about-wrap{margin-top:auto;padding-top:0}      /* with white space left in the panel, the invitation and About stay at the bottom */
 .story > .tab-panel{margin-bottom:22px}
 .gh-invite{display:flex;gap:10px;align-items:flex-start;text-decoration:none;color:var(--rock);background:var(--firn);border-radius:0;padding:10px 12px;margin:14px 0 0}
@@ -966,6 +969,7 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .lb-more svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;margin-bottom:1px}
   .layerbox.more .lb-more{display:flex}
   .fyi-slot{--slot-pad:18px;display:block;order:4;padding:0 18px 32px}
+  .story details.sources > summary{padding:10px 0}
   .story .about-wrap .social,.story .about-wrap .gh-invite{display:none}      /* on phones they sit below the For Your Ice box (.phone-invite) */
   .phone-invite .gh-invite{text-align:center;justify-content:center;align-items:center;margin-top:10px}
   .phone-invite .social{margin-top:14px}

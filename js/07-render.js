@@ -481,7 +481,10 @@ export const landsatAbout = rule => `<h4>Before 2016: Landsat</h4>
 /* The social links and the GitHub invitation: at the foot of the About block; on phones they sit below the For Your Ice box (js/09-phones.js fills #fyiSlot with them; css hides the other copy) */
 export const inviteHtml = () => `<div class="social" aria-label="Follow Tongues from Space"><a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.8" cy="7.2" r="1.2"/></svg></a><a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.5a3 3 0 1 1-3-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4c.4 2.4 1.8 3.8 4.2 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></a><button type="button" class="social-share" aria-label="Share this view" title="Share this view: link, or the share sheet of your device"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.1 10.9l7.8-3.8M8.1 13.1l7.8 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
       <div class="gh-invite"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg><span>For questions, remarks, bugs, find me here.<em><a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">github.com/braakhekke/<wbr>tonguesfromspace</a></em></span></div>`;
-export const aboutFrame = chapters => `    <div class="about-wrap">
+/* Sources: a folded block of its own at the foot of the story, above About (as on the size page); the small numbers in the text jump to its entries. */
+export const sourcesBlock = () => `<details class="sec sources coll" id="sources"><summary><div class="card-h">Sources</div></summary><ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}${dynSources.map((h, i) => `<li id="fn-g${i + 1}" title="Click to go back to the text">${h}</li>`).join('')}</ol></details>`;
+export const aboutFrame = chapters => `    ${sourcesBlock()}
+    <div class="about-wrap">
     <details class="about">
       <summary>About Tongues from Space</summary>
 ${chapters}
@@ -833,9 +836,6 @@ export function aboutChaptersCh(){
         <p>Where a figure is an estimate, the page says so next to it.</p>
       
       </div></details>
-      <details class="about-ch" name="aboutch" id="ch-9"><summary>Sources</summary><div class="about-sec">
-        <ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}${dynSources.map((h, i) => `<li id="fn-g${i + 1}" title="Click to go back to the text">${h}</li>`).join('')}</ol>
-      </div></details>
       <p class="about-group">Behind the site</p>
       <details class="about-ch" name="aboutch" id="ch-21"><summary>About me</summary><div class="about-sec">
         <p>I am Jochem Braakhekke, from the Netherlands. The mountains became my home ground. I have worked on glaciers around the globe and guided polar expeditions in both the Arctic and the Antarctic.</p>
@@ -1025,7 +1025,7 @@ export const SOURCES = {
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`
 };
 export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj)_/.test(k));      // the sources of the region, in the order of the list in About
-/* a small raised number in the text; the click opens About, the chapter Sources and shows the entry (a back-link returns to the text) */
+/* a small raised number in the text; the click opens the Sources block and shows the entry (a back-link returns to the text) */
 export let fnSeq = 0;
 /* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
 export let dynSources = [];
@@ -1047,9 +1047,9 @@ export const fn = k => `<sup class="fn"><a href="#fn-${k}" id="fnr-${k}-${++fnSe
 document.addEventListener('click', e => {
   const a = e.target.closest && e.target.closest('a[data-fn]'); if (!a) return;
   e.preventDefault();
-  const about = document.querySelector('details.about'), ch = document.getElementById('ch-9'), li = document.getElementById('fn-' + a.dataset.fn);
-  if (!about || !ch || !li) return;
-  about.open = true; ch.open = true;
+  const box = document.getElementById('sources'), li = document.getElementById('fn-' + a.dataset.fn);
+  if (!box || !li) return;
+  box.open = true;
   document.querySelectorAll('#story .src-list li.hit').forEach(x => x.classList.remove('hit'));
   li.classList.add('hit'); li.dataset.back = a.id;
   li.scrollIntoView({block: 'center', behavior: 'smooth'});

@@ -226,7 +226,6 @@ export function aboutChaptersIc(){
     ch('ch-5', 'Which glaciers, and why only the tongue', icWhyOnly()),
     ch('ch-6', 'Glacier figures', icFigures()),
     ch('ch-10', 'The 3D view', icView3d()),
-    ch('ch-12', 'Footpaths, Street View and names', icOutdoors()),
-    ch('ch-9', 'Sources', `<ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}${dynSources.map((h, i) => `<li id="fn-g${i + 1}" title="Click to go back to the text">${h}</li>`).join('')}</ol>`)
+    ch('ch-12', 'Footpaths, Street View and names', icOutdoors())
   ].join('\n      ');
 }
