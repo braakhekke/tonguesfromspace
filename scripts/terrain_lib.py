@@ -28,8 +28,37 @@ def missing():
     return [i for i, r in records().items() if not r.get('parent') and (i not in man or not os.path.exists(os.path.join(OUT, man[i])))]
 
 
+def _sub_layers(head, count):
+    """layers stored as the difference to layer 0 (the heights): the year surfaces and the bed; not the ice change (head.dem) and not the lake flags"""
+    first = 1 + (1 if head.get('dem') else 0); ny = len((head.get('yearly') or {}).get('years', [])) if head.get('yearly') else 0
+    return list(range(first, first + ny + (1 if head.get('bed') else 0)))
+
+
+def pack(head, payload):
+    """legacy payload (zlib of int16 layers, rows as differences) -> compact payload (head['enc'] = 2): the surfaces and the bed as difference to the heights, low bytes then high bytes, zlib. Lossless."""
+    import numpy as np, zlib
+    a = np.frombuffer(zlib.decompress(payload), '<i2').copy(); n = (head['nA'] + 1) * (head['nB'] + 1); L = a.reshape(-1, n)
+    for k in _sub_layers(head, len(L)):
+        if k < len(L): L[k] = (L[k].astype(np.int32) - L[0]).astype('<i2')
+    u = L.ravel().view(np.uint8); head['enc'] = 2
+    return zlib.compress(np.concatenate([u[0::2], u[1::2]]).tobytes(), 9)
+
+
+def unpack(head, payload):
+    """compact payload -> legacy payload (what every reader below expects); a legacy file passes through"""
+    import numpy as np, zlib
+    if head.get('enc') != 2: return payload
+    b = np.frombuffer(zlib.decompress(payload), np.uint8); h = len(b) // 2; a = np.empty(len(b), np.uint8); a[0::2] = b[:h]; a[1::2] = b[h:]
+    L = a.view('<i2').reshape(-1, (head['nA'] + 1) * (head['nB'] + 1)).copy()
+    for k in _sub_layers(head, len(L)):
+        if k < len(L): L[k] = (L[k].astype(np.int32) + L[0]).astype('<i2')
+    return zlib.compress(L.tobytes(), 1)
+
+
 def write_bundle(gid, head, payload):
-    """TFS1 + header length + header (JSON) + payload; the name carries the hash of the content; older files of the glacier go; the manifest names the new one"""
+    """TFS1 + header length + header (JSON) + payload; the name carries the hash of the content; older files of the glacier go; the manifest names the new one.
+    The caller passes the legacy payload (zlib of int16 layers); it is stored compact (pack)."""
+    head = {k: v for k, v in head.items() if k != 'enc'}; payload = pack(head, payload)
     hb = json.dumps(head, separators=(',', ':')).encode(); data = b'TFS1' + struct.pack('<I', len(hb)) + hb + payload
     name = f'{gid}.{hashlib.sha1(data).hexdigest()[:8]}.bin'; os.makedirs(OUT, exist_ok=True)
     for f in os.listdir(OUT):
@@ -54,8 +83,8 @@ def strip_problems(gid, h=None):
 
 def read(name):
     """(header, payload) of a file; the payload is the zlib stream"""
-    d = open(os.path.join(OUT, name), 'rb').read(); n = struct.unpack('<I', d[4:8])[0]
-    return json.loads(d[8:8 + n]), d[8 + n:]
+    d = open(os.path.join(OUT, name), 'rb').read(); n = struct.unpack('<I', d[4:8])[0]; head = json.loads(d[8:8 + n])
+    return head, unpack(head, d[8 + n:])
 
 
 def base_heights(head, payload):

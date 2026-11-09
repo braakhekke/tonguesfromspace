@@ -386,10 +386,18 @@ export const surfaceFor = (g, heights, dem, y) => { const f = dem && iceShare(g,
    itself stays in the browser until the manifest names another. Without a file the page builds all of it from the terrain tiles, as before. */
 export let terrainManifest = null; const bundles = new Map();
 export const loadManifest = () => terrainManifest || (terrainManifest = fetch(siteFile('data/terrain/manifest.json'), {cache: 'no-cache'}).then(r => r.ok ? r.json() : {}).catch(() => ({})));
+export async function inflateLayers(buf, hl, head){      // the layers as int16; head.enc 2 (terrain_lib.pack): low bytes then high bytes, surfaces and bed stored as the difference to the heights
+  const raw = new Uint8Array(await new Response(new Blob([new Uint8Array(buf, 8 + hl)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+  if (head.enc !== 2) return new Int16Array(raw.buffer, raw.byteOffset, raw.length >> 1);
+  const N = raw.length >> 1, all = new Int16Array(N); for (let i = 0; i < N; i++) all[i] = raw[i] | raw[N + i] << 8;
+  const n = (head.nA + 1) * (head.nB + 1), first = head.dem ? 2 : 1, cnt = (head.yearly ? head.yearly.years.length : 0) + (head.bed ? 1 : 0);
+  for (let k = first; k < first + cnt && (k + 1) * n <= N; k++) for (let i = 0; i < n; i++) all[k * n + i] += all[i];
+  return all;
+}
 export async function parseBundle(buf){
   const dv = new DataView(buf); if (dv.getUint32(0, false) !== 0x54465331) throw new Error('not a terrain file');      // "TFS1"
   const hl = dv.getUint32(4, true), head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl)));
-  const all = new Int16Array(await new Response(new Blob([new Uint8Array(buf, 8 + hl)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+  const all = await inflateLayers(buf, hl, head);
   const W = head.nB + 1, n = (head.nA + 1) * W, undo = (off, scale, add) => {            // rows are stored as differences: add them up again
     const out = new Float32Array(n); for (let j = 0; j <= head.nA; j++) { let acc = 0; for (let i = 0; i < W; i++) { acc = (acc + all[off + j * W + i]) << 16 >> 16; out[j * W + i] = acc * scale + add; } } return out; };
   let off = n; const delta = head.dem ? undo(off, 0.01, 0) : null; if (head.dem) off += n;

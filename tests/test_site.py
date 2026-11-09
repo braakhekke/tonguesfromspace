@@ -744,7 +744,8 @@ class TestIcelandTerrainData(unittest.TestCase):
         hl = struct.unpack("<I", raw[4:8])[0]
         head = json.loads(raw[8:8 + hl])
         n = (head["nA"] + 1) * (head["nB"] + 1)
-        body = zlib.decompress(raw[8 + hl:])
+        import sys; sys.path.insert(0, os.path.join(ROOT, "scripts")); import terrain_lib as _tl
+        body = zlib.decompress(_tl.unpack(head, raw[8 + hl:]))
         y = head["yearly"]
         self.assertEqual(y["years"][0], 2011)      # the first summer strip over the outlet is from July 2011
         self.assertEqual(len(y["kind"]), len(y["years"]))

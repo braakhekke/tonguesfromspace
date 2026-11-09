@@ -6,10 +6,18 @@ window.DEM = (() => {
   const R = 6378137, NODATA = -9999;
   const lv95 = (lat, lon) => { const p = (lat * 3600 - 169028.66) / 10000, l = (lon * 3600 - 26782.5) / 10000;      // swisstopo approximate formulas, WGS84 to LV95 (error below 0.1 m), as scripts/build_dem_change.py
     return [2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3, 1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3]; };
+  async function inflateLayers(buf, hl, head){      // the layers as int16; head.enc 2 (terrain_lib.pack): low bytes then high bytes, surfaces and bed stored as the difference to the heights
+    const raw = new Uint8Array(await new Response(new Blob([new Uint8Array(buf, 8 + hl)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+    if (head.enc !== 2) return new Int16Array(raw.buffer, raw.byteOffset, raw.length >> 1);
+    const N = raw.length >> 1, all = new Int16Array(N); for (let i = 0; i < N; i++) all[i] = raw[i] | raw[N + i] << 8;
+    const n = (head.nA + 1) * (head.nB + 1), first = head.dem ? 2 : 1, cnt = (head.yearly ? head.yearly.years.length : 0) + (head.bed ? 1 : 0);
+    for (let k = first; k < first + cnt && (k + 1) * n <= N; k++) for (let i = 0; i < n; i++) all[k * n + i] += all[i];
+    return all;
+  }
   async function parse(buf){      // as parseBundle() in js/11-view3d.js: heights and the surface of every year
     const dv = new DataView(buf); if (dv.getUint32(0, false) !== 0x54465331) throw new Error('not a terrain file');
     const hl = dv.getUint32(4, true), head = JSON.parse(new TextDecoder().decode(new Uint8Array(buf, 8, hl)));
-    const all = new Int16Array(await new Response(new Blob([new Uint8Array(buf, 8 + hl)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
+    const all = await inflateLayers(buf, hl, head);
     const W = head.nB + 1, n = (head.nA + 1) * W, undo = (off, add) => { const out = new Float32Array(n); for (let j = 0; j <= head.nA; j++) { let acc = 0; for (let i = 0; i < W; i++) { acc = (acc + all[off + j * W + i]) << 16 >> 16; out[j * W + i] = acc * 0.1 + add; } } return out; };
     let off = n; if (head.dem) off += n;
     return {head, surf: new Map(head.yearly.years.map((y, i) => [y, undo(off + i * n, head.h0)]))};
