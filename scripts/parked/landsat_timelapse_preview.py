@@ -2,11 +2,11 @@
 """A preview of the Landsat years of one glacier as the REAL site shows them in map view (single-year mode, one capture per year, Playwright), put together as an animated GIF and a contact sheet
 in scripts/.placement/timelapse-<site id>/ (git-ignored). For the review of a Landsat selection; nothing here is published and no data is written.
 
-  python3 scripts/landsat_timelapse_preview.py gorner [--site-id gorner] [--years 1984 1985 ...]      (needs: python3 scripts/serve.py on :8000, playwright + chromium)
+  python3 scripts/parked/landsat_timelapse_preview.py gorner [--site-id gorner] [--years 1984 1985 ...]      (needs: python3 scripts/serve.py on :8000, playwright + chromium)
 """
 import argparse, json, os, sys
 from concurrent.futures import ThreadPoolExecutor
-HERE = os.path.dirname(os.path.abspath(__file__)); ROOT = os.path.dirname(HERE)
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); ROOT = os.path.dirname(HERE)      # HERE = scripts/ (parked one folder down)
 
 
 def shoot(args):

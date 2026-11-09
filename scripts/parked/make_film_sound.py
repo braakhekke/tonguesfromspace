@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 """Synthesises the sound of the teaser "Where the ice was" (teaser/work/film/sound.wav): wind, one soft shutter tick per year in shot 3, a quiet tone under
 the slider and a few sparse notes. Nothing is sampled: every sound is made here, so there is nothing to license. Timings follow CUT in make_film.py.
-    python3 scripts/make_film_sound.py && python3 scripts/make_film.py --assemble --audio teaser/work/film/sound.wav"""
+    python3 scripts/parked/make_film_sound.py && python3 scripts/make_film.py --assemble --audio teaser/work/film/sound.wav"""
 import os, sys, wave
 import numpy as np
-HERE = os.path.dirname(os.path.abspath(__file__)); sys.path.insert(0, HERE)
+HERE = os.path.dirname(os.path.dirname(os.path.abspath(__file__))); sys.path.insert(0, HERE)      # parked one folder down: make_film.py lives in scripts/
 import make_film as mf
 
 SR = 44100

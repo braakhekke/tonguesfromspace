@@ -2,12 +2,12 @@
 """A contact sheet of the Landsat pictures of some glaciers -> scripts/.landsat-overview.html (one page, thumbnails embedded, opens in any browser).
 
 Per glacier a row of years (1984 to 2015): the thumbnail of the natural colour picture with its year, date, satellite, cloud and snow share (QA_PIXEL), and a grey box for a year without a picture.
-Usage: python3 scripts/landsat_overview.py [id id ...]       (default: the ten Swiss glaciers)   [--style natural|false1|false2|false3]
+Usage: python3 scripts/parked/landsat_overview.py [id id ...]       (default: the ten Swiss glaciers)   [--style natural|false1|false2|false3]
 """
 import argparse, base64, html, io, json, os, sys
 from PIL import Image
 
-ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 SWISS = ['aletsch', 'gorner', 'fiescher', 'unteraar', 'corbassiere', 'zmutt', 'rhone', 'sgi-B56-03', 'sgi-B53-04', 'trift']
 
 

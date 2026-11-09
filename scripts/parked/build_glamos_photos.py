@@ -12,11 +12,11 @@ For every photograph that shows the glacier the script prints what can be checke
 Old and new photographs of one site share the camera position and azimuth in the table (the new one was taken from the old spot); they are paired by site number.
 
 Standard library only; the ground comes from the swissALTI3D tiles in scripts/.dem-cache (see build_sightline.py).
-Usage: python3 scripts/build_glamos_photos.py [--id B36-26] [--fov 60] [--all]
+Usage: python3 scripts/parked/build_glamos_photos.py [--id B36-26] [--fov 60] [--all]
 """
 import argparse, html, json, math, os, re, sys, urllib.request
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))      # parked one folder down: build_photos.py lives in scripts/
 import build_photos as bp
 
 URL = 'https://doi.glamos.ch/repeatphoto/index.html'

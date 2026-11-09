@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """What visitors click (js/track.js -> /ev -> Workers Analytics Engine, dataset tsf_events).
 
-    CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... python3 scripts/clicks_report.py [--days 30] [--glacier aletsch]
+    CLOUDFLARE_ACCOUNT_ID=... CLOUDFLARE_API_TOKEN=... python3 scripts/parked/clicks_report.py [--days 30] [--glacier aletsch]
 
 The token needs Account > Account Analytics > Read (a separate token from the deploy one). Prints the top controls overall, per glacier,
 per device and per country. Counts use SUM(_sample_interval), so they stay right if Cloudflare ever samples. Standard library only."""
