@@ -40,6 +40,26 @@ The explorer's LCP varied between runs (6.0, 2.9, 5.9 s); the other pages did no
 
 No WebPageTest API key was available in the session (none set in the environment), so no WebPageTest run was made. To add it: run the same three URLs on webpagetest.org with a mobile profile (for example Moto G4, 4G), first view only, and record LCP, bytes in and requests.
 
+## Explorer after the terrain repack (2026-11-09)
+
+Live site after the deploy of `dd544a99` (compact terrain files, `enc = 2`); same method, same page, three cold mobile runs, measured about 20 minutes after the deploy finished, on an idle machine.
+
+| Explorer `/switzerland/` | Score | LCP | LCP range | FCP | TBT | CLS | Transfer | Requests |
+|---|---|---|---|---|---|---|---|---|
+| Before (`c3a88ea5`) | 50 | 5.9 s | 2.9–6.0 s | 2.4 s | 813 ms | 0.06 | 18.49 MB | 157 |
+| After (`dd544a99`) | 51 | 5.8 s | 5.8–6.0 s | 2.3 s | 964 ms | 0.06 | 11.94 MB | 157 |
+
+- **Transfer fell by 6.55 MB (35 %)**, which is the Aletsch terrain file: 8.40 MB (`B36-26.f285ae5b.bin`) became 1.82 MB (`B36-26.63b1b37f.bin`, 1.90 MB on the wire in the check). The biggest item on the page is now the teaser video (3.69 MB).
+- **LCP did not move.** The median is 5.8 s against 5.9 s, and the "before" median came from runs of 6.0, 2.9 and 5.9 s, so the one fast run is noise, not a baseline. The LCP element is `#map`, and under Lighthouse's simulated throttling it is not waiting for the terrain file.
+- **TBT rose from 813 to 964 ms** (median of three, not tested for significance). The compact format is decoded in the page (`inflateLayers` in `js/11-view3d.js`, a loop over every cell of the layers); that is a plausible cause, not a measured one.
+- Request counts are unchanged at 157.
+
+## What to look at next (from the numbers above)
+
+- The teaser video is now the largest download of the explorer on a first visit (3.69 MB, type Media).
+- swisstopo map tiles were 4.78 MB of the baseline explorer and are not ours to shrink.
+- If decode time matters, the loop in `inflateLayers` could move to a worker or run on a typed array in one pass; measure TBT again before and after.
+
 ## For comparison later
 
-A repack of the terrain files (compact format, header `enc = 2`, uncommitted on 2026-11-09 02:05) makes the Aletsch file 1.82 MB instead of 8.39 MB; `data/terrain` on disk went from 146 MB to 80 MB. Re-measure the explorer after it is deployed.
+The repack was committed and deployed later the same day; see the section above. Home and size were not measured again (they do not load terrain files).
