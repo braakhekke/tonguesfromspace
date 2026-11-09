@@ -138,9 +138,7 @@ html.embed .embed-city #cityMsg{margin:0 0 6px;padding:6px 10px;background:var(-
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){.mapbar .mtool{display:inline-flex}}
 /* phones, portrait: the map stays pinned at the top; the choices scroll underneath it */
 @media (max-width:720px) and (orientation:portrait){
-  .stage{position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:7;height:42vh;height:42svh;min-height:240px;border-radius:var(--r-lg,16px);box-shadow:0 6px 16px rgba(10,27,51,.22)}      /* a gap above, so the picture never touches the top edge of the screen */
-  body::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 10px);background:var(--firn);z-index:8;pointer-events:none;opacity:0}      /* hides what scrolls through that gap (shown once the page has scrolled) */
-  body.scrolled::before{opacity:1}
+  .stage{position:sticky;z-index:7;height:42vh;height:42svh;min-height:240px;border-radius:var(--r-lg,16px)}      /* top, height and the cover band come from css/style.css (the same as the explorer) */
   .controls{position:relative;z-index:1;padding-top:18px}
   .story{position:relative;z-index:1}
 }
@@ -254,7 +252,7 @@ body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:6
   .mhead .back-glacier,.controls .back-glacier,#introText{display:none!important}      /* phone: no back link, no intro line */
   .controls .brand-top{display:none}      /* the title is in the header above the picture */
   .controls .brand{padding-top:0}
-  .stage:not(.is-full){top:0;height:52vh;height:52svh;min-height:300px}      /* svh: the picture keeps its size while the browser bar slides in and out; top 0: no strip above it for the text to show in */
+  .stage:not(.is-full){height:52vh;height:52svh;min-height:300px}      /* svh: the picture keeps its size while the browser bar slides in and out */
   .controls{padding-top:0}
   /* Save and share open: the picture is pinned above the pane (css/style.css), everything else in the page stays out of the way */
   body.pane-open .mhead,body.pane-open .controls,body.pane-open .story,body.pane-open .fyi-slot{visibility:hidden}
@@ -274,7 +272,6 @@ body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:6
 .welcome p{margin:0 0 10px;font-size:15px;line-height:1.45;color:var(--ink)}
 .welcome button{margin-top:8px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:inherit;font-size:15px;font-weight:700;padding:11px 28px;cursor:pointer}
 
-@media (max-width:720px){.stage:not(.is-full){box-shadow:0 -16px 0 16px var(--firn),var(--lift)}}      /* phone: a band in the page colour above and beside the picture, so the text scrolling under it does not show in the 8 px above it or the 16 px at its sides */
 @media (max-width:720px){#story{padding-bottom:0}.fyi-slot{margin-top:18px}}      /* phone: as much space under the Sources row (30 px) as above About */
 @media (max-width:720px),(max-width:950px) and (orientation:landscape) and (max-height:520px){#story .fyi-by{display:none}}
 
