@@ -1285,7 +1285,7 @@ function makeSkirt(pos, M, S) {
 const lv95 = (lat, lon) => { const p = (lat * 3600 - 169028.66) / 10000, l = (lon * 3600 - 26782.5) / 10000; return [2600072.37 + 211455.93 * l - 10938.51 * l * p - 0.36 * l * p * p - 44.54 * l ** 3, 1200147.07 + 308807.95 * p + 3745.25 * l * l + 76.63 * p * p - 194.56 * l * l * p + 119.79 * p ** 3]; };      // swisstopo's approximate formulas WGS84 to LV95 (about 1 m)
 const sceneLV95 = (x, z) => { const X = mx0 + x / K, Y = my0 - z / K; return lv95((2 * Math.atan(Math.exp(Y / R_EARTH)) - Math.PI / 2) * 180 / Math.PI, X / R_EARTH * 180 / Math.PI); };
 /* the lake floors (swissBATHY3D, 20 m grids from scripts/build_lake_depth.py): the lakes whose box meets the map are read, and the depth of every lake cell of the map is the water level (the flat height) minus the floor */
-const USE_LAKE_DEPTH = true;      // back on (owner, 2026-11-06): block diagram and floating cubes use the lake floors; the files are local only (not in the public build) until the terms of swissBATHY3D are read (docs/sources/ch-swissbathy3d.md)
+const USE_LAKE_DEPTH = true;      // back on (owner, 2026-11-06): block diagram and floating cubes use the lake floors; the files are in the public build since the owner read the terms of swissBATHY3D (2026-11-09; docs/sources/ch-swissbathy3d.md, credit "Lake floors: swissBATHY3D, Federal Office of Topography swisstopo")
 async function lakeDepths(id) {
   if (!USE_LAKE_DEPTH) return;
   const r0 = await fetch('data/lake-depth/index.json'); if (!r0.ok) return; const idx = await r0.json();

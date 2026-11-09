@@ -393,6 +393,9 @@ def main():
     sf = os.path.join(ROOT, "data", "special-flights")      # swisstopo special flights (scripts/build_special_flights.py): only the per-glacier json files and index.json (where each flight has data, the addresses of swisstopo's files, the field-notes chapter); the pictures are read live from swisstopo. Not hashed
     if os.path.isdir(sf):
         shutil.copytree(sf, os.path.join(out, "data", "special-flights"), ignore=shutil.ignore_patterns("*.webp"))
+    ld = os.path.join(ROOT, "data", "lake-depth")      # lake floors of the size page (swissBATHY3D, scripts/build_lake_depth.py; terms read by the owner, ledger docs/sources/ch-swissbathy3d.md): index.json and one .bin per lake, asked for by name, not hashed
+    if os.path.isdir(ld):
+        shutil.copytree(ld, os.path.join(out, "data", "lake-depth"))
     terrain = os.path.join(ROOT, "data", "terrain")
     if os.path.isdir(terrain):
         shutil.copytree(terrain, os.path.join(out, "data", "terrain"))
