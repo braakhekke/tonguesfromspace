@@ -1074,6 +1074,7 @@ body.has-full{overflow:hidden}
   body:not(.has-full)::before{content:'';position:fixed;z-index:5;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 10px + var(--hdr,60px));background:var(--firn);pointer-events:none}      /* a real cover over the status bar and the gap above the picture: the box-shadow band was not drawn there on iPhone, so scrolled text showed through (explorer and size page share it) */
   .story{overflow:visible}      /* the page scrolls, not the story: a scrolling story made the sticky card headers stick to nothing */
   details.coll[open] > summary{top:calc(env(safe-area-inset-top,0px) + 10px);z-index:6;box-sizing:border-box;min-height:44px;padding:0 14px;border-radius:12px;box-shadow:0 1px 6px rgba(10,27,51,.12)}      /* the header bar of an open card sticks in a slot above the picture (the picture sits below it, --hdr high), over the page-colour cover */
+  .tilt-hint{display:none!important}      /* phones: no "Alt (Option) + drag up" hint; the 3D button is used there */
   .stage.mini:not(.is-full){height:22vh;height:22svh;min-height:150px}
   .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d):not(.notice):not(.tags):not(#view3d){display:none!important}
   .stage.mini .mapbar,.stage.mini .pick-hint,.stage.mini .v3d-north{display:none!important}      /* size page: its docks and hint sit inside the views */
