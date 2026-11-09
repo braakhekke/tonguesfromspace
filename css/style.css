@@ -21,8 +21,7 @@ button,select,input{font:inherit;color:inherit}
 .controls{--pad:20px;background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
 .brand-top{display:flex;align-items:center;gap:12px;margin:0 0 8px}
 .brand .brand-top h1{margin:0;line-height:1.1}   /* two lines of 20 px x 1.1 = the height of the logo (46 x 44 px) */
-.home-link{color:inherit;text-decoration:none;cursor:pointer}
-.home-link:hover .t1,.home-link:hover{opacity:.85}
+.home-link{color:inherit;text-decoration:none}      /* the title is plain text now; only the region button next to it is interactive */
 .brand h1 .t1{display:block;white-space:nowrap;color:#0A1B33}
 .brand h1 .t2{display:block;color:#0A1B33}
 .brand{position:relative}

@@ -60,13 +60,14 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
   .closing .wrap{flex-direction:column;align-items:stretch;gap:22px}
   .closing .btn-red.go{width:100%;justify-content:center;height:58px;font-size:16px;border:2px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}}
 .bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap}
+.bar nav .nav-home{display:none}      /* phones only: the logo alone is not an obvious way back */
 /* phones (iPhone 16: 393 px wide): the same header and footer as the home page */
 @media (max-width:640px){
   .bar .wrap,footer .wrap{padding:0 14px}
   .bar .wrap{height:52px;gap:10px}
   .brand{gap:10px}.brand img{height:24px}
   .bar .brand b{display:none}
-  .bar nav{gap:14px}.bar nav a{font-size:12px}
+  .bar nav{gap:14px}.bar nav a{font-size:12px}.bar nav .nav-home{display:inline-flex}
   footer{padding-bottom:max(24px,env(safe-area-inset-bottom))}
   footer .wrap{gap:16px}
   footer .brand{margin-bottom:8px}
@@ -94,15 +95,16 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
 .item h2{margin:0;font-size:13.5px;line-height:1.25;font-weight:700;letter-spacing:-.01em;color:var(--ink)}
 .item .kind{margin:0;font-size:10.5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--moraine);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}      /* the kind line is quiet: one grey line */
 .item .by{margin:0;font-size:11.5px;line-height:1.3;color:var(--moraine)}
-.item .acts{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
-.item .acts .dl{margin-top:0}
-.item button.dl{cursor:pointer;font-family:inherit}
-.item .dl{display:inline-block;margin-top:6px;padding:5px 12px;border:0;border-radius:var(--r-pill);background:var(--firn);box-shadow:none;font-size:11.5px;font-weight:600;color:var(--rock);text-decoration:none}      /* Download and Share are pills, the last one dark */
-.item .dl:hover{background:var(--rule)}
-.item .like{display:inline-flex;align-items:center;gap:5px;margin-top:6px;padding:5px 11px;border:0;border-radius:var(--r-pill);background:var(--firn);color:var(--rock);font:600 11.5px inherit;font-family:inherit;cursor:pointer}
-.item .acts .like{margin-top:0}
+.item .acts{display:flex;flex-wrap:wrap;gap:6px;align-items:stretch;margin-top:6px}
+.item .acts > *{margin:0}
+/* the three pills (thumbs up, Download, Share) share one box: same height, centred content, one font */
+.item .dl,.item .like{display:inline-flex;align-items:center;justify-content:center;gap:5px;box-sizing:border-box;min-height:28px;margin-top:6px;padding:0 12px;border:0;border-radius:var(--r-pill);background:var(--firn);box-shadow:none;font-family:inherit;font-weight:600;font-size:11.5px;line-height:1;color:var(--rock);text-decoration:none;white-space:nowrap;cursor:pointer}      /* Download and Share are pills, the last one dark */
+.item .dl:hover,.item .like:hover{background:var(--rule)}
+.item .acts .dl:last-child:not(:only-child){background:var(--ink);color:#fff}
+.item .acts .dl:last-child:not(:only-child):hover{background:var(--rock)}
 .item .like[hidden]{display:none}
-.item .like svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.item .like svg{width:15px;height:15px;flex:none;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.item .like span:empty{display:none}
 .item .like.on{color:var(--accent)}.item .like.on svg{fill:currentColor}
 .item .like:disabled{opacity:.6}
 .item .acts .dl:last-child:not(:only-child){background:var(--ink);color:#fff}
@@ -164,9 +166,12 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
   .item .by{grid-column:1;font-size:12.5px}
   .item .meta{grid-template-columns:minmax(0,1fr)}
   .item .by{grid-column:1}
-  .item .acts{grid-column:1;grid-row:auto;margin:var(--sp-3) 0 0;gap:var(--sp-2)}
-  .item .dl,.item .acts .dl{flex:1;margin:0;padding:11px 12px;border-radius:var(--r-md);background:var(--firn);font-size:13.5px;text-align:center}
-  .item .acts .dl:last-child{flex:.6;background:var(--ink);color:#fff}
+  .item .acts{grid-column:1;grid-row:auto;margin:var(--sp-3) 0 0;gap:var(--sp-2);display:grid;grid-template-columns:1fr 1fr}
+  .item .dl,.item .like,.item .acts .dl{margin:0;min-height:40px;padding:0 10px;border-radius:var(--r-md);background:var(--firn);font-size:13.5px}
+  .item .acts .dl:not(:last-child){grid-column:1 / -1;order:-1}      /* Download takes the full row; thumbs up and Share sit side by side under it */
+  .item .acts .dl:last-child{background:var(--ink);color:#fff}
+  .item .like[hidden] ~ .dl:last-child{grid-column:1 / -1}      /* no thumbs up (not set up): Share takes the full row */
+  .item .like svg{width:17px;height:17px}
 }
 /* landscape phones: two columns of cards, the filters in one row */
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){
@@ -181,10 +186,11 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
 <body>
 <header class="bar"><div class="wrap">
   <a class="brand" data-home href="home.html">
-    <img src="images/home/logo-white.svg" alt="" width="32" height="30">
+    <img src="images/home/logo-white.png" alt="" width="32" height="30">
     <b>Tongues from Space</b>
   </a>
   <nav>
+    <a class="nav-home" data-home href="home.html">Home</a>
     <a data-dash href="index.html">Explorer</a>
     <a href="size.html">Size visualizer</a>
     <a href="gallery.html" aria-current="page">Gallery</a>
@@ -215,7 +221,7 @@ footer .credits-fold[open] > summary{margin-bottom:14px}
 </section>
 <div class="wrap">
   <div>
-    <a class="brand" data-home href="home.html"><img src="images/home/logo-white.svg" alt="" width="32" height="30"><b>Tongues from Space</b></a>
+    <a class="brand" data-home href="home.html"><img src="images/home/logo-white.png" alt="" width="32" height="30"><b>Tongues from Space</b></a>
     <p class="tagline"><b>Glacier visuals, done your way</b><span>By J. Braakhekke</span></p>
   </div>
   <div class="src">
