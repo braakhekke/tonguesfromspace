@@ -33,7 +33,7 @@ button,select,input{font:inherit;color:inherit}
 .brand h1 .region-btn:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px;border-radius:3px}
 .region-menu{position:absolute;z-index:30;left:58px;top:50px;margin:0;padding:4px;list-style:none;min-width:190px;background:#fff;border:1px solid var(--rule);border-radius:8px;box-shadow:0 6px 20px rgba(10,27,51,.16)}
 .region-menu[hidden]{display:none}
-.region-menu li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:5px;font-size:13.5px;font-weight:600;color:#0A1B33;cursor:pointer}
+.region-menu li{touch-action:manipulation;-webkit-tap-highlight-color:transparent;display:flex;justify-content:space-between;align-items:center;gap:12px;padding:7px 10px;border-radius:5px;font-size:13.5px;font-weight:600;color:#0A1B33;cursor:pointer}
 .region-menu li:hover:not([aria-disabled="true"]){background:var(--firn)}
 .region-menu li[aria-selected="true"]{color:var(--accent)}
 .region-menu li[aria-disabled="true"]{color:#A9B1B5;cursor:default;font-weight:500}
@@ -239,8 +239,8 @@ select.small{-webkit-appearance:none;appearance:none;border:1px solid var(--rule
   .meta-table td[colspan]{display:block}
 }
 .meta-note{margin:6px 0 0;font-size:11px;line-height:1.4;color:var(--moraine)}
-.tune-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr);align-items:center;column-gap:12px}
-.tune .slider-row{margin:0;font-size:12.5px;gap:6px;color:var(--moraine)}
+.tune-row{display:grid;grid-template-columns:13.5em minmax(48px,1fr);align-items:center;column-gap:12px;font-size:12.5px}   /* label + value in a fixed column (sized for "Surroundings opacity  100 %"), the slider takes the rest */
+.tune .slider-row{margin:0;font-size:1em;gap:6px;color:var(--moraine);white-space:nowrap}
 .tune .slider-row output{white-space:nowrap;flex:none}
 .tune input[type=range]{width:100%;margin:0;height:20px}
 .slider-row output{color:var(--moraine);font-variant-numeric:tabular-nums}
@@ -953,7 +953,7 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .toggle{min-height:36px}
   .sym-pitch,.sym-bus{width:76px}.sym-pool{width:70px}.sym-tower{width:44px}
   .stat.hero .v{font-size:26px}
-  .tune-row{grid-template-columns:minmax(0,1.2fr) minmax(0,1fr)}
+  .tune-row{grid-template-columns:13.5em minmax(48px,1fr)}
   .tune input[type=range]{height:28px}
   .fyi{padding:14px 16px}
   .measure-hint{top:56px;font-size:12.5px;padding:4px 5px 4px 10px;gap:6px;flex-wrap:nowrap;max-width:calc(100% - 16px)}
@@ -1846,6 +1846,13 @@ html.embed .layerbox,html.embed #layersBtn,html.embed #moreBtn,html.embed .mtool
 html.embed .mapbar .sep:nth-of-type(n+2){display:none}      /* the 3D toolbar keeps its timeline (play, pause) and the zoom buttons */
 html.embed .embed-open{display:block;position:absolute;top:10px;right:10px;z-index:730;background:var(--sheet);color:var(--accent);font-size:13px;font-weight:700;line-height:1;padding:9px 13px;border-radius:6px;box-shadow:0 1px 8px rgba(0,0,0,.28);text-decoration:none;white-space:nowrap}
 html.embed .embed-open:hover{background:var(--firn)}
+/* small embeds (phones, narrow iframes): the pill is short so it never covers the year and date, and the 3D dock is wide enough for the whole timeline line */
+@media (max-width:520px), (max-height:520px){
+  html.embed .embed-open .eo-long{display:none}
+  html.embed .embed-open{font-size:12px;padding:8px 11px}
+}
+html.embed .v3d-measure{width:min(420px,calc(100% - 20px))}
+html.embed .v3d-measure > .v3d-tl{min-width:0;width:100%}
 
 .landsat-opt{display:none!important}      /* the old checkbox row: the "+ Landsat" chip in the year rows works it */
 .landsat-wrap{grid-column:span 2;display:flex;align-items:center;gap:2px;padding-right:4px;border:1px dashed var(--rule);background:var(--sheet)}      /* the box of the chip holds the "i" */
@@ -1890,7 +1897,7 @@ html.embed .embed-open:hover{background:var(--firn)}
 }
 
 /* phone header: the region name is the picker (its menu opens below the title); the back link reads on the light header */
-.mhead{position:relative}
+.mhead{position:relative;z-index:900}      /* above the picture, so the open region menu is never under the map */
 .mhead .region-btn{display:inline-flex;align-items:center;gap:2px;margin:0;padding:0;border:0;background:none;font:inherit;color:#0A1B33;cursor:pointer}
 .mhead .region-btn svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
 .mhead .region-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
@@ -2422,7 +2429,7 @@ body.x-layers .layerbox{max-width:none}
 }
 
 /* long year lists (Landsat years from 1984 on): 2.5 rows show, the rest scrolls; the half row hints that there is more. Phone and desktop alike. */
-.years:not(.specials){--yr-row:40px;--yr-gap:6px;grid-auto-rows:var(--yr-row);gap:var(--yr-gap);max-height:calc(2.25 * var(--yr-row) + 2 * var(--yr-gap));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
+.years:not(.specials){--yr-row:40px;--yr-gap:6px;grid-auto-rows:var(--yr-row);gap:var(--yr-gap);max-height:calc(2.4 * var(--yr-row) + 2 * var(--yr-gap));overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;scrollbar-width:thin}
 .stack .years:not(.specials){gap:var(--yr-gap)}
 .years:not(.specials) button{min-height:0;height:var(--yr-row)}
 
@@ -2454,7 +2461,17 @@ body.x-layers .layerbox{max-width:none}
 
 /* years: one grey segmented box like the glacier list, View and Mode; the chosen year is a white raised pill */
 .years{padding:3px;border-radius:var(--r-md);background:var(--firn)}
-.years:not(.specials){max-height:calc(2.25 * var(--yr-row) + 2 * var(--yr-gap) + 6px)}
+.years:not(.specials){max-height:calc(2.4 * var(--yr-row) + 2 * var(--yr-gap) + 6px)}
+/* mouse devices: a year list rests as one row (the chosen year, or the newest years when none is chosen) and opens on hover; touch devices keep the scrolling list above */
+@media (hover:hover) and (pointer:fine){
+  .years:not(.specials){max-height:calc(var(--yr-row) + 6px);overflow-y:hidden;transition:max-height .15s ease}
+  .years:not(.specials):hover,.years:not(.specials):has(:focus-visible){max-height:calc(4.4 * var(--yr-row) + 4 * var(--yr-gap) + 6px);overflow-y:auto}
+}
+/* the glacier list the same way: one row at rest (the chosen glacier, else the top of the list), about five rows on hover */
+@media (hover:hover) and (pointer:fine){
+  .glaciers{--gl-row:calc(1lh + 18px);max-height:calc(var(--gl-row) + 6px);overflow-y:hidden;transition:max-height .15s ease}
+  .glaciers:hover,.glaciers:has(:focus-visible){max-height:calc(5.4 * var(--gl-row) + 6px);overflow-y:auto}
+}
 .years button,.years .landsat-chip{border:0;background:transparent;box-shadow:none;border-radius:var(--r-sm);color:var(--rock);font-weight:500}
 .years button:hover:not(:disabled):not(.is-na):not([aria-pressed="true"]){background:var(--rule-2,rgba(14,26,34,.06))}
 .years button[aria-pressed="true"],.years .landsat-chip[aria-pressed="true"]{background:var(--sheet,#fff);color:var(--ink);font-weight:700;box-shadow:var(--raise)}
@@ -2509,3 +2526,14 @@ body.x-layers .layerbox{max-width:none}
 /* every on/off switch, one rule for all (the earlier per-menu rules gave knobs that sat off-centre in the pill): the knob is the pill's inner height minus 2 px of air on every side, centred vertically; on, it slides to the right end by its own width (left: 100% - 2px, then back by its own width) */
 .toggle input[type=checkbox]::after,.layerbox .toggle input[type=checkbox]::after,.layerbox.in-pane .toggle input[type=checkbox]::after,.layerbox.in-sheet .toggle input[type=checkbox]::after{top:0;bottom:0;margin:auto 0;left:2px;height:calc(100% - 4px);width:auto;aspect-ratio:1;transform:none;transition:left .2s,transform .2s}
 .toggle input[type=checkbox]:checked::after,.layerbox .toggle input[type=checkbox]:checked::after,.layerbox.in-pane .toggle input[type=checkbox]:checked::after,.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{left:calc(100% - 2px);transform:translateX(-100%)}
+
+/* page switcher under the brand: Home, Size, Gallery (the explorer is this page) */
+.site-nav{display:flex;justify-content:center;gap:2px;margin-top:8px;padding-bottom:6px;border-bottom:1px solid var(--rule)}      /* the thin line sits between the page links and the demo button */
+.site-nav a{display:flex;align-items:center;gap:5px;padding:4px 10px;font-size:12px;font-weight:600;color:var(--moraine);text-decoration:none;border-bottom:2px solid transparent}
+.site-nav a svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+.site-nav a:hover{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Oldest / Latest chips: smaller everywhere (One year, Slider; desktop and phone) */
+.years.specials button{min-height:0;padding:2px 0;font-size:11.5px;line-height:1.3}
+
+.site-nav + .brand-btns{margin-top:12px}      /* the same air above and below the thin line */

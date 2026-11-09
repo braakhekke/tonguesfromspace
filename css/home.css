@@ -439,7 +439,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 @media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.why-name,.aud-card summary span,.why-logo{display:none}
   .wrap{padding:0 var(--sp-4)}
-  .bar .wrap{padding:0 14px;gap:var(--sp-2)}
+  .bar .wrap{padding:0 14px;gap:var(--sp-2);height:52px}      /* the same height as the bar of the gallery and the size page */
   .brand{gap:10px}.brand img{height:24px}
   .bar nav{gap:14px}.bar nav a{font-size:12px}
   .bar .brand b{display:none}

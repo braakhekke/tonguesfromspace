@@ -234,7 +234,9 @@ export function layersOnCount(id){
 document.getElementById('mosaicToggle').checked = prefs.mosaic !== false;      // Sentinel-2 background on at the start (switch off to see the tongue in space)
 /* the three base maps replace each other: switching one on switches the others off */
 export const BASE_TOGGLES = ['mosaicToggle', 'osmToggle', 'topoToggle', 'oldMapToggle', 'altiToggle'];
-export function onlyBase(id){ BASE_TOGGLES.forEach(o => { const el = document.getElementById(o); if (o !== id && el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); }
+const SWT_MAPS = ['topoToggle', 'oldMapToggle'];      // the swisstopo maps and the swisstopo aerial images do not show together
+function aerialOff(){ const el = document.getElementById('aerialToggle'); if (el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }
+export function onlyBase(id){ if (SWT_MAPS.includes(id)) aerialOff(); BASE_TOGGLES.forEach(o => { const el = document.getElementById(o); if (o !== id && el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); }
 document.getElementById('mosaicToggle').onchange = e => { if (e.target.checked) onlyBase('mosaicToggle'); prefs.mosaic = e.target.checked; savePrefs(); setBackground(); };
 setBackground();
 document.getElementById('osmToggle').checked = prefs.osm === true;
@@ -271,7 +273,7 @@ document.getElementById('altiToggle').onchange = e => {
 };
 /* swisstopo aerial images of the picked year(s): a background that, unlike the other base maps, can be on beside them (it only shows inside the ten image boxes, over the base map) */
 document.getElementById('aerialToggle').checked = false;      // always off at the start: the choice is not remembered
-document.getElementById('aerialToggle').onchange = e => { updateAerial(); updateTags(); if (tlLayers.length) showFrame(state.frame); };
+document.getElementById('aerialToggle').onchange = e => { if (e.target.checked && FEATURES.swisstopo) SWT_MAPS.forEach(o => { const el = document.getElementById(o); if (el.checked) { el.checked = false; el.dispatchEvent(new Event('change')); } }); updateAerial(); updateTags(); if (tlLayers.length) showFrame(state.frame); };
 document.getElementById('flightsToggle').checked = false;      // special flights imagery (One year): always off at the start
 document.getElementById('flightsToggle').onchange = () => updateFlights();
 document.getElementById('satToggle').checked = prefs.sat !== false;
@@ -332,14 +334,15 @@ export function renderRegionMenu(){
   document.querySelectorAll('.region-menu').forEach(m => { m.innerHTML = html; });      // the panel's menu and the phone header's
 }
 const regionMenus = () => [...document.querySelectorAll('.region-menu')], regionBtns = () => [...document.querySelectorAll('.region-btn')];
-export function toggleRegionMenu(open){
-  const phone = getComputedStyle(document.getElementById('mhead')).display !== 'none';      // on phones the panel's brand is hidden and the header holds the picker
-  const menu = document.getElementById(phone ? 'regionMenuM' : 'regionMenu');
+export function toggleRegionMenu(open, btn){
+  /* the menu belonging to the pressed button; without a button (Escape, outside press) the one that is showing. Guessing from the header's display made the phone button open the hidden panel menu whenever that check disagreed. */
+  const menu = btn ? document.getElementById(btn.id === 'regionBtnM' ? 'regionMenuM' : 'regionMenu') : regionMenus().find(m => !m.hidden);
+  if (!menu) return;
   if (open === undefined) open = menu.hidden;
   regionMenus().forEach(m => { m.hidden = m !== menu || !open; });
-  regionBtns().forEach(b => b.setAttribute('aria-expanded', open && !!b.closest('#mhead') === phone));
+  regionBtns().forEach(b => b.setAttribute('aria-expanded', open && b.id === (menu.id === 'regionMenuM' ? 'regionBtnM' : 'regionBtn')));
 }
-regionBtns().forEach(b => { b.onclick = e => { e.stopPropagation(); toggleRegionMenu(); }; });
+regionBtns().forEach(b => { b.onclick = e => { e.stopPropagation(); toggleRegionMenu(undefined, b); }; });
 regionMenus().forEach(m => { m.onclick = e => {
   const li = e.target.closest('li'); if (!li || li.classList.contains('group') || li.getAttribute('aria-disabled') === 'true') return;
   if (li.dataset.id === REGION.id) return toggleRegionMenu(false);

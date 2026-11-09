@@ -63,6 +63,7 @@ html.embed .embed-city .city-find .act{border:0;border-radius:6px;background:var
 html.embed .embed-city #cityMsg{margin:0 0 6px;padding:6px 10px;background:var(--sheet);border-radius:6px;box-shadow:0 1px 8px rgba(0,0,0,.28)}
 @media (max-width:760px){html.embed .embed-city{bottom:100px;right:10px;width:auto}}
 /* rules for this page only; everything else comes from css/style.css */
+#buildRow[hidden]{display:none}
 .cities{grid-template-columns:repeat(3,1fr)}
 .cities button{padding:6px 0;font-family:inherit}
 .city-find{display:flex;gap:6px;margin-top:8px}
@@ -136,7 +137,9 @@ html.embed .embed-city #cityMsg{margin:0 0 6px;padding:6px 10px;background:var(-
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){.mapbar .mtool{display:inline-flex}}
 /* phones, portrait: the map stays pinned at the top; the choices scroll underneath it */
 @media (max-width:720px) and (orientation:portrait){
-  .stage{position:sticky;top:0;z-index:7;height:42vh;height:42svh;min-height:240px;border-radius:0 0 var(--r-lg,16px) var(--r-lg,16px);box-shadow:0 6px 16px rgba(10,27,51,.22)}
+  .stage{position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:7;height:42vh;height:42svh;min-height:240px;border-radius:var(--r-lg,16px);box-shadow:0 6px 16px rgba(10,27,51,.22)}      /* a gap above, so the picture never touches the top edge of the screen */
+  body::before{content:'';position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 10px);background:var(--firn);z-index:8;pointer-events:none;opacity:0}      /* hides what scrolls through that gap (shown once the page has scrolled) */
+  body.scrolled::before{opacity:1}
   .controls{position:relative;z-index:1;padding-top:18px}
   .story{position:relative;z-index:1}
 }
@@ -234,7 +237,7 @@ body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:1
 @media (max-width:720px){#hint3d{display:none}}      /* on a phone the left panel says it; the picture stays clear */
 /* phones, portrait: the look of the explorer (header row, picture card, light dock, Layers from the dock) */
 @media (max-width:720px) and (orientation:portrait){
-  .mhead:not(:has(.back-glacier:not([hidden]))),.mhead{display:flex!important;flex-wrap:wrap;align-items:center;padding:10px var(--sp-4);background:var(--sheet);border:0;text-align:left}
+  .mhead:not(:has(.back-glacier:not([hidden]))),.mhead{display:flex!important;flex-wrap:wrap;align-items:center;min-height:52px;padding:6px var(--sp-4);background:var(--sheet);border:0;text-align:left}
   .mhead strong{display:flex!important;align-items:center;flex:1;min-width:0;font-size:0}
   .mhead strong .home-link{display:flex;align-items:center;gap:10px;width:100%;min-width:0;text-decoration:none;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
   .mhead strong .home-link span:not(.t1){margin-left:auto;padding:7px 13px;border-radius:var(--r-pill);background:var(--firn);font-size:13px;font-weight:600;letter-spacing:0;color:var(--rock);white-space:nowrap}
@@ -273,6 +276,9 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
 .start-seg button[aria-pressed="true"]{background:var(--sheet,#fff);color:var(--ink);box-shadow:0 1px 4px rgba(10,27,51,.2)}
 .start-seg button:disabled{opacity:.45;cursor:default}
 .lay-btn svg{fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.stat-switch{display:flex;gap:4px;padding:3px;margin:0 0 8px;background:#eef1f4;border-radius:10px}
+.stat-switch button{flex:1;min-width:0;display:flex;align-items:center;justify-content:center;gap:6px;padding:7px 8px;border:0;border-radius:8px;background:transparent;font:inherit;font-size:12.5px;color:#555;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stat-switch button[aria-pressed="true"]{background:#fff;color:#222;font-weight:600;box-shadow:0 1px 3px rgba(0,0,0,.15)}
 </style>
   <script>if(/(^|[#&])embed=1(&|$)/.test(location.hash))document.documentElement.classList.add('embed')</script>
   <script defer src="config.js"></script><script defer src="js/track.js"></script><script defer src="js/mascot.js"></script>
@@ -293,20 +299,23 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
 
   <header class="mhead" id="mhead">
     <strong><a class="home-link" data-home href="home.html"><!--MLOGO--><img class="mhead-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="30" height="28"><!--/MLOGO--><span class="t1">Tongues from Space</span> <span>Glacier sizes</span></a></strong>
-    <a class="all-regions back-glacier mobile" hidden href="index.html">← Back to the glacier</a>
     <span id="introMobile">Drag a Swiss glacier onto a city and see how big it is.</span>
   </header>
 
   <!-- ================= LEFT ================= -->
   <aside class="controls" aria-label="Settings">
     <div class="brand">
-      <a class="all-regions back-glacier" hidden href="index.html">← Back to the glacier</a>
       <div class="brand-top">
         <!--LOGO--><img class="brand-logo" src="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 200 190%27%3E%3Cdefs%3E%3Cmask id=%27mouthcut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cellipse cx=%27100%27 cy=%2788%27 rx=%2748%27 ry=%2724%27 fill=%27%23000%27/%3E%3C/mask%3E%3Cmask id=%27groovecut%27 maskUnits=%27userSpaceOnUse%27 x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27%3E%3Crect x=%27-20%27 y=%27-20%27 width=%27240%27 height=%27240%27 fill=%27%23fff%27/%3E%3Cpath d=%27M92 90 C112 108 126 136 126 166%27 fill=%27none%27 stroke=%27%23000%27 stroke-width=%274%27 stroke-linecap=%27round%27/%3E%3C/mask%3E%3C/defs%3E%3Cg fill=%27%230A1B33%27%3E%3Cpath d=%27M4 100 L62 20 L90 56 L102 44 L120 60 L144 44 L188 100 Z%27 mask=%27url%28%23mouthcut%29%27/%3E%3Cpath d=%27M74 86 C92 104 82 136 82 158 A44 24 0 0 0 170 158 C170 134 134 108 110 86 Q92 78 74 86 Z%27 mask=%27url%28%23groovecut%29%27/%3E%3Cpath d=%27M172 8 Q173 21 186 22 Q173 23 172 36 Q171 23 158 22 Q171 21 172 8 Z%27/%3E%3C/g%3E%3C/svg%3E" alt="" width="52" height="49"><!--/LOGO-->
         <h1><a class="home-link" data-home href="home.html" title="Back to the start"><span class="t1">Tongues from Space</span></a> <button type="button" class="t2 region-btn" id="regionBtn" aria-haspopup="listbox" aria-expanded="false" aria-label="Region: Switzerland. Change region"><span class="region-name">Switzerland</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></h1>
         <ul class="region-menu" id="regionMenu" role="listbox" aria-label="Region" hidden></ul>
       </div>
       <p id="introText">How big are glaciers? Drag them to your desired location to compare.</p>
+      <nav class="site-nav" aria-label="Pages of Tongues from Space">
+        <a data-home href="home.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v9h12v-9"/></svg>Home</a>
+        <a id="navExplorer" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L3.5 6v14L9 18m0-14l6 2m-6-2v14m6-12l5.5-2v14L15 20m0-14v14"/></svg>Explorer</a>
+        <a href="gallery.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg>Gallery</a>
+      </nav>
     </div>
     <div class="modeswitch" id="modeSwitch" data-on="2d" role="group" aria-label="Compare the glaciers by" hidden><button type="button" data-mode="3d" aria-pressed="false">Volume<small>3D</small></button><button type="button" data-mode="2d" aria-pressed="true">Area<small>2D</small></button></div>
     <div class="shape-slider" id="shapeSw" data-shape="block" role="group" aria-label="Shape of the ice"><button type="button" data-shape="block" aria-pressed="true">Ice cube</button><button type="button" class="ss-track" id="shapeTrack" role="switch" aria-checked="false" aria-label="Ice as ball (right) or ice cube (left)"><i></i></button><button type="button" data-shape="ball" aria-pressed="false">Ball</button></div>
@@ -369,9 +378,10 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
         <label class="toggle"><input type="checkbox" id="osmToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-osm"/></svg></span>OpenStreetMap</span></label>
         <label class="toggle"><input type="checkbox" id="airToggle" checked> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-air"/></svg></span>swisstopo aerial 2023</span></label>
         <label class="toggle"><input type="checkbox" id="topoToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-topo"/></svg></span>swisstopo map</span></label>
-        <label class="toggle" title="swisstopo Zeitreise, Kartenwerke, state of 1862"><input type="checkbox" id="oldmapToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-old"/></svg></span>swisstopo map 1862</span></label>
+        <label class="toggle" title="swisstopo Zeitreise, Kartenwerke, state of 1864"><input type="checkbox" id="oldmapToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-old"/></svg></span>swisstopo map 1864</span></label>
         <label class="toggle only3d" title="Hillshade computed here from the terrain heights (Mapterhorn), light from the north-west"><input type="checkbox" id="shadeToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-shade"/></svg></span>Hillshade</span></label>
-        <label class="toggle" title="Sentinel-2 cloudless 2024 by EOX. Can be on together with one of the other backgrounds (it stays underneath them, so the picture is not black outside Switzerland)"><input type="checkbox" id="worldToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-mosaic"/></svg></span>Sentinel-2</span></label>
+        <label class="toggle" title="Sentinel-2 mosaic (cloudless 2024 by EOX). Can be on together with one of the other backgrounds (it stays underneath them, so the picture is not black outside Switzerland)"><input type="checkbox" id="worldToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-mosaic"/></svg></span>Sentinel-2 mosaic</span></label>
+        <label class="toggle only3d" id="buildRow" title="Buildings taller than 25 m in the nine cities (Switzerland only, not on phones), as plain blocks: swissBUILDINGS3D 3.0 Beta, © swisstopo. Solid for the ice blocks, which are dropped again when this is switched on or off"><input type="checkbox" id="buildToggle"> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><rect x="5" y="4" width="6" height="11" fill="currentColor"/><rect x="13" y="1" width="7" height="14" fill="currentColor"/></svg></span>Tall buildings</span></label>
         <label class="toggle only3d" title="The starry sky around the 3D view. Off: a plain dark background"><input type="checkbox" id="spaceToggle" checked> <span><span class="sym"><svg class="map-sw" viewBox="0 0 26 16" aria-hidden="true"><use href="#sw-space"/></svg></span>Space</span></label>
         <label class="toggle only2d" title="Place names (OpenStreetMap, rendered by EOX), drawn over the picture"><input type="checkbox" id="placesToggle" checked> <span><span class="sym"><svg class="label-sw" viewBox="0 0 14 16" aria-hidden="true"><path fill-rule="evenodd" d="M7 .8a5.6 5.6 0 0 1 5.6 5.6c0 3.9-5.6 8.8-5.6 8.8S1.4 10.3 1.4 6.4A5.6 5.6 0 0 1 7 .8zM7 4.4a2 2 0 1 0 0 4 2 2 0 0 0 0-4z"/></svg></span>Place labels</span></label>
       </div>
@@ -419,7 +429,7 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
   <div class="vs-opts">
     <label class="toggle optsw" title="Only one small line at the bottom: the glaciers, the site and the credit. No figures, no scale bar."><input type="checkbox" id="vMinimal"> <span>Minimize text</span></label>
     <label class="toggle optsw vo-video vo-3d" title="The camera turns round the ice cubes during the video. Off keeps the viewpoint fixed."><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
-    <div class="toggle speed-row vo-video vo-3d" title="Drop: the blocks fall from where they are placed (click the ground to place them). My last throw: pick up a block, throw it, and the animation starts 0.1 s after you let go."><span>Start</span> <span class="start-seg" id="vStartSeg" role="group" aria-label="Start"><button type="button" data-v="drop" aria-pressed="true">Drop</button><button type="button" data-v="throw" aria-pressed="false" disabled>My last throw</button></span><select class="small" id="vStart" hidden aria-hidden="true" tabindex="-1"><option value="drop" selected>Drop</option><option value="throw" disabled>My last throw</option></select></div>
+    <div class="toggle speed-row vo-video vo-3d" title="Drop: the blocks fall from where they are placed (click the ground to place them). My last throw: pick up a block, throw it, and the animation replays the carry and the let-go."><span>Start</span> <span class="start-seg" id="vStartSeg" role="group" aria-label="Start"><button type="button" data-v="drop" aria-pressed="true">Drop</button><button type="button" data-v="throw" aria-pressed="false" disabled>My last throw</button></span><select class="small" id="vStart" hidden aria-hidden="true" tabindex="-1"><option value="drop" selected>Drop</option><option value="throw" disabled>My last throw</option></select></div>
     <label class="toggle speed-row vo-image" title="JPG is smaller; PNG is lossless."><span>File</span> <select class="small" id="vImgFmt"><option value="jpg" selected>JPG</option><option value="png">PNG</option></select></label>
   </div>
   <div class="vs-progress" id="vsProgress" hidden><div id="vsBar"></div></div>
@@ -459,8 +469,8 @@ const mainPage = g => (BUILT ? '/switzerland/' : 'index.html') + '#g=' + (SITE_I
 const COLOUR = {A: '#E5443B', B: '#4FA3CC'};
 const CITY_COLOUR = '#7B3FE4';
 /* the look of an outline, one place for the map and the exported picture: a picked glacier = white casing + its colour + a soft fill; one not picked = pale ice, quiet; 1850 = amber; the city = purple */
-const ICE_TONE = '#DCEBF3', OLD_COL = '#F2A93B';
-const LOOK = {case: {w: 4, c: 'rgba(255,255,255,.9)'}, line: 2, fillPicked: .4, fillIdle: .2, idleLine: 1.5, city: {w: 2.25, fill: .09, case: 5.5}, old: {w: 2, dash: [], fill: .14}};
+const ICE_TONE = '#8CC8EA', OLD_COL = '#F2A93B';
+const LOOK = {case: {w: 4, c: 'rgba(255,255,255,.9)'}, line: 2, fillPicked: .4, fillIdle: .3, idleLine: 2, city: {w: 2.25, fill: .09, case: 5.5}, old: {w: 2, dash: [], fill: .14}};
 const $ = id => document.getElementById(id);
 const fmt = (v, d = 1) => v.toLocaleString('en-US', {minimumFractionDigits: d, maximumFractionDigits: d});
 const times = r => (r >= 10 ? fmt(r, 0) : fmt(r, 1)) + '×';
@@ -481,14 +491,14 @@ const swiss = (layer, ext, what, time = 'current') => L.tileLayer(`https://wmts.
 /* SWISSIMAGE outside Switzerland: swisstopo sends opaque pure-white tiles there, which would hide the EOX mosaic underneath. In a tile that reaches outside the Swiss border (Natural Earth outline, data/country-outlines.js) the pure-white pixels are made transparent in a canvas; tiles fully inside Switzerland are never touched, so snow stays. */
 const inCH = (la, lo) => { let r = false; for (const ring of (window.COUNTRY_OUTLINES && COUNTRY_OUTLINES.ch) || []) for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [ya, xa] = ring[i], [yb, xb] = ring[j]; if ((ya > la) !== (yb > la) && lo < (xb - xa) * (la - ya) / (yb - ya) + xa) r = !r; } return r; };
 function swissAir() {
-  const L0 = swiss('ch.swisstopo.swissimage-product', 'jpeg', 'swisstopo SWISSIMAGE 2023', '2023'), url = L0.getTileUrl.bind(L0);
+  const L0 = swiss('ch.swisstopo.swissimage-product', 'jpeg', 'swisstopo SWISSIMAGE 2023', '2023');
   const Cls = L.TileLayer.extend({createTile(c, done) {
     const cv = document.createElement('canvas'), n = this.getTileSize(), im = new Image(); cv.width = n.x; cv.height = n.y; im.crossOrigin = 'anonymous';
     im.onload = () => { const x = cv.getContext('2d', {willReadFrequently: true}); x.drawImage(im, 0, 0, n.x, n.y);
       const nw = this._tileCoordsToNwSe(c), allIn = [[nw[0].lat, nw[0].lng], [nw[0].lat, nw[1].lng], [nw[1].lat, nw[0].lng], [nw[1].lat, nw[1].lng], [(nw[0].lat + nw[1].lat) / 2, (nw[0].lng + nw[1].lng) / 2]].every(q => inCH(q[0], q[1]));
       if (!allIn) { try { const d = x.getImageData(0, 0, n.x, n.y), a = d.data; for (let i = 0; i < a.length; i += 4) if (a[i] > 252 && a[i + 1] > 252 && a[i + 2] > 252) a[i + 3] = 0; x.putImageData(d, 0, 0); } catch (e) { /* canvas read refused: keep the tile as it is */ } }
       done(null, cv); };
-    im.onerror = () => done(null, cv); im.src = url(c); return cv; }});
+    im.onerror = () => done(null, cv); im.src = this.getTileUrl(c); return cv; }});      // the layer's own getTileUrl: L0 is never added to a map, so it has no zoom to fill {z} with
   return new Cls(L0._url, L0.options);
 }
 /* OpenStreetMap and the hillshade are pale maps (mean brightness 210-225 of 255 against 60-160 for the photographs) and glare on a phone: their pixels are scaled down in a canvas (no CSS filter: Safari on iPhone ignores it). The same function is used for the picture exports and the 3D terrain, so they match the screen. */
@@ -499,8 +509,8 @@ function dimmed(img, k) {
 }
 const dimLayer = (url, opt, k) => { const L0 = L.tileLayer(url, opt); return new (L.TileLayer.extend({createTile(c, done) { const im = new Image(), tile = document.createElement('canvas'); im.crossOrigin = 'anonymous';
   im.onload = () => { const d = dimmed(im, k); tile.width = d.width; tile.height = d.height; tile.getContext('2d').drawImage(d, 0, 0); done(null, tile); }; im.onerror = () => done(null, tile); im.src = this.getTileUrl(c); return tile; }}))(L0._url, L0.options); };
-const bases = {topo: swiss('ch.swisstopo.pixelkarte-farbe', 'jpeg'), old: swiss('ch.swisstopo.zeitreihen', 'png', 'swisstopo map 1862', '18621231'), osm: dimLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxNativeZoom: 19, maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}, DIM.osm), air: swissAir(), alti: (l => dimLayer(l._url, l.options, DIM.alti))(swiss('ch.swisstopo.swissalti3d-reliefschattierung', 'png'))};
-/* outside Switzerland swisstopo has no picture: EOX's Sentinel-2 cloudless mosaic (the main site's background) lies under everything, so a typed city abroad is not on black */
+const bases = {topo: swiss('ch.swisstopo.pixelkarte-farbe', 'jpeg'), old: swiss('ch.swisstopo.zeitreihen', 'png', 'swisstopo map 1864', '18641231'), osm: dimLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {maxNativeZoom: 19, maxZoom: 18, attribution: '© <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a> contributors'}, DIM.osm), air: swissAir(), alti: (l => dimLayer(l._url, l.options, DIM.alti))(swiss('ch.swisstopo.swissalti3d-reliefschattierung', 'png'))};
+/* outside Switzerland swisstopo has no picture: the Sentinel-2 mosaic (EOX; the main site's background) lies under everything, so a typed city abroad is not on black */
 const world = L.tileLayer('https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/{z}/{y}/{x}.jpg', {maxNativeZoom: 14, maxZoom: 18, attribution: 'Sentinel-2 cloudless 2024 by EOX'});
 world.addTo(map); world.bringToBack();
 bases.air.addTo(map);
@@ -571,8 +581,9 @@ function styleSlot(o) {
   const r = roleOf(o);
   const col = r ? COLOUR[r] : ICE_TONE;
   const hide = !r && document.body.classList.contains('pane-open');      // in the Save and share preview only the two picked glaciers show
-  o.newPoly.setStyle({color: col, weight: r ? LOOK.line : LOOK.idleLine, opacity: hide ? 0 : r ? 1 : .85, fillColor: col, fillOpacity: hide ? 0 : fillOf(o)});
-  if (r) { o.casePoly.setLatLngs(o.newPoly.getLatLngs()); if (!map.hasLayer(o.casePoly)) o.casePoly.addTo(map); } else if (map.hasLayer(o.casePoly)) map.removeLayer(o.casePoly);
+  o.newPoly.setStyle({color: col, weight: r ? LOOK.line : LOOK.idleLine, opacity: hide ? 0 : 1, fillColor: col, fillOpacity: hide ? 0 : fillOf(o)});
+  o.casePoly.setStyle({weight: r ? LOOK.case.w : LOOK.idleLine + 2, opacity: hide ? 0 : r ? 1 : .75});      // a white edge under every outline, so an unpicked glacier shows on the satellite picture too
+  o.casePoly.setLatLngs(o.newPoly.getLatLngs()); if (!map.hasLayer(o.casePoly)) o.casePoly.addTo(map);
   o.tag.style.setProperty('--c', col);
   o.tag.classList.toggle('dim', !r);
 }
@@ -582,7 +593,8 @@ function drawSlot(o) {
   if (state.show1850) { o.oldPoly.setLatLngs(polysLL(o, o.g.old)); if (!map.hasLayer(o.oldPoly)) o.oldPoly.addTo(map); o.oldPoly.bringToBack(); }
   else if (map.hasLayer(o.oldPoly)) map.removeLayer(o.oldPoly);
   styleSlot(o);
-  if (roleOf(o)) raise(o);
+  raise(o);
+  for (const r of ['B', 'A']) { const p = slotOf(r); if (p && p !== o) raise(p); }      // the picked two stay above
   overlaySlot(o);
 }
 /* The glacier labels: by default at the top right, just above the outline (over its north-east-most point); when that spot is outside the view, or taken by another label, the city's name or a
@@ -699,8 +711,9 @@ box.addEventListener('pointermove', onMove);
 document.addEventListener('pointermove', e => { if (drag && drag.kind === 'turn') onMove(e); });
 for (const t of ['pointerup', 'pointercancel']) { box.addEventListener(t, endDrag); document.addEventListener(t, endDrag); }
 function setRot(o, d) { markDirty(); o.rot = ((d % 360) + 360) % 360; drawSlot(o); }
+function syncExplorerLink() { const g = GL.find(x => x.id === state.active); if (g) $('navExplorer').href = mainPage(g); }      // the Explorer link opens the glacier picked here
 function setActive(id) {
-  state.active = id; const o = slots[id]; $('who').hidden = !o; if (!o) return;
+  state.active = id; syncExplorerLink(); const o = slots[id]; $('who').hidden = !o; if (!o) return;
   const r = roleOf(o);
   $('who').style.setProperty('--c', r ? COLOUR[r] : '#CFE3EA'); $('whoName').textContent = o.g.name;
 }
@@ -784,7 +797,7 @@ function build() {
   $('cityForm').onsubmit = e => { e.preventDefault(); findCity($('cityQ').value); };
   $('cities').onclick = e => { const b = e.target.closest('button'); if (b) setCity(CITIES.find(c => c.id === b.dataset.k)); };
   $('oldToggle').onchange = e => { state.show1850 = e.target.checked; redrawAll(); syncUi(); };
-  $('cityToggle').onchange = e => { state.cityOn = e.target.checked; drawCity(); schedulePreview(); };
+  $('cityToggle').onchange = e => { state.cityOn = e.target.checked; drawCity(); placeOverlays(); schedulePreview(); };
   $('cityNameToggle').onchange = e => { state.cityName = e.target.checked; placeOverlays(); schedulePreview(); };
   $('peaksToggle').onchange = e => { state.peaks = e.target.checked; };
   $('gnamesToggle').onchange = e => { state.gnames = e.target.checked; };
@@ -803,6 +816,8 @@ function build() {
   $('worldToggle').onchange = showBase;
   for (const id of EXCLUSIVE) $(id).onchange = e => { if (e.target.checked) EXCLUSIVE.filter(o => o !== id).forEach(o => $(o).checked = false); showBase(); };
   $('spaceToggle').onchange = e => { if (sky) sky.visible = e.target.checked; };
+  $('buildRow').hidden = !bldOk();
+  $('buildToggle').onchange = async () => { if (!terrain) return; await loadBuildings(loadId); wake(); if (S3.ents.length) s3Again(); };      // off at first, loaded only when switched on (the data file is not fetched before); the blocks are dropped again, so none sits inside a building that has just appeared or hangs on one that has gone
   $('placesToggle').onchange = e => { if (e.target.checked) placeNames.addTo(map); else map.removeLayer(placeNames); schedulePreview(); terrainLayersChanged(); };
   const PHONE_LB = matchMedia('(max-width:720px) and (orientation:portrait)'), placeLb = () => { const lb = $('layerbox'), st = $('stage'); if (lb.classList.contains('in-pane')) return;      /* phones, as on the explorer: the Layers panel opens directly under the picture, in two columns */
     lb.classList.toggle('in-flow', PHONE_LB.matches); if (PHONE_LB.matches) st.after(lb); else st.appendChild(lb); };
@@ -818,16 +833,11 @@ function build() {
   window.addEventListener('resize', settle); window.addEventListener('load', settle);
 
   const h = new URLSearchParams(location.hash.slice(1)), ok = id => GL.some(g => g.id === id);
-  /* the way back to the explorer on the glacier the visitor came from (size.html#g=<SGI id>; the explorer knows it by its site id) */
-  const from = GL.find(g => g.id === h.get('g'));
-  if (from) document.querySelectorAll('.back-glacier').forEach(a => {
-    a.href = mainPage(from);
-    a.textContent = '← Back to ' + from.name; a.hidden = false;
-  });
   const picks = [h.get('b'), h.get('g')].filter(ok);           // oldest first, so the newest ends up red
   if (!picks.length && !location.hash) picks.push('B36-26');
   picks.forEach(id => { if (!state.recent.includes(id)) state.recent = [id, state.recent[0]].filter(Boolean); });
   state.active = state.recent[0] || null;
+  syncExplorerLink();
   const c = CITIES.find(x => x.id === h.get('c'));
   map.setView([46.6, 8.2], 9, {animate: false});
   if (c) { state.city = c; markDirty(); layCity(); } else fitAll();
@@ -874,6 +884,8 @@ function bars(items) {
   const max = Math.max(...items.map(i => i.v));
   return `<div class="cmp-bars">` + items.map(i => `<div style="--c:${i.c}"><span>${i.n}</span><i style="width:${i.v / max * 100}%"></i><b>${fmt(i.v)} km²</b></div>`).join('') + `</div>`;
 }
+let statKey = 'A';      // which of the two picked glaciers the figures card shows
+document.addEventListener('click', e => { const t = e.target.closest('[data-stat]'); if (t) { statKey = t.dataset.stat; renderStory(); } });
 function renderStory() {
   if (mode3d) return s3Story();
   const A = slotOf('A'), B = slotOf('B'), c = state.city, a = A && A.g, b = B && B.g;
@@ -896,11 +908,12 @@ function renderStory() {
       ${lines.length ? `<div class="lede">${lines.map(l => `<p>${l}.</p>`).join('')}</div>` : ''}</div>
     ${items.length > 1 ? `<section class="sec"><div class="card-h">Areas side by side</div>${bars(items)}
       </section>` : ''}
-    ${stats(a, 'A')}${b ? stats(b, 'B') : ''}
+    ${b ? `<div class="stat-switch" role="group" aria-label="Show the figures of">${[['A', a], ['B', b]].map(([k, g]) => `<button type="button" data-stat="${k}" aria-pressed="${statKey === k}" style="--c:${COLOUR[k]}"><i class="poly-sw" style="--c:${COLOUR[k]}"></i>${shortName(g)}</button>`).join('')}</div>` : ''}
+    ${b && statKey === 'B' ? stats(b, 'B') : stats(a, 'A')}
     <details class="sec sources coll"><summary><div class="card-h">Sources</div></summary><ul class="src-list">
       <li>Glacier outlines: GLAMOS Swiss Glacier Inventory SGI2023, the latest available (state of 2023, Unteraar and Trift 2024; the glaciers have shrunk since), and SGI1850 (CC BY 4.0).</li>
       <li>City outlines are the municipal boundaries (swissBOUNDARIES3D), so they include lake area where the boundary does. A city you type comes from OpenStreetMap (administrative boundary, © OpenStreetMap contributors, ODbL, found with Nominatim).${c && !c.custom ? ' ' + c.name + ': municipal boundary' + (c.name === 'Zermatt' ? ', which reaches up to the Matterhorn and the glaciers around it' : '') + '.' : ''}</li>
-      <li>Aerial picture in Switzerland: © swisstopo, SWISSIMAGE, the 2023 edition (it is shown as the picture under the outlines). Outside Switzerland, and as the background: Sentinel-2 cloudless 2024 by EOX (CC BY-NC-SA 4.0). Maps: © swisstopo.</li>
+      <li>Aerial picture in Switzerland: © swisstopo, SWISSIMAGE, the 2023 edition (it is shown as the picture under the outlines). Outside Switzerland, and as the background: the Sentinel-2 mosaic (cloudless 2024 by EOX, CC BY-NC-SA 4.0). Maps: © swisstopo.</li>
       <li>Computed here: the span is the distance between the two farthest points of the outline; the areas of a typed city and the "fits" figures are calculated from the outlines. A pitch is 105 × 68 m. The outline keeps its true size wherever you drag it.</li></ul></details>`;
 }
 function syncOnGlLabel() {      // the 3D "back on the glacier" button: singular for one block, plural for two or all ten
@@ -1010,7 +1023,7 @@ async function makeImage(opt = {}) {      // opt (the fly-in film): {centre: Lat
     if (state.show1850) path(polysLL(o, o.g.old), {fill: OLD_COL + Math.round(LOOK.old.fill * 255).toString(16).padStart(2, '0'), stroke: OLD_COL, w: LOOK.old.w, dash: LOOK.old.dash});
     if (o.ghost) path(polysLL({lat: o.g.lat, lon: o.g.lon, rot: 0}, o.g.new), {stroke: 'rgba(255,255,255,.55)', w: 1.5});      // the film: where the glacier really lies, left behind
     if (o.lift > 0) { ctx.save(); ctx.translate(10000, 0); ctx.shadowColor = 'rgba(6,12,20,.55)'; ctx.shadowBlur = 34 * u * o.lift; ctx.shadowOffsetX = -10000; ctx.shadowOffsetY = 30 * u * o.lift; ctx.fillStyle = '#000'; ctx.beginPath(); for (const pl of ll) for (const rg of pl) rg.forEach((q, i) => { const [x, y] = px(q); i ? ctx.lineTo(x, y) : ctx.moveTo(x, y); }), ctx.closePath(); ctx.fill('evenodd'); ctx.restore(); }      // the shadow of a glacier in the air: only the shadow lands on the picture (the shape itself is drawn off to the side)
-    if (r) path(ll, {stroke: LOOK.case.c, w: LOOK.case.w});
+    path(ll, {stroke: r ? LOOK.case.c : 'rgba(255,255,255,.75)', w: r ? LOOK.case.w : LOOK.idleLine + 2});
     path(ll, {fill: col + Math.round(fillOf(o) * 255).toString(16).padStart(2, '0'), stroke: col, w: r ? LOOK.line : LOOK.idleLine});
   }
   drawOverlay(ctx, W, H, u, 156543.03392 * Math.cos(centre.lat * Math.PI / 180) / Math.pow(2, zf), logo, !!fr && $('vMinimal').checked); 
@@ -1020,7 +1033,7 @@ async function makeImage(opt = {}) {      // opt (the fly-in film): {centre: Lat
     const fs = Math.round(24 * u);
     const minimalPic = !!fr && $('vMinimal').checked, avoid = [{x: 0, y: H - (minimalPic ? 150 : 300) * u, w: W, h: 300 * u}, {x: W - 48 * u - W * .2 - 70 * u, y: 0, w: W * .2 + 100 * u, h: 110 * u}];      // room the text of the picture takes: the bottom, the scale bar
     if (!minimalPic) avoid.push({x: 0, y: 0, w: 640 * u, h: (60 + 120 * [slotOf('A'), slotOf('B')].filter(Boolean).length) * u});      // the titles at the top left
-    if (c && state.cityName) { let low = 1e9; for (const pl of c.polys) for (let i = 1; i < pl[0].length; i += 2) low = Math.min(low, pl[0][i]); const [cx, cy] = px([c.lat + low / M_LAT, c.lon]); ctx.font = `700 ${fs}px ${FONT}`; const cw = ctx.measureText(`${c.name} · ${fmt(c.area)} km²`).width + 32 * u; avoid.push({x: cx - cw / 2, y: cy + 14 * u, w: cw, h: fs * 1.5}); }      // the city's chip
+    if (c && state.cityName && state.cityOn) { let low = 1e9; for (const pl of c.polys) for (let i = 1; i < pl[0].length; i += 2) low = Math.min(low, pl[0][i]); const [cx, cy] = px([c.lat + low / M_LAT, c.lon]); ctx.font = `700 ${fs}px ${FONT}`; const cw = ctx.measureText(`${c.name} · ${fmt(c.area)} km²`).width + 32 * u; avoid.push({x: cx - cw / 2, y: cy + 14 * u, w: cw, h: fs * 1.5}); }      // the city's chip
     const B = {x0: 20 * u, y0: 20 * u, x1: W - 20 * u, y1: H - 20 * u}, spots = new Map();
     for (const o of [slotOf('A'), slotOf('B')].filter(Boolean)) {      // where each label goes: the same rule as on the map (top right above the outline, or the next free spot)
       const f = fs, padX = f * .5, h = f * 1.55, dot = f * .32, sw = dot * 2.6, tw = (ctx.font = `700 ${f}px ${FONT}`, ctx.measureText(o.g.name).width), w = padX * 2 + sw + f * .4 + tw, [x, y] = pickSpot(o, w, h, px, B, avoid);
@@ -1034,7 +1047,7 @@ async function makeImage(opt = {}) {      // opt (the fly-in film): {centre: Lat
       ctx.fillStyle = r ? '#0E1A22' : '#fff'; ctx.textAlign = 'left'; ctx.textBaseline = 'middle'; ctx.fillText(o.g.name, x - w / 2 + padX + sw + f * .4, y + f * .04); ctx.restore();
     }
   }
-  if (c && state.cityName) {
+  if (c && state.cityName && state.cityOn) {
     ctx.font = `700 ${Math.round(24 * u)}px ${FONT}`;
     let low = 1e9; for (const p of c.polys) for (let i = 1; i < p[0].length; i += 2) low = Math.min(low, p[0][i]); const [x, y] = px([c.lat + low / M_LAT, c.lon]), t = `${c.name} · ${fmt(c.area)} km²`, tw = ctx.measureText(t).width, ph = 16 * u, bh = 24 * u * 1.5; ctx.save(); ctx.fillStyle = 'rgba(96,45,196,.88)'; ctx.beginPath(); ctx.roundRect(x - tw / 2 - ph, y + 14 * u, tw + 2 * ph, bh, bh / 2); ctx.fill(); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(t, x, y + 14 * u + bh / 2 + 1 * u); ctx.restore();
   }
@@ -1084,10 +1097,10 @@ function creditParts() {      // only what is on the picture: the credit follows
   const seen = exportSeen || (probeKey && probeKey === seenKey() ? frameSeen : null), vis = id => !seen || seen.has(id);
   const air = map.hasLayer(bases.air) && vis('air'), topo = map.hasLayer(bases.topo) && vis('topo'), old = map.hasLayer(bases.old) && vis('old'), alti = map.hasLayer(bases.alti) && vis('alti');
   const parts = ['Latest outlines: GLAMOS SGI2023 (2023–24)' + (state.show1850 ? ', SGI1850' : '')];
-  const st = [air && 'aerial photo', topo && 'map', old && 'map 1862', alti && 'hillshade', state.city && state.cityOn && 'city boundary'].filter(Boolean);
+  const st = [air && 'aerial photo', topo && 'map', old && 'map 1864', alti && 'hillshade', state.city && state.cityOn && 'city boundary'].filter(Boolean);
   if (st.length) parts.push('© swisstopo ' + st.join(', '));
   if (map.hasLayer(bases.osm) && vis('osm')) parts.push('Map © OpenStreetMap contributors');
-  if (map.hasLayer(world) && vis('world')) parts.push('Sentinel-2 cloudless 2024 by EOX');
+  if (map.hasLayer(world) && vis('world')) parts.push('Sentinel-2 mosaic (cloudless 2024 by EOX)');
   if (map.hasLayer(placeNames) && vis('names')) parts.push('names © OSM, EOX');
   return parts;
 }
@@ -1289,6 +1302,19 @@ async function lakeDepths(id) {
 }
 let TL = null;      // the layers of the terrain picture (see loadTerrain)
 const layerOn = {mosaic: () => $('worldToggle').checked || $('topoToggle').checked || $('oldmapToggle').checked || $('airToggle').checked, osm: () => $('osmToggle').checked, topo: () => $('topoToggle').checked, old: () => $('oldmapToggle').checked, air: () => $('airToggle').checked, shade: () => $('shadeToggle').checked, places: () => false};
+/* swisstopo's tiles outside Switzerland are plain white, not empty, and would hide the Sentinel-2 mosaic under them (the same fix as swissAir() for the 2D map: `inCH`, the Natural Earth outline). A tile whose corners and middle are all inside Switzerland is never touched, so snow stays. A tile that reaches outside is dropped when it is all white, else its white pixels (over 252 in every colour) become transparent in a canvas copy, so the mosaic shows there. t = [zoom, x, y] of the tile. */
+function keyWhite(im, t) {
+  if (!t || !window.COUNTRY_OUTLINES) return im;
+  const n = 2 ** t[0], lon = x => x / n * 360 - 180, lat = y => Math.atan(Math.sinh(Math.PI * (1 - 2 * y / n))) * 180 / Math.PI;
+  const la0 = lat(t[2]), la1 = lat(t[2] + 1), lo0 = lon(t[1]), lo1 = lon(t[1] + 1);
+  if ([[la0, lo0], [la0, lo1], [la1, lo0], [la1, lo1], [(la0 + la1) / 2, (lo0 + lo1) / 2]].every(q => inCH(q[0], q[1]))) return im;
+  const sm = document.createElement('canvas'); sm.width = sm.height = 16; const sx = sm.getContext('2d', {willReadFrequently: true}); sx.imageSmoothingQuality = 'high'; sx.drawImage(im, 0, 0, 16, 16);
+  const d = sx.getImageData(0, 0, 16, 16).data; let w = 0; for (let i = 0; i < 1024; i += 4) if (d[i] >= 254 && d[i + 1] >= 254 && d[i + 2] >= 254) w++;
+  if (w === 256) return null; if (!w) return im;
+  const c = document.createElement('canvas'); c.width = im.naturalWidth; c.height = im.naturalHeight; const cx = c.getContext('2d', {willReadFrequently: true}); cx.drawImage(im, 0, 0);
+  try { const id = cx.getImageData(0, 0, c.width, c.height), q = id.data; for (let i = 0; i < q.length; i += 4) if (q[i] > 252 && q[i + 1] > 252 && q[i + 2] > 252) q[i + 3] = 0; cx.putImageData(id, 0, 0); } catch (e) { return im; }
+  return c;
+}
 function paintTerrain() {
   if (!TL) return; TL.timer = 0; const {tcx, TW} = TL; tcx.fillStyle = '#5a6068'; tcx.fillRect(0, 0, TW, TW);
   for (const key of LAYER_ORDER) if (layerOn[key]()) for (const t of TL.lay[key]) tcx.drawImage(t.im, t.x, t.y, t.w, t.w);
@@ -1301,7 +1327,7 @@ const LAYER_ORDER = ['mosaic', 'osm', 'topo', 'old', 'air', 'shade', 'places']; 
 function paintSoon() { if (TL && !TL.timer) TL.timer = setTimeout(paintTerrain, 150); }      // many tiles arrive one by one: one repaint for a batch
 function terrainLayersChanged() { if (!TL) return; for (const key in layerOn) if (layerOn[key]()) TL.start(key); paintSoon(); }
 function terrainCredit() {
-  const vis = id => !terrainSeen || terrainSeen.has(id), p = []; if (layerOn.air() && swissTexture && vis('air')) p.push('© swisstopo SWISSIMAGE 2023'); if (layerOn.topo() && swissTexture && vis('topo')) p.push('© swisstopo map'); if (layerOn.old() && swissTexture && vis('old')) p.push('© swisstopo map 1862'); if (layerOn.osm() && vis('osm')) p.push('Map © OpenStreetMap contributors'); if (layerOn.shade() && vis('shade')) p.push('hillshade computed from Mapterhorn heights'); if (layerOn.mosaic() && vis('world')) p.push('Sentinel-2 cloudless 2024 by EOX'); if (layerOn.places() && vis('names')) p.push('names © OSM, EOX');
+  const vis = id => !terrainSeen || terrainSeen.has(id), p = []; if (layerOn.air() && swissTexture && vis('air')) p.push('© swisstopo SWISSIMAGE 2023'); if (layerOn.topo() && swissTexture && vis('topo')) p.push('© swisstopo map'); if (layerOn.old() && swissTexture && vis('old')) p.push('© swisstopo map 1864'); if (layerOn.osm() && vis('osm')) p.push('Map © OpenStreetMap contributors'); if (layerOn.shade() && vis('shade')) p.push('hillshade computed from Mapterhorn heights'); if (layerOn.mosaic() && vis('world')) p.push('Sentinel-2 cloudless 2024 by EOX'); if (layerOn.places() && vis('names')) p.push('names © OSM, EOX');
   return p.length ? ' · Picture: ' + p.join(', ') : '';
 }
 /* Hillshade computed from the terrain heights H (Horn's method, light from the north-west at 45 degrees above the horizon): a grey picture, one pixel per height cell */
@@ -1317,6 +1343,41 @@ function hillshadeCanvas() {
   cx.putImageData(im, 0, 0); return cv;
 }
 let swissTexture = false;      // true when the terrain picture is swisstopo SWISSIMAGE (credit line)
+/* Buildings taller than 25 m (data/tall-buildings.json, scripts/build_tall_buildings.py: swissBUILDINGS3D 3.0 Beta, © swisstopo; "h" is the source's GESAMTHOEHE). Only where the terrain picture is Swiss. Each footprint is extruded from its lowest ground point on the terrain here to that point + h (computed placement; the base is sunk 1.5 m so no gap shows on a slope). One merged mesh, plain grey, for scale; not solid for the ice blocks. */
+const bldOk = () => !(matchMedia('(pointer: coarse)').matches || innerWidth < 720);      // no tall buildings on a phone (the same test as `coarse` further down): the switch is hidden there too
+let bldMesh = null, BLD = null, bldShown = 0, PB = [];      // PB: the buildings as collision points for the physics (see stepWorld)
+const PB_STEP = 10;      // metres between collision points on walls and roofs
+function bldPoints(ring, base, top) {      // points on the walls (every PB_STEP m, on several levels) and on the roof (a grid), all in scene metres: what an ice block can touch
+  const out = [], h = top - base, nl = Math.max(2, Math.min(8, Math.ceil(h / 15) + 1)); let area = 0;
+  for (let i = 0; i < ring.length; i++) { const [x0, z0] = ring[i], [x1, z1] = ring[(i + 1) % ring.length]; area += x0 * z1 - x1 * z0; const n = Math.max(1, Math.ceil(Math.hypot(x1 - x0, z1 - z0) / PB_STEP));
+    for (let k = 0; k < n; k++) for (let l = 0; l < nl; l++) out.push(x0 + (x1 - x0) * k / n, base + h * l / (nl - 1), z0 + (z1 - z0) * k / n); }
+  const a = Math.abs(area) / 2, st = Math.max(PB_STEP, Math.sqrt(a / 60)); let xa = 1e9, xb = -1e9, za = 1e9, zb = -1e9; for (const [x, z] of ring) { xa = Math.min(xa, x); xb = Math.max(xb, x); za = Math.min(za, z); zb = Math.max(zb, z); }
+  for (let x = xa + st / 2; x < xb; x += st) for (let z = za + st / 2; z < zb; z += st) { let ins = false; for (let i = 0, j = ring.length - 1; i < ring.length; j = i++) { const [xi, zi] = ring[i], [xj, zj] = ring[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) ins = !ins; } if (ins) out.push(x, top, z); }
+  return new Float32Array(out);
+}
+function bldTopNear(x, z, r) { let t = -1e9; for (const b of PB) if (Math.hypot(b.x - x, b.z - z) < r + b.r && b.top > t) t = b.top; return t; }      // the highest roof near a point (where a block is dropped from)
+async function loadBuildings(id) {
+  if (bldMesh) { scene.remove(bldMesh); bldMesh.geometry.dispose(); bldMesh.material.dispose(); bldMesh = null; } bldShown = 0; PB = [];
+  if (!bldOk() || !$('buildToggle').checked || !swissTexture || !H) return;
+  if (!BLD) { try { const r = await fetch('data/tall-buildings.json'); if (!r.ok) return; BLD = await r.json(); } catch (e) { return; } }
+  if (id !== loadId || !terrain) return;
+  const P = [], N = []; let n = 0;
+  for (const b of BLD.buildings) for (const poly of b.polys) {
+    const rings = poly.map(r => r.map(([lo, la]) => toScene(la, lo)));
+    if (!rings[0].some(([x, z]) => inMap(x, z, 0))) continue;
+    let base = 1e9; for (const [x, z] of rings[0]) base = Math.min(base, heightAt(x, z));
+    const sh = new THREE.Shape(rings[0].map(([x, z]) => new THREE.Vector2(x, -z)));
+    for (let i = 1; i < rings.length; i++) sh.holes.push(new THREE.Path(rings[i].map(([x, z]) => new THREE.Vector2(x, -z))));
+    const g = new THREE.ExtrudeGeometry(sh, {depth: b.h + 1.5, bevelEnabled: false}); g.rotateX(-Math.PI / 2); g.translate(0, base - 1.5, 0);
+    P.push(g.attributes.position.array); N.push(g.attributes.normal.array); g.dispose(); n++;
+    const ring = rings[0], cx = ring.reduce((t, q) => t + q[0], 0) / ring.length, cz = ring.reduce((t, q) => t + q[1], 0) / ring.length;
+    PB.push({x: cx, z: cz, r: Math.max(...ring.map(q => Math.hypot(q[0] - cx, q[1] - cz))), top: base + b.h, pts: bldPoints(ring, base, base + b.h)});
+  }
+  if (!n) return;
+  const cat = a => { const o = new Float32Array(a.reduce((t, x) => t + x.length, 0)); let k = 0; for (const x of a) { o.set(x, k); k += x.length; } return o; };
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(cat(P), 3)); geo.setAttribute('normal', new THREE.BufferAttribute(cat(N), 3));
+  bldMesh = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({color: 0xd9dde2, roughness: .85, metalness: 0})); bldMesh.castShadow = true; bldMesh.receiveShadow = true; scene.add(bldMesh); bldShown = n;
+}
 async function loadTerrain(lat, lon, det) {
   const id = ++loadId; ZE = DETAIL[det].z; NT = DETAIL[det].n; NG = NT * TS; const T12 = 2 * Math.PI * R_EARTH / 2 ** ZE;
   K = Math.cos(lat * Math.PI / 180); [mx0, my0] = merc(lat, lon);
@@ -1330,6 +1391,8 @@ async function loadTerrain(lat, lon, det) {
   WM = new Uint8Array(NG * NG); { const o = 3, FL = .02; for (let z = o; z < NG - o; z++) for (let x = o; x < NG - o; x++) { const i = z * NG + x, h = H[i]; if (h > -500 && Math.abs(H[i - o] - h) < FL && Math.abs(H[i + o] - h) < FL && Math.abs(H[i - o * NG] - h) < FL && Math.abs(H[i + o * NG] - h) < FL) WM[i] = 1; } }      // a lake is a flat in the heights
   { const o = 3, cl = v => Math.min(NG - 1 - o, Math.max(o, v)); for (let z = 0; z < NG; z++) for (let x = 0; x < NG; x++) if (z < o || z >= NG - o || x < o || x >= NG - o) WM[z * NG + x] = WM[cl(z) * NG + cl(x)]; }      // the test cannot run in the 3 outer cells: they take the water of the nearest inner one, so a lake cut by the map's side is water there too (its wall in the block diagram)
   const cs = T12 / TS, Xl = tx0 * T12 - Math.PI * R_EARTH, Yt = Math.PI * R_EARTH - ty0 * T12; dx = cs * K; xL = (Xl + cs / 2 - mx0) * K; zT = -(Yt - cs / 2 - my0) * K;
+  if (bldMesh) { scene.remove(bldMesh); bldMesh.geometry.dispose(); bldMesh.material.dispose(); bldMesh = null; bldShown = 0; }
+  PB = [];
   if (terrain) { scene.remove(terrain); terrain.geometry.dispose(); terrain.material.map.dispose(); terrain.children.forEach(c => { c.geometry.dispose(); c.material.map && c.material.map.dispose(); c.material.dispose(); c.children.forEach(w => { w.geometry.dispose(); w.material.dispose(); }); }); }
   const S = Math.ceil(NG / 900), M = Math.floor((NG - 1) / S) + 1, pos = new Float32Array(M * M * 3), uv = new Float32Array(M * M * 2), idx = new Uint32Array((M - 1) * (M - 1) * 6);
   for (let j = 0; j < M; j++) for (let i = 0; i < M; i++) { const ix = i * S, iz = j * S, p = j * M + i; pos[p * 3] = xL + ix * dx; pos[p * 3 + 1] = H[iz * NG + ix]; pos[p * 3 + 2] = zT + iz * dx; uv[p * 2] = (ix + .5) / NG; uv[p * 2 + 1] = 1 - (iz + .5) / NG; }
@@ -1344,19 +1407,22 @@ async function loadTerrain(lat, lon, det) {
   const tex = new THREE.CanvasTexture(tcv); tex.encoding = THREE.sRGBEncoding; tex.anisotropy = renderer ? renderer.capabilities.getMaxAnisotropy() : 8;      // sharp at a low viewing angle
   terrain = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({map: tex, roughness: 1, metalness: 0})); terrain.receiveShadow = true; terrain.castShadow = true; DEP = null; DEPLOW = 1e9; lakeFloors = false; terrain.add(makeSkirt(pos, M, S)); scene.add(terrain);
   swissTexture = swissArea;
+  await loadBuildings(id); if (id !== loadId) return false;
   if (swissArea) lakeDepths(id).then(() => { if (id === loadId && DEP && terrain) { terrain.children.forEach(c => { c.geometry.dispose(); c.material.map && c.material.map.dispose(); c.material.dispose(); }); terrain.clear(); terrain.add(makeSkirt(pos, M, S)); } }).catch(() => { });
   if (swissArea) terrain.material.color.setScalar(.32);      // the aerial photo is much brighter than the dull Sentinel-2 mosaic the lights were set for: the material colour multiplies the picture (linear 0.32, about 60 % in sRGB); the pixels themselves are not changed
   /* the picture is painted from layers, in this order: mosaic (EOX), swisstopo map, swisstopo aerial, place names; the Layers menu switches them (terrainLayersChanged). Tiles are kept, so switching repaints without loading again; a layer's tiles load when it is first on. */
   const IZ = ZE + 1, n2 = NT * 2, tp = TW / n2, SZ = ZE + k, sp = TW / mS, f = 2 ** k;
   TL = {id, tcx, tex, TW, lay: {mosaic: [], osm: [], topo: [], old: [], air: [], shade: [], places: []}, started: {}, timer: 0};
-  const add = (key, url, x, y, w) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { if (id !== loadId) return; TL.lay[key].push({im: key === 'osm' ? dimmed(im, DIM.osm) : im, x, y, w}); paintSoon(); }; im.src = url; };
+  const add = (key, url, x, y, w, tile) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { if (id !== loadId) return; const pic = key === 'osm' ? dimmed(im, DIM.osm) : (key === 'air' || key === 'topo') ? keyWhite(im, tile) : im; if (!pic) return; TL.lay[key].push({im: pic, x, y, w}); paintSoon(); }; im.src = url; };
   TL.start = key => {
-    if (TL.started[key] || id !== loadId) return; TL.started[key] = 1;
+    if (TL.started[key] || id !== loadId) return;
+    if (key === 'mosaic' && swissArea && !$('worldToggle').checked) return;      // in Switzerland the Sentinel-2 mosaic is not shown while the swisstopo pictures load: it is drawn only when chosen itself
+    TL.started[key] = 1;
     if (key === 'mosaic') for (let b = 0; b < n2; b++) for (let a = 0; a < n2; a++) add(key, `https://tiles.maps.eox.at/wmts/1.0.0/s2cloudless-2024_3857/default/g/${IZ}/${ty0 * 2 + b}/${tx0 * 2 + a}.jpg`, a * tp, b * tp, tp);
     else if (key === 'places') for (let b = 0; b < n2; b++) for (let a = 0; a < n2; a++) add(key, `https://tiles.maps.eox.at/wmts/1.0.0/overlay_bright_3857/default/g/${Math.min(IZ, 16)}/${ty0 * 2 + b}/${tx0 * 2 + a}.png`, a * tp, b * tp, tp);      // no finer than zoom 16: the same limit as the map
     else if (key === 'osm') for (let b = 0; b < n2; b++) for (let a = 0; a < n2; a++) add(key, `https://tile.openstreetmap.org/${IZ}/${tx0 * 2 + a}/${ty0 * 2 + b}.png`, a * tp, b * tp, tp);
     else if (key === 'shade') { TL.lay.shade.push({im: hillshadeCanvas(), x: 0, y: 0, w: TW}); paintSoon(); }
-    else if (swissArea) { const [lyr, ext] = {air: ['ch.swisstopo.swissimage-product/default/2023', 'jpeg'], topo: ['ch.swisstopo.pixelkarte-farbe/default/current', 'jpeg'], old: ['ch.swisstopo.zeitreihen/default/18621231', 'png']}[key]; for (let b = 0; b < mS; b++) for (let a = 0; a < mS; a++) add(key, `https://wmts.geo.admin.ch/1.0.0/${lyr}/3857/${SZ}/${tx0 * f + a}/${ty0 * f + b}.${ext}`, a * sp, b * sp, sp + .5); }
+    else if (swissArea) { const [lyr, ext] = {air: ['ch.swisstopo.swissimage-product/default/2023', 'jpeg'], topo: ['ch.swisstopo.pixelkarte-farbe/default/current', 'jpeg'], old: ['ch.swisstopo.zeitreihen/default/18641231', 'png']}[key]; for (let b = 0; b < mS; b++) for (let a = 0; a < mS; a++) add(key, `https://wmts.geo.admin.ch/1.0.0/${lyr}/3857/${SZ}/${tx0 * f + a}/${ty0 * f + b}.${ext}`, a * sp, b * sp, sp + .5, [SZ, tx0 * f + a, ty0 * f + b]); }
   };
   TL.start('mosaic'); terrainLayersChanged();
   loadPeaks(id, swissArea);
@@ -1410,6 +1476,24 @@ const hiddenFrom = (x, y, z, skip) => {      // a ridge between the camera and t
   for (let i = 1; i < n; i++) { const t = i / n; if ((1 - t) * dist < skip) break; if (heightAt(a.x + (x - a.x) * t, a.z + (z - a.z) * t) > a.y + (y - a.y) * t + 4) return true; }
   return false;
 };
+/* the camera never goes into the ground or through a mountain wall, and keeps a clear view of its target: when its position is lower than the terrain under it (plus a clearance of 1.5 % of its distance to the target, at least 15 m), it is lifted to that height. OrbitControls reads the position back at the next update, so the orbit follows. */
+function keepCamAboveGround() {
+  if (!cam || !H || !ctl) return; const p = cam.position; if (!inMap(p.x, p.z, 0)) return;
+  const floor = heightAt(p.x, p.z) + Math.max(15, p.distanceTo(ctl.target) * .015); if (p.y < floor) p.y = floor;
+  /* a clear view: when a ridge stands on the line from the camera to the point it looks at, the camera is tipped up over the target (the distance stays) until the line is free */
+  const tg = ctl.target, d = p.clone().sub(tg), r = d.length(); if (r < 1) return;
+  const n = Math.max(48, Math.min(300, Math.round(r / (dx * .7))));      // samples along the line: as fine as the terrain grid, so the answer does not flicker with the camera's position
+  const blocked = v => { for (let i = 3; i <= n; i++) { const t = i / n, x = tg.x + v.x * t, z = tg.z + v.z * t; if (!inMap(x, z, 0)) continue; if (tg.y + v.y * t < heightAt(x, z) + 4 + r * .004 * t) return true; } return false; };
+  if (!blocked(d)) return;
+  const hz = Math.hypot(d.x, d.z) || 1e-6, ux = d.x / hz, uz = d.z / hz, at = el => d.set(ux * Math.cos(el) * r, Math.sin(el) * r, uz * Math.cos(el) * r);
+  let lo = Math.atan2(d.y, hz), hi = lo;      // lo: blocked, hi: free (found in steps), then the edge between them is found exactly: the camera rests on it and does not jump up and down while the visitor keeps pushing against the wall
+  let found = false;
+  for (let k = 0; k < 70 && hi < 1.35; k++) { hi += .02; if (!blocked(at(hi))) { found = true; break; } lo = hi; }
+  if (!found) { at(Math.min(hi, 1.35)); p.copy(tg).add(d); return; }
+  for (let k = 0; k < 8; k++) { const m = (lo + hi) / 2; if (blocked(at(m))) lo = m; else hi = m; }
+  at(hi);
+  p.copy(tg).add(d);
+}
 const peakVisible = p => !hiddenFrom(p.x, p.y + 8, p.z, 70);      // the summit itself, not the label above it
 const PEAK_LIFT = 60;      // metres: the head of a peak's line stands this high over the summit, as in the explorer's 3D view
 function projPeak(p) {      // the name above its summit on a thin line, as in the explorer: 11.5 px / 600 white text, 1.3 px line
@@ -1491,13 +1575,13 @@ function makeCube(e, seed, share = 0, label = '') {
 /* ---- the physics: rigid cubes on the heightfield and on each other ----
    Surface points (a 6 x 6 x 6 lattice, the faces only) are tested against the terrain and the other cubes (inside the other box); contacts are solved by sequential impulses
    (normal impulse with a speculative gap, bounce, Coulomb friction cone), 240 steps per second. Mass is the volume (same ice), the inertia that of a solid cube.
-   Peaks narrower than the point spacing (edge / 5) can slip between the points; buildings and water are not obstacles. */
+   A summit narrower than the point spacing (edge / 5) is caught by a second test: a 17 x 17 grid of ground points under the block, every one that stands inside the block pushes it out. Water is not an obstacle. Buildings over 25 m (size page, Switzerland) are solid: their wall and roof points (PB) pushed out of the block. */
 let V3 = null;
 const phys = {bodies: [], asleep: false, rest: 0};
 const wake = () => { phys.asleep = false; phys.rest = 0; };
 let Body = null, T2, T3, T4, T5, TQ;
 function initPhysics() {
-  V3 = THREE.Vector3; T2 = new V3(); T3 = new V3(); T4 = new V3(); T5 = new V3(); TQ = new THREE.Quaternion();
+  V3 = THREE.Vector3; STATIC.v = new V3(); STATIC.w = new V3(); T2 = new V3(); T3 = new V3(); T4 = new V3(); T5 = new V3(); TQ = new THREE.Quaternion();
   Body = class {
     constructor(e, sph) { this.sph = !!sph; this.p = new V3(); this.q = new THREE.Quaternion(); this.v = new V3(); this.w = new V3(); this.held = false; this.df = sph ? .823 : .917; this.e = 0; this.pts = null; this.cs = []; this.setEdge(e); }
     setEdge(e) { const f = this.e ? e / this.e : 1; this.e = e;
@@ -1507,6 +1591,7 @@ function initPhysics() {
     get im() { return this.held ? 0 : this.invM; } get ii() { return this.held ? 0 : this.invI; }
   };
 }
+const STATIC = {im: 0, ii: 0, e: 1e9, v: null, w: null, held: false};      // the ground and the buildings as a body that never moves (vectors made in initPhysics)
 const mkc = (a, b) => ({a, b, r: new V3(), rb: new V3(), n: new V3(), jt: new V3(), lam: 0, sep: 0, kn: 1, kt: 1, vn0: 0});
 function relVel(c, out) { out.crossVectors(c.a.w, c.r).add(c.a.v); if (c.b) { T4.crossVectors(c.b.w, c.rb).add(c.b.v); out.sub(T4); } return out; }
 function applyImp(c, P) { const a = c.a, b = c.b; a.v.addScaledVector(P, a.im); T3.crossVectors(c.r, P).multiplyScalar(a.ii); a.w.add(T3); if (b) { b.v.addScaledVector(P, -b.im); T3.crossVectors(c.rb, P).multiplyScalar(-b.ii); b.w.add(T3); } }
@@ -1527,6 +1612,20 @@ function stepWorld() {
     for (let i = 0; i < b.pts.length; i++) { let c = b.cs[i]; if (!c) c = b.cs[i] = mkc(b, null); c.r.copy(b.pts[i]).applyQuaternion(b.q); const x = b.p.x + c.r.x, z = b.p.z + c.r.z; c.sep = b.p.y + c.r.y - groundAt(x, z, b.e * b.df); if (c.sep < margin) { normalAt(x, z, c.n); prepare(c); act.push(c); }
       for (const [d, nx, nz] of [[x - W.x0, 1, 0], [W.x1 - x, -1, 0], [z - W.z0, 0, 1], [W.z1 - z, 0, -1]]) if (d < margin) { const w = mkc(b, null); w.r.copy(b.pts[i]).applyQuaternion(b.q); w.sep = d; w.n.set(nx, 0, nz); prepare(w); act.push(w); } }      // the edge of the shown map is a wall: a block cannot leave the surface
   }
+  for (const b of B) {      // peaks: ground points that stand inside a block (a summit narrower than the points of the block's own lattice, or one that comes through a side) push it out; only a real intrusion counts, the lattice above carries the block at rest
+    if (b.held || b.sph) continue; const h = b.e / 2, rad = b.e * .87, N = 16, st = 2 * rad / N, deep = -b.e * .004; TQ.copy(b.q).invert();
+    for (let ia = 0; ia <= N; ia++) for (let ib = 0; ib <= N; ib++) { const x = b.p.x - rad + ia * st, z = b.p.z - rad + ib * st, y = groundAt(x, z, b.e * b.df); if (y > b.p.y + rad || y < b.p.y - rad) continue;
+      T1v.set(x - b.p.x, y - b.p.y, z - b.p.z).applyQuaternion(TQ); const dxa = Math.abs(T1v.x) - h, dya = Math.abs(T1v.y) - h, dza = Math.abs(T1v.z) - h, m = Math.max(dxa, dya, dza); if (m >= deep) continue;
+      const c = mkc(STATIC, b); c.sep = m; c.rb.set(x - b.p.x, y - b.p.y, z - b.p.z); if (m === dxa) c.n.set(Math.sign(T1v.x), 0, 0); else if (m === dya) c.n.set(0, Math.sign(T1v.y), 0); else c.n.set(0, 0, Math.sign(T1v.z)); c.n.applyQuaternion(b.q); prepare(c); act.push(c); }
+  }
+  if (PB.length) for (const b of B) {      // buildings (static): their collision points inside the block (a box: the nearest face; a ball: away from the middle) push it out, so a block rests on roofs and is stopped by walls
+    if (b.held) continue; const h = b.e / 2, rad = b.sph ? h : b.e * .87, margin = Math.max(b.e * .003, b.v.length() * DT * 2); TQ.copy(b.q).invert();
+    for (const bd of PB) { if (Math.hypot(bd.x - b.p.x, bd.z - b.p.z) > rad + bd.r + margin || bd.top < b.p.y - rad - margin) continue;
+      for (let i = 0; i < bd.pts.length; i += 3) { const wx = bd.pts[i], wy = bd.pts[i + 1], wz = bd.pts[i + 2]; let sep;
+        if (b.sph) { const ux = wx - b.p.x, uy = wy - b.p.y, uz = wz - b.p.z, d = Math.sqrt(ux * ux + uy * uy + uz * uz); sep = d - h; if (sep >= margin) continue; const c = mkc(STATIC, b); c.sep = sep; c.n.set(ux / (d || 1), uy / (d || 1), uz / (d || 1)); c.rb.set(ux, uy, uz); prepare(c); act.push(c); continue; }
+        T1v.set(wx - b.p.x, wy - b.p.y, wz - b.p.z).applyQuaternion(TQ); const dxa = Math.abs(T1v.x) - h, dya = Math.abs(T1v.y) - h, dza = Math.abs(T1v.z) - h, m = Math.max(dxa, dya, dza); if (m >= margin) continue;
+        const c = mkc(STATIC, b); c.sep = m; c.rb.set(wx - b.p.x, wy - b.p.y, wz - b.p.z); if (m === dxa) c.n.set(Math.sign(T1v.x), 0, 0); else if (m === dya) c.n.set(0, Math.sign(T1v.y), 0); else c.n.set(0, 0, Math.sign(T1v.z)); c.n.applyQuaternion(b.q); prepare(c); act.push(c); } }
+  }
   for (let i = 0; i < B.length; i++) for (let j = i + 1; j < B.length; j++) {      // cube against cube: the points of each inside the box of the other
     const P = B[i], Q = B[j]; if (P.held && Q.held) continue; if (P.p.distanceTo(Q.p) > (P.e + Q.e) * .87 + Math.max(P.e, Q.e) * .01) continue;
     if (P.sph) { const d = P.p.distanceTo(Q.p), rr = (P.e + Q.e) / 2, sep = d - rr, margin = Math.max(rr * .003, (P.v.length() + Q.v.length()) * DT * 2); if (sep < margin) { const c = mkc(P, Q); c.sep = sep; c.n.copy(P.p).sub(Q.p).divideScalar(d || 1); c.r.copy(c.n).multiplyScalar(-P.e / 2); c.rb.copy(c.n).multiplyScalar(Q.e / 2); prepare(c); act.push(c); } continue; }
@@ -1544,7 +1643,7 @@ function stepWorld() {
   for (const b of B) { if (b.held) continue; const {p, q, v, w} = b, wm = omegaMax(b.e) * (b.sph ? 8 : 1.25); if (w.length() > wm) w.setLength(wm);      // no heavy spin, whatever the collision did
     p.addScaledVector(v, DT); q.x += .5 * DT * (w.x * q.w + w.y * q.z - w.z * q.y); q.y += .5 * DT * (w.y * q.w + w.z * q.x - w.x * q.z); q.z += .5 * DT * (w.z * q.w + w.x * q.y - w.y * q.x); q.w += .5 * DT * (-w.x * q.x - w.y * q.y - w.z * q.z); q.normalize(); v.multiplyScalar(b.sph ? .9996 : .99995); w.multiplyScalar(b.sph ? .99995 : .9998);
     if (b.sph && b.rolled) { const wl = w.length(), dw = RR * G / (b.e / 2) * DT; if (wl > dw) w.multiplyScalar(1 - dw / wl); else w.set(0, 0, 0); }      // rolling resistance: a ball on the ground slows by RR times g, so it does not roll far uphill p.x = Math.min(W.x1, Math.max(W.x0, p.x)); p.z = Math.min(W.z1, Math.max(W.z0, p.z));
-    if (!(v.length() < .3 * G * DT && w.length() * b.e < .4 * G * DT)) calm = false; }      // at rest when what is left is less than a third of what one step of gravity adds
+    const cf = PB.length ? 2.5 : 1; if (!(v.length() < .3 * G * DT * cf && w.length() * b.e < .4 * G * DT * cf)) calm = false; }      // with buildings the contact points make a block tremble a little on a roof: the rest test is 2.5 times looser      // at rest when what is left is less than a third of what one step of gravity adds
   phys.rest = calm ? phys.rest + 1 : 0; if (phys.rest > 480 && act.length) { for (const b of B) { b.v.set(0, 0, 0); b.w.set(0, 0, 0); } phys.asleep = true; }
 }
 
@@ -1591,7 +1690,7 @@ function labelsUpdate(dt) {      // every frame: redraw the text when it changed
 /* ---- the stage ---- */
 let sky = null, held = null, down = null, raf = 0, melt = 0, years = 0, lastT = 0, ray, ndc, hold, hv, samples = [], tmp, nrm;
 const RATE = v => v.dV / (v.to - v.from);      // computed: GLAMOS volume change between two surveys divided by the years between them (mean per year, km³)
-function clearEnts() { S3.ents.forEach(en => { scene.remove(en.cube); en.cube.traverse(o => o.geometry && o.geometry.dispose()); }); S3.ents = []; phys.bodies = []; S3.launch = null; syncLaunchUi(); }
+function clearEnts() { S3.ents.forEach(en => { scene.remove(en.cube); en.cube.traverse(o => o.geometry && o.geometry.dispose()); }); S3.ents = []; phys.bodies = []; S3.launch = null; S3.launchRec = null; S3.rec = null; syncLaunchUi(); }
 const SPAWN_HINT = {'B56-07': [45.9445, 7.8075], 'B57-05': [45.9835, 7.6125], 'A54e-24': [46.64496, 8.3793]};      // Gorner: the main trunk below the confluence of the glaciers coming down from Liskamm and Castor (lat, lon); Zmutt: under the north flanks of the Dent d'Herens; Trift: a little east of the flattest ground, on the slope, so the ball rolls down
 function glacierSpot(p) {      // where a block stands on its own glacier: inside the 2023 outline, well away from its edge, on the flattest ground under the footprint (a block on a ridge slides onto the glacier next door)
   const g = GL.find(x => x.id === p.id), e = edgeOf(p.v.V2016), kx = M_LAT * Math.cos(g.lat * Math.PI / 180), polys = g.new;
@@ -1620,17 +1719,26 @@ function spawn(pl) {      // pl: {mode: 'city'} blocks in a row on the middle of
       rows.forEach(r => { const w = r.reduce((a, i) => a + es0[i] + gap, -gap), d = depth(r); let cx = -w / 2; r.forEach(i => { pos[i] = [at[0] + cx + es0[i] / 2, at[1] + cz + d / 2]; cx += es0[i] + gap; }); cz += d + gap; });
     }
   }
-  list.forEach((p, i) => { if (!pos[i]) return; const e = edgeOf(p.v.V2016), [x0, z0] = pos[i], body = new Body(e, S3.shape === 'ball'); let top = -1e9; const r = e * .75; for (let a = -4; a <= 4; a++) for (let b = -4; b <= 4; b++) top = Math.max(top, heightAt(x0 + r * a / 4, z0 + r * b / 4));
+  list.forEach((p, i) => { if (!pos[i]) return; const e = edgeOf(p.v.V2016), [x0, z0] = pos[i], body = new Body(e, S3.shape === 'ball'); let top = -1e9; const r = e * .75; for (let a = -4; a <= 4; a++) for (let b = -4; b <= 4; b++) top = Math.max(top, heightAt(x0 + r * a / 4, z0 + r * b / 4)); top = Math.max(top, bldTopNear(x0, z0, r));
     body.p.set(x0, top + e * (S3.shape === 'ball' ? .5 : .55) + 2 * (e * .3 + 40), z0); body.q.setFromEuler(new THREE.Euler((Math.random() - .5) * .1, Math.random() * 6.28, (Math.random() - .5) * .1, 'YXZ'));
     const cube = makeCube(e, i, (window.DEBRIS_SHARE || {})[p.id] || 0, p.name); scene.add(cube); cube.position.copy(body.p); cube.quaternion.copy(body.q); phys.bodies.push(body);
     S3.ents.push({p, v: p.v, body, cube, e0: e, V: p.v.V2016, rate: RATE(p.v)}); });
   wake(); $('s3Note').textContent = left.length ? 'Not on this map: ' + left.join(', ') + '. Pick a city to see it there.' : '';
   melt = 0; camFor(); s3Story(); refreshFrame();
 }
-const LEAD = .1;      // the animation starts this many seconds after the let-go
+const LEAD = 0;      // the animation starts at the let-go; with a recorded carry it starts at the pick-up instead
+const snapAll = () => S3.ents.map(en => ({p: en.body.p.clone(), q: en.body.q.clone(), v: en.body.v.clone(), w: en.body.w.clone()}));
+const REC_MAX = 3 * 240;      // the carry kept for the film: the last 3 s of physics steps
 function syncLaunchUi() { const o = document.getElementById('vStart'); if (!o) return; const has = !!S3.launch; o.querySelector('[value=throw]').disabled = !has; if (!has && o.value === 'throw') o.value = 'drop'; document.querySelectorAll('#vStartSeg button').forEach(b => { b.disabled = b.dataset.v === 'throw' && !has; b.setAttribute('aria-pressed', o.value === b.dataset.v); }); }
 document.querySelectorAll('#vStartSeg button').forEach(b => b.onclick = () => { const o = document.getElementById('vStart'); if (b.disabled) return; o.value = b.dataset.v; o.dispatchEvent(new Event('change', {bubbles: true})); syncLaunchUi(); });      /* two buttons instead of a pop-up list, which opened in the wrong place on phones */
-function restoreLaunch() {      // put every block back as it was at the let-go, then run LEAD seconds of physics
+function restoreLaunch() {      // put every block back as it was when picked up, move the held block along the recorded carry, then let go with the recorded speed
+  const R = S3.launchRec;
+  if (R && R.snap.length === S3.ents.length && S3.ents[R.hi]) {
+    R.snap.forEach((s, i) => { const en = S3.ents[i], b = en.body; b.p.copy(s.p); b.q.copy(s.q); b.v.copy(s.v); b.w.copy(s.w); b.held = false; en.cube.position.copy(b.p); en.cube.quaternion.copy(b.q); });
+    const hb = S3.ents[R.hi].body, end = S3.launch[R.hi]; hb.held = true; wake();
+    for (const q of R.path) { hb.v.set((q[0] - hb.p.x) / DT, (q[1] - hb.p.y) / DT, (q[2] - hb.p.z) / DT); hb.p.set(q[0], q[1], q[2]); hb.w.set(0, 0, 0); stepWorld(); }
+    hb.held = false; hb.v.copy(end.v); hb.w.copy(end.w); wake(); years = 0; melt = 0; return;
+  }
   S3.launch.forEach((s, i) => { const en = S3.ents[i]; if (!en) return; const b = en.body; b.p.copy(s.p); b.q.copy(s.q); b.v.copy(s.v); b.w.copy(s.w); b.held = false; en.cube.position.copy(b.p); en.cube.quaternion.copy(b.q); });
   wake(); for (let k = 0; k < Math.round(LEAD / DT); k++) stepWorld(); years = 0; melt = 0;
 }
@@ -1703,7 +1811,7 @@ function wirePointer(canvas) {
   canvas.addEventListener('pointermove', e => { if (held) { aimTarget(e); samples.push({t: performance.now(), x: e.clientX, y: e.clientY}); while (samples.length > 2 && samples[0].t < performance.now() - 120) samples.shift(); } else canvas.style.cursor = overCube(e) ? 'grab' : ''; });
   canvas.addEventListener('pointerdown', e => {
     const o = overCube(e); if (o) { const body = o.en.body; cam.getWorldDirection(hv); hold.setFromNormalAndCoplanarPoint(hv, o.hit.point); ray.ray.intersectPlane(hold, hv);
-      held = {en: o.en, target: body.p.clone(), off: body.p.clone().sub(hv), grab: o.hit.point.clone().sub(body.p), dist: cam.position.distanceTo(o.hit.point)}; body.held = true; body.v.set(0, 0, 0); body.w.set(0, 0, 0); wake(); samples.length = 0; samples.push({t: performance.now(), x: e.clientX, y: e.clientY});
+      S3.rec = {snap: snapAll(), path: [], hi: S3.ents.indexOf(o.en)}; held = {en: o.en, target: body.p.clone(), off: body.p.clone().sub(hv), grab: o.hit.point.clone().sub(body.p), dist: cam.position.distanceTo(o.hit.point)}; body.held = true; body.v.set(0, 0, 0); body.w.set(0, 0, 0); wake(); samples.length = 0; samples.push({t: performance.now(), x: e.clientX, y: e.clientY});
       ctl.enabled = false; canvas.setPointerCapture(e.pointerId); canvas.style.cursor = 'grabbing'; $('hint3d').classList.remove('show'); down = null; return; }
     down = {x: e.clientX, y: e.clientY, t: performance.now()}; });
   function release() {      // the throw: the pointer's speed over the last 0.12 s in the screen plane at the grab distance, and a little spin from where the block was held, capped
@@ -1712,7 +1820,7 @@ function wirePointer(canvas) {
     const v = right.multiplyScalar((b.x - a.x) / dt * pm).addScaledVector(up, -(b.y - a.y) / dt * pm).multiplyScalar(THROW); if (v.length() > VMAX) v.setLength(VMAX);
     body.held = false; body.v.copy(v); body.w.copy(held.grab.clone().cross(v)).multiplyScalar(body.invI * body.m * .5); body.w.add(new THREE.Vector3(Math.random() - .5, Math.random() - .5, Math.random() - .5).multiplyScalar(v.length() / body.e * .3));
     { const wm = omegaMax(body.e) * (body.sph ? 3 : 1); if (body.w.length() > wm) body.w.setLength(wm); }
-    S3.launch = S3.ents.map(en => ({p: en.body.p.clone(), q: en.body.q.clone(), v: en.body.v.clone(), w: en.body.w.clone()})); syncLaunchUi();      // the moment of the throw, kept so the animation can start from it
+    S3.launch = S3.ents.map(en => ({p: en.body.p.clone(), q: en.body.q.clone(), v: en.body.v.clone(), w: en.body.w.clone()})); S3.launchRec = S3.rec && S3.rec.path.length ? S3.rec : null; S3.rec = null; syncLaunchUi();      // the carry and the let-go, kept so the animation can start from the pick-up
     held = null; ctl.enabled = true; canvas.style.cursor = ''; wake();
   }
   canvas.addEventListener('pointercancel', () => { if (held) release(); });
@@ -1735,7 +1843,7 @@ function frameStep(dtReal) {
   if (held) { const body = held.en.body, P = held.target.clone(); P.x = Math.min(W.x1 - body.e * .5, Math.max(W.x0 + body.e * .5, P.x)); P.z = Math.min(W.z1 - body.e * .5, Math.max(W.z0 + body.e * .5, P.z)); let lo = 1e9; for (const q of body.pts) { tmp.copy(q).applyQuaternion(body.q); lo = Math.min(lo, P.y + tmp.y - heightAt(P.x + tmp.x, P.z + tmp.z)); } if (lo < 2) P.y += 2 - lo; hGoal = P; phys.asleep = false; phys.rest = 0; }      // the held block moves towards the hand in the physics steps, with a velocity, so it shoves the others instead of passing through them
   if (melt) meltBy(melt * Math.min(dtReal, .1));
   if (!phys.asleep) for (let i = 0, n = Math.max(1, Math.min(2 * (S3.ents.length > 4 ? 12 : STEPS), Math.round((S3.ents.length > 4 ? 12 : STEPS) * 60 * dtReal))); i < n; i++) {      // steps follow the real time (the speed of a 60 fps screen), so a slow phone does not see slow motion
-    if (hGoal && held) { const hb = held.en.body, st = hGoal.clone().sub(hb.p).divideScalar(n - i), cap = hb.e * .02; if (st.length() > cap) st.setLength(cap); hb.p.add(st); hb.v.copy(st).divideScalar(DT); hb.w.set(0, 0, 0); }
+    if (hGoal && held) { const hb = held.en.body, st = hGoal.clone().sub(hb.p).divideScalar(n - i), cap = hb.e * .02; if (st.length() > cap) st.setLength(cap); hb.p.add(st); hb.v.copy(st).divideScalar(DT); hb.w.set(0, 0, 0); if (S3.rec) { if (S3.rec.path.length >= REC_MAX) { S3.rec.snap = snapAll(); S3.rec.path = []; S3.rec.snap[S3.rec.hi].p.copy(hb.p).sub(st); } S3.rec.path.push([hb.p.x, hb.p.y, hb.p.z]); } }
     stepWorld(); if (phys.asleep) break; }
 }
 function meltBy(dy) {      // the melt: every block loses its volume at its own mean rate (computed, constant); the shape stays what it is
@@ -1764,7 +1872,7 @@ function loop(now) {
   for (const p of PK) { projPeak(p); if (!p.el.hidden && !(state.peaks && peakVisible(p))) p.el.hidden = true; }
   for (const p of GN) { projPeak(p); if (!p.el.hidden && !(state.gnames && peakVisible(p))) p.el.hidden = true; }
   if ($('s3City').dataset.on) proj(new THREE.Vector3(0, heightAt(0, 0), 0), $('s3City'), null);
-  ctl.update(); if (S3.pc && !held) (S3.pan || (S3.pan = new THREE.Vector3())).copy(ctl.target).sub(S3.pc); skyUpdate();
+  ctl.update(); keepCamAboveGround(); if (S3.pc && !held) (S3.pan || (S3.pan = new THREE.Vector3())).copy(ctl.target).sub(S3.pc); skyUpdate();
   renderer.render(scene, cam);
 }
 COLOUR.N = '#8DB9D0';      // all ten at once: no red and blue, every block the colour of ice
@@ -1785,6 +1893,16 @@ function s3Fit(picks) {
   const det = (coarse ? [0, 2] : [1, 0, 2]).find(d => half(d) >= need);
   return {lat, lon, det: det === undefined ? 2 : det};
 }
+/* Lausanne's municipality reaches into the lake up to the national border: the terrain square is moved north (in whole tiles) until its south edge lies no further south than the municipality's southmost point (swissBOUNDARIES3D), so the picture ends in the lake and shows no French shore. */
+function keepSouthInside(c, lat, lon, det) {
+  let low = 1e9; for (const p of c.polys) for (let i = 1; i < p[0].length; i += 2) low = Math.min(low, p[0][i]);
+  const lim = c.lat + low / M_LAT, T = 2 * Math.PI * R_EARTH / 2 ** DETAIL[det].z, n = DETAIL[det].n;
+  for (let t = 0; t < 14; t++, lat += .005) {
+    const my = R_EARTH * Math.log(Math.tan(Math.PI / 4 + lat * Math.PI / 360)), ty0 = Math.floor((Math.PI * R_EARTH - my) / T) - (n - 1) / 2, south = (2 * Math.atan(Math.exp((Math.PI * R_EARTH - (ty0 + n) * T) / R_EARTH)) - Math.PI / 2) * 180 / Math.PI;
+    if (south >= lim) break;
+  }
+  return lat;
+}
 async function s3Update() {      // called whenever the picks or the city change while the page is in 3D
   if (!S3.on) return; try { await ensureThree(); } catch (e) { $('s3Note').textContent = '3D could not load (no connection to the 3D library).'; return; }
   if (!renderer) { initScene(); s3Resize(); lastT = performance.now(); raf = requestAnimationFrame(loop); }
@@ -1792,7 +1910,7 @@ async function s3Update() {      // called whenever the picks or the city change
   if (key === S3.key) return; S3.key = key; s3Story();
   if (!picks.length) { clearEnts(); $('s3Note').textContent = 'Pick a glacier.'; return; }
   let lat, lon, det;
-  if (c) { lat = c.clat; lon = c.clon; det = coarse ? 0 : 1; } else { ({lat, lon, det} = s3Fit(picks)); }
+  if (c) { lat = c.clat; lon = c.clon; det = coarse ? 0 : 1; if (c.id === 'lausanne') lat = keepSouthInside(c, lat, lon, det); } else { ({lat, lon, det} = s3Fit(picks)); }
   const tk = lat.toFixed(4) + ',' + lon.toFixed(4) + ',' + det, mine = ++S3.job; $('s3Busy').hidden = false;
   if (tk !== S3.terrainKey) { S3.terrainKey = ''; if (!await loadTerrain(lat, lon, det)) return; S3.terrainKey = tk; }
   if (mine !== S3.job) return; $('s3Busy').hidden = true;
@@ -1811,7 +1929,7 @@ function drawS3Overlay(x, W, Hh, u, ents = S3.ents, o = {}) {      // the text o
   const names = ents.map(en => en.p.name), sum = ents.reduce((a, en) => a + en.v.V2016, 0);
   const title = S3.all ? 'All ten glaciers' : names.join(' and '), minimal = !!o.minimal, lift = o.safe ? Math.round(Hh * .12) : 0, step = (minimal ? 20 : 31) * u;      // minimal: one small line (glaciers, site, credit); safe: lifted clear of the Reels and TikTok buttons
   const details = minimal ? [] : S3.all ? [`Together ${fmt(sum, 2)} km³ of ice (computed: the sum of the ten stated volumes)`] : ents.map(en => `${en.p.name}: ${en.v.V2016} km³ (stated), ${SHP().word === 'edge' ? 'cube edge' : 'ball diameter'} ${fmtM(en.e0)} (computed)`);
-  const credit = 'Terrain: Mapterhorn' + terrainCredit() + (lakeFloors ? ' · Lake floors: swissBATHY3D, Federal Office of Topography swisstopo' : '') + (state.peaks && PK.length ? ' · Peak names: ' + peakSrc : '') + (state.gnames && GN.length ? ' · Glacier names: Wikidata (CC0), Randolph Glacier Inventory 6.0' : '') + ' · Ice volume: Grab & Melchior 2020 (CC BY 4.0) · ' + BRAND_TEXT;
+  const credit = 'Terrain: Mapterhorn' + terrainCredit() + (bldShown ? ' · Buildings: swissBUILDINGS3D 3.0 Beta, © swisstopo' : '') + (lakeFloors ? ' · Lake floors: swissBATHY3D, Federal Office of Topography swisstopo' : '') + (state.peaks && PK.length ? ' · Peak names: ' + peakSrc : '') + (state.gnames && GN.length ? ' · Glacier names: Wikidata (CC0), Randolph Glacier Inventory 6.0' : '') + ' · Ice volume: Grab & Melchior 2020 (CC BY 4.0) · ' + BRAND_TEXT;
   const pad = 24 * u, maxW = W - 2 * pad, wrap = (t, font) => { x.font = font; const out = []; let line = ''; for (const w of t.split(' ')) { const n = line ? line + ' ' + w : w; if (x.measureText(n).width > maxW && line) { out.push(line); line = w; } else line = n; } if (line) out.push(line); return out; };
   const fT = minimal ? `600 ${15 * u}px ${FONT}` : `700 ${26 * u}px ${FONT}`, fD = `500 ${15 * u}px ${FONT}`, fC = `400 ${11.5 * u}px ${FONT}`;
   const tl = wrap(title, fT), dl = details.flatMap(d => wrap(d, fD)), cl = wrap(credit, fC), h = tl.length * step + dl.length * 21 * u + cl.length * 15 * u + (minimal ? 24 : 34) * u + lift;
@@ -1877,9 +1995,10 @@ function setMode(m) {
 const s3Sources = () => `<details class="sec sources coll"><summary><div class="card-h">Sources</div></summary><ul class="src-list">
       <li>Ice volume: Grab &amp; Melchior (2020), Swiss Glacier Thickness, release 2020 (SwissGlacierThickness-R2020), doi:10.3929/ethz-b-000434697, CC BY 4.0: "Ice volume (km3) homogenised for the year 2016", as the file states it. Modelled from radar measurements; the reference year differs by glacier (2015 to 2017).</li>
       <li>Loss: GLAMOS, Swiss Glacier Volume Change, release 2025 (non-commercial): the change in volume between two surveys, as stored.</li>
-      <li>Terrain: <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a> terrain tiles (open elevation data: swissALTI3D © swisstopo in Switzerland, other models elsewhere). Picture: swisstopo SWISSIMAGE in Switzerland (© swisstopo), elsewhere and as the underlay Sentinel-2 cloudless 2024 by EOX (CC BY-NC-SA 4.0). City outlines as on the map; a typed city from OpenStreetMap.</li>
+      <li>Terrain: <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a> terrain tiles (open elevation data: swissALTI3D © swisstopo in Switzerland, other models elsewhere). Picture: swisstopo SWISSIMAGE in Switzerland (© swisstopo), elsewhere and as the underlay the Sentinel-2 mosaic (cloudless 2024 by EOX, CC BY-NC-SA 4.0). City outlines as on the map; a typed city from OpenStreetMap.</li>
+      ${bldShown ? '<li>Tall buildings: swissBUILDINGS3D 3.0 Beta, © swisstopo (<a href="https://www.swisstopo.admin.ch/en/landscape-model-swissbuildings3d-3-0-beta" target="_blank" rel="noopener">swisstopo</a>). Buildings whose stated total height (GESAMTHOEHE) is over 25 m; the footprints are computed from the 3D models and the base is placed on the terrain shown here.</li>' : ''}
       ${lakeFloors ? '<li>Lake floors: swissBATHY3D, Federal Office of Topography swisstopo (bathymetric survey, 1 m grid averaged here to 20 m). Ice floats with 0.917 of its edge (a ball: 0.823 of its diameter) under water, computed from the densities of ice (917) and water (1000 kg/m³); in a lake shallower than that it rests on the floor.</li>' : ''}
-      <li>Computed here: the ${SHP().word} (${SHP().how}), the mean loss per year (the volume change divided by the years between the two surveys), the years to melt (the 2016 volume divided by that rate, as if the loss stayed constant, which it will not) and every ratio. The ${SHP().many} are ${SHP().plain} of that volume, not the shape of the glacier; they are rigid bodies with assumed friction (0.45) and bounce (0.15), gravity is scaled 60 times so that ice cubes of this size fall like dice, and the melt makes them shrink at the constant mean rate.</li>
+      <li>Computed here: the ${SHP().word} (${SHP().how}), the mean loss per year (the volume change divided by the years between the two surveys), the years to melt (the 2016 volume divided by that rate) and every ratio. The ${SHP().many} are ${SHP().plain} of that volume, not the shape of the glacier; they are rigid bodies with assumed friction (0.45) and bounce (0.15), gravity is scaled 60 times so that ice cubes of this size fall like dice. Debris is accounted for in the look of the ${SHP().many}, not in their size: dark grit is spread through the ice, more of it for a glacier with more non-ice pixels inside its SGI2023 outline on the SWISSIMAGE aerial (computed here, a rough measure because SWISSIMAGE is a mosaic of flights of different years); the volume and the size of the ${SHP().one} stay those of the stated ice volume.</li>
     </ul></details>`;
 function s3StoryAll() {      // all ten at once: one table, sorted by volume, a thin bar under each row (stated volume as it is; edge and loss computed)
   const c = state.city, items = picksNow().map(p => ({p, v: p.v, e: edgeOf(p.v.V2016), rate: Math.abs(RATE(p.v))})), tot = items.reduce((a, i) => a + i.v.V2016, 0), max = items[0].v.V2016;
@@ -2021,7 +2140,7 @@ async function s3Film(opts = {}) {
     note(`The film is ready: ${(file.size / 1e6).toFixed(1)} MB, ${W} × ${H}, ${frames} frames.`);
   } catch (e) { note('The film could not be made: ' + e.message); console.error(e); }
   finally {
-    S3.filming = false; $('s3Film').hidden = true; $('vsProgress').hidden = true; renderer.setPixelRatio(saved.pr); cam.clearViewOffset(); s3Resize(); { const keep = S3.launch; s3Again(); S3.launch = keep; syncLaunchUi(); } cam.position.copy(saved.pos); ctl.target.copy(saved.tgt); ctl.update();      // the page as it was
+    S3.filming = false; $('s3Film').hidden = true; $('vsProgress').hidden = true; renderer.setPixelRatio(saved.pr); cam.clearViewOffset(); s3Resize(); { const keep = S3.launch, keepRec = S3.launchRec; s3Again(); S3.launch = keep; S3.launchRec = keepRec; syncLaunchUi(); } cam.position.copy(saved.pos); ctl.target.copy(saved.tgt); ctl.update();      // the page as it was
     lastT = performance.now(); if (S3.on && !raf) raf = requestAnimationFrame(loop);
   }
 }
@@ -2316,6 +2435,7 @@ build();
       mark(on);if(!on){st.classList.remove('is-full');document.body.classList.remove('has-full');app.classList.remove('no-left','no-right')}}}});
 })();
 </script>
-<script defer src="js/turn-upright.js"></script>
+<script defer src="js/turn-upright.js">addEventListener('scroll', () => document.body.classList.toggle('scrolled', scrollY > 8), {passive: true});
+</script>
 </body>
 </html>

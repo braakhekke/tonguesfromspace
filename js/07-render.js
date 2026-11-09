@@ -21,6 +21,12 @@ Object.defineProperty(wire, 'syncPane', { get: () => syncPane, configurable: tru
 /* =====================================================================
    7. Rendering
    ===================================================================== */
+/* mouse devices: the glacier list rests as one row (see css/style.css); put the chosen glacier, or the top of the list, in it. True when that applied. */
+const restGlacierList = (ul, row) => {
+  if (!matchMedia('(hover:hover) and (pointer:fine)').matches || ul.matches(':hover') || ul.querySelector(':focus-visible')) return false;
+  ul.scrollTop = row ? Math.max(0, row.offsetTop - 3) : 0; return true;
+};
+document.addEventListener('pointerleave', e => { const ul = e.target; if (ul && ul.id === 'glacierList') setTimeout(() => restGlacierList(ul, ul.querySelector('button[aria-pressed="true"]')), 200); }, true);
 export function renderGlacierList(){
   const ul = document.getElementById('glacierList'); ul.innerHTML = '';
   const box = document.getElementById('glacierSearch'), q = box ? box.value.trim() : '';
@@ -42,7 +48,7 @@ export function renderGlacierList(){
       sl.appendChild(sbtn); ul.appendChild(sl);
     });
   });
-  const keepChosenInView = () => { const row = ul.querySelector('button[aria-pressed="true"]'); if (!row) return; const top = row.offsetTop, bottom = top + row.offsetHeight; if (top < ul.scrollTop) ul.scrollTop = top; else if (bottom > ul.scrollTop + ul.clientHeight) ul.scrollTop = bottom - ul.clientHeight; };      // only the list scrolls, not the page; again on the next frame, because a click on the map changes the layout first
+  const keepChosenInView = () => { const row = ul.querySelector('button[aria-pressed="true"]'); if (restGlacierList(ul, row)) return; if (!row) return; const top = row.offsetTop, bottom = top + row.offsetHeight; if (top < ul.scrollTop) ul.scrollTop = top; else if (bottom > ul.scrollTop + ul.clientHeight) ul.scrollTop = bottom - ul.clientHeight; };      // only the list scrolls, not the page; again on the next frame, because a click on the map changes the layout first
   keepChosenInView(); requestAnimationFrame(keepChosenInView);
   document.getElementById('rankNote').innerHTML = REGION.rgi ? REGION.rankNote : '';      // (Switzerland: the "Ranked by area" line is gone)
   renderLayerTitles();
@@ -228,6 +234,7 @@ export function renderMode(){
   document.getElementById('app').classList.toggle('is-timelapse', tl);
   document.getElementById('app').classList.toggle('photos-ok', state.mode === 'single'); syncFullPlay();      // the old photographs are for one year only
   document.getElementById('modeCompare').classList.remove('sat-need');      // Oldest has one picture only: the slider is greyed out like the timelapse, a click says why
+  document.getElementById('modeTimelapse').classList.toggle('sat-need', !!state.oldestAerial);      // only Oldest (one picture) greys the timelapse; with the Sentinel-2 picture switched off it still plays the aerial years
   document.getElementById('modeCompare').setAttribute('aria-pressed', state.mode === 'compare');
   turnHint();
   document.getElementById('modeTimelapse').setAttribute('aria-pressed', state.mode === 'timelapse');
@@ -249,6 +256,7 @@ export function renderMode(){
     document.querySelectorAll('#swatchesA .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === state.style));
     document.querySelectorAll('#swatchesB .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === sB));
     if (!ccAltChecked && state.styleB) { ccAltChecked = true; if (state.styleB !== state.style) document.getElementById('ccAltB').open = true; } }      // a different composition from a share link: open the fold once; after that only the visitor opens or closes it
+  { const ns = document.getElementById('navSize'), g = currentGlacier(); if (ns && g && FEATURES.sizeTool) ns.href = sizeHref(g, '3d'); }      // the Size link in the panel header opens the size page on this glacier in 3D
   applyBrightness();
   document.getElementById('styleNoteA').textContent = document.getElementById('styleNote').textContent = {
     natural: 'As the eye sees it: snow white, rock grey, plants green.',
@@ -541,7 +549,7 @@ export function aboutChaptersCh(){
         </ul>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-19"><summary>Size visualizer</summary><div class="about-sec">
-        <p>A separate page (<a href="size.html">size.html</a>) that answers one question: how big is a glacier? It is opened from the button above the tabs in the right panel, and it works for the ten glaciers of this site.</p>
+        <p>A separate page, the <a href="size.html">Size visualizer</a>, answers one question: how big is a glacier? It is opened from the button above the tabs in the right panel, and it works for the ten glaciers of this site.</p>
         <h4>Two ways to look</h4>
         <ul>
           <li><em>Area (2D):</em> a map on which you drag the outline of a glacier onto a city. The outlines are those of the Swiss Glacier Inventory.${fn('sgi')}</li>
@@ -673,7 +681,7 @@ export function aboutChaptersCh(){
         <p><em>Pictures.</em> <em>Sentinel-2 image</em> is the picture of the chosen year, with its own opacity; <em>swisstopo aerial</em> shows SWISSIMAGE (see Aerial images, trails and panoramas). The setting <em>Surroundings opacity</em> in the left panel fades the picture outside the 1850 outline.</p>
         <p><em>The glacier.</em> <em>Outline 1850</em> and <em>Outline 2023</em> are the outlines of the Swiss Glacier Inventory.${fn('sgi')} <em>Tongue tip 2023</em> is the lowest point of the 2023 outline. <em>Thickest ice</em> is where the ice is thickest, by the thickness map of Grab et al.${fn('grab')} (or by a newer radar survey, if there is one), and <em>Radar points</em> shows the radar measurements (the mean of every 50 m cell).${fn('radar')} <em>Glacier thickness 2016</em> is the modelled ice thickness map of Grab et al.${fn('grab')} (the menu names 2016; the reference year of the map differs by glacier, 2017 for Aletsch). <em>Ice speed</em> is described under Ice speed.</p>
         <p><em>Around the glacier.</em> <em>Hiking trails</em> with the band where the tongue can be seen; <em>Panoramas</em> (Street View, Aletsch only); <em>Other glacier names</em> writes the name of the chosen glacier and of the other glaciers inside its picture (names from Wikidata and the Randolph Glacier Inventory${fn('names')}); <em>Selectable glaciers</em> draws the ten glaciers as red outlines you can click and is switched off when you choose one.</p>
-        <p><em>Backgrounds</em> behind and around the picture: Sentinel-2 cloudless by EOX, OpenStreetMap, the swisstopo map, a hillshade and place labels.${fn('bg')} <em>Tools:</em> Tongue fits the view to the picture box and Whole glacier to the whole glacier, Measure length and Measure area draw on the map and give the value, Clear removes them.</p>
+        <p><em>Backgrounds</em> behind and around the picture: the Sentinel-2 mosaic (cloudless, by EOX), OpenStreetMap, the swisstopo map, a hillshade and place labels.${fn('bg')} <em>Tools:</em> Tongue fits the view to the picture box and Whole glacier to the whole glacier, Measure length and Measure area draw on the map and give the value, Clear removes them.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-10"><summary>The 3D view</summary><div class="about-sec">
         <p>A strip along the glacier, from 1 km below the tongue tip up to about 6.5 km up the glacier and 4 km wide, with the real satellite picture of the chosen year draped over the terrain. The heights are the newest edition of swisstopo's swissALTI3D elevation model (served as tiles by Mapterhorn and stored with the page on a 14 m grid).${fn('terrain')}</p>
@@ -1472,7 +1480,8 @@ export function setDynSources(v){ return dynSources = v; }      // the other fil
 /* A scrollable year list always shows its chosen year: after the list is drawn or the choice changes, and again when the visitor has scrolled it and let go or left it */
 {
   const showChosen = box => {
-    const b = box.querySelector('button[aria-pressed="true"]'); if (!b || box.scrollHeight <= box.clientHeight + 1) return;
+    const b = box.querySelector('button[aria-pressed="true"]'); if (box.scrollHeight <= box.clientHeight + 1) return;
+    if (!b) { if (matchMedia('(hover:hover) and (pointer:fine)').matches && !box.matches(':hover')) box.scrollTo({ top: box.scrollHeight, behavior: 'smooth' }); return; }      // nothing chosen, list at rest on a mouse device: the newest years (the list runs oldest to newest)
     const top = b.offsetTop - box.offsetTop, want = top - (box.clientHeight - b.offsetHeight) / 2;      // (offsetTop is from the page's offset parent: measured against the box's own)
     if (top < box.scrollTop || top + b.offsetHeight > box.scrollTop + box.clientHeight) box.scrollTo({ top: Math.max(0, want), behavior: 'smooth' });
   };

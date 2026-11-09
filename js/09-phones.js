@@ -98,7 +98,7 @@ document.body.appendChild(TURN);
 const SIDEWAYS = matchMedia('(pointer:coarse) and (orientation:landscape) and (max-height:520px)');
 export function orientSync(){
   const full = isFull();
-  TURN.hidden = !(SIDEWAYS.matches && !full);
+  TURN.hidden = !(SIDEWAYS.matches && !full) || EMBED;      // an embed has no panel to rearrange: it fills the frame in any orientation
   document.body.classList.toggle('turn-upright-on', !TURN.hidden);
   try {
     const so = /** @type {any} */ (screen.orientation);
