@@ -253,28 +253,31 @@ def take_export(T):
 
 
 def make_exports(ctx):
-    """The real files of the page, made by its own export: a 9:16 animation with facts and a picture of the compare view, saved for the product shot."""
+    """The real files of the page, made by its own export (driven through its panes, the page is ES modules now): a 9:16 animation with facts and a picture of the compare view, saved for the product shot."""
     page = open_page(ctx, "#g=aletsch&m=timelapse&from=2016&to=2026")
     ready_map(page)
-    page.evaluate("() => { D.frameLower(3600, 0.5, 0.42); openVideo('video'); setFmt('reel'); }")
-    page.wait_for_timeout(1500)
+    page.evaluate("() => { D.frameLower(3600, 0.5, 0.42); }")
+    page.click("#videoBtn"); page.wait_for_timeout(800)
+    page.click("#vkVideo"); page.click("#vfReel"); page.wait_for_timeout(1500)
     page.evaluate("() => D.tipInFrame(0.5, 0.42)")      # the tongue tip in the lower part of the frame, the ice running in from above
     page.wait_for_timeout(800)
-    page.evaluate("$('vFacts').click()")
+    if not page.evaluate("document.getElementById('vFacts').checked"):
+        page.click("#vFacts")
     page.wait_for_timeout(600)
     with page.expect_download(timeout=300000) as dl:
-        page.evaluate("$('vsGo').click()")
+        page.click("#vsGo")
     dl.value.save_as(f"{WORK}/export-916.mp4")
     page.close()
     page = open_page(ctx, "#g=aletsch&m=compare&a=2016&b=2026")
-    wait_js(page, "state.checked && state.available[2016] && state.available[2026]", 90000)
-    page.evaluate("() => { setOrient('v'); state.split = 0.5; clip(); D.frameLower(3600, 0.5, 0.42); openVideo('image'); setFmt('feed'); }")
-    page.wait_for_timeout(1500)
+    mods(page); wait_js(page, "M.st.state.checked && M.st.state.available[2016] && M.st.state.available[2026]", 90000)
+    page.evaluate("() => { M.ctl.setOrient('v'); M.st.state.split = 0.5; M.map.clip(); D.frameLower(3600, 0.5, 0.42); }")
+    page.click("#videoBtn"); page.wait_for_timeout(800)
+    page.click("#vkImage"); page.click("#vfFeed"); page.wait_for_timeout(1500)
     page.evaluate("() => D.tipInFrame(0.5, 0.42)")
-    page.evaluate("() => { const f = $('videoFrame').getBoundingClientRect(), m = $('map').getBoundingClientRect(); state.split = (f.left + f.width * 0.5 - m.left) / m.width; clip(); }")      # the line in the middle of the frame, not of the map
+    page.evaluate("() => { const f = document.getElementById('videoFrame').getBoundingClientRect(), m = document.getElementById('map').getBoundingClientRect(); M.st.state.split = (f.left + f.width * 0.5 - m.left) / m.width; M.map.clip(); }")      # the line in the middle of the frame, not of the map
     page.wait_for_timeout(800)
     with page.expect_download(timeout=120000) as dl:
-        page.evaluate("$('vsGo').click()")
+        page.click("#vsGo")
     dl.value.save_as(f"{WORK}/export-image.jpg")
     page.close()
 
@@ -416,14 +419,22 @@ def take_data(T):
     T.done(0.3)
 
 
-def take_size(T):
-    """size.html: the outline of Aletsch is dragged onto Zurich; the page tells how many times it fits."""
+def size_page(T, hash_, wait=9000):
+    """size.html in a state, the film layer added, a recorder and a mouse ready (the page is not index.html, so open_page is not used)."""
     p = T.ctx.new_page(); T.page = p
     p.add_init_script(DIRECTOR_SRC); p.on("pageerror", lambda e: print("  pageerror:", str(e)[:200]))
-    p.goto(f"{BASE}/size.html#g=B36-26&c=zurich", wait_until="load"); p.wait_for_timeout(9000)
+    p.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")
+    p.goto(f"{BASE}/size.html{hash_}", wait_until="load"); p.wait_for_timeout(wait)
     p.add_style_tag(content="body{user-select:none!important;-webkit-user-select:none!important}")
-    p.evaluate("D.follow = true; D.cine(true)")
-    p.mouse.move(620, 335); p.mouse.down(); p.mouse.move(880, 260, steps=20); p.mouse.up(); p.wait_for_timeout(1200)      # off the city, unseen (the map is x 290 to 960 of the page)
+    p.evaluate("D.follow = true; D.cine(true); D.scale(%s)" % T.fmt["z"])
+    return p
+
+
+def take_size(T):
+    """size.html, Area (2D): the outline of Aletsch is dragged onto Z\u00fcrich; the page tells how many times it fits."""
+    p = size_page(T, "#g=B36-26&c=zurich")
+    p.evaluate("() => { const b = document.querySelector('#modeSwitch button[data-mode=\"2d\"]'); if (b) b.click(); }"); p.wait_for_timeout(3000)
+    p.mouse.move(620, 335); p.mouse.down(); p.mouse.move(880, 260, steps=20); p.mouse.up(); p.wait_for_timeout(1200)      # off the city, unseen
     T.rec = Rec(p, *T.fmt["out"]); T.mouse = Mouse(p); T.mouse.place(880, 260)
     T.go()
     p.evaluate("() => D.cap('', 'Size it up', 'Glaciers on your city', 'Drag a glacier onto Z\u00fcrich, Bern or a city of your choice.', {left: 312, cb: 40, cw: 260})")
@@ -436,13 +447,32 @@ def take_size(T):
     T.done(0.3)
 
 
+def take_size3d(T):
+    """size.html, Volume (3D): all the ice of the glacier as one ice cube on the real terrain of the city; it drops, is thrown, and the shape is switched to a ball."""
+    p = size_page(T, "#g=B36-26&c=zurich&mode=3d", 6000)
+    wait_js(p, "document.getElementById('s3Busy').hidden && document.querySelector('#s3d')", 150000); p.wait_for_timeout(4000)
+    T.rec = Rec(p, *T.fmt["out"]); T.mouse = Mouse(p); m = T.mouse; m.place(640, 420)
+    T.go()
+    p.evaluate("() => D.cap('', 'Feel the volume', 'All the ice as one cube', 'Drop it on your city, drag it, throw it.', {left: 312, cb: 96, cw: 270})")
+    m.click("#s3Again", 700)      # drop again: the cube falls onto the city
+    T.sleep(2.6)
+    m.glide(630, 330, 600)      # the cube is picked up, dragged across the city and let go
+    p.mouse.down(); T.sleep(0.2)
+    m.glide(540, 300, 500); m.glide(760, 360, 450)
+    p.mouse.up(); T.sleep(2.2)
+    m.click("#shapeSw", 700, dx=30)      # the shape switch: Ice cube | Ball
+    T.sleep(2.8)
+    p.evaluate("D.capOut()")
+    T.done(0.3)
+
+
 TAKES = {"map": take_map, "3d": take_3d, "stats": take_stats, "export": take_export, "product": take_product, "end": take_end,
-         "cross": take_cross, "notes": take_notes, "data": take_data, "size": take_size}
-ORDER = ["map", "3d", "cross", "notes", "data", "size", "stats", "export", "product", "end"]      # the older takes keep their clips; --takes cross,notes,data,size records only the new ones
+         "cross": take_cross, "notes": take_notes, "data": take_data, "size": take_size, "size3d": take_size3d}
+ORDER = ["map", "3d", "cross", "notes", "data", "size", "size3d", "stats", "export", "product", "end"]      # the older takes keep their clips; --takes cross,notes,data,size records only the new ones
 
 
 # ----------------------------------------------------------------------------------------------------------------------------------------------------
-TRIM = {"cross": 7.0, "notes": 7.5, "size": 6.0, "stats": 9.0}      # seconds kept of these takes in the film (the new takes and the stats take are cut short to keep the film near a minute and a half)
+TRIM = {"cross": 7.0, "notes": 7.5, "size": 6.0, "size3d": 8.0, "stats": 9.0}      # seconds kept of these takes in the film (the new takes and the stats take are cut short to keep the film near a minute and a half)
 
 
 def assemble(names, fmt, out):

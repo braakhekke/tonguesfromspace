@@ -43,7 +43,8 @@ def size(pg, now):
 
 def trails(pg, now):
     pg.goto(BASE + 'index.html#g=aletsch&m=single&one=2026', wait_until='load'); pg.reload()
-    pg.wait_for_function("typeof state !== 'undefined' && state.checked && Object.keys(state.available).length > 0", timeout=240000)
+    pg.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}"); pg.reload()
+    pg.wait_for_function("typeof L !== 'undefined' && document.querySelector('.leaflet-tile-loaded')", timeout=240000)
     pg.wait_for_timeout(6000); a = now()
     pg.click('#lbToggle'); pg.wait_for_timeout(900)
     pg.click('label:has(#trailsToggle)'); pg.wait_for_timeout(4500)       # the trails and the violet stretches where the tongue is in view
@@ -53,7 +54,7 @@ def trails(pg, now):
     pg.click('summary:has-text("Hike and bike")'); pg.wait_for_timeout(5000)
     return a, now()
 
-STEPS = {'size': (size, 3.0), 'trails': (trails, 7.0)}
+STEPS = {'trails': (trails, 7.0)}      # 'size' now comes from the teaser takes (make_home_clips.py)
 
 if __name__ == '__main__':
     for n in (sys.argv[1:] or STEPS): record(n, STEPS[n][0], STEPS[n][1])
