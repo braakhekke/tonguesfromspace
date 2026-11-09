@@ -416,7 +416,7 @@ function pumpPane(){
   const a = PHONE.matches ? 'translateY' : 'translateX';
   sh.animate([{transform: a + '(0)'}, {transform: a + '(14px)', offset: .3}, {transform: a + '(0)', offset: .55}, {transform: a + '(6px)', offset: .75}, {transform: a + '(0)'}], {duration: 520, easing: 'ease-out'});      // pushes toward its own screen edge and back: no gap opens
 }
-$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo('video'); pumpPane(); scrollCompareTop(); }; $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
+$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo(state.mode === 'single' && viewMode !== '3d' ? 'image' : 'video'); pumpPane(); scrollCompareTop(); };      // one year on the map is a picture (as syncPane says); a timelapse, a slider and the 3D view open on the animation $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', custom: 'vfCustom' };
 /* Custom frame: drag a handle; the frame stays inside the free area and at least 80 px wide and high */
 $('videoFrame').addEventListener('pointerdown', e => {

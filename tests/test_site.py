@@ -111,6 +111,17 @@ class TestLoading(SiteCase):
             self.assertEqual(page.locator(f'#story [data-panel="{t}"]:not([hidden])').count(), 1, f"tab {t} shows no panel")
         self.assertClean()
 
+    def test_the_save_pane_opens_on_the_kind_that_fits_the_view(self):      # "Your visual": one year on the map is a picture, a timelapse is an animation (found on the live site 2026-11-09: it always opened on Animation)
+        def pane(hash):
+            page = self.open(hash)
+            page.click("#videoBtn")
+            page.wait_for_function("document.body.classList.contains('pane-open')")
+            page.wait_for_timeout(600)      # syncPane runs on later changes: the answer must not depend on it
+            return page.get_attribute("#vkImage", "aria-pressed"), page.get_attribute("#vkVideo", "aria-pressed"), page.inner_text("#vsGo").strip()
+        self.assertEqual(pane("#g=aletsch&m=single&one=2023&v=map"), ("true", "false", "Download image"))
+        self.assertEqual(pane("#g=aletsch&m=timelapse&from=2018&to=2022&v=map"), ("false", "true", "Download video"))
+        self.assertEqual(pane("#g=aletsch&m=compare&a=2016&b=2026&v=map")[1:], ("true", "Download video"), "a slider opens on its animation")
+
     def test_link_with_glacier_opens_on_it(self):
         page0 = self.open()
         gid = page0.evaluate("GLACIERS[2].id")
