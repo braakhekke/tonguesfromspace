@@ -361,5 +361,50 @@ class TestGallery(WorkerCase):
         self.assertEqual((r["remove"], r["afterRemove"]), (200, 0))
 
 
+class TestOps(WorkerCase):
+    """What the Worker records about its own health: failures of the relay (one JSON line each in Workers Logs, no address, no request body) and the script errors of the page
+    (the event error-js, a short note in a conservative alphabet). Nothing here may carry an IP address, a cookie or a typed text."""
+
+    def test_relay_failures_are_logged_as_one_json_line_without_personal_data(self):
+        r = self.run_js("""
+          const logs = []; const real = console.error; console.error = (...a) => logs.push(a.join(' '));
+          try {
+            const noCreds = await W.fetch(req('/cdse/statistics', 'POST', stats(year), 'http://t.test'), {...env, CDSE_CLIENT_ID: '', CDSE_CLIENT_SECRET: ''}, {});
+            up.mode = 503; const busy = await post(stats(year, [885000, 5900000, 900000, 5915000]));
+            up.mode = 'throw'; const down = await post(stats(year, [886000, 5901000, 901000, 5916000]));
+            up.mode = 'ok'; const fine = await post(stats(year, [887000, 5902000, 902000, 5917000]));
+            return {codes: [noCreds.status, busy.status, down.status, fine.status], logs};
+          } finally { console.error = real; }""")
+        self.assertEqual(r["codes"], [502, 503, 502, 200])
+        lines = [__import__("json").loads(x) for x in r["logs"]]
+        evts = [x["evt"] for x in lines]
+        self.assertEqual(evts, ["relay_no_credentials", "upstream_status", "relay_failed"], "one line per failure, none for the request that worked")
+        self.assertEqual((lines[1]["status"], lines[1]["route"]), (503, "statistics"))
+        for x in lines:
+            self.assertLessEqual(set(x), {"evt", "route", "status", "stale", "message"}, "only these fields")
+            self.assertNotRegex(" ".join(r["logs"]), r"\d+\.\d+\.\d+\.\d+|bbox|evalscript|Authorization", "no address, no request body, no secret")
+
+    def test_a_script_error_of_the_page_is_counted_with_a_short_safe_note(self):
+        r = self.run_js("""
+          const points = []; const EVENTS = {writeDataPoint: d => points.push(d)};
+          const send = async (obj, o = {}) => (await W.fetch({url: 'https://relay.test/ev', method: 'POST', headers: new Headers({Origin: o.origin || 'http://t.test'}), text: async () => typeof obj === 'string' ? obj : JSON.stringify(obj)}, {...env, EVENTS}, {})).status;
+          const codes = [
+            await send({e: 'mode-compare', g: 'aletsch', p: '/switzerland/aletsch/', d: 'd'}),
+            await send({e: 'error-js', g: 'gorner', p: '/switzerland/', d: 'm', m: "Cannot read properties of undefined (reading 'inv') @ app.9f2c1.js <img src=x onerror=alert(1)> " + 'x'.repeat(200)}),
+            await send({e: 'mode-compare', g: '', p: '/', d: 'd', m: 'a note only error-js may carry'}),
+            await send({e: 'Not A Name!', g: '', p: '/'}), await send({e: 'error-js', g: '', p: '/'}, {origin: 'https://evil.example'}),
+            await send({e: 'error-js', g: '', p: '/', m: 'y'.repeat(500)}), await send('not json')];
+          return {codes, points: points.map(d => d.blobs)};""")
+        self.assertEqual(r["codes"], [204] * 7, "always 204: nothing can be probed")
+        self.assertEqual(len(r["points"]), 3, "the bad name, the foreign origin, the oversize body and the broken body store nothing")
+        click, err, other = r["points"]
+        self.assertEqual(click, ["mode-compare", "aletsch", "/switzerland/aletsch/", "d", "", ""])
+        self.assertEqual(err[:4], ["error-js", "gorner", "/switzerland/", "m"])
+        self.assertLessEqual(len(err[5]), 80)
+        self.assertNotRegex(err[5], r"[<>=]", "a conservative alphabet")
+        self.assertIn("Cannot read properties of undefined", err[5])
+        self.assertEqual(other[5], "", "only error-js keeps a note")
+
+
 if __name__ == "__main__":
     unittest.main()

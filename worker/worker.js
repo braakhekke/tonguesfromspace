@@ -101,8 +101,10 @@ export default {
     if (!route) return json({ error: 'Not found' }, 404, cors);
     if (request.method !== 'POST') return json({ error: 'Use POST' }, 405, cors);
     if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
-    if (!clients(env).length)
+    if (!clients(env).length) {
+      logError('relay_no_credentials', { route });
       return json({ relayError: 'The relay has no Copernicus credentials yet (set CDSE_CLIENT_ID and CDSE_CLIENT_SECRET).' }, 502, cors);
+    }
 
     const text = await request.text();
     if (text.length > MAX_BODY) return json({ error: 'Request too large' }, 413, cors);
@@ -132,7 +134,8 @@ export default {
       job.finally(() => inflight.delete(key)).catch(() => {});
     }
     let out;
-    try { out = await job; } catch (e) { if (stale) return staleResponse(stale, cors); return json({ relayError: e.message }, 502, cors); }
+    try { out = await job; } catch (e) { logError('relay_failed', { route, message: String(e.message).slice(0, 120), stale: !!stale }); if (stale) return staleResponse(stale, cors); return json({ relayError: e.message }, 502, cors); }
+    if (out.status >= 500 || out.status === 429 || out.status === 403 || out.status === 401) logError('upstream_status', { route, status: out.status, stale: !!stale });      // Copernicus is down, busy, out of units or refusing the login
     if (stale && (out.status >= 500 || out.status === 429 || out.status === 403)) return staleResponse(stale, cors);      // Copernicus is down, busy or out of units: the older answer is better than none
     return new Response(out.data.slice(0), { status: out.status, headers: { ...cors, 'Content-Type': out.type, 'X-Cache': 'MISS' } });
   }
@@ -356,7 +359,8 @@ async function cachePut(env, key, data, type, ttl) {
 const cacheUrl = key => `https://tonguesfromspace-cache.internal/${encodeURIComponent(key)}`;
 
 /* ---------- helpers ---------- */
-// Which controls are used (js/track.js). One data point per click in Workers Analytics Engine: blobs = event, glacier, page, device, country; no IP address, cookie or user id.
+// Which controls are used (js/track.js). One data point per click in Workers Analytics Engine: blobs = event, glacier, page, device, country, and for the event error-js a short note
+// of what went wrong in the page (80 characters, conservative alphabet); no IP address, cookie or user id.
 // Same origin only; the name and glacier must look like names, the body is capped, and the answer is always 204 so nothing can be probed.
 async function countEvent(request, env) {
   const ok = new Response(null, { status: 204 });
@@ -367,7 +371,8 @@ async function countEvent(request, env) {
   try { const text = await request.text(); if (text.length > 400) return ok; b = JSON.parse(text); } catch (e) { return ok; }
   const name = /^[a-z0-9-]{1,40}$/, e = String(b.e || ''), g = String(b.g || ''), p = String(b.p || '');
   if (!name.test(e) || (g && !name.test(g)) || !/^[a-z0-9\/._-]{0,60}$/i.test(p)) return ok;
-  env.EVENTS.writeDataPoint({ blobs: [e, g, p, b.d === 'm' ? 'm' : 'd', request.cf?.country || ''], indexes: [e] });
+  const m = String(b.m || '').replace(/[^A-Za-z0-9 ._:\/()'-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);      // only for error-js: what went wrong in the page, in a conservative alphabet
+  env.EVENTS.writeDataPoint({ blobs: [e, g, p, b.d === 'm' ? 'm' : 'd', request.cf?.country || '', e === 'error-js' ? m : ''], indexes: [e] });
   return ok;
 }
 
@@ -380,6 +385,9 @@ function corsHeaders(request, env) {
   if (allowed.includes(origin) || origin === new URL(request.url).origin) h['Access-Control-Allow-Origin'] = origin;      // the site's own address always counts (the Worker serves the page too)
   return h;
 }
+/* Failures of the relay, one JSON line each in Workers Logs (dashboard: Workers -> this Worker -> Logs, or `npx wrangler tail`): what failed and for which request type.
+   No IP address, no body of a request, nothing a visitor typed. */
+const logError = (evt, data = {}) => console.error(JSON.stringify({ evt, ...data }));
 function json(obj, status, headers) {
   return new Response(JSON.stringify(obj), { status, headers: { ...headers, 'Content-Type': 'application/json' } });
 }

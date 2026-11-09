@@ -1,6 +1,7 @@
 /* Counts which controls are used, nothing else. One delegated listener: a click on a button, link, switch or summary sends its name
    (data-track, else id, else data-style/side, else aria-label, else the first 30 characters of its text), the glacier in the address (#g=) and the page
-   to /ev on the Worker, which adds it to Workers Analytics Engine. No cookie, no storage, no IP address, no user id, no coordinates, no typed text;
+   to /ev on the Worker, which adds it to Workers Analytics Engine; script errors go the same way as the event error-js with a note of 80 characters (what went wrong, in which file).
+   No cookie, no storage, no IP address, no user id, no coordinates, no typed text;
    nothing is sent when the browser says Do Not Track or Global Privacy Control. Also loads the Cloudflare Web Analytics beacon (page views, referrers,
    countries; cookieless) when the build was given its token (TFS_CONFIG.webAnalytics, repository variable CF_WEB_ANALYTICS_TOKEN). Only on the public site. */
 (() => {
@@ -31,5 +32,14 @@
     const el = ev.target instanceof Element ? ev.target.closest('button, a, summary, [role=button], [role=switch], [role=tab], [role=option]') : null;
     if (el) send(nameOf(el));
   }, true);
+  /* Script errors: one short note (what went wrong, in which file), so that a broken release shows in the numbers. At most 3 per page view, the same note once; the Worker keeps 80 characters. */
+  const seen = new Set();
+  const note = (msg, file) => {
+    const m = (String(msg || 'error') + (file ? ' @ ' + String(file).split('/').pop().split('?')[0] : '')).replace(/[^A-Za-z0-9 ._:\/()'-]+/g, ' ').replace(/\s+/g, ' ').trim().slice(0, 80);
+    if (!m || seen.has(m) || seen.size >= 3) return;
+    seen.add(m); send('error-js', { m });
+  };
+  window.addEventListener('error', ev => note(ev.message, ev.filename));
+  window.addEventListener('unhandledrejection', ev => note('promise: ' + ((ev.reason && ev.reason.message) || ev.reason), ''));
   window.tfsTrack = send;      // for something that is not a click (a glacier chosen from the search)
 })();

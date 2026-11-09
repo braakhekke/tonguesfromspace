@@ -12,7 +12,8 @@ compatibility_date = "2024-09-23"
 keep_vars = true          # keep variables set in the dashboard (TURNSTILE_SITEKEY, …); ALLOWED_ORIGINS below wins
 
 [observability]
-enabled = true        # saved Worker logs (the gallery ping logs why it did not send)
+enabled = true        # Workers Logs: the failures the relay writes with console.error (logError in worker.js), the gallery ping and any uncaught exception. Read them in the dashboard (Workers -> this Worker -> Logs) or with `npx wrangler tail`
+head_sampling_rate = 1      # keep every line: there are few
 
 [vars]
 ALLOWED_ORIGINS = "https://tonguesfromspace.org,https://www.tonguesfromspace.org,http://localhost:8000"

@@ -28,16 +28,18 @@ jobs:
 
       - name: Download GLAMOS data and build glaciers.js and thickness.js
         id: data
+        if: github.ref == 'refs/heads/main'      # a run started from a tag (a rollback) publishes what that tag holds: no new data
         continue-on-error: true      # if GLAMOS is unreachable, publish with the last committed data
         run: python scripts/build_outlines.py --out data/glaciers.js
 
       - name: Download the RGI outlines of Vatnajökull and build vatnajokull.js
         id: iceland
+        if: github.ref == 'refs/heads/main'
         continue-on-error: true      # if GLIMS is unreachable, publish with the last committed data
         run: python scripts/build_vatnajokull.py
 
       - name: Commit the generated data files if they changed
-        if: (steps.data.outcome == 'success' || steps.iceland.outcome == 'success') && github.event_name != 'pull_request'
+        if: (steps.data.outcome == 'success' || steps.iceland.outcome == 'success') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
         run: |
           git add data/glaciers.js data/thickness.js data/vatnajokull.js
           if git diff --cached --quiet; then
@@ -109,3 +111,22 @@ jobs:
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
         run: npx --yes wrangler@4 deploy
+
+      # Rollback points. Every deploy from main gets a tag deploy-<UTC date and time>-<commit> that never moves, and the tag `live` moves to it. To go back: Actions ->
+      # Build data and deploy -> Run workflow -> "Use workflow from": choose the tag (Tags tab) -> Run. That builds, tests and deploys what the tag holds, and moves `live`
+      # to it. A failed tagging must never fail a deploy that went through. See docs/OPERATIONS.md.
+      - name: Tag what is live
+        if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/deploy-') || startsWith(github.ref, 'refs/tags/known-good-')
+        continue-on-error: true
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
+          if [ "$GITHUB_REF_TYPE" = "tag" ]; then
+            git tag -f -a live -m "Live now: rolled back to $GITHUB_REF_NAME (run ${{ github.run_id }})" "$GITHUB_REF_NAME^{commit}"
+          else
+            tag="deploy-$(date -u +%Y%m%d-%H%M%S)-$(git rev-parse --short HEAD)"
+            git tag -a "$tag" -m "Live on tonguesfromspace.org (run ${{ github.run_id }})"
+            git push origin "refs/tags/$tag"
+            git tag -f -a live -m "Live now: $tag"
+          fi
+          git push -f origin refs/tags/live

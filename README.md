@@ -93,6 +93,7 @@ New glaciers are onboarded by the owner with local tools that are not in this re
 | [docs/REFERENCE.md](docs/REFERENCE.md) | Every file and data set, the map of `js/`, the data flow |
 | [docs/SETUP.md](docs/SETUP.md) | Publishing a copy, Street View, gallery, another region |
 | [docs/SOURCES.md](docs/SOURCES.md) | Data sources and their licences |
+| [docs/OPERATIONS.md](docs/OPERATIONS.md) | Uptime, errors, backups, rollback |
 
 ## Contributing
 

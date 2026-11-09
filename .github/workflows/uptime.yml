@@ -1,0 +1,65 @@
+# Uptime: every 15 minutes the public relay and the front page are asked once (with two retries), so an outage is noticed in minutes, not on Monday.
+# /cdse/ping answers {"relay":true,"managed":true} from the Worker itself and spends no Copernicus units; the front page is a static file.
+#
+# You are told like this (the same way as the weekly health check):
+#   - the first failed run opens ONE issue "Site is down" (label: uptime) and GitHub emails you about it; while it stays down the issue gets a comment
+#     per failed run (every 15 minutes: mute the thread if that is too much);
+#   - when the site answers again the issue gets a comment and is closed.
+# Notes: GitHub may start a scheduled run a few minutes late and stops scheduled workflows of a public repository after 60 days without any activity in
+# the repository (any push wakes it up: Actions tab -> Uptime -> Enable workflow). This watches from GitHub's network: it cannot tell a Cloudflare
+# outage from a problem in one region. For an independent second opinion add a Cloudflare Health Check or an external monitor on the same address (docs/OPERATIONS.md).
+name: Uptime
+
+on:
+  schedule:
+    - cron: "*/15 * * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 4
+    steps:
+      - name: Ask the relay and the front page
+        id: ping
+        run: |
+          want='{"relay":true,"managed":true}'
+          body=""
+          for i in 1 2 3; do
+            body=$(curl -sS -m 15 https://tonguesfromspace.org/cdse/ping 2>&1) || true
+            [ "$body" = "$want" ] && break
+            echo "relay, attempt $i: ${body:-no answer}"
+            [ "$i" -lt 3 ] && sleep 20
+          done
+          [ "$body" = "$want" ] && echo "relay: ok" || fail=1
+          for i in 1 2 3; do
+            code=$(curl -sS -o /dev/null -m 15 -w '%{http_code}' https://tonguesfromspace.org/ 2>&1) || code="no answer"
+            [ "$code" = "200" ] && break
+            echo "front page, attempt $i: HTTP $code"
+            [ "$i" -lt 3 ] && sleep 20
+          done
+          [ "$code" = "200" ] && echo "front page: ok" || fail=1
+          exit ${fail:-0}
+      - name: Open or update the issue when the site does not answer
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          gh label create uptime --color C8322A --description "The public site or its relay did not answer" 2>/dev/null || true
+          { echo "The uptime check failed: $RUN_URL"; echo; echo "https://tonguesfromspace.org/cdse/ping must answer {\"relay\":true,\"managed\":true} and https://tonguesfromspace.org/ must answer 200, after three tries 20 seconds apart. The log of the run shows which one failed."; } > body.md
+          n=$(gh issue list --label uptime --state open --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then gh issue comment "$n" --body-file body.md
+          else gh issue create --title "Site is down" --label uptime --body-file body.md; fi
+      - name: Close the issue when the site answers again
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+        run: |
+          n=$(gh issue list --label uptime --state open --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then gh issue close "$n" --comment "The site answers again: $RUN_URL"; fi
