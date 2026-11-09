@@ -11,6 +11,9 @@ main = "main.ts"          # the relay by meaning under /api/ and, for everything
 compatibility_date = "2024-09-23"
 keep_vars = true          # keep variables set in the dashboard (TURNSTILE_SITEKEY, …); ALLOWED_ORIGINS below wins
 
+[observability]
+enabled = true        # saved Worker logs (the gallery ping logs why it did not send)
+
 [vars]
 ALLOWED_ORIGINS = "https://tonguesfromspace.org,https://www.tonguesfromspace.org,http://localhost:8000"
 
