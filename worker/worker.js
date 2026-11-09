@@ -24,6 +24,7 @@
  *   TURNSTILE_SECRET    secret: Cloudflare Turnstile secret key (checks that an upload comes from a person)
  *   TURNSTILE_SITEKEY   text: Turnstile site key (public, handed to the page)
  *   GALLERY_ADMIN_TOKEN secret: at least 20 random characters; lets tools/gallery-admin.html approve or remove items
+ *   GALLERY_NOTIFY_URL  secret (optional): an ntfy.sh topic URL, e.g. https://ntfy.sh/<long-random-name>; every accepted upload sends a push message to it
  *
  * Endpoints (same paths as scripts/serve.py):
  *   GET  /cdse/ping        -> {"relay":true,"managed":true}
@@ -89,7 +90,7 @@ export default {
     if (url.pathname === '/cdse/ping') return json({ relay: true, managed: true }, 200, cors);
 
     if (url.pathname === '/ev') return countEvent(request, env);
-    if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors);
+    if (url.pathname.startsWith('/gallery/')) return gallery(request, env, url, cors, ctx);
     if (url.pathname.startsWith('/ask/')) return ask(request, env, url, cors);
     if (url.pathname.startsWith('/data/landsat/')) return landsat(request, env, url);
     if (url.pathname.startsWith('/data/home-bg/')) return homeBackground(request, env, url);
@@ -496,7 +497,7 @@ const ctxPut = (cache, key, body) => cache.put(key, new Response(body, { headers
 const ID = /^[a-f0-9]{24}$/;
 const noSniff = { 'X-Content-Type-Options': 'nosniff' };
 
-async function gallery(request, env, url, cors) {
+async function gallery(request, env, url, cors, ctx) {
   const path = url.pathname.slice('/gallery/'.length), m = request.method, ip = request.headers.get('CF-Connecting-IP') || 'unknown';
   const open = !!(env.GALLERY && env.TURNSTILE_SECRET && env.TURNSTILE_SITEKEY);
   if (path === 'config' && m === 'GET') return json({ open, siteKey: open ? env.TURNSTILE_SITEKEY : '', listing: !!env.GALLERY }, 200, { ...cors, 'Cache-Control': 'public, max-age=300' });
@@ -522,7 +523,7 @@ async function gallery(request, env, url, cors) {
   const file = path.match(/^file\/([a-f0-9]{24})$/);
   if (file && (m === 'GET' || m === 'HEAD')) return galleryFile(request, env, 'approved/' + file[1], cors, 'public, max-age=86400', url.searchParams.get('download') === '1');
 
-  if (path === 'submit' && m === 'POST') return gallerySubmit(request, env, cors, ip);
+  if (path === 'submit' && m === 'POST') return gallerySubmit(request, env, cors, ip, ctx);
 
   if (path.startsWith('admin/')) {
     if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
@@ -579,7 +580,7 @@ async function galleryFile(request, env, key, cors, cache, download = false) {
   return new Response(request.method === 'HEAD' ? null : o.body, { status, headers: h });
 }
 
-async function gallerySubmit(request, env, cors, ip) {
+async function gallerySubmit(request, env, cors, ip, ctx) {
   if (!cors['Access-Control-Allow-Origin']) return json({ error: 'Origin not allowed' }, 403, cors);
   if (!(env.GALLERY && env.TURNSTILE_SECRET)) return json({ error: 'The gallery is not open for uploads yet.' }, 503, cors);
   const len = +request.headers.get('Content-Length') || 0;
@@ -609,6 +610,12 @@ async function gallerySubmit(request, env, cors, ip) {
   if (queue.objects.length >= GAL.maxPending) return json({ error: 'The gallery is waiting for review of earlier pictures. Please try again in a few days.' }, 503, cors);
   await env.GALLERY.put('pending/' + id, buf, { httpMetadata: { contentType: clean.kind === 'video' ? 'video/mp4' : 'image/jpeg' },
     customMetadata: { meta: JSON.stringify(clean), ts: String(Date.now()) } });
+  if (env.GALLERY_NOTIFY_URL) {                                              // a push message to the owner (an ntfy.sh topic URL); a failure never fails the upload
+    const what = clean.kind === 'video' ? 'animation' : 'picture', who = clean.nick ? ' from ' + clean.nick : '';
+    const ping = fetch(env.GALLERY_NOTIFY_URL, { method: 'POST', body: `New ${what} of ${clean.name} (${clean.years.join(', ')})${who} is waiting for approval in the gallery (${queue.objects.length + 1} in the queue).`,
+      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow' } }).catch(() => {});
+    if (ctx && ctx.waitUntil) ctx.waitUntil(ping);
+  }
   return json({ ok: true }, 200, cors);
 }
 
