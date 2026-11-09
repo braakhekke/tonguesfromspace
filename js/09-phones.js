@@ -184,8 +184,10 @@ export function setMini(on){
   const dh = stage.getBoundingClientRect().height - h0; if (PHONE.matches && scrollY > 0 && dh) scrollBy(0, dh);
   map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
-{ const st = $('stage'), upd = () => { const sc = PHONE.matches && scrollY > 4; document.body.classList.toggle('scrolled', sc); if (sc) document.documentElement.style.setProperty('--stage-bottom', Math.round(st.getBoundingClientRect().bottom) + 'px'); };
+{ const st = $('stage'), upd = () => { const sc = PHONE.matches && (scrollY > 4 || st.classList.contains('mini'));      // a strip at the top of the page also needs its handle, to open it again
+    document.body.classList.toggle('scrolled', sc); if (sc) document.documentElement.style.setProperty('--stage-bottom', Math.round(st.getBoundingClientRect().bottom) + 'px'); };
   addEventListener('scroll', upd, {passive: true}); addEventListener('resize', upd); new ResizeObserver(upd).observe(st); upd(); }
+$('stage').addEventListener('click', e => { if (!PHONE.matches || !$('stage').classList.contains('mini') || e.target.closest('button, a, input, label')) return; e.stopPropagation(); setMini(false); }, true);      // tap on the strip: open it large
 { const h = $('miniToggle'); let y0 = null, moved = false;
   h.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false; try { h.setPointerCapture(e.pointerId); } catch (_) {} });
   h.addEventListener('pointerup', e => { if (y0 === null) return; const d = e.clientY - y0; y0 = null;

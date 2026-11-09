@@ -1083,11 +1083,12 @@ body.has-full{overflow:hidden}
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
   .stage:not(.is-full) .mini-ctl{display:contents}
-  #miniToggle{position:absolute;z-index:700;left:50%;top:0;transform:translateX(-50%);width:84px;height:26px;padding:0;border:0;border-radius:0 0 13px 13px;background:rgba(255,255,255,.55);display:grid;place-items:center;cursor:grab;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}      /* a sheet handle on the top edge of the picture: tap it or swipe it up (strip) / down (large) */
+  #miniToggle{display:none}      /* the sheet handle shows only once the page has scrolled (body.scrolled) */
+  #miniToggle{position:absolute;z-index:700;left:50%;top:0;transform:translateX(-50%);width:84px;height:26px;padding:0;border:0;border-radius:0 0 13px 13px;background:rgba(255,255,255,.55);place-items:center;cursor:grab;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}      /* a sheet handle on the top edge of the picture: tap it or swipe it up (strip) / down (large) */
   #miniToggle svg{display:none}
   #miniToggle::before{content:'';width:38px;height:5px;border-radius:3px;background:rgba(14,26,34,.55)}
   #miniToggle::after{content:'';position:absolute;inset:0 -14px -10px}      /* bigger touch target */
-  body.scrolled:not(.has-full) #miniToggle{position:fixed;top:var(--stage-bottom,60vh);bottom:auto;height:16px;width:72px;border-radius:0 0 10px 10px;background:rgba(255,255,255,.92);box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
+  body.scrolled:not(.has-full) #miniToggle{display:grid;position:fixed;top:var(--stage-bottom,60vh);bottom:auto;height:16px;width:72px;border-radius:0 0 10px 10px;background:rgba(255,255,255,.92);box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
   body.scrolled:not(.has-full) #miniToggle::before{width:32px;height:4px}
   body.pane-open .mini-ctl{display:none!important}
 }
