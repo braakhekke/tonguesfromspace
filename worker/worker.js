@@ -24,6 +24,7 @@
  *   TURNSTILE_SECRET    secret: Cloudflare Turnstile secret key (checks that an upload comes from a person)
  *   TURNSTILE_SITEKEY   text: Turnstile site key (public, handed to the page)
  *   GALLERY_ADMIN_TOKEN secret: at least 20 random characters; lets tools/gallery-admin.html approve or remove items
+ *   GALLERY_NOTIFY_TOKEN secret (optional): an ntfy access token (a free ntfy.sh account), sent as the sender; without it ntfy.sh may answer 429 to a shared Workers address
  *   GALLERY_NOTIFY_URL  secret (optional): an ntfy.sh topic URL, e.g. https://ntfy.sh/<long-random-name>; every accepted upload sends a push message to it
  *
  * Endpoints (same paths as scripts/serve.py):
@@ -614,7 +615,7 @@ async function gallerySubmit(request, env, cors, ip, ctx) {
   else {                                              // a push message to the owner (an ntfy.sh topic URL); a failure never fails the upload
     const what = clean.kind === 'video' ? 'animation' : 'picture', who = clean.nick ? ' from ' + clean.nick : '';
     const ping = fetch(env.GALLERY_NOTIFY_URL, { method: 'POST', body: `New ${what} of ${clean.name} (${clean.years.join(', ')})${who} is waiting for approval in the gallery (${queue.objects.length + 1} in the queue).`,
-      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow' } })
+      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow', ...(env.GALLERY_NOTIFY_TOKEN ? { Authorization: 'Bearer ' + env.GALLERY_NOTIFY_TOKEN } : {}) } })
       .then(r => { if (!r.ok) console.log('gallery ping refused', r.status); }).catch(e => console.log('gallery ping failed', String(e)));
     if (ctx && ctx.waitUntil) ctx.waitUntil(ping);
   }
