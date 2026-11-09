@@ -1087,6 +1087,8 @@ body.has-full{overflow:hidden}
   #miniToggle svg{display:none}
   #miniToggle::before{content:'';width:38px;height:5px;border-radius:3px;background:rgba(14,26,34,.55)}
   #miniToggle::after{content:'';position:absolute;inset:0 -14px -10px}      /* bigger touch target */
+  body.scrolled:not(.has-full) #miniToggle{position:fixed;top:var(--stage-bottom,60vh);bottom:auto;height:16px;width:72px;border-radius:0 0 10px 10px;background:rgba(255,255,255,.92);box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
+  body.scrolled:not(.has-full) #miniToggle::before{width:32px;height:4px}
   body.pane-open .mini-ctl{display:none!important}
 }
 }
@@ -2560,11 +2562,11 @@ body.x-layers .layerbox{max-width:none}
   .mapbar .dock-fold,.v3d-measure .dock-fold{display:flex;align-items:center;justify-content:center;position:absolute;top:-13px;left:50%;transform:translateX(-50%);width:48px;min-width:0;height:18px;min-height:0;padding:0;border-radius:9px;background:rgba(255,255,255,.94);color:var(--moraine,#5C6B74);box-shadow:0 1px 4px rgba(14,26,34,.25);z-index:2}
   .mapbar .dock-fold::before,.v3d-measure .dock-fold::before{content:'';position:absolute;inset:-8px -6px -4px}      /* a bigger touch target than the tab itself */
   .dock-fold svg{display:block!important;width:16px;height:16px;stroke-width:2.6}
-  .mapbar.dock-min,.v3d-measure.dock-min{left:auto;right:10px;transform:none;width:auto;min-width:0;padding:0;border-radius:50%;flex-wrap:nowrap}
+  .mapbar.dock-min,.v3d-measure.dock-min{left:50%;right:auto;transform:translateX(-50%);width:auto;min-width:0;padding:0;border-radius:9px;flex-wrap:nowrap;background:transparent;box-shadow:none;border:0;-webkit-backdrop-filter:none;backdrop-filter:none;bottom:6px}      /* folded: the same thin tab as when open, centred, arrow up */
   .mapbar.dock-min > :not(.dock-fold),.v3d-measure.dock-min > :not(.dock-fold){display:none!important}
-  .mapbar.dock-min .dock-fold,.v3d-measure.dock-min .dock-fold{position:static;transform:none;width:44px;height:44px;border-radius:50%;box-shadow:none;background:transparent;color:var(--ink,#0E1A22)}
-  .dock-min .dock-fold svg{transform:rotate(180deg);width:22px;height:22px}
-  .docks-folded .leaflet-control-scale{margin-bottom:70px!important}
+  .mapbar.dock-min .dock-fold,.v3d-measure.dock-min .dock-fold{position:relative;top:auto;left:auto;transform:none;width:48px;height:18px;border-radius:9px;box-shadow:0 1px 4px rgba(14,26,34,.25);background:rgba(255,255,255,.94);color:var(--moraine,#5C6B74)}
+  .dock-min .dock-fold svg{transform:rotate(180deg);width:16px;height:16px}
+  .docks-folded .leaflet-control-scale{margin-bottom:34px!important}
 }
 
 /* phone: the preview buttons (layers, three ratios, custom frame, full screen, play) fit the screen width */
