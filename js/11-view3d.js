@@ -892,6 +892,7 @@ export function setView(v){            // the stage shows the map or the 3D view
   $('viewMap').setAttribute('aria-pressed', v === 'map'); $('view3dBtn').setAttribute('aria-pressed', v === '3d');
   if (!boxTo.classList.contains('in-flow')) { boxTo.classList.toggle('min', !menuOpen); boxTo.querySelector('.lb-head').setAttribute('aria-expanded', menuOpen); }
   setLayers(sheetOpen); if (v === '3d') cancelMeasure(); else cancel3Measure();      // one measuring tool at a time
+  wire.syncPin(true);      // the pin card moves to the face on show (js/11b-pin.js)
   if (v === '3d') { stopPlay(); open3D(); } else { close3D(); drawRadar(); drawMax(); drawArcs(false); loadDeferred(); }      // back on the map: its radar, thickest-ice and experimental-outline layers, which were taken off while the 3D view was up (or switched meanwhile)
   if (paneKind) {
     openVideo(paneKind, true);
@@ -1343,7 +1344,7 @@ export const marksOn = () => photoOn ? !!(photoOn.rod && photoOn.rodOn) : svOn3(
 /* ---------- measuring in the 3D view: length of a line and area of a shape on the terrain (ground distances, as on the map) ----------
    A tap puts a point on the terrain (viewer.pick), the lines follow the ground and are drawn on the overlay with the other marks. Drags still turn the camera. */
 export const M3 = {mode: null, pts: [], shapes: [], gid: null};      // points are [x, z] of the strip scene, in ground metres
-export const measureOn3 = () => !!(M3.mode || M3.shapes.length);
+export const measureOn3 = () => !!(M3.mode || M3.shapes.length) || !!(wire.pinOn3 && wire.pinOn3());      // the pin of 11b-pin.js is drawn by the same loop
 export const dist3 = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
 export const len3 = pts => pts.reduce((t, p, i) => i ? t + dist3(pts[i - 1], p) : 0, 0);
 export const area3 = pts => Math.abs(pts.reduce((t, p, i) => { const q = pts[(i + 1) % pts.length]; return t + p[0] * q[1] - q[0] * p[1]; }, 0)) / 2;
@@ -1752,6 +1753,7 @@ export function pinLoop(){            // while the 3D view shows marks: draw the
       drawMarks3D(ctx, projectMarks(c, viewer, w, h, null, null), now / 1000, u);
       if (!document.body.classList.contains('pane-open')) {
         drawMeasure3D(ctx, viewer, w, h, u);      // measurements and camera symbols are not part of a download
+        wire.drawPin3D(ctx, c, viewer, w, h, u);      // the pin (js/11b-pin.js), not part of a download either
         if (camsOn()) { camHits = drawPhotoCams(ctx, c, viewer, w, h, u); placeCamTip(w / kc.clientWidth); } else { camHits = []; $('v3dCamTip').hidden = true; }
         svHits = svOn3() ? drawSvPins(ctx, c, viewer, w, h, u) : [];      // the panoramas are not part of a download either
       } else { camHits = []; svHits = []; $('v3dCamTip').hidden = true; cutHit = null; viewer.setCut(null); $('v3dCutCap').hidden = true; }      // a download pane: no cut either (it left a hole where the ground was taken away and the wall is not drawn)

@@ -16,6 +16,7 @@ import './09a-export-layers.js';
 import './10-animation.js';
 import './11-view3d.js';
 import './11a-dem-download.js';
+import './11b-pin.js';
 import './12-boot.js';
 import './13-teaser.js';
 import './14-streetview.js';

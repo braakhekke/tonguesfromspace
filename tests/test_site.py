@@ -81,6 +81,40 @@ class SiteCase(unittest.TestCase):
         self.assertEqual(self.errors, [], "errors in the page:\n" + "\n".join(self.errors))
 
 
+class TestPin(SiteCase):
+    """The pin of the map and 3D docks (js/11b-pin.js): the card shows the yearly ice surface of the place from the terrain file, and says so when the place is off the ice or outside the strip."""
+    POINT = """async a => { const g = currentGlacier(), at = g.inv.terminus ? g.inv.terminus.tip : g.tongue, b = await currentBundle(g, at), S = stripOf(b, g), [mx, my] = S.merc(a[0], a[1]), q = L.CRS.EPSG3857.unproject(L.point(mx, my)); return [q.lat, q.lng]; }"""
+
+    def card(self, page, ll):
+        page.evaluate("ll => setPin(ll[0], ll[1])", ll)
+        page.wait_for_function("!document.getElementById('pinCard').hidden", timeout=20000)
+        return page.evaluate("document.getElementById('pinBody').innerText")
+
+    def test_pin_on_the_tongue_shows_the_yearly_surface(self):
+        page = self.open("#g=aletsch")
+        page.wait_for_function("glacierPicked")
+        ll = page.evaluate("""async () => { const g = currentGlacier(), at = g.inv.terminus ? g.inv.terminus.tip : g.tongue, b = await currentBundle(g, at), S = stripOf(b, g), ys = b.yearly.years, A = b.surfaces.get(ys[0]), B = b.surfaces.get(ys[ys.length - 1]), W = b.nB + 1;
+          let best = null; for (let j = 0; j <= b.nA; j += 6) for (let i = 0; i <= b.nB; i += 6) { const k = j * W + i, d = A[k] - B[k]; if (d > 10 && (!best || d > best[0])) best = [d, i, j]; }
+          const x = -S.half + best[1] / b.nB * 2 * S.half, z = -S.up + best[2] / b.nA * (S.up + S.back), [mx, my] = S.merc(-z, x), q = L.CRS.EPSG3857.unproject(L.point(mx, my)); return [q.lat, q.lng]; }""")
+        text = self.card(page, ll)
+        self.assertIn("SINCE 2016", text.upper())
+        self.assertTrue(page.evaluate("!!document.querySelector('#pinCard .pc-line-svg')"), "the surface chart is drawn")
+        n = page.evaluate("document.querySelectorAll('#pinCard .pc-dot').length")
+        self.assertGreaterEqual(n, 5, "a dot for every year of the surfaces")
+        self.assertTrue(page.evaluate("document.querySelector('#pinCard .pc-end').textContent.startsWith('−')"), "the tongue lost ice at its most-thinned node")
+        page.click("#pinClose")
+        self.assertTrue(page.evaluate("document.getElementById('pinCard').hidden"))
+        self.assertClean()
+
+    def test_pin_outside_the_strip_says_so(self):
+        page = self.open("#g=aletsch")
+        page.wait_for_function("glacierPicked")
+        ll = page.evaluate(self.POINT, [-50000, 0])      # 50 km below the tip
+        text = self.card(page, ll)
+        self.assertIn("Outside the 3D strip", text)
+        self.assertClean()
+
+
 class TestLoading(SiteCase):
     def test_overview_loads_without_errors(self):
         page = self.open()

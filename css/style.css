@@ -413,7 +413,7 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 .v3d.photo-on .v3d-over{z-index:3}
 .v3d.photo-on .v3d-layers{display:none}
 .v3d.photo-on .v3d-top,.v3d.photo-on .v3d-bottom{display:none!important}      /* the hints (drag, pinch), the year line and the picture note belong to the 3D picture, not to the photograph; its own credit sits under it */
-.v3d.photo-on #v3mDist,.v3d.photo-on #v3mArea,.v3d.photo-on #v3mClear,.v3d.photo-on #v3mSect,.v3d.photo-on #v3mSect2d,.v3d.photo-on .v3d-sect,.v3d.photo-on .v3d-mhint{display:none}      /* the measuring tools need the 3D picture itself, not the photograph over it: the card then holds only the photo buttons */
+.v3d.photo-on #v3mPin,.v3d.photo-on #v3mDist,.v3d.photo-on #v3mArea,.v3d.photo-on #v3mClear,.v3d.photo-on #v3mSect,.v3d.photo-on #v3mSect2d,.v3d.photo-on .v3d-sect,.v3d.photo-on .v3d-mhint{display:none}      /* the measuring tools need the 3D picture itself, not the photograph over it: the card then holds only the photo buttons */
 .v3d-photos{display:flex;flex-direction:column;align-items:stretch;margin-top:3px;padding-top:3px;border-top:1px solid var(--rule)}
 .v3d.photo-on .v3d-photos{margin-top:0;padding-top:0;border-top:0}
 .v3d-photos[hidden]{display:none}
@@ -1289,13 +1289,13 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 @media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:36px}.v3d-photocap{bottom:138px}}
 
 /* the measuring tools show only their symbols, everywhere (the words are in the tooltips and the labels for screen readers) */
-.mapbar .mtool .lbl,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span,#v3dMeasure #v3mSect span,#v3dMeasure #v3mLayers span,#v3dMeasure #v3mSect2d span{display:none!important}
+.mapbar .mtool .lbl,#v3dMeasure #v3mPin span,#v3dMeasure #v3mDist span,#v3dMeasure #v3mArea span,#v3dMeasure #v3mClear span,#v3dMeasure #v3mSect span,#v3dMeasure #v3mLayers span,#v3dMeasure #v3mSect2d span{display:none!important}
 /* the Layers button in the 3D dock is for phones only (on desktop the Layers menu sits in the view); `.v3d-measure > button` would otherwise show it, as it is stronger than `.mobile-only` */
 .v3d-measure > #v3mLayers{display:none}
 @media (max-width:720px){.v3d-measure > #v3mLayers{display:flex}}
 @media (max-width:950px) and (orientation:landscape) and (max-height:520px){.v3d-measure > #v3mLayers{display:flex}}
 .mapbar .mtool{padding-left:10px;padding-right:10px}
-.v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear,.v3d-measure > #v3mSect,.v3d-measure > #v3mSect2d{padding:0 10px!important}
+.v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear,.v3d-measure > #v3mSect,.v3d-measure > #v3mSect2d,.v3d-measure > #v3mPin{padding:0 10px!important}
 .mapbar .mtool svg{display:block}      /* on desktop the measuring buttons are now symbols only */
 
 @media (max-width:720px){.tl-row{gap:12px}.tl-row .tl2,.v3d-top .tl2{width:min(300px,calc(100vw - 130px))}.tl-play{width:30px;height:30px;margin-top:8px}}
@@ -1759,6 +1759,76 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .v3d-cutcap .tx #v3dCutCap4{display:block;color:#FFD9A0;opacity:1;max-width:460px;white-space:normal}
 .v3d-cutcap .tx #v3dCutCap4[hidden]{display:none}
 .v3d-sect .early{margin-top:4px;font-size:11px;color:var(--accent);line-height:1.35}
+
+/* Pin (js/11b-pin.js): one place of the glacier, year by year. The card sits above the dock of the face on show, on the right (the cross-section panel is on the left).
+   Motion is transforms and opacity only (no CSS filters: Safari on iPhone); the entrance plays once per pin, `.still` re-renders (a new year) without it. */
+.pin-card{position:absolute;z-index:664;right:12px;bottom:84px;width:min(480px,calc(100% - 24px));box-sizing:border-box;background:var(--sheet);color:var(--ink);border-radius:var(--r-md);box-shadow:0 10px 32px rgba(14,26,34,.28),0 2px 6px rgba(14,26,34,.12);padding:10px 12px 8px;font-size:12px;font-family:var(--sans);overflow-y:auto}
+.pin-card[hidden]{display:none}
+.pin-card.in:not(.still){animation:pcIn .42s cubic-bezier(.2,.8,.2,1) both}
+.pc-hd{display:flex;align-items:center;gap:8px}
+.pc-ico svg{display:block;width:14px;height:19px}
+.pc-hd b{font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
+.pc-where{flex:1;min-width:0;color:var(--moraine);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-ex button{font:inherit;font-size:11px;font-weight:600;line-height:1.2;border:1px solid var(--rule);border-radius:5px;padding:2px 7px;color:var(--rock);background:none;cursor:pointer}
+.pc-ex button:hover{background:var(--firn)}
+.pc-x{border:0;background:none;font:inherit;font-size:20px;line-height:1;color:var(--moraine);cursor:pointer;padding:0 2px}
+.pc-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:6px;margin:8px 0 4px}
+.pc-tile{display:flex;flex-direction:column;gap:1px;min-width:0;background:var(--firn);border-radius:var(--r-sm);padding:7px 9px 6px}
+.pc-tile span{font-size:10.5px;font-weight:600;color:var(--moraine);text-transform:uppercase;letter-spacing:.04em}
+.pc-tile b{font-size:19px;font-weight:700;line-height:1.2;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.pc-tile b.loss{color:var(--loss)}
+.pc-tile b.ice{color:var(--crevasse)}
+.pc-tile small{font-size:10.5px;line-height:1.25;color:var(--faint)}
+.pc-sec{margin-top:6px}
+.pc-h{font-size:11px;font-weight:600;color:var(--rock);margin-bottom:2px}
+.pc-h small{font-weight:400;color:var(--faint);margin-left:4px}
+.pc-row{display:flex;align-items:flex-end;gap:8px}
+.pc-line-svg{display:block;flex:1;min-width:0;height:auto;overflow:visible}
+.pc-colsvg{display:block;flex:none}
+.pc-speed{display:block;width:100%;height:auto}
+.pin-card svg text{font-family:var(--sans)}
+.pc-ax{font-size:10px;fill:var(--moraine)}
+.pc-ax.now{fill:var(--ink);font-weight:700}
+.pc-end{font-size:12.5px;font-weight:700;fill:var(--ink)}
+.pc-end.loss{fill:var(--loss)}
+.pc-end.sm{font-size:10.5px}
+.pc-end.ice{fill:var(--crevasse)}
+.pc-hit{cursor:crosshair}
+.pc-bar .b{fill:var(--crevasse);opacity:.38;transform-box:fill-box;transform-origin:50% 100%}
+.pc-bar.now .b,.pc-bar:hover .b{opacity:1}
+.pc-msg{margin:8px 0 2px;font-size:11.5px;line-height:1.4;color:var(--moraine)}
+.pc-ft{margin-top:6px;font-size:11px;line-height:1.4;color:var(--moraine)}
+.pc-ft summary{cursor:pointer}
+.pc-ft ul{margin:4px 0 0;padding-left:16px}
+.pc-ft li{margin:2px 0}
+.pc-tip{position:absolute;z-index:2;pointer-events:none;display:flex;flex-direction:column;gap:1px;white-space:nowrap;background:var(--rock);color:#fff;border-radius:8px;padding:6px 9px;font-size:11px;line-height:1.35;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.pc-tip[hidden]{display:none}
+.pc-tip b{font-size:12.5px}
+.pc-tip small{color:#B9C4CA}
+.pc-tip span{display:flex;justify-content:space-between;gap:12px}
+.pc-tip em{font-style:normal;font-weight:700;font-variant-numeric:tabular-nums}
+.pc-tip em.loss{color:#FF8A80}
+.pin-card.in:not(.still) .pc-line{stroke-dasharray:1;stroke-dashoffset:1;animation:pcDraw 1s .15s cubic-bezier(.5,0,.2,1) forwards}      /* the line draws itself, then the area and the loss fade in, the dots and bars pop up one after the other */
+.pin-card.in:not(.still) .pc-area,.pin-card.in:not(.still) .pc-loss{opacity:0;animation:pcFade .6s .7s ease forwards}
+.pin-card.in:not(.still) .pc-dot{opacity:0;transform-box:fill-box;transform-origin:center;animation:pcPop .32s cubic-bezier(.3,1.6,.5,1) forwards}
+.pin-card.in:not(.still) .pc-bar .b{transform:scaleY(0);animation:pcGrow .5s cubic-bezier(.2,.8,.2,1) forwards}
+.pin-card.in:not(.still) .pc-col{opacity:0;animation:pcFade .5s 1s ease forwards}
+@keyframes pcIn{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+@keyframes pcDraw{to{stroke-dashoffset:0}}
+@keyframes pcFade{to{opacity:1}}
+@keyframes pcPop{from{opacity:0;transform:scale(.2)}to{opacity:1;transform:none}}
+@keyframes pcGrow{to{transform:none}}
+.pin-mark{position:relative;width:28px;height:38px;transform-origin:50% 100%;animation:pinDrop .6s cubic-bezier(.3,1.4,.5,1) both}
+.pin-mark svg{position:relative;display:block;width:28px;height:38px}
+.pin-mark::before{content:'';position:absolute;left:7px;bottom:-3px;width:14px;height:5px;border-radius:50%;background:rgba(0,0,0,.3)}
+.pin-pulse{position:absolute;left:8px;bottom:-5px;width:12px;height:12px;box-sizing:border-box;border:2px solid var(--accent);border-radius:50%;animation:pinPulse 1.8s ease-out infinite}
+@keyframes pinDrop{0%{opacity:0;transform:translateY(-46px)}55%{opacity:1;transform:translateY(0) scaleY(1)}75%{transform:scaleY(.86)}100%{transform:none}}
+@keyframes pinPulse{from{opacity:.8;transform:scale(1,.45)}to{opacity:0;transform:scale(4.2,1.9)}}
+.pinning #map,.pinning #v3dCanvas{cursor:crosshair}
+.mapbar #pinBtn svg,.v3d-measure #v3mPin svg{stroke-width:1.9}
+@media (prefers-reduced-motion:reduce){.pin-card,.pin-card *,.pin-mark,.pin-pulse{animation:none!important}.pin-card .pc-line{stroke-dasharray:none!important}.pin-card .pc-dot,.pin-card .pc-area,.pin-card .pc-loss,.pin-card .pc-col{opacity:1!important}.pin-card .pc-bar .b{transform:none!important}.pin-pulse{display:none}}
+@media (min-width:721px){#stage > .pin-card,#v3d > .pin-card{right:56px;width:min(480px,calc(50% - 72px))}}      /* clear of the Discover tab on the right edge */
+@media (max-width:720px){.pin-card{left:8px;right:8px;width:auto;padding:9px 10px 7px}.pc-tile b{font-size:17px}.pc-tile small{display:none}.pc-tile{padding:6px 8px 5px}.pc-tiles{grid-template-columns:repeat(auto-fit,minmax(96px,1fr))}}
 .layerbox .toggle .tx2{display:flex;flex-direction:column;min-width:0}
 #l3SrYears{font-size:11px;font-weight:400;line-height:1.3;opacity:.7}
 #l3SrYears:empty{display:none}

@@ -1552,7 +1552,7 @@ export function refreshAll(){
   if (state.latest && (state.mode === 'timelapse' || (state.mode === 'compare' && state.a !== state.latest.year && state.b !== state.latest.year))) restoreLatest();        // the latest image belongs to One year, or to a side of the slider
   renderMode(); renderYears();
   if (state.checked) { setCompareLayers(); buildTimelapse(); }
-  renderStory(); writeHash(); wire.sync3D(); drawArcs(false);
+  renderStory(); writeHash(); wire.sync3D(); wire.syncPin(); drawArcs(false);      // syncPin: the pin card follows the year and the glacier (js/11b-pin.js)
   if (state.checked && !latestBusy) wire.setStatus(statusLine());      // the status box follows the choice: a year after Latest drops its "Latest clear-ish scene" line
 }
 

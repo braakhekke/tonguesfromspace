@@ -17,9 +17,10 @@ import * as m12 from './11-view3d.js';
 import * as m13 from './12-boot.js';
 import * as m14 from './13-teaser.js';
 import * as m15 from './14-streetview.js';
+import * as m16 from './11b-pin.js';
 
 if (/** @type {any} */ (window).TFS_EXPOSE || /[?&]expose\b/.test(location.search)) {
-  for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15]) {
+  for (const ns of [m0, m1, m2, m3, m4, m5, m6, m7, m8, m9, m10, m11, m12, m13, m14, m15, m16]) {
     for (const k of Object.keys(ns)) Object.defineProperty(window, k, { get: () => ns[k], configurable: true });
   }
 }
