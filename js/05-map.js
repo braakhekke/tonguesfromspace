@@ -335,7 +335,7 @@ export function restoreOldest(){
 export const aerialYears = () => [...new Set(Object.values(aerialWanted()).filter(Boolean))].sort();
 /* ---------- Special flights imagery (swisstopo Spezialbefliegungen), one year at a time ----------
    One picture per year and glacier (data/special-flights/<id>.json + .webp in Web Mercator, scripts/build_special_flights.py): RGB (or, for a year without RGB, near-infrared) orthophotos of the flights that touch
-   the SGI 2023 outline, no rapid-mapping mosaics. The switch "Special flights" is in the layer menu of the map and of the 3D view, in One year only. LOCAL TRIAL, Aletsch only: the terms of use of the collection were read on 2026-11-06 (source reference mandatory; ledger docs/sources/switzerland-spezialbefliegungen.md). */
+   the SGI 2023 outline, no rapid-mapping mosaics. The switch "Special flights" is in the layer menu of the map and of the 3D view, in One year only. LOCAL TRIAL, nine of the ten Swiss glaciers (Zmutt has no file: no flight meets the selection rule, see the ledger): the terms of use of the collection were read on 2026-11-06 (source reference mandatory; ledger docs/sources/switzerland-spezialbefliegungen.md). */
 let flightsIndex = null;      // the glaciers that have a data/special-flights file (written by scripts/build_special_flights.py), read once
 const flightIds = () => flightsIndex || (flightsIndex = fetch(asset('data/special-flights/index.json')).then(r => r.ok ? r.json() : []).catch(() => []));
 export const flightsData = new Map();      // glacier id -> {years: {...}} | null (none, or not loaded yet)
