@@ -90,6 +90,7 @@ export function updateCredits(){
   document.getElementById('credits').innerHTML = parts.join(' · ');
 }
 (function(){ const c = document.getElementById('credits');
+  new MutationObserver(() => { const l = document.getElementById('creditsLive'); if (l) l.innerHTML = c.innerHTML; }).observe(c, {childList: true, subtree: true, characterData: true});      // the credits of the picture are listed in the Sources block, not in a bar on the picture
   const t = () => c.classList.toggle('open'); c.onclick = e => { if (e.target.tagName !== 'A') t(); };
   c.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); t(); } }; })();
 /* Deep space: the calm backdrop where no base map shows. A dark blue gradient, many small faint stars, a soft Milky Way band and nebula glows.

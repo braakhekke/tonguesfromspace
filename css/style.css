@@ -559,7 +559,8 @@ body.hint-done .v3d-top .h-full,body.hint-done .v3d-top .h-short{display:none}
 @media (max-width:720px){.layerbox{top:88px;right:8px;padding:6px 10px 4px}}
 .notice{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:680;background:var(--sheet);border-radius:8px;padding:16px 18px;width:min(360px,calc(100% - 32px));max-width:none;font-size:14px;display:none;box-shadow:0 4px 20px rgba(0,0,0,.3)}
 .notice.show{display:block}
-.credits{position:absolute;left:0;right:0;bottom:0;z-index:665;background:rgba(255,255,255,.88);color:var(--rock);font-size:11px;line-height:20px;height:20px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border:0;text-align:left;width:100%}
+.credits{display:none!important}      /* the bar on the picture is gone: its text is the first line in the Sources block (#creditsLive, js/05-map.js) */
+.credits.old{position:absolute;left:0;right:0;bottom:0;z-index:665;background:rgba(255,255,255,.88);color:var(--rock);font-size:11px;line-height:20px;height:20px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;border:0;text-align:left;width:100%}
 .credits.open{height:auto;white-space:normal;padding:4px 10px}
 .credits a{color:var(--crevasse)}
 .leaflet-control-scale{margin-bottom:84px!important;margin-right:12px!important}
@@ -1080,7 +1081,8 @@ body.has-full{overflow:hidden}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
   .stage:not(.is-full) .mini-ctl{display:contents}
   #miniToggle{position:absolute;z-index:700;right:8px;bottom:8px;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.3)}
-  .stage.mini #miniToggle svg{transform:rotate(180deg)}
+  #miniToggle svg{transform:rotate(180deg)}      /* large: the chevron points up (pull the picture up to a strip) */
+  .stage.mini #miniToggle svg{transform:none}      /* strip: it points down (open it) */
   body.pane-open .mini-ctl{display:none!important}
 }
 }
