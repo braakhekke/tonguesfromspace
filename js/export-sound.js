@@ -45,3 +45,15 @@ export async function makeAudio(times, total){
     return { sampleRate: RATE, channels: 1, asc, samples };
   } catch (e) { console.warn('Sound skipped:', e); return null; }
 }
+
+/* The preview plays the same tick live, at every change of year (same synthesis, a real-time AudioContext made on first use, which is inside the click that starts the preview). */
+let liveCtx = null;
+export function previewTick(){
+  const e = document.getElementById('vSound'); if (!e || !(/** @type {HTMLInputElement} */ (e).checked)) return;
+  try {
+    const AC = window.AudioContext || /** @type {any} */ (window).webkitAudioContext; if (!AC) return;
+    if (!liveCtx) liveCtx = new AC();
+    if (liveCtx.state === 'suspended') liveCtx.resume();
+    tick(liveCtx, liveCtx.destination, liveCtx.currentTime + 0.005);
+  } catch (err) { /* no sound in the preview */ }
+}

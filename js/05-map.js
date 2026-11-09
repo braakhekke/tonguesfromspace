@@ -577,7 +577,7 @@ export function buildTimelapse(){
 export function tagLine(el, first, sc, style = state.style){ el.innerHTML = (first && first !== 'Sentinel-2' ? `<span class="nw">${first}</span> · ` : '') + `<span class="nw">${styleLine(style, sc)}</span>`; }
 export function showFrame(i){
   if (!tlLayers.length) { wire.setTag('tagT', '–'); return; }
-  state.frame = i;
+  state.frame = i; if (wire.previewFrameTick) wire.previewFrameTick(i);
   tlLayers.forEach((t, k) => t.layer.setOpacity(k === i ? 1 : 0)); updateSpeed(); updateFlights();
   const off = !satOn(), yShown = off && (state.mode === 'timelapse' || state.oldestAerial) && aerialWanted().T ? aerialWanted().T : tlLayers[i].yr;      // no Sentinel-2 picture: a timelapse shows its newest aerial year, not the frames
   wire.setTag('tagT', yShown);

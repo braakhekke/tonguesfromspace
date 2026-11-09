@@ -1,5 +1,5 @@
 import { wire } from './wire.js';
-import { makeAudio, tickTimes } from './export-sound.js';
+import { makeAudio, tickTimes, previewTick } from './export-sound.js';
 import { IC_INFO } from './07b-icecap-texts.js';
 import { IS_CHANGE } from './07a-region-icecaps.js';
 import { FIRST_YEAR, iceVolume, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, VOLUME_LOSS, $, COARSE, PHONE } from './01-data.js';
@@ -140,6 +140,8 @@ export function drawPreview(){
 }
 /* A preview of the animation in the frame: the timelapse plays on the map (the labels follow its frame), the slider sweeps across; everything outside the frame is darker meanwhile. Stops with the pane, a new format or a click. */
 export const vPrev = {on: false, raf: 0};
+export const frameTick = i => { if (!vPrev.on || vstate.type === 'swipe' || viewMode === '3d') return; if (vPrev.lastFrame != null && vPrev.lastFrame !== i) previewTick(); vPrev.lastFrame = i; };      // the map's timelapse: a tick at every new frame of the preview
+Object.defineProperty(wire, 'previewFrameTick', { get: () => frameTick, configurable: true });
 export const PV_ICON = {play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg>', stop: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h10v10H7z"/></svg>'};
 export function stopPreview(){
   if (!vPrev.on) return; vPrev.on = false; cancelAnimationFrame(vPrev.raf); vPrev.endT0 = null;
@@ -166,7 +168,7 @@ export function startPreview3D(){            // the camera swings as in the vide
       yPh += dt / perSec(ys.length); const sq = loopSeq(ys.length), per = perSec(ys.length), cyc = sq.length + (vPrev.endInfo ? endLen(vstate.fmt) / per : 0), ph = yPh % cyc;
       if (yPh >= cyc) return stopPreview();      // one run, like the video
       if (ph >= sq.length) vPrev.endT0 = performance.now() - (ph - sq.length) * per * 1000;      // after the last year: the fact card, as in the video
-      else { vPrev.endT0 = null; const y = ys[sq[Math.floor(ph)]]; if (y !== c.current()) c.follow(y); }
+      else { vPrev.endT0 = null; const y = ys[sq[Math.floor(ph)]]; if (y !== c.current()) { c.follow(y); previewTick(); } }
     }      // the order of the video: loops, and back in time between them
     if (!c.cmp && !ys && t >= 7) return stopPreview();      // one swing
     wire.drawPreview3D(); vPrev.raf = requestAnimationFrame(tick);
@@ -195,7 +197,7 @@ export function startPreview(){
   const ys = videoYears();
   if (vstate.type !== 'swipe') prepareEnd();      // the card's numbers are fetched while the preview starts
   if (viewMode === '3d') { vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn(); return startPreview3D(); }
-  vPrev.on = true; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn();
+  vPrev.on = true; vPrev.lastFrame = null; $('videoFrame').classList.add('playing'); $('vfPlay').innerHTML = PV_ICON.stop; $('vfPlay').setAttribute('aria-label', 'Stop the preview'); syncPlayBtn();
   if (vstate.type === 'swipe') {            // the slider goes to and fro across the frame
     const t0 = performance.now(), r = frameRect(), a = horiz() ? (r.y + 0.05 * r.h) / map.getSize().y : (r.x + 0.05 * r.w) / map.getSize().x, b = horiz() ? (r.y + 0.95 * r.h) / map.getSize().y : (r.x + 0.95 * r.w) / map.getSize().x;
     const tick = now => { if (!vPrev.on) return; const uu = (now - t0) / (2600 * Math.max(0.3, perSec(0) / 1.2)); if (uu >= 2) return stopPreview(); const u = uu % 2, e = u < 1 ? u : 2 - u, s = e * e * (3 - 2 * e); state.split = a + (b - a) * s; clip(); drawPreview(); vPrev.raf = requestAnimationFrame(tick); };

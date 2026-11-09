@@ -407,7 +407,7 @@ $('v3dLbToggle').addEventListener('click', e => { if ($('v3dLayers').classList.c
 $('layersBtn').onclick = () => { const open = !layerBoxNow().classList.contains('open'); setLayers(open); if (open) setMore(false); };   // one panel at a time
 /* A press on the viewer (map or 3D picture) closes an open layer menu; presses inside the menus and on their buttons do not */
 document.addEventListener('pointerdown', e => {
-  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn, .tl-row, .tl-dots')) return;      // the dock's year steps and timeline change the year: the layer menu stays open
+  const t = e.target; if (!t.closest || !t.closest('#stage') || t.closest('#layerbox, #v3dLayers, #layersBtn, #v3mLayers, .tl-row, .tl-dots')) return;      // the dock's year steps and timeline change the year: the layer menu stays open
   if ($('layerbox').classList.contains('in-flow')) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
   if (LAND.matches) { if ($('layerbox').classList.contains('open') || $('v3dLayers').classList.contains('open')) setLayers(false); return; }
   [[$('layerbox'), $('lbToggle')], [$('v3dLayers'), $('v3dLbToggle')]].forEach(([box, btn]) => { if (!box.classList.contains('min')) btn.click(); });

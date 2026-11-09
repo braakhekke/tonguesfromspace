@@ -341,6 +341,7 @@ document.querySelectorAll('.filters select').forEach(sel => {
   btn.append(t); btn.insertAdjacentHTML('beforeend', '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>');
   sel.classList.add('native'); sel.tabIndex = -1; sel.setAttribute('aria-hidden', 'true');
   sel.before(wrap); wrap.append(sel, btn, menu);
+  wrap.addEventListener('click', e => e.preventDefault());      // the select sits in a <label>: without this a tap also activates the hidden select and the phone opens its native picker on top
   const sync = () => { t.textContent = sel.options[sel.selectedIndex] ? sel.options[sel.selectedIndex].text : ''; };
   const close = () => { menu.hidden = true; back.hidden = true; btn.setAttribute('aria-expanded', 'false'); document.body.classList.remove('dd-open'); };
   btn.onclick = () => {
