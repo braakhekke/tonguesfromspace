@@ -610,10 +610,12 @@ async function gallerySubmit(request, env, cors, ip, ctx) {
   if (queue.objects.length >= GAL.maxPending) return json({ error: 'The gallery is waiting for review of earlier pictures. Please try again in a few days.' }, 503, cors);
   await env.GALLERY.put('pending/' + id, buf, { httpMetadata: { contentType: clean.kind === 'video' ? 'video/mp4' : 'image/jpeg' },
     customMetadata: { meta: JSON.stringify(clean), ts: String(Date.now()) } });
-  if (env.GALLERY_NOTIFY_URL) {                                              // a push message to the owner (an ntfy.sh topic URL); a failure never fails the upload
+  if (!env.GALLERY_NOTIFY_URL) console.log('gallery ping: GALLERY_NOTIFY_URL is not set on this Worker');
+  else {                                              // a push message to the owner (an ntfy.sh topic URL); a failure never fails the upload
     const what = clean.kind === 'video' ? 'animation' : 'picture', who = clean.nick ? ' from ' + clean.nick : '';
     const ping = fetch(env.GALLERY_NOTIFY_URL, { method: 'POST', body: `New ${what} of ${clean.name} (${clean.years.join(', ')})${who} is waiting for approval in the gallery (${queue.objects.length + 1} in the queue).`,
-      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow' } }).catch(() => {});
+      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow' } })
+      .then(r => { if (!r.ok) console.log('gallery ping refused', r.status); }).catch(e => console.log('gallery ping failed', String(e)));
     if (ctx && ctx.waitUntil) ctx.waitUntil(ping);
   }
   return json({ ok: true }, 200, cors);
