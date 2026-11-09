@@ -149,10 +149,10 @@ def region_page(html, page):
         src.update(image="images/preview-social.jpg", image_w="1200", image_h="630")
     url = f"{SITE}/{page['canonical']}"
     swap("<title>Tongues from Space | Interactive Glaciers</title>", f"<title>{src['title']}</title>")
-    swap('<meta name="description" content="Explore glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change: the ten largest Swiss glaciers and Iceland’s Vatnajökull. Compare, create and share your visuals.">',
+    swap('<meta name="description" content="Explore glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change: the ten largest Swiss glaciers. Compare, create and share your visuals.">',
          f'<meta name="description" content="{src["description"]}">')
     swap('<meta property="og:title" content="Tongues from Space - Interactive Glaciers">', f'<meta property="og:title" content="{src["og_title"]}">')
-    swap('<meta property="og:description" content="Watch glacier tongues retreat: Sentinel-2 satellite images since 2016 and 3D terrain for the ten largest Swiss glaciers and Iceland’s Vatnajökull.">',
+    swap('<meta property="og:description" content="Watch glacier tongues retreat: Sentinel-2 satellite images since 2016 and 3D terrain for the ten largest Swiss glaciers.">',
          f'<meta property="og:description" content="{src["og_description"]}">')
     swap('<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">',
          f'<meta property="og:image:width" content="{src["image_w"]}">\n<meta property="og:image:height" content="{src["image_h"]}">')

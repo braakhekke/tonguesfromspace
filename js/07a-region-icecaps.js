@@ -156,7 +156,7 @@ export function icWhyOnly(){
     </ul>
     <p>Vatnajökull has many more outlets, which can be added one by one. Breiðamerkurjökull has the most detailed pages: its 3D view has an ice surface for every year, the other outlets use the terrain tiles as they are.</p>
     <h4>Outside Vatnajökull</h4>
-    <p>The site shows the ten largest glaciers of Iceland. A glacier there is an ice cap or glacier: the basins of the Randolph Glacier Inventory 6.0 that touch each other are counted as one${fn('is_rgi')}.</p>
+    <p>Outside Vatnajökull the site shows the ten largest glaciers of Iceland. A glacier there is an ice cap or glacier: the basins of the Randolph Glacier Inventory 6.0 that touch each other are counted as one${fn('is_rgi')}.</p>
     <p>The ten are, in order of area: Langjökull, Hofsjökull, Mýrdalsjökull, Drangajökull, Eyjafjallajökull, Tungnafellsjökull, Þórisjökull, Eiríksjökull, Þrándarjökull and Tindfjallajökull (the area is of about 2000; Snæfellsjökull, with 12.5 km², is eleventh).</p>${tongue}`;
   if (id === 'no-mainland') return `<p>The site shows the ten largest glaciers of Norway by the area of NVE's glacier inventory of 2018–2019${fn('no_nve')}, the same ten as NVE's own list of the largest glaciers. A glacier here is what NVE calls a main glacier: the glacier units that hang together.</p>
     <p>The ten are Jostedalsbreen, Vestre Svartisen, Søndre Folgefonna, Østre Svartisen, Blåmannsisen, Hardangerjøkulen, Myklebustbreen, Okstindbreen, Øksfjordjøkelen and Nordre Folgefonna.</p>

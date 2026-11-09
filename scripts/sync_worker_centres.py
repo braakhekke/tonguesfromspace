@@ -2,7 +2,7 @@
 """Writes the centres of the picture boxes of all glaciers of the ice-cap regions into worker/worker.js (the block between /*centres:begin*/ and /*centres:end*/).
 
 The Worker only serves requests whose box lies near a glacier of one of the regions (Iceland: Vatnajokull and the rest of Iceland, mainland Norway, Svalbard). Run it after build_vatnajokull.py or
-build_regions.py changed a data file, then paste worker/worker.js into the Cloudflare dashboard (Worker -> Edit code -> Deploy). Standard library only.
+build_regions.py changed a data file, then push: the Worker deploys with the workflow (deploy.yml, wrangler). Standard library only.
 """
 import json, os, re
 

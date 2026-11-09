@@ -42,8 +42,8 @@ SWISS_SERIES.forEach(([y, , pct]) => {
 });
 VOLUME_LOSS.sort((a, b) => a.y - b.y);
 
-/* Built-in list: the ten largest glaciers by area in SGI2016 (largest entities >14.5 km²).
-   Areas: SGI1850, SGI2016 and, where published, SGI2023/24 (GLAMOS via de.wikipedia "Liste Schweizer Gletscher").
+/* Built-in list: the ten glaciers the site shows, which are the ten largest by area in the newest GLAMOS inventory (SGI2023; the ranking and the areas in data/glaciers.js come from
+   scripts/build_outlines.py). The areas below (SGI1850, SGI2016 and, where published, SGI2023/24: GLAMOS via de.wikipedia "Liste Schweizer Gletscher") are the fallback when glaciers.js is missing;
    build_outlines.py replaces the ranking with the newest inventory and adds outlines. */
 export const DEFAULTS = [
   { id:'aletsch', tongue:[46.424,8.032], keys:['grosser aletsch'], name:'Grosser Aletsch', local:'Grosser Aletschgletscher', canton:'Valais', range:'Bernese Alps',
