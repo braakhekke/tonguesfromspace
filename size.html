@@ -41,7 +41,7 @@
 .glaciers button.picked,.glaciers button[aria-pressed="true"].picked{box-shadow:none!important}
 /* header: the site bar is the header; no second logo and title above the panels */
 .mhead{display:none!important}
-.controls .brand{padding-top:6px;display:flex;flex-direction:column}
+.controls .brand{padding-top:0;display:flex;flex-direction:column}
 .controls .brand .back-glacier{order:-2;margin:0 0 8px}
 @media (max-width:900px){.mhead{display:block!important;padding:8px 14px 0;border:0;background:none;text-align:left}.mhead:not(:has(.back-glacier:not([hidden]))){display:none!important}.mhead strong,.mhead>span{display:none}.mhead .back-glacier{margin:0}}
 #toggleRight,#toggleLeft{z-index:710}      /* above the 3D view and the map controls */
@@ -964,7 +964,7 @@ function syncUi() {
   const A = slotOf('A'), B = slotOf('B');
   document.querySelectorAll('#gList button').forEach(b => {
     const r = mode3d && (S3.all || S3.total) ? 'N' : b.dataset.id === state.recent[0] ? 'A' : b.dataset.id === state.recent[1] ? 'B' : '';
-    b.setAttribute('aria-pressed', String(!!r)); b.style.setProperty('--c', r ? COLOUR[r] : 'transparent'); b.classList.toggle('picked', !!r);
+    b.setAttribute('aria-pressed', String(!!r)); b.style.setProperty('--c', r ? (mode3d ? COLOUR.N : COLOUR[r]) : 'transparent'); b.classList.toggle('picked', !!r);
   });
   document.querySelectorAll('#cities button').forEach(b => b.setAttribute('aria-pressed', String(!!state.city && b.dataset.k === state.city.id)));
   const tag = (o, k) => `<span class="yt-sw" style="--c:${COLOUR[k]}"></span>${o.g.name}<small>${fmt(state.show1850 ? o.g.area1850 : o.g.area)} km²${state.show1850 ? ' in 1850' : ' in ' + o.g.year}</small>`;
@@ -2079,8 +2079,8 @@ function s3Story() {      // the right panel in 3D: ice volumes and the cubes (s
   if (!items.length) { $('story').innerHTML = `<div class="head"><h2>Pick a glacier</h2><p class="sub">to see its ice as ${SHP().one === 'ice ball' ? 'an ice ball' : 'an ice cube'}</p></div><section class="sec"><p class="note">Pick one or two glaciers in the list.</p></section>`; return; }
   const [a, b] = items, lines = [];
   if (b) { const r = a.v.V2016 / b.v.V2016; lines.push(r >= 1.05 ? `<b>${a.p.full}</b> holds <b>${times(r)}</b> the ice of ${b.p.full}` : r <= .95 ? `<b>${a.p.full}</b> holds about <b>${fmt(r * 100, 0)} %</b> of the ice of ${b.p.full}` : `<b>${a.p.full}</b> holds about as much ice as ${b.p.full}`); }
-  const max = Math.max(...items.map(i => i.v.V2016)), bars = `<div class="cmp-bars">` + items.map(i => `<div style="--c:${COLOUR[i.p.role]}"><span>${i.p.full}</span><i style="width:${i.v.V2016 / max * 100}%"></i><b>${i.v.V2016} km³</b></div>`).join('') + `</div>`;
-  const one = i => { const rate = Math.abs(RATE(i.v)); return `<section class="sec"><div class="card-h" style="color:${i.p.role === 'A' ? 'var(--accent)' : 'var(--crevasse)'}"><i class="poly-sw" style="--c:${COLOUR[i.p.role]}"></i>${i.p.full}</div>
+  const max = Math.max(...items.map(i => i.v.V2016)), bars = `<div class="cmp-bars">` + items.map(i => `<div style="--c:${COLOUR.N}"><span>${i.p.full}</span><i style="width:${i.v.V2016 / max * 100}%"></i><b>${i.v.V2016} km³</b></div>`).join('') + `</div>`;
+  const one = i => { const rate = Math.abs(RATE(i.v)); return `<section class="sec"><div class="card-h">${i.p.full}</div>
     <div class="stat-row">
       <div class="stat"><span class="k">Ice volume 2016${i.p.total ? ' (GLAMOS Swiss-wide)' : ''}</span><span class="v">${i.v.V2016}<small>km³</small></span></div>
       <div class="stat"><span class="k">${SHP().size} (computed)</span><span class="v">${fmt(i.e, 0)}<small>m</small></span></div>
