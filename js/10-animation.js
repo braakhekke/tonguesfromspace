@@ -1007,8 +1007,10 @@ export async function makeVideo(){
   const ys = videoYears();
   if (ys.length < 2) return showNotice(vstate.type === 'swipe' ? 'Pick two different years in Compare first.' : 'Pick a timelapse range of at least two years first.');
   const F = VIDEO.formats[vstate.fmt], W = F.w, H = F.h, S = marginsFor('video', vstate.fmt), fps = VIDEO.fps;
-  const long = vstate.type === 'swipe' ? 0 : videoDuration(loopSeq(ys.length).length);      // a very long video gets a lower bitrate, so that it stays small enough for the gallery (15 MB)
-  const cfg = await pickCodec(W, H, long > 40 ? Math.round(Math.max(2.5e6, 11e6 * 8 / long)) : 8e6);
+  const long = videoDuration(vstate.type === 'swipe' ? 2 : loopSeq(ys.length).length);      // seconds
+  /* for the gallery the file must stay under the Worker's 15 MB (GAL.maxVideo): aim at 10 MB, because an encoder overshoots its bitrate; a download only gets the lower bitrate when it is very long */
+  const bitrate = shareOnly ? Math.round(Math.min(8e6, Math.max(1e6, 10e6 * 8 / long - 80e3))) : long > 40 ? Math.round(Math.max(2.5e6, 11e6 * 8 / long)) : 8e6;
+  const cfg = await pickCodec(W, H, bitrate);
   if (!cfg) return showNotice('This browser cannot create MP4 (H.264) videos. Try Chrome, Edge, or Safari on iPhone, iPad or Mac.');
   vstate.busy = true; $('vsGo').disabled = true;
   try {

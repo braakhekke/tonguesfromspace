@@ -2392,7 +2392,9 @@ async function makeShareFile() {      // [file, details] of what the frame shows
   const fmt = GAL_FMT[fmtChoice]; if (!fmt) throw new Error('Choose 16:9, 9:16 or 4:5 under the picture: a custom frame does not fit the gallery.');
   const video = vs.kind === 'video', ps = mode3d ? picksNow() : state.recent.map(id => GL.find(g => g.id === id)).filter(Boolean);
   if (!ps.length) throw new Error('Pick a glacier first.');
-  const file = mode3d ? (video ? (await s3Film({keep: true, bitrate: 6e6}), S3.lastFilm) : await s3Snapshot({share: true})) : (video ? await flyFilm({keep: true, bitrate: 6e6}) : await downloadImage({share: true}));
+  const film = br => mode3d ? (s3Film({keep: true, bitrate: br}).then(() => S3.lastFilm)) : flyFilm({keep: true, bitrate: br});
+  let file = video ? await film(6e6) : mode3d ? await s3Snapshot({share: true}) : await downloadImage({share: true});
+  for (let tries = 0, br = 6e6; video && file && file.size > 13e6 && tries < 2; tries++) { br = Math.round(br * 10e6 / file.size); file = await film(br); }      // the gallery takes 15 MB at most (Worker, GAL.maxVideo): a longer film is made again at a lower bitrate, aiming at 10 MB
   if (!file) throw new Error('The file could not be made. Please try again.');
   const g0 = GL.find(g => g.id === ps[0].id), name = (S3.all && mode3d ? 'All ten glaciers' : S3.total && mode3d ? 'Total Swiss' : ps.map(p => p.name).join(' and ')).replace(/[^\p{L}\p{N} .'’-]/gu, '').slice(0, 40);
   return [file, {type: mode3d ? (video ? 'volumefilm' : 'volume') : (video ? 'areafly' : 'area'), view: mode3d ? 'volume' : 'area', fmt, style: 'natural', glacier: ps[0].id, name, years: [g0.year]}];
