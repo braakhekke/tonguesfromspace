@@ -414,6 +414,26 @@ document.addEventListener('pointerdown', e => {
 }, true);
 $('moreBtn').onclick = () => { const open = !document.querySelector('.mapbar').classList.contains('more-open'); setMore(open); if (open) setLayers(false); };
 
+/* Phones: each dock (map, 3D) has a small tab on its top edge. Tap it, or swipe the dock down, and the dock folds away to one round button in the corner; tap that, or swipe it up, and it unfolds. The choice is remembered. */
+{
+  const KEY = 'tsf-dock-min', docks = [document.querySelector('.mapbar'), $('v3dMeasure')].filter(Boolean);
+  const CHEV = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  let folded = false; try { folded = localStorage.getItem(KEY) === '1'; } catch (e) {}
+  const apply = () => {
+    docks.forEach(d => { d.classList.toggle('dock-min', folded); const b = d.querySelector('.dock-fold'); b.setAttribute('aria-expanded', !folded); b.setAttribute('aria-label', folded ? 'Show the tools' : 'Hide the tools'); });
+    document.body.classList.toggle('docks-folded', folded);
+  };
+  const set = v => { folded = v; try { localStorage.setItem(KEY, v ? '1' : '0'); } catch (e) {} if (v) { setLayers(false); setMore(false); } apply(); };
+  docks.forEach(d => {
+    const b = document.createElement('button'); b.type = 'button'; b.className = 'dock-fold'; b.innerHTML = CHEV; d.prepend(b);
+    b.addEventListener('click', () => set(!folded));
+    let y0 = null;      // a swipe on the dock (down: fold) or on the folded button (up: unfold)
+    d.addEventListener('touchstart', e => { y0 = e.touches.length === 1 ? e.touches[0].clientY : null; }, {passive: true});
+    d.addEventListener('touchend', e => { if (y0 === null) return; const dy = e.changedTouches[0].clientY - y0; y0 = null; if (!folded && dy > 28 && !e.target.closest('.tl-track, .tl2-track, input')) set(true); else if (folded && dy < -20) set(false); }, {passive: true});
+  });
+  apply();
+}
+
 /* Two fingers move the map on touch screens; one finger scrolls the page.
    Leaflet's pinch handler zooms and pans with two fingers; single-finger dragging is switched off. */
 if (COARSE) {
