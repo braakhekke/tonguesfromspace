@@ -874,7 +874,9 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .controls{--pad:16px;order:2;height:auto;border-right:0;border-bottom:1px solid var(--rule);padding:14px 16px 18px;gap:18px}
   .story{--pad:18px;order:3;padding:0 18px 32px}
   .story::before{height:20px}
-  .controls .brand,#glacierList,#rankNote{display:none}
+  #glacierList,#rankNote,.controls .brand>:not(.site-nav){display:none}      /* phone: only the page links (Home, Size, Gallery) stay of the brand block */
+  .controls .brand{padding:0}
+  .controls .brand .site-nav{margin-top:0;border-bottom:0;padding-bottom:0}
   .m-pick{display:flex!important}
 
   .year-tag{font-size:30px;top:10px;max-width:calc(50% - 16px)}
@@ -930,7 +932,9 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .mhead strong span{display:inline;font-size:inherit;margin:0;color:#0A1B33}
   .mhead strong span.t1{color:#0A1B33}
   .mhead span{display:block;font-size:11.5px;color:var(--moraine)}
-  .controls .brand,#glacierList,#rankNote{display:none}
+  #glacierList,#rankNote,.controls .brand>:not(.site-nav){display:none}      /* phone: only the page links (Home, Size, Gallery) stay of the brand block */
+  .controls .brand{padding:0}
+  .controls .brand .site-nav{margin-top:0;border-bottom:0;padding-bottom:0}
   .m-pick{display:flex!important}
   .story,.controls{height:auto;border:0;border-top:1px solid var(--rule)}
   .year-tag{font-size:28px}

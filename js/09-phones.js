@@ -90,19 +90,19 @@ export function setFull(on){
   setTimeout(() => { map.invalidateSize({pan: false}); if (typeof wire.v3d !== 'undefined' && wire.v3d && wire.v3d.resize) try { wire.v3d.resize(); } catch {} }, 380);
 }
 /* ---------- Phones stay upright, except in full screen ----------
-   Outside full screen a phone held sideways shows a "turn upright" sheet (browsers cannot lock the orientation there, iOS never); in full screen the phone may turn freely.
-   Where the browser allows it (Android, in full screen) the orientation is also unlocked on entering and locked to portrait on leaving. */
+   A phone held sideways shows a "turn upright" sheet, in full screen too (browsers cannot lock the orientation outside full screen, iOS never).
+   Where the browser allows it (Android) the orientation is also locked to portrait, in full screen as well. */
 const TURN = document.createElement('div'); TURN.className = 'turn-upright'; TURN.hidden = true; TURN.setAttribute('role', 'status');
-TURN.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><div>Turn your phone upright</div><small>Landscape is only used in full screen.</small>';
+TURN.innerHTML = '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></svg><div>Turn your phone upright</div><small>Landscape is not used.</small>';
 document.body.appendChild(TURN);
 const SIDEWAYS = matchMedia('(pointer:coarse) and (orientation:landscape) and (max-height:520px)');
 export function orientSync(){
-  const full = isFull();
-  TURN.hidden = !(SIDEWAYS.matches && !full) || EMBED;      // an embed has no panel to rearrange: it fills the frame in any orientation
+  const host = document.fullscreenElement || document.body; if (TURN.parentNode !== host) host.appendChild(TURN);      // the browser's full screen shows only that element and what is inside it
+  TURN.hidden = !SIDEWAYS.matches || EMBED;      // an embed has no panel to rearrange: it fills the frame in any orientation
   document.body.classList.toggle('turn-upright-on', !TURN.hidden);
   try {
     const so = /** @type {any} */ (screen.orientation);
-    if (so && so.lock && PHONE_DEVICE()) { if (full) so.unlock(); else so.lock('portrait').catch(() => {}); }
+    if (so && so.lock && PHONE_DEVICE()) { so.lock('portrait').catch(() => {}); }
   } catch {}
 }
 const PHONE_DEVICE = () => matchMedia('(pointer:coarse)').matches && Math.min(screen.width, screen.height) <= 520;
