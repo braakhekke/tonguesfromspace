@@ -22,7 +22,7 @@ class TestSizeVolume(SiteCase):
         return page
 
     def test_the_volumes_are_those_of_the_data_file_and_cover_every_glacier(self):
-        page = self.size("#g=B36-26")
+        page = self.size("#g=B36-26&mode=2d")
         want = {v["id"]: v for v in json.load(open(DATA))}
         have = {v["id"]: v for v in page.evaluate("ICE_VOLUMES")}
         self.assertEqual(set(have), set(page.evaluate("SIZE_DATA.glaciers.map(g => g.id)")), "a volume for each of the ten glaciers")
@@ -32,7 +32,7 @@ class TestSizeVolume(SiteCase):
             self.assertGreater(have[gid]["to"], have[gid]["from"])
 
     def test_switching_to_volume_changes_only_what_it_must(self):
-        page = self.size("#g=B36-26&b=B56-07&c=zurich")
+        page = self.size("#g=B36-26&b=B56-07&c=zurich&mode=2d")
         self.assertTrue(page.is_visible("#modeSwitch"))
         self.assertTrue(page.is_visible("#layerbox") or page.is_visible("#map"), "2D shows the map")
         self.assertFalse(page.is_visible("#shapeSw"), "block or ball is a 3D choice")
@@ -64,7 +64,7 @@ class TestSizeVolume(SiteCase):
     def test_the_all_ten_toggle_and_the_ball_work_without_webgl(self):
         page = self.size("#g=B36-26&c=zurich&mode=3d")
         page.wait_for_function("document.body.classList.contains('is-3d')")
-        page.click("#allTen button")
+        page.click("#allTen button:not(#totalSw)")
         page.wait_for_function("S3.all === true")
         self.assertEqual(page.evaluate("[...document.querySelectorAll('#gList button')].filter(b => b.getAttribute('aria-pressed') === 'true').length"), 10)
         story = page.text_content("#story")
@@ -84,7 +84,7 @@ class TestSizeVolume(SiteCase):
         dash = self.open("#g=aletsch").evaluate("""() => { const bar = document.querySelector('.stage .mapbar'), z = document.getElementById('zoomIn'), st = bar.closest('.stage').getBoundingClientRect(), r = bar.getBoundingClientRect(), c = getComputedStyle(z), b = getComputedStyle(bar);
             return {bottom: Math.round(st.bottom - r.bottom), font: c.fontSize, padding: c.padding, radius: c.borderRadius, w: Math.round(z.getBoundingClientRect().width), h: Math.round(z.getBoundingClientRect().height), bg: b.backgroundColor, barRadius: b.borderRadius, z: b.zIndex}; }""")
         for mode in ("", "&mode=3d"):
-            page = self.size("#g=B36-26&c=zurich" + mode)
+            page = self.size("#g=B36-26&c=zurich" + (mode or "&mode=2d"))
             if mode: page.wait_for_function("document.body.classList.contains('is-3d')")
             mine = page.evaluate("""() => { const bar = [...document.querySelectorAll('.mapbar')].find(b => b.getBoundingClientRect().width > 0), z = bar.querySelector('#zoomIn, #s3ZoomIn'), st = bar.closest('.stage').getBoundingClientRect(), r = bar.getBoundingClientRect(), c = getComputedStyle(z), b = getComputedStyle(bar);
                 return {bottom: Math.round(st.bottom - r.bottom), font: c.fontSize, padding: c.padding, radius: c.borderRadius, w: Math.round(z.getBoundingClientRect().width), h: Math.round(z.getBoundingClientRect().height), bg: b.backgroundColor, barRadius: b.borderRadius, z: b.zIndex}; }""")
@@ -92,7 +92,7 @@ class TestSizeVolume(SiteCase):
 
 
     def test_save_and_share_works_like_the_dashboards(self):
-        page = self.size("#g=B36-26&b=B56-07&c=zurich")
+        page = self.size("#g=B36-26&b=B56-07&c=zurich&mode=2d")
         self.assertEqual(page.evaluate("[...document.querySelectorAll('#shareGroup .dl b')].map(b => b.textContent)"), ["Your visual", "Embed"], "the same two tiles as the explorer")
         self.assertTrue(page.evaluate("document.getElementById('videoSheet').hidden && document.getElementById('videoFrame').hidden"), "nothing of the pane before Your visual is clicked")
         self.assertFalse(page.evaluate("[...document.querySelectorAll('.vf-fmt')].some(b => b.offsetParent !== null)"), "the formats are not there yet")
@@ -112,6 +112,17 @@ class TestSizeVolume(SiteCase):
         page.keyboard.press("Escape")
         page.wait_for_function("!document.body.classList.contains('pane-open')")
         self.assertTrue(page.evaluate("document.getElementById('videoFrame').hidden"))
+        self.assertEqual([e for e in self.errors if e.startswith("pageerror")], [])
+
+    def test_volume_3d_is_the_default_and_total_swiss_is_there(self):
+        page = self.size("#g=B53-04&c=zermatt")
+        page.wait_for_function("document.body.classList.contains('is-3d')")
+        self.assertEqual(page.evaluate("[...document.querySelectorAll('#allTen button')].map(b => b.textContent.trim())"), ["Ten", "Total Swiss"])
+        page.click("#totalSw")
+        page.wait_for_function("S3.total === true && S3.all === false")
+        self.assertIn("58.646", page.text_content("#story"))
+        page.click("#allTen button:not(#totalSw)")
+        page.wait_for_function("S3.all === true && S3.total === false")
         self.assertEqual([e for e in self.errors if e.startswith("pageerror")], [])
 
     def test_a_link_with_mode_opens_in_3d(self):

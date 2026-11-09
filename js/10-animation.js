@@ -89,8 +89,16 @@ export function frameAvail(){            // the free area of the map the frame m
   const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(62, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
   return { x: vb.x0 + m, y: top, w: vb.x1 - vb.x0 - 2 * m, h: stageSize().y - top - m - bottom };
 }
+let custBase = null;      // the free area the custom fractions were last valid for
+export function keepCustRatio(A){            // the free area changed (full screen on or off, a panel folds away, the window is resized): the custom frame keeps its ratio (what the download is cut at) and is scaled by the mean change of the area (so going back restores it) to fit, instead of its fractions stretching it
+  const o = custBase; custBase = A;
+  if (!o || (o.w === A.w && o.h === A.h)) return;
+  const fw0 = o.w * (cust.r - cust.l), fh0 = o.h * (cust.b - cust.t), k = Math.min(Math.sqrt(A.w / o.w * A.h / o.h), A.w / fw0, A.h / fh0), fw = fw0 * k / A.w, fh = fh0 * k / A.h, cx = (cust.l + cust.r) / 2, cy = (cust.t + cust.b) / 2;
+  const l = Math.min(1 - fw, Math.max(0, cx - fw / 2)), t = Math.min(1 - fh, Math.max(0, cy - fh / 2));
+  Object.assign(cust, { l, r: l + fw, t, b: t + fh });
+}
 export function frameRect(){
-  const A = frameAvail();
+  const A = frameAvail(); keepCustRatio(A);
   if (vstate.fmt === 'custom') return { x: A.x + A.w * cust.l, y: A.y + A.h * cust.t, w: A.w * (cust.r - cust.l), h: A.h * (cust.b - cust.t) };
   const F = VIDEO.formats[vstate.fmt];
   let h = A.h, w = h * F.w / F.h;
@@ -436,7 +444,7 @@ $('videoFrame').addEventListener('pointerdown', e => {
 export function snapToImageBox(){
   const fp = imageFootprint(currentGlacier()), A = frameAvail(), ratio = fp.w / fp.h;
   let w = A.w, h = w / ratio; if (h > A.h) { h = A.h; w = h * ratio; }
-  const fw = w / A.w, fh = h / A.h; Object.assign(cust, { l: (1 - fw) / 2, r: (1 + fw) / 2, t: (1 - fh) / 2, b: (1 + fh) / 2 });
+  const fw = w / A.w, fh = h / A.h; Object.assign(cust, { l: (1 - fw) / 2, r: (1 + fw) / 2, t: (1 - fh) / 2, b: (1 + fh) / 2 }); custBase = A;
   updateFrame(); frameTo('image'); updateFrame();
 }
 $('vSnap').onclick = snapToImageBox;

@@ -209,9 +209,13 @@ body:not(.is-3d) .layerbox .only3d{display:none}      /* peak names are drawn in
 body.is-3d .layerbox .only2d{display:none}      /* Outline 1850 and the city boundary are drawings on the map: not in 3D */
 /* 3D: two picked | all ten at once, under the glacier list */
 /* "All ten": a small outlined slider at the right of the step header, in 3D only */
-#allTen{display:none;margin-left:auto}
-body.is-3d #allTen{display:block}
-@media (pointer:coarse),(max-width:719px){body.is-3d #allTen{display:none}}      /* phones: no ten-block view (too heavy) */
+#allTen{display:none;margin-left:auto;gap:12px}
+#allTen button span,#shapeSw button[data-shape]{white-space:nowrap}
+#allTen>button{gap:5px!important;font-size:11px!important}
+#allTen .trk{width:26px!important}
+#allTen button[aria-pressed="true"] .trk i{transform:translateX(10px)!important}
+body.is-3d #allTen{display:flex}
+@media (pointer:coarse),(max-width:719px){body.is-3d #allTen{display:none}}      /* desktop only: the Total Swiss block too */      /* phones: no ten-block view (too heavy) */
 #allTen button{display:flex;align-items:center;gap:7px;border:0;background:none;padding:2px 0;font:inherit;font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--moraine);cursor:pointer}
 #allTen button[aria-pressed="true"]{color:var(--ink)}
 #allTen .trk{position:relative;flex:none;width:30px;height:16px;box-sizing:border-box;border:1.5px solid var(--crevasse);border-radius:999px;background:none;transition:background .2s}
@@ -219,8 +223,8 @@ body.is-3d #allTen{display:block}
 #allTen button[aria-pressed="true"] .trk{background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
 #allTen button[aria-pressed="true"] .trk i{transform:translateX(14px)}
 #allTen svg,#shapeSw svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;flex:none}
-#shapeSw{display:none;margin:-14px 0 0}      /* the controls column has a 24 px gap: this closes most of it, so the slider sits right under Area | Volume */
-body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:10px}
+#shapeSw{display:none;margin:-14px 0 0 3px;width:calc(50% - 3px)}      /* the controls column has a 24 px gap: this closes most of it, so the slider sits right under Area | Volume */
+body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:6px}
 #shapeSw button[data-shape]{border:0;background:none;padding:2px 0;font:inherit;font-size:11.5px;font-weight:600;color:var(--moraine);cursor:pointer}
 #shapeSw button[data-shape][aria-pressed="true"]{color:var(--ink)}
 #shapeSw .ss-track{position:relative;flex:none;width:34px;height:18px;border:0;padding:0;border-radius:999px;background:var(--firn);box-shadow:inset 0 0 0 1px var(--rule);cursor:pointer}
@@ -322,7 +326,7 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
     <div class="shape-slider" id="shapeSw" data-shape="block" role="group" aria-label="Shape of the ice"><button type="button" data-shape="block" aria-pressed="true">Ice cube</button><button type="button" class="ss-track" id="shapeTrack" role="switch" aria-checked="false" aria-label="Ice as ball (right) or ice cube (left)"><i></i></button><button type="button" data-shape="ball" aria-pressed="false">Ball</button></div>
 
     <section class="step" id="glacierGroup">
-      <h2 class="step-h"><span class="num">01</span>Glacier<span class="all-ten" id="allTen"><button type="button" role="switch" aria-pressed="false" aria-label="All ten glaciers at once" title="Show all ten glaciers at once"><span>All ten</span><i class="trk"><i></i></i></button></span></h2>
+      <h2 class="step-h"><span class="num">01</span>Glacier<span class="all-ten" id="allTen"><button type="button" role="switch" aria-pressed="false" aria-label="All ten glaciers at once" title="Show all ten glaciers at once"><span>Ten</span><i class="trk"><i></i></i></button><button type="button" id="totalSw" role="switch" aria-pressed="false" aria-label="All Swiss glaciers together as one block" title="All Swiss glaciers together as one block (GLAMOS Swiss-wide volume)"><span>Total Swiss</span><i class="trk"><i></i></i></button></span></h2>
       <ul class="glaciers" id="gList"></ul>
       <p class="note" id="s3Note" role="status"></p>
       <p class="note" id="listNote">Click a glacier here or on the map. The last two you pick are compared on the right.</p>
@@ -782,7 +786,7 @@ function setCityName(on) { state.cityName = on; $('cityNameToggle').checked = on
 function setCity(c) { hideHint(); markDirty(); state.city = c; state.cityOn = true; $('cityToggle').checked = true; setCityName(true); layCity(); syncUi(); syncHash(); }
 function choose(id) {          // a click in the list; a picked glacier is un-picked by clicking it again
   hideHint();
-  if (mode3d && S3.all) { S3.all = false; if (!state.recent.includes(id)) pick(id); else { syncUi(); syncHash(); } return syncAllUi(); }      // all ten were on: this glacier goes back to being one of two
+  if (mode3d && (S3.all || S3.total)) { S3.all = false; S3.total = false; if (!state.recent.includes(id)) pick(id); else { syncUi(); syncHash(); } return syncAllUi(); }      // all ten were on: this glacier goes back to being one of two
   if (state.recent.includes(id)) return unpick(id);
   const isNew = !state.recent.includes(id);
   pick(id);
@@ -852,7 +856,7 @@ function build() {
   if (h.get('v')) { const [la, lo, z] = h.get('v').split('_').map(Number); if (isFinite(la) && isFinite(lo) && isFinite(z)) { map.setView([la, lo], z, {animate: false}); state.moved = true; } }
   redrawAll(); restyleAll(); setActive(state.active); syncUi();
   setTimeout(hideHint, 9000);
-  $('modeSwitch').hidden = !ICE.length; if (h.get('all') === '1' && !(matchMedia('(pointer: coarse)').matches || innerWidth < 720)) S3.all = true; if (h.get('shape') === 'ball') S3.shape = 'ball'; if (h.get('mode') === '3d' && ICE.length) setMode('3d'); else setTimeout(() => welcome('2d'), 1200);
+  $('modeSwitch').hidden = !ICE.length; if (!(matchMedia('(pointer: coarse)').matches || innerWidth < 720)) { if (h.get('all') === '1') S3.all = true; else if (h.get('total') === '1') S3.total = true; } if (h.get('shape') === 'ball') S3.shape = 'ball'; if (h.get('mode') !== '2d' && ICE.length) setMode('3d'); else setTimeout(() => welcome('2d'), 1200);
 }
 document.addEventListener('input', e => {
   const t = e.target, o = t.dataset && t.dataset.fill && slots[t.dataset.fill]; if (!o) return;
@@ -919,7 +923,7 @@ function renderStory() {
 }
 function syncOnGlLabel() {      // the 3D "back on the glacier" button: singular for one block, plural for two or all ten
   const b = $('s3OnGl'); if (!b) return;
-  let one, w; try { one = !S3.all && state.recent.length < 2; w = SHP(); } catch (e) { return; }      // the 3D code is defined further down: before it exists, keep the printed label
+  let one, w; try { one = !S3.all && !S3.total && state.recent.length < 2; w = SHP(); } catch (e) { return; }      // the 3D code is defined further down: before it exists, keep the printed label
   const lbl = one ? 'Back on its glacier' : 'Back on their glaciers';
   b.setAttribute('aria-label', lbl); b.title = (one ? 'Put the ' + w.one + ' back on its own glacier' : 'Put the ' + w.many + ' back on their own glaciers') + ' (clears the city)';
   b.querySelector('.lbl').textContent = lbl;
@@ -929,7 +933,7 @@ function syncUi() {
   if (typeof paneOpen !== 'undefined' && paneOpen && typeof syncPane === 'function') setTimeout(syncPane, 0);      // the pane's text follows the number of glaciers picked
   const A = slotOf('A'), B = slotOf('B');
   document.querySelectorAll('#gList button').forEach(b => {
-    const r = mode3d && S3.all ? 'N' : b.dataset.id === state.recent[0] ? 'A' : b.dataset.id === state.recent[1] ? 'B' : '';
+    const r = mode3d && (S3.all || S3.total) ? 'N' : b.dataset.id === state.recent[0] ? 'A' : b.dataset.id === state.recent[1] ? 'B' : '';
     b.setAttribute('aria-pressed', String(!!r)); b.style.setProperty('--c', r ? COLOUR[r] : 'transparent'); b.classList.toggle('picked', !!r);
   });
   document.querySelectorAll('#cities button').forEach(b => b.setAttribute('aria-pressed', String(!!state.city && b.dataset.k === state.city.id)));
@@ -947,8 +951,9 @@ function syncHash() {          // the link carries the picks, the city, where th
   const moved = Object.values(slots).filter(o => Math.abs(o.lat - o.g.lat) > 1e-5 || Math.abs(o.lon - o.g.lon) > 1e-5 || o.rot);
   if (moved.length) q.push('m=' + moved.map(o => [o.g.id, o.lat.toFixed(5), o.lon.toFixed(5), Math.round(o.rot)].join('_')).join(','));
   if (state.dirty) { const c = map.getCenter(); q.push('v=' + [c.lat.toFixed(5), c.lng.toFixed(5), map.getZoom()].join('_')); }
-  if (mode3d) q.push('mode=3d');
+  q.push(mode3d ? 'mode=3d' : 'mode=2d');
   if (mode3d && S3.all) q.push('all=1');
+  if (mode3d && S3.total) q.push('total=1');
   if (mode3d && S3.shape === 'ball') q.push('shape=ball');
   if (EMBED) q.push('embed=1');
   try { history.replaceState(null, '', '#' + q.join('&')); } catch (_) {}
@@ -982,9 +987,17 @@ const stageSz = () => mode3d ? {x: $('stage').clientWidth, y: $('stage').clientH
 function frameAvail(sz = stageSz()) {      /* the free area of the picture the custom frame may use, as on the explorer: clear of the titles above, the dock and the credit line below, and 28 px from the sides */
   return {x: 28, y: 70, w: Math.max(100, sz.x - 56), h: Math.max(100, sz.y - 70 - 110)};
 }
+let custBase = null;      // the free area the custom fractions were last valid for
+function keepCustRatio(A) {      // the stage changed size (full screen on or off, a panel folds away, the window is resized): the custom frame keeps its ratio, which is what the download is cut at, and is scaled by the mean change of the area (so going back restores it) to fit, instead of its fractions stretching it
+  const o = custBase; custBase = A;
+  if (!o || (o.w === A.w && o.h === A.h)) return;
+  const fw0 = o.w * (cust.r - cust.l), fh0 = o.h * (cust.b - cust.t), k = Math.min(Math.sqrt(A.w / o.w * A.h / o.h), A.w / fw0, A.h / fh0), fw = fw0 * k / A.w, fh = fh0 * k / A.h, cx = (cust.l + cust.r) / 2, cy = (cust.t + cust.b) / 2;
+  const l = Math.min(1 - fw, Math.max(0, cx - fw / 2)), t = Math.min(1 - fh, Math.max(0, cy - fh / 2));
+  Object.assign(cust, {l, r: l + fw, t, b: t + fh});
+}
 function frameRect() {
   if (!paneOpen) return null;
-  const sz = stageSz();
+  const sz = stageSz(); keepCustRatio(frameAvail(sz));
   if (fmtChoice === 'custom') { const A = frameAvail(sz); return {x: A.x + cust.l * A.w, y: A.y + cust.t * A.h, w: (cust.r - cust.l) * A.w, h: (cust.b - cust.t) * A.h}; }
   const [fw, fh] = FORMATS[fmtChoice], a = fw / fh;
   const maxW = sz.x - 56, maxH = sz.y - 170;      // room for the titles above and the tools below
@@ -1744,7 +1757,7 @@ function restoreLaunch() {      // put every block back as it was when picked up
   wake(); for (let k = 0; k < Math.round(LEAD / DT); k++) stepWorld(); years = 0; melt = 0;
 }
 const startFromThrow = () => { const o = document.getElementById('vStart'); return !!(o && o.value === 'throw' && S3.launch && S3.launch.length === S3.ents.length); };
-const focusGroup = () => { if (S3.all) return S3.ents; const a = S3.ents[0]; return a ? S3.ents.filter(en => en.body.p.distanceTo(a.body.p) < 8 * Math.max(a.body.e, en.body.e)) : []; };      // the first block and those near it: two glaciers far apart are not framed together
+const focusGroup = () => { if (S3.all || S3.total) return S3.ents; const a = S3.ents[0]; return a ? S3.ents.filter(en => en.body.p.distanceTo(a.body.p) < 8 * Math.max(a.body.e, en.body.e)) : []; };      // the first block and those near it: two glaciers far apart are not framed together
 function upDir(p) {      // the way from a glacier's tongue to its upper slopes on the ground (x, z in scene units): from the mean of the lowest tenth of its 2023 outline points to the mean of the highest tenth
   const g = GL.find(x => x.id === p.id), kx = M_LAT * Math.cos(g.lat * Math.PI / 180), pts = [];
   for (const pl of g.new) for (let i = 0; i < pl[0].length; i += 2) { const [sx, sz] = toScene(g.lat + pl[0][i + 1] / M_LAT, g.lon + pl[0][i] / kx); pts.push({sx, sz, h: heightAt(sx, sz)}); }
@@ -1877,7 +1890,8 @@ function loop(now) {
   renderer.render(scene, cam);
 }
 COLOUR.N = '#8DB9D0';      // all ten at once: no red and blue, every block the colour of ice
-const picksNow = () => S3.all ? ICE.map(v => ({id: v.id, role: 'N', name: GL.find(g => g.id === v.id).name, full: GL.find(g => g.id === v.id).full, v})) : state.recent.map((id, i) => ({id, role: i ? 'B' : 'A', name: GL.find(g => g.id === id).name, full: GL.find(g => g.id === id).full, v: iceOf(id)})).filter(p => p.v);      // [red, blue], or all ten by volume
+const SWISS_TOTAL = {id: 'B36-26', role: 'N', name: 'Total Swiss', full: 'All Swiss glaciers', total: true, v: {id: 'swiss', V2016: 58.646, dV: 45.094 - 58.646, from: 2016, to: 2025, at: [46.50059, 8.0369]}};      // GLAMOS Swiss-wide series (data/glaciers.js swiss_volume): [2016, 58.646] and [2025, 45.094] km³, as stated; dV is computed here (2025 minus 2016). Placed on the Aletsch tongue
+const picksNow = () => S3.total ? [SWISS_TOTAL] : S3.all ? ICE.map(v => ({id: v.id, role: 'N', name: GL.find(g => g.id === v.id).name, full: GL.find(g => g.id === v.id).full, v})) : state.recent.map((id, i) => ({id, role: i ? 'B' : 'A', name: GL.find(g => g.id === id).name, full: GL.find(g => g.id === id).full, v: iceOf(id)})).filter(p => p.v);      // [red, blue], or all ten by volume
 const s3Spread = picks => { const sc = picks.map(p => merc(...p.v.at)), mx = sc.reduce((a, c) => a + c[0], 0) / sc.length, my = sc.reduce((a, c) => a + c[1], 0) / sc.length, lat = 2 * Math.atan(Math.exp(my / R_EARTH)) * 180 / Math.PI - 90, lon = mx / R_EARTH * 180 / Math.PI; return {lat, lon, spread: Math.max(...sc.map(c => Math.hypot(c[0] - mx, c[1] - my))) * Math.cos(lat * Math.PI / 180)}; };
 const coarse = matchMedia('(pointer: coarse)').matches || innerWidth < 720;      // a phone gets the lighter terrain
 /* the terrain must show every picked glacier whole: the 1850 outline (the largest extent) plus a buffer of 15 % and 800 m. The terrain is centred on the middle of those outlines and gets the finest detail level whose square is big enough (the coarsest, widest one when none is: all ten at once). */
@@ -1907,7 +1921,7 @@ function keepSouthInside(c, lat, lon, det) {
 async function s3Update() {      // called whenever the picks or the city change while the page is in 3D
   if (!S3.on) return; try { await ensureThree(); } catch (e) { $('s3Note').textContent = '3D could not load (no connection to the 3D library).'; return; }
   if (!renderer) { initScene(); s3Resize(); lastT = performance.now(); raf = requestAnimationFrame(loop); }
-  const picks = picksNow(); S3.picks = picks; const c = state.city, key = (c ? 'c:' + c.id : 'g') + S3.shape + (S3.all ? '|all|' : '|') + picks.map(p => p.id).join(',');
+  const picks = picksNow(); S3.picks = picks; const c = state.city, key = (c ? 'c:' + c.id : 'g') + S3.shape + (S3.all ? '|all|' : S3.total ? '|total|' : '|') + picks.map(p => p.id).join(',');
   if (key === S3.key) return; S3.key = key; s3Story();
   if (!picks.length) { clearEnts(); $('s3Note').textContent = 'Pick a glacier.'; return; }
   let lat, lon, det;
@@ -1928,8 +1942,8 @@ function s3OnGlaciers() {      // every block back on its own glacier: with a ci
 }
 function drawS3Overlay(x, W, Hh, u, ents = S3.ents, o = {}) {      // the text of the picture: names, the figures (stated and computed, said so), the credit and the brand; drawn into the download and, the same, into the preview frame
   const names = ents.map(en => en.p.name), sum = ents.reduce((a, en) => a + en.v.V2016, 0);
-  const title = S3.all ? 'All ten glaciers' : names.join(' and '), minimal = !!o.minimal, lift = o.safe ? Math.round(Hh * .12) : 0, step = (minimal ? 20 : 31) * u;      // minimal: one small line (glaciers, site, credit); safe: lifted clear of the Reels and TikTok buttons
-  const details = minimal ? [] : S3.all ? [`Together ${fmt(sum, 2)} km³ of ice (computed: the sum of the ten stated volumes)`] : ents.map(en => `${en.p.name}: ${en.v.V2016} km³ (stated), ${SHP().word === 'edge' ? 'cube edge' : 'ball diameter'} ${fmtM(en.e0)} (computed)`);
+  const title = S3.all ? 'All ten glaciers' : S3.total ? 'Total Swiss' : names.join(' and '), minimal = !!o.minimal, lift = o.safe ? Math.round(Hh * .12) : 0, step = (minimal ? 20 : 31) * u;      // minimal: one small line (glaciers, site, credit); safe: lifted clear of the Reels and TikTok buttons
+  const details = minimal ? [] : S3.total ? [`All Swiss glaciers together: ${SWISS_TOTAL.v.V2016} km³ of ice in 2016 (stated, GLAMOS Swiss-wide series), ${SHP().word === 'edge' ? 'cube edge' : 'ball diameter'} ${fmtM(ents[0].e0)} (computed)`] : S3.all ? [`Together ${fmt(sum, 2)} km³ of ice (computed: the sum of the ten stated volumes)`] : ents.map(en => `${en.p.name}: ${en.v.V2016} km³ (stated), ${SHP().word === 'edge' ? 'cube edge' : 'ball diameter'} ${fmtM(en.e0)} (computed)`);
   const credit = 'Terrain: Mapterhorn' + terrainCredit() + (bldShown ? ' · Buildings: swissBUILDINGS3D 3.0 Beta, © swisstopo' : '') + (lakeFloors ? ' · Lake floors: swissBATHY3D, Federal Office of Topography swisstopo' : '') + (state.peaks && PK.length ? ' · Peak names: ' + peakSrc : '') + (state.gnames && GN.length ? ' · Glacier names: Wikidata (CC0), Randolph Glacier Inventory 6.0' : '') + ' · Ice volume: Grab & Melchior 2020 (CC BY 4.0) · ' + BRAND_TEXT;
   const pad = 24 * u, maxW = W - 2 * pad, wrap = (t, font) => { x.font = font; const out = []; let line = ''; for (const w of t.split(' ')) { const n = line ? line + ' ' + w : w; if (x.measureText(n).width > maxW && line) { out.push(line); line = w; } else line = n; } if (line) out.push(line); return out; };
   const fT = minimal ? `600 ${15 * u}px ${FONT}` : `700 ${26 * u}px ${FONT}`, fD = `500 ${15 * u}px ${FONT}`, fC = `400 ${11.5 * u}px ${FONT}`;
@@ -1952,12 +1966,12 @@ function s3SnapshotDraw(opt = {}) {      // the picture: the 3D view as on the s
   else x.drawImage(src, 0, 0);
   drawS3Overlay(x, W, Hh, Math.min(W, Hh) / (fr ? 900 : 1200), S3.ents, overlayOpts());
   const png = $('vImgFmt').value === 'png';
-  return new Promise(res => cv.toBlob(b => { if (opt.share) return res(b && new File([b], 'volume.jpg', {type: 'image/jpeg'})); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'glacier-ice-' + (S3.all ? 'all-ten' : S3.ents.map(en => en.p.name.toLowerCase().replace(/[^a-z]/g, '')).join('-')) + '-' + S3.shape + (png ? '.png' : '.jpg'); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); res(); }, png ? 'image/png' : 'image/jpeg', .92));
+  return new Promise(res => cv.toBlob(b => { if (opt.share) return res(b && new File([b], 'volume.jpg', {type: 'image/jpeg'})); const a = document.createElement('a'); a.href = URL.createObjectURL(b); a.download = 'glacier-ice-' + (S3.all ? 'all-ten' : S3.total ? 'total-swiss' : S3.ents.map(en => en.p.name.toLowerCase().replace(/[^a-z]/g, '')).join('-')) + '-' + S3.shape + (png ? '.png' : '.jpg'); a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); res(); }, png ? 'image/png' : 'image/jpeg', .92));
 }
 const intro3d = () => { const w = SHP(); return `All the ice of a glacier as one ${w.one}. Drag it, throw it, ${matchMedia('(pointer:coarse)').matches ? 'tap' : 'click'} to drop.`; }, INTRO2D = document.getElementById('introText').textContent, INTRO2M = document.getElementById('introMobile').textContent;
 function syncAllUi() {
-  document.querySelectorAll('#allTen button').forEach(b => b.setAttribute('aria-pressed', String(S3.all)));
-  $('listNote').textContent = mode3d ? (S3.all ? 'All ten ' + SHP().many + ' at once. Click a glacier to go back to two.' : 'Click a glacier here. The last two you pick are shown as ' + SHP().many + '.') : 'Click a glacier here or on the map. The last two you pick are compared on the right.';
+  $('allTen').querySelector('button:not(#totalSw)').setAttribute('aria-pressed', String(S3.all)); $('totalSw').setAttribute('aria-pressed', String(S3.total));
+  $('listNote').textContent = mode3d ? (S3.all ? 'All ten ' + SHP().many + ' at once. Click a glacier to go back to two.' : S3.total ? 'All Swiss glaciers together as one ' + SHP().one + '. Click a glacier to go back to two.' : 'Click a glacier here. The last two you pick are shown as ' + SHP().many + '.') : 'Click a glacier here or on the map. The last two you pick are compared on the right.';
 }
 function syncShapeUi() {
   syncAllUi();
@@ -1969,8 +1983,9 @@ function syncShapeUi() {
 }
 function setShape(sh) { if (S3.shape === sh) return; S3.shape = sh; syncShapeUi(); syncUi(); syncHash(); }
 $('shapeSw').onclick = e => { const b = e.target.closest('button'); if (b) setShape(b.id === 'shapeTrack' ? (S3.shape === 'ball' ? 'block' : 'ball') : b.dataset.shape); };
-function setAll(on) { if (S3.all === on) return; S3.all = on; syncAllUi(); syncUi(); syncHash(); }
-$('allTen').onclick = e => { if (e.target.closest('button')) setAll(!S3.all); };      // one toggle: all ten, or back to the two picked
+function setAll(on) { if (S3.all === on) return; S3.all = on; if (on) S3.total = false; syncAllUi(); syncUi(); syncHash(); }
+function setTotal(on) { if (S3.total === on) return; S3.total = on; if (on) S3.all = false; syncAllUi(); syncUi(); syncHash(); }
+$('allTen').onclick = e => { const b = e.target.closest('button'); if (b) b.id === 'totalSw' ? setTotal(!S3.total) : setAll(!S3.all); };      // one toggle: all ten, or back to the two picked
 /* first visit on a phone: a pop-up in the middle says what this page does, once for the area view and once for the volume view */
 const WELCOME = {
   '2d': ['Compare the area of a glacier', 'Pick a glacier, then drag it onto a city or onto another glacier to see how big it is. Switch to Volume to see its ice as a block.'],
@@ -1994,7 +2009,7 @@ function setMode(m) {
   syncAllUi(); syncShapeUi();
   syncUi(); syncHash(); if (paneOpen) syncPane();
 }
-const s3Sources = () => `<details class="sec sources coll"><summary><div class="card-h">Sources</div></summary><ul class="src-list">
+const s3Sources = () => `<details class="sec sources coll"><summary><div class="card-h">Sources</div></summary><ul class="src-list">${S3.total ? '<li>Total Swiss: GLAMOS, Swisswide Glacier Mass Balance, release 2025, doi:10.18750/massbalance.swisswide.2025.r2025 (non-commercial): the volume of all Swiss glaciers for 2016 and 2025 as the series states it; the loss between them is computed here.</li>' : ''}
       <li>Ice volume: Grab &amp; Melchior (2020), Swiss Glacier Thickness, release 2020 (SwissGlacierThickness-R2020), doi:10.3929/ethz-b-000434697, CC BY 4.0: "Ice volume (km3) homogenised for the year 2016", as the file states it. Modelled from radar measurements; the reference year differs by glacier (2015 to 2017).</li>
       <li>Loss: GLAMOS, Swiss Glacier Volume Change, release 2025 (non-commercial): the change in volume between two surveys, as stored.</li>
       <li>Terrain: <a href="https://mapterhorn.com/attribution" target="_blank" rel="noopener">Mapterhorn</a> terrain tiles (open elevation data: swissALTI3D © swisstopo in Switzerland, other models elsewhere). Picture: swisstopo SWISSIMAGE in Switzerland (© swisstopo), elsewhere and as the underlay the Sentinel-2 mosaic (cloudless 2024 by EOX, CC BY-NC-SA 4.0). City outlines as on the map; a typed city from OpenStreetMap.</li>
@@ -2019,9 +2034,9 @@ function s3Story() {      // the right panel in 3D: ice volumes and the cubes (s
   const [a, b] = items, lines = [];
   if (b) { const r = a.v.V2016 / b.v.V2016; lines.push(r >= 1.05 ? `<b>${a.p.full}</b> holds <b>${times(r)}</b> the ice of ${b.p.full}` : r <= .95 ? `<b>${a.p.full}</b> holds about <b>${fmt(r * 100, 0)} %</b> of the ice of ${b.p.full}` : `<b>${a.p.full}</b> holds about as much ice as ${b.p.full}`); }
   const max = Math.max(...items.map(i => i.v.V2016)), bars = `<div class="cmp-bars">` + items.map(i => `<div style="--c:${COLOUR[i.p.role]}"><span>${i.p.full}</span><i style="width:${i.v.V2016 / max * 100}%"></i><b>${i.v.V2016} km³</b></div>`).join('') + `</div>`;
-  const one = i => { const rate = Math.abs(RATE(i.v)); return `<section class="sec"><div class="card-h" style="color:${i.p.role === 'A' ? 'var(--accent)' : 'var(--crevasse)'}"><i class="poly-sw" style="--c:${COLOUR[i.p.role]}"></i>${GL.find(g => g.id === i.p.id).full}</div>
+  const one = i => { const rate = Math.abs(RATE(i.v)); return `<section class="sec"><div class="card-h" style="color:${i.p.role === 'A' ? 'var(--accent)' : 'var(--crevasse)'}"><i class="poly-sw" style="--c:${COLOUR[i.p.role]}"></i>${i.p.full}</div>
     <div class="stat-row">
-      <div class="stat"><span class="k">Ice volume 2016</span><span class="v">${i.v.V2016}<small>km³</small></span></div>
+      <div class="stat"><span class="k">Ice volume 2016${i.p.total ? ' (GLAMOS Swiss-wide)' : ''}</span><span class="v">${i.v.V2016}<small>km³</small></span></div>
       <div class="stat"><span class="k">${SHP().size} (computed)</span><span class="v">${fmt(i.e, 0)}<small>m</small></span></div>
       <div class="stat"><span class="k">Mean loss ${i.v.from}–${i.v.to} (computed)</span><span class="v loss-v">${fmt(rate, 3)}<small>km³/yr</small></span></div>
       <div class="stat"><span class="k">Years to melt at that rate (computed)</span><span class="v">${fmt(i.v.V2016 / rate, 0)}</span></div>
@@ -2274,7 +2289,7 @@ $('vfFs').onclick = () => { const b = document.querySelector('.dock-fs'); if (b)
 $('vkImage').onclick = () => { if (!vs.busy) { vs.kind = 'image'; syncPane(); } };
 $('vkVideo').onclick = () => { if (!vs.busy && canFilm()) { vs.kind = 'video'; syncPane(); } };
 document.querySelectorAll('.vf-fmt[data-fmt]').forEach(b => b.onclick = () => {
-  if (b.dataset.fmt === 'custom' && fmtChoice !== 'custom') { const fr = frameRect(), sz = mode3d ? {x: $('stage').clientWidth, y: $('stage').clientHeight} : map.getSize(); if (fr) { const A = frameAvail(sz), c = v => Math.min(1, Math.max(0, v)); Object.assign(cust, {l: c((fr.x - A.x) / A.w), t: c((fr.y - A.y) / A.h), r: c((fr.x + fr.w - A.x) / A.w), b: c((fr.y + fr.h - A.y) / A.h)}); } }      // it starts as the frame that was there
+  if (b.dataset.fmt === 'custom' && fmtChoice !== 'custom') { const fr = frameRect(), sz = mode3d ? {x: $('stage').clientWidth, y: $('stage').clientHeight} : map.getSize(); if (fr) { const A = frameAvail(sz), c = v => Math.min(1, Math.max(0, v)); Object.assign(cust, {l: c((fr.x - A.x) / A.w), t: c((fr.y - A.y) / A.h), r: c((fr.x + fr.w - A.x) / A.w), b: c((fr.y + fr.h - A.y) / A.h)}); custBase = A; } }      // it starts as the frame that was there
   fmtChoice = b.dataset.fmt; syncPane();
 });
 $('videoFrame').addEventListener('pointerdown', e => {      // custom frame: drag a handle; at least 80 px wide and high
@@ -2331,7 +2346,7 @@ async function makeShareFile() {      // [file, details] of what the frame shows
   if (!ps.length) throw new Error('Pick a glacier first.');
   const file = mode3d ? (video ? (await s3Film({keep: true, bitrate: 6e6}), S3.lastFilm) : await s3Snapshot({share: true})) : (video ? await flyFilm({keep: true, bitrate: 6e6}) : await downloadImage({share: true}));
   if (!file) throw new Error('The file could not be made. Please try again.');
-  const g0 = GL.find(g => g.id === ps[0].id), name = (S3.all && mode3d ? 'All ten glaciers' : ps.map(p => p.name).join(' and ')).replace(/[^\p{L}\p{N} .'’-]/gu, '').slice(0, 40);
+  const g0 = GL.find(g => g.id === ps[0].id), name = (S3.all && mode3d ? 'All ten glaciers' : S3.total && mode3d ? 'Total Swiss' : ps.map(p => p.name).join(' and ')).replace(/[^\p{L}\p{N} .'’-]/gu, '').slice(0, 40);
   return [file, {type: mode3d ? (video ? 'volumefilm' : 'volume') : (video ? 'areafly' : 'area'), view: mode3d ? 'volume' : 'area', fmt, style: 'natural', glacier: ps[0].id, name, years: [g0.year]}];
 }
 $('vsShareForm').onsubmit = async ev => {
