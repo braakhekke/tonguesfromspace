@@ -1071,7 +1071,7 @@ body.has-full{overflow:hidden}
   .stage-slot{display:contents}
   .stage:not(.is-full){position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:7;order:1;height:52vh;height:52svh;min-height:300px}      /* a gap above, so the picture never sits on the top edge of the screen (one rule for the explorer and the size page) */
   .app .stage:not(.is-full){box-shadow:0 0 0 16px var(--firn),var(--lift)}      /* a band in the page colour above (gap and status bar), beside and under the picture (16 px, also behind the rounded corners), so the text scrolling past it never shows there */      /* a band in the page colour above and beside the picture, so the text scrolling under it does not show in the gaps (the same as size.html) */
-  body:not(.has-full)::before{content:'';position:fixed;z-index:5;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 10px);background:var(--firn);pointer-events:none}      /* a real cover over the status bar and the gap above the picture: the box-shadow band was not drawn there on iPhone, so scrolled text showed through (explorer and size page share it) */
+  body:not(.has-full)::before{content:'';position:fixed;z-index:6;left:0;right:0;top:-200px;height:calc(env(safe-area-inset-top,0px) + 210px);background:var(--firn);pointer-events:none;-webkit-transform:translateZ(0);transform:translateZ(0)}      /* a real cover over the status bar and the gap above the picture: the box-shadow band was not drawn there on iPhone, so scrolled text showed through (explorer and size page share it) */
   details.coll[open] > summary{position:static}      /* phones: the page scrolls under the pinned picture; no sticky card header (it would stick under it) */
   .tilt-hint{display:none!important}      /* phones: no "Alt (Option) + drag up" hint; the 3D button is used there */
   .stage.mini:not(.is-full){height:22vh;height:22svh;min-height:150px}
@@ -1088,7 +1088,7 @@ body.has-full{overflow:hidden}
   #miniToggle svg{display:none}
   #miniToggle::before{content:'';width:38px;height:5px;border-radius:3px;background:rgba(14,26,34,.55)}
   #miniToggle::after{content:'';position:absolute;inset:0 -14px -10px}      /* bigger touch target */
-  body.scrolled:not(.has-full) #miniToggle{display:grid;position:fixed;top:calc(var(--stage-bottom,60vh) + 3px);bottom:auto;height:16px;width:72px;border-radius:0 0 10px 10px;background:rgba(255,255,255,.92);box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
+  body.scrolled:not(.has-full) #miniToggle{display:grid;position:fixed;top:calc(var(--stage-bottom,60vh) + 16px);bottom:auto;height:16px;width:72px;border-radius:0 0 10px 10px;background:#fff;box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
   body.scrolled:not(.has-full) #miniToggle::before{width:32px;height:4px}
   body.pane-open .mini-ctl{display:none!important}
 }

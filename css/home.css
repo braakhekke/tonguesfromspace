@@ -463,7 +463,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 @media (max-width:640px){
   .hero{padding:84px 0 var(--sp-6)}
   .hero .wrap{gap:var(--sp-5)}
-  .herotext h1{font-size:clamp(30px,9vw,38px);line-height:1.02;letter-spacing:-.035em;order:1}
+  .herotext h1{font-size:clamp(26px,7.9vw,34px);line-height:1.08;letter-spacing:-.035em;order:1}
   .flightbox{order:2}.herotext .cta{order:3}
   .flight{aspect-ratio:99/72}      /* the video's own shape: a 4/3 crop cut the year at the top left */
   .hero .cta{display:flex;flex-direction:column;align-items:stretch;gap:var(--sp-2)}
