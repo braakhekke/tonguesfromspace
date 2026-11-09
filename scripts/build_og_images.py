@@ -3,8 +3,8 @@
 
     python3 scripts/build_og_images.py [--base https://tonguesfromspace.org] [--only aletsch,gorner]
 
-For each glacier of Switzerland it opens the real explorer (embed view, map, newest year), hides the controls, adds the name, the date of the scene and the Copernicus credit
-(drawn by the page itself, in its own typeface) and saves the picture. So the picture is the real Sentinel-2 scene, never a rendering, and shows the glacier of the link.
+For each glacier of Switzerland it opens the real explorer (embed view, map, newest year), hides the controls, adds the name, the date of the scene and the page's own credit line
+(Copernicus, the EOX background, OpenStreetMap labels: the picture shows all three; drawn by the page itself, in its own typeface) and saves the picture. So the picture is the real Sentinel-2 scene, never a rendering, and shows the glacier of the link.
 build_site.py uses images/og/<slug>.jpg for the page /switzerland/<slug>/ (og:image) and images/og/index.json for the text of the picture.
 
 Needs: Playwright with Google Chrome (python3 -m playwright install chrome), Pillow, and a relay with a cache: the public site by default (the scenes of past summers are cached,
@@ -26,7 +26,7 @@ OVERLAY = """(info) => {
   d.innerHTML = '<div style="position:absolute;left:44px;top:34px;font-size:24px;font-weight:600;letter-spacing:.01em;text-shadow:0 1px 8px rgba(0,0,0,.5)">Tongues from Space</div>'
     + '<div style="position:absolute;left:44px;bottom:78px;font-size:68px;line-height:1;font-weight:700;letter-spacing:-.02em;text-shadow:0 2px 14px rgba(0,0,0,.55)"></div>'
     + '<div style="position:absolute;left:46px;bottom:42px;font-size:24px;font-weight:500;opacity:.92"></div>'
-    + '<div style="position:absolute;right:44px;bottom:42px;font-size:15px;font-weight:500;opacity:.8;text-align:right"></div>';
+    + '<div style="position:absolute;right:44px;bottom:18px;width:540px;font-size:12.5px;line-height:1.35;font-weight:500;opacity:.85;text-align:right"></div>';
   const [, name, sub, credit] = d.children;
   name.textContent = info.title; sub.textContent = info.sub; credit.textContent = info.credit;
   document.body.appendChild(d);
@@ -70,7 +70,7 @@ def main():
             time.sleep(8)      # the picture of the year arrives and fades in
             info = pg.evaluate("""() => { const y = state.one, sc = state.available[y] || {}, g = currentGlacier();
               const d = sc.date ? new Date(sc.date + 'T12:00:00Z').toLocaleDateString('en-GB', {day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC'}) : String(y);
-              const full = g.local || g.name; return {year: y, date: sc.date || null, name: g.name, local: full, title: full.replace(/\\s*\\(.*?\\)/g, ''), sub: d + ' \\u00b7 Sentinel-2 satellite picture', credit: 'Contains modified Copernicus Sentinel data ' + y}; }""")
+              const full = g.local || g.name; return {year: y, date: sc.date || null, name: g.name, local: full, title: full.replace(/\\s*\\(.*?\\)/g, ''), sub: d + ' \\u00b7 Sentinel-2 satellite picture', credit: ((document.getElementById('credits') || {}).innerText || 'Contains modified Copernicus Sentinel data ' + y).replace(/\\s+/g, ' ').trim()}; }""")
             pg.add_style_tag(content=HIDE)
             pg.evaluate(OVERLAY, info)
             time.sleep(0.8)
