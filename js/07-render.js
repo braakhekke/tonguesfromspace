@@ -26,7 +26,7 @@ const restGlacierList = (ul, row) => {
   if (!matchMedia('(hover:hover) and (pointer:fine)').matches || ul.matches(':hover') || ul.querySelector(':focus-visible')) return false;
   ul.scrollTop = row ? Math.max(0, row.offsetTop - 3) : 0; return true;
 };
-document.addEventListener('pointerleave', e => { const ul = e.target; if (ul && ul.id === 'glacierList') setTimeout(() => restGlacierList(ul, ul.querySelector('button[aria-pressed="true"]')), 200); }, true);
+document.addEventListener('pointerleave', e => { const ul = /** @type {HTMLElement | null} */ (e.target); if (ul && ul.id === 'glacierList') setTimeout(() => restGlacierList(ul, ul.querySelector('button[aria-pressed="true"]')), 200); }, true);
 export function renderGlacierList(){
   const ul = document.getElementById('glacierList'); ul.innerHTML = '';
   const box = document.getElementById('glacierSearch'), q = box ? box.value.trim() : '';
