@@ -1,14 +1,21 @@
 # Setup and operations
 
-Moved here from the README, unchanged: publishing a copy, optional Street View and gallery, and adapting the project to another region.
+Publishing a copy, optional Street View and gallery, and adapting the project to another region. Checked against the workflows, `worker/wrangler.toml` and `worker/worker.js` on 2026-11-09.
 
 ## Publish your own copy
 
-1. **Cloudflare:** fork the repository; under *Settings → Secrets and variables → Actions* set the secrets `CLOUDFLARE_API_TOKEN` (Workers edit rights) and `CLOUDFLARE_ACCOUNT_ID` and the variables `CF_KV_CACHE_ID` and `CF_R2_GALLERY_BUCKET`, then run the workflow *Build data and deploy*. One Worker serves the site and the relay (`worker/wrangler.toml`).
-2. **Relay (free):** create a Cloudflare Worker from `worker/worker.js`; add your OAuth client as the secrets `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, a text variable `ALLOWED_ORIGINS` (your site address, plus `http://localhost:8000` for development), and optionally a KV namespace bound as `CACHE`. Check `…/cdse/ping`.
-3. **Connect:** in the GitHub repository add the variable `CDSE_RELAY_URL` (the Worker address) and run the workflow again. Optionally run `scripts/tools/warm-up.html` locally afterwards to fill the relay cache.
+The site is one Cloudflare Worker with static assets: `worker/wrangler.toml` names `main.ts` (the relay under `/api/`, and everything else to `worker.js`: the Copernicus relay, the gallery, the Landsat files) and serves the built site from `_site`. The workflow *Build data and deploy* (`.github/workflows/deploy.yml`) builds, tests and deploys it; nothing is pasted into the Cloudflare dashboard.
+
+1. **Cloudflare resources.** Create a KV namespace (the image cache) and two R2 buckets (the gallery, and the Landsat pictures). In your fork under *Settings → Secrets and variables → Actions* set the **secrets** `CLOUDFLARE_API_TOKEN` (Workers edit rights) and `CLOUDFLARE_ACCOUNT_ID`, and the **variables** `CF_KV_CACHE_ID`, `CF_R2_GALLERY_BUCKET` and `CF_R2_LANDSAT_BUCKET`. The deploy stops with a message if one of the three variables is missing.
+2. **Your address.** In `worker/wrangler.toml` change `ALLOWED_ORIGINS` (the origins the relay accepts; keep `http://localhost:8000` for development). Set the repository variable `CDSE_RELAY_URL` to the site's own address, for example `https://example.org/` (the Worker serves site and relay). `worker/worker.js` still names the owner's domain as the fallback when `ALLOWED_ORIGINS` is not set (`allowed`) and in its `User-Agent` (`WD_UA`): change both.
+3. **Copernicus.** Create an OAuth client in the [CDSE dashboard](https://shapps.dataspace.copernicus.eu/dashboard/) (*User settings → OAuth clients*) and add it to the Worker as the secrets `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET` (`npx wrangler secret put …` in `worker/`, or the dashboard). Further accounts can be added as `CDSE_CLIENT_ID_2` / `CDSE_CLIENT_SECRET_2` up to `_15`; the Worker uses the next one when the first has no processing units left. `keep_vars = true` keeps variables set in the dashboard.
+4. **Run the workflow** (push to `main`, or run it by hand). It also runs on the 1st of every month, to rebuild the data files. Check `https://<your site>/cdse/ping`: `{"relay":true,"managed":true}`.
+
+**Optional repository variables** (all empty = off): `STREETVIEW_EMBED_KEY` (below); `CF_WEB_ANALYTICS_TOKEN` (Cloudflare Web Analytics site token, cookieless page views; empty = no beacon); `PUBLISH_ICELAND=1` (Iceland on the public site: menu entry, `/iceland/` addresses, sitemap line), `PUBLISH_NORWAY=1` (the same for Norway and Svalbard) and `PUBLISH_LANDSAT=1` (the Landsat switch, years before 2016; the pictures live in the R2 bucket and are uploaded with `scripts/upload_landsat.sh <bucket>`). Without them the public site is Switzerland only.
 
 For a strict limit against misuse, add a Cloudflare rate-limiting rule for the path `/cdse/`. Please check that the [Copernicus terms](https://dataspace.copernicus.eu) allow serving a public website from one account before you launch.
+
+**Locally** (no Cloudflare needed): `npm ci`, then `python3 scripts/serve.py` (asks for the Copernicus client ID and secret, or reads `CDSE_CLIENT_ID` / `CDSE_CLIENT_SECRET` or `scripts/.cdse-credentials`), and open http://localhost:8000. `serve.py` has no gallery.
 
 ## Street View panoramas (optional)
 
@@ -24,24 +31,24 @@ To choose other panoramas, put a separate key (restricted to your IP address and
 
 Visitors can share a finished picture or animation (button *Share it in the gallery* after a download). Uploads wait in a queue until you approve them; `gallery.html` shows only approved items, filterable by glacier, year, type and band combination.
 
-Set up in Cloudflare (the Worker needs to be pasted again afterwards):
-1. **R2:** create a bucket, bind it to the Worker as `GALLERY`. Add a lifecycle rule on the prefix `pending/` that deletes objects after 14 days.
-2. **Turnstile:** create a widget for your site's domain. Add the secret key as Worker secret `TURNSTILE_SECRET` and the site key as text variable `TURNSTILE_SITEKEY`.
+Set up in Cloudflare:
+1. **R2:** the bucket named in `CF_R2_GALLERY_BUCKET` is bound to the Worker as `GALLERY` by `wrangler.toml`. Add a lifecycle rule on the prefix `pending/` that deletes objects after 14 days.
+2. **Turnstile:** create a widget for your site's domain. Add the secret key as Worker secret `TURNSTILE_SECRET` and the site key as text variable `TURNSTILE_SITEKEY` (kept by `keep_vars`).
 3. **Admin token:** add a Worker secret `GALLERY_ADMIN_TOKEN` (at least 20 random characters).
 4. **Rate limit:** add a Cloudflare rate-limiting rule for `/gallery/submit` (for example 5 requests per hour per IP).
-5. **Moderate:** run `python3 -m http.server 8000` and open `http://localhost:8000/scripts/tools/gallery-admin.html`, enter the token, approve or reject.
+5. **Moderate:** the Worker has a moderation API under `/gallery/admin/`, sent with the header `Authorization: Bearer <token>` and an `Origin` from `ALLOWED_ORIGINS`: `GET /gallery/admin/pending` lists the queue, `GET /gallery/admin/file/pending/<id>` shows a file, and `POST /gallery/admin/approve`, `/reject` or `/remove` with the JSON body `{"id": "<id>"}` approves, rejects or removes an item. The owner's moderation page, `scripts/tools/gallery-admin.html`, is a local tool that is not in this repository.
 
 What the Worker enforces on every upload: Turnstile check; at most 15 MB (video) or 4 MB (picture); the real file type (JPEG or H.264 MP4) and the exact pixel size of the three export formats; a fixed list of details (glacier, years, type, format, colours, optional nickname); at most 200 items waiting; one copy of each file; 4 uploads per hour per address (per Worker instance). Pending files are never served. Approved files are served with `nosniff` and a sandboxing content-security-policy. The page shows all text via `textContent`.
 
 ## Make your own version for another region
 
-The imagery part works anywhere Sentinel-2 does. The Swiss parts are the data sources and a few limits. To adapt it:
+The imagery part works anywhere Sentinel-2 does. A region is data: nothing in the code tests a region's id, differences are `features` flags. To add one:
 
-1. **Pick your glaciers and a national or regional inventory.** Everything Swiss is in a few places, so start with these files: `build_outlines.py`, the 3D scripts (swissALTI3D, swissNAMES3D, swissTLM3D; use your national elevation model, or drop the 3D view and trails) and the swisstopo layers in `index.html`. Replace the GLAMOS downloads in `scripts/build_outlines.py` with your inventory (outlines and areas), and with a length-change series if one exists for your region. Many countries publish inventories; the global Randolph Glacier Inventory and GLIMS are alternatives.
-2. **Area limits:** in `worker/worker.js` change the bounding box `SWISS` to your region. In `index.html` update `SWISS_VIEW`, the built-in glacier list `DEFAULTS` and the `GLACIER_INFO` texts. Only write facts you can source.
-3. **Season:** the page looks for the clearest scene between 1 July and 20 September (`CDSE.months`, `LAST_DAY`). In the southern hemisphere or the tropics choose the end of your melt season instead, and change the matching date checks in the Worker.
-4. **National figures:** the Switzerland tab uses yearly ice loss and total ice volume from GLAMOS and SCNAT (`VOLUME_LOSS`, `ICE_2024`). Replace them with your own source or remove the tab.
-5. **Regenerate the data files:** run `make_cloud_masks.py`, pick scenes with `scripts/tools/pick-scenes.html` (optional) and, for 3D, the three terrain scripts.
-6. **Texts and credits:** the About chapter, sources list and credits line must list your data.
+1. **The region record.** Add an entry to `REGIONS_ALL` in `js/regions.js` (data file, texts, credits, `picker` for the front page, `path` for its address) and its logic switches in `js/00-regions.js` (`features`, `season`). Use the entries of Switzerland (`ch`, an inventory with length and volume change) and of Iceland, Norway and Svalbard (`rgi: true`, ice caps and outlets drawn by `renderStoryIcecap`) as templates.
+2. **Glaciers and outlines.** Switzerland's data file comes from `scripts/build_outlines.py` (GLAMOS downloads); the other regions' from `scripts/build_regions.py` (RGI, national inventories) with `scripts/icecap_lib.py`. Use your national or regional inventory where there is one. A new glacier needs only documented facts with a source.
+3. **Picture box, tongue tip and 3D strip.** The page reads them from `data/boxes.js`, one record per glacier (`box`, `tip`, `strip3d`). In the owner's setup that file is generated from records that are kept locally and are not in this repository; in a copy, write the records by hand in the same format (`tests/test_boxes.py` checks that file, page and data files agree). Every picture's cache key contains the exact box, so change it before you fetch pictures.
+4. **The Worker.** The relay accepts a request only if its picture box lies near a centre listed in the Worker. `python3 scripts/sync_worker_centres.py` writes `CENTRES` in `worker/worker.js` from the data files named in its `FILES` table (add your region there; Switzerland is the box `SWISS` instead). The scene seasons the Worker allows are `SEASONS` in the same file, edited by hand, and must match the region's `season` in `js/regions.js` (Switzerland: 1 July to 20 September). Choose the end of your melt season (southern hemisphere, tropics). The Worker deploys with the next push.
+5. **3D terrain and clouds.** `python3 scripts/build_terrain.py <id>` bakes the terrain file of a glacier (Swiss glaciers from swissALTI3D with `build_terrain_bundle.py`, other regions from ArcticDEM or the Mapterhorn tiles); `python3 scripts/make_cloud_masks.py` makes the areas for "Latest". Pin a scene by hand in `data/scenes.json` where the automatic pick is wrong.
+6. **Texts and credits.** The About chapters, the `SOURCES` list in `js/07-render.js`, the credits line and `docs/SOURCES.md` must list your data. Only write facts you can source.
 
 Open an issue if you get stuck. I would be glad to hear about an explorer for another region and to link to it.
