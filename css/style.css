@@ -1071,6 +1071,7 @@ body.has-full{overflow:hidden}
   .stage-slot{display:contents}
   .stage:not(.is-full){position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:7;order:1;height:52vh;height:52svh;min-height:300px}      /* a gap above, so the picture never sits on the top edge of the screen (one rule for the explorer and the size page) */
   .app .stage:not(.is-full){box-shadow:0 -120px 0 16px var(--firn),0 0 0 16px var(--firn),var(--lift)}      /* a band in the page colour above (gap and status bar), beside and under the picture (16 px, also behind the rounded corners), so the text scrolling past it never shows there */      /* a band in the page colour above and beside the picture, so the text scrolling under it does not show in the gaps (the same as size.html) */
+  body:not(.has-full)::before{content:'';position:fixed;z-index:7;left:0;right:0;top:0;height:calc(env(safe-area-inset-top,0px) + 10px);background:var(--firn);pointer-events:none}      /* a real cover over the status bar and the gap above the picture: the box-shadow band was not drawn there on iPhone, so scrolled text showed through (explorer and size page share it) */
   .stage.mini:not(.is-full){height:22vh;height:22svh;min-height:150px}
   .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d):not(.notice):not(.tags):not(#view3d){display:none!important}
   .stage.mini .mapbar,.stage.mini .pick-hint,.stage.mini .v3d-north{display:none!important}      /* size page: its docks and hint sit inside the views */
