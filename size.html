@@ -246,7 +246,7 @@ body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:6
 @media (max-width:720px) and (orientation:portrait){
   .mhead:not(:has(.back-glacier:not([hidden]))),.mhead{display:flex!important;flex-wrap:wrap;align-items:center;padding:10px var(--sp-4);background:var(--sheet);border:0;text-align:left}
   .mhead strong{display:flex!important;align-items:center;flex:1;min-width:0;font-size:0}
-  .mhead strong .home-link{display:flex;align-items:center;gap:10px;width:100%;min-width:0;text-decoration:none;font-size:17px;font-weight:800;letter-spacing:-.015em;color:var(--ink)}
+  .mhead strong .home-link{display:flex;align-items:center;gap:10px;width:100%;min-width:0;text-decoration:none;font-weight:800;letter-spacing:-.015em;color:var(--ink)}      /* the title size comes from css/style.css, the same as the explorer (no jump between the pages) */
   .mhead strong .home-link span:not(.t1){margin-left:auto;font-size:13px;font-weight:600;letter-spacing:0;color:var(--moraine);white-space:nowrap}      /* "Glacier sizes": plain text, not a button */
   .mhead>span{display:none!important}
   .mhead .back-glacier,.controls .back-glacier,#introText{display:none!important}      /* phone: no back link, no intro line */
@@ -304,7 +304,7 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
 <div class="app" id="app">
 
   <header class="mhead" id="mhead">
-    <strong><span class="home-link"><!--MLOGO--><img class="mhead-logo" src="images/home/logo-navy.png" alt="" width="30" height="28"><!--/MLOGO--><span class="t1">Tongues from Space</span> <span>Glacier sizes</span></span></strong>
+    <strong><span class="home-link"><!--MLOGO--><img class="mhead-logo" src="images/home/logo-navy.png" alt="" width="30" height="28"><!--/MLOGO--><span class="t1">Tongues from Space</span> <span id="sizeTag">Glacier size 2D</span></span></strong>
     <span id="introMobile">Drag a Swiss glacier onto a city and see how big it is.</span>
   </header>
 
@@ -1955,8 +1955,9 @@ async function s3Update() {      // called whenever the picks or the city change
 S3.job = 0;
 function cityTag3() { const t = $('s3City'), c = state.city; t.dataset.on = c && H && state.cityName ? '1' : ''; if (t.dataset.on) t.textContent = c.name; else t.hidden = true; }
 $('cityNameToggle').addEventListener('change', e => { state.cityName = e.target.checked; cityTag3(); });      // sets the state itself: this handler can run before the one that does
-function s3Enter() { mode3d = true; { const cm = $('cityMsg'); if (cm && !/^(No city|The search|Looking)/.test(cm.textContent)) { cm.textContent = ''; cm.hidden = true; } } refreshFrame(); S3.on = true; S3.key = ''; document.body.classList.add('is-3d'); s3Update(); if (raf === 0 && renderer) { lastT = performance.now(); raf = requestAnimationFrame(loop); } }
-function s3Leave() { mode3d = false; if ($('shadeToggle').checked) { $('airToggle').checked = true; $('airToggle').dispatchEvent(new Event('change', {bubbles: true})); } /* the hillshade exists in 3D only: the 2D map goes back to the aerial picture */ setTimeout(refreshFrame, 0); S3.on = false; document.body.classList.remove('is-3d'); if (raf) { cancelAnimationFrame(raf); raf = 0; } map.invalidateSize(); }
+const sizeTag = () => { const t = $('sizeTag'); if (t) t.textContent = 'Glacier size ' + (mode3d ? '3D' : '2D'); };      // the header names the view you are in
+function s3Enter() { mode3d = true; sizeTag(); { const cm = $('cityMsg'); if (cm && !/^(No city|The search|Looking)/.test(cm.textContent)) { cm.textContent = ''; cm.hidden = true; } } refreshFrame(); S3.on = true; S3.key = ''; document.body.classList.add('is-3d'); s3Update(); if (raf === 0 && renderer) { lastT = performance.now(); raf = requestAnimationFrame(loop); } }
+function s3Leave() { mode3d = false; sizeTag(); if ($('shadeToggle').checked) { $('airToggle').checked = true; $('airToggle').dispatchEvent(new Event('change', {bubbles: true})); } /* the hillshade exists in 3D only: the 2D map goes back to the aerial picture */ setTimeout(refreshFrame, 0); S3.on = false; document.body.classList.remove('is-3d'); if (raf) { cancelAnimationFrame(raf); raf = 0; } map.invalidateSize(); }
 function s3Again() { if (S3.ents.length) spawn({mode: S3.cityMode ? 'city' : 'glacier'}); }
 function s3OnGlaciers() {      // every block back on its own glacier: with a city chosen the city goes (the terrain changes to the glaciers'), without one the ice cubes are dropped there again, also after a click on the ground had moved them
   if (state.city) { state.city = null; syncUi(); syncHash(); } else { S3.cityMode = false; S3.rowAt = null; if (S3.ents.length || S3.picks) spawn({mode: 'glacier'}); }
