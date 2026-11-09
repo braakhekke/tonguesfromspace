@@ -161,6 +161,28 @@
 <ul class="fnl"><li><b>An estimate, not a measurement.</b> The extra detail is the model's guess; the satellite did not see it. Do not read crevasses, boulders or the edges of debris off this layer.</li>
 <li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened, and no number on the site comes from this layer.</li>
 <li><b>Credit.</b> Contains modified Copernicus Sentinel data.</li></ul></section>
+<section class="fn" id="sizearea" data-toc="Size page: area (2D)"><h2>Size page, Area (2D): an outline laid on a city</h2>
+<p class="lead">The <a href="size.html" style="color:var(--ice)">Size visualizer</a> in Area view lets you drag the outline of <span class="gn">this glacier</span> onto a city or onto another glacier. Nothing is drawn or estimated for it beyond what is listed here.</p>
+<ul class="fnl">
+<li><b>Outline and area.</b> The glacier outlines are those of the GLAMOS Swiss Glacier Inventory SGI2023, the latest available (state of 2023, Unteraar and Trift 2024; the glaciers have shrunk since), and SGI1850 for the old extent (CC BY 4.0). The area is the one the inventory states.</li>
+<li><b>True size.</b> The outline is only moved, never scaled or turned into another shape: it keeps its true size wherever you drag it.</li>
+<li><b>Cities.</b> The outlines are the municipal boundaries (swissBOUNDARIES3D), so they include lake area where the boundary does. A city you type comes from OpenStreetMap (administrative boundary, © OpenStreetMap contributors, ODbL, found with Nominatim). The boundary of Zermatt reaches up to the Matterhorn and the glaciers around it.</li>
+<li><b>Picture under the outline.</b> In Switzerland the aerial picture is swisstopo SWISSIMAGE, the 2023 edition (© swisstopo); elsewhere and as the background the Sentinel-2 mosaic (cloudless 2024 by EOX, CC BY-NC-SA 4.0).</li>
+<li><b>Computed here, not from a source.</b> The span (the distance between the two farthest points of the outline), the area of a typed city and the "fits" figures are calculated from the outlines. A pitch is 105 × 68 m.</li>
+</ul></section>
+
+<section class="fn" id="sizevolume" data-toc="Size page: volume (3D)"><h2>Size page, Volume (3D): all the ice as one cube or ball</h2>
+<p class="lead">In Volume view the ice of <span class="gn">this glacier</span> becomes one cube or one ball of the same volume, drawn at true size on the terrain next to a city or landmark. It is a size comparison, not a model of the glacier.</p>
+<ul class="fnl">
+<li><b>Volume.</b> Grab &amp; Melchior (2020), Swiss Glacier Thickness, release 2020 (SwissGlacierThickness-R2020), doi:10.3929/ethz-b-000434697, CC BY 4.0: "Ice volume (km3) homogenised for the year 2016", as the file states it. Modelled from radar measurements; the reference year differs by glacier (2015 to 2017).</li>
+<li><b>Loss.</b> GLAMOS, Swiss Glacier Volume Change, release 2025 (non-commercial): the change in volume between two surveys, as stored. <b>Total Swiss:</b> GLAMOS, Swisswide Glacier Mass Balance, release 2025, doi:10.18750/massbalance.swisswide.2025.r2025 (non-commercial), for all Swiss glaciers.</li>
+<li><b>Computed here.</b> The edge of the cube, or the diameter of the ball, of that volume; the mean loss per year (the volume change divided by the years between the two surveys); the years to melt (the 2016 volume divided by that rate); every ratio. The cube or ball has the volume of the ice, not the shape of the glacier.</li>
+<li><b>Debris content.</b> Debris shows in the look of the cube or ball, not in its size: dark grit, silt and small stones are spread through the ice, part of them in a few thin tilted layers like folded moraine bands, the rest scattered. How much follows the share of non-ice pixels inside the glacier's SGI2023 outline on the SWISSIMAGE aerial. The volume and the size of the ice body stay those of the stated ice volume.
+ <div class="tiles" id="debrisTile" hidden><div><span>Non-ice pixels in the outline</span><b id="debrisShare"></b></div></div>
+ The share is <b>computed here</b> by <code>scripts/build_debris_share.py</code> (data/debris-share.json): a pixel counts as debris or rock when it is grey or brown and not bright; ice and snow are bright or tinted blue. It is not a measured debris cover and not a debris volume. SWISSIMAGE is a mosaic of flights of different years, so it is a rough measure. Of the ten glaciers, Unteraar and Zmutt have the highest computed share and carry the most grit, Findel and Rhone the lowest.</li>
+<li><b>Physics.</b> The bodies are rigid with assumed friction (0.45) and bounce (0.15); gravity is scaled 60 times so that cubes of this size fall like dice. These are choices for the look, not measurements.</li>
+<li><b>Lake floors.</b> Where a lake is shown, the floor is swissBATHY3D, Federal Office of Topography swisstopo (1 m grid averaged here to 20 m). Ice floats with 0.917 of its edge (a ball: 0.823 of its diameter) under water, computed from the densities of ice (917) and water (1000 kg/m³); in a lake shallower than that it rests on the floor.</li>
+<li><b>Terrain and buildings.</b> Mapterhorn terrain tiles (swissALTI3D © swisstopo in Switzerland); tall buildings from swissBUILDINGS3D 3.0 Beta, © swisstopo, those whose stated total height (GESAMTHOEHE) is over 25 m.</li></ul></section>
 <section class="fn" id="licences" data-toc="Sources and licences"><h2>Sources and licences</h2><div id="fnLic">Loading…</div></section>
 <script src="js/dem-export.js"></script>
 <script>
@@ -466,6 +488,50 @@ if(location.hash==='#arcsnote')setTimeout(function(){n.scrollIntoView({behavior:
 fetch('data/special-flights/'+encodeURIComponent(q)+'.json').then(function(r){return r.ok?r.json():null;}).then(function(m){if(!m||!m.fieldNotes)return;
 document.getElementById('fnFlights').innerHTML=m.fieldNotes;n.hidden=false;
 renumber();}).catch(function(){});})();
+</script>
+<script>
+// links in the running text: a mention of another chapter ("chapter 3", "next chapter", "the chapter on the special flights") jumps to it, a mention of the viewer opens the 3D viewer of this glacier (the texts come from data/yearly/<id>.json and from the page, so the links are added here, after they are written)
+(function(){
+  const id=(new URLSearchParams(location.search).get('id')||'').replace(/[^A-Za-z0-9-]/g,''), VIEW=id?`/data/yearly/${id}-viewer.html`:'';
+  const SKIP=/^(A|BUTTON|SCRIPT|STYLE|SVG|TEXTAREA|SELECT|OPTION|IFRAME|H1|H2|H3|LABEL)$/i;
+  const secs=()=>[...document.querySelectorAll('section[data-toc]')].filter(x=>!x.hidden);
+  const RX=/\b(the chapters on the special flights|the chapter on the special flights|that chapter|next chapter|the chapters above|chapter \d+|the 3D viewer|the viewer|The viewer)\b/g;
+  function target(m,node){      // -> {href, newTab, id} or null
+    const l=m.toLowerCase(), S=secs(), byId=x=>S.find(s=>s.id===x);
+    if(/special flights|^that chapter$/.test(l)){ const s=byId('flights'); return s&&{sec:s.id}; }
+    if(l==='next chapter'){ const own=node.parentElement.closest('section[data-toc]'), i=S.indexOf(own); return i>=0&&S[i+1]?{sec:S[i+1].id}:null; }
+    if(l==='the chapters above'){ const s=byId('surface'); return s&&{sec:s.id}; }
+    if(/^chapter \d+$/.test(l)){ const s=S[parseInt(l.slice(8),10)-1]; return s&&{sec:s.id}; }
+    return VIEW?{href:VIEW}:null;
+  }
+  function run(){
+    const w=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT,{acceptNode:n=>{ if(!n.nodeValue||!RX.test(n.nodeValue)){ RX.lastIndex=0; return NodeFilter.FILTER_REJECT; } RX.lastIndex=0; for(let p=n.parentElement;p;p=p.parentElement){ if(SKIP.test(p.tagName)||p.id==='vwrap') return NodeFilter.FILTER_REJECT; } return NodeFilter.FILTER_ACCEPT; }});
+    const nodes=[]; while(w.nextNode()) nodes.push(w.currentNode);
+    nodes.forEach(n=>{
+      const txt=n.nodeValue, frag=document.createDocumentFragment(); let last=0, any=false; RX.lastIndex=0;
+      for(let m;(m=RX.exec(txt));){
+        const t=target(m[0],n); if(!t) continue; any=true;
+        frag.appendChild(document.createTextNode(txt.slice(last,m.index)));
+        const a=document.createElement('a'); a.textContent=m[0]; a.style.color='var(--ice)';
+        if(t.sec){ a.href='#'+t.sec; a.onclick=e=>{ e.preventDefault(); if(typeof nbGo==='function'&&typeof nbCur!=='undefined'&&nbCur!==t.sec) nbGo(t.sec); }; }
+        else { a.href=t.href; a.target='_blank'; a.rel='noopener'; }
+        frag.appendChild(a); last=m.index+m[0].length;
+      }
+      if(!any) return; frag.appendChild(document.createTextNode(txt.slice(last))); n.replaceWith(frag);
+    });
+  }
+  let raf=0; const soon=()=>{ cancelAnimationFrame(raf); raf=requestAnimationFrame(run); };
+  new MutationObserver(soon).observe(document.body,{childList:true,subtree:true}); window.addEventListener('load',soon); soon();
+})();
+</script>
+<script>
+// the two size-page chapters: the glacier's name and its computed non-ice share (data/debris-share.json)
+(function(){
+  const id=(new URLSearchParams(location.search).get('id')||'').replace(/[^A-Za-z0-9-]/g,'');
+  fetch('data/debris-share.json').then(r=>r.json()).then(j=>{ const g=id&&j.glaciers&&j.glaciers[id]; if(!g) return;
+    document.querySelectorAll('.gn').forEach(x=>x.textContent=g.name);
+    document.getElementById('debrisShare').textContent=(g.share*100).toFixed(1)+' % (computed)'; document.getElementById('debrisTile').hidden=false; }).catch(function(){});
+})();
 </script>
 <script defer src="js/turn-upright.js"></script>
 </body></html>

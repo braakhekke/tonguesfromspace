@@ -9,7 +9,7 @@ import { state, currentGlacier, viewMode } from './04-state.js';
 import { satOn, map, thickestSpot, spaceCanvas, horiz, clip, tlFrames, updateSpeedIcon, play, stopPlay, drawOutlines, strokeEdgeFade, M, cancelMeasure, tongueBounds, tlLayers, SPEED_FPS, speedAngle } from './05-map.js';
 import { brightness, outsideAlpha, outlineGeom, syncBackgrounds, imgOpacity, ok, glacierVolume, glacierIceAt, fmtN, closeOtherSharePanes } from './07-render.js';
 import { showNotice } from './08-controls.js';
-import { setFull, setMini, evalMini, setLayers, scrollCompareTop } from './09-phones.js';
+import { setFull, setMini, setLayers, scrollCompareTop } from './09-phones.js';
 import { drawExportLayers, drawExportArcs, drawExportRasters, drawLegendCard, prepareRasters, cachedRasters, layerLegend, hasNewOutline, layerCredits, previewSeen, bgSeenOf, buildBackground, perYearBackground, overlayCards, exportLayers, layersOn, syncExportRows } from './09a-export-layers.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'closeVideo', { get: () => closeVideo, configurable: true });
@@ -207,7 +207,6 @@ export function startPreview(){
 export function syncPlayBtn(){ $('vsPlay').lastElementChild.textContent = vPrev.on ? 'Stop animation' : 'Play animation'; $('vsPlay').firstElementChild.innerHTML = vPrev.on ? '<path d="M7 7h10v10H7z"/>' : '<path d="M8 5v14l11-7z"/>'; }
 $('vfPlay').onclick = $('vsPlay').onclick = () => vPrev.on ? stopPreview() : startPreview();
 $('vfClose').onclick = () => closeVideo();      // the cross above the top right corner of the preview
-$('vfFs').onclick = () => $('fsBtn').click();      // full screen from the preview, beside the ratios: the same as the dock's button (hidden while a pane is open)
 export function guideText(){            // only the choices that need a word: the Reels / TikTok text zone and the custom frame
   const video = vstate.kind !== 'image';
   $('vSafeRow').hidden = !(video && vstate.fmt === 'reel');      // the Reels / TikTok choice only exists for a 9:16 video
@@ -395,7 +394,7 @@ export function bringVisualIntoView(stay){            // phones: the visual has 
   if ($('stage').classList.contains('is-full')) setFull(false);
   setMini(false);
   if (PHONE.matches) { if (paneScrollY == null) paneScrollY = scrollY; scrollTo(0, 0); syncPaneStage(); }      // portrait phone: the page is locked (css) and the viewer is pinned above the pane; the page scroll comes back on closing
-  else $('stageSlot').scrollIntoView({behavior:'smooth', block:'start'});
+  else $('stage').scrollIntoView({behavior:'smooth', block:'start'});
 }
 let paneScrollY = null;
 /* Portrait phone, pane open: the viewer is fixed above the pane (css: body.pane-open .stage); --vs-h is the pane's height, kept up to date while it changes */
@@ -416,7 +415,7 @@ export function closeVideo(){
   if (paneCentred) { paneCentred = false; if (viewMode !== '3d' && shiftBack) map.panBy([shiftBack.x, shiftBack.y], {animate: false}); }      // back to the middle of the whole stage
   document.documentElement.style.removeProperty('--vs-h'); map.invalidateSize({pan: false});
   if (paneScrollY != null) { scrollTo(0, paneScrollY); paneScrollY = null; }      // phone: back to where the page was
-  syncBackgrounds(); setTimeout(evalMini, 400);      // after the page has settled, the small window returns if the visual is out of view
+  syncBackgrounds();
 }
 $('vkImage').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('image'); }; $('vkVideo').onclick = () => { if (!vstate.busy && !wire.v3dBusy) openVideo('video'); };      // switch between the two panes without closing
 /* the pane gives a short bounce when a button opens or switches it, so the visitor notices where it appeared (not with reduced motion) */
@@ -426,7 +425,8 @@ function pumpPane(){
   const a = PHONE.matches ? 'translateY' : 'translateX';
   sh.animate([{transform: a + '(0)'}, {transform: a + '(14px)', offset: .3}, {transform: a + '(0)', offset: .55}, {transform: a + '(6px)', offset: .75}, {transform: a + '(0)'}], {duration: 520, easing: 'ease-out'});      // pushes toward its own screen edge and back: no gap opens
 }
-$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo(state.mode === 'single' && viewMode !== '3d' ? 'image' : 'video'); pumpPane(); scrollCompareTop(); };      // one year on the map is a picture (as syncPane says); a timelapse, a slider and the 3D view open on the animation $('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
+$('videoBtn').onclick = () => { closeOtherSharePanes(); openVideo(state.mode === 'single' && viewMode !== '3d' ? 'image' : 'video'); pumpPane(); scrollCompareTop(); };      // one year on the map is a picture (as syncPane says); a timelapse, a slider and the 3D view open on the animation
+$('vsClose').onclick = () => { closeVideo(); if (PHONE.matches) setTimeout(() => $('shareGroup').scrollIntoView({behavior: 'smooth', block: 'center'}), 60); };      // phones: back to the Create and share step, not to the top
 export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', custom: 'vfCustom' };
 /* Custom frame: drag a handle; the frame stays inside the free area and at least 80 px wide and high */
 $('videoFrame').addEventListener('pointerdown', e => {

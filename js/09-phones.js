@@ -77,7 +77,7 @@ export function setFull(on){
     stage.classList.toggle('is-full', on); document.body.classList.toggle('has-full', on);
     if (on) [$('layerbox'), $('v3dLayers')].forEach(x => stage.appendChild(x)); else placeLayers();      // the browser's own full screen shows only the visual and what is inside it: the layer menus go in for the time being
     if (on) { stage.classList.remove('mini'); try { stage.requestFullscreen && stage.requestFullscreen().catch(() => {}); } catch {} }
-    else { if (document.fullscreenElement) try { document.exitFullscreen(); } catch {} setTimeout(evalMini, 50); }      // back from full screen: the small window returns if the visual is still scrolled out of view
+    else { if (document.fullscreenElement) try { document.exitFullscreen(); } catch {} }
     map.invalidateSize({pan: false}); map.setView(c0, z0, {animate: false});
     [150, 400, 800].forEach(t => setTimeout(() => { map.invalidateSize({pan: false}); map.setView(c0, z0, {animate: false}); }, t));      // the browser's full screen changes the size a moment later
   } else {                                   // bigger screens: both panels slide away, and back on leaving
@@ -122,7 +122,7 @@ const IMM_DELAY = 3500, IMM_BUSY = '.layerbox.open, .v3d-photos.open, .v3d-sect:
 const IMM_CONTROL = 'button, a, input, label, .layerbox, .v3d-measure, .mapbar, .v3d-top, .v3d-sect, .v3d-photos, .v3d-mhint, .credits, .full-exit';
 let immTimer = 0, immDrag = null;
 const immOn = () => COARSE && isFull();
-const immBusy = () => !!document.querySelector(IMM_BUSY);
+const immBusy = () => [...document.querySelectorAll(IMM_BUSY)].some(e => e.offsetParent !== null || getComputedStyle(e).position === 'fixed');      // only what is on screen counts: the hidden photo strip of the map view carries the class `open` too
 function immHide(){ clearTimeout(immTimer); if (immOn() && !immBusy()) document.body.classList.add('imm-idle'); }
 function immShow(){ clearTimeout(immTimer); document.body.classList.remove('imm-idle'); if (immOn()) immTimer = setTimeout(function again(){ if (!immOn()) return; if (immBusy()) immTimer = setTimeout(again, 1500); else document.body.classList.add('imm-idle'); }, IMM_DELAY); }
 export function immSync(){
@@ -176,78 +176,16 @@ export function fadeSync(){
   $('scrollCueBtn').onclick = () => target.scrollIntoView({behavior: 'smooth', block: 'start'});
   upd();
 })();
-/* phones: scrolled below the visual, it stays as a small window in the corner (enlarge, full screen, close) */
-export let miniClosed = false;
+/* phones: the visual is pinned at the top (css/style.css); the chevron in it makes it a short strip and back. The page keeps its place while the height changes. */
 export function setMini(on){
   const stage = $('stage'); if (stage.classList.contains('mini') === on) return;
-  const c = map.getCenter(), z = map.getZoom();            // the small window shows the middle of what the big one showed, at the same scale
-  stage.classList.toggle('mini', on); miniPlace(); miniSync(); map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
+  const c = map.getCenter(), z = map.getZoom(), h0 = stage.getBoundingClientRect().height;
+  stage.classList.toggle('mini', on); $('miniToggle').setAttribute('aria-expanded', !on); $('miniToggle').setAttribute('aria-label', on ? 'Make the visual larger' : 'Make the visual smaller');
+  const dh = stage.getBoundingClientRect().height - h0; if (PHONE.matches && scrollY > 0 && dh) scrollBy(0, dh);
+  map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
-/* the small window is dragged and lands in the nearest of the four corners; dragged (or flicked) over the left or right edge, or with its arrow button, it slides off the screen and leaves a small arrow tab */
-let miniCorner = 'tr', miniHidden = false, miniDrag = null, miniMoved = false, miniLast = null, miniV = 0;
-const miniTab = document.createElement('button');
-miniTab.type = 'button'; miniTab.className = 'mini-tab'; miniTab.hidden = true; miniTab.setAttribute('aria-label', 'Show the small window again'); miniTab.title = 'Show';
-miniTab.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg>';
-document.body.appendChild(miniTab);
-function miniSync(){
-  const st = $('stage'), on = st.classList.contains('mini');
-  const away = miniHidden || miniLayersOpen();      // an open Layers menu slides the small window off, so it never covers a layer; it comes back when the menu closes
-  st.dataset.corner = miniCorner; if (away) st.dataset.hidden = ''; else delete st.dataset.hidden;
-  miniTab.dataset.corner = miniCorner; miniTab.hidden = !(on && miniHidden && !miniLayersOpen());
-}
-const miniLayersOpen = () => !!document.querySelector('.layerbox.open, .layerbox.in-flow.open');
-['layerbox', 'v3dLayers'].forEach(id => { const b = document.getElementById(id); if (b) new MutationObserver(() => miniSync()).observe(b, {attributes: true, attributeFilter: ['class']}); });
-function miniPlace(){            // while dragging the window follows the finger (it may reach over the side edges); otherwise the corner decides
-  const st = $('stage'), on = st.classList.contains('mini'), s = st.style;
-  if (!on || !miniDrag) { s.left = s.top = s.right = s.bottom = ''; miniSync(); }
-}
-function miniDrop(){            // after a drag: which corner, or off the edge, and glide there from where the finger left it
-  const st = $('stage'), r = st.getBoundingClientRect(), w = r.width, cx = r.left + w / 2, cy = r.top + r.height / 2;
-  const side = cx < innerWidth / 2 ? 'l' : 'r', over = Math.max(-r.left, r.right - innerWidth);
-  const fling = Math.abs(miniV) > 0.8 && (miniV < 0) === (side === 'l') && over > -w * 0.25;      // a quick flick toward the near edge, from a place already close to it
-  miniCorner = (cy < innerHeight / 2 ? 't' : 'b') + side; miniHidden = over > w * 0.35 || fling;
-  st.style.transition = 'none'; st.style.left = st.style.top = st.style.right = st.style.bottom = ''; st.style.transform = ''; miniSync();
-  const to = st.getBoundingClientRect();
-  st.style.transform = `translate(${r.left - to.left}px, ${r.top - to.top}px)`; void st.offsetWidth;
-  st.style.transition = ''; st.style.transform = '';
-}
-(function(){
-  const st = $('stage'), mini = () => st.classList.contains('mini');
-  st.addEventListener('pointerdown', e => {
-    miniMoved = false;                                                        // a drag that ended without a click must not swallow the next tap
-    if (!mini() || e.target.closest('.mini-ctl')) return;
-    const r = st.getBoundingClientRect(); miniDrag = {id: e.pointerId, dx: e.clientX - r.left, dy: e.clientY - r.top, x0: e.clientX, y0: e.clientY}; miniLast = null; miniV = 0;
-    e.stopPropagation();                                                      // the map under it does not pan
-  }, true);
-  st.addEventListener('pointermove', e => {
-    if (!miniDrag || e.pointerId !== miniDrag.id) return;
-    if (!miniMoved && Math.hypot(e.clientX - miniDrag.x0, e.clientY - miniDrag.y0) < 8) return;
-    if (!miniMoved) { miniMoved = true; st.style.transition = 'none'; try { st.setPointerCapture(e.pointerId); } catch {} }
-    const w = st.offsetWidth, h = st.offsetHeight, now = e.timeStamp;
-    if (miniLast && now > miniLast.t) miniV = 0.6 * miniV + 0.4 * (e.clientX - miniLast.x) / (now - miniLast.t);      // sideways speed in px per ms, smoothed
-    miniLast = {x: e.clientX, t: now};
-    const x = Math.max(-w * 0.7, Math.min(innerWidth - w * 0.3, e.clientX - miniDrag.dx)), y = Math.max(4, Math.min(innerHeight - h - 4, e.clientY - miniDrag.dy));
-    st.style.left = x + 'px'; st.style.top = y + 'px'; st.style.right = st.style.bottom = 'auto'; e.stopPropagation();
-  }, true);
-  const end = e => { if (miniDrag && e.pointerId === miniDrag.id) { const moved = miniMoved; miniDrag = null; if (moved) miniDrop(); } };
-  st.addEventListener('pointerup', end, true); st.addEventListener('pointercancel', end, true);
-  st.addEventListener('click', e => { if (miniHidden && !miniMoved) { e.stopImmediatePropagation(); e.preventDefault(); miniHidden = false; miniSync(); return; }      // a tap on the visible edge brings it back
-    if (miniMoved) { miniMoved = false; e.stopImmediatePropagation(); e.preventDefault(); } }, true);      // the end of a drag is not a tap (which would enlarge the window)
-  addEventListener('resize', () => { if (mini() && !miniDrag) miniPlace(); });
-  $('miniHide').onclick = () => { miniHidden = true; miniSync(); };
-  miniTab.onclick = () => { miniHidden = false; miniSync(); };
-})();
-export function evalMini(){            // the small window shows while the visual is scrolled out above the screen
-  const below = $('stageSlot').getBoundingClientRect().bottom < 0;
-  if (!below) miniClosed = false;
-  setMini(PHONE.matches && below && !miniClosed && glacierPicked && $('videoSheet').hidden && !$('stage').classList.contains('is-full'));
-}
-if ('IntersectionObserver' in window) new IntersectionObserver(evalMini).observe($('stageSlot'));
-export const miniBack = () => { setMini(false); $('stageSlot').scrollIntoView({behavior: 'smooth', block: 'start'}); };
-$('miniBig').onclick = miniBack;
-$('stage').addEventListener('click', e => { if ($('stage').classList.contains('mini') && !e.target.closest('.mini-ctl')) miniBack(); });      // a tap on the small window itself goes back to the big visual
-$('miniFull').onclick = () => setFull(true);
-$('miniClose').onclick = () => { miniClosed = true; setMini(false); };
+$('miniToggle').onclick = () => setMini(!$('stage').classList.contains('mini'));
+PHONE.addEventListener('change', () => setMini(false));
 
 
 /* Colour composition buttons: a small drawn glacier in the colours each band combination gives (rock, ice, snow, lake, plants), as in the About chapter "The colours" */
@@ -360,6 +298,7 @@ export function setMore(open){
 export const layerBoxNow = () => viewMode === '3d' && PHONE.matches ? $('v3dLayers') : $('layerbox');      // phones: one bar under the visual opens the menu of the view that is shown
 export function setLayers(open){
   const box = layerBoxNow();
+  if (open) $('layerbox').querySelector('.lb-tip button')?.click();      // opening the menu (the phone button, not the desktop header) ends the first-visit cue: its pulsing red frame must not stay around the open menu
   [$('layerbox'), $('v3dLayers')].forEach(x => x.classList.toggle('open', x === box && open));
   updateLayerMore();
   $('layersBtn').setAttribute('aria-expanded', open); $('layersBtn').setAttribute('aria-pressed', open);

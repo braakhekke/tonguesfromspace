@@ -1,1 +1,162 @@
-[]
+[
+ {
+  "id": "A54e-24",
+  "name": "Triftgletscher (BE)",
+  "short": "Triftgletscher (BE)",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "edition",
+   "estimate",
+   "interpolated",
+   "measured",
+   "partial"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "A54g-11",
+  "name": "Unteraargletscher",
+  "short": "Unteraargletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "measured"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B36-26",
+  "name": "Grosser Aletsch",
+  "short": "Grosser Aletsch",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "measured",
+   "partial"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B40-07",
+  "name": "Fieschergletscher",
+  "short": "Fieschergletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "interpolated",
+   "measured",
+   "partial"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B43-03",
+  "name": "Rhonegletscher",
+  "short": "Rhonegletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "interpolated",
+   "measured"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B53-04",
+  "name": "Feegletscher",
+  "short": "Feegletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "edition",
+   "estimate",
+   "extrapolated",
+   "interpolated",
+   "measured"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B56-03",
+  "name": "Findelgletscher",
+  "short": "Findelgletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "measured"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B56-07",
+  "name": "Gornergletscher",
+  "short": "Gornergletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "estimate",
+   "extrapolated",
+   "measured",
+   "partial"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B57-05",
+  "name": "Zmuttgletscher",
+  "short": "Zmuttgletscher",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "edition",
+   "estimate",
+   "extrapolated",
+   "partial"
+  ],
+  "built": "2026-11-03"
+ },
+ {
+  "id": "B83-03",
+  "name": "Corbassière",
+  "short": "Corbassière",
+  "years": [
+   2016,
+   2026
+  ],
+  "kinds": [
+   "edition",
+   "estimate",
+   "extrapolated",
+   "measured"
+  ],
+  "built": "2026-11-03"
+ }
+]

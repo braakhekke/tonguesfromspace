@@ -19,8 +19,8 @@ a{color:inherit}
 
 /* ---------- hero ---------- */
 .hero{position:relative;background:#070b14 center/cover no-repeat;color:#fff;padding:120px 0 80px}
-.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,5fr) minmax(0,6fr);gap:64px;align-items:center}
-.hero h1{margin:0 0 22px;font-size:clamp(30px,3.7vw,52px);line-height:1;font-weight:800;letter-spacing:-.035em}
+.hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,13fr) minmax(0,10fr);gap:clamp(56px,6vw,96px);align-items:center}
+.hero h1{margin:0 0 22px;font-size:clamp(30px,3.3vw,48px);line-height:1;font-weight:800;letter-spacing:-.035em}
 .hero h1 span{display:block;white-space:nowrap}      /* two lines: the break after "talk." is the point */
 .hero h1 em{font-style:normal;color:var(--accent)}
 .hero .lede{font-size:clamp(18px,1.7vw,22px);line-height:1.55;color:rgba(255,255,255,.76);max-width:500px;margin:0 0 26px}
@@ -90,19 +90,15 @@ a{color:inherit}
 .why-name + .why-name{margin-top:12px}
 .whyhead .why-name,.whyhead .aud-title,.whyhead .aud-sub{max-width:800px}
 .why-name{margin:0;font-size:clamp(17px,1.5vw,20px);line-height:1.6;color:#0A1B33}
-.whyband .aud{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px;margin-top:36px;align-items:start}
-.aud-card{border:0;border-radius:var(--r-md);background:var(--firn)}
-.aud-card summary{list-style:none;cursor:pointer;display:flex;flex-direction:column;gap:3px;padding:14px 38px 14px 14px;position:relative}
-.aud-card summary::-webkit-details-marker{display:none}
-.aud-card summary::after{content:"+";position:absolute;right:14px;top:12px;font-size:18px;line-height:1;color:var(--accent)}
-.aud-card[open] summary::after{content:"\2212"}
-.aud-card summary b{display:flex;align-items:center;gap:8px;font-size:15px;color:var(--accent)}
-.aud-card summary b svg{width:18px;height:18px;flex:none;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-.aud-card summary span{font-size:13px;line-height:1.4;color:var(--rock)}
-.aud-lede{margin:0;padding:0 14px 14px;font-size:13px;line-height:1.5;color:var(--rock)}
+.whyband .aud{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:36px}
 .quoteband{padding:64px 0;background:var(--ice)}
 .quotegrid{display:flex;align-items:center;justify-content:center;gap:56px}
-.quoteband p{margin:0;max-width:640px;font-size:clamp(20px,2.4vw,30px);line-height:1.4;font-weight:600;color:#0A1B33}
+.quoteband .qtext{max-width:600px;padding-left:28px;border-left:3px solid var(--accent)}
+.quoteband p{margin:0}
+.quoteband .qeyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
+.quoteband .qmain{font-size:clamp(26px,3.2vw,40px);line-height:1.12;font-weight:800;letter-spacing:-.03em;color:#0A1B33}
+.quoteband .qmain em{font-style:normal;color:var(--accent)}
+.quoteband .qsub{margin-top:16px;font-size:clamp(16px,1.4vw,19px);line-height:1.55;font-weight:400;color:rgba(10,27,51,.78)}
 
 /* ---------- sections ---------- */
 section.s{padding:96px 0}
@@ -322,9 +318,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .whyband{padding:40px 0}
   .why-name{font-size:16.5px;line-height:1.55}
   .whyband .aud{grid-template-columns:1fr;gap:8px;margin-top:26px}
-  .aud-card summary{padding:14px 40px 14px 14px;min-height:44px}
-  .aud-card summary::after{top:13px;font-size:22px}
-  .aud-lede{font-size:14.5px;padding:0 16px 14px}
     .pickband{padding:44px 0 32px}
   .pickband .sh{display:block;margin:0 0 20px}
   .sh .pick-h{font-size:28px}
@@ -421,15 +414,13 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .map-ctl .pk{min-width:0}
 .map-ctl .sstat{color:#fff;background:rgba(7,11,20,.7);padding:3px 8px}
 .sh-cta{align-self:flex-end}
-.sh-cta .btn-red svg,.aud-go svg,.closing .btn-red svg{width:16px;height:16px}
-.aud-go{margin:14px 0 4px;padding:11px 16px;font-size:13.5px}
-.aud-card .aud-go{display:flex;width:fit-content;max-width:calc(100% - 28px);margin:6px 0 16px 15px}
+.sh-cta .btn-red svg,.closing .btn-red svg{width:16px;height:16px}
 .how-cta{display:flex;justify-content:center;margin-top:32px}
 
 /* ---------- phones, portrait and landscape: the design language of the explorer (css/style.css "Phone design system") and a short front page ----------
    The explorer is the product, so the page is the hero, the audiences it is made for (names only) and the way in. The steps, the long "why" text, the glacier picker with its map, the feature list, the quote and the data-and-method section stay on larger screens; the explorer explains itself. */
 @media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
-  .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.why-name,.aud-card summary span,.why-logo{display:none}
+  .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.why-name,.why-logo{display:none}
   .wrap{padding:0 var(--sp-4)}
   .bar .wrap{padding:0 14px;gap:var(--sp-2);height:52px}      /* the same height as the bar of the gallery and the size page */
   .brand{gap:10px}.brand img{height:24px}
@@ -450,13 +441,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .aud-title{display:block;margin:0;font-size:21px;line-height:1.08;font-weight:800;letter-spacing:-.03em;color:#0A1B33;text-wrap:balance}
   .aud-sub{display:block;margin:var(--sp-2) 0 0;font-size:15px;line-height:1.4;color:var(--moraine)}
   .whyband .aud{gap:var(--sp-2);margin-top:var(--sp-4)}
-  .aud-card{border:0;border-radius:var(--r-md);background:var(--firn)}
-  .aud-card summary{padding:var(--sp-4) 44px var(--sp-4) var(--sp-4);min-height:56px;justify-content:center}
-  .aud-card summary::after{top:50%;margin-top:-11px;right:var(--sp-4);font-size:22px}
-  .aud-card summary b{font-size:16px;color:#0A1B33}
-  .aud-card summary b svg{color:var(--accent)}
-  .aud-lede{font-size:14.5px;padding:0 var(--sp-4) var(--sp-3)}
-  .aud-card .aud-go{margin:0 var(--sp-4) var(--sp-4)}
 
   /* the way in, and the footer */
   .closing{padding:var(--sp-6) 0 var(--sp-5)}
@@ -494,16 +478,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .hero .cta .btn-ghost{align-self:flex-start;padding:var(--sp-2) 0;font-size:14px}
   /* the five audiences on one line: icon over name. A pressed button stays where it is, framed in red, and its text opens under the row. */
   .whyband{padding:var(--sp-5) 0}
-  .whyband .aud{position:relative;grid-template-columns:repeat(5,minmax(0,1fr));gap:var(--sp-2);margin-top:var(--sp-3);padding-bottom:calc(var(--open-h,0px) + var(--sp-2))}
-  .aud-card{position:static}
-  .aud-card summary{padding:var(--sp-3) var(--sp-1);min-height:0;align-items:center;text-align:center}
-  .aud-card summary::after{display:none}
-  .aud-card summary b{flex-direction:column;gap:6px;font-size:13px;line-height:1.15}
-  .aud-card summary b svg{width:22px;height:22px}
-  .aud-card[open]{background:var(--sheet);box-shadow:0 0 0 2px var(--accent)}
-  .aud-card[open] > .aud-more{position:absolute;left:var(--sp-4);right:var(--sp-4);top:calc(100% - var(--open-h,0px));padding:var(--sp-3) var(--sp-4) var(--sp-4);border-radius:var(--r-md);background:var(--firn)}
-  .aud-more .aud-lede{padding:0;margin:0}
-  .aud-more .aud-go,.aud-card .aud-more .aud-go{margin:var(--sp-3) 0 0}
 }
 }
 
@@ -513,7 +487,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .cta .btn-ghost,.herotext .cta .btn-ghost{border-radius:var(--r-md)}
 .flight{border-radius:var(--r-lg)}
 .flight .live,.flight video{border-radius:inherit}
-.aud-card{border-radius:var(--r-md)}
 .pk-btn,.sbox,.info .btn-line{border:0;border-radius:var(--r-md);box-shadow:var(--lift)}
 .pk-btn{box-shadow:var(--lift),inset 3px 0 0 var(--accent)}
 .pk-menu,.search ul{border:0;border-radius:var(--r-md);overflow:auto;box-shadow:0 12px 32px rgba(7,11,20,.28)}
@@ -550,4 +523,20 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
 }
 
 /* the red "Open the explorer" buttons: rectangles with rounded corners */
-.btn-red,.btn-red.go,.closing .btn-red.go,.hero .cta .btn-red,.aud-card .aud-go{border-radius:var(--r-sm)}
+.btn-red,.btn-red.go,.closing .btn-red.go,.hero .cta .btn-red{border-radius:var(--r-sm)}
+
+/* ---------- the five ways in: open tiles, each one a link to a different tool ---------- */
+.aud-tile{position:relative;display:flex;flex-direction:column;gap:4px;padding:18px 44px 18px 18px;border-radius:var(--r-md);background:var(--firn);color:var(--rock);text-decoration:none;transition:box-shadow .15s,transform .15s}
+.aud-tile:hover,.aud-tile:focus-visible{box-shadow:var(--lift),inset 0 0 0 2px var(--accent);transform:translateY(-2px)}
+.aud-tile .aud-ico{width:26px;height:26px;margin-bottom:8px;fill:none;stroke:var(--accent);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.aud-tile small{font-size:11.5px;font-weight:600;letter-spacing:.04em;text-transform:uppercase;color:var(--moraine)}
+.aud-tile b{font-size:17px;line-height:1.25;color:#0A1B33}
+.aud-tile span{font-size:13.5px;line-height:1.45}
+.aud-tile .aud-arrow{position:absolute;right:16px;bottom:16px;width:18px;height:18px;color:var(--accent)}
+@media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .whyband .aud{grid-template-columns:1fr;gap:var(--sp-2)}
+  .aud-tile{padding:var(--sp-4) 44px var(--sp-4) var(--sp-4);min-height:56px}
+  .aud-tile .aud-ico{position:absolute;right:var(--sp-4);top:var(--sp-4);width:22px;height:22px;margin:0}
+  .aud-tile .aud-arrow{display:none}
+  .aud-tile span{font-size:14px}
+}

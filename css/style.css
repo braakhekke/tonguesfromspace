@@ -972,8 +972,9 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   /* the foot under the card: About, For Your Ice, social links, GitHub note, byline; one even gap between them */
   .fyi-slot{display:flex;flex-direction:column;align-items:stretch;gap:var(--sp-5);padding-bottom:calc(var(--sp-6) + env(safe-area-inset-bottom))}
   .fyi-slot > *{margin:0}
-  .fyi-slot > details.about{margin:0}
-  .fyi-slot > details.about > summary{padding:0}
+  .fyi-slot > details.about{margin:0 -18px;padding:0 18px}      /* full-width lines, the text keeps the same space above and below */
+  .fyi-slot > details.about > summary{padding:var(--sp-4) 0}
+  .fyi-slot > details.about[open] > summary{padding-bottom:var(--sp-3)}
   .phone-invite{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4)}
   .phone-invite .social,.phone-invite .gh-invite{margin:0}
 }
@@ -1061,36 +1062,22 @@ body.has-full{overflow:hidden}
   .app.visual-only .full-exit{display:flex;position:absolute;top:14px;right:14px;z-index:700;align-items:center;justify-content:center;width:38px;height:38px;border:0;border-radius:50%;padding:0;background:var(--sheet);color:var(--rock);font-weight:700;font-size:13px;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
 }
 @media (max-width:720px) and (orientation:portrait){
-  .stage-slot{display:block;order:1;height:60vh;height:60dvh;min-height:330px}
-  .stage-slot .stage{height:100%}
-  .stage.mini{position:fixed;right:10px;bottom:calc(10px + env(safe-area-inset-bottom,0px));width:min(72vw,320px);height:195px!important;min-height:0;z-index:900;border-radius:12px;box-shadow:0 6px 22px rgba(0,0,0,.5);border:2px solid #fff}
-  .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d):not(.notice){display:none!important}
-  .stage.mini .v3d-sect,.stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the small window: the picture only */
+  /* phones, portrait: the visual is pinned at the top, as on the size page; the chevron makes it a short strip (the map or 3D view stays, the dock and the labels go) and back (js/09-phones.js, setMini) */
+  .stage-slot{display:contents}
+  .stage:not(.is-full){position:sticky;top:0;z-index:7;order:1;height:52vh;height:52svh;min-height:300px}
+  .app .stage:not(.is-full){box-shadow:0 -16px 0 16px var(--firn),var(--lift)}      /* a band in the page colour above and beside the picture, so the text scrolling under it does not show in the gaps (the same as size.html) */
+  .stage.mini:not(.is-full){height:22vh;height:22svh;min-height:150px}
+  .stage.mini > *:not(#map):not(.mini-ctl):not(.year-tag):not(.divider):not(.handle):not(.leaflet-container):not(.v3d):not(.notice):not(.tags):not(#view3d){display:none!important}
+  .stage.mini .mapbar,.stage.mini .pick-hint,.stage.mini .v3d-north{display:none!important}      /* size page: its docks and hint sit inside the views */
+  .stage.mini .v3d-sect,.stage.mini .v3d-measure,.stage.mini .v3d-mhint,.stage.mini .v3d-top,.stage.mini .v3d-bottom,.stage.mini .v3d-layers,.stage.mini .v3d-tip,.stage.mini .v3d-msg,.stage.mini .v3d-lab,.stage.mini .v3d-div{display:none!important}      /* the 3D view in the strip: the picture only */
   .stage.mini .leaflet-control-scale{display:none}
-  .stage.mini .notice{width:calc(100% - 16px);padding:8px 10px;font-size:12px;line-height:1.3;text-align:center;z-index:710}      /* a message from the controls below ("turn on the Sentinel-2 layer") shows in the small window too */
-  .stage.mini{touch-action:none;cursor:grab}      /* a touch on the small window drags it (it no longer scrolls the page) */
-  .stage.mini .v3d{pointer-events:none}      /* the 3D view in the small window is not turned by a touch */
+  .stage.mini .notice{width:calc(100% - 16px);padding:8px 10px;font-size:12px;line-height:1.3;text-align:center;z-index:710}      /* a message from the controls below ("turn on the Sentinel-2 layer") shows in the strip too */
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
-  .stage.mini .mini-ctl{display:contents}      /* enlarge and full screen at the bottom right, the closing cross in the top right corner */
-  .stage.mini .mini-ctl button{position:absolute;z-index:700;width:30px;height:30px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer}
-  .stage.mini #miniFull{right:4px;bottom:4px}.stage.mini #miniBig{right:38px;bottom:4px}.stage.mini #miniClose{right:4px;top:4px}
-  .stage.mini #miniHide{left:4px;bottom:4px}      /* the arrow points to the edge it slides off to */
-  .stage.mini[data-corner$="l"] #miniHide svg{transform:rotate(180deg)}
-  /* the small window sits in one of the four corners (data-corner) and can slide off the left or right edge (data-hidden), leaving only the arrow tab */
-  .stage.mini{transition:transform .25s ease}
-  .stage.mini[data-corner="tl"]{left:10px;top:calc(10px + env(safe-area-inset-top,0px));right:auto;bottom:auto}
-  .stage.mini[data-corner="tr"]{right:10px;top:calc(10px + env(safe-area-inset-top,0px));left:auto;bottom:auto}
-  .stage.mini[data-corner="bl"]{left:10px;right:auto}
-  .stage.mini[data-hidden][data-corner$="l"]{transform:translateX(calc(-100% - 13px))}
-  .stage.mini[data-hidden][data-corner$="r"]{transform:translateX(calc(100% + 13px))}
-  .stage.mini[data-hidden] .mini-ctl button,.stage.mini[data-hidden] .year-tag{visibility:hidden}      /* only the picture shows in the sliver */
-  .mini-tab:not([hidden]){display:grid;place-items:center;position:fixed;z-index:900;width:18px;height:84px;padding:0;border:1px solid rgba(255,255,255,.28);background:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,.04)),rgba(10,18,32,.55);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);color:#fff;box-shadow:0 2px 10px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.25);cursor:pointer}      /* dark glass; where backdrop blur is missing it is simply a dark translucent bar */
-  .mini-tab svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
-  .mini-tab[data-corner$="l"]{left:7px;border-left:0;border-radius:0 10px 10px 0}
-  .mini-tab[data-corner$="r"]{right:7px;border-right:0;border-radius:10px 0 0 10px}.mini-tab[data-corner$="r"] svg{transform:rotate(180deg)}
-  .mini-tab[data-corner^="t"]{top:calc(65px + env(safe-area-inset-top,0px))}      /* level with the middle of the window (10px + (195px - 84px) / 2) */
-  .mini-tab[data-corner^="b"]{bottom:calc(65px + env(safe-area-inset-bottom,0px))}
+  .stage:not(.is-full) .mini-ctl{display:contents}
+  #miniToggle{position:absolute;z-index:700;right:8px;bottom:8px;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.3)}
+  .stage.mini #miniToggle svg{transform:rotate(180deg)}
+  body.pane-open .mini-ctl{display:none!important}
 }
 }
 /* ---------- collapsible side panels (desktop and tablet) ---------- */
@@ -1328,9 +1315,7 @@ body.pane-open:not(.x-bg) #map .leaflet-labels-pane,body.pane-open:not(.x-bg) #m
 .vf-fmt[aria-pressed="true"]{background:#fff;color:var(--rock)}
 body.pane-open .video-frame .vf-fmt{display:grid}
 .vf-btns .vf-fmt+.vf-play{margin-left:6px}
-.vf-fs .fs-out{display:none}
-body.is-fs .vf-fs .fs-in,.stage.is-full .vf-fs .fs-in,.app.visual-only .vf-fs .fs-in{display:none}
-body.is-fs .vf-fs .fs-out,.stage.is-full .vf-fs .fs-out,.app.visual-only .vf-fs .fs-out{display:block}      /* full screen button beside the ratios: the arrows turn inward while it is on */      /* the ratio choices, a gap, then play and close */
+      /* full screen button beside the ratios: the arrows turn inward while it is on */      /* the ratio choices, a gap, then play and close */
 body.pane-open .video-frame .vf-play{display:grid}      /* a play button hidden by the page (a picture, not an animation) stays hidden: its inline style wins */
 .video-frame{transition:box-shadow .3s}
 .video-frame.playing{box-shadow:0 0 0 9999px rgba(6,10,13,.88)}
@@ -2117,13 +2102,16 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   /* the docks */
   .mapbar,.v3d-measure{border-radius:var(--r-lg);padding:var(--sp-1)}
   .mapbar button,.v3d-measure > button{min-width:42px;min-height:42px;border-radius:var(--r-md);color:var(--ink)}
-  .v3d-measure > button,.v3d-measure > #v3dFs{min-width:clamp(32px,9.4vw,42px);padding-left:0!important;padding-right:0!important;justify-content:center}      /* eight tools fit one row at every phone width */
+  .v3d-measure > button,.v3d-measure > #v3dFs{min-width:clamp(30px,8.3vw,42px);padding-left:0!important;padding-right:0!important;justify-content:center}      /* nine tools (ten while measuring) fit one row at every phone width: iPhone 16 (393 px) has 9 buttons of 33 px and no separators */
+  .v3d-measure{gap:1px}
+  .v3d-measure > #v3mDist,.v3d-measure > #v3mArea,.v3d-measure > #v3mClear,.v3d-measure > #v3mSect,.v3d-measure > #v3mSect2d,.v3d-measure > #v3mPin{padding:0!important}
+  .v3d-measure > .sep{display:none}
   .mapbar button:hover,.v3d-measure > button:hover{background:rgba(14,26,34,.06)}
   .mapbar button[aria-pressed="true"],.v3d-measure > button[aria-pressed="true"]{background:var(--ink);color:#fff}
   .mapbar button[aria-pressed="true"] svg,.v3d-measure > button[aria-pressed="true"] svg{stroke:#fff}
   .mapbar button:disabled{opacity:.3}
   .mapbar .sep,.v3d-measure .sep{background:var(--rule)}
-  .v3d-measure .v3d-zoom{width:clamp(32px,9.4vw,42px);font-size:22px}
+  .v3d-measure .v3d-zoom{width:clamp(30px,8.3vw,42px);font-size:22px}
 
   /* the timeline row in the docks: a year stepper and a thin line */
   .tl-dots,.v3d-tl{color:var(--ink);border-bottom-color:var(--rule)}
@@ -2195,7 +2183,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .modes button svg{width:20px;height:20px}
   .sw i{height:38px}
   .v3d-measure > button,.v3d-measure > #v3dFs{min-width:34px}
-  .v3d-measure .v3d-zoom{width:34px}
+  .v3d-measure .v3d-zoom{width:clamp(30px,8.3vw,34px)}
   .step-reset{white-space:nowrap;font-size:11.5px;padding:6px 10px}
   .leaflet-control-scale{margin-bottom:128px!important}
   .app.more-open .leaflet-control-scale{margin-bottom:178px!important}
@@ -2421,7 +2409,7 @@ body.x-layers .layerbox{max-width:none}
 /* Portrait phone, download pane open: the page does not scroll; the viewer is pinned above the pane (js/10-animation.js, syncPaneStage) */
 @media (max-width:720px) and (orientation:portrait){
   html:has(body.pane-open),body.pane-open{overflow:hidden;overscroll-behavior:none}
-  body.pane-open .stage-slot .stage{position:fixed;left:0;right:0;top:0;bottom:var(--vs-h,44dvh);width:auto;height:auto!important;min-height:0;z-index:1}
+  body.pane-open .stage-slot .stage{position:fixed;left:0;right:0;top:0;bottom:var(--vs-h,44dvh);width:auto;height:auto!important;min-height:0;z-index:1;margin:0!important;border-radius:0!important;box-shadow:none}
   /* the layer menu (opened by the line on the frame) is a sheet pinned right above the pane: in the page flow it would sit behind the pane, out of reach */
   body.pane-open.x-layers .layerbox.in-flow.open{position:fixed;left:0;right:0;bottom:0;top:calc(100dvh - var(--vs-h,44dvh));z-index:2100;max-height:none;overflow-y:auto;overscroll-behavior:contain;border-radius:0;border-top:1px solid var(--rule);border-bottom:0;box-shadow:none;padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
   body.pane-open.x-layers .layerbox.in-flow.open .lb-head{display:flex;position:sticky;top:0;z-index:3;background:transparent;padding:12px 0 8px;border-bottom:1px solid var(--rule);font-size:14px}

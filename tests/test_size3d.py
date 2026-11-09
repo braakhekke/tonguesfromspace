@@ -101,7 +101,7 @@ class TestSizeVolume(SiteCase):
         r = page.evaluate("""() => { const f = document.getElementById('videoFrame').getBoundingClientRect(), b = [...document.querySelectorAll('.vf-fmt')].filter(x => x.offsetParent !== null), sh = document.getElementById('videoSheet').getBoundingClientRect(), st = document.querySelector('.story').getBoundingClientRect();
             return {fmts: b.filter(x => x.dataset.fmt).map(x => x.dataset.fmt), tools: b.filter(x => !x.dataset.fmt).map(x => x.id), under: b.every(x => x.getBoundingClientRect().top >= f.bottom), sheetOverStory: sh.left <= st.left + 24 && sh.right >= st.right - 1, kind: vs.kind, imageFirst: document.getElementById('vkImage').getAttribute('aria-pressed') === 'true', go: document.getElementById('vsGo').textContent}; }""")
         self.assertEqual(r["fmts"], ["16:9", "9:16", "4:5", "custom"], "three fixed ratios and a custom one")
-        self.assertEqual(r["tools"], ["vfLayers", "vfFs"], "the layers button and the full-screen preview sit with the formats")
+        self.assertEqual(r["tools"], ["vfLayers"], "the layers button sits with the formats (no full-screen button in the preview)")
         self.assertTrue(r["under"], "the formats sit under the outline of the picture")
         self.assertTrue(r["sheetOverStory"], "the pane covers the right panel")
         self.assertEqual((r["kind"], r["go"]), ("image", "Download image"))

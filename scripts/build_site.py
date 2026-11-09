@@ -241,8 +241,8 @@ def write_yearly_index(yearly):
     for f in sorted(os.listdir(yearly)):
         if f.endswith(".json") and f != "index.json":
             d = json.load(open(os.path.join(yearly, f)))
-            if "page" in d:
-                items.append({"id": d["glacier"], "name": d["name"], "short": d["page"]["short"], "years": [d["years"][0], d["years"][-1]], "kinds": sorted(set(d["kind"].values())), "built": d["built"]})
+            if "page" in d or "clean" in d:      # "clean": the clean build (experiments/clean-yearly) has no "page" block
+                items.append({"id": d["glacier"], "name": d["name"], "short": d.get("short") or d["page"]["short"], "years": [d["years"][0], d["years"][-1]], "kinds": sorted(set(d["kind"].values())), "built": d["built"]})
     json.dump(items, open(os.path.join(yearly, "index.json"), "w"), indent=1, ensure_ascii=False)
 
 
@@ -336,7 +336,7 @@ def main():
     code = os.path.join(ROOT, "js")
     named = set()
     for f in sorted(os.listdir(code)):
-        if f in ("regions.js", "00-regions.js", "home-link.js", "turn-upright.js", "track.js", "mascot.js", "search.js", "dem-export.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
+        if f in ("regions.js", "00-regions.js", "home-link.js", "turn-upright.js", "track.js", "mascot.js", "search.js", "dem-export.js", "drop-sound.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
             text = read(f"js/{f}").decode("utf-8")
             # the data files of the regions: their hashed names go into the files that name them
             for plain in DATA_NAMES:
