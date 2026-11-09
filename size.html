@@ -867,7 +867,7 @@ function stats(g, key) {
       <div class="stat"><span class="k">Straight-line span</span><span class="v">${fmt(g.span)}<small>km</small></span></div>
       <div class="stat wide"><span class="k">Football pitches in it</span><span class="v">${Math.round(g.area * 1e6 / PITCH).toLocaleString('en-US')}</span></div>
     </div>
-    <label class="slider-row" for="fill-${key}" title="How opaque the inside of the outline is; the line stays as it is"><span>Fill opacity</span><output id="fillOut-${key}">${Math.round(fillOf(slots[g.id]) * 100)} %</output></label>
+    <label class="slider-row" for="fill-${key}" title="Opacity of the inside of the outline; the line stays as it is"><span>Fill opacity</span><output id="fillOut-${key}">${Math.round(fillOf(slots[g.id]) * 100)} %</output></label>
     <input type="range" class="frame" id="fill-${key}" data-fill="${g.id}" min="0" max="1" step="0.05" value="${fillOf(slots[g.id])}" aria-label="Opacity of the inside of the ${g.name} outline"></section>`;
 }
 function ratioText(a, an, b, bn) {

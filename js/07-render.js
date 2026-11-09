@@ -467,16 +467,16 @@ export const cardKey = d => { const t = d.querySelector('summary h4, summary .ca
    Switzerland's chapters are aboutChaptersCh(), Iceland's aboutChaptersIc() (js/07a-region-icecaps.js). */
 /* The paragraph on the Landsat pictures before 2016 that every region's chapter The satellite images has (the switch under the years): what they are and how they differ from Sentinel-2 */
 export const landsatAbout = rule => `<h4>Before 2016: Landsat</h4>
-        <p>Sentinel-2 starts in 2016. A switch under the years adds real Landsat 5 and 7 pictures for the years from ${REGION.landsat ? REGION.landsat.first : 1985} to 2013 (Collection 2 Level-2, USGS). Their pixels are 30 m instead of Sentinel-2's 10 m, so they show less detail.</p>
+        <p>Sentinel-2 starts in 2016. A switch under the years adds real Landsat 5 and 7 pictures (Collection 2 Level-2, USGS) for ${REGION.landsat ? REGION.landsat.first : 1985} to 2013. Their pixels are 30 m, not 10 m: less detail.</p>
         <ul>
-          <li>One scene per year, by the same rules: ${rule}, the whole picture covered where there is such a scene. Years without a usable scene have no picture.</li>
-          <li>All three colour styles work: natural colour (red, green, blue) and the false colour styles from the near and shortwave infrared bands that Landsat has too (false colour 1: near infrared, red, green; false colour 2: near infrared and the two shortwave infrared bands, the counterparts of Sentinel-2 B8A, B11 and B12).</li>
-          <li>The colours of the years are matched to each other on a patch of ground without ice, so that sensors and seasons look alike. Every picture is shifted onto the Sentinel-2 mosaic where it lies off.</li>
-          <li>Landsat 7 pictures after 2003 have stripes of missing data. I fill them by interpolating along the direction of the ice flow, read from the streaks in the picture itself (medial moraines, flow lines). That is a repair of the picture, not data.</li>
+          <li>One scene per year, by the same rules (${rule}), the whole picture covered where there is such a scene. No usable scene, no picture.</li>
+          <li>Three colour styles: natural, and two false colours from the near and shortwave infrared bands Landsat also has (1: near infrared, red, green; 2: near infrared and the two shortwave infrared bands, the counterparts of Sentinel-2 B8A, B11 and B12).</li>
+          <li><em>Colour matching:</em> the years are matched to each other on ground without ice, so sensors and seasons look alike. Each picture is shifted onto the Sentinel-2 mosaic where it lies off.</li>
+          <li><em>Landsat 7 stripes</em> (after 2003) are filled by interpolating along the ice flow, read from streaks in the picture (medial moraines, flow lines): a repair, not data.</li>
           <li>Landsat 8 (2013 to 2015) is not used: its surface reflectance is not usable over ice, shade and water.</li>
-          <li>The pictures keep the real 30 m pixels of Landsat (one picture pixel = one Landsat pixel, cut with nearest neighbour) and are shown without smoothing, so no detail is invented. They are not corrected for slope shading.</li>
-          <li>In the 3D view they are draped over the ice surface of their year where the glacier has a terrain file with a surface for each year (before 2011 over the surface of 2011), otherwise over the one elevation model.</li>
-          <li>For a glacier so small that its picture is under 400 Landsat pixels across, the switch says "not recommended".</li>
+          <li>Real 30 m pixels, unsmoothed (one picture pixel = one Landsat pixel, nearest neighbour): no detail is invented. No slope-shading correction.</li>
+          <li>In 3D, draped over the ice surface of their year where the glacier has a terrain file with a surface for each year (before 2011, the surface of 2011), otherwise over the one elevation model.</li>
+          <li>Under 400 Landsat pixels across, the switch says "not recommended".</li>
         </ul>`;
 /* The social links and the GitHub invitation: at the foot of the About block; on phones they sit below the For Your Ice box (js/09-phones.js fills #fyiSlot with them; css hides the other copy) */
 export const inviteHtml = () => `<div class="social" aria-label="Follow Tongues from Space"><a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener" aria-label="Instagram" title="Instagram"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="4.5" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="12" cy="12" r="3.7" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="16.8" cy="7.2" r="1.2"/></svg></a><a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener" aria-label="TikTok" title="TikTok"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M14 4v10.5a3 3 0 1 1-3-3" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/><path d="M14 4c.4 2.4 1.8 3.8 4.2 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></a><button type="button" class="social-share" aria-label="Share this view" title="Share this view: link, or the share sheet of your device"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="6" cy="12" r="2.4"/><circle cx="18" cy="6" r="2.4"/><circle cx="18" cy="18" r="2.4"/><path d="M8.1 10.9l7.8-3.8M8.1 13.1l7.8 3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button></div>
@@ -491,181 +491,218 @@ ${chapters}
 /* Chapters of About that every region shares (Sentinel-2, the colours); extra: a region's own sentence at the end of the Temporal paragraph */
 export const aboutSentinel = extra => `<details class="about-ch" name="aboutch" id="ch-3"><summary>Sentinel-2</summary><div class="about-sec">
         <p>Two European satellites of the Copernicus programme (2A since 2015, 2B since 2017), looking straight down on a strip 290 km wide.</p>
-        <p><em>Spatial:</em> pixels of 10 m (blue, green, red and near infrared), 20 m (six bands) or 60 m (three). Details under about 10 m are invisible. Natural and False 1 use 10 m bands; False 2 uses 20 m bands and looks softer; False 3 uses one 20 m band (B11).</p>
-        <p><em>Spectral:</em> 13 bands, from visible light (about 443 nm) to shortwave infrared (about 2190 nm).</p>
-        <p><em>Temporal:</em> each satellite returns every 10 days, both together every 5 days at the equator and more often at higher latitudes. ${extra}</p>
+        <p><em>Detail (spatial):</em> pixels of 10 m (blue, green, red, near infrared), 20 m (six bands) or 60 m (three). Detail under about 10 m is invisible. Natural and False 1 use 10 m bands; False 2 uses 20 m bands and looks softer; False 3 uses one 20 m band (B11).</p>
+        <p><em>Colour bands (spectral):</em> 13, from visible light (about 443 nm) to shortwave infrared (about 2190 nm).</p>
+        <p><em>Revisit (temporal):</em> each satellite returns every 10 days; both together every 5 days at the equator, more often at higher latitudes. ${extra}</p>
+      
       </div></details>`;
 export const aboutColours = () => `<details class="about-ch" name="aboutch" id="ch-4"><summary>The colours</summary><div class="about-sec">
-        <p>Each picture combines three bands as red, green and blue. The four buttons in step 2 carry nicknames: Natural, Infra (False 1), Bloody (False 2) and Hot? (False 3). The false colours are a code, not what you would see.</p>
-        <p><em>Natural</em> (B04, B03, B02): as the eye sees it. Snow white, rock grey, plants green.</p>
-        <p><em>False 1</em> (B08, B04, B03), infrared: near infrared shown as red. Plants red, snow white, bare ice grey, water dark/blue; this sets bare ice, snow and vegetation apart.</p>
-        <p><em>False 2</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental, handy to tell ice from cloud.</p>
-        <p><em>False 3</em> (B04, B11, B02, as a ratio picture): ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).</p>
+        <p>Each picture combines three bands (slices of the light the satellite records) as red, green and blue. The four buttons in step 2 carry nicknames: Natural, Infra (False 1), Bloody (False 2), Hot? (False 3). False colours are a code, not what an eye would see.</p>
+        <ul>
+          <li><em>Natural</em> (B04, B03, B02): as the eye sees it. Snow white, rock grey, plants green.</li>
+          <li><em>False 1</em> (B08, B04, B03), infrared: near infrared shown as red. Plants red, snow white, bare ice grey, water dark or blue. Sets bare ice, snow and vegetation apart.</li>
+          <li><em>False 2</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental; handy for telling ice from cloud.</li>
+          <li><em>False 3</em> (B04, B11, B02, as a ratio picture): ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).</li>
+        </ul>
+      
       </div></details>`;
 export function aboutChaptersCh(){
   return `
       <p class="about-group">Using the site</p>
+      <details class="about-ch" name="aboutch" id="ch-22"><summary>For teachers and journalists</summary><div class="about-sec">
+        <p><strong>In short.</strong> A satellite photographs each glacier every late summer. Flip through the years and watch the tongue pull back.</p>
+        <h4>What you can say</h4>
+        <ul>
+          <li>The pictures are real Sentinel-2 satellite images: one clear late-summer scene per glacier and year, 2016 to now, with 10 m pixels.</li>
+          <li>Length, area and ice-volume change come from GLAMOS, the Swiss glacier monitoring network. The source sits next to each figure.</li>
+          <li>The ten glaciers are the ten largest in Switzerland by area in the newest inventory.</li>
+          <li>A label says how sure a number is: measured, computed here, or estimated (see How to read this).</li>
+        </ul>
+        <h4>Try this in class</h4>
+        <ul>
+          <li>Open a glacier, press Timelapse. Where does the tongue end each year?</li>
+          <li>Switch to Slider and drag between 2016 and now.</li>
+          <li>Open the Size visualizer. How big is the ice beside your own city?</li>
+        </ul>
+        <h4>What it cannot tell you</h4>
+        <ul>
+          <li>One picture is one clear day, not the whole summer.</li>
+          <li>Ice volumes and the 3D surfaces between surveys are models.</li>
+          <li>The newest figures are provisional.</li>
+        </ul>
+        <p>The details are under Limits and Method.</p>
+      </div></details>
       <details class="about-ch" name="aboutch" id="ch-1"><summary>Why Tongues from Space</summary><div class="about-sec">
-        <p>A glacier ends in its tongue: the lowest stretch of ice, where the glacier is thinnest and melts the most. It is also where change is easiest to see. Every summer the tip pulls back and leaves bare rock, a lake or a new valley floor behind, and a satellite pixel of 10 m is fine enough to show it.</p>
-        <p>I believe in pictures. A number can be read a hundred times without it staying with you, but a before-and-after image is understood at once and remembered. That is why the pictures come first here, and the figures sit next to them.</p>
-        <p>The pictures are real satellite images of the day shown, not renderings. The one exception, the optional Super-resolution layer in 3D, is labelled as such.</p>
-        <p>I hope this site sparks awareness of glaciers and of why they matter to society, for instance because of the water they store. That is why the ice is also shown in litres, swimming pools and Lake Zurich. — Jochem Braakhekke</p>
+        <p>A glacier ends in its <em>tongue</em>: the lowest stretch of ice, thin and fast-melting. Change shows here first. Each summer the tip pulls back and leaves bare rock, a lake or a new valley floor. A 10 m satellite pixel is fine enough to see it.</p>
+        <p>Pictures come first, figures beside them. A before-and-after is understood at once and stays in memory.</p>
+        <p>Every picture is a real satellite image of the day shown, not a rendering. One optional exception, the Super-resolution layer in 3D, is labelled.</p>
+        <p>The aim: awareness of glaciers and why they matter, for instance for the water they store. That is why the ice also appears in litres, swimming pools and Lake Zurich. — Jochem Braakhekke</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-14"><summary>How to use it</summary><div class="about-sec">
         <h4>Left panel: three steps</h4>
         <ul>
-          <li><em>1 Choose a glacier:</em> one of the ten largest Swiss glaciers, from the list or by clicking it on the map.</li>
-          <li><em>2 Compare:</em> the view is Map or 3D (the camera flies between the two; switch "Fly between map and 3D" off to change at once). The mode is <em>One year</em>, <em>Slider</em> (drag the line to compare two years) or <em>Timelapse</em> (one picture per year, with a speed and an optional loop). The colour composition has four choices (see The colours). "Adjust image" changes the brightness and the opacity of the image and of its surroundings, and the Metadata button (under Save and share) names the bands and the pixel size of the picture.</li>
-          <li><em>3 Create and share</em> is described under Create and share.</li>
+          <li><em>1 Choose</em> a glacier from the list or on the map: the ten largest in Switzerland.</li>
+          <li><em>2 Compare.</em> View: Map or 3D (the camera flies between them; switch "Fly between map and 3D" off to jump). Mode: <em>One year</em>, <em>Slider</em> (drag the line to compare two years) or <em>Timelapse</em> (one picture per year, with speed and loop). Colours: four choices (see The colours). <em>Adjust image</em> changes brightness and opacity; <em>Metadata</em> (under Save and share) names the bands and pixel size.</li>
+          <li><em>3 Save and share:</em> image, animation, link and more (see Save and share).</li>
         </ul>
         <h4>Right panel: three tabs</h4>
         <ul>
-          <li><em>Discover</em> holds cards with what to look for, news, a fun fact, the origin of the name, a hike and a bike route near the tongue, and links to the scenes in the Copernicus Browser.</li>
-          <li><em>Stats</em> holds the cards Area, Length, Thickness and volume, Ice speed and Water storage. Their tiles follow the years you select.</li>
-          <li><em>Switzerland</em> puts the glacier in perspective and turns the ice lost over the selected years into water.</li>
+          <li><em>Discover:</em> what to look for, news, a fun fact, the origin of the name, a hike and a bike route, links to the scenes in the Copernicus Browser.</li>
+          <li><em>Stats:</em> Area, Length, Thickness and volume, Ice speed, Water storage. The tiles follow your selected years.</li>
+          <li><em>Switzerland:</em> the glacier in perspective; the ice lost over your years, turned into water.</li>
         </ul>
-        <p>A card opens with a click and the one before it closes. The small numbers jump to the list of Sources; a dash or a note says when a figure does not exist for a glacier.</p>
+        <p>One click opens a card and closes the last. Small numbers jump to Sources; a dash or a note says a figure does not exist for a glacier.</p>
         <h4>On a phone</h4>
-        <p>The map comes first, then the left panel, then the story. Two fingers move the map. The map can be opened in the 3D view from the same switch.</p>
+        <p>Map first, then the left panel, then the story. Two fingers move the map. The same switch opens 3D.</p>
+      
       </div></details>
-      <details class="about-ch" name="aboutch" id="ch-17"><summary>Create and share</summary><div class="about-sec">
-        <h4>Image</h4>
-        <p>The view as it is shown, map or 3D, as one JPEG picture.</p>
-        <h4>Animation</h4>
-        <p>A short MP4 video made in your browser from the slider, the timelapse or the 3D view. You choose:</p>
+      <details class="about-ch" name="aboutch" id="ch-23"><summary>How to read this</summary><div class="about-sec">
         <ul>
-          <li>the format: 16:9 landscape, 9:16 portrait or 4:5 for the Instagram feed;</li>
-          <li>the framing: the tongue, the whole glacier or the whole image box;</li>
-          <li>a fact card at the end: Glacier facts, Ice, Retreat or Size.</li>
+          <li><em>Colour.</em> Red marks loss. Blue marks ice and water.</li>
+          <li><em>Time.</em> Years are glaciological years: 1 October to 30 September, named after the year they end in. 2017 is October 2016 to September 2017. A summer picture and the value of its year belong together (see Years and periods).</li>
+          <li><em>Pictures.</em> One scene per year, the clearest late-summer day, not the whole season. Natural colour is what an eye sees; false colours are a code (see The colours).</li>
+          <li><em>Charts.</em> Every year has a bar; a red line under the label marks the years you selected. Sums include both ends of your selection.</li>
+          <li><em>How sure.</em> Measured, computed here, or estimated (see Measured, computed or estimated). The page says so next to an estimate.</li>
+          <li><em>Gaps.</em> A dash means no figure exists. A small raised number points to its source.</li>
         </ul>
-        <p>Further options: a moving viewpoint in 3D, minimal text, the 1850 outline, loops and going back in time between loops. For 9:16 the text can be kept clear of the buttons of Reels and TikTok.</p>
-        <p>The figures on the cards of pictures and videos follow the same rules as the right panel: the ice and water figures are the estimates described under Ice and water, and the outline, length and area figures are GLAMOS values.</p>
+      </div></details>
+      <details class="about-ch" name="aboutch" id="ch-17"><summary>Save and share</summary><div class="about-sec">
+        <h4>Image</h4>
+        <p>The view as shown, map or 3D, as one JPEG.</p>
+        <h4>Animation</h4>
+        <p>A short MP4 made in your browser from the slider, the timelapse or the 3D view. Choose the format (16:9 landscape, 9:16 portrait, 4:5 for the Instagram feed), the framing (the tongue, the whole glacier or the whole image box) and an end card (Glacier facts, Ice, Retreat or Size).</p>
+        <p>Also: a moving viewpoint in 3D, minimal text, the 1850 outline, loops (with going back in time between loops) and, for 9:16, text kept clear of the Reels and TikTok buttons. Card figures follow the right panel: ice and water are the estimates under Ice and water; outline, length and area are GLAMOS values.</p>
         <h4>Share, elevation model, gallery, size</h4>
         <ul>
-          <li><em>Share</em> opens the share sheet of your device, or copies the link. The link opens this glacier with the same mode, years and colour composition.</li>
-          <li><em>Elevation model</em> (3D view, glaciers with yearly surfaces) downloads the ice surface of a year as GeoTIFF, ESRI ASCII grid or XYZ points, in LV95 (EPSG:2056). It is a model, not a measurement, and for non-commercial use.</li>
-          <li><em>Gallery</em> (button under the title) shows the pictures and videos that visitors have shared. When you send one you confirm that you made it and agree that it is shown. It is checked and waits for approval before it appears.</li>
-          <li><em>Size visualizer</em> (above the tabs in the right panel) opens a page where you see the ice of the glacier as a block next to your own city (Volume 3D), or drag its outline onto the city (Area 2D).</li>
+          <li><em>Share:</em> your device's share sheet, or a copied link that reopens this glacier with the same mode, years and colours.</li>
+          <li><em>Elevation model</em> (3D, glaciers with yearly surfaces): the ice surface of a year for GIS software, as GeoTIFF, ESRI ASCII grid or XYZ points, in the Swiss grid LV95 (EPSG:2056). A model, not a measurement; for non-commercial use.</li>
+          <li><em>Gallery</em> (button under the title): pictures and videos shared by visitors. Sending one confirms you made it and agree it is shown. It waits for approval.</li>
+          <li><em>Size visualizer</em> (above the tabs, right panel): the glacier's ice as a block beside your city (Volume 3D), or its outline dragged onto the city (Area 2D).</li>
         </ul>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-19"><summary>Size visualizer</summary><div class="about-sec">
-        <p>A separate page, the <a href="size.html">Size visualizer</a>, answers one question: how big is a glacier? It is opened from the button above the tabs in the right panel, and it works for the ten glaciers of this site.</p>
-        <h4>Two ways to look</h4>
+        <p>A separate page, the <a href="size.html">Size visualizer</a>, answers one question: how big is a glacier? Open it from the button above the tabs in the right panel. It covers the ten glaciers of this site.</p>
+        <h4>Two views</h4>
         <ul>
-          <li><em>Area (2D):</em> a map on which you drag the outline of a glacier onto a city. The outlines are those of the Swiss Glacier Inventory.${fn('sgi')}</li>
-          <li><em>Volume (3D):</em> the ice of the glacier as a block, or as a ball, that you can drop onto the terrain next to a city or a landmark. The volumes are the estimates described under Ice and water.</li>
+          <li><em>Area (2D):</em> drag a glacier's outline onto a city. The outlines are those of the Swiss Glacier Inventory.${fn('sgi')}</li>
+          <li><em>Volume (3D):</em> the glacier's ice as a block, or a ball, dropped onto the terrain next to a city or landmark. Volumes: the estimates under Ice and water.</li>
         </ul>
         <h4>Choosing</h4>
         <ul>
-          <li>Pick a glacier from the list or on the map; the last two you pick are compared. <em>All ten</em> shows the ten at once.</li>
-          <li>Pick a city, or type the name of one of your own. In 3D there are landmarks too.</li>
+          <li>Pick a glacier from the list or on the map; the last two you pick are compared. <em>All ten</em> shows all at once.</li>
+          <li>Pick a city, or type your own. In 3D there are landmarks too.</li>
         </ul>
         <h4>Saving and sharing</h4>
-        <p><em>Your visual</em> makes a picture of the view to save, <em>Share</em> copies a link to exactly this view and <em>Embed</em> gives code to show it in your own page.</p>
-        <p>The block and the ball are drawings to help you see the size.</p>
+        <p><em>Your visual</em> saves a picture, <em>Share</em> copies a link to exactly this view, <em>Embed</em> gives code for your own page.</p>
+        <p>The block and the ball are drawings that help you judge size.</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-20"><summary>Other pages</summary><div class="about-sec">
         <ul>
-          <li><em>Start page</em> (<a href="home.html">home.html</a>): a map of the regions and glaciers, and the way into the explorer and the Size visualizer.</li>
-          <li><em>Gallery</em> (<a href="gallery.html">gallery.html</a>): the pictures and videos that visitors have shared (see Create and share).</li>
-          <li><em>Field notes</em> (<a href="provenance.html">provenance.html</a>): for each glacier with yearly ice surfaces, how the surface of every year was found, its uncertainty and its checks (see The 3D view).</li>
-          <li><em>Other regions:</em> the ice cap Vatnajökull in Iceland is in the making and other regions are planned. Switzerland is the only region that is complete.</li>
+          <li><em>Start page</em> (<a href="home.html">home.html</a>): regions and glaciers on a map, and the way into the explorer and the Size visualizer.</li>
+          <li><em>Gallery</em> (<a href="gallery.html">gallery.html</a>): pictures and videos shared by visitors (see Save and share).</li>
+          <li><em>Field notes</em> (<a href="provenance.html">provenance.html</a>): for each glacier with yearly ice surfaces, how each year's surface was found, how uncertain it is, how it was checked (see The 3D view).</li>
+          <li><em>Other regions:</em> the ice cap Vatnajökull in Iceland is in the making, others are planned. Only Switzerland is complete.</li>
         </ul>
+      
       </div></details>
       <p class="about-group">The pictures</p>
       <details class="about-ch" name="aboutch" id="ch-2"><summary>The satellite images</summary><div class="about-sec">
         <h4>Choosing the scene</h4>
-        <p>One real Sentinel-2 scene per glacier and year: the clearest view between 1 July and 20 September. Every acquisition is scored for cloud and snow cover; the best September scene wins, otherwise August, otherwise July.</p>
-        <p>The pictures are rendered from Level-1C data with the Copernicus Browser true colour process, which keeps shaded slopes natural.</p>
+        <p>One real Sentinel-2 scene per glacier and year: the clearest view between 1 July and 20 September. Each acquisition is scored for cloud and snow. The best September scene wins, then August, then July.</p>
+        <p>Pictures are rendered from Level-1C data with the Copernicus Browser true colour process, which keeps shaded slopes natural.</p>
         <h4>The picking tool</h4>
-        <p>For some glaciers the scene of each year was chosen with a separate picking tool instead (<code>scripts/tools/pick-scenes.html</code>). It scores every acquisition from 1 August to the middle of October for cloud, cloud shadow, mountain shadow, snow and haze, in the bottom 3 km of the tongue and over the whole image. It prefers days near 30 September and keeps one satellite orbit for all years.</p>
+        <p>For some glaciers a separate picking tool chose each year's scene. It scores every acquisition from 1 August to the middle of October for cloud, cloud shadow, mountain shadow, snow and haze, in the bottom 3 km of the tongue and over the whole image. It prefers days near 30 September and keeps one satellite orbit (one fixed flight path) for all years.</p>
         <ul>
-          <li>No cloud, cloud shadow or big mountain shadow is allowed in the bottom 3 km (the limits are loosened only for a year that would otherwise have no scene).</li>
-          <li>Not more than 10 % cloud anywhere in the image.</li>
+          <li>No cloud, cloud shadow or big mountain shadow in the bottom 3 km (loosened only for a year that would otherwise have no scene).</li>
+          <li>At most 10 % cloud anywhere in the image.</li>
         </ul>
         <h4>Why not after the 20th</h4>
-        <p>This is for the automatic choice. Swiss glacier monitoring counts in glaciological years (1 October to 30 September) and GLAMOS measures at the end of the melt season, so September images match the annual figures: the picture of summer 2017 shows the ice at the end of the glaciological year 2017 (see Years and periods).</p>
-        <p>After about 20 September fresh snow often hides the tongue; in 2024 the limit is 14 September, because heavy snow fell on the 15th.</p>
-        ${landsatAbout('1 July to 20 September, the clear scene closest to 1 September')}
+        <p>That is the rule for the automatic choice. Swiss glacier monitoring counts in glaciological years (1 October to 30 September), and GLAMOS measures at the end of the melt season. So September images match the annual figures: the picture of summer 2017 shows the ice at the end of the glaciological year 2017 (see Years and periods).</p>
+        <p>After about 20 September, fresh snow often hides the tongue. In 2024 the limit is 14 September: heavy snow fell on the 15th.</p>
+        ${REGION.landsat ? landsatAbout('1 July to 20 September, the clear scene closest to 1 September') : ''}
       </div></details>
-      ${aboutSentinel('Over Aletsch I counted about 3 acquisitions a week and up to 4 (32, 33 and 41 days between 1 July and 20 September in 2023 to 2025). Clouds, shadow and fresh snow remove many of them.')}
+      ${aboutSentinel('Over Aletsch: about 3 acquisitions a week, up to 4 (32, 33 and 41 days between 1 July and 20 September in 2023 to 2025). Clouds, shadow and fresh snow remove many of them.')}
       ${aboutColours()}
       <details class="about-ch" name="aboutch" id="ch-5"><summary>Why only these ten glaciers</summary><div class="about-sec">
         <p>${DATA && DATA.inventory ? `The Swiss Glacier Inventory ${DATA.latest_label} lists ${DATA.inventory.count.toLocaleString('en')} glaciers with a total area of ${Math.round(DATA.inventory.area_km2)} km². The ten largest hold ${DATA.inventory.top_share_pct} % of it; ${DATA.inventory.n_under_0_5km2.toLocaleString('en')} are smaller than 0.5 km² and ${DATA.inventory.n_under_0_1km2.toLocaleString('en')} smaller than 0.1 km².` : 'Switzerland has about 1,400 glaciers (GLAMOS), most of them small.'}</p>
-        <p>With 10 m pixels a glacier of 0.1 km² is only about 1,000 pixels: its tongue is a few pixels wide, and a retreat of a few metres a year is less than one pixel. The ten largest have tongues many pixels wide that retreat by tens of metres, which shows clearly.</p>
+        <p>At 10 m per pixel, a glacier of 0.1 km² is only about 1,000 pixels: its tongue is a few pixels wide, and a retreat of a few metres a year is less than one pixel. The ten largest have tongues many pixels wide that retreat by tens of metres, and that shows.</p>
       </div></details>
       <p class="about-group">The numbers</p>
       <details class="about-ch" name="aboutch" id="ch-13"><summary>Years and periods</summary><div class="about-sec">
-        <p>Swiss glacier monitoring counts in glaciological years, from 1 October to 30 September. A yearly value is named after the year in which it ends: 2017 is October 2016 to September 2017, and the year ending in September 2026 is the 2026 value (the 2025/2026 measurement period).</p>
-        <p>That is the melt season whose end the satellite picture of summer 2017 shows, so a picture and the value of its year belong together. Each bar in the charts is one such year.</p>
+        <p>Swiss glacier monitoring counts in glaciological years, 1 October to 30 September. A yearly value is named after the year it ends in: 2017 is October 2016 to September 2017; the year ending in September 2026 is the 2026 value (the 2025/2026 measurement period).</p>
+        <p>That melt season ends where the summer-2017 satellite picture is taken, so a picture and its year's value belong together. Each chart bar is one such year.</p>
         <h4>Selecting years</h4>
-        <p>Years you select in step 2 count with both ends. A sum over 2017–2019 adds the values of 2017, 2018 and 2019, which is the change from autumn 2016 to autumn 2019. One picture of 2017 gives the values of 2017 alone.</p>
-        <p>The charts always show all years and mark the chosen ones with a red line under their label. The sums are given under the chart and in the tiles. Ice volumes (the Swiss ice, the ice of a glacier) are stocks at the end of a year, so they are read at the end of September.</p>
+        <p>Years you select in step 2 count with both ends. A sum over 2017–2019 adds 2017, 2018 and 2019: the change from autumn 2016 to autumn 2019. One picture of 2017 gives the values of 2017 alone.</p>
+        <p>Charts show every year and mark the chosen ones with a red line under the label. Sums sit under the chart and in the tiles. Ice volumes (Swiss ice, a glacier's ice) are stocks at the end of a year, read at the end of September.</p>
         <h4>Estimates</h4>
-        <p>Everything derived from yearly values for a chosen period (thickness, volume and balance of a glacier, the Swiss loss, the water that melted) is an estimate from the yearly mass balance of GLAMOS, calibrated on the measured volume surveys. It is not a new measurement of the period.</p>
+        <p>Anything derived from yearly values for a chosen period (thickness, volume and balance of a glacier, the Swiss loss, the melted water) is an estimate from GLAMOS's yearly mass balance, calibrated on measured volume surveys. It is not a new measurement of the period.</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-6"><summary>Glacier figures</summary><div class="about-sec">
         <h4>Area</h4>
-        <p>All figures are from GLAMOS; a dash means no value. Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label} and ${DATA.latest_label}` : '1850 and 2016'}. When tributaries separate, part of an area drop is a change of definition, not only melt.${DATA ? '' : ' <em>The GLAMOS data file is not loaded yet.</em>'} The area card compares the glacier in the inventories of 1850, 1973 and the newest one.</p>
+        <p>All figures are from GLAMOS; a dash means no value. Area: Swiss Glacier Inventories ${DATA ? `${DATA.oldest_label} and ${DATA.latest_label}` : '1850 and 2016'}. When tributaries separate, part of an area drop is a change of definition, not only melt.${DATA ? '' : ' <em>The GLAMOS data file is not loaded yet.</em>'} The card compares 1850, 1973 and the newest inventory.</p>
         <h4>Length</h4>
-        <p><em>Length change</em> is measured at the tongue; negative means retreat. GLAMOS publishes only the change between surveys, never the length, so the lengths are derived.</p>
+        <p><em>Length change</em> is measured at the tongue; negative means retreat. GLAMOS publishes only the change between surveys, never the length, so lengths are derived:</p>
         <ul>
-          <li>The latest length is read from a GLAMOS overview figure, which prints one length per glacier. The year shown with it is where the last bar of that glacier ends in the figure (2025 for most, 2023 for Corbassière and Zmutt, which are surveyed every few years).</li>
-          <li>"Length in 1870" (or the year of the first survey) is that length plus all the retreat recorded since then: for Aletsch 22.11 km + 3.387 km = about 25.5 km.</li>
-          <li>That is exact only when the surveys follow each other without gaps and reach the year of the figure. Otherwise the tile shows "≈" and the real value may differ by the retreat of the missing years.</li>
+          <li>Latest length: read from a GLAMOS overview figure with one length per glacier, for the year where the glacier's last bar ends (2025 for most; 2023 for Corbassière and Zmutt, surveyed every few years).</li>
+          <li>"Length in 1870" (or the year of the first survey): that length plus all retreat recorded since. Aletsch: 22.11 km + 3.387 km = about 25.5 km.</li>
+          <li>Exact only if the surveys follow each other without gaps and reach the figure's year. Otherwise the tile shows "≈", and the real value may differ by the retreat of the missing years.</li>
         </ul>
         <h4>The Change tile and the yearly bars</h4>
         <ul>
-          <li><em>Change</em> adds up the length surveys that end in the chosen years. The survey that starts in the autumn before the first chosen year counts, as it ends in that year.</li>
-          <li>It says when the surveys cover a shorter period, because one survey can span several years and the newest data end before the newest images.</li>
+          <li><em>Change</em> adds the length surveys that end in the chosen years (the survey starting the autumn before the first chosen year counts, as it ends in that year). It says when surveys cover a shorter period: one survey can span several years, and the newest data end before the newest images.</li>
           <li><em>Retreat per year</em> shows every year from 2016 on and marks the chosen ones.</li>
-          <li>Where GLAMOS measured the length only over several years (for example 2017 to 2020 at Corbassière), the change is spread evenly over those years and the bars are dashed. Years without any survey stay empty.</li>
+          <li>Where GLAMOS measured length only over several years (for example 2017 to 2020 at Corbassière), the change is spread evenly and the bars are dashed. Years with no survey stay empty.</li>
         </ul>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-8"><summary>Thickness and volume</summary><div class="about-sec">
         <h4>Volume change from surveys</h4>
-        <p><em>Mean ice thickness change</em>, <em>volume change</em> and <em>mass balance</em> come from the GLAMOS volume-change survey of this glacier: aerial surveys give elevation models of the glacier surface, and the difference between two of them shows how much ice was lost in between.</p>
+        <p><em>Mean ice thickness change</em>, <em>volume change</em> and <em>mass balance</em> (ice gained or lost, in metres of water per year) come from this glacier's GLAMOS volume-change survey. Aerial surveys give elevation models of the surface; the difference between two shows the ice lost in between.</p>
         <ul>
-          <li>The newest survey that starts closest to 2016 sets the size of the loss for this glacier (the headline figure and the survey period). It is not your selected years.</li>
-          <li>Mass balance is the volume change turned into metres of water per year with a density of 850 kg/m³; the ± is the uncertainty GLAMOS gives.</li>
-          <li>Only surveys that cover at least 90 % of the glacier are used.</li>
+          <li>The newest survey starting closest to 2016 sets the headline loss and period. It is not your selected years.</li>
+          <li>Mass balance: the volume change as metres of water per year, with a density of 850 kg/m³; the ± is GLAMOS's uncertainty.</li>
+          <li>Only surveys covering at least 90 % of the glacier count.</li>
         </ul>
-        <p>The three tiles follow the years you select. They add up (volume, and thickness, which is the volume over the mean area of the survey) or average (balance, as GLAMOS measured it, not scaled) the yearly mass balance of those years, scaled to the volume survey of the glacier, so they are estimates. They show the survey period only when no yearly value exists for the selected years.</p>
+        <p>The three tiles follow your selected years. They add up (volume; thickness, the volume over the survey's mean area) or average (balance, as GLAMOS measured it, not scaled) the yearly mass balance of those years, scaled to the glacier's volume survey. So they are estimates. Without yearly values for your years, they show the survey period.</p>
         <h4>Radar ice thickness</h4>
-        <p>Single measurements from ground-penetrating radar, taken from the surface along lines, between 1958 and 2017 depending on the glacier. The map shows the mean of every 50 m cell. They tell how thick the ice was when it was measured; today it is thinner.</p>
-        <p><em>Thickest ice</em> is one number with its year and its source. It is the maximum of the ice thickness map of Grab et al.${fn('grab')} for this glacier, in the reference year of that map (2017 for Aletsch), and the pin on the map marks the cell where it is. The card also gives the uncertainty of the map in that cell, towards thicker (+) and thinner (−) ice, as the data collection states it. It is a model result and not a measurement: the radar lines are used to calibrate an ice-flow model that fills the gaps. Only a radar or seismic maximum measured after the reference year of the map would replace it, and then the card and the pin say so.</p>
-        <p>The map layer "Ice thickness 2016 (modelled)" shows the whole map. The radar data are only a part of what is needed for the glacier ice volume of Grab et al.${fn('grab')}, which also uses models.</p>
+        <p>Ground-penetrating-radar measurements along lines on the surface, between 1958 and 2017 depending on the glacier. The map shows the mean of every 50 m cell: the thickness when measured. Today the ice is thinner.</p>
+        <p><em>Thickest ice</em> is one number with its year and source: the maximum of the ice thickness map of Grab et al.${fn('grab')} in that map's reference year (2017 for Aletsch). The pin marks its cell. The card gives the map's uncertainty there, towards thicker (+) and thinner (−) ice, as the data collection states it.</p>
+        <p>A model result, not a measurement: radar lines calibrate an ice-flow model that fills the gaps. Only a radar or seismic maximum measured after the map's reference year would replace it, and the card and pin would say so. The layer "Ice thickness 2016 (modelled)" shows the whole map.</p>
         <h4>Ice thickness change per year</h4>
-        <p>The chart shows the yearly mass balance from GLAMOS for the years of the images, as metres of ice (the balance in water divided by 0.85). Aletsch, Rhone, Corbassière and Findel are measured directly every year; for the other six glaciers the line of all Swiss glaciers is shown.</p>
-        <p>Switch between <em>Per year</em> and <em>Cumulative</em> (the bars added up from autumn 2015). The years you select in step 2 are marked and added up under the chart.</p>
-        <p>A mass balance is not the same measurement as a change of the surface height, but over decades the two add up to nearly the same. The headline above the tiles comes from the elevation-model surveys, which cover several years each.</p>
+        <p>GLAMOS's yearly mass balance for the image years, as metres of ice (the balance in water divided by 0.85). Aletsch, Rhone, Corbassière and Findel are measured directly each year; the other six show the line of all Swiss glaciers. Switch between <em>Per year</em> and <em>Cumulative</em> (bars added from autumn 2015); your selected years are marked and summed.</p>
+        <p>A mass balance and a surface-height change are different measurements, but over decades they add up to nearly the same. The headline above the tiles comes from elevation-model surveys, which span several years each.</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-15"><summary>Ice speed</summary><div class="about-sec">
         <h4>Where it comes from</h4>
-        <p>The speed of the ice (layer <em>Ice speed</em> and the card <em>Ice speed</em> in Stats) comes from the ITS_LIVE annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024).${fn('itslive')} The product follows features of the ice surface between pairs of satellite images (Landsat 8/9, Sentinel-2 and Sentinel-1).</p>
-        <p>The values are copied from the product and only cut to the picture box of the glacier. Under 5 m/yr the product cannot tell ice from rock (rock beside the glaciers reads 1 to 2 m/yr), so nothing is drawn there, and only the ice inside the oldest outline is shown.</p>
+        <p>The layer <em>Ice speed</em> and the Stats card use the ITS_LIVE annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024).${fn('itslive')} The product tracks features on the ice surface between pairs of satellite images (Landsat 8/9, Sentinel-2 and Sentinel-1).</p>
+        <p>Values are copied and only cut to the glacier's picture box. Under 5 m/yr the product cannot tell ice from rock (rock beside the glaciers reads 1 to 2 m/yr): nothing is drawn there, and only ice inside the oldest outline is shown.</p>
         <h4>On the map</h4>
         <ul>
-          <li>The layer shows the year of the picture (with the slider the right-hand year, in a timelapse the frame). Years before the first or after the last in the file have no speed map, and the note says so.</li>
-          <li>A pin marks the fastest ice of the year: the highest value along a line from the tongue up the glacier, after a running median over about 400 m so that one bad cell cannot set it. Other branches of the glacier can be faster.</li>
-          <li>A click on the glacier, with the layer on, shows the speed of that place in every year (the mean of the 3 × 3 cells around the click).</li>
-          <li>The card gives the value of the pin per year. The pin, the click values and the card are computed here from the product and say so.</li>
-          <li>Speed is not shown in 3D or in the downloads.</li>
+          <li>The layer shows the picture's year (slider: the right-hand year; timelapse: the frame). Years outside the file have no speed map, and a note says so.</li>
+          <li>A pin marks the year's fastest ice: the highest value along a line from the tongue up the glacier, after a running median (a smoothing that ignores outliers) over about 400 m. Other branches can be faster.</li>
+          <li>Click the glacier with the layer on: the speed there in every year (the mean of the 3 × 3 cells around the click).</li>
+          <li>Pin, click values and card are computed here from the product, and say so. Not shown in 3D or in the downloads.</li>
         </ul>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-7"><summary>Ice and water</summary><div class="about-sec">
         <h4>Ice in Switzerland</h4>
         <p>Swiss glaciers held about 45.1 km³ of ice at the end of 2025 (GLAMOS, Swiss-wide series, which gives the volume of every year since 1915). The explorer uses the years from 2016. 1 km³ of ice gives about 0.9 trillion litres of water.</p>
         <h4>Ice of one glacier</h4>
-        <p>Grab et al.${fn('grab')} modelled the ice around 2016 (the map gives each glacier its own reference year, 2017 for Aletsch). From there the explorer uses what GLAMOS measured for this glacier:</p>
+        <p>Grab et al.${fn('grab')} modelled the ice around 2016 (each glacier has its own reference year in the map, 2017 for Aletsch). From there the explorer uses what GLAMOS measured for this glacier:</p>
         <ul>
-          <li>its volume survey (how much ice it lost between two elevation models) says how much ice one metre of yearly mass balance is worth for it;</li>
-          <li>the yearly balance (this glacier's own where it is measured, else the balance of all Swiss glaciers) spreads the loss over the years;</li>
-          <li>for the newest autumn, which has no yearly balance yet, the Swiss loss of that year is turned into a balance (with the same ratio of ice volume to balance as in the survey years) and spread over this glacier in the same way.</li>
+          <li>its volume survey: how much ice one metre of yearly mass balance is worth for it;</li>
+          <li>its yearly balance (its own where measured, else that of all Swiss glaciers): spreads the loss over the years;</li>
+          <li>for the newest autumn, with no yearly balance yet: the Swiss loss of that year, turned into a balance (same ratio of ice volume to balance as in the survey years) and spread the same way.</li>
         </ul>
-        <p>Big glaciers lose a smaller share than the Swiss average, which is dominated by small glaciers, so this gives more ice than a plain national percentage. That is a best estimate and not a measurement.</p>
+        <p>Big glaciers lose a smaller share than the Swiss average, which small glaciers dominate, so this gives more ice than a plain national percentage. A best estimate, not a measurement.</p>
         <h4>Water and comparisons</h4>
-        <p>The Switzerland tab turns the ice lost over your chosen years (from the end of the year before the first one to the end of the last one) into litres and four comparisons: Olympic swimming pools, Lake Zurich, the yearly Swiss tap water and the household water use per resident (9 million residents, 142 litres a day, SVGW). The text chips on the cards use the same sizes. The sizes:</p>
+        <p>The Switzerland tab turns the ice lost over your chosen years (from the end of the year before the first to the end of the last) into litres and four comparisons: Olympic swimming pools, Lake Zurich, the yearly Swiss tap water, and household water use per resident (9 million residents, 142 litres a day, SVGW). The text chips on the cards use the same sizes:</p>
         <ul>
           <li>Eiffel Tower: 330 m high (with antennas, toureiffel.paris)</li>
           <li>Football pitch: 105 × 68 m = 7,140 m² (usual international size)</li>
@@ -674,66 +711,116 @@ export function aboutChaptersCh(){
           <li>Lake Zurich: 3.9 km³</li>
           <li>Swiss water supply: 931 million m³ in 2022 (SVGW)</li>
         </ul>
+      
       </div></details>
       <p class="about-group">Layers and 3D</p>
       <details class="about-ch" name="aboutch" id="ch-16"><summary>Map layers</summary><div class="about-sec">
         <p>Open <em>Layers</em> at the top right of the map. The same menu works in 3D, with a few layers of its own (see The 3D view).</p>
-        <p><em>Pictures.</em> <em>Sentinel-2 image</em> is the picture of the chosen year, with its own opacity; <em>swisstopo aerial</em> shows SWISSIMAGE (see Aerial images, trails and panoramas). The setting <em>Surroundings opacity</em> in the left panel fades the picture outside the 1850 outline.</p>
-        <p><em>The glacier.</em> <em>Outline 1850</em> and <em>Outline 2023</em> are the outlines of the Swiss Glacier Inventory.${fn('sgi')} <em>Tongue tip 2023</em> is the lowest point of the 2023 outline. <em>Thickest ice</em> is where the ice is thickest, by the thickness map of Grab et al.${fn('grab')} (or by a newer radar survey, if there is one), and <em>Radar points</em> shows the radar measurements (the mean of every 50 m cell).${fn('radar')} <em>Glacier thickness 2016</em> is the modelled ice thickness map of Grab et al.${fn('grab')} (the menu names 2016; the reference year of the map differs by glacier, 2017 for Aletsch). <em>Ice speed</em> is described under Ice speed.</p>
-        <p><em>Around the glacier.</em> <em>Hiking trails</em> with the band where the tongue can be seen; <em>Panoramas</em> (Street View, Aletsch only); <em>Other glacier names</em> writes the name of the chosen glacier and of the other glaciers inside its picture (names from Wikidata and the Randolph Glacier Inventory${fn('names')}); <em>Selectable glaciers</em> draws the ten glaciers as red outlines you can click and is switched off when you choose one.</p>
-        <p><em>Backgrounds</em> behind and around the picture: the Sentinel-2 mosaic (cloudless, by EOX), OpenStreetMap, the swisstopo map, a hillshade and place labels.${fn('bg')} <em>Tools:</em> Tongue fits the view to the picture box and Whole glacier to the whole glacier, Measure length and Measure area draw on the map and give the value, Clear removes them.</p>
+        <p><em>Pictures</em></p>
+        <ul>
+          <li><em>Sentinel-2 image:</em> the chosen year, with its own opacity.</li>
+          <li><em>swisstopo aerial:</em> SWISSIMAGE (see Aerial images, trails and panoramas).</li>
+          <li><em>Surroundings opacity</em> (left panel) fades the picture outside the 1850 outline.</li>
+        </ul>
+        <p><em>The glacier</em></p>
+        <ul>
+          <li><em>Outline 1850</em> and <em>Outline 2023:</em> the Swiss Glacier Inventory.${fn('sgi')}</li>
+          <li><em>Tongue tip 2023:</em> the lowest point of the 2023 outline.</li>
+          <li><em>Thickest ice:</em> where the ice is thickest by the thickness map of Grab et al.${fn('grab')} (or by a newer radar survey, if there is one). <em>Radar points:</em> the radar measurements (the mean of every 50 m cell).${fn('radar')}</li>
+          <li><em>Glacier thickness 2016:</em> the modelled thickness map of Grab et al.${fn('grab')} (the menu says 2016; the map's reference year differs by glacier, 2017 for Aletsch).</li>
+          <li><em>Ice speed:</em> see Ice speed.</li>
+        </ul>
+        <p><em>Around the glacier</em></p>
+        <ul>
+          <li><em>Hiking trails</em>, with the band where the tongue can be seen. <em>Panoramas</em> (Street View, Aletsch only).</li>
+          <li><em>Other glacier names:</em> the chosen glacier and the others inside its picture (names from Wikidata and the Randolph Glacier Inventory${fn('names')}).</li>
+          <li><em>Selectable glaciers:</em> the ten glaciers as red outlines you can click; off once you choose one.</li>
+        </ul>
+        <p><em>Backgrounds</em> behind and around the picture: the Sentinel-2 mosaic (cloudless, by EOX), OpenStreetMap, the swisstopo map, a hillshade (shaded relief) and place labels.${fn('bg')}</p>
+        <p><em>Tools:</em> Tongue fits the view to the picture box and Whole glacier to the whole glacier. Measure length and Measure area draw on the map and give the value. Clear removes them.</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-10"><summary>The 3D view</summary><div class="about-sec">
-        <p>A strip along the glacier, from 1 km below the tongue tip up to about 6.5 km up the glacier and 4 km wide, with the real satellite picture of the chosen year draped over the terrain. The heights are the newest edition of swisstopo's swissALTI3D elevation model (served as tiles by Mapterhorn and stored with the page on a 14 m grid).${fn('terrain')}</p>
-        <p>Drag to turn all the way round and tilt, Shift-drag or right-drag (two fingers on a phone) to move, scroll or pinch to zoom. The layers menu, the measuring tools and the downloads work here as on the map.</p>
-        <p>Layers of the 3D view: Historical images, Space (a night sky behind the terrain), Peak names and, where the data exists, Bedrock and Super-resolution, described below.</p>
+        <p>A strip along the glacier: from 1 km below the tongue tip to about 6.5 km up the glacier, 4 km wide, with the real satellite picture of the chosen year draped over the terrain. Heights: the newest edition of swisstopo's swissALTI3D elevation model (a height map of the ground), served as tiles by Mapterhorn and stored with the page on a 14 m grid.${fn('terrain')}</p>
+        <p>Drag to orbit and tilt. Shift-drag or right-drag (two fingers on a phone) to move. Scroll or pinch to zoom. The layers menu, measuring tools and downloads work as on the map.</p>
+        <p>3D layers: Historical images, Space (a night sky behind the terrain), Peak names and, where the data exists, Bedrock and Super-resolution (below).</p>
         <h4>Ice surface of each year</h4>
-        <p>Every year's surface is the ice on the day of that year's satellite picture. It is a physical model fitted to every dated elevation model of the glacier that exists (swisstopo flights since 2017, the 2021 and 2022 lidar, the two swissALTI3D editions), with the GLAMOS mass balance and a fitted rate of ice flow between and beyond them. Where a flight or the lidar was flown, the surface of that day is reproduced; elsewhere it is a model, and the page says so under the picture.</p>
-        <p>Ten glaciers have a surface for each year from 2016 to 2026. Grosser Aletsch comes first; the nine others are made like it, and I list only what differs.</p>
+        <p>Each year's surface is the ice on the day of that year's satellite picture. It is a physical model fitted to every dated elevation model of the glacier (swisstopo flights since 2017, the 2021 and 2022 lidar, the two swissALTI3D editions), with the GLAMOS mass balance and a fitted rate of ice flow between and beyond them. Where a flight or the lidar was flown, that day's surface is reproduced. Elsewhere it is a model, and the page says so under the picture.</p>
+        <p>Ten glaciers have a surface for each year, 2016 to 2026. Grosser Aletsch comes first; the nine others follow the same method, and only the differences are listed.</p>
         <p><em>Grosser Aletsch</em>${fn('yearly')}</p>
         <ul>
-          <li>Every year is the surface on the day of its satellite picture, fitted to all dated elevation models of the glacier: 13 swisstopo flights (2017 to 2025), the 2021 lidar and the two swissALTI3D editions.</li>
-          <li>Between and beyond the surveys the surface follows the GLAMOS mass balance per elevation band, the melt timing and a fitted rate of ice flow. The tip lake is flat.</li>
+          <li>Fitted to all dated elevation models of the glacier: 13 swisstopo flights (2017 to 2025), the 2021 lidar and the two swissALTI3D editions.</li>
+          <li>Between and beyond the surveys: the GLAMOS mass balance per elevation band, the melt timing and a fitted rate of ice flow. The tip lake is flat.</li>
           <li>2018 to 2025 are measured on most of the strip; 2016 is extrapolated, 2017 is measured on part of the ice, 2026 is a provisional estimate. Older pictures use the surface of 2016.</li>
           <li>ICESat-2 laser heights check the years that have shots.</li>
         </ul>
-        <p>A model, not a measurement, except on the days and cells a survey covers. <em>Science mode</em> (open it from the Scientific field notes button at the top of this panel) shows for each year how the surface was found, its uncertainty and its checks. The full account is in the <a href="provenance.html?id=B36-26" target="_blank" rel="noopener">field notes</a>.</p>
-        <p><em>The nine others</em> (each links to its field notes)</p>
+        <p>A model, not a measurement, except on the days and cells a survey covers. <em>Science mode</em> (the Scientific field notes button at the top of this panel) shows for each year how the surface was found, its uncertainty and its checks. The full account is in the <a href="provenance.html?id=B36-26" target="_blank" rel="noopener">field notes</a>.</p>
+        <p><em>The nine others.</em> Between and beyond the surveys the surface follows the balance and a fitted rate of ice flow. For each glacier the field notes list the survey dates and the ICESat-2 check (not in the fit: shots, model minus shot median, NMAD, computed).</p>
         <ul>
-          <li><em>Gornergletscher</em> (<a href="provenance.html?id=B56-07" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so a straight line in elevation fitted to the balances of five other glaciers drives the melt (computed, and said so in the field notes). Surveys: 9 swisstopo flights (2017-09-05 to 2025-09-06), lidar 2021-08-25 to 2022-08-23 and the two swissALTI3D editions (stand for 2015-06-17 and 2023-09-03, estimated). Measured: 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025 (partly: 2018). Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2026. ICESat-2 check (not in the fit): 1656 shots, model minus shot median +0.94 m, NMAD 1.32 m (computed).</li>
-          <li><em>Rhonegletscher</em> (<a href="provenance.html?id=B43-03" target="_blank" rel="noopener">field notes</a>). Uses GLAMOS's own elevation-band balance of the glacier (2026 estimated). Surveys: 9 swisstopo flights (2016-08-08 to 2025-09-18), lidar 2021-10-10 and the two swissALTI3D editions (stand for 2016-09-07 and 2023-09-18, estimated). Measured: 2016, 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2026. ICESat-2 check (not in the fit): 984 shots, model minus shot median +0.54 m, NMAD 0.60 m (computed). Left out of the fit: 1 flight (2018-09-11), see the field notes.</li>
-          <li><em>Fieschergletscher</em> (<a href="provenance.html?id=B40-07" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of Aletsch drives the melt (computed, and said so in the field notes). Surveys: 8 swisstopo flights (2017-08-29 to 2025-09-18), lidar 2021-10-08 to 2021-10-14 and the two swissALTI3D editions (stand for 2017-09-06 and 2023-08-23, estimated). Measured: 2017, 2021 (partly: 2022, 2023, 2024, 2025). Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2026. ICESat-2 check (not in the fit): 1128 shots, model minus shot median +1.52 m, NMAD 1.71 m (computed).</li>
-          <li><em>Unteraargletscher</em> (<a href="provenance.html?id=A54g-11" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of the Rhone drives the melt (computed, and said so in the field notes). Surveys: 16 swisstopo flights (2018-08-15 to 2025-09-18) and the two swissALTI3D editions (stand for 2012-09-09 and 2022-08-22, estimated). Measured: 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2017, 2026. ICESat-2 check (not in the fit): 1633 shots, model minus shot median +0.06 m, NMAD 0.92 m (computed).</li>
-          <li><em>Corbassière</em> (<a href="provenance.html?id=B83-03" target="_blank" rel="noopener">field notes</a>). Uses GLAMOS's own elevation-band balance of the glacier (2026 estimated). Surveys: 2 swisstopo flights (2022-07-15 to 2024-08-23), lidar 2021-09-22 to 2021-10-10 and the two swissALTI3D editions (stand for 2016-08-18 and 2023-09-09, estimated). Measured: 2021, 2022, 2024; anchored on an edition: 2016, 2023. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2017, 2018, 2019, 2020, 2025, 2026. ICESat-2 check (not in the fit): 3585 shots, model minus shot median +1.41 m, NMAD 1.18 m (computed).</li>
-          <li><em>Zmuttgletscher</em> (<a href="provenance.html?id=B57-05" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of Corbassière drives the melt (computed, and said so in the field notes). Surveys: lidar 2021-08-24 to 2022-08-23 and the two swissALTI3D editions (stand for 2015-08-26 and 2023-09-07, documented). Measured: none (partly: 2021, 2022); anchored on an edition: 2023. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2017, 2018, 2019, 2020, 2024, 2025, 2026. ICESat-2 check (not in the fit): 778 shots, model minus shot median +2.16 m, NMAD 1.45 m (computed). Reduced data: see the field notes.</li>
-          <li><em>Findelgletscher</em> (<a href="provenance.html?id=B56-03" target="_blank" rel="noopener">field notes</a>). Uses GLAMOS's own elevation-band balance of the glacier (2026 estimated). Surveys: 9 swisstopo flights (2019-09-03 to 2025-09-19), lidar 2021-09-24 and the two swissALTI3D editions (stand for 2015-10-27 and 2023-08-21, estimated). Measured: 2019, 2020, 2021, 2022, 2023, 2024, 2025. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2017, 2018, 2026. ICESat-2 check (not in the fit): 1190 shots, model minus shot median +1.14 m, NMAD 1.00 m (computed).</li>
-          <li><em>Feegletscher</em> (<a href="provenance.html?id=B53-04" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of Corbassière drives the melt (computed, and said so in the field notes). Surveys: 4 swisstopo flights (2018-09-11 to 2022-07-15), lidar 2021-08-24 to 2021-09-22 and the two swissALTI3D editions (stand for 2015-09-21 and 2023-09-06, estimated). Measured: 2018, 2019, 2021, 2022; anchored on an edition: 2023. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2016, 2017, 2024, 2025, 2026. ICESat-2 check (not in the fit): 680 shots, model minus shot median +1.33 m, NMAD 1.25 m (computed).</li>
-          <li><em>Triftgletscher (BE)</em> (<a href="provenance.html?id=A54e-24" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so a straight line in elevation fitted to the balances of five other glaciers drives the melt (computed, and said so in the field notes). Surveys: 8 swisstopo flights (2017-08-22 to 2025-09-18), lidar 2021-10-10 to 2021-10-11 and the two swissALTI3D editions (stand for 2016-09-06 and 2023-08-19, estimated). Measured: 2021, 2022, 2023, 2024, 2025 (partly: 2017, 2019, 2020); anchored on an edition: 2016. Between and beyond them the surface follows the balance and a fitted rate of ice flow; extrapolated or estimated: 2026. ICESat-2 check (not in the fit): 447 shots, model minus shot median +2.86 m, NMAD 0.87 m (computed).</li>
+          <li><em>Gornergletscher</em> (<a href="provenance.html?id=B56-07" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so a straight line in elevation fitted to the balances of five other glaciers drives the melt (computed; see the field notes). Measured: 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025 (partly: 2018). Extrapolated or estimated: 2016, 2026.</li>
+          <li><em>Rhonegletscher</em> (<a href="provenance.html?id=B43-03" target="_blank" rel="noopener">field notes</a>). Uses GLAMOS's own elevation-band balance of the glacier (2026 estimated). Measured: 2016, 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025. Extrapolated or estimated: 2026. Left out of the fit: 1 flight (2018-09-11), see the field notes.</li>
+          <li><em>Fieschergletscher</em> (<a href="provenance.html?id=B40-07" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of Aletsch drives the melt (computed; see the field notes). Measured: 2017, 2021 (partly: 2022, 2023, 2024, 2025). Extrapolated or estimated: 2016, 2026.</li>
+          <li><em>Unteraargletscher</em> (<a href="provenance.html?id=A54g-11" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of the Rhone drives the melt (computed; see the field notes). Measured: 2018, 2019, 2020, 2021, 2022, 2023, 2024, 2025. Extrapolated or estimated: 2016, 2017, 2026.</li>
+          <li><em>Corbassière</em> (<a href="provenance.html?id=B83-03" target="_blank" rel="noopener">field notes</a>). Uses GLAMOS's own elevation-band balance of the glacier (2026 estimated). Measured: 2021, 2022, 2024; anchored on an edition: 2016, 2023. Extrapolated or estimated: 2017, 2018, 2019, 2020, 2025, 2026.</li>
+          <li><em>Zmuttgletscher</em> (<a href="provenance.html?id=B57-05" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of Corbassière drives the melt (computed; see the field notes). Measured: none (partly: 2021, 2022); anchored on an edition: 2023. Extrapolated or estimated: 2016, 2017, 2018, 2019, 2020, 2024, 2025, 2026. Reduced data: see the field notes.</li>
+          <li><em>Findelgletscher</em> (<a href="provenance.html?id=B56-03" target="_blank" rel="noopener">field notes</a>). Uses GLAMOS's own elevation-band balance of the glacier (2026 estimated). Measured: 2019, 2020, 2021, 2022, 2023, 2024, 2025. Extrapolated or estimated: 2016, 2017, 2018, 2026.</li>
+          <li><em>Feegletscher</em> (<a href="provenance.html?id=B53-04" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so the elevation-band balance of Corbassière drives the melt (computed; see the field notes). Measured: 2018, 2019, 2021, 2022; anchored on an edition: 2023. Extrapolated or estimated: 2016, 2017, 2024, 2025, 2026.</li>
+          <li><em>Triftgletscher (BE)</em> (<a href="provenance.html?id=A54e-24" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so a straight line in elevation fitted to the balances of five other glaciers drives the melt (computed; see the field notes). Measured: 2021, 2022, 2023, 2024, 2025 (partly: 2017, 2019, 2020); anchored on an edition: 2016. Extrapolated or estimated: 2026.</li>
         </ul>
         <h4>Bedrock</h4>
-        <p>Where the terrain file has a bed, the layer Bedrock cuts the strip open as a block diagram: ice above, bedrock below. The bed is swissBEDROCK, a model: under glaciers it is swissALTI3D minus a modelled ice thickness.${fn('bedrock')}</p>
-        <p>Switching the ice off shows the bed with a rock look painted from the ice-free ground around it, and hollows in the bed get a small lake. The colours and the lakes are modelled, not measured.</p>
-        <p>Where GLAMOS has radar for the glacier, <em>Thickness cross-section</em> draws a line across the glacier and gives its surface and bed as a chart (downloads as SVG, PNG and CSV).</p>
+        <p>Where the terrain file has a bed, the layer Bedrock cuts the strip open like a block diagram: ice above, bedrock below. The bed is swissBEDROCK, a model: under glaciers it is swissALTI3D minus a modelled ice thickness.${fn('bedrock')}</p>
+        <p>With the ice switched off you see the bed with a rock look painted from the ice-free ground around it; hollows get a small lake. The colours and the lakes are modelled, not measured.</p>
+        <p>Where GLAMOS has radar for the glacier, <em>Thickness cross-section</em> draws a line across it and charts its surface and bed (downloads as SVG, PNG and CSV).</p>
         <h4>Super-resolution</h4>
-        <p>An optional layer for Aletsch, Gornergletscher, Fieschergletscher, Rhonegletscher, Unteraargletscher, Corbassière, Zmuttgletscher, Findelgletscher, Feegletscher and Triftgletscher, 2016 to 2026. The Sentinel-2 picture of the year has been run through a super-resolution model (SEN2SR, 10 m to 2.5 m).${fn('sr')}</p>
-        <p>The extra detail is the model's estimate, not something the satellite saw. The layer is off until you switch it on. All other pictures on the site are never sharpened this way.</p>
+        <p>Optional, for the ten glaciers, 2016 to 2026: the Sentinel-2 picture of the year run through a super-resolution model (SEN2SR, 10 m to 2.5 m).${fn('sr')}</p>
+        <p>The extra detail is the model's estimate, not something the satellite saw. The layer is off until you switch it on. No other picture on the site is sharpened this way.</p>
         <h4>Lakes</h4>
-        <p>In front of the Rhone, Findel and Zmutt glaciers a lake can have grown over ground that the model holds as a slope. Where the picture of a year shows water (found from its colour), the terrain there is set to the level of the lake that the model already holds, so the water lies flat. A lake without such a level in the model is left as it is.</p>
+        <p>In front of the Rhone, Findel and Zmutt glaciers a lake can have grown over ground the model holds as a slope. Where a year's picture shows water (found from its colour), the terrain there is set to the level of the lake the model already holds, so the water lies flat. A lake with no such level in the model is left as it is.</p>
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-11"><summary>Old photographs</summary><div class="about-sec">
-        <p>"Historical images" (3D view, one year) shows historic photographs of the lower tongue for eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel and Fee. They come from the ETH Library's Bildarchiv; where the camera stood and looked was worked out by volunteers on Smapshot (HEIG-VD). Click a photograph, or a camera symbol on the terrain (switch it on in the dropdown), and the 3D view flies to that spot and looks the same way, with the same field of view. Drag the line to compare the photograph with the terrain of today.</p>
-        <p>Only photographs whose date is known to about a year, and where the tongue is in the picture, were kept. Each photograph shows its own licence. A rod on the ice of today marks the estimated height of the ice surface then: from the thinning of the whole glacier in the GLAMOS volume surveys, and before the first survey from the 1850 area with area-volume scaling (Bahr et al. 1997). The range is wide and the figure is an estimate.</p>
+        <p>"Historical images" (3D view, one year) shows historic photographs of the lower tongue for eight glaciers: Aletsch, Gorner, Fiescher, Unteraar, Zmutt, Rhone, Findel and Fee. Source: the ETH Library's Bildarchiv; volunteers on Smapshot (HEIG-VD) worked out where each camera stood and looked.</p>
+        <p>Click a photograph, or a camera symbol on the terrain (switch it on in the dropdown): the 3D view flies there, same direction, same field of view. Drag the line to compare with today.</p>
+        <p>Kept: photographs dated to about a year, with the tongue in the picture; each shows its own licence. A rod on today's ice marks the estimated ice height then: from the whole glacier's thinning in the GLAMOS volume surveys, and before the first survey from the 1850 area with area-volume scaling (Bahr et al. 1997). The range is wide; the figure is an estimate.</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-12"><summary>Aerial images, trails and panoramas</summary><div class="about-sec">
-        <p><em>swisstopo aerial</em> (SWISSIMAGE) can be switched on in the layers menu; it shows only inside the image box of the chosen glacier, in the year you picked. The layer is a series of editions; the year it names is the year the photographs were taken, which can be earlier than the edition (the 2025 edition shows photographs from 2023 at Aletsch). Switch the Sentinel-2 image off to see it alone.</p>
-        <p><em>Hiking trails</em> come from swisstopo. The white outline around the trail marks where a person 1.7 m tall can see the glacier tongue from the trail (my own calculation from the elevation model; trees and buildings are not counted). The distances in the hike and bike cards (how far a route passes from the tongue) are computed here too.</p>
-        <p><em>Panoramas</em> (Grosser Aletsch only) are the best Street View panoramas of the glacier, from the upper glacier down to the tongue. They open in Google's own viewer; nothing of them is stored here but their ids.${fn('streetview')}</p>
+        <p><em>swisstopo aerial</em> (SWISSIMAGE): switch it on in the layers menu. It shows only inside the image box of the chosen glacier, for the year you picked. The year it names is when the photographs were taken, which can be earlier than the edition (the 2025 edition shows photographs from 2023 at Aletsch). Switch the Sentinel-2 image off to see it alone.</p>
+        <p><em>Hiking trails</em> come from swisstopo. The white outline marks where a person 1.7 m tall can see the tongue from the trail (computed here from the elevation model; trees and buildings are not counted). The distances in the hike and bike cards (how far a route passes from the tongue) are computed here too.</p>
+        <p><em>Panoramas</em> (Grosser Aletsch only): the best Street View panoramas of the glacier, from the upper glacier down to the tongue. They open in Google's own viewer; only their ids are stored here.${fn('streetview')}</p>
+      
       </div></details>
       <p class="about-group">What to trust</p>
+      <details class="about-ch" name="aboutch" id="ch-24"><summary>Method</summary><div class="about-sec">
+        <h4>A picture, in four steps</h4>
+        <ol>
+          <li>Every Sentinel-2 pass from 1 July to 20 September is scored for cloud and snow.</li>
+          <li>The clearest day wins: September first, then August, then July.</li>
+          <li>The picture is rendered from that day's Level-1C data with the Copernicus Browser true colour process. Pixels are never sharpened, except in the labelled Super-resolution layer.</li>
+          <li>For some glaciers a picking tool chose the scene with stricter rules and one satellite orbit for all years.</li>
+        </ol>
+        <h4>A number</h4>
+        <ul>
+          <li>Measured figures are copied as the source states them, with the source beside them.</li>
+          <li>What the page adds (sums, averages, comparisons) is computed here, and labelled.</li>
+          <li>Where nobody measured (the ice of a glacier in a given year, a surface between surveys) a model fills in, and the page says estimated.</li>
+        </ul>
+        <h4>A surface in 3D</h4>
+        <p>A physical model, fitted to every dated elevation model of the glacier, to the GLAMOS mass balance and to a fitted rate of ice flow. Details: The 3D view and the field notes.</p>
+      </div></details>
+      <details class="about-ch" name="aboutch" id="ch-25"><summary>Limits</summary><div class="about-sec">
+        <ul>
+          <li><em>Cloud and snow.</em> A clear day may not exist. Clouds, shadow and fresh snow remove many acquisitions; after about 20 September snow often hides the tongue. The picture is then the best of a poor set.</li>
+          <li><em>Scene choice.</em> A picture is one day. The day differs between years, so snow and shade differ too. Compare with care.</li>
+          <li><em>Sharpness.</em> At 10 m per pixel, detail under about 10 m is invisible. A retreat of a few metres a year is under one pixel, which is why only the ten largest glaciers are shown.</li>
+          ${REGION.landsat ? `<li><em>Landsat colour matching.</em> Years are matched on ice-free ground so they look alike. That makes them comparable, not identical. The pixels are 30 m, and filled Landsat 7 stripes are a repair, not data.</li>` : ''}
+          <li><em>Measured or modelled.</em> The ice thickness map, the bed, a glacier's ice in a given year, and 3D surfaces between surveys are models. A surface is measured only on the days and cells a survey covers.</li>
+          <li><em>Timing.</em> Surveys have their own periods, and the newest data end before the newest images. Figures for 2026 are provisional.</li>
+        </ul>
+      </div></details>
       <details class="about-ch" name="aboutch" id="ch-18"><summary>Measured, computed or estimated</summary><div class="about-sec">
         <h4>Measured</h4>
-        <p>Copied from the source: the Sentinel-2 and Landsat pictures (real satellite images), the outlines of the Swiss Glacier Inventory, the GLAMOS length changes, volume changes between surveys, yearly mass balance of Aletsch, Rhone, Corbassière and Findel, radar ice thickness, ITS_LIVE speeds and, on the Aletsch strip, the surfaces of 2017, 2021 and 2023.</p>
-        <h4>Computed by me</h4>
+        <p>Copied from the source: the ${REGION.landsat ? 'Sentinel-2 and Landsat pictures' : 'Sentinel-2 pictures'} (real satellite images), the outlines of the Swiss Glacier Inventory, the GLAMOS length changes, volume changes between surveys, yearly mass balance of Aletsch, Rhone, Corbassière and Findel, radar ice thickness, ITS_LIVE speeds and, on the Aletsch strip, the surfaces of 2017, 2021 and 2023.</p>
+        <h4>Computed here</h4>
         <p>From measured values, and labelled so: sums and averages over your selected years, lengths in 1870 and today, the football pitches, buses and Eiffel Towers, the pin and click values of the ice speed, the distances of the hikes, and the band where the tongue can be seen from a trail.</p>
         <h4>Modelled or estimated</h4>
         <ul>
@@ -741,20 +828,21 @@ export function aboutChaptersCh(){
           <li>the ice thickness map of Grab et al. and the bed of swissBEDROCK;</li>
           <li>the ice surface of the years that are not measured, and the figures of 2026 (the newest autumn has no yearly measurement yet);</li>
           <li>the rock look and the lakes of the bed;</li>
-          <li>the stripes filled in Landsat 7 pictures (a repair of the picture, not data) and the super-resolved picture.</li>
+          <li>the super-resolved picture${REGION.landsat ? ' and the stripes filled in Landsat 7 pictures (a repair of the picture, not data)' : ''}.</li>
         </ul>
-        <p>Where a figure is an estimate the page says so next to it.</p>
+        <p>Where a figure is an estimate, the page says so next to it.</p>
+      
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-9"><summary>Sources</summary><div class="about-sec">
         <ol class="src-list">${SOURCE_LIST.map(k => `<li id="fn-${k}" title="Click to go back to the text">${SOURCES[k]()}</li>`).join('')}${dynSources.map((h, i) => `<li id="fn-g${i + 1}" title="Click to go back to the text">${h}</li>`).join('')}</ol>
       </div></details>
       <p class="about-group">Behind the site</p>
       <details class="about-ch" name="aboutch" id="ch-21"><summary>About me</summary><div class="about-sec">
-        <p>I am Jochem Braakhekke, originally from the Netherlands, and the mountains became my home ground. I have worked on glaciers all over the globe and have been a polar expedition guide in both the Arctic and the Antarctic.</p>
+        <p>I am Jochem Braakhekke, from the Netherlands. The mountains became my home ground. I have worked on glaciers around the globe and guided polar expeditions in both the Arctic and the Antarctic.</p>
         <p>I hold a bachelor's degree in Earth Sciences from the University of Amsterdam and a master's degree in Earth Science from ETH Zürich, with glaciology and geology as my main fields. Today I am an academic associate at the remote sensing lab at UZH and a scientific consultant at the Swiss NPOC.</p>
-        <p>I made Tongues from Space on my own, and I keep it up to date: the pictures, the numbers, the texts and the code.</p>
-        <p>I believe in pictures: a before-and-after image of a glacier is understood at once and remembered. I hope the site sparks awareness of glaciers and of why they matter to society, for instance because of the water they store.</p>
-        <p>The code is open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>, where you can also write to me with questions, remarks and bugs. The site is non-commercial; the licences of the code, the texts and the data are listed in the README and under Sources. Follow along on <a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener">Instagram</a> and <a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener">TikTok</a>. See also <a href="https://recognice.org/" target="_blank" rel="noopener">Recogn.ice</a> and <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+        <p>I made Tongues from Space on my own and keep it up to date: the pictures, the numbers, the texts and the code.</p>
+        <p>The code is open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>, where you can also write to me with questions, remarks and bugs. The site is non-commercial; the licences of the code, the texts and the data are in the README and under Sources. Follow along on <a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener">Instagram</a> and <a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener">TikTok</a>. See also <a href="https://recognice.org/" target="_blank" rel="noopener">Recogn.ice</a> and <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+      
       </div></details>
 `;
 }
