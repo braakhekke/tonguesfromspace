@@ -381,7 +381,7 @@ class TestRegions(SiteCase):
         page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'ch'")
         self.assertEqual(page.evaluate("location.pathname"), "/switzerland/")
         page = self.open()
-        self.assertIn("Swiss glaciers", page.evaluate("document.title"))
+        self.assertIn("Tongues from Space", page.evaluate("document.title"))      # the page of a glacier names the glacier in its title (below); the region page of the server says Swiss glaciers
         self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), "https://tonguesfromspace.org/switzerland/")
 
     def test_each_glacier_has_its_own_page_on_the_built_site(self):      # /switzerland/<slug>/: own title and picture for link previews; the page opens on its glacier and the address follows the chosen glacier
@@ -394,6 +394,7 @@ class TestRegions(SiteCase):
             self.assertEqual(page.evaluate("document.querySelector('link[rel=canonical]').href"), f"https://tonguesfromspace.org/switzerland/{slug}/")
             self.assertIn(f"images/og/{slug}.jpg", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
             self.assertEqual(page.evaluate("SITE_BASE"), "/", "files are fetched from the root, the page sits two folders deep")
+            self.assertTrue(page.evaluate("document.title.endsWith(' from space | Tongues from Space')"), "the tab names the glacier, as the title the server sent")
             self.assertClean()
         page = self.open(path="/switzerland/aletsch/", hash="#g=gorner&m=single&one=2023")      # a link that names a glacier wins over the page it was opened on
         self.assertEqual(page.evaluate("state.glacier"), "gorner")
@@ -401,8 +402,10 @@ class TestRegions(SiteCase):
         page.wait_for_function("state.glacier === 'sgi-B53-04'")
         page.evaluate("writeHash()")
         self.assertEqual(page.evaluate("location.pathname"), "/switzerland/fee/", "the address follows the chosen glacier: a link that is shared opens its page")
+        self.assertEqual(page.evaluate("document.title"), "Feegletscher from space | Tongues from Space", "and so does the title of the tab")
         page.evaluate("setGlacierPicked(false); writeHash()")
         self.assertEqual(page.evaluate("location.pathname"), "/switzerland/", "no glacier chosen: the page of the region")
+        self.assertEqual(page.evaluate("document.title"), "Tongues from Space | Swiss glaciers")
         self.assertClean()
 
     def test_vatnajokull_hides_what_has_no_data_and_choosing_the_outlet_works(self):
