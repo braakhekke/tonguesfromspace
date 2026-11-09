@@ -212,5 +212,154 @@ class TestRelay(WorkerCase):
         self.assertNotIn("data/landsat/hofsjokull/1985.jpg", r["hits"], "the bucket is not even asked")
 
 
+GALLERY_SETUP = """
+  // a fake R2 bucket and a fake "are you a person" check; helpers to make files and uploads
+  const objs = new Map(), turnstile = {ok: true, calls: 0};
+  const GALLERY = {
+    async head(k) { return objs.has(k) ? {key: k} : null; },
+    async put(k, v, o) { objs.set(k, {v, o}); },
+    async get(k) { const x = objs.get(k); return x ? {arrayBuffer: async () => x.v.slice().buffer, httpMetadata: x.o.httpMetadata, customMetadata: x.o.customMetadata, httpEtag: 'e', body: x.v} : null; },
+    async list({prefix = '', limit = 1000} = {}) { const ks = [...objs.keys()].filter(k => k.startsWith(prefix)).slice(0, limit); return {objects: ks.map(k => ({key: k, size: objs.get(k).v.length, customMetadata: objs.get(k).o.customMetadata})), truncated: false}; },
+    async delete(k) { objs.delete(k); },
+  };
+  try { caches.default = {async match() { return null; }, async put() {}, async delete() {}}; } catch (e) {}      // the Worker's edge cache does not exist in a page
+  const realFetch = window.fetch;
+  window.fetch = async (url, init) => String(url).includes('challenges.cloudflare.com') ? (turnstile.calls++, new Response(JSON.stringify({success: turnstile.ok}), {status: 200})) : realFetch(url, init);
+  const genv = {...env, GALLERY, TURNSTILE_SECRET: 's', TURNSTILE_SITEKEY: 'k', GALLERY_ADMIN_TOKEN: 'a-very-long-admin-token-of-25-chars'};
+  const jpeg = (w, h, n = 2000, nonce = 0) => { const b = new Uint8Array(n); b.set([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10]); b[20] = 0xFF; b[21] = 0xC0; b[22] = 0; b[23] = 17; b[24] = 8; b[25] = h >> 8; b[26] = h & 255; b[27] = w >> 8; b[28] = w & 255; b[100] = nonce & 255; b[101] = nonce >> 8; return b; };
+  const mp4 = (w, h, n = 6000, avc = true) => { const b = new Uint8Array(n); b.set([0, 0, 0, 24, 0x66, 0x74, 0x79, 0x70]); b.set(new TextEncoder().encode('stsd'), 100); if (avc) b.set(new TextEncoder().encode('avc1'), 108); const o = 108 + 4 + 24; b[o] = w >> 8; b[o + 1] = w & 255; b[o + 2] = h >> 8; b[o + 3] = h & 255; return b; };
+  const META = {type: 'still', fmt: 'wide', style: 'natural', glacier: 'aletsch', name: 'Grosser Aletsch', years: [2023], view: 'map'};
+  const VMETA = {type: 'timelapse', fmt: 'wide', style: 'natural', glacier: 'aletsch', name: 'Grosser Aletsch', years: [2020, 2023], view: 'map'};
+  let ipn = 0;
+  const submit = async (bytes, meta = META, o = {}) => {
+    const fd = new FormData();
+    if (!o.noFile) fd.append('file', new File([bytes], 'x.bin'));
+    fd.append('meta', typeof meta === 'string' ? meta : JSON.stringify(meta));
+    if (o.token !== null) fd.append('token', o.token === undefined ? 'tok' : o.token);
+    const headers = new Headers({Origin: o.origin || 'http://t.test', 'Content-Length': String(o.len !== undefined ? o.len : (bytes ? bytes.length : 0) + 500), 'CF-Connecting-IP': o.ip || ('10.0.0.' + (++ipn))});
+    const x = await W.fetch({url: 'https://relay.test/gallery/submit', method: 'POST', headers, formData: async () => fd}, genv, {});
+    return {status: x.status, body: await x.json().catch(() => ({}))};
+  };
+  const get = async (path, headers = {}, method = 'GET', body = null) => { const x = await W.fetch({url: 'https://relay.test' + path, method, headers: new Headers({Origin: 'http://t.test', ...headers}), json: async () => body}, genv, {}); return {status: x.status, body: await x.json().catch(() => ({}))}; };
+  const sha24 = async b => [...new Uint8Array(await crypto.subtle.digest('SHA-256', b))].map(x => x.toString(16).padStart(2, '0')).join('').slice(0, 24);
+"""
+
+
+class TestGallery(WorkerCase):
+    """The only place where visitors write data: every check of an upload (worker.js, section "gallery"). A fake R2 bucket and a fake Turnstile; nothing leaves the page."""
+
+    def gal(self, body):
+        return self.run_js(GALLERY_SETUP + body)
+
+    def test_a_good_picture_waits_in_the_queue_and_is_never_served_before_approval(self):
+        r = self.gal("""
+          const b = jpeg(1920, 1080), res = await submit(b), id = await sha24(b);
+          const pend = objs.get('pending/' + id);
+          return {res, stored: !!pend, meta: pend && JSON.parse(pend.o.customMetadata.meta), ctype: pend && pend.o.httpMetadata.contentType,
+                  file: (await get('/gallery/file/' + id)).status, list: (await get('/gallery/list')).body.items.length, turnstile: turnstile.calls};""")
+        self.assertEqual(r["res"]["status"], 200)
+        self.assertTrue(r["stored"], "kept under pending/")
+        self.assertEqual((r["ctype"], r["meta"]["glacier"], r["meta"]["fmt"], r["meta"]["years"]), ("image/jpeg", "aletsch", "wide", [2023]))
+        self.assertEqual(r["file"], 404, "a pending file is not served")
+        self.assertEqual(r["list"], 0, "a pending file is not in the public list")
+        self.assertEqual(r["turnstile"], 1)
+
+    def test_no_person_check_no_file_or_a_failed_check_stores_nothing(self):
+        r = self.gal("""
+          const b = jpeg(1920, 1080), out = {};
+          out.noToken = await submit(b, META, {token: null});
+          out.noFile = await submit(null, META, {noFile: true});
+          turnstile.ok = false; out.failed = await submit(b);
+          out.stored = objs.size; out.calls = turnstile.calls; return out;""")
+        self.assertEqual(r["noToken"]["status"], 400)
+        self.assertEqual(r["noFile"]["status"], 400)
+        self.assertEqual(r["failed"]["status"], 403)
+        self.assertEqual(r["stored"], 0)
+
+    def test_size_limits(self):
+        r = self.gal("""
+          const b = jpeg(1920, 1080);
+          return {big: await submit(b, META, {len: 16 * 1000 * 1000}), zero: await submit(b, META, {len: 0}),
+                  imageOver4MB: await submit(jpeg(1920, 1080, 4.1e6)), imageTiny: await submit(jpeg(1920, 1080, 900)),
+                  videoOver15MB: await submit(mp4(1920, 1080, 15.01e6), VMETA), videoTiny: await submit(mp4(1920, 1080, 4000), VMETA), stored: objs.size};""")
+        self.assertEqual(r["big"]["status"], 413, "more than the largest file plus its details: refused before the file is read")
+        self.assertEqual(r["zero"]["status"], 413)
+        for k in ("imageOver4MB", "imageTiny", "videoOver15MB", "videoTiny"):
+            self.assertEqual(r[k]["status"], 400, k)
+            self.assertIn("size", r[k]["body"]["error"], k)
+        self.assertEqual(r["stored"], 0)
+
+    def test_the_real_file_type_and_exact_pixel_size_are_checked(self):
+        r = self.gal("""
+          const png = new Uint8Array(2000); png.set([0x89, 0x50, 0x4E, 0x47]);
+          const out = {
+            png: await submit(png), jpegAsVideo: await submit(jpeg(1920, 1080), VMETA), mp4AsImage: await submit(mp4(1920, 1080), META),
+            wrongSize: await submit(jpeg(1920, 1081)), swappedSize: await submit(jpeg(1080, 1920)),
+            noH264: await submit(mp4(1920, 1080, 6000, false), VMETA), videoWrongSize: await submit(mp4(1920, 1081), VMETA),
+            reel: await submit(jpeg(1080, 1920), {...META, fmt: 'reel'}), feed: await submit(jpeg(1080, 1350), {...META, fmt: 'feed'}), video: await submit(mp4(1920, 1080, 6000), VMETA)};
+          out.stored = [...objs.keys()].sort(); return out;""")
+        for k in ("png", "jpegAsVideo", "mp4AsImage", "wrongSize", "swappedSize", "noH264", "videoWrongSize"):
+            self.assertEqual(r[k]["status"], 400, k)
+            self.assertTrue(r[k]["body"]["error"].startswith("Invalid file"), (k, r[k]["body"]))
+        self.assertIn("picture size", r["wrongSize"]["body"]["error"])
+        self.assertIn("not a JPEG", r["png"]["body"]["error"])
+        self.assertIn("not H.264", r["noH264"]["body"]["error"])
+        for k in ("reel", "feed", "video"):
+            self.assertEqual(r[k]["status"], 200, k + " in its exact format is accepted")
+        self.assertEqual(len(r["stored"]), 3)
+
+    def test_only_the_fixed_list_of_details_is_accepted(self):
+        r = self.gal("""
+          let n = 0; const t = async m => (await submit(jpeg(1920, 1080, 2000, ++n), m)).status, b = jpeg(1920, 1080, 2000, 999);
+          return {type: await t({...META, type: 'x'}), fmt: await t({...META, fmt: 'square'}), style: await t({...META, style: 'neon'}), glacier: await t({...META, glacier: 'a b/<script>'}),
+                  name: await t({...META, name: '<b>x</b>'}), yearEarly: await t({...META, years: [2010]}), yearsMany: await t({...META, years: [2020, 2021, 2022]}), noYears: await t({...META, years: []}),
+                  nick: await t({...META, nick: '<img src=x>'}), extra: await t({...META, evil: 'x'}), notJson: (await submit(b, 'not json')).status, tooLong: (await submit(b, {...META, nick: 'x'.repeat(2000)})).status,
+                  goodNick: await t({...META, nick: 'Ada'}), stored: objs.size, kept: JSON.parse([...objs.values()][0].o.customMetadata.meta)};""")
+        for k in ("type", "fmt", "style", "glacier", "name", "yearEarly", "yearsMany", "noYears", "nick", "notJson", "tooLong"):
+            self.assertEqual(r[k], 400, k)
+        self.assertEqual((r["extra"], r["goodNick"]), (200, 200), "an unknown field is dropped, not stored")
+        self.assertNotIn("evil", r["kept"])
+
+    def test_the_queue_has_a_fixed_size_and_a_file_is_kept_once(self):
+        r = self.gal("""
+          const first = jpeg(1920, 1080, 2000, 1);
+          const a = await submit(first), again = await submit(first);
+          for (let i = 0; i < 200; i++) objs.set('pending/fill' + i, {v: new Uint8Array(1), o: {customMetadata: {}}});
+          const full = await submit(jpeg(1920, 1080, 2000, 2));
+          return {a, again, full, pending: [...objs.keys()].filter(k => k.startsWith('pending/')).length};""")
+        self.assertEqual(r["a"]["status"], 200)
+        self.assertEqual(r["again"]["status"], 409)
+        self.assertEqual(r["full"]["status"], 503)
+        self.assertEqual(r["pending"], 201, "the full queue took nothing more")
+
+    def test_uploads_are_limited_per_address_and_only_from_allowed_origins(self):
+        r = self.gal("""
+          const codes = []; for (let i = 0; i < 6; i++) codes.push((await submit(jpeg(1920, 1080), META, {ip: '9.9.9.9', token: null})).status);
+          const other = await submit(jpeg(1920, 1080, 2000, 7), META, {ip: '8.8.8.8', token: null});
+          const bad = await submit(jpeg(1920, 1080), META, {origin: 'https://evil.example'});
+          const x = await W.fetch({url: 'https://relay.test/gallery/submit', method: 'POST', headers: new Headers({Origin: 'https://evil.example', 'Content-Length': '2000'}), formData: async () => new FormData()}, genv, {});
+          return {codes, other: other.status, bad: bad.status, noOriginHeader: x.status, closed: (await W.fetch({url: 'https://relay.test/gallery/submit', method: 'POST', headers: new Headers({Origin: 'http://t.test', 'Content-Length': '2000'}), formData: async () => new FormData()}, {...genv, TURNSTILE_SECRET: ''}, {})).status};""")
+        self.assertEqual(r["codes"], [400, 400, 400, 400, 429, 429], "four uploads an hour per address, then refused")
+        self.assertEqual(r["other"], 400, "another address is not affected")
+        self.assertEqual((r["bad"], r["noOriginHeader"]), (403, 403))
+        self.assertEqual(r["closed"], 503, "without the Turnstile secret the gallery is closed for uploads")
+
+    def test_moderation_needs_the_admin_token_and_approval_publishes(self):
+        r = self.gal("""
+          const b = jpeg(1920, 1080), id = await sha24(b); await submit(b);
+          const H = t => ({Authorization: 'Bearer ' + t});
+          const none = await get('/gallery/admin/pending'), wrong = await get('/gallery/admin/pending', H('nope')), ok = await get('/gallery/admin/pending', H(genv.GALLERY_ADMIN_TOKEN));
+          const approve = await get('/gallery/admin/approve', H(genv.GALLERY_ADMIN_TOKEN), 'POST', {id});
+          const pub = await get('/gallery/list'), served = await get('/gallery/file/' + id);
+          const remove = await get('/gallery/admin/remove', H(genv.GALLERY_ADMIN_TOKEN), 'POST', {id});
+          const short = await get('/gallery/admin/pending', H('short'), 'GET');
+          return {none: none.status, wrong: wrong.status, ok: ok.status, pending: ok.body.items.length, approve: approve.status, public: pub.body.items.length, served: served.status,
+                  afterRemove: (await get('/gallery/list')).body.items.length, remove: remove.status, short: short.status};""")
+        self.assertEqual((r["none"], r["wrong"], r["short"]), (401, 401, 401))
+        self.assertEqual((r["ok"], r["pending"]), (200, 1))
+        self.assertEqual((r["approve"], r["public"], r["served"]), (200, 1, 200))
+        self.assertEqual((r["remove"], r["afterRemove"]), (200, 0))
+
+
 if __name__ == "__main__":
     unittest.main()
