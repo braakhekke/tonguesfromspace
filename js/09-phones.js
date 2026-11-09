@@ -184,7 +184,13 @@ export function setMini(on){
   const dh = stage.getBoundingClientRect().height - h0; if (PHONE.matches && scrollY > 0 && dh) scrollBy(0, dh);
   map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
-$('miniToggle').onclick = () => setMini(!$('stage').classList.contains('mini'));
+{ const h = $('miniToggle'); let y0 = null, moved = false;
+  h.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false; try { h.setPointerCapture(e.pointerId); } catch (_) {} });
+  h.addEventListener('pointerup', e => { if (y0 === null) return; const d = e.clientY - y0; y0 = null;
+    if (Math.abs(d) > 14) { moved = true; setMini(d < 0); }      // swipe up: strip, down: large
+    else setMini(!$('stage').classList.contains('mini')); });
+  h.addEventListener('pointercancel', () => { y0 = null; });
+  h.onclick = null; }
 PHONE.addEventListener('change', () => setMini(false));
 
 

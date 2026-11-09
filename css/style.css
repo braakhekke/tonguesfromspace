@@ -1083,9 +1083,10 @@ body.has-full{overflow:hidden}
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
   .stage:not(.is-full) .mini-ctl{display:contents}
-  #miniToggle{position:absolute;z-index:700;right:8px;bottom:8px;width:32px;height:32px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.92);color:var(--rock);display:grid;place-items:center;cursor:pointer;box-shadow:0 1px 6px rgba(0,0,0,.3)}
-  #miniToggle svg{transform:rotate(180deg)}      /* large: the chevron points up (pull the picture up to a strip) */
-  .stage.mini #miniToggle svg{transform:none}      /* strip: it points down (open it) */
+  #miniToggle{position:absolute;z-index:700;left:50%;top:0;transform:translateX(-50%);width:84px;height:26px;padding:0;border:0;border-radius:0 0 13px 13px;background:rgba(255,255,255,.55);display:grid;place-items:center;cursor:grab;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}      /* a sheet handle on the top edge of the picture: tap it or swipe it up (strip) / down (large) */
+  #miniToggle svg{display:none}
+  #miniToggle::before{content:'';width:38px;height:5px;border-radius:3px;background:rgba(14,26,34,.55)}
+  #miniToggle::after{content:'';position:absolute;inset:0 -14px -10px}      /* bigger touch target */
   body.pane-open .mini-ctl{display:none!important}
 }
 }
