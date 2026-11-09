@@ -79,8 +79,8 @@
 <p style="margin:0 0 6px"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a></p>
 <h1>Scientific field notes</h1>
 <p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">All glaciers with field notes</a></p>
-<p class="sub" id="sub">The satellite pictures on this site are real photographs from space. The 3D ice surface under them is different: for each year it is a reconstruction. These notes explain, for <span id="gname">this glacier</span>, what was measured, what was calculated to fill the gaps, and how far to trust the result. Every number refers to the tongue (chapter 1) and is either computed for this site or taken from a named source.</p>
-<div id="overview"><p class="sub">Each page explains how the 3D ice surface of one glacier was reconstructed for every year: what was measured, what was calculated, and how well the result checks out. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
+<p class="sub" id="sub">The satellite pictures are real photographs from space. The 3D ice surface under them is not: for each year it is a reconstruction. For <span id="gname">this glacier</span>, these notes show what was measured, what was calculated to fill the gaps, and how far to trust the result. Every number refers to the tongue (chapter 1) and is computed for this site or taken from a named source.</p>
+<div id="overview"><p class="sub">Each page shows how one glacier's 3D ice surface was rebuilt for every year: what was measured, what was calculated, how well it checks out. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
 <nav class="toc" aria-label="Chapters"></nav>
 
 <section class="fn" id="area" data-toc="Study area"><h2><span class="no"></span>Study area: <span id="areaT">the tongue</span></h2>
@@ -92,10 +92,10 @@
 <div class="lead" id="fnSummary"></div>
 <div class="card"><svg id="chart" role="img" aria-label="Provenance of the yearly surfaces"></svg></div>
 <div class="legend" id="legend"></div>
-<div class="pb" data-title="One year at a time"><p class="lead" style="margin-top:0">One column per year: how the surface was found, its uncertainty, the measured surfaces it hangs on, what shapes the change between them and what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p><p class="lead" style="margin:0 0 8px"><b>Choose a year</b> (or click it in the chart on the previous page).</p><div class="yrs" id="yrs"></div>
+<div class="pb" data-title="One year at a time"><p class="lead" style="margin-top:0">One column per year: how the surface was found, how uncertain it is, which measured surfaces anchor it, what shapes the change between them, what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p><p class="lead" style="margin:0 0 8px"><b>Choose a year</b> (or click it in the chart on the previous page).</p><div class="yrs" id="yrs"></div>
 <div id="detail">Choose a year.</div></div>
 <div class="notes pb" data-title="Kinds, uncertainty and checks">
-  <section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a dated DEM or lidar surface.</li><li><b>interpolated</b>: between two measured surfaces.</li><li><b>extrapolated</b>: beyond the last one, at its rate.</li><li><b>provisional</b>: 2026.</li><li><b>Date</b>: every year is the surface on 30 September of that year (the end of the glaciological year).</li></ul><p>A measured surface is moved from its survey day to 30 September by the same model. So the surface shown for a surveyed year is not the raw survey: it is the survey surface lowered by the melt between the survey day and 30 September (for a survey in August, the weeks in between).</p></section>
+  <section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a dated DEM or lidar surface.</li><li><b>interpolated</b>: between two measured surfaces.</li><li><b>extrapolated</b>: beyond the last one, at its rate.</li><li><b>provisional</b>: 2026.</li><li><b>Date</b>: every year is the surface on 30 September of that year (the end of the glaciological year).</li></ul><p>A measured surface is moved from its survey day to 30 September by the same model. So a surveyed year shows the survey surface lowered by the melt between the survey day and 30 September, not the raw survey.</p></section>
   <section><h3>Sharing the loss between years</h3><div id="nShare"><ul class="fnl"><li><b>Solid</b>: the GLAMOS balance sets how the loss between two measured surfaces falls into each year.</li><li><b>Dashed</b>: extrapolated at the last segment's rate (2026 also with its own balance).</li><li><b>Not used</b>: measured years.</li></ul></div></section>
   <section><h3>Uncertainty</h3><p id="nUnc">Median over the tongue ice, red whisker the 90th percentile. Calibrated on the same ICESat-2 shots. 2026 has none yet: it is provisional and its balance was read from the GLAMOS figure.</p></section>
   <section><h3>Independent checks</h3><div id="nInd"><ul class="fnl"><li><b>ICESat-2</b> also fitted the 2023 anchor day and σ, so it is not independent (rmse is leave-one-granule-out).</li><li><b>ASTER</b> and <b>stakes</b> are checks only.</li></ul><p>Click a year for their numbers.</p></div></section>
@@ -118,13 +118,13 @@
   <div class="src" id="bedSrc"></div>
 </section>
 <section class="fn" id="arcsnote" data-toc="Experimental outlines" hidden><h2>Experimental outlines of the tongue</h2>
-<p class="lead">Yearly lines around the lowest 2 km of the tongue (layer "Experimental outline"). This is an experiment: not an official outline and not a measurement.</p>
+<p class="lead">Yearly lines around the lowest 2 km of the tongue (layer "Experimental outline"). An experiment: not an official outline, not a measurement.</p>
 <ul class="fnl"><li><b>Who draws them.</b> A neural network, <b>GlaViTU</b> (Maslov, Persello, Schellenberger and Stein, "Globally scalable glacier mapping by deep learning matches expert delineation accuracy", <i>Nature Communications</i> 16, 43, 2025, <a href="https://doi.org/10.1038/s41467-024-54956-x" target="_blank" rel="noopener" style="color:var(--ice)">doi 10.1038/s41467-024-54956-x</a>), with the weights <b>glavitu_regional_ALP</b> from that study. It reads the six optical Sentinel-2 bands plus height and slope, and gives every 10 m pixel a probability of glacier ice.</li>
 <li><b>Which picture.</b> The same Sentinel-2 scene the site shows for that year. The line is where the probability is 0.5, cleaned of small pieces.</li>
-<li><b>Smoothing.</b> Each line is resampled every 5 m and smoothed along its length by 20 m, to remove the 10 m pixel steps. This is cosmetic.</li>
+<li><b>Smoothing.</b> Each line is resampled every 5 m and smoothed along its length by 20 m, to remove the 10 m pixel steps. Cosmetic.</li>
 <li><b>Scenes.</b> <span id="arcsScenes">…</span></li>
 <li><b>What is shown.</b> Only the lowest 2 km, as an open line around the tip. It fades out towards its loose ends.</li>
-<li><b>What can go wrong.</b> One scene is one day. Fresh snow or cloud shadow can move the line, so a year can look like an advance for that reason. Debris-covered and snow-covered ice are hard for such models. The lines were not checked against a survey: do not read yearly changes as measurements.</li>
+<li><b>What can go wrong.</b> One scene is one day: fresh snow or cloud shadow can move the line, so a year can look like an advance. Debris-covered and snow-covered ice are hard for such models. The lines were not checked against a survey, so do not read yearly changes as measurements.</li>
 <li><b>Computed here.</b> Areas and distances come from the pixels, not from a source. The reference outline in the viewer is the official inventory outline (SGI 2023).</li>
 <li><b>Not settled.</b> The licences of the weights and of the height tiles are still to be read before anything like this is published.</li></ul></section>
 <section class="fn" id="flights" data-toc="Special flights" hidden><h2>swisstopo special flights on the site</h2><div id="fnFlights"></div></section>
@@ -143,12 +143,12 @@
 <p class="lead">The layer "Ice speed" shows how fast the surface of the ice moves, as a yearly mean. Source: ITS_LIVE annual mosaics of image pair velocities, version 2.1 (120 m, one mosaic per RGI region, 2013 to 2024), NASA MEaSUREs ITS_LIVE project, Gardner et al. (its-live.jpl.nasa.gov, CC BY 4.0). The product tracks how features on the ice surface shift between pairs of satellite images (Landsat 8/9, Sentinel-2 and Sentinel-1).</p>
 <ul class="fnl"><li><b>Copied, not made here.</b> The values are the product's, only cut to the picture box. The map shows the year of the picture you are looking at; a year without a map shows nothing.</li>
 <li><b>Slow ice is left clear.</b> Below 5 m/yr the product cannot tell ice from rock (rock beside the glaciers reads 1 to 2 m/yr), so nothing is drawn there. Only ice inside the oldest outline is shown.</li>
-<li><b>Surface speed.</b> This is the speed of the surface, not of the deeper ice, and a yearly mean says nothing about the seasons.</li>
+<li><b>Surface speed.</b> The speed of the surface, not of the deeper ice; a yearly mean says nothing about the seasons.</li>
 <li><b>Coarse.</b> At 120 m the mosaic misses narrow ice streams and the last tens of metres of a thin tongue.</li></ul></section>
 <section class="fn" id="srnote" data-toc="Super-resolution layer"><h2>Super-resolution layer (3D view)</h2>
 <p class="lead">The optional layer "Super-resolution" in the 3D view shows the Sentinel-2 picture of a year after the super-resolution model <b>SEN2SR</b> (tacofoundation, model card licence cc0-1.0) has been run over it: 10 m pixels become 2.5 m pixels. It exists for the years 2016 to 2026 of the ten Swiss glaciers of this site that have such a picture; other years show the normal picture.</p>
 <ul class="fnl"><li><b>An estimate, not a measurement.</b> The extra detail is the model's guess; the satellite did not see it. Do not read crevasses, boulders or the edges of debris off this layer.</li>
-<li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened. No number on the site is taken from this layer.</li>
+<li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened, and no number on the site comes from this layer.</li>
 <li><b>Credit.</b> Contains modified Copernicus Sentinel data.</li></ul></section>
 <section class="fn" id="licences" data-toc="Sources and licences"><h2>Sources and licences</h2><div id="fnLic">Loading…</div></section>
 <script src="js/dem-export.js"></script>
