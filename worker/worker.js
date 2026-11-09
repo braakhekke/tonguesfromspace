@@ -623,7 +623,7 @@ async function gallerySubmit(request, env, cors, ip, ctx) {
   else {                                              // a push message to the owner (an ntfy.sh topic URL); a failure never fails the upload
     const what = clean.kind === 'video' ? 'animation' : 'picture', who = clean.nick ? ' from ' + clean.nick : '';
     const ping = fetch(env.GALLERY_NOTIFY_URL, { method: 'POST', body: `New ${what} of ${clean.name} (${clean.years.join(', ')})${who} is waiting for approval in the gallery (${queue.objects.length + 1} in the queue).`,
-      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow', ...(env.GALLERY_NOTIFY_TOKEN ? { Authorization: 'Bearer ' + env.GALLERY_NOTIFY_TOKEN } : {}) } })
+      headers: { Title: 'Tongues from Space: gallery upload', Tags: 'mountain_snow', Click: 'https://tonguesfromspace.org/mod-e36f805dfe9d.html', ...(env.GALLERY_NOTIFY_TOKEN ? { Authorization: 'Bearer ' + env.GALLERY_NOTIFY_TOKEN } : {}) } })
       .then(async r => { if (!r.ok) console.log('gallery ping refused', r.status, env.GALLERY_NOTIFY_TOKEN ? '(token sent)' : '(NO token set on this Worker)', (await r.text().catch(() => '')).slice(0, 300)); }).catch(e => console.log('gallery ping failed', String(e)));
     if (ctx && ctx.waitUntil) ctx.waitUntil(ping);
   }

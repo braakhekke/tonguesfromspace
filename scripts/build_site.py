@@ -44,7 +44,7 @@ GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trai
               "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js")}      # data files that belong to one group of regions
 GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-"}      # the records in data/regions/ of that group start with this
 HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
-PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "robots.txt", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js"]                 # copied as they are (missing ones are skipped)
+PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "robots.txt", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js", "mod-e36f805dfe9d.html"]                 # copied as they are (missing ones are skipped)
 def VQ(img):      # a new address makes link previews fetch a replaced picture again
     if img == "images/preview-social.jpg":
         return "?v=2"
