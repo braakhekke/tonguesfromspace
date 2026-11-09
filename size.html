@@ -851,7 +851,15 @@ function build() {
   { const st = $('stage'), tg = $('miniToggle'), P = matchMedia('(max-width:720px) and (orientation:portrait)');
     const setMini = on => { if (st.classList.contains('mini') === on) return; const h0 = st.getBoundingClientRect().height; st.classList.toggle('mini', on); tg.setAttribute('aria-expanded', !on); tg.setAttribute('aria-label', on ? 'Make the visual larger' : 'Make the visual smaller');
       const dh = st.getBoundingClientRect().height - h0; if (P.matches && scrollY > 0 && dh) scrollBy(0, dh); map.invalidateSize({pan: false}); dispatchEvent(new Event('resize')); };
-    tg.onclick = () => setMini(!st.classList.contains('mini')); P.addEventListener('change', () => setMini(false)); window.setMiniStage = setMini; }
+    P.addEventListener('change', () => setMini(false)); window.setMiniStage = setMini;
+    /* the sheet handle, as on the explorer (js/09-phones.js): tap it or swipe up (strip) / down (large); it shows once the page scrolls or while the strip is shown, hanging below the whole picture */
+    const upd = () => { const sc = P.matches && (scrollY > 4 || st.classList.contains('mini')); document.body.classList.toggle('scrolled', sc); if (sc) document.documentElement.style.setProperty('--stage-bottom', Math.round(st.getBoundingClientRect().bottom) + 'px'); };
+    addEventListener('scroll', upd, {passive: true}); addEventListener('resize', upd); new ResizeObserver(upd).observe(st); upd();
+    st.addEventListener('click', e => { if (!P.matches || !st.classList.contains('mini') || e.target.closest('button, a, input, label')) return; e.stopPropagation(); setMini(false); }, true);
+    let y0 = null;
+    tg.addEventListener('pointerdown', e => { y0 = e.clientY; try { tg.setPointerCapture(e.pointerId); } catch (_) {} });
+    tg.addEventListener('pointerup', e => { if (y0 === null) return; const d = e.clientY - y0; y0 = null; if (Math.abs(d) > 14) setMini(d < 0); else setMini(!st.classList.contains('mini')); });
+    tg.addEventListener('pointercancel', () => { y0 = null; }); }
   $('zoomIn').onclick = () => map.zoomIn(2); $('zoomOut').onclick = () => map.zoomOut(2);
   $('rotL').onclick = () => { const o = slots[state.active]; if (o) { setRot(o, o.rot - 15); syncHash(); } };
   $('rotR').onclick = () => { const o = slots[state.active]; if (o) { setRot(o, o.rot + 15); syncHash(); } };
