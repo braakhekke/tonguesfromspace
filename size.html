@@ -2396,7 +2396,7 @@ const FOOT = () => `<div class="about-wrap">
     const t = st.querySelector('#' + a.getAttribute('href').slice(1)); if (!t) return;
     const ch = t.closest('details.about-ch'); if (ch) ch.open = true; t.scrollIntoView({block: 'center', behavior: 'smooth'});
   });
-  st.addEventListener('click', e => { if (e.target.closest('.social-share')) shareLink(); }); }
+  document.addEventListener('click', e => { if (e.target.closest && e.target.closest('.social-share')) shareLink(); }); }      /* on the document: the phone copy of the social links sits under the card, outside the panel */
 build();
 
 /* every scrollable list in the left panel (glaciers, cities) shows what is picked: when the visitor has scrolled it and let go or left it, it scrolls back so that a picked row (the first one, when two are picked) is in view; also after the picks change */

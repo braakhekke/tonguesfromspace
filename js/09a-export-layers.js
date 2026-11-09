@@ -127,7 +127,7 @@ export function drawLegendCard(ctx, x, y, c){
   }
   ctx.restore(); return y + ch;
 }
-export const layersOn = () => !!$('vLayers') && $('vLayers').checked;
+export const layersOn = () => true;      // the layers ticked in the Layers box are always part of the picture (no separate switch)
 const rowText = row => { const c = row.cloneNode(true); c.querySelectorAll('svg, input, small, .lb-i').forEach(e => e.remove()); return c.textContent.replace(/\s+/g, ' ').trim(); };      // the words of a row (the symbol drawings carry letters of their own)
 const labelOf = id => { const row = $(id) && $(id).closest('label'); return row ? rowText(row) : id; };
 /* The layers that will be printed now */
@@ -285,7 +285,6 @@ function summaryNames(){
 }
 function summaryText(){
   const names = summaryNames();
-  if (viewMode !== '3d' && !layersOn()) return 'Map layers: not included';
   return names.length ? `Layers: ${names.join(', ')}` : 'No map layers';
 }
 const videoKind = () => $('videoSheet').classList.contains('is-image') ? 'image' : 'video';

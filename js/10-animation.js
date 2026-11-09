@@ -1264,4 +1264,3 @@ $('vfLayers').onclick = () => {
   if (d3) b.classList.toggle('open', on);      // (the phone's own menu button opens the 3D box through setLayers)
   if (on && b.classList.contains('min') && !b.classList.contains('in-flow')) (d3 ? $('v3dLbToggle') : $('lbToggle')).click();      // (the phone's panel has no minimised state: its toggle would close it again)
 };
-$('vLayers').addEventListener('change', () => { syncExportRows(); drawPreview(); });
