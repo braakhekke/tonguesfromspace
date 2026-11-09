@@ -965,14 +965,14 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .lb-more{display:none;position:sticky;bottom:0;height:34px;margin-top:-34px;pointer-events:none;align-items:flex-end;justify-content:center;background:linear-gradient(to bottom,rgba(255,255,255,0),rgba(255,255,255,.96) 70%)}
   .lb-more svg{width:20px;height:20px;fill:none;stroke:var(--accent);stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;margin-bottom:1px}
   .layerbox.more .lb-more{display:flex}
-  .fyi-slot{display:block;order:4;padding:0 18px 32px}
+  .fyi-slot{--slot-pad:18px;display:block;order:4;padding:0 18px 32px}
   .story .about-wrap .social,.story .about-wrap .gh-invite{display:none}      /* on phones they sit below the For Your Ice box (.phone-invite) */
   .phone-invite .gh-invite{text-align:center;justify-content:center;align-items:center;margin-top:10px}
   .phone-invite .social{margin-top:14px}
   /* the foot under the card: About, For Your Ice, social links, GitHub note, byline; one even gap between them */
   .fyi-slot{display:flex;flex-direction:column;align-items:stretch;gap:var(--sp-5);padding-bottom:calc(var(--sp-6) + env(safe-area-inset-bottom))}
   .fyi-slot > *{margin:0}
-  .fyi-slot > details.about{margin:0 -18px;padding:0 18px}      /* full-width lines, the text keeps the same space above and below */
+  .fyi-slot > details.about{margin:0 calc(-1 * var(--slot-pad));padding:0 var(--slot-pad)}      /* full-width lines, the text keeps the same space above and below */
   .fyi-slot > details.about > summary{padding:var(--sp-4) 0}
   .fyi-slot > details.about[open] > summary{padding-bottom:var(--sp-3)}
   .phone-invite{display:flex;flex-direction:column;align-items:center;gap:var(--sp-4)}
@@ -2069,7 +2069,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   details.about > :last-child{margin-bottom:var(--sp-4)}
 
   /* the invitation and the footer */
-  .fyi-slot{padding:0 var(--sp-3) var(--sp-5)}
+  .fyi-slot{--slot-pad:var(--sp-3);padding:0 var(--sp-3) var(--sp-5)}
   .fyi{display:grid;grid-template-columns:76px minmax(0,1fr);column-gap:var(--sp-4);align-items:center;text-align:left;padding:var(--sp-4);border:0;border-radius:var(--r-lg);background:#FFF3D1;box-shadow:var(--lift)}
   .fyi-img{grid-row:1 / 6;width:76px;margin:0;border-radius:3px}
   .fyi-ask{font-size:10.5px}
@@ -2176,7 +2176,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .controls > .step,.controls .step ~ .step{padding:var(--sp-3) var(--sp-4)}
   .story{margin:0 var(--sp-3) 0 calc(58vw + var(--sp-3))}
   .story h2{font-size:24px}
-  .fyi-slot{padding:0 var(--sp-3) var(--sp-4)}
+  .fyi-slot{--slot-pad:var(--sp-3);padding:0 var(--sp-3) var(--sp-4)}
   .video-sheet{border-radius:var(--r-lg) 0 0 0}
   .years button{min-height:36px;font-size:13px}
   .modes button{padding:8px 4px 6px}

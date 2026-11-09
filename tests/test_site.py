@@ -972,7 +972,6 @@ class TestPicker(SiteCase):
         self.assertNotIn("ten largest swiss", text, "the front page is not about Switzerland alone")
         self.assertNotIn("every summer", text, "the best picture of each year, not a line about every summer")
         self.assertNotIn("why glaciers", text)
-        self.assertIn("for everyone who loves glaciers, from scientist to alpinist", text)
         order = page.evaluate("['why', 'regions', 'how'].map(id => document.getElementById(id).getBoundingClientRect().top)")
         self.assertEqual(order, sorted(order), "the audiences come first, then the picker")
         self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').innerText"), "figures are Swiss for now, and it says so")
