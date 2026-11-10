@@ -19,13 +19,13 @@ export const state = {
 export let HASH_TAB = null;            // a shared link can name the tab of the right panel: discover (or fun), stats or switzerland
 export let OPEN_ON_GLACIER = false;    // a shared link names a glacier: open there instead of the Switzerland overview
 export let AUTOPLAY = false;           // the plain address opens on a timelapse that starts by itself, once the scenes are found
-export const HASH_AT_LOAD = location.hash;      // the address as the visitor opened it: the landing page writes its own state into the hash while it boots
+export const HASH_AT_LOAD = location.hash.split(/%0[AD]|%20|\s/i)[0];      // text pasted after the link (a share sheet adds the title on the next line) is not part of the address;      // the address as the visitor opened it: the landing page writes its own state into the hash while it boots
 export let PLAIN_START = false;        // the plain address: the landing page is the 3D timelapse of the biggest glacier
 export let OPEN_3D = false;            // a shared link asks for the 3D view
 export let EMBED = false;              // embed=1: the page sits in an iframe on another site and shows the picture only (css: html.embed)
 export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the hash is read; false until a glacier is chosen
 (function readHash(){
-  const p = new URLSearchParams(location.hash.slice(1));
+  const p = new URLSearchParams(HASH_AT_LOAD.slice(1));
   if (GLACIERS.some(g => g.id === p.get('g'))) { state.glacier = p.get('g'); OPEN_ON_GLACIER = true; }
   if (!OPEN_ON_GLACIER && REGION.landing === 'glacier3d') { OPEN_ON_GLACIER = true; state.mode = 'timelapse'; AUTOPLAY = !matchMedia('(prefers-reduced-motion: reduce)').matches; PLAIN_START = true;
     if (FEATURES.swisstopo) { prefs.mosaic = false; prefs.alti = true; }      // the landing view: swisstopo hillshade as the base map (the base maps start afresh at every visit) ...
