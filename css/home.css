@@ -559,6 +559,11 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
 .gprev .gp{display:block;text-decoration:none;color:#0A1B33}
 .gprev .gp img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;background:var(--firn)}
 .gprev .gp span{display:block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--moraine)}
+.gout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+.gout>div{display:grid;grid-template-columns:22px 1fr;column-gap:10px;row-gap:2px;align-items:center;padding:12px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
+.gout svg{grid-row:1/3;width:22px;height:22px;color:var(--crevasse)}
+.gout b{font-size:14px;color:var(--ink)}
+.gout span{font-size:12.5px;color:var(--moraine)}
 @media (max-width:900px){#gallery{display:none!important}}
 
 /* alternating bands down the page: dark hero, white, tint (gallery), white, dark map, ice quote, white, dark closing */
