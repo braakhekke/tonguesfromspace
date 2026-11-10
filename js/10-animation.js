@@ -77,6 +77,8 @@ export const stageSize = () => viewMode === '3d' && $('v3dCanvas').clientWidth ?
 export function visibleBox(){            // the part of the picture area the visitor can see, in its own pixels: cut to the browser window, and clear of the download pane where that stands at the side
   const size = stageSize(), el = viewMode === '3d' && $('v3dCanvas').clientWidth ? $('v3dCanvas') : $('stage'), r = el.getBoundingClientRect();
   let side = false, x0 = Math.max(0, -r.left), x1 = Math.min(size.x, innerWidth - r.left), y0 = Math.max(0, -r.top), y1 = Math.min(size.y, innerHeight - r.top);
+  const hd = document.querySelector('.mhead'), hr = hd && hd.offsetParent ? hd.getBoundingClientRect() : null;      // phones: the title bar lies over the top of the picture area; the frame and its cross stay below it
+  if (hr && hr.bottom > r.top && hr.top < r.bottom - 100) y0 = Math.max(y0, hr.bottom - r.top);
   const sh = $('videoSheet');
   if (!sh.hidden) {
     const s = sh.getBoundingClientRect();
@@ -219,8 +221,10 @@ export function placeFrame(){
   const r = frameRect();
   Object.assign($('videoFrame').style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
   $('videoFrame').classList.toggle('custom', vstate.fmt === 'custom');
-  const bt = $('videoFrame').querySelector('.vf-btns'), vb = visibleBox(), sr = $('stage').getBoundingClientRect(), ar = document.querySelector('aside.controls').getBoundingClientRect(), beside = ar.bottom > sr.top && ar.top < sr.bottom, lo = Math.max(vb.x0, beside ? ar.right - sr.left : 0);      // (phones: the controls are below the picture, not beside it) the buttons under the frame are centred on it, but a narrow custom frame near the edge would push them off the screen: they slide back
+  const bt = $('videoFrame').querySelector('.vf-btns'), vb = visibleBox(), sr = $('stage').getBoundingClientRect(), ar = document.querySelector('aside.controls').getBoundingClientRect(), beside = ar.bottom > sr.top && ar.top < sr.bottom && ar.right < sr.right - 60, lo = Math.max(vb.x0, beside ? ar.right - sr.left : 0);      // (phones: the controls are below the picture, not beside it) the buttons under the frame are centred on it, but a narrow custom frame near the edge would push them off the screen: they slide back
   if (bt) { const bw = bt.offsetWidth; bt.style.left = bw ? Math.min(Math.max(r.x + r.w / 2 - bw / 2, lo + 8), Math.max(lo + 8, vb.x1 - bw - 8)) - r.x + 'px' : ''; bt.style.transform = bw ? 'none' : ''; }
+  const cx = $('vfClose');      // the cross sits above the top right corner, but never outside the visible picture: it moves down or in when the frame is near an edge
+  if (cx) { cx.style.top = Math.max(-48, Math.min(6, vb.y0 - r.y + 6)) + 'px'; cx.style.right = Math.max(0, r.x + r.w - vb.x1 + 6) + 'px'; }
 }
 /* While a download pane is open the map may not be zoomed out far, or moved far: the frame has to stay around the satellite picture of the glacier (a bit of space around it is fine).
    The limit is on the middle of the frame, not on the map view (Leaflet's maxBounds limits the whole view, which is far bigger than the frame, so it kept pulling the map back to the side). */
