@@ -4,7 +4,7 @@
 @font-face{font-family:"Schibsted Grotesk";src:url(../fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
 :root{
   --firn:#F4F6F7; --sheet:#FFFFFF; --rock:#1C2A33; --moraine:#66757E; --faint:#93A0A7; --ink:#0E1A22; --rule-2:#EDF0F2;
-  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6;
+  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6; --switch-off:#D0D7DB; --switch-on:#2D6E8E;
   --accent:#C8322A;
   --old:#F2A93B; --new:#E5443B; --measure:#FFD84D;
   --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;

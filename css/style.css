@@ -786,21 +786,15 @@ sup.fn a:hover{opacity:.7}
 .vf-h[data-h=se]{left:100%;top:100%;cursor:nwse-resize}.vf-h[data-h=s]{left:50%;top:100%;cursor:ns-resize}.vf-h[data-h=sw]{left:0;top:100%;cursor:nesw-resize}.vf-h[data-h=w]{left:0;top:50%;cursor:ew-resize}
 .is-3d .video-frame{z-index:710}
 .video-sheet.is-image .vo-video,.video-sheet:not(.is-image) .vo-image{display:none}
-/* every on/off control is the outlined switch of "All ten" in the size page: a ring in the blue of ice, a dot inside that moves across, a pale blue fill when on. One size on the page (30 x 16), smaller in the layer menus (dark glass: white ring, red when on). The checkbox keeps its id and events. */
-.toggle input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;box-sizing:border-box;width:30px;height:16px;margin:0;border:1.5px solid var(--crevasse);border-radius:999px;background:none;cursor:pointer;transition:background .2s}
-.toggle input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:var(--crevasse);transition:transform .2s}
-.toggle input[type=checkbox]:checked{background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
-.toggle input[type=checkbox]:checked::after{transform:translateX(14px)}
+/* every on/off switch on every page: the "Older imagery" switch. A grey track with a white knob, the track turns blue when on (30 x 17, knob 13). Colours are the tokens --switch-off and --switch-on; on the dark glass menus they are set again below so the switch stays visible there (a mid blue the white knob shows on, a light grey track). The checkbox keeps its id and events. */
+.toggle input[type=checkbox]{-webkit-appearance:none;appearance:none;flex:none;position:relative;box-sizing:border-box;width:30px;height:17px;margin:0;border:0;border-radius:9px;background:var(--switch-off);cursor:pointer;transition:background .15s}
+.toggle input[type=checkbox]::after{content:"";position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+.toggle input[type=checkbox]:checked{background:var(--switch-on)}
+.toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
 .toggle input[type=checkbox]:disabled{opacity:.45;cursor:default}
-.toggle input[type=checkbox]:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
-.layerbox .toggle input[type=checkbox]{width:24px;height:14px;border-color:rgba(255,255,255,.6)}
-.layerbox .toggle input[type=checkbox]::after{top:2px;left:2px;width:7px;height:7px;background:rgba(255,255,255,.85)}
-.layerbox .toggle input[type=checkbox]:checked{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 30%,transparent)}
-.layerbox .toggle input[type=checkbox]:checked::after{background:#fff;transform:translateX(10px)}
-.layerbox.in-pane .toggle input[type=checkbox],.layerbox.in-sheet .toggle input[type=checkbox]{border-color:var(--crevasse)}
-.layerbox.in-pane .toggle input[type=checkbox]::after,.layerbox.in-sheet .toggle input[type=checkbox]::after{background:var(--crevasse)}
-.layerbox.in-pane .toggle input[type=checkbox]:checked,.layerbox.in-sheet .toggle input[type=checkbox]:checked{border-color:var(--crevasse);background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
-.layerbox.in-pane .toggle input[type=checkbox]:checked::after,.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{background:var(--crevasse)}
+.toggle input[type=checkbox]:focus-visible{outline:2px solid var(--switch-on);outline-offset:2px}
+.layerbox:not(.in-sheet),.layerbox.in-flow{--switch-off:rgba(255,255,255,.32);--switch-on:#3F8FBF}      /* dark glass menus and the phone panel */
+.layerbox.in-sheet:not(.in-flow){--switch-off:#D0D7DB;--switch-on:#2D6E8E}      /* the white card in the download pane */
 /* sliders: a thin track, a small ringed dot, in the same outlined look (the two-handle year range keeps its own) */
 input[type=range]:not(.yr-track input){-webkit-appearance:none;appearance:none;height:16px;background:none;cursor:pointer;accent-color:var(--crevasse)}
 input[type=range]:not(.yr-track input)::-webkit-slider-runnable-track{height:3px;border-radius:2px;background:color-mix(in srgb,var(--crevasse) 28%,transparent)}
@@ -811,7 +805,6 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
 .layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-moz-range-track{background:rgba(255,255,255,.3)}
 .layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-webkit-slider-thumb{width:11px;height:11px;margin-top:-4px;border-color:var(--accent)}
 .layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-moz-range-thumb{width:11px;height:11px;border-color:var(--accent)}
-@media (max-width:720px){.toggle input[type=checkbox]{width:34px;height:20px}.toggle input[type=checkbox]::after{width:13px;height:13px}.toggle input[type=checkbox]:checked::after{transform:translateX(14px)}.layerbox .toggle input[type=checkbox]::after{width:11px;height:11px}.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(14px)}}      /* phones: a bigger target */
 .plane-sw{display:block;width:18px;height:18px;flex:none;fill:currentColor}      /* the airplane of the special flights, in the layer menus and the dock */
 .fd-t .plane-sw{fill:var(--accent)}
 .left-stack{position:absolute;left:12px;top:90px;z-index:655;display:flex;flex-direction:column;align-items:flex-start;gap:6px;max-width:calc(50% - 16px)}      /* under the year: "Then and now" and the special flights, in the map and in the 3D view */
@@ -825,7 +818,6 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
 .flights-dock .toggle{display:flex;justify-content:space-between;flex-direction:row-reverse;gap:10px;margin:0;min-height:30px;font-size:12px}
 .flights-dock .fd-sub{min-height:24px;margin-left:14px;font-size:11.5px;color:#44525a}
 .flights-dock .toggle small{display:block;font-size:10.5px;color:#66757E;line-height:1.2}
-.vs-opts .toggle.optsw input[type=checkbox],.video-sheet > .toggle.optsw input[type=checkbox]{width:30px;height:17px}
 .vs-opts .toggle span{line-height:1.3}
 .vo-outside{margin:4px 0 2px;font-size:13px;grid-column:1 / -1}
 .vo-outside input[type=range]{width:100%;margin:0}
@@ -896,7 +888,6 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .layerbox.open{display:block}
   .layerbox .toggle{font-size:14.5px;min-height:32px;margin:0}
   .layerbox .lb-group{margin-top:6px}
-  .layerbox .toggle input{width:20px;height:20px}
   .leaflet-control-scale{margin-bottom:84px!important}
   .credits{font-size:12px;line-height:22px;height:22px}
   .hint{font-size:13px}
@@ -1893,9 +1884,9 @@ html.embed .v3d-measure > .v3d-tl{min-width:0;width:100%}
 .yr-landsat .landsat-wrap{display:flex;align-items:center;gap:8px;padding:0;border:0;background:none}
 .yr-landsat .landsat-chip.as-switch{flex:1;display:flex;align-items:center;justify-content:space-between;gap:10px;padding:2px 0;border:0;background:none;cursor:pointer;font-size:12px;color:var(--moraine);font-weight:600;text-align:left}
 .yr-landsat .ls-label small{font-weight:500;font-size:11px;color:var(--faint);margin-left:4px}
-.yr-landsat .ls-track{flex:none;position:relative;width:30px;height:17px;border-radius:9px;background:var(--rule);transition:background .15s}
+.yr-landsat .ls-track{flex:none;position:relative;width:30px;height:17px;border-radius:9px;background:var(--switch-off);transition:background .15s}
 .yr-landsat .ls-knob{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
-.yr-landsat .as-switch[aria-checked="true"] .ls-track{background:var(--crevasse)}
+.yr-landsat .as-switch[aria-checked="true"] .ls-track{background:var(--switch-on)}
 .yr-landsat .as-switch[aria-checked="true"] .ls-knob{transform:translateX(13px)}
 .yr-landsat .as-switch:disabled{cursor:default;opacity:.5}
 .yr-landsat .as-switch.weak:not([aria-checked="true"]) .ls-label{color:var(--faint)}
@@ -1933,7 +1924,7 @@ html.embed .v3d-measure > .v3d-tl{min-width:0;width:100%}
 /* the "i" next to a layer: what it shows, in words (hiking trails and the line of sight) */
 .lb-why{margin:0 0 6px 26px;padding:7px 9px;background:var(--firn);font-size:11.5px;line-height:1.45;color:var(--rock);border-left:3px solid var(--crevasse)}
 .lb-why[hidden]{display:none}
-.lb-count{flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--accent);color:#fff;font:700 11px/18px var(--sans);letter-spacing:0;text-align:center;font-variant-numeric:tabular-nums}
+.lb-count{flex:none;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--switch-on);color:#fff;font:700 11px/18px var(--sans);letter-spacing:0;text-align:center;font-variant-numeric:tabular-nums}
 .lb-count[hidden]{display:none}
 .lb-count.on-btn{position:absolute;top:-5px;right:-5px;box-shadow:0 0 0 2px #fff}
 #layersBtn,#v3mLayers{position:relative}
@@ -2398,7 +2389,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 .video-sheet.is-3d .vo-no3d{display:none}
 .vf-layers{position:relative;margin-right:6px;overflow:visible;background:rgba(10,18,22,.78)}      /* round layers button left of the ratio buttons; the red count sits on its corner like an app-icon badge */
 .vf-layers:hover{background:rgba(10,18,22,.92)}
-.vf-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--accent);color:#fff;font:700 11px/18px var(--sans);font-style:normal;text-align:center;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px rgba(10,18,22,.9);pointer-events:none}
+.vf-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--switch-on);color:#fff;font:700 11px/18px var(--sans);font-style:normal;text-align:center;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px rgba(10,18,22,.9);pointer-events:none}
 .vf-badge[hidden]{display:none}      /* (not .lb-count: the script in 08-controls.js counts those from the menu and would overwrite it) */
 body.pane-open .layerbox .toggle.x-off{opacity:.45}
 .lb-xnote{display:none;margin:2px 0 6px;font-size:11px}
@@ -2415,12 +2406,8 @@ body.x-layers .layerbox{max-width:none}
 .layerbox.in-sheet .lb-reset{color:var(--accent)}
 .layerbox.in-sheet .lb-xnote{margin:0 0 8px;color:#5C6B74}
 .layerbox.in-sheet .toggle.x-off{opacity:.4}
-.layerbox.in-sheet .toggle input[type=checkbox]{width:30px;height:17px;border-radius:9px;background:#D3DADE}      /* the switches of the pane: grey track, blue when on */
-.layerbox.in-sheet .toggle input[type=checkbox]::after{width:13px;height:13px}
-.layerbox.in-sheet .toggle input[type=checkbox]:checked{background:var(--crevasse)}
-.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
 .layerbox.in-sheet input[type=range]{accent-color:var(--crevasse)}
-.layerbox.in-sheet .lb-count{background:var(--accent);color:#fff}
+.layerbox.in-sheet .lb-count{background:var(--switch-on);color:#fff}
 
 /* phones in portrait: the layer panel has two columns, "For this glacier" on the left and "Background" on the right; the docks (map and 3D) sit just above the credit line (22 px) */
 @media (max-width:720px) and (orientation:portrait){
@@ -2466,10 +2453,6 @@ body.x-layers .layerbox{max-width:none}
 .lb-head span{flex:1 1 auto;text-align:left}
 .lb-head .lb-count{margin-left:0}
 
-/* Layer menu switches: like "Fly between map and 3D" (a plain track, no outline); the off track is the panel's text colour at low strength, so it shows on the white sheets and on the dark glass */
-.layerbox .toggle input[type=checkbox]:not(:checked){box-shadow:none;background:rgba(128,138,144,.45);background:color-mix(in srgb,currentColor 24%,transparent)}
-.layerbox .toggle input[type=checkbox]:checked{box-shadow:none}
-.layerbox .toggle input[type=checkbox]:not(:checked)::after{box-shadow:0 1px 2px rgba(0,0,0,.3)}
 
 /* desktop: smaller year buttons (the 40px rows are for fingers) */
 @media (min-width:721px){
@@ -2478,15 +2461,6 @@ body.x-layers .layerbox{max-width:none}
   .years.specials button{min-height:30px}
 }
 
-/* layer menu switches: the same size as the other switches (30 x 17, knob 13), on phones too */
-.layerbox .toggle input[type=checkbox]{width:30px;height:17px;border-radius:9px}
-.layerbox .toggle input[type=checkbox]::after{width:13px;height:13px}
-.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
-@media (max-width:720px){
-  .layerbox .toggle input[type=checkbox]{width:30px;height:17px;border-radius:9px}
-  .layerbox .toggle input[type=checkbox]::after{width:13px;height:13px}
-  .layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(13px)}
-}
 
 /* years: one grey segmented box like the glacier list, View and Mode; the chosen year is a white raised pill */
 .years{padding:3px;border-radius:var(--r-md);background:var(--firn)}
@@ -2548,13 +2522,6 @@ body.x-layers .layerbox{max-width:none}
 .side-label-cc{display:flex;align-items:center;justify-content:space-between;gap:8px}
 .side-label-cc .info-btn{margin:0;flex:none}
 
-/* layer menu switches: the knob is centred in the track (the track is 17px with a 1.5px border, so 14px inside; a 13px knob sits 0.5px from the top and 1px from the sides) */
-.layerbox .toggle input[type=checkbox]::after{top:.5px;left:1px;width:13px;height:13px}
-.layerbox .toggle input[type=checkbox]:checked::after{transform:translateX(12px)}
-
-/* every on/off switch, one rule for all (the earlier per-menu rules gave knobs that sat off-centre in the pill): the knob is the pill's inner height minus 2 px of air on every side, centred vertically; on, it slides to the right end by its own width (left: 100% - 2px, then back by its own width) */
-.toggle input[type=checkbox]::after,.layerbox .toggle input[type=checkbox]::after,.layerbox.in-pane .toggle input[type=checkbox]::after,.layerbox.in-sheet .toggle input[type=checkbox]::after{top:0;bottom:0;margin:auto 0;left:2px;height:calc(100% - 4px);width:auto;aspect-ratio:1;transform:none;transition:left .2s,transform .2s}
-.toggle input[type=checkbox]:checked::after,.layerbox .toggle input[type=checkbox]:checked::after,.layerbox.in-pane .toggle input[type=checkbox]:checked::after,.layerbox.in-sheet .toggle input[type=checkbox]:checked::after{left:calc(100% - 2px);transform:translateX(-100%)}
 
 /* page switcher under the brand: Home, Size, Gallery (the explorer is this page) */
 .site-nav{display:flex;justify-content:center;gap:2px;margin-top:8px;padding-bottom:6px;border-bottom:1px solid var(--rule)}      /* the thin line sits between the page links and the demo button */

@@ -207,19 +207,17 @@ body:not(.is-3d) .layerbox .only3d{display:none}      /* peak names are drawn in
 body.is-3d .layerbox .only2d{display:none}      /* Outline 1850 and the city boundary are drawings on the map: not in 3D */
 /* 3D: two picked | all ten at once, under the glacier list */
 /* "All ten": a small outlined slider at the right of the step header, in 3D only */
-#allTen{display:none;margin-left:auto;gap:12px}
+#allTen{display:none;margin-left:auto;gap:8px}
 #allTen button span,#shapeHint{white-space:nowrap}
 #allTen>button{gap:5px!important;font-size:11px!important}
-#allTen .trk{width:26px!important}
-#allTen button[aria-pressed="true"] .trk i{transform:translateX(10px)!important}
 body.is-3d #allTen{display:flex}
 @media (pointer:coarse),(max-width:719px){body.is-3d #allTen{display:none}}      /* desktop only: the Total Swiss block too */      /* phones: no ten-block view (too heavy) */
 #allTen button{display:flex;align-items:center;gap:7px;border:0;background:none;padding:2px 0;font:inherit;font-size:11.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--moraine);cursor:pointer}
 #allTen button[aria-pressed="true"]{color:var(--ink)}
-#allTen .trk{position:relative;flex:none;width:30px;height:16px;box-sizing:border-box;border:1.5px solid var(--crevasse);border-radius:999px;background:none;transition:background .2s}
-#allTen .trk i{position:absolute;top:2px;left:2px;width:9px;height:9px;border-radius:50%;background:var(--crevasse);transition:transform .2s}
-#allTen button[aria-pressed="true"] .trk{background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
-#allTen button[aria-pressed="true"] .trk i{transform:translateX(14px)}
+#allTen .trk{position:relative;flex:none;width:30px;height:17px;box-sizing:border-box;border-radius:9px;background:var(--switch-off);transition:background .15s}      /* the same switch as every other: grey track, white knob, blue when on */
+#allTen .trk i{position:absolute;top:2px;left:2px;width:13px;height:13px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.3);transition:transform .15s}
+#allTen button[aria-pressed="true"] .trk{background:var(--switch-on)}
+#allTen button[aria-pressed="true"] .trk i{transform:translateX(13px)}
 #allTen svg,#shapeSw svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;flex:none}
 #shapeSw{display:none;margin:-14px 0 0 3px;width:calc(100% - 3px)}      /* the controls column has a 24 px gap: this closes most of it, so the slider sits right under Area | Volume */
 body.is-3d #shapeSw{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding-left:10px}
@@ -2380,7 +2378,7 @@ $('videoFrame').addEventListener('pointerdown', e => {      // custom frame: dra
   const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
   el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
 });
-/* the red count of layers that are on: in the Layers menu's header and on the layers button under the frame (the explorer's .lb-count / .vf-badge) */
+/* the blue count of layers that are on: in the Layers menu's header and on the layers button under the frame (the explorer's .lb-count / .vf-badge) */
 function countLayers() {
   const mode = document.body.classList.contains('is-3d') ? 'only2d' : 'only3d';
   const n = [...document.querySelectorAll('#layerbox .lb-body input[type=checkbox]')].filter(i => i.checked && !i.disabled && !i.closest('label').classList.contains(mode) && !i.closest('[hidden]')).length;
