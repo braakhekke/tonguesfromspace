@@ -586,7 +586,7 @@ export function aboutChaptersCh(){
       
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-19"><summary>Size visualizer</summary><div class="about-sec">
-        <p>A separate page, the <a href="size.html">Size visualizer</a>, answers one question: how big is a glacier? Open it from the button above the tabs in the right panel. It covers the ten glaciers of this site.</p>
+        <p>A separate page, the <a href="size.html">Size visualizer</a>, answers one question: how big is a glacier? Open it from the Size link in the header of the left panel. It covers the ten glaciers of this site.</p>
         <h4>Two views</h4>
         <ul>
           <li><em>Area (2D):</em> drag a glacier's outline onto a city. The outlines are those of the Swiss Glacier Inventory.${fn('sgi')}</li>
@@ -884,7 +884,6 @@ export function renderStory(){
     <p class="lede">${g.lede.replace('by area,', `by area${fn('sgi')},`)}</p>
 
     <div class="tool-btns">
-      ${FEATURES.sizeTool ? `<a class="tool-btn size-btn" href="${sizeHref(g, '3d')}" title="See how big the ice of this glacier is next to a city (3D), or drag its outline onto the city (2D)"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20V10h6v10M14 20V4h6v16M2 20h20"/></svg><span>Size visualizer</span></a>` : ''}
       ${FIELD_NOTES.includes(g.inv && g.inv.id) ? `<a class="tool-btn notes-btn" href="/provenance.html?id=${g.inv.id}" data-notes="${g.inv.id}" target="_blank" rel="noopener" title="How the 3D view of this glacier was made: pictures, terrain, ice surface of each year, checks and licences"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4M3 7h3M3 12h3M3 17h3"/></svg><span>Scientific field notes</span></a>` : ''}
     </div>
     <div class="tabs" role="tablist" aria-label="About this glacier">

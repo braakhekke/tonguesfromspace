@@ -86,8 +86,43 @@
   g.col:hover rect.hit { fill:var(--iceLight); opacity:.55; } rect.hit { fill:transparent; cursor:pointer; }
   .fn table a { white-space:nowrap; } .fn table td:nth-child(1) { white-space:nowrap; }
   .stab { border-collapse:collapse; font-size:12px; margin:8px 0; } .stab th, .stab td { text-align:left; padding:3px 12px 3px 0; border-top:1px solid var(--rule); font-weight:400; } .stab th { color:var(--muted); font-size:11px; } .fn table { border-collapse:collapse; font-size:12px; } .fn table th, .fn table td { text-align:left; padding:3px 10px 3px 0; border-top:1px solid var(--rule); }
-</style></head><body><main>
-<p style="margin:0 0 6px"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a></p>
+  /* header: the same as gallery and home (copied from gallery.html); always dark */
+  .bar{background:#0E1A22 center top/cover no-repeat;font-family:var(--sans,"Schibsted Grotesk",system-ui,sans-serif);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
+  .bar .wrap{box-sizing:border-box;max-width:1180px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px}
+  .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
+  .brand img{height:25px;width:auto}
+  .brand b{font-size:22px;line-height:30px;font-weight:700;letter-spacing:-.018em;white-space:nowrap}
+  .bar nav{display:flex;gap:26px;align-items:center}
+  .bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none}
+  .bar nav a:hover,.bar nav a[aria-current]{color:#fff}
+  .bar nav .nav-home{display:none}
+  @media (max-width:900px){.bar nav{gap:0}.brand b{font-size:18px}}
+  @media (max-width:640px){.bar .wrap{padding:0 14px;height:52px;gap:10px}.brand{gap:10px}.brand img{height:24px}.bar .brand b{display:none}.bar nav{gap:14px}.bar nav a{font-size:12px}.bar nav .nav-home{display:inline-flex}}
+  /* the row under the header: back, and the same glacier in the explorer and on the size page */
+  .gbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:flex-start;gap:8px 16px;margin:0 0 14px}
+  .gbar #back{display:none}      /* kept for the script that sets its address; the header is the way back */
+  .glinks{display:flex;flex-wrap:wrap;gap:8px}
+  .glinks a{display:inline-flex;align-items:center;gap:6px;padding:6px 13px;border:1px solid var(--rule);border-radius:999px;background:var(--card);color:var(--ice);font-size:12.5px;font-weight:600;text-decoration:none}
+  .glinks a:hover{border-color:var(--loss);color:var(--loss)}
+  .glinks svg{display:inline-block;min-width:0;width:13px;height:13px;flex:0 0 13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .glinks[hidden],.ov .glinks{display:none}
+</style></head><body>
+<header class="bar"><div class="wrap">
+  <a class="brand" data-home href="home.html">
+    <img src="images/home/logo-white.png" alt="" width="32" height="30">
+    <b>Tongues from Space</b>
+  </a>
+  <nav>
+    <a class="nav-home" data-home href="home.html">Home</a>
+    <a data-dash href="index.html">Explorer</a>
+    <a href="size.html">Size visualizer</a>
+    <a href="provenance.html" aria-current="page">Field notes</a>
+    <a href="gallery.html">Gallery</a>
+  </nav>
+</div></header>
+<main>
+<div class="gbar"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a>
+<div class="glinks" id="glinks" hidden><a id="glEx" href="index.html"><span>Open <span class="gn">this glacier</span> in the Explorer</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a><a id="glSz" href="size.html"><span>Open <span class="gn">this glacier</span> in the Size Visualizer</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a></div></div>
 <h1>Scientific field notes</h1>
 <p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">All glaciers with field notes</a></p>
 <p class="sub" id="sub">The satellite pictures are real photographs from space. The 3D ice surface under them is not: for each year it is a reconstruction. For <span id="gname">this glacier</span>, these notes show what was measured, what was calculated to fill the gaps, and how far to trust the result. Every number refers to the tongue (chapter 1) and is computed for this site or taken from a named source.</p>
@@ -470,7 +505,47 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
   }).catch(()=>{['fnAnch','fnVal','fnView','fnLic'].forEach(i=>$(i).textContent='The field notes could not be loaded.');});
 })();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(!PG) return; draw();drawMap();drawOverview();if(PG.bed) bedMaps(); });
-</script></main><script>
+</script></main>
+<script defer src="js/home-link.js"></script>
+<script>
+// links under the header: this glacier in the explorer and on the size page (the same ids as size.html: SITE_ID)
+(function(){
+  var SITE={'B36-26':'aletsch','B56-07':'gorner','B40-07':'fiescher','A54g-11':'unteraar','B83-03':'corbassiere','B57-05':'zmutt','B43-03':'rhone','B56-03':'sgi-B56-03','B53-04':'sgi-B53-04','A54e-24':'trift'};
+  var id=(new URLSearchParams(location.search).get('id')||'').replace(/[^A-Za-z0-9-]/g,''); if(!id) return;
+  var built=/home-link\.[0-9a-f]{10}\.js/.test([].map.call(document.scripts,function(x){return x.src}).join(' '));
+  document.getElementById('glEx').href=(built?'/switzerland/':'index.html')+'#g='+(SITE[id]||'sgi-'+id);
+  document.getElementById('glSz').href='size.html#g='+encodeURIComponent(id);
+  document.getElementById('glinks').hidden=false;
+  var t=setInterval(function(){var n=document.getElementById('gname');if(n&&n.textContent&&n.textContent!=='this glacier'){document.querySelectorAll('#glinks .gn').forEach(function(e){e.textContent=n.textContent});clearInterval(t);}},200);setTimeout(function(){clearInterval(t)},15000);
+})();
+</script>
+<script>
+/* Deep space, drawn like the map viewer's backdrop (spaceCanvas in js/05-map.js): dark blue gradient, a soft Milky Way band, nebula glows, small stars. Fixed seed. */
+(() => {
+  const w = 1600, h = 1000, perStar = 2400, scale = 1;
+  const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d');
+  let seed = 20261009; const rnd = () => (seed = seed * 16807 % 2147483647) / 2147483647;
+  const g = x.createLinearGradient(0, 0, 0, h); g.addColorStop(0, '#04070d'); g.addColorStop(1, '#0a1426'); x.fillStyle = g; x.fillRect(0, 0, w, h);
+  const glow = (cx, cy, r, rgb, a) => { const q = x.createRadialGradient(cx, cy, 0, cx, cy, r); q.addColorStop(0, `rgba(${rgb},${a})`); q.addColorStop(1, `rgba(${rgb},0)`); x.fillStyle = q; x.fillRect(cx - r, cy - r, 2 * r, 2 * r); };
+  glow(w * .22, h * .28, w * .55, '84,72,170', .11); glow(w * .84, h * .72, w * .5, '38,110,170', .10); glow(w * .5, h * .5, w * .4, '60,70,120', .05);
+  x.save(); x.translate(w / 2, h / 2); x.rotate(-0.38);
+  const band = x.createLinearGradient(0, -h * .22, 0, h * .22); band.addColorStop(0, 'rgba(150,170,230,0)'); band.addColorStop(.5, 'rgba(150,170,230,.055)'); band.addColorStop(1, 'rgba(150,170,230,0)');
+  x.fillStyle = band; x.fillRect(-w, -h * .22, 2 * w, h * .44);
+  for (let i = 0, n = Math.round(w * h / perStar * 1.6); i < n; i++) {
+    const px = (rnd() - .5) * w * 1.5, py = (rnd() + rnd() + rnd() - 1.5) * h * .2, a = 0.12 + rnd() * 0.35;
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.fillRect(px, py, .9 * scale, .9 * scale);
+  }
+  x.restore();
+  for (let i = 0, n = Math.round(w * h / perStar); i < n; i++) {
+    const px = rnd() * w, py = rnd() * h, k = rnd(), bright = k > .975, big = k > .88, r = (0.4 + Math.pow(rnd(), 4) * 1.0) * scale * (bright ? 2.8 : big ? 1.7 : 1), a = bright ? 0.9 : 0.2 + rnd() * 0.5;
+    if (big) glow(px, py, r * (bright ? 7 : 5), '190,210,255', bright ? .3 : .18);
+    if (bright) { x.strokeStyle = 'rgba(225,235,255,.45)'; x.lineWidth = .8 * scale; x.beginPath(); x.moveTo(px - r * 4, py); x.lineTo(px + r * 4, py); x.moveTo(px, py - r * 4); x.lineTo(px, py + r * 4); x.stroke(); }
+    x.fillStyle = `rgba(215,226,255,${a.toFixed(2)})`; x.beginPath(); x.arc(px, py, r, 0, 7); x.fill();
+  }
+  c.toBlob(blob => { const u = 'url(' + URL.createObjectURL(blob) + ')'; document.querySelectorAll('.bar').forEach(el => { el.style.backgroundImage = u; }); });
+})();
+</script>
+<script>
 // back to the page we came from (?back= carries its full address incl. #g=...; the referrer drops the fragment); home when absent or foreign
 (function(){try{var r=new URLSearchParams(location.search).get('back')||document.referrer;var u=new URL(r,location.href);if(u.origin===location.origin&&u.pathname!==location.pathname){var a=document.getElementById('back');a.href=u.href;a.dataset.back='1';a.textContent='← Back';document.getElementById('allFnA').href='provenance.html?back='+encodeURIComponent(u.href);}}catch(e){}})();
 </script>

@@ -19,7 +19,7 @@
   strong.append(btn); head.append(ul);
   const nav = () => document.querySelector('.controls .site-nav');
   const link = sel => nav() && nav().querySelector(sel);
-  const pages = [['home', 'Home', () => link('a[data-home]')], ['explorer', 'Explorer', () => size ? link('#navExplorer') : null], ['size', 'Glacier Size', () => size ? null : link('#navSize')], ['gallery', 'Gallery', () => link('a[href="gallery.html"]')]];
+  const pages = [['home', 'Home', () => link('a[data-home]')], ['explorer', 'Explorer', () => size ? link('#navExplorer') : null], ['size', 'Glacier Size', () => size ? null : link('#navSize')], ['notes', 'Field notes', () => ({ click: () => { location.href = 'provenance.html'; } })], ['gallery', 'Gallery', () => link('a[href="gallery.html"]')]];
   const regionList = () => document.getElementById('regionMenuM') || document.getElementById('regionMenu');
   const open = on => { if (on) { render(); } ul.hidden = !on; btn.setAttribute('aria-expanded', String(on)); };
   const render = () => {
