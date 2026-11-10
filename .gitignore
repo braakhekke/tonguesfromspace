@@ -99,3 +99,15 @@ images/home/hero-1984.jpg
 images/home/hero-2006.jpg
 images/home/hero-2026.jpg
 data/home-bg/
+
+# local only (owner's decision 2026-11-10): not on the site and not needed to build it
+play.html
+css/play.css
+scripts/parked/
+scripts/teaser/
+scripts/make_teaser.py
+scripts/make_film.py
+scripts/make_home_clips.py
+scripts/record_home_extras.py
+scripts/record_home_hero.py
+data/onboarding.json

@@ -28,8 +28,8 @@ Everything the page does runs in the visitor's browser. The only server code is 
 ## How the code is laid out
 
 ```
-index.html  home.html  gallery.html  size.html     the pages (play.html: game sheets; provenance.html: the field notes of the 3D view)
-css/                                               tokens.css (colours, type), style.css (the explorer, size page), home.css, pages.css, play.css
+index.html  home.html  gallery.html  size.html     the pages (provenance.html: the field notes of the 3D view)
+css/                                               tokens.css (colours, type), style.css (the explorer, size page), home.css, pages.css
 js/main.js                                         the entry: imports the sections in order
 js/regions.js  js/00-regions.js                    every region, once (classic scripts, run first)
 js/01-data … 14-streetview.js                      the explorer, one ES module per section
