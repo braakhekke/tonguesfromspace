@@ -377,10 +377,10 @@ pick.innerHTML = '<option value="">Choose a glacier…</option>';
 const pickItems = [];      // the same list as the hidden select, for the menu: {head} or {value, text, area, indent, disabled}
 let lastGroup = null, grp = null;
 for (const r of REGIONS) {
-  if (r.group !== lastGroup) { lastGroup = r.group; }
+  if (r.soon) { r.marker = L.marker(r.ll, { icon: L.divIcon({ className: 'pin soon' + (r.side ? ' ' + r.side : ''), html: '<span>' + r.name + '</span>', iconSize: [0, 0] }), keyboard: false, interactive: false }).addTo(map); continue; }      // in development: only a label on the map, not in the list
   grp = document.createElement('optgroup'); grp.label = r.group === r.name ? r.name : r.group + ' · ' + r.name; pick.appendChild(grp);
   pickItems.push({head: grp.label});
-  if (!r.soon || r.making) for (const g of ordered(r.id)) { grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id)); pickItems.push({value: 'g:' + g.id, text: nameOf(g), area: fmtArea(g.area), indent: g.parent ? 1 : 0}); }
+  if (!r.soon) for (const g of ordered(r.id)) { grp.appendChild(new Option((g.parent ? '\u00A0\u00A0\u00A0\u00A0\u00A0' : '\u00A0\u00A0') + nameOf(g), 'g:' + g.id)); pickItems.push({value: 'g:' + g.id, text: nameOf(g), area: fmtArea(g.area), indent: g.parent ? 1 : 0}); }
   r.marker = L.marker(r.ll, { icon: L.divIcon({ className: 'pin' + (r.soon ? ' soon' : '') + (r.side ? ' ' + r.side : ''), html: '<span>' + r.name + '</span>', iconSize: [0, 0] }), keyboard: false, interactive: false }).addTo(map);
 }
 
@@ -416,7 +416,7 @@ let glMarkers = {};
 function drawGlaciers() {      // every glacier of the regions with data, as dots on the map
   glLayer.clearLayers(); glMarkers = {};
   for (const r of REGIONS) {
-    if (r.soon && !r.making) continue;
+    if (r.soon) continue;      // regions in development: not chosen yet
     for (const g of byRegion(r.id)) {
       const m = L.marker(g.tip, { icon: L.divIcon({ className: 'gdot' + (g.parent ? ' sub' : ''), html: '<i></i>', iconSize: [0, 0] }), keyboard: true, title: g.name })
         .bindTooltip(nameOf(g) + (g.parent ? ' · outlet' : ''), { direction: 'top', offset: [0, -8], className: 'gtip' }).addTo(glLayer);
