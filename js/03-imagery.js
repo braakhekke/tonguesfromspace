@@ -24,7 +24,7 @@ export const CDSE = {
   statsRes:   60,              // metres per pixel for scoring scenes (cheap, plenty for cloud cover)
   groundRes:  10,              // metres per pixel of the images
   maxPx:      2500,            // Process API output limit per side
-  version:    'l1c-v17'        // bump when scoring or rendering changes, to invalidate cached results
+  version:    'l1c-v18'        // bump when scoring or rendering changes, to invalidate cached results
 };
 /* latest allowed day per year (MM-DD); default the end of the season (Switzerland 20 September). 2024: heavy snowfall on 15 September. */
 export const LAST_DAY = { default: SEASON.find[1], ...SEASON.lastDay };
@@ -86,8 +86,22 @@ function evaluatePixel(ss){
   return [clip(p.B11 > 0 ? p.B04 / p.B11 / 2 : 0), clip(p.B02 / 0.4), Math.pow(clip(p.B11 / 0.35), 0.4545)];
 }`;
 }
+/* Infra (false1): the Copernicus Browser's "False color" (gain 2.5 on B08, B04, B03), but with a soft shoulder from 0.5 instead of a hard clip, so snow keeps its detail. No Rayleigh term, no saturation. */
+const INFRA = { gain: 2.5, knee: 0.5 };
+function infraEvalscript(orbit){
+  return `//VERSION=3
+function setup(){ return { input:["B08","B04","B03","dataMask"], mosaicking:"TILE", output:{ bands:3 } }; }
+${orbitFilter(orbit)}
+function sh(v){ return v <= ${INFRA.knee} ? (v < 0 ? 0 : v) : ${INFRA.knee} + (1 - ${INFRA.knee}) * (1 - Math.exp(-(v - ${INFRA.knee}) / (1 - ${INFRA.knee}))); }
+function evaluatePixel(ss){
+  var p = ss[0] || { dataMask:0 }; for (var i = 0; i < ss.length; i++) if (ss[i].dataMask == 1) { p = ss[i]; break; }
+  if (!p.dataMask) return [0.11, 0.16, 0.19];
+  return [sh(${INFRA.gain} * p.B08), sh(${INFRA.gain} * p.B04), sh(${INFRA.gain} * p.B03)];
+}`;
+}
 export function evalscriptFor(style, orbit){
   if (style === 'false3') return hotEvalscript(orbit);
+  if (style === 'false1') return infraEvalscript(orbit);
   const [r, g, b] = STYLE_BANDS[style] || STYLE_BANDS.natural;
   const T = TRUE_COLOR;
   return `//VERSION=3

@@ -385,6 +385,15 @@ def sadj_np(a):
     off = t['gOff'] ** t['gamma']; return ((x + t['gOff']) ** t['gamma'] - off) / ((1 + t['gOff']) ** t['gamma'] - off)
 
 
+INFRA = dict(gain=2.5, knee=0.5)      # INFRA of js/03-imagery.js
+
+
+def infra_np(refl):
+    """Infra: gain, then linear up to the knee and a smooth roll-off to 1 above it"""
+    v = np.maximum(INFRA['gain'] * refl, 0); k = INFRA['knee']
+    return np.where(v <= k, v, k + (1 - k) * (1 - np.exp(-(v - k) / (1 - k))))
+
+
 def srgb_np(c):
     return np.where(c <= 0.0031308, 12.92 * c, 1.055 * np.power(np.maximum(c, 0.0031308), 0.41666666666) - 0.055)
 
@@ -404,6 +413,9 @@ def paint(a, w, h, cal, qmap=None):
     if colour:
         lv = [sadj_np(lvl(b)) for b in range(MASK)]      # and through the true colour curve
         for k in colour:
+            if k == 'false1':      # Infra: the Copernicus Browser's "False color", gain 2.5 on the matched reflectances with a soft shoulder from 0.5 (INFRA in js/03-imagery.js), no curve, no saturation
+                out = np.stack([np.round(255 * infra_np(lvl(j))) for j in STYLES[k]], axis=1)
+                out[bad] = 0; bufs[k] = bytearray(out.astype(np.uint8).tobytes()); continue
             r, g, b = (lv[j] for j in STYLES[k]); avg = (r + g + b) / 3 * (1 - sat)
             out = np.stack([np.round(255 * srgb_np(np.minimum(np.maximum(avg + c * sat, 0), 1))) for c in (r, g, b)], axis=1)
             out[bad] = 0; bufs[k] = bytearray(out.astype(np.uint8).tobytes())

@@ -31,8 +31,22 @@ const orbitFilter = (orbit?: string) =>
     ? `function preProcessScenes(c){ c.scenes.tiles = c.scenes.tiles.filter(function(x){ return JSON.stringify(x).indexOf("_${orbit}_") >= 0; }); return c; }`
     : `function preProcessScenes(c){ var t = c.scenes.tiles, m = t.length > 1 ? /_R\\d{3}_/.exec(JSON.stringify(t[0])) : null; if (m) c.scenes.tiles = t.filter(function(x){ return JSON.stringify(x).indexOf(m[0]) >= 0; }); return c; }`;
 
+/* Infra (false1): the Copernicus Browser's "False color" (gain 2.5 on B08, B04, B03), but with a soft shoulder from 0.5 instead of a hard clip, so snow keeps its detail. No Rayleigh term, no saturation. */
+const INFRA = { gain: 2.5, knee: 0.5 };
+function infraEvalscript(orbit?: string): string{
+  return `//VERSION=3
+function setup(){ return { input:["B08","B04","B03","dataMask"], mosaicking:"TILE", output:{ bands:3 } }; }
+${orbitFilter(orbit)}
+function sh(v){ return v <= ${INFRA.knee} ? (v < 0 ? 0 : v) : ${INFRA.knee} + (1 - ${INFRA.knee}) * (1 - Math.exp(-(v - ${INFRA.knee}) / (1 - ${INFRA.knee}))); }
+function evaluatePixel(ss){
+  var p = ss[0] || { dataMask:0 }; for (var i = 0; i < ss.length; i++) if (ss[i].dataMask == 1) { p = ss[i]; break; }
+  if (!p.dataMask) return [0.11, 0.16, 0.19];
+  return [sh(${INFRA.gain} * p.B08), sh(${INFRA.gain} * p.B04), sh(${INFRA.gain} * p.B03)];
+}`;
+}
 export function imageEvalscript(style: Style, orbit?: string): string {
   if (style === 'false3') return hotEvalscript(orbit);
+  if (style === 'false1') return infraEvalscript(orbit);
   const [r, g, b] = STYLE_BANDS[style];
   const T = RENDER;
   return `//VERSION=3
