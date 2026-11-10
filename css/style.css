@@ -1084,14 +1084,14 @@ body.has-full{overflow:hidden}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
   .stage.mini .handle svg{width:18px;height:18px;flex:none}      /* the arrows fit the smaller handle (26 px arrows in a 30 px circle looked skewed) */
   .stage:not(.is-full) .mini-ctl{display:contents}
-  #miniToggle{display:none}      /* the sheet handle shows only once the page has scrolled (body.scrolled) */
-  #miniToggle{position:absolute;z-index:700;left:50%;top:0;transform:translateX(-50%);width:84px;height:26px;padding:0;border:0;border-radius:0 0 13px 13px;background:rgba(255,255,255,.55);place-items:center;cursor:grab;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}      /* a sheet handle on the top edge of the picture: tap it or swipe it up (strip) / down (large) */
-  #miniToggle svg{display:none}
-  #miniToggle::before{content:'';width:38px;height:5px;border-radius:3px;background:rgba(14,26,34,.55)}
-  #miniToggle::after{content:'';position:absolute;inset:0 -14px -10px}      /* bigger touch target */
-  body.scrolled:not(.has-full) #miniToggle{display:grid;position:fixed;top:calc(var(--stage-bottom,60vh) + 16px);bottom:auto;height:26px;width:110px;border-radius:0 0 14px 14px;background:#fff;box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
-  body.scrolled:not(.has-full) #miniToggle::before{width:48px;height:5px}
-  body.scrolled:not(.has-full) #miniToggle::after{inset:0 -20px -18px}      /* a big touch target below and beside the handle */
+  #miniToggle{display:none}      /* the pill shows only once the page has scrolled or the picture is a strip (body.scrolled) */
+  body.scrolled:not(.has-full) #miniToggle{display:inline-flex;align-items:center;gap:6px;position:fixed;z-index:700;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 18px);bottom:auto;height:38px;width:auto;padding:0 16px 0 14px;border:0;border-radius:19px;background:rgba(255,255,255,.94);color:#1d2a30;font:600 13px/1 var(--sans);box-shadow:0 2px 8px rgba(14,26,34,.35);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}      /* a labelled pill on the upper edge of the picture (tap, or swipe up = strip / down = large; js/09-phones.js) */
+  body.scrolled:not(.has-full) #miniToggle svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transform:rotate(180deg)}
+  body.scrolled:not(.has-full) #miniToggle::before{content:'Shrink view'}
+  body.scrolled:not(.has-full) #miniToggle[aria-expanded="false"]::before{content:'Enlarge view'}
+  body.scrolled:not(.has-full) #miniToggle[aria-expanded="false"] svg{transform:none}
+  body.scrolled:not(.has-full) #miniToggle::after{content:'';position:absolute;inset:-8px -14px}      /* a little extra touch margin around the pill */
+  body.scrolled:not(.has-full) #miniToggle > *{pointer-events:none}
   body.pane-open .mini-ctl{display:none!important}
 }
 }

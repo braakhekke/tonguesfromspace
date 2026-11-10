@@ -187,7 +187,15 @@ export function setMini(on){
 { const st = $('stage'), upd = () => { const sc = PHONE.matches && (scrollY > 4 || st.classList.contains('mini'));      // a strip at the top of the page also needs its handle, to open it again
     document.body.classList.toggle('scrolled', sc); if (sc) document.documentElement.style.setProperty('--stage-bottom', Math.round(st.getBoundingClientRect().bottom) + 'px'); };
   addEventListener('scroll', upd, {passive: true}); addEventListener('resize', upd); new ResizeObserver(upd).observe(st); upd(); }
-$('stage').addEventListener('click', e => { if (!PHONE.matches || !$('stage').classList.contains('mini') || e.target.closest('button, a, input, label')) return; e.stopPropagation(); setMini(false); }, true);      // tap on the strip: open it large
+{ const st = $('stage'); let down = null, swallow = 0;      // tap anywhere on the strip opens it large: judged on pointer up (the map and the 3D view can swallow the click), the click that follows is stopped
+  const skip = e => e.target.closest('button, a, input, label, select, .handle, .v3d-div');
+  st.addEventListener('pointerdown', e => { down = (PHONE.matches && st.classList.contains('mini') && e.isPrimary && !skip(e)) ? {x: e.clientX, y: e.clientY, t: Date.now()} : null; }, true);
+  st.addEventListener('pointercancel', () => { down = null; }, true);
+  st.addEventListener('pointerup', e => { const d = down; down = null; if (!d || !e.isPrimary || !st.classList.contains('mini')) return;
+    if (Math.hypot(e.clientX - d.x, e.clientY - d.y) > 10 || Date.now() - d.t > 600) return;      // a drag or a long press is the map's
+    swallow = Date.now(); setMini(false); }, true);
+  st.addEventListener('click', e => { if (Date.now() - swallow < 500) { e.stopPropagation(); e.preventDefault(); return; }
+    if (!PHONE.matches || !st.classList.contains('mini') || skip(e)) return; e.stopPropagation(); setMini(false); }, true); }
 { const h = $('miniToggle'); let y0 = null, moved = false;
   h.addEventListener('pointerdown', e => { y0 = e.clientY; moved = false; try { h.setPointerCapture(e.pointerId); } catch (_) {} });
   h.addEventListener('pointerup', e => { if (y0 === null) return; const d = e.clientY - y0; y0 = null;
