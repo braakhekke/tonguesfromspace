@@ -5,7 +5,7 @@
 import { startViewer } from './viewer3d-core.js';
 
 const $ = id => document.getElementById(id);
-const DIR = 'data/home-hero/', HOLD = 1100, HOLD_LAST = 2400;      // milliseconds per year; the last year stays a little longer before the loop starts again
+const DIR = 'data/home-hero/', HOLD = 550, HOLD_LAST = 1400;      // milliseconds per year; the last year stays a little longer before the loop starts again
 const fig = $('flight'), vid = $('flightVideo'), cv = $('flightCanvas'), fb = $('flPlay'), yearEl = $('flYear'), dateEl = $('flDate');
 if (fig && cv && !matchMedia('(prefers-reduced-motion:reduce)').matches) main().catch(e => { console.error('hero', e); fallback(); });
 
@@ -26,7 +26,10 @@ async function main() {
   const bitmap = y => fetch(`${DIR}${y}.webp`).then(r => r.blob()).then(createImageBitmap);
   const tex = new Map([[years[0], await bitmap(years[0])]]);
   const {S, nA, nB} = meta, v = startViewer(cv, heights.get(years[0]), tex.get(years[0]), nA, nB, S.up, S.back, S.dist, S.half);
-  v.setCam(meta.cam); cv.onwheel = null;      // the wheel scrolls the page, it does not zoom the picture
+  v.setCam(meta.cam);
+  // the plain wheel scrolls the page; zoom with the buttons, a pinch on the screen, or Ctrl/⌘ + wheel (a trackpad pinch arrives as that)
+  const wheel = cv.onwheel; cv.onwheel = e => { if (e.ctrlKey || e.metaKey) wheel(e); };
+  fig.classList.add('zoomable'); $('flZoomIn').onclick = () => v.zoomBy(0.75); $('flZoomOut').onclick = () => v.zoomBy(1 / 0.75);
   cv.style.opacity = 1; fig.classList.remove('loading'); vid.classList.add('off'); $('dragHint').classList.add('on');
   const touched = () => $('dragHint').classList.remove('on');
   cv.addEventListener('pointerdown', touched, {once: true});

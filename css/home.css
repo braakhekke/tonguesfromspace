@@ -563,3 +563,12 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
 
 /* alternating bands down the page: dark hero, white, tint (gallery), white, dark map, ice quote, white, dark closing */
 #science .sci > details{background:var(--firn);box-shadow:none}
+
+/* zoom buttons of the hero view: glass discs above the play button */
+.fl-zoom{position:absolute;z-index:4;right:14px;bottom:58px;display:flex;flex-direction:column;gap:6px}
+.fl-zoom button{width:36px;height:36px;padding:0;border:0;border-radius:50%;background:rgba(14,26,34,.55);color:#fff;display:grid;place-items:center;cursor:pointer;box-shadow:0 0 0 1px rgba(255,255,255,.28),0 4px 14px rgba(0,0,0,.35);opacity:.8;transition:opacity .2s,background .2s}
+.fl-zoom button:hover,.fl-zoom button:focus-visible{opacity:1;background:rgba(14,26,34,.78)}
+.fl-zoom button:focus-visible{outline:2px solid #fff;outline-offset:2px}
+.fl-zoom svg{width:16px;height:16px}
+.flight:not(.zoomable) .fl-zoom{display:none}
+@media (pointer:coarse){.fl-zoom{right:12px;bottom:62px}.fl-zoom button{width:42px;height:42px}}
