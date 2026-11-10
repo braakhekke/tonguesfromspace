@@ -127,7 +127,7 @@ export function sync3D(){            // the 3D view follows the left panel: anot
   if (document.getElementById('v3d').hidden) return;      // not $(): this runs during start-up, before $ exists
   clearTimeout(sync3D.t); sync3D.t = setTimeout(() => { if (!$('v3d').hidden) open3D(); }, 150);
 }
-export function close3D(){ v3dRun++; wire.syncDemTile(); resetPhotos(); v3dCtx = null; hideDivider3D(); pinLoop(); if (v3d) { v3d.destroy(); v3d = null; } $('v3d').hidden = true; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a fresh canvas each time: a lost WebGL context cannot be reused
+export function close3D(){ v3dRun++; resetPhotos(); v3dCtx = null; hideDivider3D(); pinLoop(); if (v3d) { v3d.destroy(); v3d = null; } $('v3d').hidden = true; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a fresh canvas each time: a lost WebGL context cannot be reused
 /* Base maps and the hiking trails on the picture of the strip: the tiles of the same servers as on the map, drawn one by one into the picture (kept, so another year or layer does not fetch them again) */
 export const tileCache = new Map();
 export const tileBitmap = url => {
@@ -528,7 +528,6 @@ export function syncSrRow(m){            // super-resolution row: usable when on
   $('l3SrYears').textContent = usable || !ys.length ? '' : `${ys[0]}–${ys[ys.length - 1]} only`;
 }
 export async function open3D(){
-  wire.syncDemTile();
   const run = ++v3dRun, g = v3dGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
   const cmp = state.mode === 'compare' && state.a !== state.b && state.available[state.a] && state.available[state.b] ? [state.a, state.b] : null;      // compare: both years side by side with a slider
   const years = cmp || (state.mode === 'timelapse' ? tlFrames() : [stillYear()].filter(y => state.available[y])), first = years.includes(stillYear()) ? stillYear() : years[years.length - 1];

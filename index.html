@@ -93,6 +93,7 @@
   <symbol id="sw-shade" viewBox="0 0 26 16"><rect width="26" height="16" fill="#b9b9b9"/><path d="M0 16V9l5-7 4 6 3-3 5 8 5-4v7z" fill="#ececec"/><path d="M5 2l4 6-4 8H0V9z" fill="#6c6c6c"/><path d="M12 5l5 8-4 3-4-8z" fill="#7b7b7b"/><path d="M17 13l4-4 5 3v4h-9z" fill="#8e8e8e"/></symbol>
 </defs></svg>
 <div class="app" id="app">
+<div class="top-cover" aria-hidden="true"></div>
 
   <!-- ================= MOBILE HEADER (phones only) ================= -->
   <header class="mhead" id="mhead">
@@ -227,13 +228,7 @@
         <textarea id="embedCode" readonly rows="9" spellcheck="false" aria-label="Embed code"></textarea>
         <div class="embed-row"><button type="button" class="act" id="embedCopy" data-track="embed-copy">Copy code</button><a class="act act-link" id="embedPreview" target="_blank" rel="noopener">Preview</a></div>
       </div>
-      <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share</button><button type="button" class="act" id="demBtn" aria-expanded="false" aria-controls="demBox" disabled title="The ice surface of a year as a file for GIS (GeoTIFF, ASCII grid or XYZ)">Elevation model</button><button type="button" class="act" id="metaBtn" aria-expanded="false" aria-controls="metaBox">Metadata</button></div>
-      <div class="embed-box" id="demBox" hidden>
-        <div class="dem-row"><label>Year <select id="demYear" aria-label="Year of the surface"></select></label><label>Format <select id="demFmt" aria-label="File format"></select></label></div>
-        <p class="hint" id="demNote"></p>
-        <button type="button" class="act" id="demGo" data-track="dem-download">Download</button>
-        <p class="hint" id="demMsg" role="status"></p>
-      </div>
+      <div class="embed-row sat-need"><button type="button" class="act" id="shareBtn">Share</button><button type="button" class="act" id="metaBtn" aria-expanded="false" aria-controls="metaBox">Metadata</button></div>
       <div class="embed-box" id="metaBox" hidden>
         <div class="meta-body" id="metaBody"></div>
       </div>

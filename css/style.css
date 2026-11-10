@@ -6,6 +6,7 @@ html,body{height:100%;margin:0}
 body{background:var(--firn);color:var(--rock);font-family:var(--sans);font-size:14px;line-height:1.45;-webkit-font-smoothing:antialiased}
 button,select,input{font:inherit;color:inherit}
 :focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.top-cover{display:none}
 .app{--lw:290px;--rw:320px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);height:100%}
 
 /* ---------- left ---------- */
@@ -749,9 +750,6 @@ sup.fn a:hover{opacity:.7}
 .dl b{font-size:13px;font-weight:700;line-height:1.2}
 .dl small{font-size:11px;color:var(--moraine)}
 .dl[hidden]{display:none}
-.dem-row{display:flex;gap:8px}
-.dem-row label{flex:1;display:flex;flex-direction:column;gap:3px;font-size:11.5px;color:var(--moraine)}
-.dem-row select{font:inherit;font-size:13px;padding:6px 6px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:var(--rock)}
 #vizGroup > .act-link{margin-top:10px}
 .mhead,.mobile-only{display:none}
 .mapbar #fsBtn svg{display:block}
@@ -1072,6 +1070,8 @@ body.has-full{overflow:hidden}
   .stage:not(.is-full){position:sticky;top:calc(env(safe-area-inset-top,0px) + 10px);z-index:7;order:1;height:52vh;height:52svh;min-height:300px}      /* a gap above, so the picture never sits on the top edge of the screen (one rule for the explorer and the size page) */
   .app .stage:not(.is-full){box-shadow:0 0 0 16px var(--firn),var(--lift)}
   body.scrolled .app .stage:not(.is-full){box-shadow:0 0 0 16px var(--firn),0 -400px 0 16px var(--firn),var(--lift)}      /* pinned: the band above reaches up past the status bar whatever the phone's safe area is (the cover below can miss on a real iPhone) */      /* a band in the page colour above (gap and status bar), beside and under the picture (16 px, also behind the rounded corners), so the text scrolling past it never shows there */      /* a band in the page colour above and beside the picture, so the text scrolling under it does not show in the gaps (the same as size.html) */
+  .top-cover{display:block;position:sticky;top:0;z-index:6;flex:none;height:calc(env(safe-area-inset-top,0px) + 10px);margin-bottom:calc(-1 * (env(safe-area-inset-top,0px) + 10px));background:var(--firn);box-shadow:0 -600px 0 0 var(--firn);pointer-events:none}      /* a strip in the page colour that sticks at the very top, in the same coordinates as the pinned picture (which sits right under it): text scrolling past can never show above the picture, whatever the phone's safe area is */
+  body.has-full .top-cover,body.pane-open .top-cover{display:none}
   body:not(.has-full)::before{content:'';position:fixed;z-index:6;left:0;right:0;top:-200px;height:calc(max(env(safe-area-inset-top,0px) + 10px, var(--stage-top,0px)) + 220px);background:var(--firn);pointer-events:none;-webkit-transform:translateZ(0);transform:translateZ(0)}      /* a real cover over the status bar and the gap above the picture: the box-shadow band was not drawn there on iPhone, so scrolled text showed through (explorer and size page share it) */
   details.coll[open] > summary{position:static}      /* phones: the page scrolls under the pinned picture; no sticky card header (it would stick under it) */
   .tilt-hint{display:none!important}      /* phones: no "Alt (Option) + drag up" hint; the 3D button is used there */
@@ -1101,8 +1101,8 @@ body.has-full{overflow:hidden}
 @media (min-width:721px) and (min-height:521px){
   .panel-toggle{position:absolute;top:50%;z-index:672;width:22px;height:56px;margin-top:-28px;display:flex;align-items:center;justify-content:center;padding:0;border:1px solid var(--rule);background:var(--sheet);color:var(--moraine);cursor:pointer;box-shadow:none}
   .panel-toggle svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .2s}
-  #toggleLeft{left:0;border-left:0;border-radius:0}
-  #toggleRight{right:0;border-right:0;border-radius:0}
+  #toggleLeft{left:0;border-left:0;border-radius:0 var(--r-sm) var(--r-sm) 0}
+  #toggleRight{right:0;border-right:0;border-radius:var(--r-sm) 0 0 var(--r-sm)}
   .app{transition:grid-template-columns .35s ease}
   .controls,.story{min-width:0}
   .app.no-left{--lw:0px}
@@ -1113,7 +1113,7 @@ body.has-full{overflow:hidden}
   .app.no-right #toggleRight svg{transform:rotate(180deg)}
   /* collapsed, the right panel is an inviting tab on the edge: red, the text written downwards, a soft glow like the "Then and now" pill */
   .pt-label{display:none}
-  .app.no-right #toggleRight{z-index:664;top:50%;margin-top:0;transform:translateY(-50%);width:38px;height:auto;max-height:86%;padding:12px 0;flex-direction:column;gap:10px;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:10px 0 0 10px;transition:width .15s,background .15s}
+  .app.no-right #toggleRight{z-index:664;top:50%;margin-top:0;transform:translateY(-50%);width:38px;height:auto;max-height:86%;padding:12px 0;flex-direction:column;gap:10px;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:var(--r-sm) 0 0 var(--r-sm);transition:width .15s,background .15s}
   .app.no-right #toggleRight.halo{animation:tabPulse 2s ease-in-out infinite}      /* the halo of the "Save and share" cue; only until the panel was opened once in this session */
   .app.no-right #toggleRight:hover{width:44px;background:#B22C25}
   .app.no-right #toggleRight .pt-label{display:block;writing-mode:vertical-rl;font:600 13.5px/1.5 var(--sans);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:0}      /* line height 1.5: with 1 the descender of g and y was cut off by the overflow */
@@ -1686,7 +1686,15 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 
 /* One year: previous / next year in the dock (js/05-map.js, showFrame), a round button on each side of the year */
 .tl-step{align-items:center;gap:14px}
-.tl-step .tl-step-year{min-width:44px;text-align:center;font-size:14px;font-weight:600;color:#fff;font-variant-numeric:tabular-nums}
+/* the year on show is big, the two years with a scene on each side small and fading; they are buttons, and a swipe along the row steps a year */
+.tl-step{touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.tl-years{display:flex;align-items:baseline;justify-content:center;gap:2px;flex:1 1 auto;min-width:0}
+.tl-yr{flex:none;min-width:36px;text-align:center;font-variant-numeric:tabular-nums;color:#fff;font-size:11.5px;font-weight:500;line-height:1.2;padding:4px 2px;border:0;background:none;font-family:inherit}
+button.tl-yr{cursor:pointer;opacity:.62;border-radius:8px}
+button.tl-yr.d2{opacity:.34;font-size:10.5px}
+button.tl-yr:hover{opacity:1;background:rgba(255,255,255,.14)}
+.tl-years .tl-gap{visibility:hidden}
+.tl-step .tl-step-year{min-width:58px;text-align:center;font-size:19px;font-weight:700;color:#fff;font-variant-numeric:tabular-nums}
 .tl-prev,.tl-next{display:grid;place-items:center;flex:none;width:30px;height:30px;min-width:0;min-height:0;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.18);color:#fff;cursor:pointer}
 .tl-prev:hover:not(:disabled),.tl-next:hover:not(:disabled){background:rgba(255,255,255,.3)}
 .tl-prev:disabled,.tl-next:disabled{opacity:.35;cursor:default}
@@ -1766,12 +1774,15 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .pin-card{position:absolute;z-index:664;right:12px;bottom:84px;width:min(480px,calc(100% - 24px));box-sizing:border-box;background:var(--sheet);color:var(--ink);border-radius:var(--r-md);box-shadow:0 10px 32px rgba(14,26,34,.28),0 2px 6px rgba(14,26,34,.12);padding:10px 12px 8px;font-size:12px;font-family:var(--sans);overflow-y:auto}
 .pin-card[hidden]{display:none}
 .pin-card.in:not(.still){animation:pcIn .42s cubic-bezier(.2,.8,.2,1) both}
-.pc-hd{display:flex;align-items:center;gap:8px}
+.pc-hd{display:flex;flex-wrap:wrap;align-items:center;gap:4px 8px}
 .pc-ico svg{display:block;width:14px;height:19px}
 .pc-hd b{font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.06em;font-size:11px}
-.pc-where{flex:1;min-width:0;color:var(--moraine);font-size:11px;font-variant-numeric:tabular-nums;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pc-where{order:1;flex:1 0 100%;color:var(--moraine);font-size:11.5px;font-variant-numeric:tabular-nums;white-space:normal;overflow-wrap:anywhere}      /* the place has a line of its own under the title row, so nothing cuts it off */
 .pc-ex button{font:inherit;font-size:11px;font-weight:600;line-height:1.2;border:1px solid var(--rule);border-radius:5px;padding:2px 7px;color:var(--rock);background:none;cursor:pointer}
 .pc-ex button:hover{background:var(--firn)}
+.pc-ex{display:inline-flex;gap:6px;align-items:center;margin-left:auto}
+.pc-ex .pc-fn{font-size:11px;font-weight:600;line-height:1.2;border:1px solid var(--rule);border-radius:5px;padding:2px 7px;color:var(--crevasse);text-decoration:none;white-space:nowrap}
+.pc-ex .pc-fn:hover{background:var(--firn)}
 .pc-x{border:0;background:none;font:inherit;font-size:20px;line-height:1;color:var(--moraine);cursor:pointer;padding:0 2px}
 .pc-tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(112px,1fr));gap:6px;margin:8px 0 4px}
 .pc-tile{display:flex;flex-direction:column;gap:1px;min-width:0;background:var(--firn);border-radius:var(--r-sm);padding:7px 9px 6px}
@@ -1849,8 +1860,6 @@ details.about>summary::after,details.about[open]>summary::after{display:none}
 .hint a,.note a,.status a,.embed-box a,.about-sec a{color:var(--crevasse);font-weight:600}
 .embed-row{display:flex;gap:8px}
 .embed-row .act{min-width:0;padding-left:6px;padding-right:6px;line-height:1.2;text-align:center}      /* three buttons share one row; a long label wraps to two lines instead of spilling out */
-#demBtn{flex:1.5 1 0}
-#demBtn:disabled{opacity:.45;cursor:not-allowed}      /* the longest label of the row */
 .embed-open{display:none}
 html.embed .controls,html.embed .story,html.embed .mhead,html.embed .panel-toggle,html.embed .scroll-cue,html.embed .fyi-slot,html.embed #fsBtn,html.embed #v3dFs{display:none!important}
 html.embed .app{display:block;height:100%}
@@ -1902,7 +1911,10 @@ html.embed .v3d-measure > .v3d-tl{min-width:0;width:100%}
   .tl-step{gap:10px}
   .mapbar .tl-prev,.mapbar .tl-next,.v3d-measure .tl-prev,.v3d-measure .tl-next{width:24px;height:24px;min-width:0;min-height:0;padding:0}
   .tl-prev svg,.tl-next svg,.mapbar .tl-prev svg,.mapbar .tl-next svg{width:13px;height:13px}
-  .tl-step .tl-step-year{font-size:13px;min-width:38px}
+  .tl-step .tl-step-year{min-width:50px}
+  .mapbar button.tl-yr,.v3d-measure button.tl-yr{min-width:44px;min-height:36px;padding:0 4px;font-size:12px;display:block}      /* smaller than the year on show (the dock's own phone rule makes buttons 20px), a big enough target to tap */
+  .tl-yr.d2{display:none!important}      /* one neighbour on each side */
+  .tl-step .tl-step-year{font-size:18px}
 }
 
 /* phones: the dock covers the bottom right of the 3D view, so the north arrow sits at the top right (the small window keeps it above its own buttons) */
@@ -2131,7 +2143,8 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 
   /* the timeline row in the docks: a year stepper and a thin line */
   .tl-dots,.v3d-tl{color:var(--ink);border-bottom-color:var(--rule)}
-  .tl-step .tl-step-year{color:var(--ink);font-size:15px;font-weight:700}
+  .tl-step .tl-step-year{color:var(--ink);font-size:19px;font-weight:700}
+  .tl-yr{color:var(--ink)}
   .tl-prev,.tl-next,.mapbar .tl-prev,.mapbar .tl-next,.mapbar .tl-play,.mapbar .tl-tools,.v3d-measure .tl-tools{width:34px;height:34px;background:rgba(14,26,34,.07);color:var(--ink)}
   .mapbar .tl-prev:disabled,.mapbar .tl-next:disabled{background:rgba(14,26,34,.07);opacity:.3}
   .mapbar .tl-prev:hover:not(:disabled),.mapbar .tl-next:hover:not(:disabled),.mapbar .tl-play:hover{background:rgba(14,26,34,.13)}
@@ -2561,7 +2574,7 @@ body.x-layers .layerbox{max-width:none}
   .layerbox.in-flow.open .lb-head span::after{content:' · tap to close';font-weight:500;color:var(--moraine);font-size:12.5px}
 }
 /* Phones: the docks fold away (js/09-phones.js, "dock-fold") */
-.dock-fold{display:none}
+.dock-fold,.mapbar .dock-fold,.v3d-measure .dock-fold{display:none}      /* only on phones: the dock's own button rules are more specific than a bare .dock-fold and showed it on desktop */
 @media (max-width:720px){
   .mapbar .dock-fold,.v3d-measure .dock-fold{display:flex;align-items:center;justify-content:center;position:absolute;top:-13px;left:50%;transform:translateX(-50%);width:48px;min-width:0;height:18px;min-height:0;padding:0;border-radius:9px;background:rgba(255,255,255,.94);color:var(--moraine,#5C6B74);box-shadow:0 1px 4px rgba(14,26,34,.25);z-index:2}
   .mapbar .dock-fold::before,.v3d-measure .dock-fold::before{content:'';position:absolute;inset:-8px -6px -4px}      /* a bigger touch target than the tab itself */
@@ -2587,8 +2600,9 @@ body.x-layers .layerbox{max-width:none}
 .menu-btn,.phone-menu{display:none}
 @media (max-width:720px) and (orientation:portrait), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .controls .site-nav,#regionBtnM{display:none!important}
-  .mhead strong .menu-btn{display:inline-flex;align-items:center;margin-left:auto;gap:4px;padding:7px 10px 7px 13px;border:0;border-radius:var(--r-pill);background:var(--firn);font:inherit;font-size:13px;font-weight:600;letter-spacing:0;color:var(--rock);white-space:nowrap;cursor:pointer}
+  .mhead strong .menu-btn{display:inline-flex;align-items:center;margin-left:auto;position:relative;gap:5px;min-height:40px;padding:9px 13px 9px 16px;border:0;border-radius:var(--r-pill);background:var(--firn);font:inherit;font-size:14px;font-weight:600;letter-spacing:0;color:var(--rock);white-space:nowrap;cursor:pointer}
   .mhead #sizeTag{display:none}      /* size page: no room beside the pill; the mode switch says which view it is */
+  .menu-btn::after{content:'';position:absolute;inset:-8px -12px -8px -16px}      /* the tap area reaches past the pill on every side (it was hard to hit) */
   .menu-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
   .menu-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
   .mhead .phone-menu{display:block;position:absolute;z-index:900;right:12px;top:calc(100% - 8px);margin:0;padding:4px;list-style:none;min-width:190px;background:#fff;border:1px solid var(--rule);border-radius:8px;box-shadow:0 6px 20px rgba(10,27,51,.16);text-align:left}
@@ -2622,4 +2636,14 @@ html.embed .menu-btn,html.embed .phone-menu{display:none!important}
 @media (pointer:coarse){      /* small round buttons keep their look, the touch area grows to 40 px */
   .info-btn{position:relative}
   .info-btn::after{content:'';position:absolute;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%)}
+}
+
+/* phones: small controls get a tap area of about 40 px without changing how they look (the info "i" buttons and the dock folds have theirs already) */
+@media (max-width:720px) and (orientation:portrait){
+  #resetBtn,.landsat-chip,.tile-link,.size-link,#downHint,#tuneSwitch,#playBtn,.social-share,#linkBtn{position:relative}
+  #resetBtn::after,.landsat-chip::after,.tile-link::after,.size-link::after,#downHint::after,#tuneSwitch::after,#playBtn::after,#linkBtn::after{content:'';position:absolute;left:0;right:0;top:50%;height:max(100%,44px);transform:translateY(-50%)}
+  .social-share::after{content:'';position:absolute;inset:-8px}
+  a[id^="fnr-"],.story sup a,sup a[href^="#fn"]{padding:10px 7px;margin:-10px -7px}      /* the little footnote numbers: padding widens the tap area of the inline link, the negative margin keeps the text where it was */
+  .story a:not(.act):not(.tool-btn):not(.size-link){padding-block:6px;margin-block:-6px}
+  details > summary{min-height:44px}
 }

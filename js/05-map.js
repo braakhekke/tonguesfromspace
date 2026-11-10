@@ -587,7 +587,7 @@ export function showFrame(i){
   else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`, sc);
   /* the timeline as in the Timelapse download: first and last year above a line, a tick for every year, the line filled up to the year on show, a round marker */
   const dockOpen = !!state.dockOpen, nTl = tlLayers.length, pct = k => nTl > 1 ? k / (nTl - 1) * 100 : 0;
-  const ys1 = okYears(), at1 = ys1.indexOf(state.one), stepHtml = state.mode !== 'single' || off || ys1.length < 2 ? '' : `<div class="tl-row tl-step"><button type="button" class="tl-prev" aria-label="Previous year" title="Previous year"${at1 <= 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><b class="tl-step-year">${yShown}</b><button type="button" class="tl-next" aria-label="Next year" title="Next year"${at1 < 0 || at1 >= ys1.length - 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;      // One year: previous / next year with a scene, in the dock
+  const ys1 = okYears(), at1 = ys1.indexOf(state.one), stepHtml = state.mode !== 'single' || off || ys1.length < 2 ? '' : `<div class="tl-row tl-step"><button type="button" class="tl-prev" aria-label="Previous year" title="Previous year"${at1 <= 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="tl-years" role="group" aria-label="Years with a picture">${[-2, -1, 0, 1, 2].map(d => { const y = ys1[at1 + d]; return at1 < 0 || y === undefined ? `<i class="tl-yr tl-gap d${Math.abs(d)}"></i>` : d === 0 ? `<b class="tl-step-year tl-yr d0">${yShown}</b>` : `<button type="button" class="tl-yr d${Math.abs(d)}" data-year="${y}" aria-label="Go to ${y}">${y}</button>`; }).join('')}</div><button type="button" class="tl-next" aria-label="Next year" title="Next year"${at1 < 0 || at1 >= ys1.length - 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;      // One year: previous / next year with a scene, in the dock
   const tlHtml = stepHtml || (state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl-row"><button type="button" class="tl-play" aria-label="${state.playing ? 'Pause' : 'Play'}">${state.playing ? FULL_ICONS.pause : FULL_ICONS.play}</button><div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div><button type="button" class="tl-tools" aria-label="Show tools" aria-expanded="${dockOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>`);
   document.getElementById('tlDots').innerHTML = tlHtml; document.getElementById('v3dTlLine').innerHTML = tlHtml;      // the same timeline on the map and in the 3D view; in full screen its play button is the way to start and stop
   document.getElementById('frameSlider').value = i;
@@ -615,11 +615,24 @@ export function syncDock(){          // phones: while a timelapse plays, the doc
   [document.querySelector('.mapbar'), document.getElementById('v3dMeasure')].forEach(d => { if (!d) return; d.classList.toggle('tl-live', !!state.playing); d.classList.toggle('tools-open', !!state.dockOpen); });
   document.querySelectorAll('.tl-tools').forEach(b => b.setAttribute('aria-expanded', !!state.dockOpen));
 }
-document.addEventListener('click', e => {      // One year: the dock's previous / next buttons go to the neighbouring year with a scene
+function goYear(to){ if (!to || to === state.one) return; restoreLatest(); restoreOldest(); state.one = to; wire.refreshAll(); }
+document.addEventListener('click', e => {      // One year: the dock's previous / next buttons and the small years beside the big one go to a year with a scene
+  if (Date.now() < swipedAt + 400) return;
+  const y = e.target.closest && e.target.closest('.tl-yr[data-year]'); if (y) { goYear(+y.dataset.year); return; }
   const b = e.target.closest && e.target.closest('.tl-prev, .tl-next'); if (!b || b.disabled) return;
-  const ys = okYears(), at = ys.indexOf(state.one), to = ys[at + (b.classList.contains('tl-next') ? 1 : -1)]; if (!to) return;
-  restoreLatest(); restoreOldest(); state.one = to; wire.refreshAll();
+  const ys = okYears(), at = ys.indexOf(state.one); goYear(ys[at + (b.classList.contains('tl-next') ? 1 : -1)]);
 });
+let swipedAt = 0;      // a swipe along the years steps one year (left = later, right = earlier); the click that ends it is ignored
+(() => {
+  let x0 = null, y0 = 0;
+  document.addEventListener('pointerdown', e => { const r = e.target.closest && e.target.closest('.tl-step'); x0 = r && e.button <= 0 ? e.clientX : null; y0 = e.clientY; });
+  document.addEventListener('pointerup', e => {
+    if (x0 === null) return; const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
+    if (Math.abs(dx) < 28 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+    const ys = okYears(), at = ys.indexOf(state.one); swipedAt = Date.now(); goYear(ys[at + (dx < 0 ? 1 : -1)]);
+  });
+  document.addEventListener('pointercancel', () => { x0 = null; });
+})();
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.tl-tools'); if (b) { state.dockOpen = !state.dockOpen; syncDock(); } });
 export function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
   if (!state.playing) state.dockOpen = false;
@@ -1151,7 +1164,7 @@ document.getElementById('labelsToggle').onchange = e => { e.target.checked ? lab
 document.getElementById('oldToggle').checked = prefs.old === true;      // the 1850 outline is off until it is switched on
 document.getElementById('oldToggle').onchange = () => { prefs.old = document.getElementById('oldToggle').checked; savePrefs(); drawOutlines(); };
 document.getElementById('newToggle').onchange = drawOutlines;
-export function fitGlacier(animate = true){ if (typeof wire.subFocus !== 'undefined') wire.setSubFocus(null); map.fitBounds(currentGlacier().bounds, {animate, padding:[20,20]}); }
+export function fitGlacier(animate = true){ if (typeof wire.subFocus !== 'undefined') wire.setSubFocus(null); const v = wholeView(); map.setView(v.center, v.zoom, {animate}); }      // the Whole glacier button (and its symbol on phones): the same view everywhere, centred on the image box
 export const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
 /* The tip of the tongue is the lowest point of the newest outline (found by build_outlines.py with the swisstopo height service).
    The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
@@ -1354,7 +1367,13 @@ export function focusTongue(animate = true){
   if (v) map.setView(v.center, v.zoom, {animate});
   else fitGlacier(animate);
 }
-export function wholeView(){ return map._getBoundsCenterZoom(currentGlacier().bounds, {padding: [20, 20]}); }
+export function wholeView(){      // the whole glacier with the image box in the middle of the viewer: the area is the glacier and the box, mirrored about the centre of the box
+  const g = currentGlacier(), gb = L.latLngBounds(g.bounds), pad = {padding: [20, 20]};
+  const fp = imageFootprint(g); if (!fp || !fp.bounds) return map._getBoundsCenterZoom(gb, pad);
+  const bx = L.latLngBounds(fp.bounds), all = L.latLngBounds(gb.getSouthWest(), gb.getNorthEast()).extend(bx), c = bx.getCenter();
+  const n = Math.max(all.getNorth() - c.lat, c.lat - all.getSouth()), e = Math.max(all.getEast() - c.lng, c.lng - all.getWest());
+  return map._getBoundsCenterZoom(L.latLngBounds([c.lat - n, c.lng - e], [c.lat + n, c.lng + e]), pad);
+}
 /* the Tongue and Whole glacier buttons grey out while the map already shows their view (within 3 px) */
 export function syncViewButtons(){
   if (!map || !currentGlacier()) return;

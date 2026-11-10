@@ -106,6 +106,40 @@
   .glinks a:hover{border-color:var(--loss);color:var(--loss)}
   .glinks svg{display:inline-block;min-width:0;width:13px;height:13px;flex:0 0 13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
   .glinks[hidden],.ov .glinks{display:none}
+  /* phones: the header links are small; the tap area reaches past them (the picture stays the same) */
+@media (max-width:640px){
+  .bar nav a,.bar .brand{position:relative}
+  .bar nav a::after{content:'';position:absolute;inset:-17px -6px}
+  .bar .brand::after{content:'';position:absolute;inset:-14px -6px}
+}
+
+  /* the page's look: a calm title, a notice for scientific use, roomier chapter cards */
+  main { padding-top:26px; } h1 { font-size:28px; line-height:1.15; letter-spacing:-.02em; margin:2px 0 8px; }
+  .sub { font-size:14.5px; line-height:1.55; }
+  .sci { display:flex; gap:12px; align-items:flex-start; margin:0 0 18px; padding:12px 16px; max-width:900px; background:var(--card); border:1px solid var(--rule); border-radius:10px; font-size:13.5px; line-height:1.5; color:var(--muted); }
+  .sci b { color:var(--ink); } .sci svg { display:block; min-width:0; flex:0 0 22px; width:22px; height:22px; margin-top:1px; fill:none; stroke:var(--ice); stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .sci-phone, .pyears { display:none; }
+  .fn, .bednote { border-radius:14px; padding:18px 22px 16px; } .fn h2, .bednote h2 { font-size:19px; letter-spacing:-.01em; }
+  .toc a { font-size:13px; padding:5px 13px; }
+  .pyears .pnote { margin:0 0 8px; color:var(--muted); font-size:14px; }
+  .py { display:grid; grid-template-columns:48px auto 1fr; gap:4px 10px; align-items:baseline; padding:9px 0; border-top:1px solid var(--rule); font-size:14px; } .py b { font-variant-numeric:tabular-nums; font-size:15px; } .py .pd { grid-column:2/-1; color:var(--muted); font-size:12.5px; } .py .pd:empty { display:none; }
+  .pk { justify-self:start; padding:2px 10px; border-radius:999px; font-size:12px; font-weight:600; border:1px solid var(--rule); color:var(--ink); }
+  .pk-measured, .pk-edition { background:var(--ice); border-color:var(--ice); color:#fff; } .pk-partial { background:var(--iceLight); border-color:var(--ice); } .pk-extrapolated { border-color:var(--amber); } .pk-provisional, .pk-estimate { border-color:var(--loss); color:var(--loss); border-style:dashed; }
+  /* phones: a simplified, readable version (no chart, maps, tables or viewer; one chapter at a time) */
+  @media (max-width:720px) {
+    .sci:not(.sci-phone) { display:none; } .sci-phone { display:flex; } #sub { display:none; } .pyears { display:block; margin:6px 0 14px; }
+    main { padding:18px 16px 40px; } h1 { font-size:24px; } .sub { font-size:15px; }
+    .gbar { margin-bottom:10px; } .glinks a { font-size:13.5px; padding:8px 14px; }
+    .toc { flex-direction:column; align-items:stretch; gap:8px; margin:0 0 10px; }
+    .toc a { display:block; padding:13px 16px; font-size:15px; border-radius:12px; white-space:normal; color:var(--ink); }
+    .toc.has-cur a:not(.on) { display:none; } .toc.has-cur a.on::after { content:'  ·  all chapters'; font-weight:400; opacity:.85; }
+    .fn, .bednote { padding:16px 16px 14px; } .fn h2, .bednote h2 { font-size:18px; }
+    .fn p, .fn .lead, ul.fnl, .fn .r, .bednote .chk p { font-size:15px; line-height:1.6; } ul.fnl { padding-left:18px; }
+    .nbf button { font-size:14.5px; padding:10px 0; }
+    #area .row0 .mapcard, #surface > .card, #legend, #detail, #surface .pb[data-title="One year at a time"], #fnView, #vwrap, #surface .notes, .stab, .bednote .figrow, .fn .cov, .formula, .tiles { display:none !important; }
+    #area .mapcap { font-size:15px; } .fn table { display:block; overflow-x:auto; }
+    .dl { padding:12px 14px; } .dlrow button, .dlrow select { min-height:40px; font-size:15px; }
+  }
 </style></head><body>
 <header class="bar"><div class="wrap">
   <a class="brand" data-home href="home.html">
@@ -125,7 +159,9 @@
 <div class="glinks" id="glinks" hidden><a id="glEx" href="index.html"><span>Open <span class="gn">this glacier</span> in the Explorer</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a><a id="glSz" href="size.html"><span>Open <span class="gn">this glacier</span> in the Size Visualizer</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a></div></div>
 <h1>Scientific field notes</h1>
 <p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">All glaciers with field notes</a></p>
-<p class="sub" id="sub">The satellite pictures are real photographs from space. The 3D ice surface under them is not: for each year it is a reconstruction. For <span id="gname">this glacier</span>, these notes show what was measured, what was calculated to fill the gaps, and how far to trust the result. Every number refers to the tongue (chapter 1) and is computed for this site or taken from a named source.</p>
+<p class="sub" id="sub">An open look at the data behind Tongues from Space, for <span id="gname">this glacier</span>. These notes show what was measured and what was calculated, how far each result can be trusted, and how the ice surface, the ice bed, the map layers and the size comparisons were made, with all sources and licences. Every number is either computed for this site or taken from a named source.</p>
+<aside class="sci" id="sci"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h10.5a1.5 1.5 0 0 1 1.5 1.5v14.5H7.5A1.5 1.5 0 0 1 6 18zM6 18a1.5 1.5 0 0 1 1.5-1.5H18M9.5 8h5M9.5 11h5"/></svg><div><b>For scientific use.</b> This page documents how the data on Tongues from Space was made, in detail. Where a glacier has yearly surfaces, its elevation models can be downloaded here (GeoTIFF, ESRI ASCII grid or XYZ) for GIS and 3D programs: see the download in the chapter “Ice surface through time”.</div></aside>
+<aside class="sci sci-phone" id="sciPhone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><div>The scientific field notes are an extensive, scientific insight into the data that has been used by and computed for Tongues from Space. Its original format can only be viewed on bigger screens and the below is a simplified version of that.</div></aside>
 <div id="overview"><p class="sub">Each page shows how one glacier's 3D ice surface was rebuilt for every year: what was measured, what was calculated, how well it checks out. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
 <nav class="toc" aria-label="Chapters"></nav>
 
@@ -138,6 +174,7 @@
 <div class="lead" id="fnSummary"></div>
 <div class="card"><svg id="chart" role="img" aria-label="Provenance of the yearly surfaces"></svg></div>
 <div class="legend" id="legend"></div>
+<div id="phoneYears" class="pyears"></div>
 <div class="pb" data-title="One year at a time"><p class="lead" style="margin-top:0">One column per year: how the surface was found, how uncertain it is, which measured surfaces anchor it, what shapes the change between them, what checks it. Click a year for the ICESat-2, ASTER and stake numbers.</p><p class="lead" style="margin:0 0 8px"><b>Choose a year</b> (or click it in the chart on the previous page).</p><div class="yrs" id="yrs"></div>
 <div id="detail">Choose a year.</div></div>
 <div class="notes pb" data-title="Kinds, uncertainty and checks">
@@ -246,12 +283,16 @@ function nbMenu(){
   const secs=nbSecs(), toc=document.querySelector('.toc'), f=document.querySelector('.nbf'), i=secs.findIndex(x=>x.id===nbCur);
   toc.textContent=''; secs.forEach((s,k)=>{ const a=document.createElement('a'); a.href='#'+s.id; a.textContent=(k+1)+' '+s.dataset.toc; if(k===i) a.className='on'; a.onclick=e=>{ e.preventDefault(); nbGo(s.id); }; toc.appendChild(a); });
   const pv=f.querySelector('.pv'), nx=f.querySelector('.nx'); pv.hidden=nx.hidden=i<0;
-  pv.disabled=i<=0; nx.disabled=i>=secs.length-1; pv.textContent=i>0?'‹ '+secs[i-1].dataset.toc:''; nx.textContent=i>=0&&i<secs.length-1?secs[i+1].dataset.toc+' ›':'';
+  toc.classList.toggle('has-cur',i>=0); pv.disabled=i<=0; nx.disabled=i>=secs.length-1; pv.textContent=i>0?'‹ '+secs[i-1].dataset.toc:''; nx.textContent=i>=0&&i<secs.length-1?secs[i+1].dataset.toc+' ›':'';
 }
 function noDates(h){ return String(h).replace(/\s*\((?:\d{4} \d\d-\d\d(?:, )?)+\)/g,''); }      // the top paragraph of chapter 2 does not list the picture dates
 function yearPills(ys){      // the year buttons of the 'One year at a time' page: each acts like a click on that year in the chart
   const b=document.getElementById('yrs'); if(!b) return; b.textContent='';
   ys.forEach(y=>{ const x=document.createElement('button'); x.type='button'; x.dataset.y=y; x.textContent=y; x.onclick=()=>{ const g=document.querySelector('#chart g.col[data-y="'+y+'"]'); if(g) g.dispatchEvent(new MouseEvent('click',{bubbles:true})); }; b.appendChild(x); });
+}
+function phoneYearList(rows){      // phones: the chart is replaced by one line per year (what the chart says, without the picture)
+  const b=document.getElementById('phoneYears'); if(!b) return;
+  b.innerHTML='<h3 class="fnh">Year by year</h3><p class="pnote">How each year’s 3D ice surface was found. The figures are computed for this site.</p>'+rows.map(r=>`<div class="py"><b>${r.y}</b><span class="pk pk-${r.k.replace(/[^a-z]/g,'')}">${r.k}</span><span class="pd">${r.d||''}</span></div>`).join('');
 }
 function nbStep(d){ const V=nbSecs(), j=V.findIndex(x=>x.id===nbCur)+d; if(j>=0&&j<V.length) nbGo(V[j].id); }
 function nbGo(id){      // a click on a chapter opens it; a second click on the open chapter closes it
@@ -461,11 +502,11 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
   function cleanPage(d){
     CL=d.clean; CY=d.years; const $=id=>document.getElementById(id), S=CL.sections;
     document.title='Field notes: '+d.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+d.short+' 3D'; }
-    $('gname').textContent=d.short; $('areaT').textContent='the tongue of '+d.short; $('sub').innerHTML=`The satellite pictures on this site are real photographs from space. The 3D ice surface under them is different: for each year it is a reconstruction. These notes explain, for <span id="gname">${esc(d.short)}</span>, what was measured, what was calculated to fill the gaps, and how far to trust the result. Every number refers to the strip of the 3D view (chapter 1) and is either computed for this site or taken from a named source.`;
+    $('gname').textContent=d.short; $('areaT').textContent='the tongue of '+d.short; $('sub').innerHTML=`An open look at the data behind Tongues from Space, for <span id="gname">${esc(d.short)}</span>. These notes show what was measured and what was calculated, how far each result can be trusted, and how the ice surface, the ice bed, the map layers and the size comparisons were made, with all sources and licences. Every number is either computed for this site or taken from a named source.`;
     MAP=CL.map; STRIP=MAP.strip; drawMap(); drawOverview();
     $('mapcap').innerHTML=prose(CL.mapcap,true,2)+`<div class="cov"><label for="covsel2">Footprint of a flight or the lidar</label><select id="covsel2"><option value="">none</option>${MAP.cover.map((c,i)=>`<option value="${i}">${esc(c.label)} · ${c.kind} · ${c.km2} km² of the strip, ${Math.round(100*c.ice)} % of the ice</option>`).join('')}</select><p class="covnote" id="covnote"></p></div>`;
     $('covsel2').onchange=e=>{ const g=$('covg'); if(g) g.remove(); const i=e.target.value; $('covnote').textContent=''; if(i==='') return; const c=MAP.cover[i], X=x=>(x-MT.x0)*MT.k, Y=y=>(MT.y1-y)*MT.k; $('map').insertAdjacentHTML('beforeend',`<g id="covg"><path d="${c.rings.map(r=>'M'+r.map(p=>X(p[0]).toFixed(1)+' '+Y(p[1]).toFixed(1)).join('L')+'Z').join('')}" fill="#ED730F" fill-opacity=".45" stroke="#ED730F" stroke-width=".8"/></g>`); $('covnote').innerHTML='<i></i>'+c.km2+' km² of the strip, '+Math.round(100*c.ice)+' % of the glacier ice (computed).'+(c.ice<0.01?' Over rock only: it is not an observation of the ice, it only helps tie the other flights to the ground.':''); };
-    $('fnSummary').innerHTML=noDates(S['What this is']+(S['Reduced data']||'')); YEARS=CY; css; drawClean(); yearPills(CY);
+    $('fnSummary').innerHTML=noDates(S['What this is']+(S['Reduced data']||'')); YEARS=CY; css; drawClean(); yearPills(CY); phoneYearList(CY.map(y=>({y,k:CKN[CL.perYear[y].kind]||CL.perYear[y].kind,d:CL.perYear[y].date?'picture of '+CL.perYear[y].date+(CL.perYear[y].ice_km2!=null?', ice in the strip '+num(CL.perYear[y].ice_km2,2)+' km² (computed)':''):''})));
     $('legend').innerHTML=[['--ice','measured: a flight or the lidar of that year covers most of the ice'],['--ice','partial (lighter): a survey covers part of the ice. Edition: anchored on a swissALTI3D edition'],['--faint','interpolated: calculated between flights'],['--amber','extrapolated: calculated beyond the first or last flight'],['--loss','provisional: the balance of 2026 is an estimate']].map(([c,t])=>`<span><i style="width:16px;height:10px;border-radius:3px;background:var(${c})"></i>${t}</span>`).join('');
     $('detail').innerHTML='Choose a year.'; [...document.querySelectorAll('#surface p.lead')].forEach(q=>{ if(q.textContent.startsWith('One column per year')) q.textContent='One column per year: how the surface was found, the dated surveys beneath it, what shapes the change between them, and what checks it. Click a year for its details: the laser and stake checks, and how much of its ice a survey covers.'; });
     { const nt=document.querySelector('.notes'); nt.dataset.title='How the model works'; nt.innerHTML=`<section class="wide"><h3>Physics and fitted numbers</h3>${S['Physics and fitted numbers']}</section>`; nt.insertAdjacentHTML('afterend','<div class="notes pb" data-title="Kinds of surface and uncertainty"></div>'); nt.nextElementSibling.innerHTML=`<section><h3>Kinds of surface</h3><ul class="fnl"><li><b>measured</b>: a flight or the lidar of that year covers most of the ice. There the surface of the picture day is reproduced to about 0.2 m.</li><li><b>partial</b>: a flight covers part of the ice; the rest follows the model.</li><li><b>edition</b>: the picture day is the day a swissALTI3D edition stands for (estimated from the flights, or documented where there are none). The surface is that of the edition: stereo mapping, stated accuracy 1 to 3 m.</li><li><b>between flights</b> and <b>beyond the flights</b>: calculated by the model from the mass balance, the timing of the melt and the fitted ice flow.</li></ul></section><section><h3>Uncertainty</h3>${S['Uncertainty']}</section>`+(S['Lakes']?`<section><h3>Lakes</h3>${S['Lakes']}</section>`:''); }
@@ -499,7 +540,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     $('fnView').innerHTML=`<p>${PG.viewerText}</p><p><button id="vbtn" type="button" style="font:inherit;font-weight:600;padding:6px 12px;border-radius:8px;border:1px solid var(--loss);background:var(--loss);color:#fff;cursor:pointer">Load the viewer</button> <a href="${VIEW}?v=${PG.viewerV||''}" target="_blank" rel="noopener" style="color:var(--ice)">Open it in its own tab</a></p><div id="vwrap"></div>`;
     $('fnLic').innerHTML=`<h3 class="fnh">Not used</h3>`+prose(d.not_used,false,1)+`<h3 class="fnh">Licences</h3>`+prose(d.licences,false,1);
     const vb=$('vbtn'), load=()=>{$('vwrap').innerHTML='<iframe src="'+VIEW+'?v='+(PG.viewerV||'')+'" title="3D viewer of the yearly surfaces" style="width:100%;height:78vh;min-height:520px;border:1px solid var(--rule);border-radius:8px;margin-top:6px" allowfullscreen></iframe>'; vb.hidden=true;}; vb.onclick=load; if(q.get('viewer'))load();
-    draw(); yearPills(ys); drawMap(); drawOverview(); if(PG.bed) bedMaps();
+    draw(); yearPills(ys); { const kn={meas:'measured',int:'interpolated',ext:'extrapolated',prov:'provisional'}; phoneYearList(ys.map(y=>({y,k:kn[KIND[y]]||'',d:SIG&&SIG[y]?'uncertainty (1σ, median over the tongue ice, computed) '+SIG[y][0]+' m':''}))); } drawMap(); drawOverview(); if(PG.bed) bedMaps();
     dlInit(d,ID);
     if(y)show(y);      // the year on screen is chosen, but the page stays at its top
   }).catch(()=>{['fnAnch','fnVal','fnView','fnLic'].forEach(i=>$(i).textContent='The field notes could not be loaded.');});

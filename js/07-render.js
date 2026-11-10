@@ -210,9 +210,9 @@ export function downloadMetaCsv(){
   a.href = url; a.download = `tonguesfromspace-${g.id}-image-metadata.csv`; document.body.appendChild(a); a.click(); a.remove(); setTimeout(() => URL.revokeObjectURL(url), 2000);
 }
 document.getElementById('tuneSwitch').onclick = e => { const on = e.currentTarget.getAttribute('aria-checked') !== 'true'; e.currentTarget.setAttribute('aria-checked', on); document.getElementById('tuneBody').hidden = !on; };      // Adjust image: the switch shows the sliders
-/* The panes under Save and share (the metadata table, the embed code, the elevation-model download) are one at a time: opening one closes the others */
+/* The panes under Save and share (the metadata table, the embed code) are one at a time: opening one closes the others */
 export function closeOtherSharePanes(keepBox) {
-  for (const [btn, box] of [['metaBtn', 'metaBox'], ['embedBtn', 'embedBox'], ['demBtn', 'demBox']]) {
+  for (const [btn, box] of [['metaBtn', 'metaBox'], ['embedBtn', 'embedBox']]) {
     if (box === keepBox) continue;
     document.getElementById(box).hidden = true; document.getElementById(btn).setAttribute('aria-expanded', 'false');
   }
@@ -1586,9 +1586,9 @@ export function setDynSources(v){ return dynSources = v; }      // the other fil
   scan(); setInterval(scan, 1000);      // (the lists are filled by several sections, some after load)
 }
 
-/* The panes under Save and share (elevation model, embed, metadata) open below their button: scroll just far enough that the whole pane is on screen (again after a moment, when the metadata table has been filled in) */
+/* The panes under Save and share (embed, metadata) open below their button: scroll just far enough that the whole pane is on screen (again after a moment, when the metadata table has been filled in) */
 document.addEventListener('click', e => {
-  const b = e.target.closest && e.target.closest('#metaBtn, #embedBtn, #demBtn'); if (!b) return;
+  const b = e.target.closest && e.target.closest('#metaBtn, #embedBtn'); if (!b) return;
   const box = document.getElementById(b.getAttribute('aria-controls'));
   const show = () => { if (box && !box.hidden) box.scrollIntoView({ block: 'nearest', behavior: 'smooth' }); };
   requestAnimationFrame(show); setTimeout(show, 450);

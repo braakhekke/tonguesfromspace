@@ -65,3 +65,10 @@ a,a:hover,a:focus{text-decoration:none}
   .tabs button[aria-selected="true"]{background:var(--sheet);box-shadow:var(--raise)}
   .stat{border-radius:var(--r-sm)}
 }
+
+/* phones: the header links are small; the tap area reaches past them (the picture stays the same) */
+@media (max-width:640px){
+  .bar nav a,.bar .brand{position:relative}
+  .bar nav a::after{content:'';position:absolute;inset:-17px -6px}
+  .bar .brand::after{content:'';position:absolute;inset:-14px -6px}
+}

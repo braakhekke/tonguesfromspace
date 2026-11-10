@@ -28,8 +28,7 @@
     flightsToggle: 'Shown in One year, for years that have a swisstopo special flight.', l3Flights: 'Shown in One year, for years that have a swisstopo special flight.',
     vFactSet: 'Switch on Facts first.', vBounce: 'Needs two or more loops.',
     vSwing: 'With one year only the viewpoint moves, so it stays on.',
-    demBtn: 'Available in the 3D view of a glacier with yearly surfaces.',
-    vsGo: 'Please wait, the file is being made.', vsSend: 'Please wait, the file is being made.', demGo: 'Please wait, the file is being prepared.',
+    vsGo: 'Please wait, the file is being made.', vsSend: 'Please wait, the file is being made.',
     reset: 'Nothing to put back yet: move or add something first.',
     l3Photos: 'Historical images work in the 3D view of one year.'
   };
