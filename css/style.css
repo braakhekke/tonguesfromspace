@@ -1934,7 +1934,7 @@ html.embed .v3d-measure > .v3d-tl{min-width:0;width:100%}
 @media (prefers-reduced-motion:reduce){.layerbox.nudge::after{animation:none;opacity:.6}}
 
 /* the tool buttons (cross-section, size comparison) above the tabs of the right panel */
-.story .tool-btns{display:flex;flex-direction:column;gap:6px;margin:16px 0 0}
+.story .tool-btns{display:flex;flex-direction:column;gap:6px;margin:16px 0}
 .story .tool-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:8px 10px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink);font:inherit;font-size:13px;font-weight:500;text-align:center;text-decoration:none;cursor:pointer}
 .story .tool-btn:hover{background:var(--firn)}
 .story .tool-btn svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--accent);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
@@ -2070,7 +2070,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .story h2{font-size:28px;line-height:1.08;letter-spacing:-.025em;margin:0 0 2px}
   .story .sub{font-size:13px}
   .story .lede{font-size:15.5px;line-height:1.55;margin:var(--sp-3) 0 0}
-  .story .tool-btns{gap:var(--sp-2);margin-top:var(--sp-4);padding-bottom:var(--sp-4);border-bottom:1px solid var(--rule)}
+  .story .tool-btns{gap:var(--sp-2);margin:var(--sp-4) 0}
   .story .tool-btn{justify-content:flex-start;gap:var(--sp-3);padding:13px var(--sp-4);border:0;border-radius:var(--r-md);background:var(--firn);font-size:14.5px;font-weight:600;text-align:left;position:relative}
   .story .tool-btn::after{content:'';margin-left:auto;width:7px;height:7px;border:solid var(--faint);border-width:2px 2px 0 0;transform:rotate(45deg);flex:none}
   .story .tool-btn svg{width:20px;height:20px}
@@ -2286,7 +2286,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .tabs button:hover{color:var(--ink);opacity:1}
   .tabs button[aria-selected="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink)}
   .story .tool-btn{border:0;border-radius:var(--r-md);background:var(--firn)}
-  .story .tool-btns{padding-bottom:var(--sp-4);border-bottom:1px solid var(--rule)}      /* a line between the tool buttons and the tabs */
+  .story .tool-btns{padding-top:var(--sp-4);border-top:1px solid var(--rule);margin-top:0}      /* a line above the tool buttons; Sources below brings its own */
   .story .tool-btn:hover{background:var(--rule)}
   .stat{border-radius:var(--r-sm)}
   .fyi{border-radius:var(--r-lg)}
@@ -2614,3 +2614,5 @@ html.embed .menu-btn,html.embed .phone-menu{display:none!important}
   .story a:not(.act):not(.tool-btn):not(.size-link){padding-block:6px;margin-block:-6px}
   details > summary{min-height:44px}
 }
+#pinBtn.placed svg,#v3mPin.placed svg{fill:var(--accent);stroke:var(--accent)}      /* a pin stands: the button's pin symbol is filled red */
+#pinBtn.placed circle,#v3mPin.placed circle{fill:#fff;stroke:#fff}

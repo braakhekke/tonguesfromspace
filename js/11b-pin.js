@@ -4,10 +4,12 @@ import { oldOutlineGeom, newOutlineGeom, eachPiece, loadOutline } from './02-gla
 import { currentGlacier, viewMode, glacierPicked } from './04-state.js';
 import { map, loadSpeedFile, speedArray, speedId, SPEED_MIN, speedPopup } from './05-map.js';
 import { showNotice } from './08-controls.js';
+import { setMore, setLayers } from './09-phones.js';
 import { stillYear } from './10-animation.js';
 import { v3d, v3dCtx, currentBundle, stripOf, stripXZ, bundleId, pinLoop, LAKE_FILL } from './11-view3d.js';
 // registered for the files below it in the load order (see wire.js); 11-view3d.js and 07-render.js call them through wire
 Object.defineProperty(wire, 'syncPin', { get: () => syncPin, configurable: true });
+Object.defineProperty(wire, 'pinArmed', { get: () => () => armed, configurable: true });
 Object.defineProperty(wire, 'pinOn3', { get: () => pinOn3, configurable: true });
 Object.defineProperty(wire, 'drawPin3D', { get: () => drawPin3D, configurable: true });
 /* =====================================================================
@@ -68,7 +70,8 @@ function placeMarker(){
 export async function setPin(lat, lng, from3d){
   const g = currentGlacier(); if (!g) return;
   const run = ++gen; disarm();
-  pin = {lat, lng, gid: g.id, data: null}; placeMarker(); hideCard(); map.closePopup(speedPopup); pinLoop();
+  if (innerWidth <= 720) { setMore(false); setLayers(false); }      // phones: the pin was armed from the opened tools; fold them, so the dock is low and the card has room under the pin
+  pin = {lat, lng, gid: g.id, data: null}; placeMarker(); syncButtons(); hideCard(); map.closePopup(speedPopup); pinLoop();
   const dataP = placeData(g, lat, lng).catch(e => { console.error('pin', e); return {elev: null, speed: null, inOld: null, inNew: null}; });
   const flight = new Promise(res => {      // the auto-zoom (map) or the camera flight (3D); the card comes when it is over
     if (viewMode === '3d' && v3d && v3dCtx) {
@@ -84,7 +87,7 @@ export async function setPin(lat, lng, from3d){
   const [data] = await Promise.all([dataP, flight]); if (run !== gen || !pin) return;
   pin.data = data; renderCard(true);
 }
-export function clearPin(){ gen++; pin = null; placeMarker(); hideCard(); pinLoop(); }
+export function clearPin(){ gen++; pin = null; placeMarker(); syncButtons(); hideCard(); pinLoop(); }
 function arm(){
   if (!glacierPicked || !currentGlacier()) return showNotice('Choose a glacier first.');
   armed = true; syncButtons(); $('app').classList.add('pinning');
@@ -93,7 +96,7 @@ function arm(){
 }
 function disarm(){ armed = false; syncButtons(); $('app').classList.remove('pinning'); $('pinHint').classList.remove('show'); }
 $('pinCancel').onclick = () => disarm();
-function syncButtons(){ ['pinBtn', 'v3mPin'].forEach(id => { const b = $(id); if (b) b.setAttribute('aria-pressed', armed); }); }
+function syncButtons(){ ['pinBtn', 'v3mPin'].forEach(id => { const b = $(id); if (b) { b.setAttribute('aria-pressed', armed); b.classList.toggle('placed', !!pin); } }); }      // .placed: a pin stands, the button shows it
 $('pinBtn').onclick = () => armed ? disarm() : arm();
 $('v3mPin').onclick = () => armed ? disarm() : arm();
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && armed) disarm(); });
@@ -247,17 +250,19 @@ export function drawPin3D(ctx, c, viewer, w, h, u){
   if (!pin || pin.gid !== c.g.id) return;
   const P = L.CRS.EPSG3857.project(L.latLng(pin.lat, pin.lng)), q = stripXZ(c.S, P.x, P.y); if (!q.inside) return;
   const [p] = viewer.projectAt([[q.x, viewer.groundY(q.x, q.z) + 2, q.z, true]], w, h, null, null); if (!p || !p[2]) return;
-  const [x, y] = p, stalk = 30 * u, r = 9 * u, t = performance.now() / 1000;
+  const [x, y] = p, t = performance.now() / 1000;
   ctx.save();
   ctx.fillStyle = 'rgba(0,0,0,.28)'; ctx.beginPath(); ctx.ellipse(x, y, 7 * u, 2.6 * u, 0, 0, 2 * Math.PI); ctx.fill();      // shadow
   const k = (t % 1.8) / 1.8; ctx.strokeStyle = `rgba(200,50,42,${(1 - k) * .7})`; ctx.lineWidth = 2 * u; ctx.beginPath(); ctx.ellipse(x, y, (6 + 22 * k) * u, (2.2 + 8 * k) * u, 0, 0, 2 * Math.PI); ctx.stroke();      // the pulse on the ground
-  ctx.strokeStyle = '#fff'; ctx.lineWidth = 2.4 * u; ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x, y - stalk); ctx.stroke();
-  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 5 * u; ctx.fillStyle = '#C8322A'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2 * u; ctx.beginPath(); ctx.arc(x, y - stalk - r, r, 0, 2 * Math.PI); ctx.fill(); ctx.stroke();
-  ctx.shadowBlur = 0; ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(x, y - stalk - r, 3.4 * u, 0, 2 * Math.PI); ctx.fill();
+  const k2 = 1.15 * u;      // the location pin of the map (PIN_SVG: teardrop, white edge, white dot), its point on the ground
+  ctx.save(); ctx.translate(x - 14 * k2, y - 37 * k2); ctx.scale(k2, k2);
+  ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 5 * u; ctx.fillStyle = '#C8322A'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2; ctx.lineJoin = 'round';
+  const tear = new Path2D('M14 37C14 37 2 22.5 2 13.5a12 12 0 0 1 24 0C26 22.5 14 37 14 37z'); ctx.fill(tear); ctx.shadowBlur = 0; ctx.stroke(tear);
+  ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(14, 13.5, 4.6, 0, 2 * Math.PI); ctx.fill(); ctx.restore();
   const E = pin.data && pin.data.elev, rows = E && E.rows.filter(rr => Number.isFinite(rr.s));
   if (rows && rows.length > 1 && Math.max(...rows.map(rr => rr.s)) - Math.min(...rows.map(rr => rr.s)) >= 0.05) {      // no label off the ice (the same height every year)
     const d = rows[rows.length - 1].s - rows[0].s, text = `${sgn(d)} m since ${rows[0].y}`;
-    ctx.font = `600 ${12 * u}px "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif`; const tw = ctx.measureText(text).width, px = 7 * u, hh = 21 * u, ty = y - stalk - 2 * r - 8 * u - hh;
+    ctx.font = `600 ${12 * u}px "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif`; const tw = ctx.measureText(text).width, px = 7 * u, hh = 21 * u, ty = y - 39 * k2 - 6 * u - hh;
     ctx.fillStyle = '#1C2A33'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - tw / 2 - px, ty, tw + 2 * px, hh, 5 * u) : ctx.rect(x - tw / 2 - px, ty, tw + 2 * px, hh); ctx.fill();
     ctx.fillStyle = d < 0 ? '#FF8A80' : '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, ty + hh / 2 + 0.5 * u);
   }

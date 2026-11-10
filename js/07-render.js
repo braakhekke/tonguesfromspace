@@ -757,7 +757,7 @@ export function aboutChaptersCh(){
           <li>2016 to 2025 are measured: a flight of that year covers 26 to 62 % of the ice cells of the strip (computed); 2026 is a provisional estimate. Older pictures use the surface of 2016.</li>
           <li>ICESat-2 laser heights check the years that have shots.</li>
         </ul>
-        <p>A model, not a measurement, except on the days and cells a survey covers. <em>Science mode</em> (the Scientific field notes button at the top of this panel) shows for each year how the surface was found, its uncertainty and its checks. The full account is in the <a href="provenance.html?id=B36-26" target="_blank" rel="noopener">field notes</a>.</p>
+        <p>A model, not a measurement, except on the days and cells a survey covers. <em>Science mode</em> (the Scientific field notes button at the bottom of this panel) shows for each year how the surface was found, its uncertainty and its checks. The full account is in the <a href="provenance.html?id=B36-26" target="_blank" rel="noopener">field notes</a>.</p>
         <p><em>The nine others.</em> Between and beyond the surveys the surface follows the balance and a fitted rate of ice flow. For each glacier the field notes list the survey dates and the ICESat-2 check (not in the fit: shots, model minus shot median, NMAD, computed).</p>
         <ul>
           <li><em>Gornergletscher</em> (<a href="provenance.html?id=B56-07" target="_blank" rel="noopener">field notes</a>). GLAMOS has no balance of any kind for it, so a straight line in elevation fitted to the balances of five other glaciers drives the melt (computed; see the field notes). Measured: 2016, 2017, 2019, 2020, 2021, 2022, 2023, 2024, 2025 (partly: 2018). Extrapolated or estimated: 2026.</li>
@@ -883,9 +883,6 @@ export function renderStory(){
     <p class="sub">${[g.local, g.canton, g.range].filter(Boolean).join(', ')}</p>
     <p class="lede">${g.lede.replace('by area,', `by area${fn('sgi')},`)}</p>
 
-    <div class="tool-btns">
-      ${FIELD_NOTES.includes(g.inv && g.inv.id) ? `<a class="tool-btn notes-btn" href="/provenance.html?id=${g.inv.id}" data-notes="${g.inv.id}" target="_blank" rel="noopener" title="How the 3D view of this glacier was made: pictures, terrain, ice surface of each year, checks and licences"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4M3 7h3M3 12h3M3 17h3"/></svg><span>Scientific field notes</span></a>` : ''}
-    </div>
     <div class="tabs" role="tablist" aria-label="About this glacier">
       <button type="button" ${tab('look')}>Discover</button>
       <button type="button" ${tab('figures')}>Stats</button>
@@ -914,6 +911,10 @@ export function renderStory(){
       ${scard('sw-share', 'flag', `${g.name} in perspective`, shareBody(g), '<span class="sum-v" id="shSum"></span>')}
       ${scard('sw-left', 'area', 'How much ice is left?', cumulativeChart(lo, hi), `<span class="sum-v">${Math.round(iceShareLeft() * 100)} %<small>left</small></span>`)}
       ${scard('sw-water', 'drop', 'How much water is that?', waterSection(lo, hi), (() => { const last = VOLUME_LOSS[VOLUME_LOSS.length - 1].y, to = Math.min(hi || 0, last); return lo && hi && to >= lo ? sumValue(fmtN(iceVolume(to) * 0.9 * 1e12, 1) + ' L') : ''; })())}
+    </div>
+
+    <div class="tool-btns">
+      ${FIELD_NOTES.includes(g.inv && g.inv.id) ? `<a class="tool-btn notes-btn" href="/provenance.html?id=${g.inv.id}" data-notes="${g.inv.id}" target="_blank" rel="noopener" title="How the 3D view of this glacier was made: pictures, terrain, ice surface of each year, checks and licences"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 3v18M12 8h4M12 12h4M3 7h3M3 12h3M3 17h3"/></svg><span>Scientific field notes</span></a>` : ''}
     </div>
 
 ${aboutFrame(aboutChaptersCh())}`;

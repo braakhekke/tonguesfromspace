@@ -1017,10 +1017,10 @@ export function speedCanvas(f, a, mask){
    among the 3 x 3 around the click (about 500 m): one 120 m cell is noisy. It is computed here from the product, and the popup says so. Years without a value are empty. */
 export const speedPopup = L.popup({maxWidth: 300, className: 'speed-pop'});
 export async function speedClick(e){
-  const f = speedFile; if (!f || !speedLayer || M.mode) return;
+  const f = speedFile; if (!f || !speedLayer || M.mode || (wire.pinArmed && wire.pinArmed())) return;      // a click that drops a pin is the pin's: its card shows the speed
   const [x0, , , y1] = f.bbox, P = L.CRS.EPSG3857.project(e.latlng), c0 = Math.floor((P.x - x0) / f.cell), r0 = Math.floor((y1 - P.y) / f.cell);
   if (c0 < 0 || c0 >= f.w || r0 < 0 || r0 >= f.h) return;
-  const arrs = await Promise.all(f.years.map(y => speedArray(f, y))); if (f !== speedFile) return;
+  const arrs = await Promise.all(f.years.map(y => speedArray(f, y))); if (f !== speedFile || (wire.pinOn3 && wire.pinOn3())) return;      // no speed popup while a pin is placed: it would sit on the pin and its card
   const vals = arrs.map(a => { let n = 0, t = 0; for (let r = r0 - 1; r <= r0 + 1; r++) for (let c = c0 - 1; c <= c0 + 1; c++) if (r >= 0 && r < f.h && c >= 0 && c < f.w && a[r * f.w + c] !== f.nodata) { n++; t += a[r * f.w + c] * f.step; } return n ? t / n : null; });
   if (!vals.some(v => v != null && v >= SPEED_MIN)) return;      // not on the moving ice
   const W = 260, H = 84, B = 14, mx = Math.max(...vals.filter(v => v != null)), step = W / f.years.length, bw = step * .66, shown = speedYear();
