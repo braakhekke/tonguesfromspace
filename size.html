@@ -150,7 +150,7 @@ html.embed .embed-city #cityMsg{margin:0 0 6px;padding:6px 10px;background:var(-
   .map-tag.gl.dim{display:none}
   .year-tag.small-name{font-size:22px}
   .tags{left:12px;top:10px;gap:8px}
-  .back-glacier,.mhead .back-glacier,#shapeSw button,.all-ten button,.home-link,#regionBtn{position:relative}
+  .back-glacier,.mhead .back-glacier,.modeswitch button,.all-ten button,.home-link,#regionBtn{position:relative}
   .story .sec.sources > summary{padding:10px 0}
   .back-glacier::after,#shapeSw button::after,.all-ten button::after,.home-link::after,#regionBtn::after{content:"";position:absolute;inset:-11px -6px}
   .mapbar button{min-width:40px;min-height:40px}
@@ -208,7 +208,7 @@ body.is-3d .layerbox .only2d{display:none}      /* Outline 1850 and the city bou
 /* 3D: two picked | all ten at once, under the glacier list */
 /* "All ten": a small outlined slider at the right of the step header, in 3D only */
 #allTen{display:none;margin-left:auto;gap:12px}
-#allTen button span,#shapeSw button[data-shape]{white-space:nowrap}
+#allTen button span,#shapeHint{white-space:nowrap}
 #allTen>button{gap:5px!important;font-size:11px!important}
 #allTen .trk{width:26px!important}
 #allTen button[aria-pressed="true"] .trk i{transform:translateX(10px)!important}
@@ -221,17 +221,16 @@ body.is-3d #allTen{display:flex}
 #allTen button[aria-pressed="true"] .trk{background:color-mix(in srgb,var(--crevasse) 18%,transparent)}
 #allTen button[aria-pressed="true"] .trk i{transform:translateX(14px)}
 #allTen svg,#shapeSw svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linejoin:round;flex:none}
-#shapeSw{display:none;margin:-14px 0 0 3px;width:calc(50% - 3px)}      /* the controls column has a 24 px gap: this closes most of it, so the slider sits right under Area | Volume */
-body.is-3d #shapeSw{display:flex;align-items:center;justify-content:center;gap:6px}
-#shapeSw button[data-shape]{border:0;background:none;padding:2px 0;font:inherit;font-size:11.5px;font-weight:600;color:var(--moraine);cursor:pointer}
-#shapeSw button[data-shape][aria-pressed="true"]{color:var(--ink)}
+#shapeSw{display:none;margin:-14px 0 0 3px;width:calc(100% - 3px)}      /* the controls column has a 24 px gap: this closes most of it, so the slider sits right under Area | Volume */
+body.is-3d #shapeSw{display:flex;align-items:center;justify-content:flex-start;gap:8px;padding-left:10px}
+#shapeHint{font-size:11.5px;font-weight:600;color:var(--moraine)}
+.modeswitch button .shp{display:none;width:14px;height:14px;margin:-2px 0 -2px 6px;vertical-align:middle;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linejoin:round;stroke-linecap:round}
+body.is-3d .modeswitch button[data-mode="3d"] .shp{display:inline-block;animation:shpPop .28s ease}
+@keyframes shpPop{from{transform:scale(.4) rotate(-40deg);opacity:0}to{transform:none;opacity:1}}
 #shapeSw .info-btn{flex:none;width:18px;height:18px;border-radius:50%;border:1.5px solid var(--moraine);background:none;color:var(--moraine);font:700 11px/1 Georgia,serif;font-style:italic;cursor:pointer;padding:0;display:inline-flex;align-items:center;justify-content:center}      /* the same "i" as the older-imagery switch in the explorer */
 #shapeSw .info-btn[aria-expanded="true"]{background:var(--moraine);color:#fff}
 .landsat-info{margin:0 0 6px 3px;font-size:11.5px;line-height:1.4;color:var(--moraine)}
 .landsat-info[hidden]{display:none} body:not(.is-3d) .landsat-info{display:none} .landsat-info p{margin:0 0 5px} .landsat-info p:last-child{margin:0} .landsat-info b{font-weight:600}
-#shapeSw .ss-track{position:relative;flex:none;width:34px;height:18px;border:0;padding:0;border-radius:999px;background:var(--firn);box-shadow:inset 0 0 0 1px var(--rule);cursor:pointer}
-#shapeSw .ss-track i{position:absolute;top:2px;left:2px;width:14px;height:14px;border-radius:50%;background:var(--crevasse);transition:transform .2s ease}
-#shapeSw[data-shape="ball"] .ss-track i{transform:translateX(16px)}
 .s3tab{margin:2px 0 0}
 .s3row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 50px 62px 56px;gap:8px;align-items:baseline;padding:8px 0 10px;font-size:12.5px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--rule)}
 .s3row:last-child{border-bottom:0}
@@ -323,8 +322,8 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
         <a href="gallery.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg>Gallery</a>
       </nav>
     </div>
-    <div class="modeswitch" id="modeSwitch" data-on="2d" role="group" aria-label="Compare the glaciers by" hidden><button type="button" data-mode="3d" aria-pressed="false">Volume<small>3D</small></button><button type="button" data-mode="2d" aria-pressed="true">Area<small>2D</small></button></div>
-    <div class="shape-slider" id="shapeSw" data-shape="block" role="group" aria-label="Shape of the ice"><button type="button" data-shape="block" aria-pressed="true">Ice cube</button><button type="button" class="ss-track" id="shapeTrack" role="switch" aria-checked="false" aria-label="Ice as ball (right) or ice cube (left)"><i></i></button><button type="button" data-shape="ball" aria-pressed="false">Ball</button><button type="button" class="info-btn" id="shapeInfoBtn" aria-expanded="false" aria-controls="shapeInfo" aria-label="About the volume and the debris">i</button></div>
+    <div class="modeswitch" id="modeSwitch" data-on="2d" role="group" aria-label="Compare the glaciers by" hidden><button type="button" data-mode="3d" aria-pressed="false">Volume<small>3D</small><svg class="shp" viewBox="0 0 24 24" aria-hidden="true"></svg></button><button type="button" data-mode="2d" aria-pressed="true">Area<small>2D</small></button></div>
+    <div class="shape-slider" id="shapeSw" data-shape="block" role="group" aria-label="Shape of the ice"><span id="shapeHint">Ice cube. Press Volume again for a ball.</span><button type="button" class="info-btn" id="shapeInfoBtn" aria-expanded="false" aria-controls="shapeInfo" aria-label="About the volume and the debris">i</button></div>
     <div class="landsat-info" id="shapeInfo" hidden><p><b>Volume.</b> The cube or ball has the ice volume of the glacier: Grab &amp; Melchior (2020), Swiss Glacier Thickness, "Ice volume (km3) homogenised for the year 2016", modelled from radar measurements. Its edge or diameter is computed here. It is the size of the ice, not the shape of the glacier.</p><p><b>Debris.</b> The dark grit inside shows how much of the glacier's SGI2023 outline is not ice or snow on the SWISSIMAGE aerial (computed here, a rough measure: a mosaic of flights of different years). More grit means a higher share; it does not change the volume or the size.</p></div>
 
     <section class="step" id="glacierGroup">
@@ -746,7 +745,8 @@ function fitAll() {
   let b = null; for (const o of Object.values(slots)) b = b ? b.extend(boundsOf(o)) : boundsOf(o);
   map.fitBounds(b, {padding: [60, 60], maxZoom: 14, animate: false});
 }
-function fitSlot(o) { state.focus = o; map.fitBounds(boundsOf(o), {padding: [70, 70], maxZoom: 14, animate: false}); }
+function fitSlot(o, pad = 70) { state.focus = o; map.fitBounds(boundsOf(o), {padding: [pad, pad], maxZoom: 14, animate: false}); }
+const phone2d = () => matchMedia('(max-width:720px)').matches && !state.city && !state.moved && slots[state.active];      // phone, clean sheet: start on the glacier picked (Aletsch at first), not on all ten
 function layCity() {           // the red and the blue glacier onto the city, side by side when there are two
   const c = state.city, A = slotOf('A'), B = slotOf('B');
   state.focus = null;
@@ -758,7 +758,7 @@ function layCity() {           // the red and the blue glacier onto the city, si
   }
   redrawAll();
 }
-function refit() { if (state.city) layCity(); else if (state.focus) fitSlot(state.focus); else fitAll(); }
+function refit() { if (state.city) layCity(); else if (state.focus) fitSlot(state.focus, state.focus === phone2d() ? 24 : 70); else fitAll(); }
 function resetAll() {          // every polygon back in place, no city
   for (const o of Object.values(slots)) { o.lat = o.g.lat; o.lon = o.g.lon; o.rot = 0; }
   state.city = null; setCityName(false); state.moved = false; state.dirty = false; $('reset').disabled = true; fitAll(); redrawAll(); syncUi(); syncHash();
@@ -878,7 +878,7 @@ function build() {
   syncExplorerLink();
   const c = CITIES.find(x => x.id === h.get('c'));
   map.setView([46.6, 8.2], 9, {animate: false});
-  if (c) { state.city = c; markDirty(); layCity(); } else fitAll();
+  if (c) { state.city = c; markDirty(); layCity(); } else { const o = phone2d(); if (o) fitSlot(o, 24); else fitAll(); }
   setCityName(!!c || (h.get('c') || '').startsWith('q:'));
   if ((h.get('c') || '').startsWith('q:')) { $('cityQ').value = h.get('c').slice(2); findCity($('cityQ').value); }
   if (h.get('m')) {            // glaciers the sender had moved
@@ -2020,12 +2020,14 @@ function syncShapeUi() {
   $('hint3dTxt').textContent = `Drag an ${SHP().one} to throw it`;
   $('s3Again').querySelector('svg').innerHTML = S3.shape === 'ball' ? '<circle cx="12" cy="15.5" r="6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/>' : '<path d="M12 9.5l5.5 2.8v6L12 21l-5.5-2.7v-6zM6.5 12.3L12 15l5.5-2.7M12 15v6"/><path d="M8.5 3v3M12 2v3.5M15.5 3v3"/>';
   $('s3Again').title = `Drop the ${SHP().many} again`; $('s3OnGl').title = `Put the ${SHP().many} on their own glaciers (clears the city)`;
-  document.querySelectorAll('#shapeSw button[data-shape]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.shape === S3.shape))); $('shapeSw').dataset.shape = S3.shape; $('shapeTrack').setAttribute('aria-checked', String(S3.shape === 'ball'));
+  { const ball = S3.shape === 'ball', v = document.querySelector('#modeSwitch button[data-mode="3d"]');
+    v.querySelector('.shp').innerHTML = ball ? '<circle cx="12" cy="12" r="8"/>' : '<path d="M12 3.5l7.5 4v9l-7.5 4-7.5-4v-9zM4.5 7.5L12 11.5l7.5-4M12 11.5v9"/>';
+    v.setAttribute('aria-label', `Volume 3D, ${ball ? 'ice ball' : 'ice cube'}. Press again for ${ball ? 'a cube' : 'a ball'}.`);
+    $('shapeSw').dataset.shape = S3.shape; $('shapeHint').textContent = ball ? 'Ice ball. Press Volume again for a cube.' : 'Ice cube. Press Volume again for a ball.'; }
   if (mode3d) for (const id of ['introText', 'introMobile']) $(id).textContent = intro3d();
   syncMeta();
 }
 function setShape(sh) { if (S3.shape === sh) return; S3.shape = sh; syncShapeUi(); syncUi(); syncHash(); }
-$('shapeSw').onclick = e => { const b = e.target.closest('button'); if (b && b.id !== 'shapeInfoBtn') setShape(b.id === 'shapeTrack' ? (S3.shape === 'ball' ? 'block' : 'ball') : b.dataset.shape); };
 function setAll(on) { if (S3.all === on) return; S3.all = on; if (on) S3.total = false; syncAllUi(); syncUi(); syncHash(); }
 function setTotal(on) { if (S3.total === on) return; S3.total = on; if (on) S3.all = false; syncAllUi(); syncUi(); syncHash(); }
 $('allTen').onclick = e => { const b = e.target.closest('button'); if (b) b.id === 'totalSw' ? setTotal(!S3.total) : setAll(!S3.all); };      // one toggle: all ten, or back to the two picked
@@ -2055,7 +2057,7 @@ function setMode(m) {
   document.querySelectorAll('#modeSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m))); $('modeSwitch').dataset.on = m;
   for (const [id, t2] of [['introText', INTRO2D], ['introMobile', INTRO2M]]) $(id).textContent = m === '3d' ? intro3d() : t2;      // the header says what the page does now
   if (m === '3d' && matchMedia('(max-width:720px)').matches && state.recent.length > 1) { state.recent = state.recent.slice(0, 1); restyleAll(); }
-  if (m === '3d') s3Enter(); else { s3Leave(); fitAll(); }      // back on the map: land with every glacier outline in the field
+  if (m === '3d') s3Enter(); else { s3Leave(); const o = phone2d(); if (o) fitSlot(o, 24); else fitAll(); }      // back on the map: land with every glacier outline in the field
   syncAllUi(); syncShapeUi(); syncMeta();
   syncUi(); syncHash(); if (paneOpen) syncPane();
 }
@@ -2436,7 +2438,7 @@ $('vsShareForm').onsubmit = async ev => {
   finally { vs.busy = false; syncPane(); }
 };
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && paneOpen && !vs.busy) closePane(); });
-$('modeSwitch').onclick = e => { const b = e.target.closest('button'); if (b) setMode(b.dataset.mode); };
+$('modeSwitch').onclick = e => { const b = e.target.closest('button'); if (!b) return; if (b.dataset.mode === '3d' && mode3d) setShape(S3.shape === 'ball' ? 'block' : 'ball'); else setMode(b.dataset.mode); };      // Volume 3D pressed again: cube <-> ball
 function s3Zoom(f) {      // move the camera towards or away from what it looks at, within the limits of the orbit
   if (!ctl) return; const d = cam.position.clone().sub(ctl.target), len = Math.min(ctl.maxDistance, Math.max(ctl.minDistance, d.length() * f)); cam.position.copy(ctl.target).add(d.setLength(len)); ctl.update();
 }

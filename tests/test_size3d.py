@@ -71,7 +71,7 @@ class TestSizeVolume(SiteCase):
         for name in ("Aletsch", "Fee", "Rhone", "Together", "Edge*"):
             self.assertIn(name, story)
         self.assertIn("all=1", page.evaluate("location.hash"))
-        page.click("#shapeSw button[data-shape='ball']")
+        page.click("#modeSwitch button[data-mode='3d']")      # Volume pressed again: cube to ball
         page.wait_for_function("S3.shape === 'ball'")
         self.assertIn("Diameter*", page.text_content("#story"))
         self.assertIn("shape=ball", page.evaluate("location.hash"))

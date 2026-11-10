@@ -460,7 +460,7 @@ def take_size3d(T):
     p.mouse.down(); T.sleep(0.2)
     m.glide(540, 300, 500); m.glide(760, 360, 450)
     p.mouse.up(); T.sleep(2.2)
-    m.click("#shapeSw", 700, dx=30)      # the shape switch: Ice cube | Ball
+    m.click("#modeSwitch button[data-mode='3d']", 700)      # Volume pressed again: cube to ball
     T.sleep(2.8)
     p.evaluate("D.capOut()")
     T.done(0.3)

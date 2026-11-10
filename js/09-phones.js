@@ -185,7 +185,7 @@ export function setMini(on){
   map.invalidateSize({pan: false}); map.setView(c, z, {animate: false}); clip && clip();
 }
 { const st = $('stage'), upd = () => { const sc = PHONE.matches && (scrollY > 4 || st.classList.contains('mini'));      // a strip at the top of the page also needs its handle, to open it again
-    document.body.classList.toggle('scrolled', sc); if (sc) document.documentElement.style.setProperty('--stage-bottom', Math.round(st.getBoundingClientRect().bottom) + 'px'); };
+    document.body.classList.toggle('scrolled', sc); if (sc) { const r = st.getBoundingClientRect(); document.documentElement.style.setProperty('--stage-bottom', Math.round(r.bottom) + 'px'); document.documentElement.style.setProperty('--stage-top', Math.round(r.top) + 'px'); } };      // --stage-top: where the pinned picture really starts (a phone's status bar and Dynamic Island make it higher than the env() guess), so the cover above it always reaches it
   addEventListener('scroll', upd, {passive: true}); addEventListener('resize', upd); new ResizeObserver(upd).observe(st); upd(); }
 { const st = $('stage'); let down = null, swallow = 0;      // tap anywhere on the strip opens it large: judged on pointer up (the map and the 3D view can swallow the click), the click that follows is stopped
   const skip = e => e.target.closest('button, a, input, label, select, .handle, .v3d-div');
