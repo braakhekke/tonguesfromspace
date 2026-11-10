@@ -680,9 +680,11 @@ let drag = null;
 const toLL = e => { const r = box.getBoundingClientRect(); return map.containerPointToLatLng([e.clientX - r.left, e.clientY - r.top]); };
 const hitOrder = () => [...state.recent.map(id => slots[id]), ...GL.filter(g => !state.recent.includes(g.id)).sort((a, b) => a.area - b.area).map(g => slots[g.id])];
 const topSlot = ll => hitOrder().find(o => o && hits(o, ll));
+const single3 = () => mode3d && matchMedia('(max-width:720px)').matches;      // phone in Volume 3D: one glacier selected at a time
 function pick(id) {
   markDirty();            // a new glacier becomes the red one, the red one becomes the blue one, the old blue one goes
   if (!state.recent.includes(id)) state.recent = [id, state.recent[0]].filter(Boolean);
+  if (single3()) state.recent = [id];      // phone, Volume 3D: one block or ball, so one glacier
   setActive(id); restyleAll(); syncUi(); syncHash();
 }
 function unpick(id) {
@@ -795,6 +797,7 @@ function setCity(c) { hideHint(); markDirty(); state.city = c; state.cityOn = tr
 function choose(id) {          // a click in the list; a picked glacier is un-picked by clicking it again
   hideHint();
   if (mode3d && (S3.all || S3.total)) { S3.all = false; S3.total = false; if (!state.recent.includes(id)) pick(id); else { syncUi(); syncHash(); } return syncAllUi(); }      // all ten were on: this glacier goes back to being one of two
+  if (single3() && state.recent.length === 1 && state.recent[0] === id) return;      // the one glacier stays selected
   if (state.recent.includes(id)) return unpick(id);
   const isNew = !state.recent.includes(id);
   pick(id);
@@ -2051,6 +2054,7 @@ function setMode(m) {
   setTimeout(() => welcome(m), 600);
   document.querySelectorAll('#modeSwitch button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.mode === m))); $('modeSwitch').dataset.on = m;
   for (const [id, t2] of [['introText', INTRO2D], ['introMobile', INTRO2M]]) $(id).textContent = m === '3d' ? intro3d() : t2;      // the header says what the page does now
+  if (m === '3d' && matchMedia('(max-width:720px)').matches && state.recent.length > 1) { state.recent = state.recent.slice(0, 1); restyleAll(); }
   if (m === '3d') s3Enter(); else { s3Leave(); fitAll(); }      // back on the map: land with every glacier outline in the field
   syncAllUi(); syncShapeUi(); syncMeta();
   syncUi(); syncHash(); if (paneOpen) syncPane();

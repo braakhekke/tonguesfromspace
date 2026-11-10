@@ -121,8 +121,8 @@ export function placeCard(){            // above the dock of the face on show, n
   const c = $('pinCard'); if (c.hidden) return;
   const host = c.parentNode, dock = viewMode === '3d' ? $('v3dMeasure') : document.querySelector('.mapbar'); if (!host || !dock) return;
   const hr = host.getBoundingClientRect(), dr = dock.getBoundingClientRect(), bottom = Math.max(12, hr.bottom - dr.top + 10);
-  const room = hr.height - bottom - 64, phone = innerWidth <= 720;      // phones: at most a third of the picture, so the pin stays in sight (the card scrolls)
-  c.style.bottom = bottom + 'px'; c.style.maxHeight = Math.max(160, phone ? Math.min(room, hr.height * .3) : room) + 'px';
+  const room = hr.height - bottom - 64, phone = innerWidth <= 720;      // phones: about two fifths of the picture, so the pin stays in sight and the top of the graph shows, hinting at more below (the card scrolls)
+  c.style.bottom = bottom + 'px'; c.style.maxHeight = Math.max(160, phone ? Math.min(room, hr.height * .42) : room) + 'px';
 }
 addEventListener('resize', () => placeCard());
 export function syncPin(viewChanged){            // the view, the glacier or the year changed

@@ -92,8 +92,15 @@ a{color:inherit}
 .why-name{margin:0;font-size:clamp(17px,1.5vw,20px);line-height:1.6;color:#0A1B33}
 .whyband .aud{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:36px}
 .quoteband{padding:64px 0;background:var(--ice)}
-.quotegrid{display:flex;align-items:center;justify-content:center;gap:56px}
-.quoteband .qtext{max-width:600px;padding-left:28px;border-left:3px solid var(--accent)}
+.quotegrid{display:flex;flex-direction:column;gap:44px}
+.quoteband .qhead{display:flex;align-items:center;justify-content:space-between;gap:56px}
+.quoteband .qhead .why-logo{width:clamp(90px,10vw,130px)}
+.quoteband .qcols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0;border-top:1px solid rgba(10,27,51,.18)}
+.quoteband .qcols > div{padding:26px 32px 0 0}
+.quoteband .qcols > div + div{padding-left:32px;border-left:1px solid rgba(10,27,51,.18)}
+.quoteband .qcols h3{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
+.quoteband .qcols p{font-size:15px;line-height:1.6;color:rgba(10,27,51,.8)}
+.quoteband .qtext{max-width:640px;padding-left:28px;border-left:3px solid var(--accent)}
 .quoteband p{margin:0}
 .quoteband .qeyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
 .quoteband .qmain{font-size:clamp(26px,3.2vw,40px);line-height:1.12;font-weight:800;letter-spacing:-.03em;color:#0A1B33}
@@ -120,7 +127,12 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 .sh .pick-h{margin:0;font-size:clamp(26px,2.9vw,38px);line-height:1.04;font-weight:800;letter-spacing:-.03em;color:#fff}
 .pickband .sh p{color:rgba(255,255,255,.7)}
 .pickband .pickrow .sstat{color:rgba(255,255,255,.75)}
-.pickband .soonrow{color:rgba(255,255,255,.55)}
+.coverage{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:0 0 14px;padding:0;font-size:13px;color:#fff}
+.coverage li{display:flex;align-items:center;gap:7px}
+.coverage i{width:9px;height:9px;border-radius:50%;box-sizing:border-box;flex:none}
+.coverage .avail i{background:#fff}
+.coverage .dev i{border:1.5px solid rgba(255,255,255,.7)}
+.coverage small{font-size:12px;color:rgba(255,255,255,.6)}
 .pickband .sbox,.pickband .pk-btn{border-color:transparent}
 .pickrow .sstat{margin:6px 0 0;font-size:12px}
 .pk{position:relative;min-width:280px}
@@ -285,7 +297,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .info{position:static;width:auto;border-width:1px 0 0;box-shadow:none;max-height:none}
   .credit{position:static;background:none;padding:6px 0 0;color:rgba(255,255,255,.5)}
   .maphint{display:block;margin:8px 0 0;font-size:11.5px;color:rgba(255,255,255,.55)}
-  .whygrid{align-items:flex-start;text-align:left}.why-logo{display:none}.quotegrid{justify-content:flex-start}.quoteband{padding:40px 0;text-align:left}
+  .whygrid{align-items:flex-start;text-align:left}.why-logo{display:none}.quoteband .qcols{grid-template-columns:1fr}.quoteband .qcols > div,.quoteband .qcols > div + div{padding:20px 0 0;border-left:0}.quoteband{padding:40px 0;text-align:left}
   .closing .wrap{flex-direction:column;align-items:stretch;gap:22px}
   .closing .btn-red.go{width:100%;justify-content:center;height:58px;font-size:16px;border:2px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}
   section.s{padding:52px 0}
@@ -328,7 +340,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .sbox input{font-size:16px;padding:15px 0}      /* 16 px: iOS does not zoom the page on focus */
   .pk-btn{font-size:16px}
   #map{height:min(58vh,380px)}
-  .tiles,.tnote,.soonrow{display:none}      /* phones: the region boxes, the totals note and the "in the making" line under the map are not needed (the map and the search choose the region) */
+  .tiles,.tnote{display:none}      /* phones: the region boxes, the totals note and the "in the making" line under the map are not needed (the map and the search choose the region) */
   .tile{border:1px solid rgba(255,255,255,.16);background:rgba(255,255,255,.04);padding:12px 14px;min-height:64px}
   .tile:last-child{border-right:1px solid rgba(255,255,255,.16)}
   .tile .c,.tile small.of{display:none}      /* the region name twice, and the inventory total: not needed on a small tile */
@@ -540,3 +552,14 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
   .aud-tile .aud-arrow{display:none}
   .aud-tile span{font-size:14px}
 }
+
+/* ---------- gallery preview (not on phones) ---------- */
+#gallery[hidden]{display:none}
+.gprev{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;align-items:start}
+.gprev .gp{display:block;text-decoration:none;color:#0A1B33}
+.gprev .gp img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;background:var(--firn)}
+.gprev .gp span{display:block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--moraine)}
+@media (max-width:900px){#gallery{display:none!important}}
+
+/* alternating bands down the page: dark hero, white, tint (gallery), white, dark map, ice quote, white, dark closing */
+#science .sci > details{background:var(--firn);box-shadow:none}

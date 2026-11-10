@@ -1082,14 +1082,16 @@ body.has-full{overflow:hidden}
   .stage.mini .notice{width:calc(100% - 16px);padding:8px 10px;font-size:12px;line-height:1.3;text-align:center;z-index:710}      /* a message from the controls below ("turn on the Sentinel-2 layer") shows in the strip too */
   .stage.mini .year-tag{font-size:17px;top:6px;max-width:48%}.stage.mini .year-tag small,.stage.mini .handle-hint{display:none}
   .stage.mini .handle{width:30px;height:30px;margin:-15px 0 0 -15px}
+  .stage.mini .handle svg{width:18px;height:18px;flex:none}      /* the arrows fit the smaller handle (26 px arrows in a 30 px circle looked skewed) */
   .stage:not(.is-full) .mini-ctl{display:contents}
   #miniToggle{display:none}      /* the sheet handle shows only once the page has scrolled (body.scrolled) */
   #miniToggle{position:absolute;z-index:700;left:50%;top:0;transform:translateX(-50%);width:84px;height:26px;padding:0;border:0;border-radius:0 0 13px 13px;background:rgba(255,255,255,.55);place-items:center;cursor:grab;touch-action:none;-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}      /* a sheet handle on the top edge of the picture: tap it or swipe it up (strip) / down (large) */
   #miniToggle svg{display:none}
   #miniToggle::before{content:'';width:38px;height:5px;border-radius:3px;background:rgba(14,26,34,.55)}
   #miniToggle::after{content:'';position:absolute;inset:0 -14px -10px}      /* bigger touch target */
-  body.scrolled:not(.has-full) #miniToggle{display:grid;position:fixed;top:calc(var(--stage-bottom,60vh) + 16px);bottom:auto;height:16px;width:72px;border-radius:0 0 10px 10px;background:#fff;box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
-  body.scrolled:not(.has-full) #miniToggle::before{width:32px;height:4px}
+  body.scrolled:not(.has-full) #miniToggle{display:grid;position:fixed;top:calc(var(--stage-bottom,60vh) + 16px);bottom:auto;height:26px;width:110px;border-radius:0 0 14px 14px;background:#fff;box-shadow:0 2px 5px rgba(14,26,34,.18)}      /* once the page scrolls, the handle hangs below the pinned picture (js/09-phones.js keeps --stage-bottom) */
+  body.scrolled:not(.has-full) #miniToggle::before{width:48px;height:5px}
+  body.scrolled:not(.has-full) #miniToggle::after{inset:0 -20px -18px}      /* a big touch target below and beside the handle */
   body.pane-open .mini-ctl{display:none!important}
 }
 }
@@ -2578,4 +2580,45 @@ body.x-layers .layerbox{max-width:none}
   .vf-fmt svg{width:18px;height:18px}
   .vf-layers{margin-right:2px}
   .vf-btns .vf-fmt+.vf-play{margin-left:2px}
+}
+
+/* phones: the title row's pill opens the menu (pages and regions, js/home-link.js); the side panel's page links and the region pill stay hidden there */
+.menu-btn,.phone-menu{display:none}
+@media (max-width:720px) and (orientation:portrait), (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .controls .site-nav,#regionBtnM{display:none!important}
+  .mhead strong .menu-btn{display:inline-flex;align-items:center;margin-left:auto;gap:4px;padding:7px 10px 7px 13px;border:0;border-radius:var(--r-pill);background:var(--firn);font:inherit;font-size:13px;font-weight:600;letter-spacing:0;color:var(--rock);white-space:nowrap;cursor:pointer}
+  .mhead #sizeTag{display:none}      /* size page: no room beside the pill; the mode switch says which view it is */
+  .menu-btn svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+  .menu-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+  .mhead .phone-menu{display:block;position:absolute;z-index:900;right:12px;top:calc(100% - 8px);margin:0;padding:4px;list-style:none;min-width:190px;background:#fff;border:1px solid var(--rule);border-radius:8px;box-shadow:0 6px 20px rgba(10,27,51,.16);text-align:left}
+  .mhead .phone-menu[hidden]{display:none}
+  .phone-menu li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:9px 10px;border-radius:5px;font-size:13.5px;font-weight:600;color:#0A1B33;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
+  .phone-menu li[aria-current]{color:var(--accent)}
+  .phone-menu li.group{cursor:default;margin-top:4px;padding-top:9px;border-top:1px solid var(--rule);border-radius:0;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--moraine)}
+  .phone-menu li.group.sub{border-top:0;margin-top:0;padding-top:6px;text-transform:none;letter-spacing:0;font-size:13.5px;color:#0A1B33}
+  .phone-menu li.sub:not(.group){padding-left:24px}
+  .phone-menu li[aria-disabled="true"]{color:#A9B1B5;cursor:default;font-weight:500}
+  .phone-menu li small{font-size:11px;font-weight:500;color:#A9B1B5}
+}
+html.embed .menu-btn,html.embed .phone-menu{display:none!important}
+/* Touch: big enough to grab. Sliders get a 40 px tall hit area and a 26 px thumb (the drawn track stays thin). */
+@media (pointer:coarse){
+  input[type=range]:not(.yr-track input){height:40px}
+  input[type=range]:not(.yr-track input)::-webkit-slider-runnable-track{height:4px}
+  input[type=range]:not(.yr-track input)::-moz-range-track{height:4px}
+  input[type=range]:not(.yr-track input)::-webkit-slider-thumb{width:26px;height:26px;margin-top:-11px;border-width:2px}
+  input[type=range]:not(.yr-track input)::-moz-range-thumb{width:26px;height:26px;border-width:2px}
+  .layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-webkit-slider-thumb{width:26px;height:26px;margin-top:-11px}
+  .layerbox:not(.in-pane):not(.in-sheet) input[type=range]::-moz-range-thumb{width:26px;height:26px}
+  .tune input[type=range],.vo-outside input[type=range]{height:40px}
+  .yr-track{height:40px}
+  .yr-track::before,.yr-fill{top:18px}
+  .yr-track input{height:40px;top:0}
+  .yr-track input::-webkit-slider-runnable-track{height:40px}
+  .yr-track input::-webkit-slider-thumb{width:24px;height:24px;margin-top:5px}
+  .yr-track input::-moz-range-thumb{width:24px;height:24px}
+}
+@media (pointer:coarse){      /* small round buttons keep their look, the touch area grows to 40 px */
+  .info-btn{position:relative}
+  .info-btn::after{content:'';position:absolute;left:50%;top:50%;width:40px;height:40px;transform:translate(-50%,-50%)}
 }
