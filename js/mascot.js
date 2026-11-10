@@ -60,7 +60,7 @@
     ['thickToggle', 'Behind the layers', 'Open the Layers box at the top right.', () => mc('Which layer is a computer\'s guess (a model), not something people measured?', labelText('thickToggle') || 'Glacier thickness 2016', [labelText('radarToggle'), labelText('trailsToggle'), labelText('oldToggle')])],
     ['trailsToggle', 'Behind the layers', 'Open the Layers box at the top right.', () => mc('Which layer shows paths for walking in the mountains?', labelText('trailsToggle') || 'Trails', [labelText('radarToggle'), labelText('thickToggle'), labelText('oldToggle')])],
     ['measureDist', 'Behind the measuring tools', 'Look at the tools at the bottom of the map.', () => mc('Which tool measures how long something is on the map?', 'Measure length', ['Measure area', 'Cross-section', 'Clear'])],
-    ['videoBtn', 'Behind the share tools', '', () => mc('Which button lets you make your own picture or film?', 'Save and share', ['Restore defaults', 'Watch the demo', 'Gallery'])],
+    ['videoBtn', 'Behind the share tools', '', () => mc('Which button lets you make your own picture or film?', 'Create and share', ['Restore defaults', 'Watch the demo', 'Gallery'])],
     ['glacierList', 'Behind the glacier list', '', () => {
       const rows = [...document.querySelectorAll('#glacierList li')].map((li) => ({ n: (li.querySelector('.name') || {}).textContent, a: parseFloat(((li.querySelector('.area') || {}).textContent || '').replace(',', '.')) })).filter((r) => r.n && isFinite(r.a));
       if (rows.length < 3) return NO('The list is not ready yet. Try again.');

@@ -51,7 +51,7 @@ Object.defineProperty(VIDEO.formats, 'custom', { enumerable: true, get(){
 export const STILL_MARGINS = { custom: { top: 56, bottom: 56, left: 64, right: 64 }, reel: { top: 74, bottom: 66, left: 64, right: 64 }, feed: { top: 74, bottom: 66, left: 64, right: 64 }, wide: { top: 56, bottom: 56, left: 90, right: 90 } };
 export const marginsFor = (kind, fmt) => kind === 'image' || (fmt === 'reel' && !$('vSafe').checked) ? STILL_MARGINS[fmt] : VIDEO.formats[fmt].safe;      // 9:16 video: text clear of the apps' buttons, or (box unticked) plain, at the very top and bottom
 export const FMT_SUFFIX = { reel: '9x16', feed: '4x5', wide: '16x9', custom: 'custom' };
-export const vstate = { fmt: 'wide', type: 'timelapse', kind: 'video', busy: false };      // kind: 'video' (animation) or 'image' (one picture)
+export const vstate = { fmt: 'wide', type: 'timelapse', kind: 'video', busy: false, whole: false };      // kind: 'video' (animation) or 'image' (one picture)
 /* swipe: [position, seconds]. Position = where the later year starts: 1 = only the first year, 0 = only the later one.
    It starts in the middle, goes back and forth twice and settles in the middle again. A move eases from the previous position. */
 export const SWIPE_KEYS = [[0.5, 0.8], [1, 1.2], [1, 0.5], [0, 1.7], [0, 0.7], [1, 1.5], [1, 0.4], [0, 1.5], [0, 0.7], [0.5, 1.2], [0.5, 1.4]];
@@ -91,6 +91,7 @@ export function frameAvail(){            // the free area of the map the frame m
   const vb = visibleBox(), m = 20, top = 44 + vb.y0, bottom = Math.max(62, vb.side ? 0 : sheetOverlap + 12, stageSize().y - vb.y1 + 62);      // a pane at the side is cleared sideways, one below the picture from below
   return { x: vb.x0 + m, y: top, w: vb.x1 - vb.x0 - 2 * m, h: stageSize().y - top - m - bottom };
 }
+export const fmtOff = { x: 0, y: 0 };      // a fixed ratio (16:9, 9:16, 4:5) starts centred; dragging its outline moves it by this many pixels
 let custBase = null;      // the free area the custom fractions were last valid for
 export function keepCustRatio(A){            // the free area changed (full screen on or off, a panel folds away, the window is resized): the custom frame keeps its ratio (what the download is cut at) and is scaled by the mean change of the area (so going back restores it) to fit, instead of its fractions stretching it
   const o = custBase; custBase = A;
@@ -99,13 +100,20 @@ export function keepCustRatio(A){            // the free area changed (full scre
   const l = Math.min(1 - fw, Math.max(0, cx - fw / 2)), t = Math.min(1 - fh, Math.max(0, cy - fh / 2));
   Object.assign(cust, { l, r: l + fw, t, b: t + fh });
 }
+/* the whole-picture button (Custom): the frame IS everything that can be seen, kept so while the window or the panels change; touching a handle or another format ends it */
+export function releaseWhole(){
+  if (!vstate.whole) return; const f = frameRect(), A = frameAvail(); vstate.whole = false;
+  Object.assign(cust, { l: (f.x - A.x) / A.w, t: (f.y - A.y) / A.h, r: (f.x + f.w - A.x) / A.w, b: (f.y + f.h - A.y) / A.h }); custBase = A;
+}
 export function frameRect(){
   const A = frameAvail(); keepCustRatio(A);
+  if (vstate.fmt === 'custom' && vstate.whole) { const v = visibleBox(); return { x: v.x0, y: v.y0, w: v.x1 - v.x0, h: v.y1 - v.y0 }; }
   if (vstate.fmt === 'custom') return { x: A.x + A.w * cust.l, y: A.y + A.h * cust.t, w: A.w * (cust.r - cust.l), h: A.h * (cust.b - cust.t) };
   const F = VIDEO.formats[vstate.fmt];
   let h = A.h, w = h * F.w / F.h;
   if (w > A.w) { w = A.w; h = w * F.h / F.w; }
-  return { x: A.x + (A.w - w) / 2, y: A.y + (A.h - h) / 2, w, h };
+  const V = visibleBox(), x = Math.max(V.x0, Math.min(V.x1 - w, A.x + (A.w - w) / 2 + fmtOff.x)), y = Math.max(V.y0, Math.min(V.y1 - h, A.y + (A.h - h) / 2 + fmtOff.y));      // centred in the free area, unless the outline was dragged (fmtOff)
+  return { x, y, w, h };
 }
 export function frameSplit(){            // where the slider sits inside the frame (0 to 1, along the slider's direction)
   const r = frameRect(), size = map.getSize();
@@ -223,6 +231,7 @@ export function placeFrame(){
   $('videoFrame').classList.toggle('custom', vstate.fmt === 'custom');
   const bt = $('videoFrame').querySelector('.vf-btns'), vb = visibleBox(), sr = $('stage').getBoundingClientRect(), ar = document.querySelector('aside.controls').getBoundingClientRect(), beside = ar.bottom > sr.top && ar.top < sr.bottom && ar.right < sr.right - 60, lo = Math.max(vb.x0, beside ? ar.right - sr.left : 0);      // (phones: the controls are below the picture, not beside it) the buttons under the frame are centred on it, but a narrow custom frame near the edge would push them off the screen: they slide back
   if (bt) { const bw = bt.offsetWidth; bt.style.left = bw ? Math.min(Math.max(r.x + r.w / 2 - bw / 2, lo + 8), Math.max(lo + 8, vb.x1 - bw - 8)) - r.x + 'px' : ''; bt.style.transform = bw ? 'none' : ''; }
+  $('videoFrame').classList.toggle('in-btns', r.y + r.h + 58 > vb.y1);      // the frame reaches the bottom edge of what can be seen: the buttons move inside it
   const cx = $('vfClose');      // the cross sits above the top right corner, but never outside the visible picture: it moves down or in when the frame is near an edge
   if (cx) { cx.style.top = Math.max(-48, Math.min(6, vb.y0 - r.y + 6)) + 'px'; cx.style.right = Math.max(0, r.x + r.w - vb.x1 + 6) + 'px'; }
 }
@@ -311,6 +320,7 @@ export function updateFrame(){
       (res < 4 ? ' Images have 10 m pixels: this close, the video looks soft.' : '');
   earlyNote(ys);
   $('vSnap').hidden = vstate.fmt !== 'custom';
+    if (vstate.fmt === 'custom') $('vfCustom').setAttribute('aria-pressed', true);
   placeFrame(); $('vfPlay').style.display = $('vsPlay').style.display = vstate.kind === 'image' ? 'none' : '';      // the preview is for animations
   $('vsGuide').textContent = guideText();
   drawPreview();
@@ -349,7 +359,7 @@ export function openVideo(kind = 'video', stay = false){            // stay: the
   const image = kind === 'image', in3D = viewMode === '3d';
   $('videoSheet').classList.toggle('is-image', image); $('videoSheet').classList.toggle('is-3d', in3D);
   $('vkImage').setAttribute('aria-pressed', image); $('vkVideo').setAttribute('aria-pressed', !image);
-  $('vsTitle').textContent = 'Save and share';      // the same name as step 3 in the left panel
+  $('vsTitle').textContent = 'Create and share';      // the same name as step 3 in the left panel
   if (in3D) {            // the frame shows what the picture will contain: the 3D view as it is
     if (typeof wire.leavePhoto === 'function') wire.leavePhoto(true);      // a download shows the orbiting camera, not the view of a historic photograph
     $('videoSheet').hidden = false; $('videoFrame').hidden = false;
@@ -394,8 +404,10 @@ map.on('resize', () => {            // a side panel folds away or comes back whi
 });
 if (window.ResizeObserver) new ResizeObserver(() => { if (viewMode === '3d' && !$('videoSheet').hidden) { centre3D(); wire.update3DInfo(); } }).observe($('v3dCanvas'));      // 3D: the same, as the stage changes size
 export function bringVisualIntoView(stay){            // phones: the visual has to be on screen when a download pane opens (the small window gives way to it), in the map and in 3D
-  if (stay || !matchMedia('(max-width:720px)').matches) return;
-  if ($('stage').classList.contains('is-full')) setFull(false);
+  if (!matchMedia('(max-width:720px)').matches) return;
+  const wasFull = $('stage').classList.contains('is-full');
+  if (wasFull) setFull(false);      // the pane opens under the full-screen overlay otherwise: opening it always leaves full screen, also when only switching Map/3D or One year/Timelapse
+  if (stay && !wasFull) return;
   setMini(false);
   if (PHONE.matches) { if (paneScrollY == null) paneScrollY = scrollY; scrollTo(0, 0); syncPaneStage(); }      // portrait phone: the page is locked (css) and the viewer is pinned above the pane; the page scroll comes back on closing
   else $('stage').scrollIntoView({behavior:'smooth', block:'start'});
@@ -436,9 +448,10 @@ export const FMT_BTN = { reel: 'vfReel', feed: 'vfFeed', wide: 'vfWide', custom:
 /* Custom frame: drag a handle; the frame stays inside the free area and at least 80 px wide and high */
 $('videoFrame').addEventListener('pointerdown', e => {
   const h = /** @type {HTMLElement} */ (e.target).dataset && /** @type {HTMLElement} */ (e.target).dataset.h; if (!h || vstate.fmt !== 'custom') return;
-  e.preventDefault(); const el = /** @type {HTMLElement} */ (e.target), host = $('videoFrame').offsetParent.getBoundingClientRect(); el.setPointerCapture(e.pointerId);
+  releaseWhole(); e.preventDefault(); const el = /** @type {HTMLElement} */ (e.target), host = $('videoFrame').offsetParent.getBoundingClientRect(); el.setPointerCapture(e.pointerId);
   const move = ev => {
-    const A = frameAvail(), x = Math.min(1, Math.max(0, (ev.clientX - host.left - A.x) / A.w)), y = Math.min(1, Math.max(0, (ev.clientY - host.top - A.y) / A.h)), mw = 80 / A.w, mh = 80 / A.h;
+    const A = frameAvail(), V = visibleBox(), x0 = (V.x0 - A.x) / A.w, x1 = (V.x1 - A.x) / A.w, y0 = (V.y0 - A.y) / A.h, y1 = (V.y1 - A.y) / A.h;      // the limit is everything that can be seen (the margin of the free area included), so the frame can be dragged back out to the full extent
+    const x = Math.min(x1, Math.max(x0, (ev.clientX - host.left - A.x) / A.w)), y = Math.min(y1, Math.max(y0, (ev.clientY - host.top - A.y) / A.h)), mw = 80 / A.w, mh = 80 / A.h;
     if (h.includes('w')) cust.l = Math.min(x, cust.r - mw); if (h.includes('e')) cust.r = Math.max(x, cust.l + mw);
     if (h.includes('n')) cust.t = Math.min(y, cust.b - mh); if (h.includes('s')) cust.b = Math.max(y, cust.t + mh);
     if (viewMode !== '3d') markArea(null);
@@ -447,6 +460,38 @@ $('videoFrame').addEventListener('pointerdown', e => {
   const up = () => { el.removeEventListener('pointermove', move); el.removeEventListener('pointerup', up); el.removeEventListener('pointercancel', up); };
   el.addEventListener('pointermove', move); el.addEventListener('pointerup', up); el.addEventListener('pointercancel', up);
 });
+/* Custom frame: the white outline itself is a handle (every ratio): press on it (not on a corner or edge dot) and drag, the whole frame moves over the picture, inside everything that can be seen */
+{
+  const EDGE = 9, onEdge = e => {
+    const fr = $('videoFrame'); if (fr.hidden) return false;
+    if (e.target.closest && e.target.closest('.vf-h, .vf-btns, button, a, input, select')) return false;
+    const r = fr.getBoundingClientRect(); if (e.clientX < r.left - EDGE || e.clientX > r.right + EDGE || e.clientY < r.top - EDGE || e.clientY > r.bottom + EDGE) return false;
+    return e.clientX < r.left + EDGE || e.clientX > r.right - EDGE || e.clientY < r.top + EDGE || e.clientY > r.bottom - EDGE;
+  };
+  document.addEventListener('pointermove', e => { if (e.buttons || e.pointerType === 'touch') return; $('videoFrame').style.cursor = ''; document.body.classList.toggle('vf-edge', onEdge(e)); }, true);
+  document.addEventListener('pointerdown', e => {
+    if (!onEdge(e)) return;
+    e.preventDefault(); e.stopPropagation(); releaseWhole();
+    if (vstate.fmt !== 'custom') {      // a fixed ratio: the frame moves as a whole, its size stays
+      const f0 = frameRect(), V = visibleBox(), o0 = {...fmtOff}, px = e.clientX, py = e.clientY;
+      const move = ev => {
+        fmtOff.x = o0.x + Math.max(V.x0 - f0.x, Math.min(V.x1 - f0.w - f0.x, ev.clientX - px)); fmtOff.y = o0.y + Math.max(V.y0 - f0.y, Math.min(V.y1 - f0.h - f0.y, ev.clientY - py));
+        if (viewMode !== '3d') markArea(null); updateFrame();
+      };
+      const up = () => { removeEventListener('pointermove', move, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };
+      addEventListener('pointermove', move, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+      return;
+    }
+    const A = frameAvail(), V = visibleBox(), c0 = {...cust}, fw = c0.r - c0.l, fh = c0.b - c0.t, px = e.clientX, py = e.clientY;
+    const x0 = (V.x0 - A.x) / A.w, x1 = (V.x1 - A.x) / A.w, y0 = (V.y0 - A.y) / A.h, y1 = (V.y1 - A.y) / A.h;
+    const move = ev => {
+      const l = Math.min(x1 - fw, Math.max(x0, c0.l + (ev.clientX - px) / A.w)), t = Math.min(y1 - fh, Math.max(y0, c0.t + (ev.clientY - py) / A.h));
+      Object.assign(cust, { l, r: l + fw, t, b: t + fh }); if (viewMode !== '3d') markArea(null); updateFrame();
+    };
+    const up = () => { removeEventListener('pointermove', move, true); removeEventListener('pointerup', up, true); removeEventListener('pointercancel', up, true); };
+    addEventListener('pointermove', move, true); addEventListener('pointerup', up, true); addEventListener('pointercancel', up, true);
+  }, true);
+}
 /* The custom frame as the glacier's image box: the frame takes its ratio (as large as fits) and the map is fitted to it */
 export function snapToImageBox(){
   const fp = imageFootprint(currentGlacier()), A = frameAvail(), ratio = fp.w / fp.h;
@@ -456,16 +501,24 @@ export function snapToImageBox(){
 }
 $('vSnap').onclick = snapToImageBox;
 export const setFmt = f => {
-  stopPreview();
+  stopPreview(); releaseWhole();
   if (viewMode !== '3d' && !$('videoSheet').hidden) checkAreaSel();
   const keep = viewMode !== '3d' && areaSel && areaSel.which !== 'image' ? areaSel.which : null;      // Tongue or Whole glacier was pressed and the map not moved since: fit it again to the new frame
   const wasCustom = vstate.fmt === 'custom';
-  vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f));
+  fmtOff.x = fmtOff.y = 0; vstate.fmt = f; Object.entries(FMT_BTN).forEach(([k, id]) => $(id).setAttribute('aria-pressed', k === f));
   updateFrame();
   if (f === 'custom' && viewMode !== '3d' && !wasCustom) { snapToImageBox(); }
   else if (keep) { frameTo(keep === 'whole'); updateFrame(); }
 };
 Object.entries(FMT_BTN).forEach(([k, id]) => $(id).onclick = () => setFmt(k));
+document.querySelectorAll('.dock-dl').forEach(b => b.onclick = () => {      // the docks' download symbol: the pane opens with Free extent on and the frame at its largest
+  if (!vstate.busy && !wire.v3dBusy) { closeOtherSharePanes(); openVideo(state.mode === 'single' && viewMode !== '3d' ? 'image' : 'video'); frameWhole(); }
+});
+function frameWhole(){      // Free extent at its largest: the frame stretched over everything that can be seen (its buttons then sit inside it); a handle drags it free
+  setFmt('custom'); vstate.whole = true; custBase = frameAvail();
+  if (viewMode !== '3d') markArea(null);
+  updateFrame();
+}
 /* the speed setter of the animation pane and the one under Compare / Timelapse are one setting */
 export function syncSpeed(from){ const v = +$(from).value; ['speedSel', 'vSpeed'].forEach(id => { $(id).value = v; }); updateSpeedIcon(); const o = $('vSpeedOut'); if (o) o.textContent = `${SPEED_FPS[v]} fps`; const nd = $('vSpeedNeedle'); if (nd) nd.setAttribute('transform', `rotate(${speedAngle(v)} 12 18)`); }
 $('vSpeed').oninput = () => { syncSpeed('vSpeed'); updateFrame(); };

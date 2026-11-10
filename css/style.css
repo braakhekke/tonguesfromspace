@@ -876,7 +876,7 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .year-tag small{font-size:11px;line-height:1.25}
   #tagA{left:12px} #tagB{right:12px}
   .app.more-open .leaflet-control-scale{margin-bottom:138px!important}
-  .mapbar{bottom:30px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px);overflow:visible}
+  .mapbar{bottom:12px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px);overflow:visible}
   .mapbar .sep,.mapbar .lbl{display:none}
   .mapbar button{min-width:42px;min-height:42px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
   .mapbar button svg{display:block}
@@ -930,7 +930,7 @@ input[type=range]:not(.yr-track input)::-moz-range-thumb{box-sizing:border-box;w
   .m-pick{display:flex!important}
   .story,.controls{height:auto;border:0;border-top:1px solid var(--rule)}
   .year-tag{font-size:28px}
-  .mapbar{bottom:28px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px)}
+  .mapbar{bottom:10px;padding:4px;gap:2px;flex-wrap:wrap;justify-content:center;width:max-content;max-width:calc(100% - 16px)}
   .mapbar .sep,.mapbar .lbl{display:none}
   .mapbar button{min-width:40px;min-height:40px;padding:0;display:inline-flex;align-items:center;justify-content:center;font-size:20px}
   .mapbar button svg{display:block}
@@ -1077,7 +1077,7 @@ body.has-full{overflow:hidden}
   .stage.mini .handle svg{width:18px;height:18px;flex:none}      /* the arrows fit the smaller handle (26 px arrows in a 30 px circle looked skewed) */
   .stage:not(.is-full) .mini-ctl{display:contents}
   #miniToggle{display:none}      /* the pill shows only once the page has scrolled or the picture is a strip (body.scrolled) */
-  body.scrolled:not(.has-full) #miniToggle{display:inline-flex;align-items:center;gap:6px;position:fixed;z-index:700;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top,0px) + 18px);bottom:auto;height:38px;width:auto;padding:0 16px 0 14px;border:0;border-radius:19px;background:rgba(255,255,255,.94);color:#1d2a30;font:600 13px/1 var(--sans);box-shadow:0 2px 8px rgba(14,26,34,.35);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}      /* a labelled pill on the upper edge of the picture (tap, or swipe up = strip / down = large; js/09-phones.js) */
+  body.scrolled:not(.has-full) #miniToggle{display:inline-flex;align-items:center;gap:6px;position:absolute;z-index:700;left:auto;right:10px;transform:none;top:10px;bottom:auto;height:34px;width:auto;padding:0 14px 0 12px;border:0;border-radius:17px;background:rgba(255,255,255,.94);color:#1d2a30;font:600 13px/1 var(--sans);box-shadow:0 2px 8px rgba(14,26,34,.35);cursor:pointer;touch-action:none;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}      /* a labelled pill on the upper edge of the picture (tap, or swipe up = strip / down = large; js/09-phones.js) */
   body.scrolled:not(.has-full) #miniToggle svg{display:block;width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transform:rotate(180deg)}
   body.scrolled:not(.has-full) #miniToggle::before{content:'Shrink view'}
   body.scrolled:not(.has-full) #miniToggle[aria-expanded="false"]::before{content:'Enlarge view'}
@@ -1105,7 +1105,7 @@ body.has-full{overflow:hidden}
   /* collapsed, the right panel is an inviting tab on the edge: red, the text written downwards, a soft glow like the "Then and now" pill */
   .pt-label{display:none}
   .app.no-right #toggleRight{z-index:664;top:50%;margin-top:0;transform:translateY(-50%);width:38px;height:auto;max-height:86%;padding:12px 0;flex-direction:column;gap:10px;background:var(--accent);border-color:var(--accent);color:#fff;border-radius:var(--r-sm) 0 0 var(--r-sm);transition:width .15s,background .15s}
-  .app.no-right #toggleRight.halo{animation:tabPulse 2s ease-in-out infinite}      /* the halo of the "Save and share" cue; only until the panel was opened once in this session */
+  .app.no-right #toggleRight.halo{animation:tabPulse 2s ease-in-out infinite}      /* the halo of the "Create and share" cue; only until the panel was opened once in this session */
   .app.no-right #toggleRight:hover{width:44px;background:#B22C25}
   .app.no-right #toggleRight .pt-label{display:block;writing-mode:vertical-rl;font:600 13.5px/1.5 var(--sans);letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-height:0}      /* line height 1.5: with 1 the descender of g and y was cut off by the overflow */
   @keyframes tabPulse{0%,100%{box-shadow:0 4px 18px rgba(200,50,42,.45),0 0 0 3px #fff}50%{box-shadow:0 6px 26px rgba(200,50,42,.7),0 0 0 3px #fff,0 0 0 9px rgba(200,50,42,.18)}}
@@ -1300,7 +1300,7 @@ body.pane-open .v3d-photos,body.pane-open .v3d-photo,body.pane-open .v3d-photoca
 /* the 3D bar has the size and the place of the map toolbar: 40 px high, 32 px above the sources line */
 .v3d-measure{bottom:32px}
 .v3d-measure > button,.v3d-photos .ph-toggle,.v3d-photos .ph-btns button{min-height:32px}
-@media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:32px}}
+@media (max-width:720px){.v3d-measure,.v3d.photo-on .v3d-measure{bottom:14px}}
 
 body.pane-open .tfs-scale{display:none!important}      /* no scale bar while a download pane is open: it is not part of the picture */
 
@@ -1315,6 +1315,7 @@ body.pane-open:not(.x-bg) #map .leaflet-labels-pane,body.pane-open:not(.x-bg) #m
 .vf-play svg{width:18px;height:18px;fill:currentColor;stroke:none}
 .vf-close svg{fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
 .video-frame>.vf-close{position:absolute;right:0;top:-48px;width:34px;height:34px}      /* the cross sits above the top right corner of the outline */
+.vf-btns>.vf-close{position:static;margin-right:4px}      /* the cross sits in the row of buttons under the frame, left of the layers symbol (js/vf-close-dock.js), on every screen size */
 .vf-play:hover{background:rgba(120,126,130,.96)}
 .vf-fmt{width:40px;height:40px;border:0;border-radius:50%;padding:0;display:none;place-items:center;background:rgba(150,156,160,.92);color:#fff;font:700 11.5px/1 var(--font,inherit);cursor:pointer;pointer-events:auto;box-shadow:0 2px 10px rgba(0,0,0,.4)}
 .vf-fmt svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
@@ -1322,9 +1323,15 @@ body.pane-open:not(.x-bg) #map .leaflet-labels-pane,body.pane-open:not(.x-bg) #m
 .vf-fmt[aria-pressed="true"]{background:#fff;color:var(--rock)}
 body.pane-open .video-frame .vf-fmt{display:grid}
 .vf-btns .vf-fmt+.vf-play{margin-left:6px}
+.video-frame.in-btns .vf-btns{bottom:10px}      /* a frame that reaches the picture's bottom edge carries its buttons inside */
+.dock-dl svg,.mapbar .dock-dl svg{display:block;width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.mapbar .dock-dl,.v3d-measure .dock-dl{display:inline-flex;align-items:center;justify-content:center}
+@media (max-width:720px){.dock-dl-desk{display:none!important}}      /* the explorer's dock download symbol is for desktop: phones have the Your visual button in step 3 (the size page keeps its symbol on phones) */
       /* full screen button beside the ratios: the arrows turn inward while it is on */      /* the ratio choices, a gap, then play and close */
 body.pane-open .video-frame .vf-play{display:grid}      /* a play button hidden by the page (a picture, not an animation) stays hidden: its inline style wins */
 .video-frame{transition:box-shadow .3s}
+body.vf-edge,body.vf-edge *{cursor:move!important}      /* the pointer is on the outline of the custom frame: it can be dragged as a whole */
+.video-frame.custom{touch-action:none}
 .video-frame.playing{box-shadow:0 0 0 9999px rgba(6,10,13,.88)}
 
 /* 3D view with a download pane open: the titles, labels and menus on the picture go, only the picture and the frame stay (the frame draws its own labels) */
@@ -2042,7 +2049,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .status{padding:9px 12px;border-radius:var(--r-sm);font-size:12px}
   .adj-switch{padding:6px 0;font-size:13px}
 
-  /* save and share: two rows with an icon disc, then three quiet buttons */
+  /* create and share: two rows with an icon disc, then three quiet buttons */
   .dl-grid{grid-template-columns:1fr 1fr;gap:var(--sp-2)}
   .dl{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:var(--sp-3);row-gap:0;padding:var(--sp-3);border:0;border-radius:var(--r-md);background:var(--firn);text-align:center}
   .dl svg{grid-row:1 / 3;width:22px;height:22px;padding:9px;margin:0;box-sizing:content-box;border-radius:50%;background:var(--sheet);box-shadow:var(--raise)}
@@ -2212,7 +2219,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 @media (max-width:760px) and (orientation:landscape) and (max-height:520px){.mhead-logo{display:none}}
 
 /* ---------- Desktop: what the phone design brought over ----------
-   The desktop keeps its flat panel, its black glass on the picture and its compact sizes (no 40 px touch targets). It takes the phone design's shapes: soft segmented controls, sentence-case step headings with a number disc, the Save and share rows with an icon disc, a red timeline and a light pill for the active tool, the same corner radii (tokens --r-*). Phones, tablets in portrait up to 720 px and landscape phones have their own block above. */
+   The desktop keeps its flat panel, its black glass on the picture and its compact sizes (no 40 px touch targets). It takes the phone design's shapes: soft segmented controls, sentence-case step headings with a number disc, the Create and share rows with an icon disc, a red timeline and a light pill for the active tool, the same corner radii (tokens --r-*). Phones, tablets in portrait up to 720 px and landscape phones have their own block above. */
 @media (min-width:721px) and (min-height:521px), (min-width:951px){
   /* step headings */
   .step-h{gap:10px;font-size:15px;font-weight:700;letter-spacing:-.01em;text-transform:none;color:var(--ink)}
@@ -2225,7 +2232,7 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
   .modes button[aria-pressed="true"],.segment button[aria-pressed="true"]{background:var(--sheet);box-shadow:var(--raise);color:var(--ink);font-weight:700}
   .modes button[aria-pressed="true"] svg{stroke:var(--accent)}
 
-  /* save and share: rows with an icon disc, then quiet buttons */
+  /* create and share: rows with an icon disc, then quiet buttons */
   .dl-grid{grid-template-columns:1fr 1fr;gap:var(--sp-2)}
   .dl{display:grid;grid-template-columns:auto auto;justify-content:center;align-items:center;column-gap:var(--sp-3);row-gap:0;padding:var(--sp-2) var(--sp-3);border:0;border-radius:var(--r-md);background:var(--firn);text-align:center}
   .dl svg{grid-row:1 / 3;width:20px;height:20px;padding:8px;margin:0;box-sizing:content-box;border-radius:50%;background:var(--sheet);box-shadow:var(--raise)}
@@ -2387,8 +2394,8 @@ body.fade.fade-idle .stage,body.fade.fade-idle .stage *{cursor:none!important}
 
 /* map layers in a download: the line on the frame, the switch in the pane, and the greyed rows of the Layers box */
 .video-sheet.is-3d .vo-no3d{display:none}
-.vf-layers{position:relative;margin-right:6px;overflow:visible;background:rgba(10,18,22,.78)}      /* round layers button left of the ratio buttons; the red count sits on its corner like an app-icon badge */
-.vf-layers:hover{background:rgba(10,18,22,.92)}
+.vf-layers{position:relative;margin-right:6px;overflow:visible}
+body.x-layers .vf-layers,.vf-layers[aria-expanded="true"]{background:#fff;color:var(--rock)}      /* the Layers menu is open: the button is white, like a pressed ratio button */      /* round layers button left of the ratio buttons; the red count sits on its corner like an app-icon badge */
 .vf-badge{position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:var(--switch-on);color:#fff;font:700 11px/18px var(--sans);font-style:normal;text-align:center;font-variant-numeric:tabular-nums;box-shadow:0 0 0 2px rgba(10,18,22,.9);pointer-events:none}
 .vf-badge[hidden]{display:none}      /* (not .lb-count: the script in 08-controls.js counts those from the menu and would overwrite it) */
 body.pane-open .layerbox .toggle.x-off{opacity:.45}
@@ -2409,11 +2416,11 @@ body.x-layers .layerbox{max-width:none}
 .layerbox.in-sheet input[type=range]{accent-color:var(--crevasse)}
 .layerbox.in-sheet .lb-count{background:var(--switch-on);color:#fff}
 
-/* phones in portrait: the layer panel has two columns, "For this glacier" on the left and "Background" on the right; the docks (map and 3D) sit just above the credit line (22 px) */
+/* phones in portrait: the layer panel has two columns, "For this glacier" on the left and "Background" on the right; the docks (map and 3D) sit near the bottom edge (the credit bar is gone) */
 @media (max-width:720px) and (orientation:portrait){
   .layerbox.in-flow .lb-group:not(.lb-titlerow):not(:first-child){break-before:column;-webkit-column-break-before:always;margin-top:0}      /* the first group stays in column 1 (without a title row it used to start column 2 and push Background to a third column, off the phone) */
-  .mapbar{bottom:26px}
-  .v3d-measure,.v3d.photo-on .v3d-measure{bottom:26px}
+  .mapbar{bottom:12px}
+  .v3d-measure,.v3d.photo-on .v3d-measure{bottom:12px}
 }
 
 /* phone held sideways outside full screen: ask to turn it upright (js/09-phones.js, orientSync) */
@@ -2561,6 +2568,7 @@ body.x-layers .layerbox{max-width:none}
   .vf-fmt svg{width:18px;height:18px}
   .vf-layers{margin-right:2px}
   .vf-btns .vf-fmt+.vf-play{margin-left:2px}
+  .vf-btns>.vf-close{position:static;width:34px;height:34px;margin-right:4px}      /* the cross under the frame, left of the layers symbol (js/vf-close-dock.js) */
 }
 
 /* phones: the title row's pill opens the menu (pages and regions, js/home-link.js); the side panel's page links and the region pill stay hidden there */

@@ -2,14 +2,15 @@ import { wire } from './wire.js';
 import { $, COARSE, lv95 } from './01-data.js';
 import { oldOutlineGeom, newOutlineGeom, eachPiece, loadOutline } from './02-glaciers.js';
 import { currentGlacier, viewMode, glacierPicked } from './04-state.js';
-import { map, loadSpeedFile, speedArray, speedId, SPEED_MIN, speedPopup } from './05-map.js';
+import { map, cancelMeasure, loadSpeedFile, speedArray, speedId, SPEED_MIN, speedPopup } from './05-map.js';
 import { showNotice } from './08-controls.js';
 import { setMore, setLayers } from './09-phones.js';
 import { stillYear } from './10-animation.js';
-import { v3d, v3dCtx, currentBundle, stripOf, stripXZ, bundleId, pinLoop, LAKE_FILL } from './11-view3d.js';
+import { v3d, v3dCtx, currentBundle, cancel3Measure, stripOf, stripXZ, bundleId, pinLoop, LAKE_FILL } from './11-view3d.js';
 // registered for the files below it in the load order (see wire.js); 11-view3d.js and 07-render.js call them through wire
 Object.defineProperty(wire, 'syncPin', { get: () => syncPin, configurable: true });
 Object.defineProperty(wire, 'pinArmed', { get: () => () => armed, configurable: true });
+Object.defineProperty(wire, 'disarmPin', { get: () => () => disarm(), configurable: true });
 Object.defineProperty(wire, 'pinOn3', { get: () => pinOn3, configurable: true });
 Object.defineProperty(wire, 'drawPin3D', { get: () => drawPin3D, configurable: true });
 /* =====================================================================
@@ -90,6 +91,7 @@ export async function setPin(lat, lng, from3d){
 export function clearPin(){ gen++; pin = null; placeMarker(); syncButtons(); hideCard(); pinLoop(); }
 function arm(){
   if (!glacierPicked || !currentGlacier()) return showNotice('Choose a glacier first.');
+  cancelMeasure(); cancel3Measure();      // one tool at a time: the pin and the measuring tools (distance, area, cross-section) exclude each other
   armed = true; syncButtons(); $('app').classList.add('pinning');
   const h = $('pinHint'), host = viewMode === '3d' ? $('v3d') : $('stage'); if (h.parentNode !== host) host.appendChild(h);      // the hint bar of the measuring tools, on the face on show
   $('pinHintText').textContent = viewMode === '3d' ? `${TAP} the terrain to drop a pin.` : `${TAP} the map to drop a pin.`; h.classList.add('show');
@@ -261,10 +263,13 @@ export function drawPin3D(ctx, c, viewer, w, h, u){
   ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(14, 13.5, 4.6, 0, 2 * Math.PI); ctx.fill(); ctx.restore();
   const E = pin.data && pin.data.elev, rows = E && E.rows.filter(rr => Number.isFinite(rr.s));
   if (rows && rows.length > 1 && Math.max(...rows.map(rr => rr.s)) - Math.min(...rows.map(rr => rr.s)) >= 0.05) {      // no label off the ice (the same height every year)
-    const d = rows[rows.length - 1].s - rows[0].s, text = `${sgn(d)} m since ${rows[0].y}`;
-    ctx.font = `600 ${12 * u}px "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif`; const tw = ctx.measureText(text).width, px = 7 * u, hh = 21 * u, ty = y - 39 * k2 - 6 * u - hh;
-    ctx.fillStyle = '#1C2A33'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x - tw / 2 - px, ty, tw + 2 * px, hh, 5 * u) : ctx.rect(x - tw / 2 - px, ty, tw + 2 * px, hh); ctx.fill();
-    ctx.fillStyle = d < 0 ? '#FF8A80' : '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, x, ty + hh / 2 + 0.5 * u);
+    const yNow = stillYear(), cur = rows.find(rr => rr.y === yNow) || rows[rows.length - 1], d = cur.s - rows[0].s, text = cur === rows[0] ? `${rows[0].y} level` : `${sgn(d)} m since ${rows[0].y}`;      // follows the year on screen, also while the timelapse plays
+    ctx.font = `600 ${12 * u}px "Schibsted Grotesk", "Helvetica Neue", Arial, sans-serif`; const tw = ctx.measureText(text).width, px = 7 * u, hh = 21 * u, ty = Math.max(4 * u, y - 39 * k2 - 6 * u - hh);
+    let lx = x;      // the label stays whole: clear of the pin card (desktop: it covers the right half) and inside the picture
+    const cv = $('v3dCanvas').getBoundingClientRect(), cd = $('pinCard');
+    if (cv.width) { const sc = w / cv.width, edge = cd && !cd.hidden ? (cd.getBoundingClientRect().left - cv.left) * sc - 8 * u : w; lx = Math.max(tw / 2 + px + 4 * u, Math.min(lx, edge - tw / 2 - px, w - tw / 2 - px - 4 * u)); }
+    ctx.fillStyle = '#1C2A33'; ctx.beginPath(); ctx.roundRect ? ctx.roundRect(lx - tw / 2 - px, ty, tw + 2 * px, hh, 5 * u) : ctx.rect(lx - tw / 2 - px, ty, tw + 2 * px, hh); ctx.fill();
+    ctx.fillStyle = d < 0 ? '#FF8A80' : '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillText(text, lx, ty + hh / 2 + 0.5 * u);
   }
   ctx.restore();
 }

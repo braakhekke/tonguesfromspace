@@ -125,7 +125,6 @@
       <input type="search" id="glacierSearch" class="g-search" placeholder="Search glaciers" aria-label="Search glaciers" autocomplete="off" hidden>
       <ul class="glaciers" id="glacierList"></ul>
       <p class="note" id="rankNote"></p>
-      <button type="button" class="down-hint" id="downHint" data-track="scroll-hint" hidden>Stats, stories and hikes for this glacier are further down <span aria-hidden="true">↓</span></button>
     </section>
 
     <section class="step" id="vizGroup">
@@ -218,7 +217,7 @@
     </section>
 
     <section class="step" id="shareGroup">
-      <h2 class="step-h"><span class="num">03</span>Save and share<small class="step-lock">pick a glacier</small></h2>
+      <h2 class="step-h"><span class="num">03</span>Create and share<small class="step-lock">pick a glacier</small></h2>
       <div class="dl-grid sat-need">
         <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your visual</b></button>
         <button type="button" class="dl" id="embedBtn" aria-expanded="false" aria-controls="embedBox" title="Code to show this view in your own page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4.5l-4 15"/></svg><b>Embed</b></button>
@@ -242,7 +241,7 @@
       <p class="byline fyi-by"><b>Glacier visuals, done your way</b><span>By J. Braakhekke</span></p>
     </section>
 
-    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn" data-track="scroll-cue"><span class="num">03</span><span>Save and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
+    <div class="scroll-cue" id="scrollCue" hidden><button type="button" id="scrollCueBtn" data-track="scroll-cue"><span class="num">03</span><span>Create and share</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></div>
   </aside>
 
   <!-- ================= CENTRE ================= -->
@@ -322,6 +321,7 @@
       <button type="button" id="pinBtn" class="mtool" aria-pressed="false" aria-label="Drop a pin" title="Drop a pin: one place of the glacier, year by year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.5s-6.8-6.9-6.8-12a6.8 6.8 0 0 1 13.6 0c0 5.1-6.8 12-6.8 12z"/><circle cx="12" cy="9.5" r="2.4"/></svg><span class="lbl">Pin</span></button>
       <button type="button" id="measureClear" class="mtool" aria-label="Clear measurements" title="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg><span class="lbl">Clear</span></button>
       <button type="button" id="layersBtn" class="mobile-only" aria-label="Map layers" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><b class="lb-count on-btn" data-menu="layerbox" hidden></b></button>
+      <button type="button" class="dock-dl dock-dl-desk" aria-label="Download or share this view" title="Download or share this view: the whole picture, as an image or an animation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></svg></button>
       <button type="button" id="fsBtn" aria-label="Full screen, visual only" title="Full screen, visual only (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg></button>
       <button type="button" id="moreBtn" class="mobile-only" aria-label="Measuring tools" aria-expanded="false"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button>
       </div>
@@ -390,7 +390,7 @@
         <button type="button" id="v3mOut" class="v3d-zoom" aria-label="Zoom out" title="Zoom out">−</button>
         <button type="button" id="v3mIn" class="v3d-zoom" aria-label="Zoom in" title="Zoom in">+</button>
         <span class="sep"></span>
-        <button type="button" id="v3mHome" class="v3d-zoom" aria-label="Reset the view" title="Reset the view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.6-5.9"/><path d="M4 4v4.5h4.5"/></svg></button>
+        <button type="button" id="v3mHome" class="v3d-zoom" aria-label="Reset the view" title="Reset the view"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3.6"/><path d="M12 2.5v4M12 17.5v4M2.5 12h4M17.5 12h4"/></svg></button>
         <button type="button" id="v3mDist" aria-pressed="false" aria-label="Measure length" title="Measure length"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 17L17 3l4 4L7 21z"/><path d="M7 13l2 2M10 10l2 2M13 7l2 2"/></svg><span>Measure length</span></button>
         <button type="button" id="v3mArea" aria-pressed="false" aria-label="Measure area" title="Measure area"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l13 2-2 12-11-3z"/></svg><span>Measure area</span></button>
         <button type="button" id="v3mSect" aria-pressed="false" aria-label="Thickness cross-section" title="Thickness cross-section: draw a line across the glacier" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6.5h18c-4 12-14 12-18 0z" fill="currentColor" fill-opacity=".22"/><path d="M12 6.5v8.2" stroke-dasharray="1.6 2.2"/></svg><span>Thickness cross-section</span></button>
@@ -398,6 +398,7 @@
         <button type="button" id="v3mPin" aria-pressed="false" aria-label="Drop a pin" title="Drop a pin: one place of the glacier, year by year"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21.5s-6.8-6.9-6.8-12a6.8 6.8 0 0 1 13.6 0c0 5.1-6.8 12-6.8 12z"/><circle cx="12" cy="9.5" r="2.4"/></svg><span>Pin</span></button>
         <button type="button" id="v3mClear" hidden aria-label="Clear measurements" title="Clear measurements"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 20l-4.5-4.5a1.5 1.5 0 0 1 0-2.1L13 3.9a1.5 1.5 0 0 1 2.1 0l5 5a1.5 1.5 0 0 1 0 2.1L12 19"/><path d="M7 11.5l6.5 6.5M8 20h12"/></svg><span>Clear</span></button>
         <button type="button" id="v3mLayers" class="mobile-only" aria-label="Layers" title="Layers of the 3D view"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><span>Layers</span><b class="lb-count on-btn" data-menu="v3dLayers" hidden></b></button>
+        <button type="button" class="dock-dl dock-dl-desk" aria-label="Download or share this view" title="Download or share this view: the whole picture, as an image or an animation"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11M7.5 10.5L12 15l4.5-4.5M5 19.5h14"/></svg></button>
         <button type="button" id="v3dFs" aria-label="Full screen, visual only" title="Full screen, visual only (Esc leaves it)"><svg class="fs-in" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><svg class="fs-out" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5"/></svg><span class="fs-in">Full screen</span><span class="fs-out">Exit full screen</span></button>
       </div>
       <div class="measure-hint v3d-mhint" id="v3dMHint" role="status"><span id="v3dMText"></span><button type="button" id="v3mFinish">Finish</button><button type="button" class="ghost" id="v3mCancel">Cancel</button></div>
@@ -416,7 +417,7 @@
     </div>
     <div class="notice" id="notice" role="alert"></div>
     <div class="gesture-hint" id="gestureHint" aria-hidden="true">Use two fingers to move the map</div>
-    <div class="video-frame" id="videoFrame" hidden><i class="vf-h" data-h="nw"></i><i class="vf-h" data-h="n"></i><i class="vf-h" data-h="ne"></i><i class="vf-h" data-h="e"></i><i class="vf-h" data-h="se"></i><i class="vf-h" data-h="s"></i><i class="vf-h" data-h="sw"></i><i class="vf-h" data-h="w"></i><span id="videoFrameNote"></span><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-fmt vf-layers" id="vfLayers" aria-label="Change visible layers" title="Change visible layers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><i class="vf-badge" id="vfLayersText" hidden></i></button><button type="button" class="vf-fmt" id="vfWide" aria-pressed="true" aria-label="16:9, landscape" title="16:9 (landscape)">16:9</button><button type="button" class="vf-fmt" id="vfReel" aria-pressed="false" aria-label="9:16, portrait" title="9:16 (portrait)">9:16</button><button type="button" class="vf-fmt" id="vfFeed" aria-pressed="false" aria-label="4:5, Instagram feed" title="4:5 (Instagram feed)">4:5</button><button type="button" class="vf-fmt" id="vfCustom" aria-pressed="false" aria-label="Custom ratio" title="Custom: drag the edges and corners of the frame. It starts as the glacier's image box."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" stroke-dasharray="3 2.5"/><circle cx="19" cy="19" r="2.2"/></svg></button><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div></div>
+    <div class="video-frame" id="videoFrame" hidden><i class="vf-h" data-h="nw"></i><i class="vf-h" data-h="n"></i><i class="vf-h" data-h="ne"></i><i class="vf-h" data-h="e"></i><i class="vf-h" data-h="se"></i><i class="vf-h" data-h="s"></i><i class="vf-h" data-h="sw"></i><i class="vf-h" data-h="w"></i><span id="videoFrameNote"></span><button type="button" class="vf-play vf-close" id="vfClose" aria-label="Close the preview" title="Close the preview"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button><div class="vf-boxes" id="vfBoxes"><canvas id="vfPreview"></canvas></div><div class="vf-btns"><button type="button" class="vf-fmt vf-layers" id="vfLayers" aria-label="Change visible layers" title="Change visible layers"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg><i class="vf-badge" id="vfLayersText" hidden></i></button><button type="button" class="vf-fmt" id="vfWide" aria-pressed="true" aria-label="16:9, landscape" title="16:9 (landscape)">16:9</button><button type="button" class="vf-fmt" id="vfReel" aria-pressed="false" aria-label="9:16, portrait" title="9:16 (portrait)">9:16</button><button type="button" class="vf-fmt" id="vfFeed" aria-pressed="false" aria-label="4:5, Instagram feed" title="4:5 (Instagram feed)">4:5</button><button type="button" class="vf-fmt" id="vfCustom" aria-pressed="false" aria-label="Free extent" title="Free extent: drag the edges and corners of the frame. It opens at the largest frame, everything that can be seen."><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="5" width="14" height="14" rx="1.5" stroke-dasharray="3 2.5"/><circle cx="19" cy="19" r="2.2"/></svg></button><button type="button" class="vf-play" id="vfPlay" aria-label="Play a preview" title="Play a preview in the frame"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z"/></svg></button></div></div>
     <button type="button" class="panel-toggle" id="toggleLeft" aria-label="Hide or show the settings panel" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button>
     <button type="button" class="panel-toggle" id="toggleRight" aria-label="Hide or show the glacier story" aria-expanded="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg><span class="pt-label" id="toggleRightLabel">Discover facts and figures</span></button>
     <div class="credits" id="credits" role="button" tabindex="0" title="Show all credits"></div>
@@ -435,8 +436,8 @@
 </div>
 
 <!-- ================= VIDEO EXPORT PANEL ================= -->
-<section class="video-sheet" id="videoSheet" role="dialog" aria-label="Save and share" hidden>
-  <div class="vs-head"><strong id="vsTitle">Save and share</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
+<section class="video-sheet" id="videoSheet" role="dialog" aria-label="Create and share" hidden>
+  <div class="vs-head"><strong id="vsTitle">Create and share</strong><button type="button" class="vs-close" id="vsClose" aria-label="Close">×</button></div>
   <div class="segment vs-kind" role="group" aria-label="What to make"><button type="button" id="vkImage" aria-pressed="false">Image</button><button type="button" id="vkVideo" aria-pressed="true">Animation</button></div>
   <label class="toggle optsw vo-video" id="vSafeRow" hidden title="Reels and TikTok cover the top, bottom and right edge with their own buttons. Switch off for a plain 9:16 video."><input type="checkbox" id="vSafe" checked> <span>Keep text clear of Reels and TikTok buttons</span></label>
   <p class="hint vs-guide" id="vsGuide"></p>
@@ -477,7 +478,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
 <!-- optional: written by the deploy workflow; sets the address of the Copernicus relay (Cloudflare Worker) -->
 <script defer src="config.js"></script><script defer src="js/track.js"></script><script defer src="js/mascot.js"></script><script defer src="js/why.js"></script>
-<script defer src="js/home-link.js"></script>
+<script defer src="js/home-link.js"></script><script defer src="js/ghost-click.js"></script><script defer src="js/vf-close-dock.js"></script>
 <script type="module" src="js/main.js"></script>
 
 </body>

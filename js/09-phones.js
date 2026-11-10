@@ -31,7 +31,6 @@ export function updatePickHint(){
   el.classList.toggle('show', show);
   const wasLocked = $('app').classList.contains('no-glacier');
   $('app').classList.toggle('no-glacier', !glacierPicked); syncSatUi(); $('story').classList.toggle('empty', !glacierPicked);
-  $('downHint').hidden = !glacierPicked;
   if (wasLocked && glacierPicked) {          // step 2 pops up as soon as a glacier is chosen
     const v = $('vizGroup'); v.classList.add('pop'); setTimeout(() => v.classList.remove('pop'), 1000);
     scrollCompareTop();
@@ -110,7 +109,6 @@ SIDEWAYS.addEventListener('change', orientSync);
 addEventListener('orientationchange', () => setTimeout(orientSync, 100));
 export const isFull = () => $('stage').classList.contains('is-full') || $('app').classList.contains('visual-only');
 orientSync();      // after isFull is defined
-$('downHint').onclick = () => $('story').scrollIntoView({behavior: 'smooth', block: 'start'});
 $('fsBtn').onclick = $('v3dFs').onclick = () => setFull(!isFull());
 $('fullExit').onclick = () => setFull(false);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && isFull()) { setFull(false); e.preventDefault(); } });      // the key press is used up: leaving full screen is all it does (the 3D view's own Esc handler checks defaultPrevented)

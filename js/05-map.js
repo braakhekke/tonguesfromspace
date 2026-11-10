@@ -1081,7 +1081,7 @@ export const pathLen = pts => pts.reduce((s, p, i) => i ? s + map.distance(pts[i
 export const ringOf = pts => pts.map(p => [p.lng, p.lat]);
 export const updateClear = () => { document.getElementById('measureClear').hidden = !M.group.getLayers().length; };   // hide the eraser until something is drawn
 export function startMeasure(mode){
-  cancelMeasure();
+  cancelMeasure(); if (wire.disarmPin) wire.disarmPin();      // one tool at a time
   M.mode = mode; map.doubleClickZoom.disable();
   document.getElementById('app').classList.add('measuring');
   document.getElementById({dist:'measureDist', area:'measureArea', sect:'measureSect'}[mode]).setAttribute('aria-pressed', 'true');

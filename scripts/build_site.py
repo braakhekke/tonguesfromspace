@@ -336,7 +336,7 @@ def main():
     code = os.path.join(ROOT, "js")
     named = set()
     for f in sorted(os.listdir(code)):
-        if f in ("regions.js", "00-regions.js", "home-link.js", "turn-upright.js", "track.js", "mascot.js", "why.js", "search.js", "dem-export.js", "drop-sound.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
+        if f in ("regions.js", "00-regions.js", "home-link.js", "ghost-click.js", "vf-close-dock.js", "turn-upright.js", "track.js", "mascot.js", "why.js", "search.js", "dem-export.js", "drop-sound.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
             text = read(f"js/{f}").decode("utf-8")
             # the data files of the regions: their hashed names go into the files that name them
             for plain in DATA_NAMES:

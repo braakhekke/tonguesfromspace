@@ -1362,6 +1362,7 @@ export function update3Measure(){
 export function start3Measure(mode){
   if (viewMode !== '3d' || !v3dCtx) return;
   if (M3.gid !== v3dCtx.g.id) { M3.shapes = []; M3.gid = v3dCtx.g.id; }
+  if (wire.disarmPin) wire.disarmPin();      // one tool at a time
   M3.mode = mode; M3.pts = []; update3Measure(); pinLoop();
 }
 export function cancel3Measure(){ M3.mode = null; M3.pts = []; update3Measure(); }
