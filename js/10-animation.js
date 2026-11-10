@@ -134,10 +134,10 @@ export function drawPreview(){
   ctx.save(); ctx.scale(q, q);
   if (vPrev.on && vPrev.endT0 != null && vPrev.endInfo) { drawEndSlide(ctx, W, H, S, vPrev.endInfo, (performance.now() - vPrev.endT0) / 1000); ctx.restore(); return; }      // the ending of the animation
   { const r = frameRect(), P = ll => { const p = map.latLngToContainerPoint([ll[1], ll[0]]); return [(p.x - r.x) * W / r.w, (p.y - r.y) * H / r.h]; }, ra = cachedRasters(vstate.kind, drawPreview);
-    drawExportRasters(ctx, P, ra); drawExportArcs(ctx, P, W, arcOptFor(ys, vPrev.on && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2)), vstate.kind); drawExportLayers(ctx, P, W / 1080 * 1.6, vstate.kind, ra, true); info.xCards = [...ra.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean); info.xCredit = layerCredits(vstate.kind, ys, ra); }      // the ticked map layers under the labels, from the frame on the live map
+    drawExportRasters(ctx, P, ra); drawExportArcs(ctx, P, W, arcOptFor(ys, (vPrev.on || vPrev.scrubbed) && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2)), vstate.kind); drawExportLayers(ctx, P, W / 1080 * 1.6, vstate.kind, ra, true); info.xCards = [...ra.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean); info.xCredit = layerCredits(vstate.kind, ys, ra); }      // the ticked map layers under the labels, from the frame on the live map
   if (image && !swipe) drawStill(ctx, W, H, info, S);
   else if (swipe) drawSwipeLabels(ctx, W, H, S, info, image || vPrev.on ? frameSplit() * (info.horiz ? H : W) : (info.horiz ? H : W) / 2);
-  else drawLabels(ctx, W, H, S, info, vPrev.on && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2));
+  else drawLabels(ctx, W, H, S, info, (vPrev.on || vPrev.scrubbed) && state.mode === 'timelapse' && tlLayers[state.frame] && ys.includes(tlLayers[state.frame].yr) ? ys.indexOf(tlLayers[state.frame].yr) : Math.floor((ys.length - 1) / 2));
   ctx.restore();
 }
 /* A preview of the animation in the frame: the timelapse plays on the map (the labels follow its frame), the slider sweeps across; everything outside the frame is darker meanwhile. Stops with the pane, a new format or a click. */
@@ -160,11 +160,11 @@ export function startPreview3D(){            // the camera swings as in the vide
   const tick = now => {
     if (!vPrev.on) return; const t = (now - t0) / 1000, dt = (now - last) / 1000; last = now; const u = (t / 7) % 1, sw = Math.sin(2 * Math.PI * u), bob = (1 - Math.cos(2 * Math.PI * u)) / 2;
     const cur = viewer.getCam(), ap = vPrev.applied;
-    if (ap && (Math.abs(cur.az - ap.az) > 1e-4 || Math.abs(cur.el - ap.el) > 1e-4 || Math.abs(cur.dist - ap.dist) > 1e-4 * ap.dist)) {      // the visitor turned, tilted or zoomed: the swing goes on around the new view, which is also what comes back when the preview stops
-      const o = vPrev.off; vPrev.cam0 = {...vPrev.cam0, az: cur.az - o.az, el: cur.el - o.el, dist: cur.dist / o.k};
+    if (ap && (Math.abs(cur.az - ap.az) > 1e-4 || Math.abs(cur.el - ap.el) > 1e-4 || Math.abs(cur.dist - ap.dist) > 1e-4 * ap.dist || (cur.tx || 0) !== (ap.tx || 0) || (cur.tz || 0) !== (ap.tz || 0))) {      // the visitor turned, tilted or zoomed: the swing goes on around the new view, which is also what comes back when the preview stops
+      const o = vPrev.off; vPrev.cam0 = {...vPrev.cam0, az: cur.az - o.az, el: cur.el - o.el, dist: cur.dist / o.k, tx: cur.tx || 0, tz: cur.tz || 0};      // (the pan too: setCam puts it back to 0 when it is missing)
     }
     const swing = $('vSwing') && $('vSwing').checked, cam0 = vPrev.cam0, off = swing ? {az: 0.5 * sw, el: 0.07 * bob, k: 1 - 0.1 * bob} : {az: 0, el: 0, k: 1};
-    vPrev.off = off; vPrev.cam = {az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
+    vPrev.off = off; vPrev.cam = {tx: cam0.tx || 0, tz: cam0.tz || 0, az: cam0.az + off.az, el: cam0.el + off.el, dist: cam0.dist * off.k}; viewer.setCam(vPrev.cam); vPrev.applied = viewer.getCam();
     if (c.cmp) { sPh += dt * 1.2 / perSec(0); if (sPh >= 6) return stopPreview(); wire.setSplit3D(0.5 + 0.4 * Math.sin(2 * Math.PI * sPh / 6)); }
     else if (ys && c.follow) {
       yPh += dt / perSec(ys.length); const sq = loopSeq(ys.length), per = perSec(ys.length), cyc = sq.length + (vPrev.endInfo ? endLen(vstate.fmt) / per : 0), ph = yPh % cyc;
@@ -412,6 +412,7 @@ if (window.ResizeObserver) new ResizeObserver(syncPaneStage).observe($('videoShe
 PHONE.addEventListener('change', () => { document.documentElement.style.removeProperty('--vs-h'); setTimeout(syncPaneStage, 50); });
 export function closeVideo(){
   if (vstate.busy) return; stopPreview();
+  vPrev.scrubbed = false;
   let shiftBack = null; if (paneCentred && viewMode !== '3d' && !$('videoSheet').hidden) { const c = frameCentre(), m = map.getSize().divideBy(2); shiftBack = {x: Math.round(c.x - m.x), y: Math.round(c.y - m.y)}; }
   document.body.classList.remove('pane-open', 'x-layers', 'x-bg', 'x-aerial'); placeLayerBox(false); drawOutlines(); M.group.addTo(map);
   $('videoSheet').hidden = true; $('videoFrame').hidden = true; syncExportRows(); $('app').classList.remove('is-framing'); sheetOverlap = 0; limitFrameView(); markArea(null);

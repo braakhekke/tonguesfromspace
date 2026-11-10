@@ -81,7 +81,7 @@ Three groups exist today; all three must be flat water surfaces in the **stored*
 | Rhone B43-03 | 2015, 2016, 2018 to 2025 (tongue 100 %) | two surfaces before 2017: the 2016 date can be interpolated, not extrapolated; own GLAMOS bins; Rhone lake (group B) |
 | Gorner B56-07 | 2017, 2019 to 2025, tongue 100 %, 24 to 75 % of the glacier, nothing above 3400 m | borrowed balance (line); no own bins |
 | Findel B56-03 | 2019 to 2025, 46 to 100 % | own GLAMOS bins; lake (group B) |
-| Aletsch B36-26 | 2017 to 2025, only below about 2400 m | done; the accumulation area rests on the editions (bias removed from lidar) |
+| Aletsch B36-26 | 2016 to 2025, only below about 2400 m | done; the accumulation area rests on the editions (bias removed from lidar) |
 | Trift A54e-24, Fee B53-04 | partial (Trift 41 to 81 % of the tongue; Fee 2018 to 2022, 40 to 67 %) | fit on the covered part only; report coverage per year |
 | Corbassière B83-03 | one date (2022-07-15, 90 % of the tongue) | reduced-data mode (section 11); own GLAMOS bins |
 | Fiescher B40-07, Zmutt B57-05 | none on the tongue | reduced-data mode; Zmutt lake (group B) |

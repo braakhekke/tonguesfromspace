@@ -1,34 +1,57 @@
 # Tongues from Space
 
-**The tongues of the largest glaciers in Sentinel-2 imagery: one clear late-summer scene per year, with glacier figures, a compare slider, a timelapse, a 3D view with thickness cross-sections, and image and video export.**
+**See how glaciers change from orbit.** The tongues of the largest Swiss glaciers in real Sentinel-2 satellite images, one clear late-summer scene per year since 2016, next to published glacier figures. Slide through the years, fly over the ice in 3D, compare a glacier with your own town, and make a picture or a video to share.
 
-**What is published.** Switzerland is open: the ten largest glaciers by area in the newest GLAMOS inventory (ranked by `scripts/build_outlines.py`). Iceland (twelve outlets of Vatnajökull and the ten largest glaciers outside it), Norway (ten) and Svalbard (ten) are built but stay off the public site until the repository variables `PUBLISH_ICELAND` and `PUBLISH_NORWAY` are set to `1` (see [docs/SETUP.md](docs/SETUP.md)); they are in the making. The counts are of the data files in `data/` today.
+**Live site: https://tonguesfromspace.org/**
 
-Live site: https://tonguesfromspace.org/
-
-A glacier ends in its tongue, the lowest stretch of ice, where it melts the most. That is where change is easiest to see: every summer the tip pulls back and leaves bare rock, a lake or a new valley floor. This project puts those pictures first, next to the figures and what the melted ice means in water.
-
-Built by [Jochem Braakhekke](https://github.com/braakhekke) to increase glacial awareness. It is open source: **you are welcome to help, or to make an explorer like it for glaciers in your own region** (see [docs/SETUP.md](docs/SETUP.md)).
+A glacier ends in its tongue, the lowest stretch of ice, where it melts the most. That is where change is easiest to see: every summer the tip pulls back and leaves bare rock, a lake or a new valley floor. This project puts those pictures first, with the figures and what the melted ice means in water beside them.
 
 ![Compare 2016 and 2026 on the tongue of Grosser Aletsch](images/readme-map.jpg)
 
 ![The same tongue in 3D, 2026](images/readme-3d.jpg)
 
-## What it does
+## What you can do
 
-- **Satellite images:** for every glacier and year the clearest late-summer Sentinel-2 scene, scored for cloud and snow.
-- **One year, Compare, Timelapse**, three colour styles, and the newest clear scene ("Latest").
-- **3D view** of the tongue with the picture of any year draped over the terrain, historic photographs, yearly ice surfaces where the data allows, and a thickness cross-section you can draw on the map and fly into.
-- **Glacier figures:** area, length change, thickness, volume and the water the ice stores, each with its source.
-- **Map layers:** outlines, aerial pictures, hiking trails and where the ice front is in view, radar thickness, ice speed, Street View.
-- **Export and share:** image or MP4 (16:9, 9:16, 4:5) made in the browser; a link keeps the state; an optional moderated gallery.
+**On the front page** ([tonguesfromspace.org](https://tonguesfromspace.org/)) watch the tour, search for a glacier in any language or pick one on the map, and read why the project exists and what is measured and what is computed.
 
-Everything the page does runs in the visitor's browser. The only server code is one Cloudflare Worker (static site, Copernicus relay, gallery).
+**In the Explorer** (one page per region, e.g. `/switzerland/`; every Swiss glacier also has its own address, `/switzerland/<glacier>/`, with a link preview of its newest picture):
 
-## How the code is laid out
+1. **Choose a glacier** from the list or the map.
+2. **Compare** the years:
+   - *One year*, *Compare* (a slider between two years) and *Timelapse*, in three colour styles, plus the newest clear scene ("Latest"). Older pictures (aerial photographs, Landsat) go further back where the data exists.
+   - *3D view* of the tongue with the picture of any year draped over the terrain, historic photographs placed where they were taken, the ice surface of each year where the data allows, and a thickness cross-section you can draw on the map and fly into.
+   - *Pin tool*: drop a pin on the map or in 3D and a card shows the ice surface of every year there, the ice left above the modelled bed, the ice speed and the outlines at that place (with a CSV download).
+   - *Map layers*: outlines, aerial pictures, special swisstopo survey flights, hiking trails and where the ice front is in view from them, radar ice thickness, ice speed, Street View.
+   - *Glacier figures*: area, length change, thickness, volume and the water the ice stores, each with its source.
+3. **Create and share**: a picture (JPG or PNG) or an MP4 animation (16:9, 9:16, 4:5) made in your browser, either of the map or of the 3D flight; a link that keeps the view; an `<iframe>` to embed it in your own page; and an optional, moderated public gallery.
+
+**On the Size page** ([/size](https://tonguesfromspace.org/size)), *How big are glaciers?*: pick two glaciers and compare them.
+- **Area (2D):** the outlines on a map, laid over a town or city you choose, to feel the size.
+- **Volume (3D):** the ice of each glacier as a block (or a ball) of its stated volume, dropped onto that city or left on its own glacier. You can pick the blocks up and throw them, see how long they would take to melt at their recent average loss, and show all ten glaciers at once.
+- Pictures, animations, links and embeds work as in the Explorer. Values that are calculated here (edge of the block, footprint, years to melt) are labelled as computed.
+
+**The Gallery** ([/gallery](https://tonguesfromspace.org/gallery)) shows pictures and animations that visitors shared, filterable by glacier, year and type.
+
+**The field notes** ([/provenance](https://tonguesfromspace.org/provenance)) explain how the yearly 3D ice surfaces and the special-flight layers were made, glacier by glacier, with their sources and uncertainties.
+
+It works on phones too (two fingers move the map; the viewer pins to the top while you read).
+
+## What is published
+
+**Switzerland** is open: the ten largest glaciers by area in the newest GLAMOS inventory. Iceland (Vatnajökull outlets and other glaciers), Norway and Svalbard are built but stay off the public site until the repository variables `PUBLISH_ICELAND` and `PUBLISH_NORWAY` are set to `1` (see [docs/SETUP.md](docs/SETUP.md)); they are in the making.
+
+## Where the numbers come from
+
+The pictures are real satellite images with their date; the project never paints in or generates ice. Figures (GLAMOS, swisstopo, ITS_LIVE and others) are shown as the source states them, each with a note; anything calculated here is marked as computed, and where the record has gaps (for example Landsat 7 stripes or years without a measured surface) the page says what was estimated. Full list and licences: [docs/SOURCES.md](docs/SOURCES.md). Because some data is licensed for non-commercial use only, the site is non-commercial.
+
+Built by [Jochem Braakhekke](https://github.com/braakhekke) to increase glacial awareness. It is open source: **you are welcome to help, or to make an explorer like it for glaciers in your own region** (see below).
+
+## For developers
+
+### How the code is laid out
 
 ```
-index.html  home.html  gallery.html  size.html     the pages (provenance.html: the field notes of the 3D view)
+index.html  home.html  gallery.html  size.html     the pages (provenance.html: the field notes of the 3D view; size.html: the Size page)
 css/                                               tokens.css (colours, type), style.css (the explorer, size page), home.css, pages.css
 js/main.js                                         the entry: imports the sections in order
 js/regions.js  js/00-regions.js                    every region, once (classic scripts, run first)
@@ -56,7 +79,7 @@ Three rules keep the code changeable (details in [docs/REFERENCE.md](docs/REFERE
 
 Data flow: the browser asks the relay for scene scores and pictures; the relay (Worker, or `scripts/serve.py` locally) holds the Copernicus login, validates each request and caches the answer. Glacier data is built ahead of time by the scripts in `scripts/` and committed or generated by the monthly GitHub Action.
 
-## Run it on your computer
+### Run it on your computer
 
 You need Python 3, Node.js 22 or newer, and a free [Copernicus Data Space](https://dataspace.copernicus.eu/) account for the satellite pictures.
 
@@ -70,7 +93,7 @@ You need Python 3, Node.js 22 or newer, and a free [Copernicus Data Space](https
 
    It also reads `CDSE_CLIENT_ID` and `CDSE_CLIENT_SECRET`, or `scripts/.cdse-credentials` (git-ignored). Without credentials it still serves the pages, without satellite pictures.
 
-## Check and test
+### Check and test
 
 ```bash
 python3 scripts/check_syntax.py   # syntax of every page, script, Worker and data file
@@ -82,7 +105,7 @@ python3 scripts/build_site.py _site && TFS_SITE_DIR=_site python3 -m unittest te
 
 The workflows run the same before every deploy (`.github/workflows/`): a failure stops the deploy.
 
-## Add a glacier or a region
+### Add a glacier or a region
 
 New glaciers are onboarded by the owner with local tools that are not in this repository. If you want one added or want to adapt the project to another region, open an issue; [docs/SETUP.md](docs/SETUP.md) describes publishing a copy and adding a region.
 

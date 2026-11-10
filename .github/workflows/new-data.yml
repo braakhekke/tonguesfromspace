@@ -1,0 +1,61 @@
+# Every two weeks: is there NEW data about the Swiss glaciers (swisstopo STAC incl. special flights, GLAMOS DOI index, WGMS)?
+# Script: scripts/check_new_data.py, baseline: data/source-watch/switzerland.json. Switzerland only for now; meant to grow to other regions (see the script's header).
+#
+# You are told like this: new data opens ONE issue "New glacier data found" (label: new-data), and GitHub emails you. While you have not acknowledged it
+# (python3 scripts/check_new_data.py --accept, commit the baseline) each run adds a comment. When a run finds nothing new the issue is closed.
+# A source that could not be read (site down, layout changed) opens "Data watch cannot read a source" the same way.
+# Note: GitHub stops scheduled workflows of a public repository after 60 days without activity in the repository; any push wakes it up again.
+name: New data watch
+
+on:
+  schedule:
+    - cron: "23 6 * * 1"          # Mondays 06:23 UTC; the job itself runs on every second ISO week
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Only every second week (a manual run always goes)
+        id: week
+        run: |
+          if [ "${{ github.event_name }}" = "schedule" ] && [ $(( 10#$(date +%V) % 2 )) -ne 0 ]; then echo "run=no" >> "$GITHUB_OUTPUT"; else echo "run=yes" >> "$GITHUB_OUTPUT"; fi
+      - uses: actions/checkout@v4
+        if: steps.week.outputs.run == 'yes'
+      - uses: actions/setup-python@v5
+        if: steps.week.outputs.run == 'yes'
+        with:
+          python-version: "3.12"
+      - name: Look for new data
+        if: steps.week.outputs.run == 'yes'
+        id: check
+        run: |
+          set +e
+          python scripts/check_new_data.py --report report.md
+          echo "code=$?" >> "$GITHUB_OUTPUT"
+      - name: Open or update the issue
+        if: steps.week.outputs.run == 'yes' && steps.check.outputs.code != '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          RUN_URL: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+          CODE: ${{ steps.check.outputs.code }}
+        run: |
+          if [ "$CODE" = "3" ]; then label=new-data; title="New glacier data found"; else label=data-watch-error; title="Data watch cannot read a source"; fi
+          gh label create "$label" --color C8322A 2>/dev/null || true
+          { cat report.md; echo; echo "Run: $RUN_URL"; } > body.md
+          n=$(gh issue list --label "$label" --state open --json number --jq '.[0].number // empty')
+          if [ -n "$n" ]; then gh issue comment "$n" --body-file body.md; else gh issue create --title "$title" --label "$label" --body-file body.md; fi
+      - name: Close old issues when nothing is new
+        if: steps.week.outputs.run == 'yes' && steps.check.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          for label in new-data data-watch-error; do
+            n=$(gh issue list --label "$label" --state open --json number --jq '.[0].number // empty')
+            if [ -n "$n" ]; then gh issue close "$n" --comment "Nothing new (baseline acknowledged or source readable again)."; fi
+          done

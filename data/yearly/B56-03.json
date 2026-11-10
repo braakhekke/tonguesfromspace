@@ -1,7 +1,7 @@
 {
  "glacier": "B56-03",
  "name": "Findelgletscher",
- "built": "2026-11-03",
+ "built": "2026-11-10",
  "years": [
   2016,
   2017,
@@ -29,9 +29,9 @@
   "2026-09-22"
  ],
  "kind": {
-  "2016": "extrapolated",
-  "2017": "extrapolated",
-  "2018": "extrapolated",
+  "2016": "measured",
+  "2017": "measured",
+  "2018": "interpolated",
   "2019": "measured",
   "2020": "measured",
   "2021": "measured",
@@ -44,15 +44,19 @@
  "clean": {
   "version": "clean-8m-2026-11",
   "reduced": false,
-  "tA1": "2015-10-27",
+  "tA1": "2015-08-25",
   "tA2": "2023-08-21",
   "donor": "own",
   "perYear": {
    "2016": {
     "date": "2016-09-29",
-    "kind": "extrapolated",
-    "flights": [],
-    "loo": {},
+    "kind": "measured",
+    "flights": [
+     "2016-08-26"
+    ],
+    "loo": {
+     "2016-08-26": 1.03
+    },
     "shots": null,
     "stakes": {
      "n": 14,
@@ -61,23 +65,27 @@
       3479
      ],
      "stake_minus_bin": 29,
-     "stake_minus_kappa_bin": -470
+     "stake_minus_kappa_bin": -303
     },
-    "kappa": 0.8500000000000001,
+    "kappa": 0.9000000000000001,
     "lake": null,
-    "ice_km2": 15.439,
-    "volume_km3": 1.1274,
+    "ice_km2": 15.422,
+    "volume_km3": 1.1279,
     "share": {
-     "this_year": 0,
-     "other_year": 99,
+     "this_year": 35,
+     "other_year": 63,
      "none": 1
     }
    },
    "2017": {
     "date": "2017-10-14",
-    "kind": "extrapolated",
-    "flights": [],
-    "loo": {},
+    "kind": "measured",
+    "flights": [
+     "2017-09-05"
+    ],
+    "loo": {
+     "2017-09-05": 1.06
+    },
     "shots": null,
     "stakes": {
      "n": 12,
@@ -86,21 +94,21 @@
       3478
      ],
      "stake_minus_bin": -156,
-     "stake_minus_kappa_bin": -893
+     "stake_minus_kappa_bin": -709
     },
-    "kappa": 0.8,
+    "kappa": 0.8500000000000001,
     "lake": null,
-    "ice_km2": 15.364,
-    "volume_km3": 1.1087,
+    "ice_km2": 15.333,
+    "volume_km3": 1.1062,
     "share": {
-     "this_year": 0,
-     "other_year": 99,
+     "this_year": 51,
+     "other_year": 48,
      "none": 1
     }
    },
    "2018": {
     "date": "2018-09-24",
-    "kind": "extrapolated",
+    "kind": "interpolated",
     "flights": [],
     "loo": {},
     "shots": null,
@@ -111,12 +119,12 @@
       3351
      ],
      "stake_minus_bin": -208,
-     "stake_minus_kappa_bin": -595
+     "stake_minus_kappa_bin": -982
     },
-    "kappa": 0.9000000000000001,
+    "kappa": 0.8,
     "lake": null,
-    "ice_km2": 15.294,
-    "volume_km3": 1.0937,
+    "ice_km2": 15.276,
+    "volume_km3": 1.0959,
     "share": {
      "this_year": 0,
      "other_year": 99,
@@ -130,13 +138,13 @@
      "2019-09-03"
     ],
     "loo": {
-     "2019-09-03": 1.23
+     "2019-09-03": 1.02
     },
     "shots": {
      "n": 172,
-     "median": 1.03,
-     "nmad": 0.66,
-     "rmse": 1.29,
+     "median": 1.18,
+     "nmad": 0.69,
+     "rmse": 1.41,
      "old_rmse": 2.72,
      "old_median": 0.11,
      "granules": 1
@@ -150,10 +158,10 @@
      "stake_minus_bin": 210,
      "stake_minus_kappa_bin": -113
     },
-    "kappa": 0.8999999999999999,
+    "kappa": 0.9,
     "lake": null,
-    "ice_km2": 15.228,
-    "volume_km3": 1.0827,
+    "ice_km2": 15.199,
+    "volume_km3": 1.0837,
     "share": {
      "this_year": 55,
      "other_year": 44,
@@ -168,14 +176,14 @@
      "2020-08-21"
     ],
     "loo": {
-     "2020-08-15": 0.71,
-     "2020-08-21": 1.25
+     "2020-08-15": 0.72,
+     "2020-08-21": 1.23
     },
     "shots": {
      "n": 204,
-     "median": 1.71,
+     "median": 1.61,
      "nmad": 0.94,
-     "rmse": 1.92,
+     "rmse": 1.82,
      "old_rmse": 2.23,
      "old_median": 1.38,
      "granules": 2
@@ -187,12 +195,12 @@
       3477
      ],
      "stake_minus_bin": 152,
-     "stake_minus_kappa_bin": -461
+     "stake_minus_kappa_bin": -155
     },
-    "kappa": 0.8,
+    "kappa": 0.9000000000000001,
     "lake": null,
-    "ice_km2": 15.259,
-    "volume_km3": 1.0913,
+    "ice_km2": 15.23,
+    "volume_km3": 1.0909,
     "share": {
      "this_year": 98,
      "other_year": 0,
@@ -211,9 +219,9 @@
     },
     "shots": {
      "n": 207,
-     "median": 1.23,
-     "nmad": 0.57,
-     "rmse": 1.28,
+     "median": 1.24,
+     "nmad": 0.6,
+     "rmse": 1.31,
      "old_rmse": 1.73,
      "old_median": 1.07,
      "granules": 1
@@ -225,12 +233,12 @@
       3504
      ],
      "stake_minus_bin": -260,
-     "stake_minus_kappa_bin": -260
+     "stake_minus_kappa_bin": -535
     },
-    "kappa": null,
+    "kappa": 0.9,
     "lake": null,
-    "ice_km2": 15.131,
-    "volume_km3": 1.0739,
+    "ice_km2": 15.105,
+    "volume_km3": 1.0741,
     "share": {
      "this_year": 55,
      "other_year": 44,
@@ -257,8 +265,8 @@
     },
     "kappa": 0.9,
     "lake": null,
-    "ice_km2": 14.714,
-    "volume_km3": 1.0042,
+    "ice_km2": 14.683,
+    "volume_km3": 1.0036,
     "share": {
      "this_year": 29,
      "other_year": 70,
@@ -275,9 +283,9 @@
     "loo": {},
     "shots": {
      "n": 55,
-     "median": 1.1,
-     "nmad": 0.96,
-     "rmse": 1.38,
+     "median": 1.14,
+     "nmad": 1.11,
+     "rmse": 1.48,
      "old_rmse": 0.68,
      "old_median": 0.57,
      "granules": 2
@@ -289,12 +297,12 @@
       3477
      ],
      "stake_minus_bin": -404,
-     "stake_minus_kappa_bin": 105
+     "stake_minus_kappa_bin": -65
     },
-    "kappa": 1.1500000000000001,
+    "kappa": 1.1,
     "lake": null,
-    "ice_km2": 14.433,
-    "volume_km3": 0.9657,
+    "ice_km2": 14.417,
+    "volume_km3": 0.9662,
     "share": {
      "this_year": 28,
      "other_year": 72,
@@ -317,14 +325,14 @@
       3477
      ],
      "stake_minus_bin": -296,
-     "stake_minus_kappa_bin": -445
+     "stake_minus_kappa_bin": -146
     },
-    "kappa": 0.95,
+    "kappa": 1.05,
     "lake": null,
-    "ice_km2": 14.416,
-    "volume_km3": 0.9699,
+    "ice_km2": 14.382,
+    "volume_km3": 0.968,
     "share": {
-     "this_year": 30,
+     "this_year": 31,
      "other_year": 69,
      "none": 1
     }
@@ -337,14 +345,14 @@
      "2025-09-19"
     ],
     "loo": {
-     "2025-09-06": 1.17,
-     "2025-09-19": 1.31
+     "2025-09-06": 1.3,
+     "2025-09-19": 1.45
     },
     "shots": {
      "n": 552,
-     "median": 0.92,
-     "nmad": 1.44,
-     "rmse": 1.84,
+     "median": 0.87,
+     "nmad": 1.46,
+     "rmse": 1.89,
      "old_rmse": 2.09,
      "old_median": 0.63,
      "granules": 3
@@ -360,8 +368,8 @@
     },
     "kappa": 1.1,
     "lake": null,
-    "ice_km2": 14.164,
-    "volume_km3": 0.9337,
+    "ice_km2": 14.136,
+    "volume_km3": 0.9311,
     "share": {
      "this_year": 28,
      "other_year": 71,
@@ -377,8 +385,8 @@
     "stakes": null,
     "kappa": null,
     "lake": null,
-    "ice_km2": 13.948,
-    "volume_km3": 0.9036,
+    "ice_km2": 13.915,
+    "volume_km3": 0.9001,
     "share": {
      "this_year": 0,
      "other_year": 99,
@@ -387,6 +395,78 @@
    }
   },
   "surveys": [
+   {
+    "ice_share": 0.0,
+    "label": "Flight 2016-07-29 10:51",
+    "day": "2016-07-29",
+    "cells": 182408,
+    "stable": 7384,
+    "offset": -1.041,
+    "tilt_E": -0.021,
+    "tilt_N": 0.2,
+    "nmad_before": 0.383,
+    "nmad_after": 0.37
+   },
+   {
+    "ice_share": 0.0,
+    "label": "Flight 2016-08-08 08:50",
+    "day": "2016-08-08",
+    "cells": 134474,
+    "stable": 8608,
+    "offset": 1.021,
+    "tilt_E": 0.068,
+    "tilt_N": 0.07,
+    "nmad_before": 0.562,
+    "nmad_after": 0.562
+   },
+   {
+    "ice_share": 0.353,
+    "label": "Flight 2016-08-26 10:52",
+    "day": "2016-08-26",
+    "cells": 317637,
+    "stable": 37595,
+    "offset": -0.26,
+    "tilt_E": 0.028,
+    "tilt_N": 0.129,
+    "nmad_before": 0.301,
+    "nmad_after": 0.256
+   },
+   {
+    "ice_share": 0.0,
+    "label": "Flight 2017-08-22 10:17",
+    "day": "2017-08-22",
+    "cells": 105371,
+    "stable": 3336,
+    "offset": 0.133,
+    "tilt_E": 0.324,
+    "tilt_N": 0.185,
+    "nmad_before": 0.374,
+    "nmad_after": 0.374
+   },
+   {
+    "ice_share": 0.0,
+    "label": "Flight 2017-09-05 09:35",
+    "day": "2017-09-05",
+    "cells": 201626,
+    "stable": 13287,
+    "offset": 0.143,
+    "tilt_E": 0.059,
+    "tilt_N": 0.003,
+    "nmad_before": 0.139,
+    "nmad_after": 0.139
+   },
+   {
+    "ice_share": 0.511,
+    "label": "Flight 2017-09-05 10:08",
+    "day": "2017-09-05",
+    "cells": 463261,
+    "stable": 41084,
+    "offset": 0.005,
+    "tilt_E": -0.032,
+    "tilt_N": -0.004,
+    "nmad_before": 0.106,
+    "nmad_after": 0.1
+   },
    {
     "ice_share": 0.0,
     "label": "Flight 2018-09-11 12:59",
@@ -660,22 +740,23 @@
    "nmad": 0.015926366671919823
   },
   "kappa": {
-   "2016": 0.8500000000000001,
-   "2017": 0.8,
-   "2018": 0.9000000000000001,
-   "2020": 0.8,
+   "2016": 0.9000000000000001,
+   "2017": 0.8500000000000001,
+   "2018": 0.8,
+   "2019": 0.9,
+   "2020": 0.9000000000000001,
+   "2021": 0.9,
    "2022": 0.9,
-   "2023": 1.1500000000000001,
-   "2025": 1.1,
-   "2019": 0.8999999999999999,
-   "2024": 0.95
+   "2023": 1.1,
+   "2024": 1.05,
+   "2025": 1.1
   },
   "icesat": {
    "all": {
     "n": 1190,
     "median": 1.14,
-    "nmad": 1.0,
-    "rmse": 1.68
+    "nmad": 0.99,
+    "rmse": 1.71
    },
    "n_old_same": {
     "n": 1190,
@@ -687,11 +768,11 @@
   "gedi": null,
   "sections": {
    "What this is": "<p>For every year from 2016 to 2026 the 3D view shows the ice surface <b>as it stood on the day of that year's satellite picture</b> (2016 09-29, 2017 10-14, 2018 09-24, 2019 09-29, 2020 08-09, 2021 08-14, 2022 09-18, 2023 10-08, 2024 08-08, 2025 08-25, 2026 09-22).</p><p>Two kinds of knowledge go into it. On the days and in the places where an aircraft photographed the glacier or a laser scanned it, the model reproduces that measurement, to about 0.2 m. Everywhere else the surface is <b>calculated</b>: starting from the nearest measurements, the model adds the snow that fell and takes away the snow and ice that melted, spreads that melt over the summer according to the weather, and lets the ice flow downhill at a rate fitted to the data. It is fitted to every dated elevation model that exists for the glacier at once, not stitched between two surveys.</p><p><b>A model, not a measurement</b>, except on the days and in the places a survey covers.</p>",
-   "Observations": "<p>Everything the model knows about the real surface comes from three kinds of survey. Each is levelled against the bare rock beside the glacier, which should not change, so that surveys from different days agree with one another.</p><ul><li><b>Aerial photographs (flights).</b> swisstopo's special flights (<i>Spezialbefliegungen</i>) photograph the glacier from an aircraft. Overlapping photographs yield a height map, a <i>digital surface model</i> (DSM), in 0.5 m cells. Each is tied to the rock with a fitted plane; the model assumes a noise of 0.7 m. 12 flights over the ice on 9 different days: 2019-09-03, 2020-08-15, 2020-08-21, 2021-08-14, 2022-07-15, 2023-08-21, 2024-08-20, 2025-09-06, 2025-09-19. 10 further flights (2018-09-11, 2019-09-03, 2019-09-04, 2020-08-07, 2021-08-14, 2022-07-15, 2023-08-21, 2024-08-20, 2025-09-06) reach the strip only over rock. They cover less than 1 % of the ice, so they are not observations of it; they only help to level the others.</li><li><b>Laser scanning (lidar).</b> An aircraft laser scan, published by swisstopo as swissSURFACE3D raster. The day of each tile is taken from the point clouds; the model assumes a noise of 0.35 m. 11 tiles flown 2021-09-24 to 2021-09-24.</li><li><b>National height model (swissALTI3D).</b> Two editions of swisstopo's national height model, the 2019 edition and the newest, serve as ice surfaces. They are made by stereo mapping with a stated accuracy of 1 to 3 m. The model needs the date each edition stands for; these dates were estimated from the flights, as the date at which the edition equals the flight-based surface of the tongue: <b>2019 edition 2015-10-27, newest edition 2023-08-21</b>. Their uncertainty in the model is 0.6 m below 2000 m and 1.5 m above, and 2.0 m above 2000 m where no flight series exists.</li></ul><p><b>A correction.</b> Where flights and lidar reach, the editions can be compared with them. At the upper end of that coverage they differ from the flight- and lidar-based surface (edition minus survey, plus means the edition stands higher): A1 2019 edition: −0.7 m at 2750 m, −1.4 m at 2850 m, −0.3 m at 2950 m, +0.8 m at 3450 m, +1.0 m at 3550 m; A2 newest edition: −1.6 m at 2650 m, −1.6 m at 2750 m, −1.2 m at 2850 m, −1.1 m at 2950 m, −1.0 m at 3050 m, −1.1 m at 3150 m, −1.2 m at 3250 m, −1.0 m at 3350 m, +1.1 m at 3550 m. This was measured and removed. Above the reach of the flights the correction is held constant, and 0.5 m is added to the editions' uncertainty there.</p>",
-   "Physics and fitted numbers": "<p>At every 8 m cell of the glacier, the height of the surface on any day is built from four parts:</p><p class=\"formula\">h(x,t) = h0(x) + S(z,t) + e(x)·τ + residual</p><p>In words: <b>base height</b> at that place, plus the <b>snow gained and ice lost</b> at the surface, plus the <b>effect of ice flow</b> over time (τ is the time in years), plus a small <b>leftover</b> the model cannot explain.</p><ul><li><b>S, the surface mass balance:</b> what snow and melt add to or remove from the surface at that elevation. Here it is the glacier's own GLAMOS elevation-band balance (2026 estimated).<ul><li>Winter snowfall is spread over October to April.</li><li>Summer melt is spread over May to September in proportion to the positive degrees (the daily temperature above freezing, summed) recorded at Eggishorn (2892 m) and Jungfraujoch, adjusted for elevation with a lapse rate of 0.65 K per 100 m.</li><li>Snow melts first (density 0.4), then ice (0.9) or firn (0.6).</li></ul></li><li><b>e(x), the flow term:</b> everything the balance does not explain, mainly the flow of the ice, fitted for each cell. A positive value means ice arrives faster than melt alone would allow, holding the surface up; a negative value means ice flows away. Median by elevation band, in metres per year:</li></ul><div class=\"tiles\"><div><span>2500 to 2700 m</span><b>+2.0</b></div><div><span>2700 to 2900 m</span><b>+1.4</b></div><div><span>2900 to 3100 m</span><b>+1.0</b></div><div><span>3100 to 3300 m</span><b>−0.1</b></div><div><span>3300 to 3500 m</span><b>−1.4</b></div><div><span>3500 to 3700 m</span><b>−1.9</b></div><div><span>3700 to 3900 m</span><b>−1.6</b></div></div><p>The published balances are modelled values at the tongue. For each glaciological year (named after the year it ends in) I therefore scaled the summer balance by a factor fitted on the flights. A factor that stayed at 1.00 means no flight improved on the published value.</p><div class=\"tiles\"><div><span>2016</span><b>0.85</b></div><div><span>2017</span><b>0.80</b></div><div><span>2018</span><b>0.90</b></div><div><span>2019</span><b>0.90</b></div><div><span>2020</span><b>0.80</b></div><div><span>2022</span><b>0.90</b></div><div><span>2023</span><b>1.15</b></div><div><span>2024</span><b>0.95</b></div><div><span>2025</span><b>1.10</b></div></div>",
-   "Each year": "<table><tr><th>Year</th><th>Picture date</th><th>Surface</th><th>Ice in the strip, km²</th><th>Volume in the strip, km³</th><th>Flights / lidar of that year</th></tr><tr><td>2016</td><td>2016-09-29</td><td>beyond the first or last flight</td><td>15.44</td><td>1.127</td><td>–</td></tr><tr><td>2017</td><td>2017-10-14</td><td>beyond the first or last flight</td><td>15.36</td><td>1.109</td><td>–</td></tr><tr><td>2018</td><td>2018-09-24</td><td>beyond the first or last flight</td><td>15.29</td><td>1.094</td><td>–</td></tr><tr><td>2019</td><td>2019-09-29</td><td>a flight or the lidar covers it</td><td>15.23</td><td>1.083</td><td>2019-09-03</td></tr><tr><td>2020</td><td>2020-08-09</td><td>a flight or the lidar covers it</td><td>15.26</td><td>1.091</td><td>2020-08-15, 2020-08-21</td></tr><tr><td>2021</td><td>2021-08-14</td><td>a flight or the lidar covers it</td><td>15.13</td><td>1.074</td><td>2021-08-14, 2021-09-24 (lidar)</td></tr><tr><td>2022</td><td>2022-09-18</td><td>a flight or the lidar covers it</td><td>14.71</td><td>1.004</td><td>2022-07-15, 2022-07-15</td></tr><tr><td>2023</td><td>2023-10-08</td><td>a flight or the lidar covers it</td><td>14.43</td><td>0.966</td><td>2023-08-21, 2023-08-21</td></tr><tr><td>2024</td><td>2024-08-08</td><td>a flight or the lidar covers it</td><td>14.42</td><td>0.970</td><td>2024-08-20, 2024-08-20</td></tr><tr><td>2025</td><td>2025-08-25</td><td>a flight or the lidar covers it</td><td>14.16</td><td>0.934</td><td>2025-09-06, 2025-09-19</td></tr><tr><td>2026</td><td>2026-09-22</td><td>estimate (balance of 2026 estimated)</td><td>13.95</td><td>0.904</td><td>–</td></tr></table><p class=\"small\">Ice area and volume are computed inside the 3D strip (bed: Grab et al. 2021 ice thickness; ice where the surface stands more than 0.5 m above it). The strip holds only part of the glacier, so these are not the GLAMOS whole-glacier figures.</p>",
-   "Validation": "<p>A model that is only checked against the data it was fitted to proves little. These checks use other data, or leave a survey out and see whether the model can predict it. Every figure is <i>model minus observation</i>: a plus means the model stands higher. The <b>median</b> is the typical offset. <b>NMAD</b> and <b>rmse</b> measure the scatter around it; NMAD ignores rare large errors, rmse does not.</p><p><b>ICESat-2, a NASA laser satellite</b> (not used in the fit). Against 1190 of its shots on the ice, the model has a median of +1.14 m, NMAD 1.00 m, rmse 1.68 m. By year, the median: 2019: +1.03 m (172 shots). 2020: +1.71 m (204 shots). 2021: +1.23 m (207 shots). 2023: +1.10 m (55 shots). 2025: +0.92 m (552 shots).</p><p><b>Leave one flight out.</b> Each flight in turn was removed, the model refitted without it, and its prediction compared with the flight. rmse, in date order of the flights: 1.2, 0.7, 1.2, 0.9, 2.1, 1.1, 1.1, 1.1, 2.7, 0.9, 1.2, 1.3, 0.8 m. The rmse includes the crevasse detail of the 8 m DSM.</p><p><b>GLAMOS stakes</b> (124 stake-years). Stakes are poles drilled into the ice and read by hand, so they measure how much ice a single spot loses. Stake minus the elevation-band (bin) balance: −52 mm w.e. Stake minus the calibrated bin balance: −315 mm w.e. (NMAD about 0.5 m w.e.). The stakes cannot tell the two apart. mm w.e. = millimetres of water equivalent.</p><p><b>How well it reproduces what it was fitted to.</b> On all 1,321,087 observations the fit residual has NMAD 0.52 m and rmse 1.07 m.</p>",
-   "Uncertainty": "<p>How far off can the surface be? The figures are one-sigma errors: roughly two chances in three that the true surface lies within that distance.</p><ul><li><b>On a survey day, where the survey reaches:</b> 0.3 to 0.7 m.</li><li><b>Between surveys:</b> 0.9 to 2.1 m (from the leave-one-flight-out test; computed).</li><li><b>After the last survey:</b> about 1.3 m.</li><li><b>Where only the swissALTI3D editions exist</b> (above the reach of the flights): about 1.7 m (the ICESat-2 rmse), with an absolute offset of up to 2 to 3 m.</li><li><b>The first year, before any observation:</b> about 3 m.</li><li><b>The last year</b> (balances estimated): about 3.6 m.</li></ul><p>ICESat-2 reads about 0.9 m lower than surface models on rough ice. That is a property of the laser, not an error of the model.</p>",
+   "Observations": "<p>Everything the model knows about the real surface comes from three kinds of survey. Each is levelled against the bare rock beside the glacier, which should not change, so that surveys from different days agree with one another.</p><ul><li><b>Aerial photographs (flights).</b> swisstopo's special flights (<i>Spezialbefliegungen</i>) photograph the glacier from an aircraft. Overlapping photographs yield a height map, a <i>digital surface model</i> (DSM), in 0.5 m cells. Each is tied to the rock with a fitted plane; the model assumes a noise of 0.7 m. 14 flights over the ice on 11 different days: 2016-08-26, 2017-09-05, 2019-09-03, 2020-08-15, 2020-08-21, 2021-08-14, 2022-07-15, 2023-08-21, 2024-08-20, 2025-09-06, 2025-09-19. 14 further flights (2016-07-29, 2016-08-08, 2017-08-22, 2017-09-05, 2018-09-11, 2019-09-03, 2019-09-04, 2020-08-07, 2021-08-14, 2022-07-15, 2023-08-21, 2024-08-20, 2025-09-06) reach the strip only over rock. They cover less than 1 % of the ice, so they are not observations of it; they only help to level the others.</li><li><b>Laser scanning (lidar).</b> An aircraft laser scan, published by swisstopo as swissSURFACE3D raster. The day of each tile is taken from the point clouds; the model assumes a noise of 0.35 m. 11 tiles flown 2021-09-24 to 2021-09-24.</li><li><b>National height model (swissALTI3D).</b> Two editions of swisstopo's national height model, the 2019 edition and the newest, serve as ice surfaces. They are made by stereo mapping with a stated accuracy of 1 to 3 m. The model needs the date each edition stands for; these dates were estimated from the flights, as the date at which the edition equals the flight-based surface of the tongue: <b>2019 edition 2015-08-25, newest edition 2023-08-21</b>. Their uncertainty in the model is 0.6 m below 2000 m and 1.5 m above, and 2.0 m above 2000 m where no flight series exists.</li></ul><p><b>A correction.</b> Where flights and lidar reach, the editions can be compared with them. At the upper end of that coverage they differ from the flight- and lidar-based surface (edition minus survey, plus means the edition stands higher): A1 2019 edition: +0.9 m at 2550 m, −0.4 m at 2750 m, +0.8 m at 3450 m, +1.0 m at 3550 m; A2 newest edition: −1.9 m at 2650 m, −2.0 m at 2750 m, −1.5 m at 2850 m, −1.3 m at 2950 m, −1.1 m at 3050 m, −1.2 m at 3150 m, −1.2 m at 3250 m, −0.7 m at 3350 m, +1.1 m at 3550 m. This was measured and removed. Above the reach of the flights the correction is held constant, and 0.5 m is added to the editions' uncertainty there.</p>",
+   "Physics and fitted numbers": "<p>At every 8 m cell of the glacier, the height of the surface on any day is built from four parts:</p><p class=\"formula\">h(x,t) = h0(x) + S(z,t) + e(x)·τ + residual</p><p>In words: <b>base height</b> at that place, plus the <b>snow gained and ice lost</b> at the surface, plus the <b>effect of ice flow</b> over time (τ is the time in years), plus a small <b>leftover</b> the model cannot explain.</p><ul><li><b>S, the surface mass balance:</b> what snow and melt add to or remove from the surface at that elevation. Here it is the glacier's own GLAMOS elevation-band balance (2026 estimated).<ul><li>Winter snowfall is spread over October to April.</li><li>Summer melt is spread over May to September in proportion to the positive degrees (the daily temperature above freezing, summed) recorded at Eggishorn (2892 m) and Jungfraujoch, adjusted for elevation with a lapse rate of 0.65 K per 100 m.</li><li>Snow melts first (density 0.4), then ice (0.9) or firn (0.6).</li></ul></li><li><b>e(x), the flow term:</b> everything the balance does not explain, mainly the flow of the ice, fitted for each cell. A positive value means ice arrives faster than melt alone would allow, holding the surface up; a negative value means ice flows away. Median by elevation band, in metres per year:</li></ul><div class=\"tiles\"><div><span>2500 to 2700 m</span><b>+1.9</b></div><div><span>2700 to 2900 m</span><b>+1.6</b></div><div><span>2900 to 3100 m</span><b>+1.0</b></div><div><span>3100 to 3300 m</span><b>−0.1</b></div><div><span>3300 to 3500 m</span><b>−1.5</b></div><div><span>3500 to 3700 m</span><b>−1.9</b></div><div><span>3700 to 3900 m</span><b>−1.6</b></div></div><p>The published balances are modelled values at the tongue. For each glaciological year (named after the year it ends in) I therefore scaled the summer balance by a factor fitted on the flights. A factor that stayed at 1.00 means no flight improved on the published value.</p><div class=\"tiles\"><div><span>2016</span><b>0.90</b></div><div><span>2017</span><b>0.85</b></div><div><span>2018</span><b>0.80</b></div><div><span>2019</span><b>0.90</b></div><div><span>2020</span><b>0.90</b></div><div><span>2021</span><b>0.90</b></div><div><span>2022</span><b>0.90</b></div><div><span>2023</span><b>1.10</b></div><div><span>2024</span><b>1.05</b></div><div><span>2025</span><b>1.10</b></div></div>",
+   "Each year": "<table><tr><th>Year</th><th>Picture date</th><th>Surface</th><th>Ice in the strip, km²</th><th>Volume in the strip, km³</th><th>Flights / lidar of that year</th></tr><tr><td>2016</td><td>2016-09-29</td><td>a flight or the lidar covers it</td><td>15.42</td><td>1.128</td><td>2016-08-26</td></tr><tr><td>2017</td><td>2017-10-14</td><td>a flight or the lidar covers it</td><td>15.33</td><td>1.106</td><td>2017-09-05</td></tr><tr><td>2018</td><td>2018-09-24</td><td>between flights</td><td>15.28</td><td>1.096</td><td>–</td></tr><tr><td>2019</td><td>2019-09-29</td><td>a flight or the lidar covers it</td><td>15.20</td><td>1.084</td><td>2019-09-03</td></tr><tr><td>2020</td><td>2020-08-09</td><td>a flight or the lidar covers it</td><td>15.23</td><td>1.091</td><td>2020-08-15, 2020-08-21</td></tr><tr><td>2021</td><td>2021-08-14</td><td>a flight or the lidar covers it</td><td>15.11</td><td>1.074</td><td>2021-08-14, 2021-09-24 (lidar)</td></tr><tr><td>2022</td><td>2022-09-18</td><td>a flight or the lidar covers it</td><td>14.68</td><td>1.004</td><td>2022-07-15, 2022-07-15</td></tr><tr><td>2023</td><td>2023-10-08</td><td>a flight or the lidar covers it</td><td>14.42</td><td>0.966</td><td>2023-08-21, 2023-08-21</td></tr><tr><td>2024</td><td>2024-08-08</td><td>a flight or the lidar covers it</td><td>14.38</td><td>0.968</td><td>2024-08-20, 2024-08-20</td></tr><tr><td>2025</td><td>2025-08-25</td><td>a flight or the lidar covers it</td><td>14.14</td><td>0.931</td><td>2025-09-06, 2025-09-19</td></tr><tr><td>2026</td><td>2026-09-22</td><td>estimate (balance of 2026 estimated)</td><td>13.91</td><td>0.900</td><td>–</td></tr></table><p class=\"small\">Ice area and volume are computed inside the 3D strip (bed: Grab et al. 2021 ice thickness; ice where the surface stands more than 0.5 m above it). The strip holds only part of the glacier, so these are not the GLAMOS whole-glacier figures.</p>",
+   "Validation": "<p>A model that is only checked against the data it was fitted to proves little. These checks use other data, or leave a survey out and see whether the model can predict it. Every figure is <i>model minus observation</i>: a plus means the model stands higher. The <b>median</b> is the typical offset. <b>NMAD</b> and <b>rmse</b> measure the scatter around it; NMAD ignores rare large errors, rmse does not.</p><p><b>ICESat-2, a NASA laser satellite</b> (not used in the fit). Against 1190 of its shots on the ice, the model has a median of +1.14 m, NMAD 0.99 m, rmse 1.71 m. By year, the median: 2019: +1.18 m (172 shots). 2020: +1.61 m (204 shots). 2021: +1.24 m (207 shots). 2023: +1.14 m (55 shots). 2025: +0.87 m (552 shots).</p><p><b>Leave one flight out.</b> Each flight in turn was removed, the model refitted without it, and its prediction compared with the flight. rmse, in date order of the flights: 1.0, 1.1, 1.0, 0.7, 1.2, 0.9, 2.7, 1.1, 1.1, 1.2, 2.0, 0.9, 1.3, 1.4, 0.8 m. The rmse includes the crevasse detail of the 8 m DSM.</p><p><b>GLAMOS stakes</b> (124 stake-years). Stakes are poles drilled into the ice and read by hand, so they measure how much ice a single spot loses. Stake minus the elevation-band (bin) balance: −52 mm w.e. Stake minus the calibrated bin balance: −291 mm w.e. (NMAD about 0.5 m w.e.). The stakes cannot tell the two apart. mm w.e. = millimetres of water equivalent.</p><p><b>How well it reproduces what it was fitted to.</b> On all 1,520,207 observations the fit residual has NMAD 0.54 m and rmse 1.00 m.</p>",
+   "Uncertainty": "<p>How far off can the surface be? The figures are one-sigma errors: roughly two chances in three that the true surface lies within that distance.</p><ul><li><b>On a survey day, where the survey reaches:</b> 0.3 to 0.7 m.</li><li><b>Between surveys:</b> 0.9 to 1.9 m (from the leave-one-flight-out test; computed).</li><li><b>After the last survey:</b> about 1.4 m.</li><li><b>Where only the swissALTI3D editions exist</b> (above the reach of the flights): about 1.7 m (the ICESat-2 rmse), with an absolute offset of up to 2 to 3 m.</li><li><b>The first year, before any observation:</b> about 3 m.</li><li><b>The last year</b> (balances estimated): about 3.6 m.</li></ul><p>ICESat-2 reads about 0.9 m lower than surface models on rough ice. That is a property of the laser, not an error of the model.</p>",
    "Not done, and remarks": "<ul><li><b>Ice flux not checked.</b> The rate of ice flow, e(x), was fitted from the surfaces themselves. It has not been checked against the ice flux (the flux divergence from ITS_LIVE velocities and the thickness map). This is left open on purpose.</li><li><b>The high accumulation area.</b> Where neither lidar nor flights exist, the surface rests on the two swissALTI3D editions (stereo, stated accuracy 1 to 3 m), on the mass balance and on a constant rate of ice flow. The change from year to year is better known there than the absolute height (about 2 to 3 m).</li><li><b>The ice edge.</b> At the margin the ice surface is continued up the valley wall for at most 32 m (flat, and only over rising ground). The Swiss Glacier Inventory 2016 supports this only weakly.</li><li><b>Terms of use.</b> The terms of use and the accuracy statement of the flight DSMs have not been read.</li></ul>",
    "Data and licences": "<ul><li><b>swisstopo open government data:</b> swissALTI3D, swissSURFACE3D raster, Spezialbefliegungen DSMs (© Federal Office of Topography swisstopo). The collection's licence field says \"proprietary\"; its terms are not read yet.</li><li><b>GLAMOS</b> mass balance, release 2025 (doi:10.18750/massbalance.2025.r2025, non-commercial use), and the Swiss Glacier Inventory.</li><li><b>MeteoSwiss</b> daily temperature (CC BY 4.0).</li><li><b>Grab et al. 2021</b> ice thickness (CC BY 4.0, doi:10.3929/ethz-b-000434697).</li><li><b>For checking only:</b> ICESat-2 ATL06 and GEDI (NASA), GLAMOS stakes.</li><li><b>Not used:</b> ASTER (accuracy 5 to 30 m against a signal of 1 to 5 m per year).</li></ul>"
   },
@@ -5386,6 +5467,2922 @@
    "topLabel": "end of the strip",
    "scaleM": 5000,
    "cover": [
+    {
+     "label": "2016-07-29 10:51",
+     "day": "2016-07-29",
+     "kind": "flight",
+     "km2": 4.63,
+     "ice": 0.0,
+     "rings": [
+      [
+       [
+        2629376,
+        1098520
+       ],
+       [
+        2629352,
+        1098496
+       ],
+       [
+        2629328,
+        1098448
+       ],
+       [
+        2629304,
+        1098424
+       ],
+       [
+        2629280,
+        1098376
+       ],
+       [
+        2629256,
+        1098328
+       ],
+       [
+        2629232,
+        1098304
+       ],
+       [
+        2629208,
+        1098256
+       ],
+       [
+        2629184,
+        1098232
+       ],
+       [
+        2629160,
+        1098184
+       ],
+       [
+        2629136,
+        1098160
+       ],
+       [
+        2629112,
+        1098112
+       ],
+       [
+        2629088,
+        1098064
+       ],
+       [
+        2629064,
+        1098040
+       ],
+       [
+        2629040,
+        1097992
+       ],
+       [
+        2629016,
+        1097968
+       ],
+       [
+        2628992,
+        1097920
+       ],
+       [
+        2628968,
+        1097872
+       ],
+       [
+        2628944,
+        1097848
+       ],
+       [
+        2628920,
+        1097800
+       ],
+       [
+        2628896,
+        1097776
+       ],
+       [
+        2628872,
+        1097728
+       ],
+       [
+        2628848,
+        1097704
+       ],
+       [
+        2628824,
+        1097656
+       ],
+       [
+        2628800,
+        1097608
+       ],
+       [
+        2628776,
+        1097584
+       ],
+       [
+        2628752,
+        1097536
+       ],
+       [
+        2628728,
+        1097512
+       ],
+       [
+        2628704,
+        1097464
+       ],
+       [
+        2628680,
+        1097440
+       ],
+       [
+        2628656,
+        1097392
+       ],
+       [
+        2628632,
+        1097344
+       ],
+       [
+        2628608,
+        1097320
+       ],
+       [
+        2628584,
+        1097272
+       ],
+       [
+        2628560,
+        1097248
+       ],
+       [
+        2628536,
+        1097200
+       ],
+       [
+        2628512,
+        1097152
+       ],
+       [
+        2628488,
+        1097128
+       ],
+       [
+        2628464,
+        1097080
+       ],
+       [
+        2628440,
+        1097056
+       ],
+       [
+        2628416,
+        1097008
+       ],
+       [
+        2628392,
+        1096984
+       ],
+       [
+        2628368,
+        1096936
+       ],
+       [
+        2628344,
+        1096888
+       ],
+       [
+        2628320,
+        1096864
+       ],
+       [
+        2628296,
+        1096816
+       ],
+       [
+        2628272,
+        1096792
+       ],
+       [
+        2628248,
+        1096744
+       ],
+       [
+        2628224,
+        1096696
+       ],
+       [
+        2628200,
+        1096672
+       ],
+       [
+        2628176,
+        1096624
+       ],
+       [
+        2628200,
+        1096600
+       ],
+       [
+        2628344,
+        1096576
+       ],
+       [
+        2628512,
+        1096552
+       ],
+       [
+        2628656,
+        1096528
+       ],
+       [
+        2628824,
+        1096504
+       ],
+       [
+        2628968,
+        1096480
+       ],
+       [
+        2629136,
+        1096456
+       ],
+       [
+        2629280,
+        1096432
+       ],
+       [
+        2629448,
+        1096408
+       ],
+       [
+        2629592,
+        1096384
+       ],
+       [
+        2629760,
+        1096360
+       ],
+       [
+        2629904,
+        1096336
+       ],
+       [
+        2630072,
+        1096312
+       ],
+       [
+        2630216,
+        1096288
+       ],
+       [
+        2630384,
+        1096264
+       ],
+       [
+        2630528,
+        1096240
+       ],
+       [
+        2630696,
+        1096216
+       ],
+       [
+        2630840,
+        1096192
+       ],
+       [
+        2631008,
+        1096168
+       ],
+       [
+        2631152,
+        1096144
+       ],
+       [
+        2631320,
+        1096120
+       ],
+       [
+        2631344,
+        1096168
+       ],
+       [
+        2631368,
+        1096240
+       ],
+       [
+        2631392,
+        1096312
+       ],
+       [
+        2631416,
+        1096384
+       ],
+       [
+        2631440,
+        1096456
+       ],
+       [
+        2631464,
+        1096528
+       ],
+       [
+        2631488,
+        1096576
+       ],
+       [
+        2631512,
+        1096648
+       ],
+       [
+        2631536,
+        1096720
+       ],
+       [
+        2631560,
+        1096816
+       ],
+       [
+        2631584,
+        1096912
+       ],
+       [
+        2631608,
+        1096984
+       ],
+       [
+        2631632,
+        1097080
+       ],
+       [
+        2631608,
+        1097128
+       ],
+       [
+        2631560,
+        1097152
+       ],
+       [
+        2631536,
+        1097176
+       ],
+       [
+        2631488,
+        1097200
+       ],
+       [
+        2631464,
+        1097224
+       ],
+       [
+        2631416,
+        1097248
+       ],
+       [
+        2631368,
+        1097272
+       ],
+       [
+        2631344,
+        1097296
+       ],
+       [
+        2631296,
+        1097320
+       ],
+       [
+        2631272,
+        1097344
+       ],
+       [
+        2631224,
+        1097368
+       ],
+       [
+        2631176,
+        1097392
+       ],
+       [
+        2631152,
+        1097416
+       ],
+       [
+        2631104,
+        1097440
+       ],
+       [
+        2631080,
+        1097464
+       ],
+       [
+        2631032,
+        1097488
+       ],
+       [
+        2631008,
+        1097512
+       ],
+       [
+        2630960,
+        1097536
+       ],
+       [
+        2630912,
+        1097560
+       ],
+       [
+        2630888,
+        1097584
+       ],
+       [
+        2630840,
+        1097608
+       ],
+       [
+        2630816,
+        1097632
+       ],
+       [
+        2630768,
+        1097656
+       ],
+       [
+        2630720,
+        1097680
+       ],
+       [
+        2630696,
+        1097704
+       ],
+       [
+        2630648,
+        1097728
+       ],
+       [
+        2630624,
+        1097752
+       ],
+       [
+        2630576,
+        1097776
+       ],
+       [
+        2630528,
+        1097800
+       ],
+       [
+        2630504,
+        1097824
+       ],
+       [
+        2630456,
+        1097848
+       ],
+       [
+        2630432,
+        1097872
+       ],
+       [
+        2630384,
+        1097896
+       ],
+       [
+        2630336,
+        1097920
+       ],
+       [
+        2630312,
+        1097944
+       ],
+       [
+        2630264,
+        1097968
+       ],
+       [
+        2630240,
+        1097992
+       ],
+       [
+        2630192,
+        1098016
+       ],
+       [
+        2630144,
+        1098040
+       ],
+       [
+        2630120,
+        1098064
+       ],
+       [
+        2630072,
+        1098088
+       ],
+       [
+        2630048,
+        1098112
+       ],
+       [
+        2630000,
+        1098136
+       ],
+       [
+        2629952,
+        1098160
+       ],
+       [
+        2629928,
+        1098184
+       ],
+       [
+        2629880,
+        1098208
+       ],
+       [
+        2629856,
+        1098232
+       ],
+       [
+        2629808,
+        1098256
+       ],
+       [
+        2629784,
+        1098280
+       ],
+       [
+        2629736,
+        1098304
+       ],
+       [
+        2629688,
+        1098328
+       ],
+       [
+        2629664,
+        1098352
+       ],
+       [
+        2629616,
+        1098376
+       ],
+       [
+        2629592,
+        1098400
+       ],
+       [
+        2629544,
+        1098424
+       ],
+       [
+        2629496,
+        1098448
+       ],
+       [
+        2629472,
+        1098472
+       ],
+       [
+        2629424,
+        1098496
+       ],
+       [
+        2629376,
+        1098520
+       ]
+      ]
+     ]
+    },
+    {
+     "label": "2016-08-26 10:52",
+     "day": "2016-08-26",
+     "kind": "flight",
+     "km2": 17.54,
+     "ice": 0.353,
+     "rings": [
+      [
+       [
+        2628488,
+        1097128
+       ],
+       [
+        2628464,
+        1097080
+       ],
+       [
+        2628440,
+        1097056
+       ],
+       [
+        2628416,
+        1097008
+       ],
+       [
+        2628392,
+        1096984
+       ],
+       [
+        2628368,
+        1096936
+       ],
+       [
+        2628344,
+        1096888
+       ],
+       [
+        2628320,
+        1096864
+       ],
+       [
+        2628296,
+        1096816
+       ],
+       [
+        2628272,
+        1096792
+       ],
+       [
+        2628248,
+        1096744
+       ],
+       [
+        2628224,
+        1096696
+       ],
+       [
+        2628200,
+        1096672
+       ],
+       [
+        2628176,
+        1096624
+       ],
+       [
+        2628152,
+        1096600
+       ],
+       [
+        2628128,
+        1096552
+       ],
+       [
+        2628104,
+        1096528
+       ],
+       [
+        2628080,
+        1096480
+       ],
+       [
+        2628056,
+        1096432
+       ],
+       [
+        2628032,
+        1096408
+       ],
+       [
+        2628008,
+        1096360
+       ],
+       [
+        2627984,
+        1096336
+       ],
+       [
+        2627960,
+        1096288
+       ],
+       [
+        2627936,
+        1096264
+       ],
+       [
+        2627912,
+        1096216
+       ],
+       [
+        2627888,
+        1096168
+       ],
+       [
+        2627864,
+        1096144
+       ],
+       [
+        2627840,
+        1096096
+       ],
+       [
+        2627816,
+        1096072
+       ],
+       [
+        2627792,
+        1096024
+       ],
+       [
+        2627768,
+        1095976
+       ],
+       [
+        2627744,
+        1095952
+       ],
+       [
+        2627720,
+        1095904
+       ],
+       [
+        2627696,
+        1095880
+       ],
+       [
+        2627672,
+        1095832
+       ],
+       [
+        2627648,
+        1095808
+       ],
+       [
+        2627624,
+        1095760
+       ],
+       [
+        2627600,
+        1095712
+       ],
+       [
+        2627576,
+        1095688
+       ],
+       [
+        2627552,
+        1095640
+       ],
+       [
+        2627528,
+        1095616
+       ],
+       [
+        2627504,
+        1095568
+       ],
+       [
+        2627480,
+        1095520
+       ],
+       [
+        2627456,
+        1095496
+       ],
+       [
+        2627432,
+        1095448
+       ],
+       [
+        2627408,
+        1095424
+       ],
+       [
+        2627384,
+        1095376
+       ],
+       [
+        2627360,
+        1095352
+       ],
+       [
+        2627336,
+        1095304
+       ],
+       [
+        2627312,
+        1095256
+       ],
+       [
+        2627288,
+        1095232
+       ],
+       [
+        2627264,
+        1095184
+       ],
+       [
+        2627240,
+        1095160
+       ],
+       [
+        2627216,
+        1095112
+       ],
+       [
+        2627192,
+        1095088
+       ],
+       [
+        2627240,
+        1094968
+       ],
+       [
+        2627288,
+        1094944
+       ],
+       [
+        2627312,
+        1094920
+       ],
+       [
+        2627360,
+        1094896
+       ],
+       [
+        2627384,
+        1094872
+       ],
+       [
+        2627432,
+        1094848
+       ],
+       [
+        2627480,
+        1094824
+       ],
+       [
+        2627504,
+        1094800
+       ],
+       [
+        2627552,
+        1094776
+       ],
+       [
+        2627576,
+        1094752
+       ],
+       [
+        2627624,
+        1094728
+       ],
+       [
+        2627672,
+        1094704
+       ],
+       [
+        2627696,
+        1094680
+       ],
+       [
+        2627744,
+        1094656
+       ],
+       [
+        2627768,
+        1094632
+       ],
+       [
+        2627816,
+        1094608
+       ],
+       [
+        2627864,
+        1094584
+       ],
+       [
+        2627888,
+        1094560
+       ],
+       [
+        2627936,
+        1094536
+       ],
+       [
+        2627960,
+        1094512
+       ],
+       [
+        2628008,
+        1094488
+       ],
+       [
+        2628032,
+        1094464
+       ],
+       [
+        2628080,
+        1094440
+       ],
+       [
+        2628128,
+        1094416
+       ],
+       [
+        2628152,
+        1094392
+       ],
+       [
+        2628200,
+        1094368
+       ],
+       [
+        2628224,
+        1094344
+       ],
+       [
+        2628272,
+        1094320
+       ],
+       [
+        2628320,
+        1094296
+       ],
+       [
+        2628344,
+        1094272
+       ],
+       [
+        2628392,
+        1094248
+       ],
+       [
+        2628416,
+        1094224
+       ],
+       [
+        2628464,
+        1094200
+       ],
+       [
+        2628512,
+        1094176
+       ],
+       [
+        2628560,
+        1094152
+       ],
+       [
+        2628704,
+        1094128
+       ],
+       [
+        2628872,
+        1094104
+       ],
+       [
+        2629016,
+        1094080
+       ],
+       [
+        2629160,
+        1094056
+       ],
+       [
+        2629328,
+        1094032
+       ],
+       [
+        2629448,
+        1094008
+       ],
+       [
+        2629520,
+        1093984
+       ],
+       [
+        2629568,
+        1093960
+       ],
+       [
+        2629688,
+        1093936
+       ],
+       [
+        2629808,
+        1093912
+       ],
+       [
+        2629928,
+        1093888
+       ],
+       [
+        2630024,
+        1093864
+       ],
+       [
+        2630144,
+        1093840
+       ],
+       [
+        2630240,
+        1093816
+       ],
+       [
+        2630432,
+        1093792
+       ],
+       [
+        2630576,
+        1093768
+       ],
+       [
+        2630648,
+        1093744
+       ],
+       [
+        2630744,
+        1093720
+       ],
+       [
+        2630840,
+        1093696
+       ],
+       [
+        2630912,
+        1093672
+       ],
+       [
+        2631032,
+        1093648
+       ],
+       [
+        2631368,
+        1093624
+       ],
+       [
+        2631440,
+        1093600
+       ],
+       [
+        2631536,
+        1093624
+       ],
+       [
+        2631680,
+        1093600
+       ],
+       [
+        2631800,
+        1093576
+       ],
+       [
+        2631920,
+        1093552
+       ],
+       [
+        2632040,
+        1093528
+       ],
+       [
+        2632112,
+        1093504
+       ],
+       [
+        2632160,
+        1093480
+       ],
+       [
+        2632232,
+        1093456
+       ],
+       [
+        2632280,
+        1093432
+       ],
+       [
+        2632328,
+        1093408
+       ],
+       [
+        2632400,
+        1093384
+       ],
+       [
+        2632472,
+        1093360
+       ],
+       [
+        2632544,
+        1093336
+       ],
+       [
+        2632664,
+        1093312
+       ],
+       [
+        2632784,
+        1093288
+       ],
+       [
+        2632904,
+        1093264
+       ],
+       [
+        2633024,
+        1093240
+       ],
+       [
+        2633096,
+        1093216
+       ],
+       [
+        2633240,
+        1093192
+       ],
+       [
+        2633408,
+        1093168
+       ],
+       [
+        2633552,
+        1093144
+       ],
+       [
+        2633648,
+        1093120
+       ],
+       [
+        2633744,
+        1093096
+       ],
+       [
+        2633864,
+        1093072
+       ],
+       [
+        2633984,
+        1093048
+       ],
+       [
+        2634008,
+        1093072
+       ],
+       [
+        2634104,
+        1093048
+       ],
+       [
+        2634128,
+        1093120
+       ],
+       [
+        2634152,
+        1093216
+       ],
+       [
+        2634176,
+        1093288
+       ],
+       [
+        2634200,
+        1093384
+       ],
+       [
+        2634224,
+        1093480
+       ],
+       [
+        2634248,
+        1093552
+       ],
+       [
+        2634272,
+        1093648
+       ],
+       [
+        2634296,
+        1093744
+       ],
+       [
+        2634320,
+        1093816
+       ],
+       [
+        2634344,
+        1093912
+       ],
+       [
+        2634368,
+        1094008
+       ],
+       [
+        2634392,
+        1094104
+       ],
+       [
+        2634416,
+        1094176
+       ],
+       [
+        2634440,
+        1094272
+       ],
+       [
+        2634464,
+        1094368
+       ],
+       [
+        2634488,
+        1094440
+       ],
+       [
+        2634512,
+        1094536
+       ],
+       [
+        2634536,
+        1094632
+       ],
+       [
+        2634560,
+        1094704
+       ],
+       [
+        2634584,
+        1094800
+       ],
+       [
+        2634608,
+        1094896
+       ],
+       [
+        2634632,
+        1094992
+       ],
+       [
+        2634656,
+        1095064
+       ],
+       [
+        2634536,
+        1095160
+       ],
+       [
+        2634464,
+        1095184
+       ],
+       [
+        2634440,
+        1095208
+       ],
+       [
+        2634392,
+        1095232
+       ],
+       [
+        2634344,
+        1095256
+       ],
+       [
+        2634296,
+        1095280
+       ],
+       [
+        2634248,
+        1095304
+       ],
+       [
+        2634200,
+        1095328
+       ],
+       [
+        2634152,
+        1095352
+       ],
+       [
+        2634104,
+        1095376
+       ],
+       [
+        2634056,
+        1095400
+       ],
+       [
+        2634008,
+        1095424
+       ],
+       [
+        2633960,
+        1095448
+       ],
+       [
+        2633912,
+        1095472
+       ],
+       [
+        2633864,
+        1095496
+       ],
+       [
+        2633792,
+        1095520
+       ],
+       [
+        2633720,
+        1095544
+       ],
+       [
+        2633648,
+        1095568
+       ],
+       [
+        2633552,
+        1095592
+       ],
+       [
+        2633480,
+        1095616
+       ],
+       [
+        2633432,
+        1095640
+       ],
+       [
+        2633360,
+        1095664
+       ],
+       [
+        2633312,
+        1095688
+       ],
+       [
+        2633240,
+        1095712
+       ],
+       [
+        2633192,
+        1095736
+       ],
+       [
+        2633144,
+        1095760
+       ],
+       [
+        2633072,
+        1095784
+       ],
+       [
+        2633000,
+        1095808
+       ],
+       [
+        2632880,
+        1095832
+       ],
+       [
+        2632760,
+        1095856
+       ],
+       [
+        2632640,
+        1095880
+       ],
+       [
+        2632520,
+        1095904
+       ],
+       [
+        2632424,
+        1095928
+       ],
+       [
+        2632328,
+        1095952
+       ],
+       [
+        2632256,
+        1095976
+       ],
+       [
+        2632160,
+        1096000
+       ],
+       [
+        2632064,
+        1096024
+       ],
+       [
+        2631992,
+        1096048
+       ],
+       [
+        2631944,
+        1096072
+       ],
+       [
+        2631896,
+        1096096
+       ],
+       [
+        2631824,
+        1096120
+       ],
+       [
+        2631728,
+        1096144
+       ],
+       [
+        2631656,
+        1096168
+       ],
+       [
+        2631560,
+        1096192
+       ],
+       [
+        2631488,
+        1096216
+       ],
+       [
+        2631464,
+        1096240
+       ],
+       [
+        2631416,
+        1096264
+       ],
+       [
+        2631392,
+        1096288
+       ],
+       [
+        2631368,
+        1096312
+       ],
+       [
+        2631320,
+        1096336
+       ],
+       [
+        2631128,
+        1096360
+       ],
+       [
+        2630984,
+        1096384
+       ],
+       [
+        2630960,
+        1096408
+       ],
+       [
+        2630912,
+        1096432
+       ],
+       [
+        2630816,
+        1096456
+       ],
+       [
+        2630696,
+        1096480
+       ],
+       [
+        2630600,
+        1096504
+       ],
+       [
+        2630552,
+        1096528
+       ],
+       [
+        2630480,
+        1096552
+       ],
+       [
+        2630432,
+        1096576
+       ],
+       [
+        2630384,
+        1096600
+       ],
+       [
+        2630312,
+        1096624
+       ],
+       [
+        2630240,
+        1096648
+       ],
+       [
+        2630144,
+        1096672
+       ],
+       [
+        2630024,
+        1096696
+       ],
+       [
+        2629928,
+        1096720
+       ],
+       [
+        2629832,
+        1096744
+       ],
+       [
+        2629736,
+        1096768
+       ],
+       [
+        2629640,
+        1096792
+       ],
+       [
+        2629544,
+        1096816
+       ],
+       [
+        2629472,
+        1096840
+       ],
+       [
+        2629400,
+        1096864
+       ],
+       [
+        2629280,
+        1096888
+       ],
+       [
+        2629160,
+        1096912
+       ],
+       [
+        2629040,
+        1096936
+       ],
+       [
+        2628896,
+        1096960
+       ],
+       [
+        2628800,
+        1096984
+       ],
+       [
+        2628752,
+        1097008
+       ],
+       [
+        2628704,
+        1097032
+       ],
+       [
+        2628656,
+        1097056
+       ],
+       [
+        2628608,
+        1097080
+       ],
+       [
+        2628560,
+        1097104
+       ],
+       [
+        2628488,
+        1097128
+       ]
+      ]
+     ]
+    },
+    {
+     "label": "2017-08-22 10:17",
+     "day": "2017-08-22",
+     "kind": "flight",
+     "km2": 2.4,
+     "ice": 0.0,
+     "rings": [
+      [
+       [
+        2629376,
+        1098520
+       ],
+       [
+        2629352,
+        1098496
+       ],
+       [
+        2629328,
+        1098448
+       ],
+       [
+        2629304,
+        1098424
+       ],
+       [
+        2629280,
+        1098376
+       ],
+       [
+        2629256,
+        1098328
+       ],
+       [
+        2629232,
+        1098304
+       ],
+       [
+        2629208,
+        1098256
+       ],
+       [
+        2629184,
+        1098232
+       ],
+       [
+        2629160,
+        1098184
+       ],
+       [
+        2629136,
+        1098160
+       ],
+       [
+        2629112,
+        1098112
+       ],
+       [
+        2629088,
+        1098064
+       ],
+       [
+        2629064,
+        1098040
+       ],
+       [
+        2629040,
+        1097992
+       ],
+       [
+        2629016,
+        1097968
+       ],
+       [
+        2628992,
+        1097920
+       ],
+       [
+        2628968,
+        1097872
+       ],
+       [
+        2628944,
+        1097848
+       ],
+       [
+        2628920,
+        1097800
+       ],
+       [
+        2628896,
+        1097776
+       ],
+       [
+        2628872,
+        1097728
+       ],
+       [
+        2628848,
+        1097704
+       ],
+       [
+        2628824,
+        1097656
+       ],
+       [
+        2628800,
+        1097608
+       ],
+       [
+        2628776,
+        1097584
+       ],
+       [
+        2628752,
+        1097536
+       ],
+       [
+        2628728,
+        1097512
+       ],
+       [
+        2628704,
+        1097464
+       ],
+       [
+        2628680,
+        1097344
+       ],
+       [
+        2628656,
+        1097248
+       ],
+       [
+        2628728,
+        1097200
+       ],
+       [
+        2628776,
+        1097176
+       ],
+       [
+        2628824,
+        1097152
+       ],
+       [
+        2628872,
+        1097128
+       ],
+       [
+        2628920,
+        1097104
+       ],
+       [
+        2628992,
+        1097080
+       ],
+       [
+        2629088,
+        1097056
+       ],
+       [
+        2629256,
+        1097032
+       ],
+       [
+        2629400,
+        1097008
+       ],
+       [
+        2629568,
+        1096984
+       ],
+       [
+        2629712,
+        1096960
+       ],
+       [
+        2629880,
+        1096936
+       ],
+       [
+        2630024,
+        1096912
+       ],
+       [
+        2630240,
+        1096888
+       ],
+       [
+        2630336,
+        1096864
+       ],
+       [
+        2630504,
+        1096840
+       ],
+       [
+        2630672,
+        1096816
+       ],
+       [
+        2630816,
+        1096792
+       ],
+       [
+        2630888,
+        1096768
+       ],
+       [
+        2630912,
+        1096864
+       ],
+       [
+        2630936,
+        1096984
+       ],
+       [
+        2630960,
+        1097080
+       ],
+       [
+        2630984,
+        1097128
+       ],
+       [
+        2631008,
+        1097176
+       ],
+       [
+        2631032,
+        1097224
+       ],
+       [
+        2631056,
+        1097320
+       ],
+       [
+        2631080,
+        1097440
+       ],
+       [
+        2631032,
+        1097488
+       ],
+       [
+        2631008,
+        1097512
+       ],
+       [
+        2630960,
+        1097536
+       ],
+       [
+        2630912,
+        1097560
+       ],
+       [
+        2630888,
+        1097584
+       ],
+       [
+        2630840,
+        1097608
+       ],
+       [
+        2630816,
+        1097632
+       ],
+       [
+        2630768,
+        1097656
+       ],
+       [
+        2630720,
+        1097680
+       ],
+       [
+        2630696,
+        1097704
+       ],
+       [
+        2630648,
+        1097728
+       ],
+       [
+        2630624,
+        1097752
+       ],
+       [
+        2630576,
+        1097776
+       ],
+       [
+        2630528,
+        1097800
+       ],
+       [
+        2630504,
+        1097824
+       ],
+       [
+        2630456,
+        1097848
+       ],
+       [
+        2630432,
+        1097872
+       ],
+       [
+        2630384,
+        1097896
+       ],
+       [
+        2630336,
+        1097920
+       ],
+       [
+        2630312,
+        1097944
+       ],
+       [
+        2630264,
+        1097968
+       ],
+       [
+        2630240,
+        1097992
+       ],
+       [
+        2630192,
+        1098016
+       ],
+       [
+        2630144,
+        1098040
+       ],
+       [
+        2630120,
+        1098064
+       ],
+       [
+        2630072,
+        1098088
+       ],
+       [
+        2630048,
+        1098112
+       ],
+       [
+        2630000,
+        1098136
+       ],
+       [
+        2629952,
+        1098160
+       ],
+       [
+        2629928,
+        1098184
+       ],
+       [
+        2629880,
+        1098208
+       ],
+       [
+        2629856,
+        1098232
+       ],
+       [
+        2629808,
+        1098256
+       ],
+       [
+        2629784,
+        1098280
+       ],
+       [
+        2629736,
+        1098304
+       ],
+       [
+        2629688,
+        1098328
+       ],
+       [
+        2629664,
+        1098352
+       ],
+       [
+        2629616,
+        1098376
+       ],
+       [
+        2629592,
+        1098400
+       ],
+       [
+        2629544,
+        1098424
+       ],
+       [
+        2629496,
+        1098448
+       ],
+       [
+        2629472,
+        1098472
+       ],
+       [
+        2629424,
+        1098496
+       ],
+       [
+        2629376,
+        1098520
+       ]
+      ]
+     ]
+    },
+    {
+     "label": "2017-09-05 10:08",
+     "day": "2017-09-05",
+     "kind": "flight",
+     "km2": 23.64,
+     "ice": 0.511,
+     "rings": [
+      [
+       [
+        2628968,
+        1097872
+       ],
+       [
+        2628944,
+        1097848
+       ],
+       [
+        2628920,
+        1097800
+       ],
+       [
+        2628896,
+        1097776
+       ],
+       [
+        2628872,
+        1097728
+       ],
+       [
+        2628848,
+        1097704
+       ],
+       [
+        2628824,
+        1097656
+       ],
+       [
+        2628800,
+        1097608
+       ],
+       [
+        2628776,
+        1097584
+       ],
+       [
+        2628752,
+        1097536
+       ],
+       [
+        2628728,
+        1097512
+       ],
+       [
+        2628704,
+        1097464
+       ],
+       [
+        2628680,
+        1097440
+       ],
+       [
+        2628656,
+        1097392
+       ],
+       [
+        2628632,
+        1097344
+       ],
+       [
+        2628608,
+        1097320
+       ],
+       [
+        2628584,
+        1097272
+       ],
+       [
+        2628560,
+        1097248
+       ],
+       [
+        2628536,
+        1097200
+       ],
+       [
+        2628512,
+        1097152
+       ],
+       [
+        2628488,
+        1097128
+       ],
+       [
+        2628464,
+        1097080
+       ],
+       [
+        2628440,
+        1097056
+       ],
+       [
+        2628416,
+        1097008
+       ],
+       [
+        2628392,
+        1096984
+       ],
+       [
+        2628368,
+        1096936
+       ],
+       [
+        2628344,
+        1096888
+       ],
+       [
+        2628320,
+        1096864
+       ],
+       [
+        2628296,
+        1096816
+       ],
+       [
+        2628272,
+        1096792
+       ],
+       [
+        2628248,
+        1096744
+       ],
+       [
+        2628224,
+        1096696
+       ],
+       [
+        2628200,
+        1096672
+       ],
+       [
+        2628176,
+        1096624
+       ],
+       [
+        2628152,
+        1096600
+       ],
+       [
+        2628128,
+        1096552
+       ],
+       [
+        2628104,
+        1096528
+       ],
+       [
+        2628080,
+        1096480
+       ],
+       [
+        2628056,
+        1096432
+       ],
+       [
+        2628032,
+        1096408
+       ],
+       [
+        2628008,
+        1096360
+       ],
+       [
+        2627984,
+        1096336
+       ],
+       [
+        2627960,
+        1096288
+       ],
+       [
+        2627936,
+        1096264
+       ],
+       [
+        2627912,
+        1096216
+       ],
+       [
+        2627888,
+        1096168
+       ],
+       [
+        2627864,
+        1096144
+       ],
+       [
+        2627840,
+        1096096
+       ],
+       [
+        2627816,
+        1096072
+       ],
+       [
+        2627792,
+        1096024
+       ],
+       [
+        2627768,
+        1095976
+       ],
+       [
+        2627744,
+        1095952
+       ],
+       [
+        2627720,
+        1095904
+       ],
+       [
+        2627696,
+        1095880
+       ],
+       [
+        2627672,
+        1095832
+       ],
+       [
+        2627648,
+        1095808
+       ],
+       [
+        2627624,
+        1095760
+       ],
+       [
+        2627600,
+        1095712
+       ],
+       [
+        2627576,
+        1095688
+       ],
+       [
+        2627552,
+        1095640
+       ],
+       [
+        2627528,
+        1095616
+       ],
+       [
+        2627504,
+        1095568
+       ],
+       [
+        2627480,
+        1095520
+       ],
+       [
+        2627456,
+        1095496
+       ],
+       [
+        2627432,
+        1095448
+       ],
+       [
+        2627408,
+        1095424
+       ],
+       [
+        2627384,
+        1095376
+       ],
+       [
+        2627360,
+        1095352
+       ],
+       [
+        2627336,
+        1095304
+       ],
+       [
+        2627312,
+        1095256
+       ],
+       [
+        2627288,
+        1095232
+       ],
+       [
+        2627264,
+        1095184
+       ],
+       [
+        2627240,
+        1095160
+       ],
+       [
+        2627216,
+        1095112
+       ],
+       [
+        2627192,
+        1095088
+       ],
+       [
+        2627240,
+        1094968
+       ],
+       [
+        2627288,
+        1094944
+       ],
+       [
+        2627312,
+        1094920
+       ],
+       [
+        2627360,
+        1094896
+       ],
+       [
+        2627384,
+        1094872
+       ],
+       [
+        2627432,
+        1094848
+       ],
+       [
+        2627480,
+        1094824
+       ],
+       [
+        2627504,
+        1094800
+       ],
+       [
+        2627552,
+        1094776
+       ],
+       [
+        2627576,
+        1094752
+       ],
+       [
+        2627624,
+        1094728
+       ],
+       [
+        2627672,
+        1094704
+       ],
+       [
+        2627696,
+        1094680
+       ],
+       [
+        2627744,
+        1094656
+       ],
+       [
+        2627768,
+        1094632
+       ],
+       [
+        2627816,
+        1094608
+       ],
+       [
+        2627864,
+        1094584
+       ],
+       [
+        2627888,
+        1094560
+       ],
+       [
+        2627936,
+        1094536
+       ],
+       [
+        2627960,
+        1094512
+       ],
+       [
+        2628008,
+        1094488
+       ],
+       [
+        2628032,
+        1094464
+       ],
+       [
+        2628080,
+        1094440
+       ],
+       [
+        2628128,
+        1094416
+       ],
+       [
+        2628152,
+        1094392
+       ],
+       [
+        2628200,
+        1094368
+       ],
+       [
+        2628224,
+        1094344
+       ],
+       [
+        2628272,
+        1094320
+       ],
+       [
+        2628320,
+        1094296
+       ],
+       [
+        2628344,
+        1094272
+       ],
+       [
+        2628392,
+        1094248
+       ],
+       [
+        2628416,
+        1094224
+       ],
+       [
+        2628464,
+        1094200
+       ],
+       [
+        2628512,
+        1094176
+       ],
+       [
+        2628536,
+        1094152
+       ],
+       [
+        2628584,
+        1094128
+       ],
+       [
+        2628608,
+        1094104
+       ],
+       [
+        2628656,
+        1094080
+       ],
+       [
+        2628704,
+        1094056
+       ],
+       [
+        2628728,
+        1094032
+       ],
+       [
+        2629016,
+        1094008
+       ],
+       [
+        2629040,
+        1093840
+       ],
+       [
+        2629064,
+        1093816
+       ],
+       [
+        2629112,
+        1093792
+       ],
+       [
+        2629160,
+        1093768
+       ],
+       [
+        2629184,
+        1093744
+       ],
+       [
+        2629232,
+        1093720
+       ],
+       [
+        2629256,
+        1093696
+       ],
+       [
+        2629304,
+        1093672
+       ],
+       [
+        2629352,
+        1093648
+       ],
+       [
+        2629376,
+        1093624
+       ],
+       [
+        2629424,
+        1093600
+       ],
+       [
+        2629448,
+        1093576
+       ],
+       [
+        2629496,
+        1093552
+       ],
+       [
+        2629544,
+        1093528
+       ],
+       [
+        2629568,
+        1093504
+       ],
+       [
+        2629616,
+        1093480
+       ],
+       [
+        2629640,
+        1093456
+       ],
+       [
+        2629688,
+        1093432
+       ],
+       [
+        2629736,
+        1093408
+       ],
+       [
+        2629760,
+        1093384
+       ],
+       [
+        2629808,
+        1093360
+       ],
+       [
+        2629832,
+        1093336
+       ],
+       [
+        2629880,
+        1093312
+       ],
+       [
+        2629928,
+        1093288
+       ],
+       [
+        2629952,
+        1093264
+       ],
+       [
+        2630000,
+        1093240
+       ],
+       [
+        2630024,
+        1093216
+       ],
+       [
+        2630072,
+        1093192
+       ],
+       [
+        2630096,
+        1093168
+       ],
+       [
+        2630144,
+        1093144
+       ],
+       [
+        2630192,
+        1093120
+       ],
+       [
+        2630216,
+        1093096
+       ],
+       [
+        2630264,
+        1093072
+       ],
+       [
+        2630288,
+        1093048
+       ],
+       [
+        2630336,
+        1093024
+       ],
+       [
+        2634992,
+        1093000
+       ],
+       [
+        2634968,
+        1095016
+       ],
+       [
+        2634944,
+        1095040
+       ],
+       [
+        2634896,
+        1095064
+       ],
+       [
+        2634872,
+        1095088
+       ],
+       [
+        2634824,
+        1095112
+       ],
+       [
+        2634776,
+        1095136
+       ],
+       [
+        2634752,
+        1095160
+       ],
+       [
+        2634704,
+        1095184
+       ],
+       [
+        2634680,
+        1095208
+       ],
+       [
+        2634632,
+        1095232
+       ],
+       [
+        2634584,
+        1095256
+       ],
+       [
+        2634560,
+        1095280
+       ],
+       [
+        2634512,
+        1095304
+       ],
+       [
+        2634488,
+        1095328
+       ],
+       [
+        2634440,
+        1095352
+       ],
+       [
+        2634392,
+        1095376
+       ],
+       [
+        2634368,
+        1095400
+       ],
+       [
+        2634320,
+        1095424
+       ],
+       [
+        2634296,
+        1095448
+       ],
+       [
+        2634248,
+        1095472
+       ],
+       [
+        2634200,
+        1095496
+       ],
+       [
+        2634176,
+        1095520
+       ],
+       [
+        2634128,
+        1095544
+       ],
+       [
+        2634104,
+        1095568
+       ],
+       [
+        2634056,
+        1095592
+       ],
+       [
+        2634008,
+        1095616
+       ],
+       [
+        2633984,
+        1095640
+       ],
+       [
+        2633936,
+        1095664
+       ],
+       [
+        2633912,
+        1095688
+       ],
+       [
+        2633864,
+        1095712
+       ],
+       [
+        2633816,
+        1095736
+       ],
+       [
+        2633792,
+        1095760
+       ],
+       [
+        2633744,
+        1095784
+       ],
+       [
+        2633720,
+        1095808
+       ],
+       [
+        2633672,
+        1095832
+       ],
+       [
+        2633648,
+        1095856
+       ],
+       [
+        2633600,
+        1095880
+       ],
+       [
+        2633552,
+        1095904
+       ],
+       [
+        2633528,
+        1095928
+       ],
+       [
+        2633480,
+        1095952
+       ],
+       [
+        2633456,
+        1095976
+       ],
+       [
+        2633000,
+        1096000
+       ],
+       [
+        2632976,
+        1096264
+       ],
+       [
+        2632952,
+        1096288
+       ],
+       [
+        2632904,
+        1096312
+       ],
+       [
+        2632880,
+        1096336
+       ],
+       [
+        2632832,
+        1096360
+       ],
+       [
+        2632784,
+        1096384
+       ],
+       [
+        2632760,
+        1096408
+       ],
+       [
+        2632712,
+        1096432
+       ],
+       [
+        2632688,
+        1096456
+       ],
+       [
+        2632640,
+        1096480
+       ],
+       [
+        2632592,
+        1096504
+       ],
+       [
+        2632568,
+        1096528
+       ],
+       [
+        2632520,
+        1096552
+       ],
+       [
+        2632496,
+        1096576
+       ],
+       [
+        2632448,
+        1096600
+       ],
+       [
+        2632424,
+        1096624
+       ],
+       [
+        2632376,
+        1096648
+       ],
+       [
+        2632328,
+        1096672
+       ],
+       [
+        2632304,
+        1096696
+       ],
+       [
+        2632256,
+        1096720
+       ],
+       [
+        2632232,
+        1096744
+       ],
+       [
+        2632184,
+        1096768
+       ],
+       [
+        2632136,
+        1096792
+       ],
+       [
+        2632112,
+        1096816
+       ],
+       [
+        2632064,
+        1096840
+       ],
+       [
+        2632040,
+        1096864
+       ],
+       [
+        2631992,
+        1096888
+       ],
+       [
+        2631944,
+        1096912
+       ],
+       [
+        2631920,
+        1096936
+       ],
+       [
+        2631872,
+        1096960
+       ],
+       [
+        2628992,
+        1096984
+       ],
+       [
+        2628968,
+        1097872
+       ]
+      ]
+     ]
+    },
     {
      "label": "2018-09-11 12:59",
      "day": "2018-09-11",

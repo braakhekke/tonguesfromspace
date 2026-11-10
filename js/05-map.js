@@ -686,7 +686,7 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
   const scrub = e => {
     const tr = box && box.querySelector('.tl2-track'); if (!tr || tlLayers.length < 2) return;
     const r = tr.getBoundingClientRect(), k = Math.round(Math.min(1, Math.max(0, (e.clientX - r.left) / r.width)) * (tlLayers.length - 1));
-    if (k !== state.frame) showFrame(k);
+    if (k !== state.frame) { if (wire.vPrev) wire.vPrev.scrubbed = true; showFrame(k); }
   };
   document.addEventListener('pointerdown', e => {
     const tl = e.target.closest && e.target.closest('.tl2'); if (!tl || e.button > 0) return;
@@ -697,7 +697,7 @@ document.addEventListener('click', e => { if (e.target.closest && e.target.close
   const end = () => { box = null; };
   document.addEventListener('pointerup', end); document.addEventListener('pointercancel', end);
 })();
-document.getElementById('frameSlider').oninput = e => { stopPlay(); showFrame(+e.target.value); };
+document.getElementById('frameSlider').oninput = e => { stopPlay(); if (wire.vPrev) wire.vPrev.scrubbed = true; showFrame(+e.target.value); };      // scrubbed: the preview's labels in the open pane follow the frame, not the middle year
 
 /* ---------- outlines ---------- */
 export const outlineLayers = {old: null, new: null};

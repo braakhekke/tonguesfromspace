@@ -53,6 +53,12 @@ def stac_items(bbox_ll):
     url = STAC + '/items?limit=100&bbox=%f,%f,%f,%f' % bbox_ll; out = []
     while url:
         d = json.load(urllib.request.urlopen(url)); out += d['features']; url = next((l['href'] for l in d['links'] if l['rel'] == 'next'), None)
+    # 59 kry items (2016 to 2018) carry a STAC bbox that does not match their files (scripts/fix_stac_bboxes.py): a bbox search misses them; fetch those whose true extent touches the box
+    fx = os.path.join(ROOT, 'data', 'stac-bbox-fix.json'); have = {f['id'] for f in out}
+    if os.path.exists(fx):
+        for i, b in json.load(open(fx))['items'].items():
+            if i not in have and b[0] < bbox_ll[2] and b[2] > bbox_ll[0] and b[1] < bbox_ll[3] and b[3] > bbox_ll[1]:
+                out.append(json.load(urllib.request.urlopen(STAC + '/items/' + i)))
     return out
 def footprint(f, a, ext, cdir):
     """The orthophoto asset a of item f read at FP m from the COG overview over the extent: an RGBA picture (alpha = valid, trimmed by EDGE pixels) and its rectangle in LV95, cached in cdir."""

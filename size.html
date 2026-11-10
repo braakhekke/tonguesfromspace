@@ -1371,7 +1371,7 @@ function paintTerrain() {
 }
 let terrainSeen = null;
 const LAYER_ORDER = ['mosaic', 'osm', 'topo', 'old', 'air', 'shade', 'places'];      // bottom to top
-function paintSoon() { if (TL && !TL.timer) TL.timer = setTimeout(paintTerrain, 150); }      // many tiles arrive one by one: one repaint for a batch
+function paintSoon() { if (TL && !TL.timer) TL.timer = setTimeout(paintTerrain, 60); }      // many tiles arrive one by one: one repaint for a batch
 function terrainLayersChanged() { if (!TL) return; for (const key in layerOn) if (layerOn[key]()) TL.start(key); paintSoon(); }
 function terrainCredit() {
   const vis = id => !terrainSeen || terrainSeen.has(id), p = []; if (layerOn.air() && swissTexture && vis('air')) p.push('© swisstopo SWISSIMAGE 2023'); if (layerOn.topo() && swissTexture && vis('topo')) p.push('© swisstopo map'); if (layerOn.old() && swissTexture && vis('old')) p.push('© swisstopo map 1864'); if (layerOn.osm() && vis('osm')) p.push('Map © OpenStreetMap contributors'); if (layerOn.shade() && vis('shade')) p.push('hillshade computed from Mapterhorn heights'); if (layerOn.mosaic() && vis('world')) p.push('Sentinel-2 cloudless 2024 by EOX'); if (layerOn.places() && vis('names')) p.push('names © OSM, EOX');
@@ -1460,7 +1460,8 @@ async function loadTerrain(lat, lon, det) {
   /* the picture is painted from layers, in this order: mosaic (EOX), swisstopo map, swisstopo aerial, place names; the Layers menu switches them (terrainLayersChanged). Tiles are kept, so switching repaints without loading again; a layer's tiles load when it is first on. */
   const IZ = ZE + 1, n2 = NT * 2, tp = TW / n2, SZ = ZE + k, sp = TW / mS, f = 2 ** k;
   TL = {id, tcx, tex, TW, lay: {mosaic: [], osm: [], topo: [], old: [], air: [], shade: [], places: []}, started: {}, timer: 0};
-  const add = (key, url, x, y, w, tile) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { if (id !== loadId) return; const pic = key === 'osm' ? dimmed(im, DIM.osm) : (key === 'air' || key === 'topo') ? keyWhite(im, tile) : im; if (!pic) return; TL.lay[key].push({im: pic, x, y, w}); paintSoon(); }; im.src = url; };
+  const queue = []; const add = (key, url, x, y, w, tile) => queue.push({key, url, x, y, w, tile});      // collected first, then requested from the middle of the picture outwards (see flush)
+  const fetchTile = ({key, url, x, y, w, tile}) => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => { if (id !== loadId) return; const pic = key === 'osm' ? dimmed(im, DIM.osm) : (key === 'air' || key === 'topo') ? keyWhite(im, tile) : im; if (!pic) return; TL.lay[key].push({im: pic, x, y, w}); paintSoon(); }; im.src = url; };
   TL.start = key => {
     if (TL.started[key] || id !== loadId) return;
     if (key === 'mosaic' && swissArea && !$('worldToggle').checked) return;      // in Switzerland the Sentinel-2 mosaic is not shown while the swisstopo pictures load: it is drawn only when chosen itself
@@ -1471,6 +1472,8 @@ async function loadTerrain(lat, lon, det) {
     else if (key === 'shade') { TL.lay.shade.push({im: hillshadeCanvas(), x: 0, y: 0, w: TW}); paintSoon(); }
     else if (swissArea) { const [lyr, ext] = {air: ['ch.swisstopo.swissimage-product/default/2023', 'jpeg'], topo: ['ch.swisstopo.pixelkarte-farbe/default/current', 'jpeg'], old: ['ch.swisstopo.zeitreihen/default/18641231', 'png']}[key]; for (let b = 0; b < mS; b++) for (let a = 0; a < mS; a++) add(key, `https://wmts.geo.admin.ch/1.0.0/${lyr}/3857/${SZ}/${tx0 * f + a}/${ty0 * f + b}.${ext}`, a * sp, b * sp, sp + .5, [SZ, tx0 * f + a, ty0 * f + b]); }
   };
+  const flush = () => { const m = TW / 2; queue.sort((p, q) => Math.hypot(p.x + p.w / 2 - m, p.y + p.w / 2 - m) - Math.hypot(q.x + q.w / 2 - m, q.y + q.w / 2 - m)); queue.splice(0).forEach(fetchTile); };      // the browser asks about six at a time, so the pictures grow from the glacier in the middle outwards instead of line by line
+  const start0 = TL.start; TL.start = key => { start0(key); flush(); };
   TL.start('mosaic'); terrainLayersChanged();
   loadPeaks(id, swissArea);
   return true;
@@ -1798,7 +1801,7 @@ function upDir(p) {      // the way from a glacier's tongue to its upper slopes 
   return d.length() > 1 ? d.normalize() : null;
 }
 function camFor() { const G3 = focusGroup(); if (!G3.length) return; const big = Math.max(...G3.map(en => en.body.e)), c = new THREE.Vector3(); G3.forEach(en => c.add(en.body.p)); c.divideScalar(G3.length);
-  const span = G3.length > 1 ? Math.max(...G3.map(en => en.body.p.distanceTo(c))) * 2 : 0, d = Math.max(big * 4.8, span * 2.6, 1200);
+  const span = G3.length > 1 ? Math.max(...G3.map(en => en.body.p.distanceTo(c))) * 2 : 0, d = Math.max(big * 4.8, span * 2.6, 1200) * (matchMedia('(pointer:coarse)').matches ? 1 : 2.2);      // desktop starts further out, so most of the glacier is in view, not only where the block drops
   cam.near = Math.max(5, big / 150); cam.updateProjectionMatrix(); ctl.minDistance = big * .1; ctl.maxDistance = 120000; cam.position.set(c.x + d * .55, c.y + d * .55, c.z + d * .95);
   if (S3.spawnMode === 'glacier') { const u = new THREE.Vector2(); G3.forEach(en => { const w = upDir(en.p); if (w) u.add(w.multiplyScalar(en.body.e)); }); if (u.length() > 1e-6) { u.normalize(); cam.position.set(c.x - u.x * d * 1.1, c.y + d * .55, c.z - u.y * d * 1.1); } }      // on its own glacier: look from the tongue up towards the upper slopes (several glaciers: the size-weighted mean direction)
   ctl.target.copy(c); if (S3.pan) S3.pan.set(0, 0, 0); ctl.update(); }

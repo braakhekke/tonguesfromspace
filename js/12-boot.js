@@ -1,5 +1,5 @@
 import { needsOutline, loadOutline } from './02-glaciers.js';
-import { currentGlacier, OPEN_ON_GLACIER, PLAIN_START, OPEN_3D, glacierPicked, HASH_AT_LOAD } from './04-state.js';
+import { currentGlacier, OPEN_ON_GLACIER, PLAIN_START, OPEN_3D, glacierPicked, HASH_AT_LOAD, freezeHash } from './04-state.js';
 import { updateCredits, updateSight, updateTrailClip, drawOutlines, focusTongue } from './05-map.js';
 import { checkYears } from './06-scene-search.js';
 import { renderGlacierList, renderYears, renderMode, renderStory, fn, renderOutlineControls, focusSub } from './07-render.js';
@@ -32,4 +32,4 @@ export const bootGlacier = OPEN_ON_GLACIER ? currentGlacier() : null;
 if (needsOutline(bootGlacier)) loadOutline(bootGlacier).then(boot); else boot();      // a link to a glacier waits for the file of its 2023 outline (about 20 to 200 kB)
 /* A link pasted into a tab where the page is already open changes only the part after the #: the browser does not reload, so the page starts again from the new link itself.
    (The page's own updates of the address use history.replaceState, which raises no such event.) */
-addEventListener('hashchange', () => location.reload());
+addEventListener('hashchange', () => { freezeHash(); location.reload(); });

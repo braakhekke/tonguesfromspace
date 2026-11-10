@@ -6,7 +6,7 @@ import { state, writeHash, currentGlacier, viewMode, glacierPicked, setGlacierPi
 import { map, updateSight, updateTrailClip, updateAerial, updateMapYears, oldestAerial, ensureOldest, showOldest, setCompareLayers, clip, tlFrames, buildTimelapse, stopPlay, drawOutlines, M, drawTonguePin, focusTongue } from './05-map.js';
 import { showLatest } from './03-imagery.js';
 import { checkYears, checkGen } from './06-scene-search.js';
-import { renderGlacierList, subTitle, focusSub, renderStory, inviteHtml, closeOtherSharePanes } from './07-render.js';
+import { renderGlacierList, subTitle, focusSub, subFocus, renderStory, inviteHtml, closeOtherSharePanes } from './07-render.js';
 import { showNotice, drawBoxes, updateBoxes, glaciersExtent, syncSatUi } from './08-controls.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'chooseGlacier', { get: () => chooseGlacier, configurable: true });
@@ -406,8 +406,18 @@ if (COARSE) {
 }
 
 /* Sharing: the address already contains glacier, mode and years */
+/* The link of the view on screen: the address (glacier, mode, years, 3D view) plus what it does not keep: colour style(s), the 1850 outline, the trails and, on an ice cap, the outlet that is in focus. Opened again, it shows the same. */
+export function shareLink(){
+  const p = new URLSearchParams(location.hash.slice(1)), g = currentGlacier();
+  if (state.style !== 'natural') p.set('s', state.style);
+  if (state.mode === 'compare' && state.styleB && state.styleB !== state.style) p.set('s2', state.styleB);
+  if (prefs.old) p.set('ol', '1');
+  if (prefs.trails === true) p.set('tr', '1');
+  if (g && g.subs && subFocus && subFocus.gid === g.id) p.set('sub', subFocus.k);
+  return location.href.split('#')[0] + '#' + p.toString().replace(/%2C/g, ',');
+}
 export async function shareView(){
-  const g = currentGlacier(), only = false, url = only ? embedLink() : location.href;      // the tick: the link opens the picture or animation only (embed=1)
+  const g = currentGlacier(), only = false, url = only ? embedLink() : shareLink();      // the tick: the link opens the picture or animation only (embed=1)
   const text = state.mode === 'single' ? `${g.name}, ${state.one}` : state.mode === 'timelapse' ? `${g.name}, ${state.from} to ${state.to}` : `${g.name}, ${state.a} and ${state.b}`;
   if (navigator.share) {
     try { await navigator.share({title: REGION.shareTitle, text, url}); return; }
