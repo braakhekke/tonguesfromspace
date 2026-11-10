@@ -922,11 +922,10 @@ class TestPicker(SiteCase):
 
     def test_the_picker_offers_the_regions_and_opens_the_dashboard_of_the_chosen_one(self):
         page = self.picker()
-        page.wait_for_function("typeof chooseRegion === 'function' && window.HOME_GLACIERS && HOME_GLACIERS.length >= 10")
+        page.wait_for_function("typeof chooseGlacier === 'function' && window.HOME_GLACIERS && HOME_GLACIERS.length >= 10")
         self.assertGreaterEqual(page.locator("#pick option").count(), 10, "the dropdown lists the glaciers")
-        page.evaluate("chooseRegion('ch')")
-        href = page.evaluate("document.getElementById('iGo').getAttribute('href')")
-        self.assertEqual(href, "switzerland/" if BUILT else "index.html")
+        self.assertEqual(page.locator("#tiles, .tnote").count(), 0, "no region boxes: glaciers are chosen, not regions")
+        self.assertEqual(page.locator("#pick option[value^='r:']").count(), 0, "the list has no region entries")
         page.evaluate("chooseGlacier('gorner')")
         self.assertEqual(page.evaluate("document.getElementById('iGo').getAttribute('href')"), ("switzerland/#g=gorner" if BUILT else "index.html#g=gorner"))
         self.assertEqual(page.evaluate("location.hash"), "#glacier=gorner", "the picker's own link does not look like an explorer link")

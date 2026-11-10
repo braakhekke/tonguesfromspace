@@ -100,7 +100,7 @@ a{color:inherit}
 .quoteband .qcols > div + div{padding-left:32px;border-left:1px solid rgba(10,27,51,.18)}
 .quoteband .qcols h3{margin:0 0 8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent)}
 .quoteband .qcols p{font-size:15px;line-height:1.6;color:rgba(10,27,51,.8)}
-.quoteband .qtext{max-width:640px;padding-left:28px;border-left:3px solid var(--accent)}
+.quoteband .qtext{max-width:640px}
 .quoteband p{margin:0}
 .quoteband .qeyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--accent);margin-bottom:12px}
 .quoteband .qmain{font-size:clamp(26px,3.2vw,40px);line-height:1.12;font-weight:800;letter-spacing:-.03em;color:#0A1B33}
@@ -136,7 +136,7 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 .pickband .sbox,.pickband .pk-btn{border-color:transparent}
 .pickrow .sstat{margin:6px 0 0;font-size:12px}
 .pk{position:relative;min-width:280px}
-.pk-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 12px 8px 15px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer;box-shadow:inset 3px 0 0 var(--accent)}      /* the card of the explorer's glacier list: white, red bar at the left */
+.pk-btn{display:flex;align-items:center;gap:10px;width:100%;min-height:50px;padding:8px 12px 8px 15px;border:1px solid var(--rule);border-radius:0;background:var(--sheet);color:#0A1B33;font:inherit;font-size:15px;font-weight:700;text-align:left;cursor:pointer}      /* the card of the explorer's glacier list: white */
 .pk-btn:hover{background:var(--firn)}
 .pk-btn.ph .pk-t{font-weight:500;color:var(--moraine)}
 .pk-t{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
@@ -500,7 +500,7 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .flight{border-radius:var(--r-lg)}
 .flight .live,.flight video{border-radius:inherit}
 .pk-btn,.sbox,.info .btn-line{border:0;border-radius:var(--r-md);box-shadow:var(--lift)}
-.pk-btn{box-shadow:var(--lift),inset 3px 0 0 var(--accent)}
+.pk-btn{box-shadow:var(--lift)}
 .pk-menu,.search ul{border:0;border-radius:var(--r-md);overflow:auto;box-shadow:0 12px 32px rgba(7,11,20,.28)}
 .mapbox{border:0;border-radius:var(--r-lg);overflow:hidden}
 .info{border:0;border-radius:var(--r-lg);box-shadow:var(--lift),0 8px 26px rgba(14,26,34,.25)}
