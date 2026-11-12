@@ -2,7 +2,7 @@
 
 The **actual explorer** with local scientific raster and vector data added. It uses `index.html`, `css/style.css`, `css/tokens.css`, the original controls, docks, layer menus, map, yearly 3D tongue, story and export tools. The science page no longer recreates or themes those controls. `style.css` in this directory adds only the file/date controls and local overlays.
 
-This directory is outside the deployment build. No site navigation, glacier records, terrain bundles, original rendering code or imagery-cache version is changed.
+The site build does not include this directory itself; the deploy workflow adds it as an **unlisted** page, https://tonguesfromspace.org/playground-gabriele (`scripts/build_playground.py`: noindex, no link, not in the sitemap, Disallow in robots.txt). Live, the explorer and the bridge are one bundle and GDAL's WebAssembly (over the 25 MiB Worker file limit) is read from jsDelivr, pinned to the installed gdal3.js version; field files still never leave the browser. No site navigation, glacier records, terrain bundles, original rendering code or imagery-cache version is changed.
 
 ## Run
 

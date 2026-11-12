@@ -66,6 +66,8 @@ jobs:
           PUBLISH_LANDSAT: ${{ vars.PUBLISH_LANDSAT }}   # set to 1 to show the Landsat switch (years before 2016); the pictures themselves are not in the repository
         run: |
           python scripts/build_site.py _site
+          npm ci --prefix science-viewer
+          python scripts/build_playground.py _site      # the unlisted /playground-gabriele (noindex, no link, not in the sitemap)
           cat _site/config.js | head -c 400; echo
 
       # Nothing is published unless these pass: they look at exactly the files that would go live.

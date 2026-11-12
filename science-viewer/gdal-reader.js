@@ -6,7 +6,7 @@ async function gdal(){
  worker.onmessage=({data:m})=>{const p=pending.get(m.id);if(p){pending.delete(m.id);m.success?p.resolve(m.data):p.reject(Error(typeof m.data==='string'?m.data:JSON.stringify(m.data)));}};
  worker.onerror=e=>{for(const p of pending.values())p.reject(Error(e.message||'GDAL worker failed'));pending.clear();};
  const call=(func,params,key=++id)=>new Promise((resolve,reject)=>{pending.set(key,{resolve,reject});worker.postMessage({id:key,func,params});});
- await call('constructor',{config:{path:new URL('./gdal/',import.meta.url).href,env:{GDAL_CACHEMAX:'32',GDAL_NUM_THREADS:'1',PROJ_NETWORK:'OFF',GDAL_SKIP:'WMS WMTS VRT',OGR_SKIP:'WFS OAPIF'}}},'onload');
+ await call('constructor',{config:{path:typeof GDAL_CDN==='string'?GDAL_CDN:new URL('./gdal/',import.meta.url).href,env:{GDAL_CACHEMAX:'32',GDAL_NUM_THREADS:'1',PROJ_NETWORK:'OFF',GDAL_SKIP:'WMS WMTS VRT',OGR_SKIP:'WFS OAPIF'}}},'onload');
  return new Proxy({terminate:()=>worker.terminate()},{get:(target,key)=>key==='then'?undefined:key in target?target[key]:(...args)=>call(key,args)});
 }
 export async function convert(files,opts={}){
