@@ -1,0 +1,25 @@
+{
+  "name": "zmutt-science-viewer",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs"
+  },
+  "dependencies": {
+    "@loaders.gl/core": "^4.3.4",
+    "@loaders.gl/las": "^4.3.4",
+    "@tmcw/togeojson": "^7.1.2",
+    "@xmldom/xmldom": "^0.9.12",
+    "fflate": "^0.8.3",
+    "gdal3.js": "^2.8.1",
+    "geotiff": "3.0.5",
+    "netcdfjs": "^4.0.0",
+    "papaparse": "^5.5.3",
+    "proj4": "2.22.0",
+    "shpjs": "^6.2.0",
+    "wellknown": "^0.5.0"
+  },
+  "devDependencies": {
+    "esbuild": "0.28.2"
+  }
+}

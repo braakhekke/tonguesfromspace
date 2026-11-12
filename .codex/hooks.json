@@ -1,0 +1,16 @@
+{
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python3 -I \"$CLAUDE_PROJECT_DIR/scripts/board_reminder.py\"",
+            "timeout": 30,
+            "statusMessage": "Checking the glacier board is in sync..."
+          }
+        ]
+      }
+    ]
+  }
+}
