@@ -20,6 +20,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <link rel="stylesheet" href="css/style.css">
 <link rel="stylesheet" href="css/tokens.css">
+<link rel="stylesheet" href="css/guide.css">
 <!--
   Glacier size comparison. Linked from index.html (Area card, step 03); not region-aware: Switzerland only.
   Embed: <iframe src="size.html#g=B36-26&c=zurich" style="width:100%;height:680px;border:0" loading="lazy"></iframe>
@@ -39,6 +40,8 @@
 
 /* chrome (step numbers, buttons, tiles) comes unchanged from css/style.css, the same as the Swiss glacier page */
 .glaciers button.picked,.glaciers button[aria-pressed="true"].picked{box-shadow:none!important}
+/* the closed glacier box is as high as the closed city box: a row of 28px (4px padding) */
+@media (min-width:721px){.glaciers{--gl-row:calc(1lh + 8px)}.glaciers button{padding-top:4px;padding-bottom:4px}}
 /* header: the site bar is the header; no second logo and title above the panels */
 .mhead{display:none!important}
 .controls .brand{padding-top:0;display:flex;flex-direction:column}
@@ -239,13 +242,13 @@ body.is-3d @keyframes shpPop{from{transform:scale(.4) rotate(-40deg);opacity:0}t
 .landsat-info{margin:0 0 6px 3px;font-size:11.5px;line-height:1.4;color:var(--moraine)}
 .landsat-info[hidden]{display:none} body:not(.is-3d) .landsat-info{display:none} .landsat-info p{margin:0 0 5px} .landsat-info p:last-child{margin:0} .landsat-info b{font-weight:600}
 .s3tab{margin:2px 0 0}
-.s3row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 50px 62px 56px;gap:8px;align-items:baseline;padding:8px 0 10px;font-size:12.5px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--rule)}
+.s3row{position:relative;display:grid;grid-template-columns:minmax(0,1fr) 72px 56px 60px;gap:8px;align-items:baseline;padding:8px 0 10px;font-size:12.5px;font-variant-numeric:tabular-nums;border-bottom:1px solid var(--rule)}
 .s3row:last-child{border-bottom:0}
 .s3row::after{content:"";position:absolute;left:0;bottom:4px;height:3px;width:var(--w);background:var(--crevasse);opacity:.55;border-radius:2px}
-.s3row .n{font-weight:600;color:var(--ink);min-width:0;line-height:1.25}
+.s3row .n{font-weight:600;color:var(--ink);min-width:0;line-height:1.25;overflow-wrap:anywhere}
 .s3row b{font-weight:700;text-align:right;color:var(--ink)}
 .s3row span:not(.n){text-align:right;color:var(--moraine)}
-.s3head{align-items:end;line-height:1.35;display:grid;grid-template-columns:minmax(0,1fr) 50px 62px 56px;gap:8px;padding:0 0 6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--moraine);border-bottom:1px solid var(--rule)}
+.s3head{align-items:end;line-height:1.35;display:grid;grid-template-columns:minmax(0,1fr) 72px 56px 60px;gap:8px;padding:0 0 6px;font-size:10px;letter-spacing:.08em;text-transform:uppercase;color:var(--moraine);border-bottom:1px solid var(--rule)}
 .s3head span:not(:first-child){text-align:right}
 #dropMark{position:absolute;width:30px;height:30px;margin:-15px 0 0 -15px;border:2px solid #fff;border-radius:50%;background:rgba(200,50,42,.35);box-shadow:0 0 0 1px rgba(0,0,0,.4);pointer-events:none;z-index:4;animation:dmPulse 1.2s ease-in-out infinite}
 @keyframes dmPulse{50%{transform:scale(1.2)}}
@@ -356,6 +359,7 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
         <a id="navExplorer" href="index.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L3.5 6v14L9 18m0-14l6 2m-6-2v14m6-12l5.5-2v14L15 20m0-14v14"/></svg>Explorer</a>
         <a href="gallery.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg>Gallery</a>
       </nav>
+      <div class="brand-btns"></div>
     </div>
     <div class="modeswitch" id="modeSwitch" data-on="2d" data-shape="block" role="group" aria-label="Compare the glaciers by" hidden><button type="button" data-mode="2d" aria-pressed="true"><svg class="mico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6l6-2.5 6 2.5 6-2.5v14.5L15 20.5 9 18l-6 2.5z"/><path d="M9 3.5V18M15 6v14.5"/></svg>Area</button><button type="button" data-mode="3d" aria-pressed="false"><svg class="mico" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9z"/><path d="M4 7.5l8 4.5 8-4.5M12 12v9"/></svg>Volume<span class="shpsw" aria-hidden="true"><span class="shpc shp-cube" data-shape="block"><svg viewBox="0 0 24 24"><path d="M12 3.5l7.5 4v9l-7.5 4-7.5-4v-9zM4.5 7.5L12 11.5l7.5-4M12 11.5v9"/></svg></span><span class="shpc shp-ball" data-shape="ball"><svg viewBox="0 0 24 24"><defs><radialGradient id="shpBall" cx="36%" cy="30%" r="75%"><stop offset="0" stop-color="#fff"/><stop offset=".35" stop-color="currentColor" stop-opacity=".55"/><stop offset="1" stop-color="currentColor"/></radialGradient></defs><circle cx="12" cy="12" r="8.2" fill="url(#shpBall)" stroke="none"/></svg></span></span></button></div>
 
@@ -2618,5 +2622,6 @@ build();
 </script>
 <script defer src="js/turn-upright.js">addEventListener('scroll', () => document.body.classList.toggle('scrolled', scrollY > 8), {passive: true});
 </script>
+<script type="module" src="js/guide-size.js"></script>
 </body>
 </html>

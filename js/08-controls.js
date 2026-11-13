@@ -305,7 +305,7 @@ export function applyRegionUi(){
   /* what the region has no data for is taken off the page: each switch of `features` hides its controls */
   const off = (feature, ...ids) => { if (!FEATURES[feature]) ids.forEach(id => { const el = document.getElementById(id), box = el && (el.closest('label') || el); if (box) box.style.display = 'none'; }); };
   off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swisstopo', 'topoToggle', 'oldMapToggle', 'altiToggle', 'l3Topo', 'l3OldMap'); if (!FEATURES.swisstopo) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
-  off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); off('speed', 'speedRow'); off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('teaser', 'teaserBtn'); off('sizeTool', 'sizeLink');
+  off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); off('speed', 'speedRow'); off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('sizeTool', 'sizeLink');
   if (!FEATURES.glamos && !GLACIERS[0].tongue) off('glamos', 'tongueBtn');      // the Tongue button needs a tongue tip (Iceland has one from the outlet data)
   if (!FEATURES.oldest && !FEATURES.latest) document.querySelectorAll('.spec-row').forEach(e => { e.style.display = 'none'; });
   if (!FEATURES.glamos) document.querySelectorAll('label[for="outside"]').forEach(e => { e.style.display = 'none'; });

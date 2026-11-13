@@ -55,7 +55,7 @@ with sync_playwright() as p:
     br = p.chromium.launch(channel="chrome", headless=True)
     ctx = br.new_context(viewport={"width": 1360, "height": 900}, accept_downloads=True)
     ctx.add_init_script("window.TFS_EXPOSE = true")
-    ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1'); if(!localStorage.getItem('glacierPrefs'))localStorage.setItem('glacierPrefs','{\"hideR\":false}')}catch(e){}")
+    ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1'); if(!localStorage.getItem('tfs-guide'))localStorage.setItem('tfs-guide','{\"seen\":true}'); if(!localStorage.getItem('glacierPrefs'))localStorage.setItem('glacierPrefs','{\"hideR\":false}')}catch(e){}")
 
     # 1 deep links -------------------------------------------------------------------------------------------------
     if want("deep links"):

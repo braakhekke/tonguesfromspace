@@ -26,7 +26,7 @@ Data sources and licences. The README keeps the summary of the three licences. T
 
 Read 2026-11-03; each is the count the source states, and what counts as a glacier differs between inventories.
 
-- Switzerland: 1,289 glaciers in SGI2023, counted in the GLAMOS inventory file (inventory_sgi2023_r2026; `inventory.count` in data/glaciers.js). Earlier text used "1,400 individual glacier entities" (SGI2016), Linsbauer et al. 2021, doi 10.3389/feart.2021.704189.
+- Switzerland: 1,291 glaciers in SGI2023, counted in the GLAMOS inventory file (inventory_sgi2023_r2026; `inventory.count` in data/glaciers.js). Earlier text used "1,400 individual glacier entities" (SGI2016), Linsbauer et al. 2021, doi 10.3389/feart.2021.704189.
 - Iceland 568 and Svalbard 1615 (Svalbard and Jan Mayen): Randolph Glacier Inventory 6.0, regional table at https://rgidata.org/user_guide/regions/overview.html.
 - Norway: "3143 glaciers" of the 1999-2006 inventory, Andreassen et al. 2022, Journal of Glaciology 68(272), 1085-1106, read at https://www.cambridge.org/core/product/EEBB73BA4DB7D3E77B25172F66ADBA9F/core-reader. The count of its newer 2018-19 inventory is in Table 3 (an image), NOT READ, so it is not used.
 

@@ -1,0 +1,151 @@
+/* The guide (js/guide-core.js, js/15-guide.js, js/guide-size.js): the bar on the picture, the ring around a real control, the locator inset and the Guide button.
+   Colours and typeface are the site's tokens (css/tokens.css). The bar is the dark glass of the 3D toolbar; blue and white mark controls, red stays reserved for loss.
+   No CSS filters anywhere here (Safari on iPhone ignores them); the bar's blur of what lies behind it is a backdrop only and the bar reads without it. */
+
+.gd-bar{position:absolute;left:50%;bottom:16px;transform:translateX(-50%);z-index:706;width:max-content;max-width:min(640px,calc(100% - 24px));color:#fff;font-family:var(--sans);background:rgba(10,18,24,.8);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);border:1px solid rgba(255,255,255,.14);border-radius:var(--r-md);box-shadow:0 6px 24px rgba(0,0,0,.35);transition:bottom .25s}
+.gd-bar button,.gd-bar a{font:inherit;font-family:var(--sans);color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;text-decoration:none}
+.gd-bar svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.gd-bar :focus-visible{outline:2px solid #fff;outline-offset:2px}
+.gd-bar.gd-top{top:14px;bottom:auto!important}
+.gd-x{position:absolute;top:6px;right:6px;width:26px;height:26px;border:0;border-radius:50%;background:transparent;color:rgba(255,255,255,.6)!important;font-size:18px!important;line-height:1}
+.gd-x:hover{background:rgba(255,255,255,.12);color:#fff!important}
+.gd-kicker{margin:0 0 3px;font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--ice)}
+.gd-bar h2{margin:0 0 10px;font-size:20px;line-height:1.15;font-weight:750;letter-spacing:-.02em;color:#fff}
+.gd-alld{font-size:10px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--ink);background:var(--ice);border-radius:99px;padding:2px 7px;vertical-align:middle;margin-left:6px}
+.gd-foot{margin:9px 0 0;font-size:11.5px;line-height:1.4;color:rgba(255,255,255,.62)}
+.gd-link{background:none;border:0;padding:0;font-size:11.5px!important;color:rgba(255,255,255,.7)!important;text-decoration:underline!important;text-underline-offset:2px}
+.gd-link:hover{color:#fff!important}
+
+/* the menu: chapters, then the things to try in the chosen chapter */
+.gd-bar[data-view="menu"]{width:min(640px,calc(100% - 24px));padding:14px 16px 13px}
+.gd-chips{display:flex;gap:2px;padding:2px;margin:0 0 9px;border-radius:10px;background:rgba(255,255,255,.08);overflow-x:auto;scrollbar-width:none}
+.gd-chips::-webkit-scrollbar{display:none}
+.gd-chip{flex:1 0 auto;display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:6px 9px;border:0;border-radius:8px;background:transparent;color:rgba(255,255,255,.7)!important;font-size:12px!important;font-weight:600;white-space:nowrap}
+.gd-chip:hover{color:#fff!important}
+.gd-chip[aria-selected="true"]{background:#fff;color:var(--ink)!important}
+.gd-chip em{font-style:normal;font-size:10.5px;font-weight:500;opacity:.65;font-variant-numeric:tabular-nums}
+.gd-cards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.gd-card{display:flex;flex-direction:column;align-items:flex-start;gap:3px;text-align:left;padding:10px 11px 11px;border:1px solid rgba(255,255,255,.16);border-radius:11px;background:rgba(255,255,255,.07);transition:background .15s,border-color .15s,transform .15s}
+.gd-card:hover,.gd-card:focus-visible{background:rgba(255,255,255,.16);border-color:rgba(255,255,255,.45)}
+.gd-card:active{transform:scale(.98)}
+.gd-card b{font-size:14px;font-weight:700;letter-spacing:-.01em;line-height:1.2;margin-top:5px}
+.gd-line{font-size:11.5px;line-height:1.35;color:rgba(255,255,255,.72)}
+.gd-ico{position:relative;display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.14);flex:none}
+.gd-ico i{position:absolute;right:-4px;bottom:-4px;width:14px;height:14px;border-radius:50%;background:var(--ice);color:var(--ink);display:none;place-items:center}
+.gd-ico i svg{width:10px;height:10px;stroke-width:3}
+.gd-card.done .gd-ico i{display:grid}
+/* more than three: compact rows, symbol beside the text */
+.gd-cards.many{gap:6px}
+.gd-cards.many .gd-card{display:grid;grid-template-columns:30px minmax(0,1fr);column-gap:9px;row-gap:1px;align-items:center;padding:8px 10px}
+.gd-cards.many .gd-ico{grid-row:1 / span 2}
+.gd-cards.many .gd-card b{margin:0;font-size:13px}
+.gd-cards.many .gd-line{font-size:11px}
+.gd-wide{flex-direction:row!important;align-items:center!important;gap:12px!important;padding:12px 14px!important}
+.gd-wt{display:flex;flex-direction:column;gap:2px;flex:1;min-width:0}
+.gd-wt b{margin:0!important}
+.gd-arrow{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:#fff;color:var(--ink)}
+
+/* a running track: one line */
+.gd-bar[data-view="run"]{display:flex;align-items:center;gap:10px;padding:8px 38px 8px 8px;min-height:52px}
+.gd-menu{display:grid;place-items:center;width:34px;height:34px;border:0;border-radius:9px;background:rgba(255,255,255,.1);color:rgba(255,255,255,.75)!important;flex:none}
+.gd-menu:hover{background:rgba(255,255,255,.2);color:#fff!important}
+.gd-now{display:grid;place-items:center;width:34px;height:34px;border-radius:9px;background:#fff;color:var(--ink);flex:none}
+.gd-msg{min-width:0;flex:1}
+.gd-msg small{display:flex;align-items:center;gap:5px;font-size:10.5px;line-height:1.3;color:rgba(255,255,255,.62);white-space:nowrap}
+.gd-msg small b{font-weight:700;color:var(--ice)}
+.gd-where{background:none;border:0;padding:0;font-size:10.5px!important;color:rgba(255,255,255,.75)!important;border-bottom:1px dotted rgba(255,255,255,.5)!important;overflow:hidden;text-overflow:ellipsis}
+.gd-where:hover{color:#fff!important}
+.gd-steps{display:inline-flex;gap:3px;margin-left:4px}
+.gd-steps i{width:12px;height:3px;border-radius:2px;background:rgba(255,255,255,.25)}
+.gd-steps i.now{background:#fff}.gd-steps i.past{background:var(--ice)}
+.gd-msg p{margin:2px 0 0;font-size:15px;line-height:1.3;font-weight:600;letter-spacing:-.01em;color:#fff}
+.gd-msg p:empty{display:none}
+.gd-wait::after{content:"…";display:inline-block;animation:gddots 1.2s steps(4,end) infinite;width:1em;overflow:hidden;vertical-align:bottom}
+@keyframes gddots{from{width:0}to{width:1em}}
+.gd-ok{display:flex;align-items:center;gap:7px;font-weight:500!important}
+.gd-check{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:var(--ice);color:var(--ink);flex:none;animation:gdpop .35s cubic-bezier(.3,1.6,.5,1)}
+.gd-check svg{width:12px;height:12px;stroke-width:3}
+@keyframes gdpop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+.gd-side{flex:none;display:flex;align-items:center}
+.gd-side:empty{display:none}
+.gd-btn{display:inline-flex;align-items:center;gap:7px;padding:8px 12px;border:0;border-radius:9px;background:#fff;color:var(--ink)!important;font-size:12.5px!important;font-weight:700;white-space:nowrap}
+.gd-btn:hover{background:var(--ice)}
+.gd-bar[data-view="run"] .gd-x{top:50%;margin-top:-13px}
+
+/* put away: the Guide button under the page links; on the picture only a small pill where that button is out of sight (phones, hidden panel) */
+.gd-launch{position:relative;overflow:hidden}
+.gd-launch em{font-style:normal;font-weight:500;font-size:11px;color:var(--moraine);font-variant-numeric:tabular-nums}
+.gd-launch .gd-prog{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);transition:width .4s}
+.gd-launch[aria-pressed="true"]{border-color:var(--accent)}
+.controls .brand-btns{flex-wrap:nowrap;gap:8px}      /* the row under the page links: Guide and Tongla Quiz as an even pair (js/mascot.js adds the second) */
+.controls .brand-btns .teaser-btn{flex:1 1 0;min-width:0;max-width:128px;justify-content:center;padding:6px 8px;gap:6px;font-size:12.5px;white-space:nowrap}
+.gd-launch svg{width:14px!important;height:14px!important;fill:none!important;stroke:currentColor;stroke-width:2;stroke-linejoin:round;flex:none}
+.gd-launch svg path{fill:currentColor!important;stroke-width:1}      /* Guide and Tongla Quiz as an even pair */
+.gd-bar[data-view="pill"]{left:auto;right:14px;transform:none;background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
+.gd-bar[data-view="pill"].gd-has-launch,.gd-bar.gd-held{display:none}
+.gd-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border:1px solid rgba(255,255,255,.18);border-radius:var(--r-pill);background:rgba(10,18,24,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:11.5px!important;font-weight:600}
+.gd-pill:hover{background:rgba(10,18,24,.85)}
+.gd-pill .gd-q{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--ink);font-size:12px;font-weight:800}
+.gd-pill em{font-style:normal;color:rgba(255,255,255,.65);font-variant-numeric:tabular-nums}
+
+/* ring around the real control: thick outline, two ripples running outward */
+.gd-ring{position:fixed;z-index:3000;pointer-events:none;border-radius:13px;border:3px solid var(--crevasse);box-shadow:0 0 0 3px #fff,0 0 0 7px rgba(45,110,142,.28),0 4px 22px rgba(45,110,142,.45);animation:gdring 1.3s ease-in-out infinite}
+.gd-ring.round{border-radius:50%}
+.gd-ring.on-pic{border-color:#fff;box-shadow:0 0 0 3px rgba(10,18,24,.55),0 0 0 7px rgba(255,255,255,.25),0 0 26px rgba(0,0,0,.5)}
+.gd-ring[hidden]{display:none}
+.gd-ring i{position:absolute;inset:-3px;border-radius:inherit;border:2px solid var(--crevasse);opacity:0;animation:gdripple 1.8s ease-out infinite}
+.gd-ring i+i{animation-delay:.9s}
+.gd-ring.on-pic i{border-color:#fff}
+@keyframes gdring{0%,100%{transform:scale(1)}50%{transform:scale(1.035)}}
+@keyframes gdripple{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.28,1.5);opacity:0}}
+.gd-ring.round i{animation-name:gdrippleR}
+@keyframes gdrippleR{0%{transform:scale(1);opacity:.9}100%{transform:scale(1.9);opacity:0}}
+.gd-ring.tap{animation:gdtap .55s ease-out 1,gdring 1.3s ease-in-out .55s infinite}
+@keyframes gdtap{0%{transform:scale(1.9);opacity:0}55%{transform:scale(.94);opacity:1}100%{transform:scale(1)}}
+/* a short spotlight when the guide points at a button outside the picture */
+.gd-dim{position:fixed;z-index:2999;pointer-events:none;border-radius:13px;box-shadow:0 0 0 200vmax rgba(8,14,20,.34);animation:gddim .3s ease-out 1}
+.gd-dim.round{border-radius:50%}
+.gd-dim[hidden]{display:none}
+@keyframes gddim{from{box-shadow:0 0 0 200vmax rgba(8,14,20,0)}}
+
+/* the demo "finger" */
+.gd-dot{position:fixed;z-index:3001;width:34px;height:34px;margin:-17px 0 0 -17px;border-radius:50%;pointer-events:none;background:rgba(255,255,255,.35);border:2px solid #fff;box-shadow:0 2px 10px rgba(0,0,0,.4)}
+.gd-dot[hidden]{display:none}
+.gd-dot.press{width:66px;height:66px;margin:-33px 0 0 -33px;background:rgba(255,255,255,.28);animation:gdpress .3s ease-out 1}      /* larger than the slider's white handle, so it reads as a finger on it */
+@keyframes gdpress{from{transform:scale(1.7);opacity:0}to{transform:none;opacity:1}}
+.gd-dot.orbit{animation:gdorbit 2.4s ease-in-out infinite}
+@keyframes gdorbit{0%{transform:translateX(-70px) scale(1.5);opacity:0}15%{transform:translateX(-70px);opacity:1}70%{transform:translateX(70px);opacity:1}85%,100%{transform:translateX(70px) scale(1.4);opacity:0}}
+
+/* locator inset: a small map, no box, like a news graphic; in 3D a beam shows which way the view looks */
+.gd-inset{position:absolute;left:14px;bottom:14px;z-index:705;width:132px;pointer-events:none;color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.7)}
+.gd-inset[hidden]{display:none}
+.gd-inset canvas{position:static;inset:auto;display:block;width:132px;height:88px;cursor:default}
+.gd-inset b{display:block;margin-top:2px;font-size:11.5px;font-weight:700;line-height:1.25;text-align:center}
+
+html.embed .gd-bar,html.embed .gd-inset{display:none!important}
+
+@media(max-width:900px){
+  .gd-bar{max-width:calc(100% - 16px)}
+  .gd-bar[data-view="menu"]{width:calc(100% - 16px);padding:10px 12px 11px}
+  .gd-bar h2{font-size:16px;margin-bottom:8px;padding-right:22px}
+  .gd-chip{padding:5px 8px;font-size:11.5px!important}
+  .gd-cards,.gd-cards.many{gap:6px}
+  .gd-card{padding:8px 8px 9px}
+  .gd-card b{font-size:12.5px}
+  .gd-cards .gd-line,.gd-foot{display:none}
+  .gd-cards.many{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .gd-cards.many .gd-card{padding:6px 8px;grid-template-columns:26px minmax(0,1fr)}
+  .gd-cards.many .gd-ico{width:26px;height:26px;grid-row:auto}
+  .gd-cards.many .gd-card b{font-size:12px}
+  .gd-bar[data-view="run"]{width:calc(100% - 16px);gap:8px;padding-right:32px}
+  .gd-now{display:none}
+  .gd-msg small{font-size:10px}.gd-where{font-size:10px!important;max-width:36vw}
+  .gd-msg p{font-size:13.5px}
+  .gd-btn{padding:7px 9px;font-size:12px!important}
+  .gd-btn svg{display:none}
+  .gd-pl{display:none}.gd-pill{padding:5px 8px 5px 5px}
+  /* control below the picture: the bar floats at the bottom of the screen while the page scrolls to the control */
+  .gd-bar.gd-float{position:fixed;left:8px;right:8px;bottom:10px!important;transform:none;width:auto!important;max-width:none;z-index:3002}
+  .gd-bar.gd-top{position:fixed;left:8px;right:8px;top:8px;transform:none;width:auto!important;max-width:none;z-index:3002}
+}
+@media(prefers-reduced-motion:reduce){.gd-ring,.gd-ring.tap,.gd-ring i,.gd-dim,.gd-check,.gd-dot,.gd-wait::after{animation:none}.gd-ring i{display:none}.gd-bar{transition:none}}

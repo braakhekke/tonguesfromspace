@@ -52,7 +52,7 @@ def VQ(img):      # a new address makes link previews fetch a replaced picture a
         return "?v=" + digest(read(img))[:8]
     return ""
 PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "css/tokens.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+HASHED_FILES = ["css/style.css", "css/tokens.css", "css/guide.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -373,6 +373,12 @@ def main():
     rel = hashed_name("js/home-hero.js", hero.stdout)
     write(out, rel, hero.stdout)
     assets["js/home-hero.js"] = rel
+    guide = subprocess.run([esbuild, "js/guide-size.js", "--bundle", "--format=esm", "--target=es2022", "--minify-whitespace", "--minify-syntax", "--legal-comments=none"], cwd=ROOT, capture_output=True)      # the guide of the size page: its things to try plus the engine it shares with the explorer (js/guide-core.js)
+    if guide.returncode:
+        sys.exit("esbuild failed (guide-size):\n" + guide.stderr.decode())
+    rel = hashed_name("js/guide-size.js", guide.stdout)
+    write(out, rel, guide.stdout)
+    assets["js/guide-size.js"] = rel
     hh = os.path.join(ROOT, "data", "home-hero")      # what the hero draws (scripts/build_home_hero.py): plain names, the module asks for them by name
     if os.path.isdir(hh):
         shutil.copytree(hh, os.path.join(out, "data", "home-hero"))

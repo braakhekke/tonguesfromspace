@@ -11,6 +11,7 @@ on:
 
 permissions:
   contents: write      # commit the refreshed glaciers.js and thickness.js
+  issues: write        # open an issue (= an email to the owner) when the refresh brought new values
 
 concurrency:
   group: deploy
@@ -40,6 +41,8 @@ jobs:
 
       - name: Commit the generated data files if they changed
         if: (steps.data.outcome == 'success' || steps.iceland.outcome == 'success') && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
           git add data/glaciers.js data/thickness.js data/vatnajokull.js
           if git diff --cached --quiet; then
@@ -49,6 +52,31 @@ jobs:
             git config user.email "41898299+github-actions[bot]@users.noreply.github.com"
             git commit -m "Update glacier data from GLAMOS [skip ci]"
             git push
+            # Tell the owner: one issue per refresh (GitHub emails the repository owner), listing which values changed.
+            python3 - <<'PY' > refresh-report.md
+          import json, subprocess
+          def load(rev, path):
+              s = subprocess.run(["git", "show", f"{rev}:{path}"], capture_output=True, text=True).stdout
+              try: return json.loads(s.split("=", 1)[1].strip().rstrip(";"))
+              except Exception: return None
+          out = ["The scheduled data refresh committed new values (commit " + subprocess.check_output(["git", "rev-parse", "--short", "HEAD"], text=True).strip() + "). They go live with this deploy.", ""]
+          for path in subprocess.check_output(["git", "diff", "--name-only", "HEAD~1", "HEAD"], text=True).split():
+              a, b = load("HEAD~1", path), load("HEAD", path)
+              out.append("**" + path + "**")
+              rows = []
+              def walk(x, y, p=""):
+                  if isinstance(x, dict) and isinstance(y, dict):
+                      for k in sorted(set(x) | set(y)): walk(x.get(k), y.get(k), p + "/" + k)
+                  elif x != y:
+                      rows.append("- `" + p + "`: " + str(x)[:80] + " -> " + str(y)[:80])
+              if a is not None and b is not None: walk(a, b)
+              else: rows.append("- changed (could not compare in detail)")
+              out += rows[:40] + (["- ... and " + str(len(rows) - 40) + " more"] if len(rows) > 40 else []) + [""]
+          out.append("Run: " + "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}")
+          print("\n".join(out))
+          PY
+            gh label create glaciers-data --color 1F6FB2 2>/dev/null || true
+            gh issue create --title "New data from the monthly refresh ($(date +%F))" --label glaciers-data --body-file refresh-report.md || echo "issue not created"
           fi
 
       - uses: actions/setup-node@v4          # the page's bundle (esbuild) and `node --check` in scripts/check_syntax.py

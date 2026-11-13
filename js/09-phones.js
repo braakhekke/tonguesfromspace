@@ -158,20 +158,23 @@ export function fadeSync(){
   }, true);
   st.addEventListener('focusin', () => { if (immOn()) immShow(); });
 })();
-/* the left panel scrolls: a cue at its bottom points to "Create and share" until that step is in view (not on phones, where the page scrolls) */
+/* the left panel scrolls: the top of "Create and share" (title, Your visual, Embed) stays at its bottom until that step itself is in view (not on phones, where the page scrolls).
+   Its two buttons press the real ones; Embed opens its box in the step, so the panel scrolls there. */
 (function(){
   const box = document.querySelector('.controls'), cue = $('scrollCue'), target = $('shareGroup');
-  let used = false;            // once something in "Create and share" has been clicked, the cue has done its job
-  target.addEventListener('click', () => { used = true; upd(); }, true);
+  let h = 130;      // the height of the docked copy, measured while it shows: the step counts as in view once its own title and buttons are where the copy was
   const upd = () => {
     const scrollable = box.scrollHeight - box.clientHeight > 8 && getComputedStyle(box).overflowY !== 'visible' && !PHONE.matches;
-    const inView = target.getBoundingClientRect().top < box.getBoundingClientRect().bottom - 80;
-    const hide = used || !(scrollable && !inView); if (cue.hidden !== hide) cue.hidden = hide;      // only on change: the observer below watches this element too
+    if (!cue.hidden) h = cue.firstElementChild.offsetHeight || h;
+    const inView = target.getBoundingClientRect().top < box.getBoundingClientRect().bottom - h + 8;
+    const hide = !(scrollable && !inView); if (cue.hidden !== hide) cue.hidden = hide;      // only on change: the observer below watches this element too
   };
   box.addEventListener('scroll', upd, {passive: true}); addEventListener('resize', upd);
   if (window.ResizeObserver) new ResizeObserver(upd).observe(box);
   new MutationObserver(upd).observe(box, {childList: true, subtree: true, attributes: true, attributeFilter: ['class', 'hidden']});
-  $('scrollCueBtn').onclick = () => target.scrollIntoView({behavior: 'smooth', block: 'start'});
+  const go = () => target.scrollIntoView({behavior: 'smooth', block: 'start'});
+  $('scrollCueBtn').onclick = go;
+  cue.addEventListener('click', e => { const b = e.target.closest('[data-cue]'); if (!b) return; $(b.dataset.cue).click(); if (b.dataset.cue === 'embedBtn' && !$('embedBox').hidden) go(); });
   upd();
 })();
 /* phones: the visual is pinned at the top (css/style.css); the chevron in it makes it a short strip and back. The page keeps its place while the height changes. */
@@ -228,6 +231,7 @@ export function chooseGlacier(id){
   const next = GLACIERS.find(x => x.id === id);
   if (needsOutline(next)) { pendingChoice = id; loadOutline(next).then(() => { if (pendingChoice === id) chooseGlacier(id); }); return; }      // the 2023 outline comes first (a file per glacier); then the choice is made as usual. A later click on another glacier wins
   pendingChoice = null;
+  { const c = document.querySelector('.controls'); if (c) { c.classList.remove('nudge'); void c.offsetWidth; c.classList.add('nudge'); } }      // the small points above steps 02 and 03 dip twice: on to the next step (css/style.css, tongueNudge)
   const first = !glacierPicked;
   setGlacierPicked(true); updatePickHint();
   const sat = $('satToggle'); if (!sat.checked) { sat.checked = true; sat.dispatchEvent(new Event('change')); }      // choosing a glacier switches the Sentinel-2 picture on (it may have been switched off in the layer menu)

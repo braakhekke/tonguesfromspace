@@ -111,3 +111,25 @@ scripts/make_home_clips.py
 scripts/record_home_extras.py
 scripts/record_home_hero.py
 data/onboarding.json
+
+# local only (owner's decision 2026-11-13): the two explorer guide prototypes (the second became the site's guide, js/guide-core.js) and the Rhone gap try-out
+outputs/explorer-onboarding/
+outputs/explorer-onboarding-2/
+rhone_gap/
+# local only (owner's decision 2026-11-13): the lenticular print card, the press kit and the opening film
+outputs/aletsch-lenticular/
+outputs/press-kit/
+outputs/tongues-from-space-press-kit.zip
+outputs/build_press_kit.py
+teaser/opening-sequence.mp4
+# local only (owner's decision 2026-11-13): the editorial Aletsch story; nothing in the site or its build refers to it
+editorial.html
+editorial-stage.html
+css/editorial.css
+js/editorial.js
+js/editorial-stage.js
+js/15-editorial-bridge.js
+data/editorial-landscape.json
+images/editorial-aletsch.jpg
+scripts/build_editorial.py
+tests/test_editorial.py

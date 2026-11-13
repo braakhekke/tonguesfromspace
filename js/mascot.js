@@ -1,5 +1,5 @@
 /* Tongla, the tongue mascot (a classic script, like track.js). A game layer of the explorer, off until the visitor presses the Tongla button next to
-   "Watch the demo" and "Gallery" (or opens the viewer from the game sheets, play.html, with play=1 in the address). The choice is kept in this browser
+   "Guide" (under the page links) (or opens the viewer from the game sheets, play.html, with play=1 in the address). The choice is kept in this browser
    (localStorage, key tfs-tonga: on, found, done; the game sheets show the counts).
    While on, Tongla peeks out from behind one of the controls at once and keeps coming back. Tap Tongla: a multiple-choice question about that tool or about
    what the viewer shows right now. Tongla hides again only after the question is answered correctly (a wrong choice greys out and you try again).
@@ -60,7 +60,7 @@
     ['thickToggle', 'Behind the layers', 'Open the Layers box at the top right.', () => mc('Which layer is a computer\'s guess (a model), not something people measured?', labelText('thickToggle') || 'Glacier thickness 2016', [labelText('radarToggle'), labelText('trailsToggle'), labelText('oldToggle')])],
     ['trailsToggle', 'Behind the layers', 'Open the Layers box at the top right.', () => mc('Which layer shows paths for walking in the mountains?', labelText('trailsToggle') || 'Trails', [labelText('radarToggle'), labelText('thickToggle'), labelText('oldToggle')])],
     ['measureDist', 'Behind the measuring tools', 'Look at the tools at the bottom of the map.', () => mc('Which tool measures how long something is on the map?', 'Measure length', ['Measure area', 'Cross-section', 'Clear'])],
-    ['videoBtn', 'Behind the share tools', '', () => mc('Which button lets you make your own picture or film?', 'Create and share', ['Restore defaults', 'Watch the demo', 'Gallery'])],
+    ['videoBtn', 'Behind the share tools', '', () => mc('Which button lets you make your own picture or film?', 'Create and share', ['Restore defaults', 'Guide', 'Gallery'])],
     ['glacierList', 'Behind the glacier list', '', () => {
       const rows = [...document.querySelectorAll('#glacierList li')].map((li) => ({ n: (li.querySelector('.name') || {}).textContent, a: parseFloat(((li.querySelector('.area') || {}).textContent || '').replace(',', '.')) })).filter((r) => r.n && isFinite(r.a));
       if (rows.length < 3) return NO('The list is not ready yet. Try again.');

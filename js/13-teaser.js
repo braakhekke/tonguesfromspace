@@ -1,5 +1,4 @@
 import { wire } from './wire.js';
-import { $ } from './01-data.js';
 import { asset } from './03-imagery.js';
 import { HASH_AT_LOAD } from './04-state.js';
 // registered for the files below it in the load order (see wire.js)
@@ -9,7 +8,7 @@ Object.defineProperty(wire, 'teaserOpen', { get: () => teaserOpen, configurable:
    ===================================================================== */
 /* A film of about a minute and a half (teaser/, made by scripts/make_teaser.py from the page itself): timelapse, compare, 3D, old photographs, a cross-section, the field notes, more spatial data, glacier sizes, the downloads and the figures.
    It plays once, on the first visit to the plain address (no link to a glacier, no hash), muted, over the page while the page loads behind it. Skip, Esc or the end leave it.
-   Not for people who asked for less motion or less data, On portrait screens the film is shown in the middle, just under full width. "Watch the demo" in the left panel and the link #teaser play it again. */
+   Not for people who asked for less motion or less data, On portrait screens the film is shown in the middle, just under full width. "Watch the demo film" in the guide's menu (js/15-guide.js) and the link #teaser play it again. */
 export const TEASER_KEY = 'tfs-teaser-seen';
 export const teaserSeen = () => { try { return !!localStorage.getItem(TEASER_KEY); } catch { return false; } };
 export const teaserMarkSeen = () => { try { localStorage.setItem(TEASER_KEY, '1'); } catch {} };
@@ -61,5 +60,4 @@ export function openTeaser(auto){
   const p = v.play(); if (p && p.catch) p.catch(() => { if (auto) abort(); else v.controls = true; });
   if (auto) stall = setTimeout(() => { if (v.paused || v.readyState < 3) abort(); }, 6000);      // a slow connection: no film is better than a wait
 }
-export const teaserBtn = $('teaserBtn'); if (teaserBtn) teaserBtn.onclick = () => openTeaser(false);
 if (teaserWanted()) openTeaser(HASH_AT_LOAD !== '#teaser');

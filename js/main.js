@@ -19,4 +19,5 @@ import './11b-pin.js';
 import './12-boot.js';
 import './13-teaser.js';
 import './14-streetview.js';
+import './15-guide.js';
 import './devtools.js';

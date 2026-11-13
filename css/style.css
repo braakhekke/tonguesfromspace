@@ -10,16 +10,13 @@ button,select,input{font:inherit;color:inherit}
 .app{--lw:290px;--rw:320px;display:grid;grid-template-columns:var(--lw) minmax(0,1fr) var(--rw);height:100%}
 
 /* ---------- left ---------- */
-.scroll-cue{position:sticky;bottom:-28px;height:0;margin-top:-24px;z-index:5;pointer-events:none}
+/* the top of step 3 ("Create and share", Your visual, Embed) stays at the bottom of the left panel until the step itself is scrolled into view (js/09-phones.js); not on phones */
+.scroll-cue{position:sticky;bottom:-28px;height:0;margin-top:-16px;z-index:5}      /* -28px: the panel's bottom padding; -24px: its gap, so showing and hiding the copy never changes the panel's height */
 .scroll-cue[hidden]{display:none}
-.scroll-cue::before{content:"";position:absolute;left:-20px;right:-20px;bottom:-28px;height:96px;background:linear-gradient(to bottom,rgba(255,255,255,0),var(--sheet) 80%)}
-.scroll-cue button{position:absolute;left:50%;bottom:8px;transform:translateX(-50%);pointer-events:auto;display:flex;align-items:center;gap:10px;padding:14px 22px;border:0;border-radius:999px;background:var(--accent);color:#fff;font:700 14px/1 var(--sans);letter-spacing:.08em;text-transform:uppercase;box-shadow:0 4px 18px rgba(200,50,42,.45),0 0 0 3px #fff;cursor:pointer;white-space:nowrap;animation:cuePulse 2s ease-in-out infinite}      /* big, solid red: it must be seen */
-.scroll-cue button .num{color:#fff;font-weight:800;font-variant-numeric:tabular-nums;opacity:.85}
-.scroll-cue svg{width:20px;height:20px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round;animation:cueBob 1.6s ease-in-out infinite}
-@keyframes cuePulse{0%,100%{box-shadow:0 4px 18px rgba(200,50,42,.45),0 0 0 3px #fff}50%{box-shadow:0 6px 26px rgba(200,50,42,.7),0 0 0 3px #fff,0 0 0 9px rgba(200,50,42,.18)}}
-@keyframes cueBob{0%,100%{transform:translateY(-2px)}50%{transform:translateY(3px)}}
-@media (prefers-reduced-motion:reduce){.scroll-cue svg,.scroll-cue button{animation:none}}
-.controls{--pad:20px;background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:22px 20px 28px;display:flex;flex-direction:column;gap:24px}
+.cue-card{position:absolute;left:calc(-1 * var(--pad));right:calc(-1 * var(--pad));bottom:0;display:flex;flex-direction:column;gap:10px;padding:16px var(--pad) 18px;background:var(--sheet);border-top:1px solid var(--rule);box-shadow:0 -10px 22px rgba(10,27,51,.13)}      /* flush with the panel's sides and bottom, a line and a soft shadow above it */
+.cue-card .cue-h{padding:0;border:0;background:none;font-family:inherit;text-align:left;cursor:pointer}
+.app.no-glacier .cue-card .dl-grid,.app.sat-off .cue-card .dl-grid{opacity:.4}
+.controls{--pad:20px;background:var(--sheet);border-right:1px solid var(--rule);overflow-y:auto;padding:16px 20px 28px;display:flex;flex-direction:column;gap:16px}
 .brand-top{display:flex;align-items:center;gap:12px;margin:0 0 8px}
 .brand .brand-top h1{margin:0;line-height:1.1}   /* two lines of 20 px x 1.1 = the height of the logo (46 x 44 px) */
 .home-link{color:inherit;text-decoration:none}      /* the title is plain text now; only the region button next to it is interactive */
@@ -43,7 +40,18 @@ button,select,input{font:inherit;color:inherit}
 .brand p{margin:0;color:var(--moraine);font-size:12.5px;text-align:left;hyphens:manual}      /* the blurb fills the width of the panel; the last line of each paragraph stays at the left */
 .brand .what{margin-top:2px;line-height:1.4}
 .step{display:flex;flex-direction:column;gap:10px}
-.controls .step ~ .step{border-top:1px solid var(--rule);margin:0 calc(-1 * var(--pad));padding:22px var(--pad) 0}      /* the thin line runs the full width of the panel */
+.controls > .step,.controls .step ~ .step{border-top:1px solid var(--rule);margin:0 calc(-1 * var(--pad));padding:16px var(--pad) 0}      /* the thin line runs the full width of the panel, above every step (01 Choose too) */
+@keyframes tongueNudge{0%,50%,100%{transform:rotate(45deg)}25%,75%{transform:translateY(6px) rotate(45deg)}}
+/* desktop: the line above steps 02 and 03 dips into a small rounded point (a tongue) above the step number, so the eye is led down to the next step; it is grey while the step waits for a glacier and turns red once the step can be used */
+@media (min-width:721px) and (min-height:521px), (min-width:951px){
+  .controls .step ~ .step{position:relative}
+  .controls .step ~ .step::before,.cue-card::before{content:"";position:absolute;top:-7px;left:calc(var(--pad) + 10px);width:13px;height:13px;box-sizing:border-box;background:var(--sheet);border:solid var(--rule);border-width:0 1px 1px 0;border-bottom-right-radius:4px;transform:rotate(45deg);clip-path:polygon(100% 0,100% 100%,0 100%);transition:border-color .4s}      /* a turned square; only its lower half shows */
+  .app:not(.no-glacier) .controls .step ~ .step::before,.app:not(.no-glacier) .cue-card::before{border-color:var(--accent);border-width:0 1.5px 1.5px 0}
+  /* a glacier was chosen: the points dip twice, first the one above 02, then the one above 03 (class set in chooseGlacier, js/09-phones.js) */
+  .controls.nudge .step ~ .step::before,.controls.nudge .cue-card::before{animation:tongueNudge 1.1s ease-in-out}
+  .controls.nudge #shareGroup::before,.controls.nudge .cue-card::before{animation-delay:.35s}
+  @media (prefers-reduced-motion:reduce){.controls.nudge .step ~ .step::before,.controls.nudge .cue-card::before{animation:none}}
+}
 .step-h{display:flex;align-items:center;gap:12px;margin:0;font-size:14px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:#0A1B33}      /* dark like the title (Tongues from Space), the step number in red: 01 CHOOSE */
 .step-lock{display:none;white-space:nowrap;margin-left:auto;font-size:10.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--moraine)}
 .app.no-glacier .step-lock{display:inline}
@@ -2479,7 +2487,7 @@ body.x-layers .layerbox{max-width:none}
 }
 /* the glacier list the same way: one row at rest (the chosen glacier, else the top of the list), about five rows on hover */
 @media (hover:hover) and (pointer:fine){
-  .glaciers{--gl-row:calc(1lh + 18px);max-height:calc(var(--gl-row) + 6px);overflow-y:hidden;transition:max-height .15s ease}
+  .glaciers{--gl-row:calc(1lh + 12px);max-height:calc(var(--gl-row) + 6px);overflow-y:hidden;transition:max-height .15s ease}
   .glaciers:hover,.glaciers:has(:focus-visible){max-height:calc(5.4 * var(--gl-row) + 6px);overflow-y:auto}
 }
 .years button,.years .landsat-chip{border:0;background:transparent;box-shadow:none;border-radius:var(--r-sm);color:var(--rock);font-weight:500}

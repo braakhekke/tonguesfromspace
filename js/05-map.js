@@ -633,6 +633,25 @@ let swipedAt = 0;      // a swipe along the years steps one year (left = later, 
   });
   document.addEventListener('pointercancel', () => { x0 = null; });
 })();
+/* Desktop: scrolling sideways over the years (two fingers on a trackpad, a tilt wheel, or Shift + wheel) steps through the years with a scene; right = later, left = earlier.
+   The distance is added up, so a long scroll runs through several years; a plain up / down scroll is left alone (the page and the map keep it). */
+(() => {
+  const STEP = 50, PAUSE = 110;      // pixels of scroll per year; the shortest time between two steps (ms)
+  let sum = 0, lastAt = 0, steppedAt = 0;
+  const onWheel = e => {
+    if (!e.target.closest || !e.target.closest('.tl-step') || e.ctrlKey) return;
+    const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? 120 : 1;      // lines and pages to pixels
+    const side = Math.abs(e.deltaX) > Math.abs(e.deltaY), d = (side ? e.deltaX : e.shiftKey ? e.deltaY : 0) * k;
+    if (!d) return;
+    e.preventDefault();      // also keeps the browser from going back a page on a sideways swipe
+    const now = Date.now(); if (now - lastAt > 250 || d * sum < 0) sum = 0; lastAt = now; sum += d;
+    if (Math.abs(sum) < STEP || now - steppedAt < PAUSE) return;
+    const ys = okYears(), at = ys.indexOf(state.one), to = ys[at + (sum > 0 ? 1 : -1)]; sum = 0;
+    if (at < 0 || to === undefined) return;
+    steppedAt = now; goYear(to);
+  };
+  ['tlDots', 'v3dTlLine'].forEach(id => { const el = document.getElementById(id); if (el) el.addEventListener('wheel', onWheel, { passive: false }); });
+})();
 document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('.tl-tools'); if (b) { state.dockOpen = !state.dockOpen; syncDock(); } });
 export function syncFullPlay(){          // the round play / pause button of the full screen (timelapse only, see style.css) follows the real state
   if (!state.playing) state.dockOpen = false;

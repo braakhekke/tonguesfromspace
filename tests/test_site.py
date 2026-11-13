@@ -60,7 +60,7 @@ class SiteCase(unittest.TestCase):
         cls.pw.stop()
         cls.srv.shutdown()
 
-    def open(self, hash="", viewport=None, fresh=False, path=None, **ctx_args):      # fresh: a first visit (the film plays); otherwise the film counts as seen
+    def open(self, hash="", viewport=None, fresh=False, path=None, guide=False, **ctx_args):      # fresh: a first visit (the film plays); otherwise the film counts as seen. guide: the guide's card of a first visit opens; otherwise the guide counts as seen
         path, hash = where(path or DASHBOARD, hash)
         ctx = self.browser.new_context(viewport=viewport or {"width": 1280, "height": 860}, **ctx_args)
         self.addCleanup(ctx.close)
@@ -69,6 +69,8 @@ class SiteCase(unittest.TestCase):
         ctx.add_init_script("try{if(!localStorage.getItem('glacierPrefs'))localStorage.setItem('glacierPrefs','{\"hideR\":false}')}catch(e){}")      # the right panel starts collapsed on a first visit; the tests need it open
         if not fresh:
             ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")      # the film of the first visit would cover the page
+        if not guide:
+            ctx.add_init_script("try{if(!localStorage.getItem('tfs-guide'))localStorage.setItem('tfs-guide','{\"seen\":true}')}catch(e){}")      # the guide's card of the first visit would cover part of the picture
         page = ctx.new_page()
         self.errors = []
         page.on("pageerror", lambda e: self.errors.append(f"pageerror: {e}"))
@@ -227,7 +229,7 @@ class TestRegions(SiteCase):
         self.addCleanup(ctx.close)
         ctx.add_init_script("window.TFS_EXPOSE = true")
         ctx.add_init_script("try{if(!localStorage.getItem('glacierPrefs'))localStorage.setItem('glacierPrefs','{\"hideR\":false}')}catch(e){}")      # the right panel starts collapsed on a first visit; these tests read it
-        ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1')}catch(e){}")
+        ctx.add_init_script("try{localStorage.setItem('tfs-teaser-seen','1');localStorage.setItem('tfs-guide','{\"seen\":true}')}catch(e){}")
         ctx.route("**/*", lambda route: (seen.append(route.request.url), route.continue_())[1] if route.request.url.startswith((self.base, *ALLOWED_EXTERNAL)) or route.request.url.startswith("data:") else route.abort())
         page = ctx.new_page()
         self.errors = []
@@ -445,7 +447,7 @@ class TestRegions(SiteCase):
     def test_vatnajokull_hides_what_has_no_data_and_choosing_the_outlet_works(self):
         page = self.open("#r=is")
         self.assertTrue(page.is_visible("#viewGroup"), "the 3D view is offered (terrain from the ArcticDEM file)")
-        for sel in ("#aerialToggle", "#topoToggle", "#altiToggle", "#radarToggle", "#teaserBtn"):
+        for sel in ("#aerialToggle", "#topoToggle", "#altiToggle", "#radarToggle"):
             self.assertFalse(page.locator(sel).evaluate("e => (e.closest('label') || e).offsetParent !== null"), sel + " should be hidden")
         self.assertTrue(page.evaluate("glacierPicked"))
         self.assertGreaterEqual(page.evaluate("checkGen"), 1, "the scene search starts at once")
@@ -656,7 +658,8 @@ class TestTeaser(SiteCase):
 
     def test_replay_button_and_link(self):
         page = self.open()
-        page.click("#teaserBtn")
+        page.click(".gd-launch")      # the film has no button of its own: the guide's menu plays it again
+        page.click(".gd-bar [data-extra]")
         page.wait_for_selector("#teaser", timeout=5000)
         page.keyboard.press("Escape")
         page.wait_for_selector("#teaser", state="detached", timeout=5000)
