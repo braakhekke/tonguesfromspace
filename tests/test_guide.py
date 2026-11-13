@@ -82,10 +82,13 @@ class TestGuide(SiteCase):
         page.click(".gd-bar [data-extra]")      # and the guide's menu plays the film again
         page.wait_for_selector("#teaser", timeout=5000)
 
-    def test_phone(self):
-        page = self.first(viewport={"width": 390, "height": 844})
-        self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"), "the card does not widen the page")
-        self.assertTrue(page.evaluate("(() => { const b = document.querySelector('.gd-bar').getBoundingClientRect(), s = document.getElementById('stage').getBoundingClientRect(); return b.left >= s.left && b.right <= s.right + 1; })()"), "the card stays inside the picture")
+    def test_phone(self):      # phones are too small for the guide: no card, no pill, no Guide button
+        page = self.open("#g=aletsch&m=single", guide=True, viewport={"width": 390, "height": 844})
+        page.wait_for_timeout(3000)
+        self.assertEqual(page.locator(".gd-card").count(), 0, "the guide never opens by itself on a phone")
+        for sel in (".gd-bar", ".gd-launch"):
+            self.assertFalse(page.locator(sel).first.is_visible(), sel + " is hidden on a phone")
+        self.assertTrue(page.evaluate("document.documentElement.scrollWidth <= innerWidth"))
         self.assertClean()
 
     def test_size_page_and_the_way_there(self):

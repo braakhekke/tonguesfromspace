@@ -74,7 +74,7 @@ export function createGuide(cfg){
 
   let openAt = null; try { openAt = sessionStorage.getItem(OPEN); sessionStorage.removeItem(OPEN); } catch {}
   const framed = (() => { try { return window.top !== window; } catch { return true; } })();      // inside a frame (the review tools, a preview): never open by itself
-  let view = openAt || (!saved.seen && cfg.autoOpen !== false && !framed) ? 'menu' : 'pill';      // menu | run | pill
+  let view = !phone() && (openAt || (!saved.seen && cfg.autoOpen !== false && !framed)) ? 'menu' : 'pill';      // menu | run | pill; on a phone always 'pill' (hidden by CSS: too small for the guide)
   let chapter = Math.max(0, chapters.findIndex(c => c.id === openAt)); if (!openAt) chapter = 0;
   let track = null, beatIx = 0, phase = 'idle', ctx = {t0: 0}, gen = 0, note = '', hoverTarget = null, lastSay = '';
   const beat = () => track && track.beats[beatIx];
@@ -104,8 +104,7 @@ export function createGuide(cfg){
     launch.innerHTML = COMPASS + 'Guide' + (nDone ? '<em>' + nDone + '/' + total + '</em>' : '') + '<i class="gd-prog" style="width:' + (total ? 100 * nDone / total : 0) + '%"></i>';      // the site's own outline button; what has been tried runs as a thin red line along its lower edge
     launch.title = nDone ? nDone + ' of ' + total + ' things tried' : 'A short guide: ' + total + ' things to try'; launch.setAttribute('aria-pressed', String(view !== 'pill'));
     if (view === 'pill') {
-      bar.innerHTML = '<button type="button" class="gd-pill" aria-label="Open the guide"><span class="gd-q">?</span><span class="gd-pl">Guide</span><em>' + nDone + '/' + total + '</em></button>';
-      /** @type {HTMLElement} */ (bar.querySelector('.gd-pill')).onclick = openMenu;
+      bar.innerHTML = '';      // put away: nothing on the picture; the Guide button under the page links opens it again
     } else if (view === 'menu') {
       const ch = chapters[chapter], [kicker, h2] = head(ch);
       const chips = '<div class="gd-chips" role="tablist" aria-label="Chapters of the guide">' + chapters.map((c, i) => { const m = tracksOf(c).length; return '<button type="button" role="tab" class="gd-chip" data-ch="' + i + '" aria-selected="' + (i === chapter) + '">' + c.title + (c.link ? ' ↗' : '<em>' + doneIn(c) + '/' + m + '</em>') + '</button>'; }).join('') + '</div>';

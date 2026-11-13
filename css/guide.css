@@ -81,12 +81,8 @@
 .controls .brand-btns .teaser-btn{flex:1 1 0;min-width:0;max-width:128px;justify-content:center;padding:6px 8px;gap:6px;font-size:12.5px;white-space:nowrap}
 .gd-launch svg{width:14px!important;height:14px!important;fill:none!important;stroke:currentColor;stroke-width:2;stroke-linejoin:round;flex:none}
 .gd-launch svg path{fill:currentColor!important;stroke-width:1}      /* Guide and Tongla Quiz as an even pair */
-.gd-bar[data-view="pill"]{left:auto;right:14px;transform:none;background:none;border:0;box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none}
-.gd-bar[data-view="pill"].gd-has-launch,.gd-bar.gd-held{display:none}
-.gd-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 10px 5px 5px;border:1px solid rgba(255,255,255,.18);border-radius:var(--r-pill);background:rgba(10,18,24,.6);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);font-size:11.5px!important;font-weight:600}
-.gd-pill:hover{background:rgba(10,18,24,.85)}
-.gd-pill .gd-q{display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--ink);font-size:12px;font-weight:800}
-.gd-pill em{font-style:normal;color:rgba(255,255,255,.65);font-variant-numeric:tabular-nums}
+.gd-bar[data-view="pill"]{display:none}
+.gd-bar.gd-held{display:none}
 
 /* ring around the real control: thick outline, two ripples running outward */
 .gd-ring{position:fixed;z-index:3000;pointer-events:none;border-radius:13px;border:3px solid var(--crevasse);box-shadow:0 0 0 3px #fff,0 0 0 7px rgba(45,110,142,.28),0 4px 22px rgba(45,110,142,.45);animation:gdring 1.3s ease-in-out infinite}
@@ -125,6 +121,7 @@
 html.embed .gd-bar,html.embed .gd-inset{display:none!important}
 
 @media(max-width:900px){
+  .gd-launch{display:none!important}      /* phones are too small for the full guide: no pill, no Guide button */
   .gd-bar{max-width:calc(100% - 16px)}
   .gd-bar[data-view="menu"]{width:calc(100% - 16px);padding:10px 12px 11px}
   .gd-bar h2{font-size:16px;margin-bottom:8px;padding-right:22px}
@@ -143,7 +140,6 @@ html.embed .gd-bar,html.embed .gd-inset{display:none!important}
   .gd-msg p{font-size:13.5px}
   .gd-btn{padding:7px 9px;font-size:12px!important}
   .gd-btn svg{display:none}
-  .gd-pl{display:none}.gd-pill{padding:5px 8px 5px 5px}
   /* control below the picture: the bar floats at the bottom of the screen while the page scrolls to the control */
   .gd-bar.gd-float{position:fixed;left:8px;right:8px;bottom:10px!important;transform:none;width:auto!important;max-width:none;z-index:3002}
   .gd-bar.gd-top{position:fixed;left:8px;right:8px;top:8px;transform:none;width:auto!important;max-width:none;z-index:3002}
