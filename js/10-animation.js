@@ -548,11 +548,13 @@ export function niceScale(maxMetres){
   return steps.filter(s => s <= maxMetres).pop() || 100;
 }
 export function fitText(ctx, text, weight, size, maxW){
+  text = (window.tfsT || String)(text);      // German: the same text as on the page (js/i18n.js)
   let s = size;
   do { ctx.font = `${weight} ${s}px ${FONT}`; if (ctx.measureText(text).width <= maxW) break; s -= 2; } while (s > 18);
   return s;
 }
 export function shadowText(ctx, text, x, y, opts = {}){
+  text = (window.tfsT || String)(text);
   ctx.save();
   ctx.shadowColor = 'rgba(0,0,0,.55)'; ctx.shadowBlur = opts.blur ?? 14; ctx.shadowOffsetY = 2;
   ctx.fillStyle = opts.color || '#fff'; ctx.textAlign = opts.align || 'left'; ctx.fillText(text, x, y);

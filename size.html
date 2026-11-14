@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="config.js"></script><script src="js/i18n.js"></script>
 <title>Tongues from Space | How big are glaciers?</title>
 <meta name="description" content="Drag the outline of a Swiss glacier onto a city and see how big it really is.">
 <meta property="og:title" content="Tongues from Space | How big are glaciers?">
@@ -473,7 +474,6 @@ html.embed .lay-btn{display:none!important}      /* the embed has no layer menu 
   <p class="hint vs-guide" id="vsGuide"></p>
   <div class="vs-opts">
     <label class="toggle optsw" title="Only one small line at the bottom: the glaciers, the site and the credit. No figures, no scale bar."><input type="checkbox" id="vMinimal"> <span>Minimize text</span></label>
-    <label class="toggle optsw vo-video vo-3d" title="A heavy thud when each ice cube lands"><input type="checkbox" id="vSound" checked> <span>Sound</span></label>
     <label class="toggle optsw vo-video vo-3d" title="The camera turns round the ice cubes during the video. Off keeps the viewpoint fixed."><input type="checkbox" id="vSwing" checked> <span>Moving viewpoint</span></label>
     <div class="toggle speed-row vo-video vo-3d" title="Drop: the blocks fall from where they are placed (click the ground to place them). My last throw: pick up a block, throw it, and the animation replays the carry and the let-go."><span>Start</span> <span class="start-seg" id="vStartSeg" role="group" aria-label="Start"><button type="button" data-v="drop" aria-pressed="true">Drop</button><button type="button" data-v="throw" aria-pressed="false" disabled>My last throw</button></span><select class="small" id="vStart" hidden aria-hidden="true" tabindex="-1"><option value="drop" selected>Drop</option><option value="throw" disabled>My last throw</option></select></div>
     <label class="toggle speed-row vo-image" title="JPG is smaller; PNG is lossless."><span>File</span> <select class="small" id="vImgFmt"><option value="jpg" selected>JPG</option><option value="png">PNG</option></select></label>

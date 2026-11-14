@@ -75,6 +75,16 @@ def run_landsat(gid, argv):
         original_paint = bl.paint
         bl.paint = lambda a, w, h, cal, qmap=None: original_paint(a, w, h, cal, None)
         bl.fix_l8_blue = lambda *args: None
+    if s.get('land_ice_mask_file'):
+        # The colour-reference patch must be ice-free land. The glacier's own outline alone leaves neighbouring ice (an outlet of an ice cap: the plateau) looking like land,
+        # so the patch search also gets every other inventory unit in the box (a file of GeoJSON polygons named in the session). The outlines of the picker are unchanged.
+        extra = json.load(open(os.path.join(d, s['land_ice_mask_file'])))
+        extra_rings = []
+        for f in extra['features']:
+            g = f['geometry']; polys = g['coordinates'] if g['type'] == 'MultiPolygon' else [g['coordinates']]
+            extra_rings += [[[lat, lon] for lon, lat in ring] for poly in polys for ring in poly]
+        original_auto_land = bl.auto_land
+        bl.auto_land = lambda r, *args, **kwargs: original_auto_land(list(r) + extra_rings, *args, **kwargs)
     bl.find_outlet = lambda oid: (o, 'onboard', rings, 12, bbox)
     sys.argv = ['build_landsat.py', '--outlet', gid, '--alternatives', '4'] + argv
     bl.main()

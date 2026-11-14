@@ -577,3 +577,6 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
 .fl-zoom svg{width:16px;height:16px}
 .flight:not(.zoomable) .fl-zoom{display:none}
 @media (pointer:coarse){.fl-zoom{right:12px;bottom:62px}.fl-zoom button{width:42px;height:42px}}
+
+/* German (js/i18n.js): the hint over the flight picture is longer than in English; it sits at the right and may wrap, so it never covers the year */
+html[lang="de"] .drag-hint{left:auto;right:12px;transform:none;max-width:calc(100% - 150px);white-space:normal;line-height:1.25;text-align:left}

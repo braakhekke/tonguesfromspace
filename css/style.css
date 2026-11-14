@@ -2632,3 +2632,7 @@ html.embed .menu-btn,html.embed .phone-menu{display:none!important}
 }
 #pinBtn.placed svg,#v3mPin.placed svg{fill:var(--accent);stroke:var(--accent)}      /* a pin stands: the button's pin symbol is filled red */
 #pinBtn.placed circle,#v3mPin.placed circle{fill:#fff;stroke:#fff}
+
+/* ---- German (js/i18n.js sets <html lang="de">): longer words than in English; fixes found by scripts/i18n/layout_check.py ---- */
+html[lang="de"] .sw{font-size:10.5px;letter-spacing:-.01em}
+html[lang="de"] .sw span{white-space:nowrap}

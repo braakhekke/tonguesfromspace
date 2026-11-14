@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<script src="config.js"></script><script src="js/i18n.js"></script>
 <title>Tongues from Space | Interactive Glaciers</title>
 <meta name="description" content="Explore glaciers through satellite imagery, interactive 3D maps and visualizations of glacier change: the ten largest Swiss glaciers. Compare, create and share your visuals.">
 <meta property="og:title" content="Tongues from Space - Interactive Glaciers">
@@ -458,7 +459,6 @@
       <input type="range" class="speed-range" id="vSpeed" min="0" max="9" step="1" value="3" aria-label="Speed"><output class="speed-out" id="vSpeedOut" for="vSpeed">2 fps</output></label>
     <label class="toggle speed-row vo-video vo-tl vo-loops"><span>Loops</span> <select class="small" id="vLoops"><option value="1" selected>1</option><option value="2">2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></label>
     <label class="toggle optsw vo-video vo-tl vo-loops"><input type="checkbox" id="vBounce"> <span>Run backwards between loops</span></label>
-    <label class="toggle optsw vo-video vo-tl" title="A very soft tick whenever the year changes (timelapse videos only)"><input type="checkbox" id="vSound" checked> <span>Sound</span></label>
     <label class="toggle speed-row vo-video"><span>Ending</span> <select class="small" id="vEnd"><option value="facts" selected>Fact card</option><option value="loop">No end card</option></select></label>
     <label class="toggle speed-row vo-image" title="JPG is smaller; PNG is lossless. A picture for the gallery is always JPG."><span>File</span> <select class="small" id="vImgFmt"><option value="jpg" selected>JPG</option><option value="png">PNG</option></select></label>
   </div>
