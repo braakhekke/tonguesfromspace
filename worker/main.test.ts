@@ -10,12 +10,12 @@ describe('the Worker entry', () => {
     const ids = Object.keys(deps.index);
     expect(ids).toContain('aletsch');
     expect(ids).toContain('breidamerkurjokull');
-    expect(ids.length).toBe(54);
+    expect(ids.length).toBe(55);
     expect(deps.index.aletsch).toMatchObject({ region: 'ch', hasScenes: true });
   });
   it('/api/ping answers from the relay by meaning', async () => {
     const r = await get('/api/ping');
-    expect(await r.json()).toEqual({ relay: true, glaciers: 54 });
+    expect(await r.json()).toEqual({ relay: true, glaciers: 55 });
   });
   it('a glacier that is not in the index cannot be asked for', async () => {
     expect((await get('/api/candidates/not-a-glacier/2024')).status).toBe(404);
@@ -72,5 +72,43 @@ describe('"please add this glacier" (/ask/)', () => {
     expect((await post({ name: 'Kebnekaise Glacier', token: 't' })).status).toBe(403);
     expect((await post({ name: '<script>alert(1)</script>', token: 't' })).status).toBe(400);
     expect(store.size).toBe(0);
+  });
+});
+
+describe('the languages in the address (/de/, /fr/)', () => {
+  const page = (body: string, type = 'text/html', status = 200, extra: Record<string, string> = {}) => new Response(body, { status, headers: { 'Content-Type': type, ...extra } });
+  const asset = (table: Record<string, Response>) => ({ ...env, ASSETS: { fetch: async (r: Request) => table[new URL(r.url).pathname] || page('missing', 'text/html', 404) } }) as unknown as Env;
+  const html = '<!doctype html>\n<html lang="en"><head><link rel="canonical" href="https://tonguesfromspace.org/size"><meta property="og:url" content="https://tonguesfromspace.org/size"><link rel="stylesheet" href="css/style.abc.css"><script src="config.js"></script><script src="/js/x.js"></script></head><body><a href="gallery.html">g</a><a href="#x">x</a></body></html>';
+  const at = (e: Env, p: string) => worker.fetch(new Request('https://x.test' + p), e, {});
+  it('/de goes to /de/', async () => {
+    const r = await at(env, '/de');
+    expect(r.status).toBe(301);
+    expect(r.headers.get('Location')).toBe('https://x.test/de/');
+  });
+  it('a page under /de/ is the same page with its language, its address and its files from the root', async () => {
+    const r = await at(asset({ '/size': page(html) }), '/de/size');
+    const t = await r.text();
+    expect(t).toContain('<html lang="de">');
+    expect(t).toContain('rel="canonical" href="https://tonguesfromspace.org/de/size"');
+    expect(t).toContain('property="og:url" content="https://tonguesfromspace.org/de/size"');
+    expect(t).toContain('href="/css/style.abc.css"');
+    expect(t).toContain('src="/config.js"');
+    expect(t).toContain('href="gallery.html"');      // a page link stays relative: it stays in the language
+    expect(t).toContain('href="#x"');
+  });
+  it('a missing address stays a 404 in the language', async () => {
+    const r = await at(asset({}), '/fr/nothing-here');
+    expect(r.status).toBe(404);
+  });
+  it('files are answered as they are, and a redirect keeps the prefix', async () => {
+    const e = asset({ '/data/a.json': page('{"a":1}', 'application/json'), '/size.html': new Response(null, { status: 307, headers: { Location: '/size' } }) });
+    expect(await (await at(e, '/fr/data/a.json')).text()).toBe('{"a":1}');
+    const r = await at(e, '/fr/size.html');
+    expect(r.status).toBe(307);
+    expect(r.headers.get('Location')).toBe('/fr/size');
+  });
+  it('the relay and the gallery answer under the prefix too (a page asks for them by a relative name)', async () => {
+    expect((await at(env, '/de/cdse/ping').then((r) => r.json()))).toEqual({ relay: true, managed: true });
+    expect((await at(env, '/fr/api/ping').then((r) => r.json()))).toEqual({ relay: true, glaciers: 55 });
   });
 });

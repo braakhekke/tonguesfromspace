@@ -40,7 +40,7 @@ export function openTeaser(auto){
   const key = e => { if (e.key === 'Escape') { e.preventDefault(); close(); } else if (e.key === ' ' && document.activeElement === document.body) { e.preventDefault(); v.paused ? v.play() : v.pause(); } };
   document.addEventListener('keydown', key, true);
   const mmss = t => { t = Math.max(0, Math.floor(t || 0)); return Math.floor(t / 60) + ':' + String(t % 60).padStart(2, '0'); };
-  const seek = t => { if (v.duration) { v.currentTime = Math.min(Math.max(t, 0), v.duration); end.hidden = true; } };
+  const seek = t => { if (v.duration) { v.currentTime = Math.min(Math.max(t, 0), v.duration); end.hidden = true; skip.hidden = false; } };
   const shown = () => { const f = v.duration ? v.currentTime / v.duration * 100 : 0; bar.style.width = fill.style.width = f + '%'; clock.textContent = mmss(v.currentTime) + ' / ' + mmss(v.duration); track.setAttribute('aria-valuenow', String(Math.round(f))); };
   const state = () => { const playing = !v.paused && !v.ended; box.classList.toggle('paused', !playing); pp.setAttribute('aria-label', playing ? 'Pause' : 'Play'); };
   v.addEventListener('timeupdate', shown); v.addEventListener('loadedmetadata', shown); v.addEventListener('play', state); v.addEventListener('pause', state); v.addEventListener('ended', state);
@@ -49,8 +49,8 @@ export function openTeaser(auto){
   track.addEventListener('pointerdown', e => { track.setPointerCapture(e.pointerId); scrub(e); });
   track.addEventListener('pointermove', e => { if (track.hasPointerCapture(e.pointerId)) scrub(e); });
   track.addEventListener('keydown', e => { const d = e.key === 'ArrowLeft' ? -5 : e.key === 'ArrowRight' ? 5 : 0; if (d) { e.preventDefault(); e.stopPropagation(); seek(v.currentTime + d); } });
-  v.addEventListener('playing', () => { clearTimeout(stall); end.hidden = true; if (auto) teaserMarkSeen(); });
-  v.addEventListener('ended', () => { end.hidden = false; end.querySelector('.teaser-go').focus({preventScroll: true}); });
+  v.addEventListener('playing', () => { clearTimeout(stall); end.hidden = true; skip.hidden = false; if (auto) teaserMarkSeen(); });
+  v.addEventListener('ended', () => { end.hidden = false; skip.hidden = true; end.querySelector('.teaser-go').focus({preventScroll: true}); });
   v.addEventListener('error', () => { if (auto) abort(); else { v.controls = true; } });
   v.addEventListener('click', () => { if (!v.ended) v.paused ? v.play() : v.pause(); });
   skip.onclick = close; box.querySelector('.teaser-go').onclick = close;

@@ -116,15 +116,15 @@
   .tonga-card h4{margin:0 0 2px;font-size:15.5px;letter-spacing:-.01em;color:var(--accent,#C8322A)}
   .tonga-card .prep{background:var(--ice,#CFE3EA);border-radius:var(--r-md,14px);padding:8px 11px;margin:10px 0;font-size:12.5px}
   .tonga-card .opt{display:block;width:100%;text-align:left;margin:7px 0 0;border:2px solid var(--rule,#ddd);border-radius:var(--r-md,14px);background:var(--sheet,#fff);padding:9px 13px;font:600 13px var(--sans,sans-serif);color:inherit;cursor:pointer;transition:transform .15s cubic-bezier(.3,1.6,.5,1),border-color .15s}
-  .tonga-card .opt:hover:not(:disabled){border-color:var(--crevasse,#2D6E8E);transform:translateX(3px)}
+  .tonga-card .opt:hover:not(:disabled){border-color:var(--crevasse,#327DA0);transform:translateX(3px)}
   .tonga-card .opt.bad{background:var(--rule-2,#EDF0F2);border-color:var(--rule-2,#EDF0F2);color:var(--faint,#93A0A7);text-decoration:line-through;cursor:default}
-  .tonga-card .opt.good{background:var(--crevasse,#2D6E8E);border-color:var(--crevasse,#2D6E8E);color:#fff}
+  .tonga-card .opt.good{background:var(--crevasse,#327DA0);border-color:var(--crevasse,#327DA0);color:#fff}
   .tonga-card .opt.good::before{content:"\\2713  "}
   .tonga-card .msg{margin:9px 0 0;font-weight:700;font-size:13px}
   .tonga-card .msg.bad{color:var(--accent,#C8322A)}
   .tonga-card .row{display:flex;gap:8px;margin:12px 0 0;flex-wrap:wrap;align-items:center}
   .tonga-card .btn2{border:2px solid var(--rule,#ddd);border-radius:var(--r-pill,999px);background:var(--sheet,#fff);padding:7px 14px;font:700 12.5px var(--sans,sans-serif);cursor:pointer;color:inherit;transition:transform .15s cubic-bezier(.3,1.6,.5,1)}
-  .tonga-card .btn2:hover{transform:translateY(-1px);border-color:var(--crevasse,#2D6E8E)}
+  .tonga-card .btn2:hover{transform:translateY(-1px);border-color:var(--crevasse,#327DA0)}
   .tonga-card .btn2.p{background:var(--accent,#C8322A);border-color:var(--accent,#C8322A);color:#fff}
   .tonga-card .off{margin-left:auto;border:0;background:none;color:var(--moraine,#66757E);font:11.5px var(--sans,sans-serif);cursor:pointer;padding:4px 0}
   .tonga-card small{color:var(--moraine,#66757E);font-size:11.5px}
@@ -225,10 +225,10 @@
     else { running = false; clearTimeout(hideT); clearTimeout(nextT); closeCard(); el.hidden = true; el.classList.remove('show', 'wiggle'); spot = null; el.remove(); chip.remove(); }
   }
   const start = () => {
-    const bar = ON_SIZE || PHONE.matches ? null : document.querySelector('.brand-btns');
+    const bar = PHONE.matches ? null : document.querySelector('.brand-btns');      /* the explorer and the size page (the size page has its own hiding places, SIZE_SPOTS) */
     if (bar && !$('tongaBtn')) {
       const b = document.createElement('button'); b.type = 'button'; b.className = 'teaser-btn'; b.id = 'tongaBtn'; b.setAttribute('aria-pressed', 'false'); b.title = 'Play: Tongla the tongue hides behind the controls and asks questions';
-      b.innerHTML = '<svg viewBox="0 18 46 52" aria-hidden="true"><path d="M5 69 C2 47 6 22 23 22 C40 22 44 47 41 69 Z"/><path class="g" d="M23 32 L23 60"/></svg>Tongla Quiz';
+      b.innerHTML = '<svg viewBox="0 18 46 52" aria-hidden="true"><path d="M5 69 C2 47 6 22 23 22 C40 22 44 47 41 69 Z"/><path class="g" d="M23 32 L23 60"/></svg>Quiz';
       b.addEventListener('click', () => setOn(!st.on)); bar.appendChild(b);
     }
     updUI(); if (st.on && !PHONE.matches) setOn(true);

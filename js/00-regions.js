@@ -25,7 +25,7 @@ const PATH_REGION = (() => {
   return null;
 })();
 const SITE_BASE = PATH_REGION ? PATH_REGION.base : '';
-const siteFile = name => SITE_BASE + name;
+const siteFile = name => SITE_BASE.replace(/^\/(de|fr)\//, '/') + name;      // the files are the same in every language (/de/ and /fr/ only change the page): one address, one cache entry
 const REGION = (PATH_REGION && PATH_REGION.r) || regionById(new URLSearchParams(location.hash.slice(1)).get('r')) || regionById('ch');
 const FEATURES = REGION.features;
 /* Glacier pages (/switzerland/aletsch/): link previews and search engines do not see the #g= part, so the built site has a page for each glacier with its own title and picture. The page opens on its glacier;

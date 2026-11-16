@@ -1,6 +1,6 @@
 import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, GLACIER_INFO, lv95, $, PHONE } from './01-data.js';
-import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS } from './02-glaciers.js';
+import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS, shortName } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, landsatName, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
 import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
 import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, oldestOn, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN, drawArcs } from './05-map.js';
@@ -37,7 +37,7 @@ export function renderGlacierList(){
     const area = rankArea(g);
     const li = document.createElement('li'), b = document.createElement('button');
     b.type = 'button'; b.setAttribute('aria-pressed', glacierPicked && g.id === state.glacier);      // nothing is highlighted before the first choice
-    b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${g.name}</span><span class="area">${areaText(g, 2)} km²</span>`;
+    b.innerHTML = `<span class="rank">${i+1}</span><span class="name">${shortName(g.name)}</span><span class="area">${areaText(g, 2)} km²</span>`;
     b.onclick = () => wire.chooseGlacier(g.id);
     li.appendChild(b); ul.appendChild(li);
     if (g.subs && glacierPicked && g.id === state.glacier) g.subs.forEach((sb, k) => {      // the outlets of the chosen ice cap, as sub-items: a click zooms to the outlet
@@ -199,7 +199,7 @@ export function renderMeta(){
   const bands = (STYLE_BANDS[state.style] || []).join(' · '), old = oldestAerial.get(g.id);
   const noteYs = one ? [lt && lt.year === state.one ? lt.year : state.one] : ys, noteLs = noteYs.some(y => isLandsat(state.available[y])), noteS2 = !noteYs.length || noteYs.some(y => !isLandsat(state.available[y]));      // labels Before / Since 2016 only when both kinds are on show
   box.innerHTML = `<div class="meta-scroll"><table class="meta-table"><thead><tr><th>Year</th><th>Date</th><th>Orbit</th><th>Image</th><th>Time and sun</th></tr></thead><tbody>${top}${rows}${bottom}</tbody></table></div>
-    <p class="meta-note">${noteLs ? `${noteS2 ? '<b>Before 2016:</b> ' : ''}Landsat Collection 2 Level-2 (surface reflectance), ${styleName(state.style, {sensor: 'landsat'})} (${LANDSAT_BANDS[state.style] || LANDSAT_BANDS.natural}; ${landsatBands(state.style, {sat: 'landsat-5'})}), smoothed when enlarged. The scene is named by its path and row (e.g. P216R015). Gaps in Landsat 7 pictures (2003 to 2012) are filled along the ice flow. ${noteS2 ? '<br><b>Since 2016:</b> ' : ''}` : ''}${noteS2 ? `Sentinel-2 L1C, bands ${bands}${state.style === 'false3' ? ' (Hot: ratio picture)' : ''}, ${state.style === 'false2' || state.style === 'false3' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.` : ''}${old ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ''}</p>
+    <p class="meta-note">${noteLs ? `${noteS2 ? '<b>Before 2016:</b> ' : ''}Landsat Collection 2 Level-2 (surface reflectance), ${styleName(state.style, {sensor: 'landsat'})} (${LANDSAT_BANDS[state.style] || LANDSAT_BANDS.natural}; ${landsatBands(state.style, {sat: 'landsat-5'})}), smoothed when enlarged. The scene is named by its path and row (e.g. P216R015). Gaps in Landsat 7 pictures (2003 to 2012) are filled along the ice flow. ${noteS2 ? '<br><b>Since 2016:</b> ' : ''}` : ''}${noteS2 ? `Sentinel-2 L1C, bands ${bands}${state.style === 'false3' ? ' (Hot: ratio picture)' : ''}, ${state.style === 'false2' || state.style === 'false3' ? '20 m pixels, shown at 10 m' : '10 m pixels'}. Image: satellite and tile of the Sentinel-2 product (hover for its id, click to copy), from the Copernicus Data Space Ecosystem catalogue (STAC); a picture of an area on two tiles lists both. Sun: elevation at the time of the pass. The pictures on show are marked.` : ''}${old ? (FEATURES.swisstopo ? ` Oldest aerial image: flown ${old.flown}, swisstopo SWISSIMAGE edition ${old.ed}.` : ` Oldest aerial image: ${oldestWhat(old)}.`) : ''}</p>
     <button type="button" class="meta-dl" id="metaDl">Download as CSV</button>`;
 }
 export let metaCsv = [];      // the rows of the table as shown, with the figures and whole ids the table leaves out
@@ -256,7 +256,7 @@ export function renderMode(){
     document.querySelectorAll('#swatchesA .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === state.style));
     document.querySelectorAll('#swatchesB .sw').forEach(b => b.setAttribute('aria-pressed', b.dataset.style === sB));
     if (!ccAltChecked && state.styleB) { ccAltChecked = true; if (state.styleB !== state.style) document.getElementById('ccAltB').open = true; } }      // a different composition from a share link: open the fold once; after that only the visitor opens or closes it
-  { const ns = document.getElementById('navSize'), g = currentGlacier(); if (ns && g && FEATURES.sizeTool) ns.href = sizeHref(g, '3d'); }      // the Size link in the panel header opens the size page on this glacier in 3D
+  syncSizeLink();
   applyBrightness();
   document.getElementById('styleNoteA').textContent = document.getElementById('styleNote').textContent = {
     natural: 'As the eye sees it: snow white, rock grey, plants green.',
@@ -507,7 +507,7 @@ export const aboutColours = () => `<details class="about-ch" name="aboutch" id="
           <li><em>False 2</em> (B8A, B11, B12): snow and ice red, clouds white, rock pale, water black. Experimental; handy for telling ice from cloud.</li>
           <li><em>False 3</em> (B04, B11, B02, as a ratio picture): ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).</li>
         </ul>
-      
+        <p>"Hot" is only a nickname: the colours do not show temperature. Sentinel-2 does not measure heat; the picture is made from reflected sunlight, so orange means a surface that reflects light in a certain way (ice and snow), not a warm one.</p>
       </div></details>`;
 export function aboutChaptersCh(){
   return `
@@ -525,7 +525,7 @@ export function aboutChaptersCh(){
         <ul>
           <li>Open a glacier, press Timelapse. Where does the tongue end each year?</li>
           <li>Switch to Slider and drag between 2016 and now.</li>
-          <li>Open the Size visualizer. How big is the ice beside your own city?</li>
+          <li>Open the Size page. How big is the ice beside your own city?</li>
         </ul>
         <h4>What it cannot tell you</h4>
         <ul>
@@ -581,12 +581,12 @@ export function aboutChaptersCh(){
           <li><em>Share:</em> your device's share sheet, or a copied link that reopens this glacier with the same mode, years and colours.</li>
           <li><em>Elevation model</em> (3D, glaciers with yearly surfaces): the ice surface of a year for GIS software, as GeoTIFF, ESRI ASCII grid or XYZ points, in the Swiss grid LV95 (EPSG:2056). A model, not a measurement; for non-commercial use.</li>
           <li><em>Gallery</em> (button under the title): pictures and videos shared by visitors. Sending one confirms you made it and agree it is shown. It waits for approval.</li>
-          <li><em>Size visualizer</em> (above the tabs, right panel): the glacier's ice as a block beside your city (Volume 3D), or its outline dragged onto the city (Area 2D).</li>
+          <li><em>Size page</em> (above the tabs, right panel): the glacier's ice as a block beside your city (Volume 3D), or its outline dragged onto the city (Area 2D).</li>
         </ul>
       
       </div></details>
-      <details class="about-ch" name="aboutch" id="ch-19"><summary>Size visualizer</summary><div class="about-sec">
-        <p>A separate page, the <a href="size.html">Size visualizer</a>, answers one question: how big is a glacier? Open it from the Size link in the header of the left panel. It covers the ten glaciers of this site.</p>
+      <details class="about-ch" name="aboutch" id="ch-19"><summary>Size page</summary><div class="about-sec">
+        <p>A separate page, the <a href="size.html">Size page</a>, answers one question: how big is a glacier? Open it from the Size link in the header of the left panel. It covers the ten glaciers of this site.</p>
         <h4>Two views</h4>
         <ul>
           <li><em>Area (2D):</em> drag a glacier's outline onto a city. The outlines are those of the Swiss Glacier Inventory.${fn('sgi')}</li>
@@ -607,7 +607,7 @@ export function aboutChaptersCh(){
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-20"><summary>Other pages</summary><div class="about-sec">
         <ul>
-          <li><em>Start page</em> (<a href="home.html">home.html</a>): regions and glaciers on a map, and the way into the explorer and the Size visualizer.</li>
+          <li><em>Start page</em> (<a href="home.html">home.html</a>): regions and glaciers on a map, and the way into the studio and the Size page.</li>
           <li><em>Gallery</em> (<a href="gallery.html">gallery.html</a>): pictures and videos shared by visitors (see Create and share).</li>
           <li><em>Field notes</em> (<a href="provenance.html">provenance.html</a>): for each glacier with yearly ice surfaces, how each year's surface was found, how uncertain it is, how it was checked (see The 3D view).</li>
           <li><em>Other regions:</em> the ice cap Vatnajökull in Iceland is in the making, others are planned. Only Switzerland is complete.</li>
@@ -698,9 +698,9 @@ export function aboutChaptersCh(){
       </div></details>
       <details class="about-ch" name="aboutch" id="ch-7"><summary>Ice and water</summary><div class="about-sec">
         <h4>Ice in Switzerland</h4>
-        <p>Swiss glaciers held about 45.1 km³ of ice at the end of 2025 (GLAMOS, Swiss-wide series, which gives the volume of every year since 1915). The explorer uses the years from 2016. 1 km³ of ice gives about 0.9 trillion litres of water.</p>
+        <p>Swiss glaciers held about 45.1 km³ of ice at the end of 2025 (GLAMOS, Swiss-wide series, which gives the volume of every year since 1915). The studio uses the years from 2016. 1 km³ of ice gives about 0.9 trillion litres of water.</p>
         <h4>Ice of one glacier</h4>
-        <p>Grab et al.${fn('grab')} modelled the ice around 2016 (each glacier has its own reference year in the map, 2017 for Aletsch). From there the explorer uses what GLAMOS measured for this glacier:</p>
+        <p>Grab et al.${fn('grab')} modelled the ice around 2016 (each glacier has its own reference year in the map, 2017 for Aletsch). From there the studio uses what GLAMOS measured for this glacier:</p>
         <ul>
           <li>its volume survey: how much ice one metre of yearly mass balance is worth for it;</li>
           <li>its yearly balance (its own where measured, else that of all Swiss glaciers): spreads the loss over the years;</li>
@@ -843,11 +843,10 @@ export function aboutChaptersCh(){
       </div></details>
       <p class="about-group">Behind the site</p>
       <details class="about-ch" name="aboutch" id="ch-21"><summary>About me</summary><div class="about-sec">
-        <p>I am Jochem Braakhekke, from the Netherlands. The mountains became my home ground. I have worked on glaciers around the globe and guided polar expeditions in both the Arctic and the Antarctic.</p>
-        <p>I hold a bachelor's degree in Earth Sciences from the University of Amsterdam and a master's degree in Earth Science from ETH Zürich, with glaciology and geology as my main fields. Today I am an academic associate at the remote sensing lab at UZH and a scientific consultant at the Swiss NPOC.</p>
+        <p>I am Jochem Braakhekke, from the Netherlands, living in Switzerland. I have worked on glaciers around the globe and guided polar expeditions in both the Arctic and the Antarctic.</p>
+        <p>I hold a bachelor's degree in Earth Sciences from the University of Amsterdam and a master's degree in Earth Science from ETH Zürich, with glaciology and geology as my main fields. Today I am an academic associate at the remote sensing lab at UZH and a <a href="https://geo.uzh.ch/en/units/rss/staff/jbraakhekke" target="_blank" rel="noopener">scientific consultant</a> at the <a href="https://www.npoc.ch/" target="_blank" rel="noopener">Swiss National Point of Contact for Satellite data</a>.</p>
         <p>I made Tongues from Space on my own and keep it up to date: the pictures, the numbers, the texts and the code.</p>
-        <p>I use an AI assistant (Claude) to write code, find and read sources and draft texts. I decide what goes in, and I check what it produces before it is published.</p>
-        <p>The code is open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>, where you can also write to me with questions, remarks and bugs. The site is non-commercial; the licences of the code, the texts and the data are in the README and under Sources. Follow along on <a href="https://www.instagram.com/tonguesfromspace/" target="_blank" rel="noopener">Instagram</a> and <a href="https://www.tiktok.com/@tonguesfromspace" target="_blank" rel="noopener">TikTok</a>. See also <a href="https://recognice.org/" target="_blank" rel="noopener">Recogn.ice</a> and <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a>.</p>
+        <p>The code is open on <a href="https://github.com/braakhekke/tonguesfromspace" target="_blank" rel="noopener">GitHub</a>, where you can also write to me with questions, remarks and bugs. The site is non-commercial; the licences of the code, the texts and the data are in the README and under Sources. See <a href="https://recognice.org/" target="_blank" rel="noopener">Recogn.ice</a> and <a href="https://foryourice.org/" target="_blank" rel="noopener">For Your Ice</a> for two more projects I founded to increase glacier awareness.</p>
       
       </div></details>
 `;
@@ -858,7 +857,7 @@ document.getElementById('story').addEventListener('click', e => {      // the to
   if (matchMedia('(max-width:720px)').matches) document.getElementById('stage').scrollIntoView({block: 'start', behavior: 'smooth'});      // on a phone the map is above the panel
   sb.click();
 });
-const FIELD_NOTES = ['B36-26', 'B56-07', 'B43-03', 'B40-07', 'A54g-11', 'B83-03', 'B57-05', 'B56-03', 'B53-04', 'A54e-24'];      // the glaciers with yearly surfaces and so a provenance.html page (data/yearly/<id>.json)
+const FIELD_NOTES = ['B36-26', 'B56-07', 'B43-03', 'B40-07', 'A54g-11', 'B83-03', 'B57-05', 'B56-03', 'B53-04', 'A54e-24', 'franz-josef'];      // the glaciers with field notes: a provenance.html page (data/yearly/<id>.json; Swiss yearly surfaces, or one measured surface from scripts/build_field_notes.py)
 document.getElementById('story').addEventListener('click', e => {      // the field notes page gets the year on screen and the way back to this view
   const a = e.target.closest && e.target.closest('.notes-btn'); if (!a) return;
   const y = state.mode === 'single' ? state.one : state.mode === 'compare' ? state.b : state.to;
@@ -1022,6 +1021,13 @@ export const SOURCES = {
   is_dem:    () => `ÍslandsDEM v1.0 (10 m, composite of ArcticDEM and lidar), © Náttúrufræðistofnun Íslands and Landmælingar Íslands, CC BY 4.0: the ground the strips are fitted to. ${lnk('https://ftp.natt.is/gisdata/raster/', 'ftp.natt.is')}, catalogue ${lnk('https://gatt.lmi.is', 'gatt.lmi.is')}.`,
   is_osm:    () => `OpenStreetMap contributors (ODbL): footpaths and tracks, peak and place names, via the ${lnk('https://overpass-api.de', 'Overpass API')}. ${lnk('https://www.openstreetmap.org/copyright', 'openstreetmap.org/copyright')}.`,
   is_wiki:   () => `Wikipedia, ${lnk('https://en.wikipedia.org/wiki/Brei%C3%B0amerkurj%C3%B6kull', 'Breiðamerkurjökull')} and ${lnk('https://en.wikipedia.org/wiki/J%C3%B6kuls%C3%A1rl%C3%B3n', 'Jökulsárlón')} (CC BY-SA 4.0): the name, the lagoon, the history and the news item, with the sources named there (Iceland on the web, Guðmundsson et al., BBC, Vísir, RÚV).`,
+  /* New Zealand (Franz Josef Glacier): the sources of the right panel and the 3D view; the keys start with nz_ */
+  nz_glims:  () => `GLIMS Glacier Database (NSIDC-0272 v1): the outlines of Franz Josef Glacier, 1978 (Chinn, from the Randolph Glacier Inventory) and 2019 (Carrivick et al., Google Earth Engine), and the areas of the dated outlines of the database (1600 Little Ice Age moraines, 1978, 2000, 2009, 2016, 2019). GLIMS Consortium, Raup, B. H., Racoviteanu, A., Khalsa, S. S., Helm, C., Armstrong, R. and Arnaud, Y. (2005), GLIMS Glacier Database (NSIDC-0272, Version 1), NASA National Snow and Ice Data Center DAAC, ${lnk('https://doi.org/10.7265/N5V98602', 'doi:10.7265/N5V98602')}; Raup, B. H. et al. (2007), The GLIMS geospatial glacier database, Global and Planetary Change 56, ${lnk('https://doi.org/10.1016/j.gloplacha.2006.07.018', 'doi:10.1016/j.gloplacha.2006.07.018')}. The only condition the data page states is to cite the use of the data set (${lnk('https://nsidc.org/data/nsidc-0272/versions/1', 'nsidc.org')}); it does not say whether commercial use is allowed, so the site stays non-commercial.`,
+  nz_linz:   () => `LINZ (Toitū Te Whenua Land Information New Zealand) and the West Coast Regional Council: West Coast LiDAR 1 m DEM and point clouds, captured by Aerial Surveys, CC BY 4.0 (${lnk('https://linz.github.io/elevation/', 'linz.github.io/elevation')}; point clouds also at OpenTopography, ${lnk('https://doi.org/10.5069/G9Z31WV0', 'doi:10.5069/G9Z31WV0')}). Heights are NZVD2016. The ice surface in the 3D view is the newest flight day of this survey on each part of the glacier; the flight days (2024-01-07 to 2025-03-12) are read from the GPS time of the point clouds. Where the elevation model has no data the Copernicus GLO-30 model (30 m) fills the gap. The highest and lowest point of the 2019 outline are calculated here from the elevation model.`,
+  nz_aerial: () => `LINZ (Toitū Te Whenua Land Information New Zealand), scanned aerial photographs of 1986-1987 (0.75 m, West Coast / Canterbury SN8585; 0.96 m, Canterbury / West Coast SN8595), CC BY 4.0, from the ${lnk('https://nz-imagery.s3.ap-southeast-2.amazonaws.com/catalog.json', 'LINZ imagery catalogue')} (layer "Oldest"). The catalogue gives only the capture interval of each set, not a day per photograph. Shown as scanned.`,
+  nz_wiki:   () => `Wikipedia, ${lnk('https://en.wikipedia.org/wiki/Franz_Josef_Glacier', 'Franz Josef Glacier')} (CC BY-SA 4.0): the name and its origin, the advances and retreats, the floods and the news items, with the sources named there.`,
+  nz_wk:     () => `Wang, D. and Kääb, A. (2015), Modeling Glacier Elevation Change from DEM Time Series, Remote Sensing 7(8), 10117–10142, ${lnk('https://doi.org/10.3390/rs70810117', 'doi:10.3390/rs70810117')} (open access): elevation and volume change of Franz Josef Glacier from 31 ASTER DEMs and the SRTM DEM, 2000–2014, and the national DEM of 1986.`,
+  nz_wgms:   () => `WGMS (2026), Fluctuations of Glaciers Database, version 2026-02-10, ${lnk('https://doi.org/10.5904/wgms-fog-2026-02-10', 'doi:10.5904/wgms-fog-2026-02-10')}: front variation of Franz Josef / Kā Roimata o Hine Hukatere (glacier id 899), length change in metres (+ advance, − retreat), the rows with the dates, uncertainties and remarks as the database gives them. Open access under the requirement of correct citation (${lnk('https://wgms.ch/data_databaseversions/', 'wgms.ch')}); the rows cite, among others, Purdie et al. (2014), Global and Planetary Change 121, 41–52.`,
   /* Norway and Svalbard, and the terrain of the regions that have no terrain file of their own */
   no_nve:    () => `NVE, the Norwegian Water Resources and Energy Directorate: glacier inventory of mainland Norway 2018–2019 (outlines made from Sentinel-2 images, areas, lengths and heights of the glacier units; a glacier is the units that hang together). Andreassen, L. M. (2022), Breer og fonner i Norge, NVE Rapport 3-2022; Andreassen, L. M. et al. (2022), An inventory of Norway's glaciers and ice-marginal lakes from 2018–19 Sentinel-2 data, Journal of Glaciology 68(272), 1085–1106, ${lnk('https://doi.org/10.1017/jog.2022.20', 'doi:10.1017/jog.2022.20')}. Data: the map service Bre of NVE (${lnk('https://www.nve.no/hydrology/glaciers/', 'nve.no/hydrology/glaciers')}); NVE asks to cite these two publications. Terms to be checked for anything beyond non-commercial use. The area of Norway, 2,328 km², and the list of the ten largest glaciers are from NVE's glacier page.`,
   no_old:    () => `NVE, glacier inventory of 1947–1985 (outlines from topographic maps and aerial photographs; the year of the outline differs by glacier), the layer Breflate_Historisk of the same map service. Used for the older outline and area.`,
@@ -1030,7 +1036,7 @@ export const SOURCES = {
   water:  () => `Swiss water supply of 931 million m³ in 2022: SVGW (Swiss Gas and Water Industry Association). Other comparisons: Eiffel Tower 330 m with antennas (${lnk('https://www.toureiffel.paris', 'toureiffel.paris')}), football pitch 105 × 68 m, city bus about 12 m, Olympic pool 50 × 25 × 2 m, Lake Zurich 3.9 km³.`,
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`
 };
-export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj)_/.test(k));      // the sources of the region, in the order of the list in About
+export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj|nz)_/.test(k));      // the sources of the region, in the order of the list in About
 /* a small raised number in the text; the click opens the Sources block and shows the entry (a back-link returns to the text) */
 export let fnSeq = 0;
 /* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
@@ -1291,7 +1297,8 @@ export function retreatChart(g, lo, hi){
   return barChart('Retreat per year', 'm', items, `Length change per year, ${first} to ${last}`) + (items.some(i => i.avg) ? '<p class="chart-note">Dashed bars: GLAMOS measured these years only together, so the change is spread evenly over them.</p>' : '') + (items.some(i => i.v == null) ? '<p class="chart-note">Empty years have no length survey.</p>' : '');
 }
 /* The size comparison page (size.html): the glacier is passed by its inventory id (the SGI code, glaciers.js `inv.id`). */
-export const sizeHref = (g, mode) => '/size.html' + (g && g.inv && g.inv.id ? '#g=' + g.inv.id + (mode ? '&mode=' + mode : '') : (mode ? '#mode=' + mode : ''));      // mode '3d': the page opens on Volume 3D
+export function syncSizeLink(){ const ns = document.getElementById('navSize'), g = currentGlacier(); if (ns && g && FEATURES.sizeTool) ns.href = sizeHref(g, viewMode === '3d' ? '3d' : '2d'); }      // the Size link of the page switch opens the size page on this glacier, in Volume 3D when the stage shows 3D here and in Area on the map
+export const sizeHref = (g, mode) => { const id = g && (g.inv ? g.inv.id : g.id), q = [REGION.id !== 'ch' && 'r=' + REGION.id, id && 'g=' + id, mode && 'mode=' + mode].filter(Boolean).join('&'); return '/size.html' + (q ? '#' + q : ''); };      // mode '3d': the page opens on Volume 3D; another region names itself (r=nz), its glaciers are named by their own id
 export function renderStats(g, lo, hi){
   const S = stats(g, lo, hi);
   const group = (key, title) => { return `

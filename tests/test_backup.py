@@ -14,11 +14,11 @@ def write(base, rel, text="x" * 50):
 
 class TestSelect(unittest.TestCase):
     def test_secrets_and_caches_never_go_in_and_the_records_do(self):
-        paths = ["data/regions/ch/aletsch/record.json", "data/landsat/aletsch/2001.jpg", "walkthrough/credentials.ts", "docs/sources/ch-swissbedrock.md", "scripts/tools/review.html",
+        paths = ["data/regions/ch/aletsch/record.json", "data/landsat/aletsch/2001.jpg", "walkthrough/credentials.ts", "docs/sources/ch-swissbedrock.md",
                  ".dev.vars", "scripts/.cdse-credentials", "scripts/.google-key", "config/prod.env", "id_rsa", "rclone.conf", "server.pem", "my_secret_notes.txt",
                  "node_modules/x/index.js", "_site/index.html", "scripts/.landsat-cache/a.tif", ".cache/rgi7/z", "teaser/work/frame.png", "scripts/__pycache__/x.pyc", "experiments/big/a.npz", ".DS_Store"]
         kept, out = backup.select(paths)
-        for p in ("data/regions/ch/aletsch/record.json", "data/landsat/aletsch/2001.jpg", "walkthrough/credentials.ts", "docs/sources/ch-swissbedrock.md", "scripts/tools/review.html"):
+        for p in ("data/regions/ch/aletsch/record.json", "data/landsat/aletsch/2001.jpg", "walkthrough/credentials.ts", "docs/sources/ch-swissbedrock.md"):
             self.assertIn(p, kept, p + " must be saved")
         for p in (".dev.vars", "scripts/.cdse-credentials", "scripts/.google-key", "config/prod.env", "id_rsa", "rclone.conf", "server.pem", "my_secret_notes.txt"):
             self.assertNotIn(p, kept, p + " is a secret and must never be copied")

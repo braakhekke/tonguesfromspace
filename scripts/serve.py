@@ -24,10 +24,6 @@ Create the OAuth client at https://shapps.dataspace.copernicus.eu/dashboard/ -> 
 import argparse, getpass, json, os, re, ssl, sys, threading, time, urllib.error, urllib.parse, urllib.request, webbrowser
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-try: import review_lib      # local review walk-through; not in the repository
-except ImportError: review_lib = None
-try: import onboard_lib     # local onboarding page (scripts/tools/onboard.html): the steps, and a whitelisted runner for their commands
-except ImportError: onboard_lib = None
 
 IDENTITY = os.environ.get("CDSE_IDENTITY", "https://identity.dataspace.copernicus.eu")
 SH = os.environ.get("CDSE_SH", "https://sh.dataspace.copernicus.eu")
@@ -92,7 +88,7 @@ class Token:
             return self.value
 
 TOKEN = None
-REGION_ADDRESS = {"switzerland": "", "iceland": "#r=is", "iceland/vatnajokull": "#r=is", "iceland/rest": "#r=is", "norway": "#r=no-mainland", "svalbard": "#r=no-svalbard"}      # path: js/regions.js
+REGION_ADDRESS = {"switzerland": "", "iceland": "#r=is", "iceland/vatnajokull": "#r=is", "iceland/rest": "#r=is", "norway": "#r=no-mainland", "svalbard": "#r=no-svalbard", "new-zealand": "#r=nz"}      # path: js/regions.js
 
 # ---------------------------------------------------------------- server
 class Handler(SimpleHTTPRequestHandler):
@@ -110,25 +106,30 @@ class Handler(SimpleHTTPRequestHandler):
         parts = [x for x in urllib.parse.unquote(self.path.split("?")[0]).split("/") if x]
         return any(x.startswith(".") for x in parts) or (parts[:1] == ["scripts"] and parts[:2] != ["scripts", "tools"])
 
+    def _strip_lang(self):
+        """/de/... and /fr/... are the same files as /... (the page reads its language from the address, js/i18n.js; on the public site the Worker does this, worker/main.ts)."""
+        self.lang_prefix = ""
+        m = re.match(r"^/(de|fr)(/[^?]*)?(\?.*)?$", self.path)
+        if m:
+            self.lang_prefix = "/" + m.group(1)
+            self.path = (m.group(2) or "/") + (m.group(3) or "")
+
     def do_HEAD(self):
+        self._strip_lang()
         return self._send(404, "text/plain", b"Not found") if self._hidden() else super().do_HEAD()
 
     def do_GET(self):
+        self._strip_lang()
         if self.path.split("?")[0] == "/":      # the front page of the public site is the region picker; the explorer is /index.html here
             self.path = "/home.html" + self.path[1:]
         # the addresses of the public site (/switzerland/#g=aletsch) exist only in the built site; here they open the explorer (a #r= is added for the other regions, a link's own # is kept for Switzerland)
         seg = self.path.split("?")[0].strip("/")
         if seg in REGION_ADDRESS:
             self.send_response(302)
-            self.send_header("Location", "/index.html" + ("?" + self.path.split("?", 1)[1] if "?" in self.path else "") + REGION_ADDRESS[seg])
+            self.send_header("Location", self.lang_prefix + "/index.html" + ("?" + self.path.split("?", 1)[1] if "?" in self.path else "") + REGION_ADDRESS[seg])
             return self.end_headers()
         if self.path == "/cdse/ping":
             return self._send(200, "application/json", b'{"relay":true,"managed":true}')
-        if review_lib and self.path.split("?")[0] == "/review/state":          # the review walk-through (scripts/tools/review.html, scripts/review_lib.py)
-            try: return self._send(200, "application/json", json.dumps(review_lib.state()).encode())
-            except Exception as e: return self._error("review state: %s" % e)
-        if onboard_lib and self.path.startswith("/onboard/"):
-            return self._onboard()
         if self._hidden():
             return self._send(404, "text/plain", b"Not found")
         if self.headers.get("Range") and self._range():
@@ -155,39 +156,8 @@ class Handler(SimpleHTTPRequestHandler):
             fh.seek(lo); self.wfile.write(fh.read(hi - lo + 1))
         return True
 
-    def _onboard(self):
-        """/onboard/state, /onboard/save, /onboard/run, /onboard/job?id=&since=, /onboard/stop (scripts/onboard_lib.py). Only from this computer's own page:
-        the Host must be localhost and the custom X-Onboard header must be there (a page on another site cannot send it without our consent)."""
-        host = (self.headers.get("Host") or "").split(":")[0]
-        if host not in ("localhost", "127.0.0.1") or self.headers.get("X-Onboard") != "1":
-            return self._send(403, "application/json", b'{"error":"not allowed"}')
-        u = urllib.parse.urlparse(self.path)
-        q = urllib.parse.parse_qs(u.query)
-        try:
-            j = {}
-            if self.command == "POST":
-                j = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
-            if u.path == "/onboard/state": out = onboard_lib.state()
-            elif u.path == "/onboard/save": out = onboard_lib.save_plan(j)
-            elif u.path == "/onboard/run": out = onboard_lib.start(j.get("cmd"), j.get("label"), j.get("target"))
-            elif u.path == "/onboard/stop": out = onboard_lib.stop(int(j.get("id")))
-            elif u.path == "/onboard/job":
-                out = onboard_lib.poll(int(q["id"][0]), int(q.get("since", ["0"])[0]))
-                if out is None: return self._send(404, "application/json", b'{"error":"no such job"}')
-            else: return self._send(404, "application/json", b'{"error":"unknown"}')
-            return self._send(200, "application/json", json.dumps(out).encode())
-        except (ValueError, KeyError, TypeError) as e:
-            return self._send(400, "application/json", json.dumps({"error": str(e)}).encode())
-
     def do_POST(self):
-        if onboard_lib and self.path.startswith("/onboard/"):
-            return self._onboard()
-        if review_lib and self.path.split("?")[0] == "/review/sign":
-            try:
-                j = json.loads(self.rfile.read(int(self.headers.get("Content-Length") or 0)) or b"{}")
-                return self._send(200, "application/json", json.dumps(review_lib.sign(j["id"], j["step"], j["kind"], j.get("note", ""))).encode())
-            except (ValueError, KeyError) as e:
-                return self._send(400, "application/json", json.dumps({"error": str(e)}).encode())
+        self._strip_lang()
         target = ROUTES.get(self.path.split("?")[0])
         if not target:
             return self._send(404, "text/plain", b"Unknown relay path")

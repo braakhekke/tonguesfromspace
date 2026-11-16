@@ -10,7 +10,7 @@ const q = s => /** @type {HTMLElement} */ (document.querySelector(s));
 const press = el => !!el && el.getAttribute('aria-pressed') === 'true';
 const is3d = () => document.body.classList.contains('is-3d');
 const modeBtn = m => q('#modeSwitch [data-mode="' + m + '"]');
-const tenBtn = () => q('#allTen button');
+const tenBtn = () => q('#tenBtn');
 const released = () => Date.now() - input.down > 600;
 const paneOpen = () => !$('videoSheet').hidden;
 const fmtOn = () => (['vfWide', 'vfReel', 'vfFeed', 'vfCustom'].find(id => press($(id))) || '');
@@ -36,7 +36,7 @@ const SIZE = [
   { id: 'size-ten', icon: ICON.ten, title: 'All ten at once', line: 'Every glacier of the list, side by side', where: 'Choose › Ten', used: tenBtn,
     async setup(api){ closePane(); await to(api, '3d'); },
     beats: [
-      { say: 'Switch on Ten.', target: tenBtn, skipIf: () => press(tenBtn()), done: () => press(tenBtn()), praise: 'All ten glaciers at once.' },
+      { say: 'Pick Ten.', target: tenBtn, skipIf: () => press(tenBtn()), done: () => press(tenBtn()), praise: 'All ten glaciers at once.' },
       { say: 'Now Total Swiss.', target: () => $('totalSw'), skipIf: () => !shown($('totalSw')), done: () => press($('totalSw')), praise: 'All Swiss glaciers together as one block.' }
     ] },
   { id: 'size-make', icon: ICON.image, title: 'Your visual', line: 'A picture or animation of what you built', where: 'Create and share › Your visual', used: () => $('videoBtn'),
@@ -50,7 +50,7 @@ const SIZE = [
 const CHAPTERS = [
   { id: 'size', title: 'Compare sizes', kicker: 'Compare sizes', head: 'How big is a glacier?', tracks: SIZE },
   { id: 'start', title: 'Explorer', kicker: 'Another page', head: 'See it from space', foot: 'The guide continues there.',
-    link: { href: $('navExplorer') ? $('navExplorer').getAttribute('href') : 'index.html', open: 'start', icon: ICON.image, title: 'Back to the Explorer', line: 'Satellite pictures year by year, 3D and the glacier’s story' } }
+    link: { href: $('navExplorer') ? $('navExplorer').getAttribute('href') : 'index.html', open: 'start', icon: ICON.image, title: 'Back to the Studio', line: 'Satellite pictures year by year, 3D and the glacier’s story' } }
 ];
 
 if (!document.documentElement.classList.contains('embed')) createGuide({

@@ -1726,5 +1726,37 @@
    "note": ""
   },
   "hasScenes": false
+ },
+ "franz-josef": {
+  "region": "nz",
+  "name": "Franz Josef Glacier",
+  "pictureBox": [
+   [
+    -43.55856,
+    170.12421
+   ],
+   [
+    -43.41207,
+    170.30891
+   ]
+  ],
+  "balanceYear": {
+   "start": "04-01",
+   "end": "03-31",
+   "label": "ends-in",
+   "source": "imported: the scene window of this region is written against 03-31 (js/regions.js, balanceYear); no source gives a balance year for this glacier"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 70,
+   "daysAfterEnd": 15,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "oneOrbit": true,
+   "note": ""
+  },
+  "hasScenes": true
  }
 }

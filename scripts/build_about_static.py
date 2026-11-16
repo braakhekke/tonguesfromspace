@@ -28,4 +28,8 @@ try:
 finally:
     srv.terminate()
 (ROOT / 'data' / 'about-static.html').write_text(html + '\n', encoding='utf-8')
+import hashlib
+src = (ROOT / 'js' / '07-render.js').read_text(encoding='utf-8')
+m = re.search(r'export function aboutChaptersCh\(\)\{.*?\n\}\n', src, re.S)
+(ROOT / 'data' / 'about-static.sha1').write_text(hashlib.sha1(m.group(0).encode('utf-8')).hexdigest() + '\n')      # tests/test_about_static.py compares it with the source
 print('data/about-static.html', len(html), 'bytes')

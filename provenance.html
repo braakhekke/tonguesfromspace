@@ -67,7 +67,7 @@
   .fn .notes { margin-top:14px; } .fn .legend { margin-top:10px; } .fn #detail { margin-top:12px; }
   .fn .row0 { display:flex; gap:28px; align-items:flex-start; flex-wrap:wrap; } .fn .row0 .mapcard { border:0; padding:0; flex:0 0 520px; } .fn .row0 .mapcap { flex:1 1 320px; font-size:12.5px; margin-top:0; max-width:560px; } .fn .row0 .mapcap p { margin:0 0 8px; }
   #overview { display:none; } .ov #overview { display:block; } .ov #allFn { display:none; } .ov main > .sub, .ov .toc, .ov .fn, .ov .bednote { display:none; }
-  .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
+  .ovl { display:grid; grid-template-columns:repeat(auto-fill,minmax(240px,1fr)); gap:10px; } .ovf { display:flex; flex-wrap:wrap; gap:6px; margin:0 0 12px; } .ovf:empty { display:none; } .ovf button { font:inherit; font-size:12px; padding:4px 12px; border:1px solid var(--rule); border-radius:999px; background:var(--card); color:var(--muted); cursor:pointer; } .ovf button[aria-pressed="true"] { background:var(--loss); border-color:var(--loss); color:#fff; } .ovc { display:flex; flex-direction:column; gap:3px; background:var(--card); border:1px solid var(--rule); border-radius:10px; padding:12px 14px; color:var(--ink); text-decoration:none; } .ovc:hover { border-color:var(--loss); } .ovc b { color:var(--loss); font-size:14px; } .ovc span { color:var(--muted); font-size:12px; } .ovc .k { font-size:11px; color:var(--faint); }
   @media (max-width:640px) { main { padding:16px 12px 32px; } .mapcard { flex:1 1 100%; min-width:0; max-width:100%; } .maps svg#map0 { flex:0 0 28%; } .fn, .bednote { padding:12px 12px 10px; } .bednote figure svg { width:100%; } .bednote figcaption { max-width:none; } .bednote .figkey svg { width:100%; max-width:230px; } .fn .r span:first-child { flex-basis:70px; } }
   /* the field notes: one chapter at a time, opened by a click on its button in the menu */
   main { overflow-x:clip; }
@@ -95,8 +95,7 @@
   .brand b{font-size:22px;line-height:30px;font-weight:700;letter-spacing:-.018em;white-space:nowrap}
   .bar nav{display:flex;gap:26px;align-items:center}
   .bar nav a{display:inline-flex;align-items:center;gap:7px;white-space:nowrap;font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none}
-  .bar nav a:hover,.bar nav a[aria-current]{color:#fff}
-  .bar nav .nav-home{display:none}
+  .bar nav a:hover{color:#fff}.bar nav a[aria-current]{color:#C8322A;font-weight:700}      /* the page you are on */
   @media (max-width:900px){.bar nav{gap:0}.brand b{font-size:18px}}
   @media (max-width:640px){.bar .wrap{padding:0 14px;height:52px;gap:10px}.brand{gap:10px}.brand img{height:24px}.bar .brand b{display:none}.bar nav{gap:14px}.bar nav a{font-size:12px}.bar nav .nav-home{display:inline-flex}}
   /* the row under the header: back, and the same glacier in the explorer and on the size page */
@@ -149,21 +148,20 @@
   </a>
   <nav>
     <a class="nav-home" data-home href="home.html">Home</a>
-    <a data-dash href="index.html">Explorer</a>
-    <a href="size.html">Size visualizer</a>
+    <a data-dash href="index.html">Studio</a>
     <a href="provenance.html" aria-current="page">Field notes</a>
     <a href="gallery.html">Gallery</a>
   </nav>
 </div></header>
 <main>
 <div class="gbar"><a href="/" id="back" style="color:var(--ice)">← Tongues from Space</a>
-<div class="glinks" id="glinks" hidden><a id="glEx" href="index.html"><span>Open <span class="gn">this glacier</span> in the Explorer</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a><a id="glSz" href="size.html"><span>Open <span class="gn">this glacier</span> in the Size Visualizer</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a></div></div>
+<div class="glinks" id="glinks" hidden><a id="glEx" href="index.html"><span>Open <span class="gn">this glacier</span> in the Studio</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a><a id="glSz" href="size.html"><span>Open <span class="gn">this glacier</span> in the Size page</span> <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M13 6l6 6-6 6"/></svg></a></div></div>
 <h1>Scientific field notes</h1>
 <p class="sub" id="allFn" style="margin:0 0 10px"><a href="provenance.html" id="allFnA" style="color:var(--ice)">All glaciers with field notes</a></p>
 <p class="sub" id="sub">An open look at the data behind Tongues from Space, for <span id="gname">this glacier</span>. These notes show what was measured and what was calculated, how far each result can be trusted, and how the ice surface, the ice bed, the map layers and the size comparisons were made, with all sources and licences. Every number is either computed for this site or taken from a named source.</p>
 <aside class="sci" id="sci"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3.5h10.5a1.5 1.5 0 0 1 1.5 1.5v14.5H7.5A1.5 1.5 0 0 1 6 18zM6 18a1.5 1.5 0 0 1 1.5-1.5H18M9.5 8h5M9.5 11h5"/></svg><div><b>For scientific use.</b> This page documents how the data on Tongues from Space was made, in detail. Where a glacier has yearly surfaces, its elevation models can be downloaded here (GeoTIFF, ESRI ASCII grid or XYZ) for GIS and 3D programs: see the download in the chapter “Ice surface through time”.</div></aside>
 <aside class="sci sci-phone" id="sciPhone"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="2.5" width="10" height="19" rx="2.5"/><path d="M11 18.5h2"/></svg><div>The scientific field notes are an extensive, scientific insight into the data that has been used by and computed for Tongues from Space. Its original format can only be viewed on bigger screens and the below is a simplified version of that.</div></aside>
-<div id="overview"><p class="sub">Each page shows how one glacier's 3D ice surface was rebuilt for every year: what was measured, what was calculated, how well it checks out. Choose a glacier.</p><div id="ovList" class="ovl"></div></div>
+<div id="overview"><p class="sub">Each page shows how one glacier's 3D ice surface was rebuilt for every year: what was measured, what was calculated, how well it checks out. Choose a glacier.</p><div id="ovCountry" class="ovf" role="group" aria-label="Country"></div><div id="ovList" class="ovl"></div></div>
 <nav class="toc" aria-label="Chapters"></nav>
 
 <section class="fn" id="area" data-toc="Study area"><h2><span class="no"></span>Study area: <span id="areaT">the tongue</span></h2>
@@ -235,7 +233,7 @@
 <li><b>Off by default.</b> Every other picture on the site is the original Sentinel-2 image, never sharpened, and no number on the site comes from this layer.</li>
 <li><b>Credit.</b> Contains modified Copernicus Sentinel data.</li></ul></section>
 <section class="fn" id="sizearea" data-toc="Size page: area (2D)"><h2>Size page, Area (2D): an outline laid on a city</h2>
-<p class="lead">The <a href="size.html" style="color:var(--ice)">Size visualizer</a> in Area view lets you drag the outline of <span class="gn">this glacier</span> onto a city or onto another glacier. Nothing is drawn or estimated for it beyond what is listed here.</p>
+<p class="lead">The <a href="size.html" style="color:var(--ice)">Size page</a> in Area view lets you drag the outline of <span class="gn">this glacier</span> onto a city or onto another glacier. Nothing is drawn or estimated for it beyond what is listed here.</p>
 <ul class="fnl">
 <li><b>Outline and area.</b> The glacier outlines are those of the GLAMOS Swiss Glacier Inventory SGI2023, the latest available (state of 2023, Unteraar and Trift 2024; the glaciers have shrunk since), and SGI1850 for the old extent (CC BY 4.0). The area is the one the inventory states.</li>
 <li><b>True size.</b> The outline is only moved, never scaled or turned into another shape: it keeps its true size wherever you drag it.</li>
@@ -455,7 +453,15 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
   if(!q.get('id')){      // no glacier chosen: the overview of every glacier that has field notes
     document.body.classList.add('ov'); document.title='Scientific field notes';
     $('ovList').innerHTML='Loading…';
-    fetch('/data/yearly/index.json').then(r=>r.ok?r.json():Promise.reject()).then(L=>{ $('ovList').innerHTML=L.map(g=>`<a class="ovc" href="?id=${encodeURIComponent(g.id)}"><b>${esc(g.name)}</b><span>Ice surface of each year ${g.years[0]} to ${g.years[1]}</span><span class="k">${g.kinds.map(esc).join(', ')}</span></a>`).join('')||'No field notes yet.'; }).catch(()=>{ $('ovList').textContent='The list could not be loaded.'; });
+    fetch('/data/yearly/index.json').then(r=>r.ok?r.json():Promise.reject()).then(L=>{
+      const card=g=>`<a class="ovc" href="?id=${encodeURIComponent(g.id)}"><b>${esc(g.name)}</b><span>${g.single?'One measured surface ('+g.years[0]+')':'Ice surface of each year '+g.years[0]+' to '+g.years[1]}</span><span class="k">${g.kinds.map(esc).join(', ')}</span></a>`;
+      const countries=[...new Set(L.map(g=>g.country))].sort(), show=c=>{      // c = '' for all countries
+        $('ovList').innerHTML=L.filter(g=>!c||g.country===c).map(card).join('')||'No field notes yet.';
+        for(const b of $('ovCountry').children) b.setAttribute('aria-pressed', String(b.dataset.c===c));
+      };
+      if(countries.length>1){ $('ovCountry').innerHTML=['',...countries].map(c=>`<button type="button" data-c="${esc(c)}">${c?esc(c):'All countries'}</button>`).join(''); $('ovCountry').onclick=e=>{ const b=e.target.closest('button'); if(b) show(b.dataset.c); }; }
+      show('');
+    }).catch(()=>{ $('ovList').textContent='The list could not be loaded.'; });
     return;
   }
   const ID=q.get('id').replace(/[^A-Za-z0-9-]/g,''), VIEW=`/data/yearly/${ID}-viewer.html`;
@@ -500,6 +506,25 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
      +(lk?L('Tip lake', `${lk.level.toFixed(2)} m (${{plateau:'measured on the flight, flat to '+num(lk.nmad,2)+' m',weak:'from the flight, but wavy water or shore in the mask: ±0.5 m',held:'no flight: the previous level held, ±1 m'}[lk.quality]}).`):''); }
   // the catalogue entry (swisstopo STAC) of a flight of the table: its id is kry-<date>t<hhmm>0000 (all 108 flights of the ten glaciers were checked against the catalogue on 2026-11-06); the same item holds the DSM and the orthophotos
   const stacA=v=>{ const m=/(\d{4}-\d\d-\d\d) (\d\d):(\d\d)/.exec(v.label||''); return m?`<a href="https://data.geo.admin.ch/browser/index.html#/collections/ch.swisstopo.spezialbefliegungen/items/kry-${m[1]}t${m[2]}${m[3]}0000" target="_blank" rel="noopener" title="the catalogue entry of this flight at swisstopo (DSM and orthophotos)">${v.day}</a>`:v.day; };
+  // a glacier with ONE measured surface (data/yearly/<id>.json with a `single` block, made by scripts/build_field_notes.py): the chapters come ready-made from the file
+  function singlePage(d){
+    const S=d.single, $=id=>document.getElementById(id), built=/home-link\.[0-9a-f]{10}\.js/.test([].map.call(document.scripts,s=>s.src).join(' '));
+    document.title='Field notes: '+d.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+d.short+' 3D'; }
+    $('gname').textContent=d.short;
+    $('sub').innerHTML=`An open look at the data behind Tongues from Space, for <span id="gname">${esc(d.short)}</span>. These notes show what was measured and what was calculated, how far each result can be trusted, and how the ice surface, the ice bed, the map layers and the size comparisons were made, with all sources and licences. Every number is either computed for this site or taken from a named source.`;
+    $('glEx').href=(built?'/'+S.explorer+'/':'index.html#r='+S.region+'&')+'#g='+encodeURIComponent(d.glacier).replace('#','');
+    $('glSz').href='size.html#r='+S.region+'&g='+encodeURIComponent(d.glacier);
+    ['sci','surface','bed','arcsnote','flights','thicknote','radarnote','speednote','srnote','sizearea','sizevolume'].forEach(i=>{ const n=$(i); if(n) n.remove(); });
+    const lic=$('licences');
+    S.sections.forEach(c=>{
+      let n=$(c.id);
+      if(!n){ n=document.createElement('section'); n.className='fn'; n.id=c.id; n.innerHTML='<h2></h2><div></div>'; lic.before(n); }
+      n.dataset.toc=c.toc; n.querySelector('h2').textContent=c.title;
+      if(c.id==='area'){ n.querySelectorAll('.row0').forEach(x=>x.remove()); n.insertAdjacentHTML('beforeend','<div></div>'); }
+      n.querySelector('div:last-of-type').innerHTML=c.html;
+    });
+    renumber();
+  }
   function cleanPage(d){
     CL=d.clean; CY=d.years; const $=id=>document.getElementById(id), S=CL.sections;
     document.title='Field notes: '+d.short; { const a=$('back'); if(a.dataset.back) a.textContent='← Back to '+d.short+' 3D'; }
@@ -527,6 +552,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
     const yq=+(new URLSearchParams(location.search).get('year')||0); if(yq&&CL.perYear[yq]) showClean(yq);
   }
   fetch(`/data/yearly/${ID}.json`).then(r=>r.ok?r.json():Promise.reject()).then(d=>{
+    if(d.single){ singlePage(d); return; }
     if(d.clean){ cleanPage(d); return; }
     const ys=d.years, y=yr?Math.min(Math.max(yr,ys[0]),ys[ys.length-1]):0;
     PG=d.page; YEARS=ys; KIND={}; ys.forEach(v=>KIND[v]=KMAP[d.kind[v]]); TIER=d.tier; SIG=PG.sig; ANCHOR=PG.anchors; ICESAT=PG.icesat; ASTER=PG.aster; ASTERD=PG.asterd; STAKER=PG.staker; STAKE=PG.stake; MAP=PG.map; STRIP=MAP.strip;
@@ -548,7 +574,7 @@ const parts=h=>{ const m=String(h).split(/(?=<b>)/).filter(x=>x.trim()); return 
 })();
 matchMedia('(prefers-color-scheme: dark)').addEventListener('change',()=>{ if(!PG) return; draw();drawMap();drawOverview();if(PG.bed) bedMaps(); });
 </script></main>
-<script defer src="js/home-link.js"></script>
+<script defer src="js/home-link.js"></script><script defer src="js/phone-menu.js"></script>
 <script>
 // links under the header: this glacier in the explorer and on the size page (the same ids as size.html: SITE_ID)
 (function(){

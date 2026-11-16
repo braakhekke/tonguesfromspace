@@ -438,5 +438,51 @@
       "credit": "Gustavs Venters",
       "title": "Looking across to the Trift glacier"
     }
+  ],
+  "franz-josef": [
+    {
+      "pano": "0PLyNP17ZwnlvToLFrFh1w",
+      "lat": -43.43108,
+      "lng": 170.16883,
+      "date": "2018-04",
+      "heading": 161,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "From the valley floor towards the ice front"
+    },
+    {
+      "pano": "d4yYL2aL-JGeixLsHHOg6Q",
+      "lat": -43.43699,
+      "lng": 170.17078,
+      "date": "2018-04",
+      "heading": 157,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "The glacier valley and the ice front in the distance"
+    },
+    {
+      "pano": "OM2WMHaHbeMTgUrqkQTjug",
+      "lat": -43.44333,
+      "lng": 170.17197,
+      "date": "2018-04",
+      "heading": 150,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "The riverbed below the glacier"
+    },
+    {
+      "pano": "UlJVoVy1WRmJYorhZh5bHw",
+      "lat": -43.40323,
+      "lng": 170.17851,
+      "date": "2026-04",
+      "heading": 176,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Google",
+      "title": "Up the valley from the road, with the ice in the distance"
+    }
   ]
 }

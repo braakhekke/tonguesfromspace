@@ -4,12 +4,12 @@
 Opens each page in English and in German at the same width and state, and reports only what happens in German and not in English.
 Needs scripts/serve.py on :8000 and Playwright.
 
-    python3 scripts/i18n/layout_check.py [--phone] [--shots DIR] [PAGE ...]      # PAGE like "home.html" or "index.html#g=aletsch&m=single"
+    python3 scripts/i18n/layout_check.py [--lang de|fr] [--phone] [--shots DIR] [PAGE ...]      # PAGE like "home.html" or "index.html#g=aletsch&m=single"
 """
-import json, sys
+import json, os, sys
 from playwright.sync_api import sync_playwright
 
-BASE = "http://localhost:8000/"
+BASE = os.environ.get("TFS_I18N_BASE", "http://localhost:8000/")      # another port when :8000 is taken
 CLICKS = ["#view3dBtn", "#viewMap", "#modeCompare", "#modeTimelapse", "#modeSingle", "#landsatI", "#tuneSwitch", "#layersBtn", "#moreBtn", "#embedBtn", "#videoBtn", "#shareBtn", "#metaBtn", "#v3mLayers", ".gd-launch", "[data-mode=\"3d\"]", "#totalSw", ".lay-btn", ".dock-dl", "#lbToggle"]
 PAGES = ["home.html", "gallery.html", "404.html", "provenance.html", "provenance.html?id=B36-26", "size.html", "index.html#g=aletsch&m=single", "index.html#g=rhone&m=compare"]
 
@@ -62,23 +62,21 @@ JS = r"""
 }
 """
 
-def run(pg, url, lang):
-    pg.add_init_script(f"try{{localStorage.setItem('tfs-lang','{lang}')}}catch(e){{}}")
-
 def main():
     a = sys.argv[1:]
     phone = "--phone" in a
     shots = a[a.index("--shots") + 1] if "--shots" in a else None
-    pages = [x for x in a if not x.startswith("--") and x != shots] or PAGES
+    other = a[a.index("--lang") + 1] if "--lang" in a else "de"
+    pages = [x for x in a if not x.startswith("--") and x not in (shots, other)] or PAGES
     res = {}
     with sync_playwright() as p:
         b = p.chromium.launch()
         for url in pages:
             found = {}
-            for lang in ("en", "de"):
+            for lang in ("en", other):
                 c = b.new_context(viewport={"width": 390, "height": 800} if phone else {"width": 1300, "height": 850}, has_touch=phone)
-                c.add_init_script("try{localStorage.setItem('tfs-guide',JSON.stringify({seen:true}));localStorage.setItem('tfs-teaser','1');localStorage.setItem('tfs-lang','%s')}catch(e){}" % lang)
-                pg = c.new_page(); pg.goto(BASE + url); pg.wait_for_timeout(5000)
+                c.add_init_script("try{localStorage.setItem('tfs-guide',JSON.stringify({seen:true}));localStorage.setItem('tfs-teaser','1')}catch(e){}")
+                pg = c.new_page(); pg.goto(BASE + ("" if lang == "en" else lang + "/") + url); pg.wait_for_timeout(5000)
                 found[lang] = [dict(i, key="base>" + i["key"]) for i in pg.evaluate(JS)]
                 if url.startswith("index.html") or url.startswith("size.html"):
                     for sel in CLICKS:
@@ -87,18 +85,18 @@ def main():
                             if el.count() and el.is_visible():
                                 el.click(timeout=800, force=True); pg.wait_for_timeout(600)
                                 found[lang] += [dict(i, key=sel + ">" + i["key"]) for i in pg.evaluate(JS)]
-                                if shots and lang == "de": pg.screenshot(path=f"{shots}/click{sel.replace('#', '_').replace('.', '_').replace(chr(34), '').replace('[', '').replace(']', '').replace('=', '')}-{'ph' if phone else 'dt'}.png")
+                                if shots and lang == other: pg.screenshot(path=f"{shots}/click{sel.replace('#', '_').replace('.', '_').replace(chr(34), '').replace('[', '').replace(']', '').replace('=', '')}-{'ph' if phone else 'dt'}.png")
                         except Exception: pass
                 if shots:
                     name = url.replace("/", "_").replace("#", "_").replace("?", "_").replace("&", "_").replace("=", "_")
                     pg.screenshot(path=f"{shots}/{name}-{'ph' if phone else 'dt'}-{lang}.png", full_page=False)
                 c.close()
             en = {(i["k"], i["key"]) for i in found["en"]}
-            new = [i for i in found["de"] if (i["k"], i["key"]) not in en]
+            new = [i for i in found[other] if (i["k"], i["key"]) not in en]
             res[url] = new
-            print(f"== {url}: {len(new)} new in German ({len(found['en'])} already in English)")
+            print(f"== {url}: {len(new)} new in the language ({len(found['en'])} already in English)")
             for i in new[:60]: print("  ", i["k"], "|", i["t"][:70], "|", i["key"][:110])
         b.close()
-    json.dump(res, open("/private/tmp/claude-588421604/s/layout.json", "w"), ensure_ascii=False, indent=1)
+    json.dump(res, open(os.path.join(os.environ.get("TMPDIR", "/tmp"), "layout.json"), "w"), ensure_ascii=False, indent=1)
 
 main()

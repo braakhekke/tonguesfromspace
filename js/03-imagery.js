@@ -11,6 +11,7 @@ import { boxRecord } from './02-glaciers.js';
       is rendered with the Process API.
    ===================================================================== */
 export const prefs = (() => { try { return JSON.parse(localStorage.getItem('glacierPrefs') || '{}'); } catch { return {}; } })();
+if (/[#&]d=1(&|$)/.test(location.hash)) for (const k of Object.keys(prefs)) delete prefs[k];      // d=1: the link shows the page as first-time visitors see it (colours, layers, 3D look), not as this browser saved it; the clips of the front page are recorded so
 prefs.mosaic = true; prefs.osm = prefs.topo = prefs.alti = false;      // every visit starts on Sentinel-2 cloudless as the one base map
 export const savePrefs = () => { try { localStorage.setItem('glacierPrefs', JSON.stringify(prefs)); } catch {} };
 

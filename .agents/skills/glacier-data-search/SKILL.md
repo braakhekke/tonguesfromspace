@@ -14,3 +14,5 @@ Read `docs/DATA_SEARCH.md` first and follow it. This is required by AGENTS.md fo
 7. Apply the traps in section 6 of the doc (separate DOIs per data type, edition year vs survey year, DEMs hiding older data, datums, radar penetration, snow, stakes measure ablation, ASTER dates, shadow feasibility) and test every DEM against an independent referee.
 8. Credentials never in chat (the owner runs a terminal script with hidden input). Keep command output short.
 9. Finish by telling the owner what was read, what was not, where the ledger is, and updating the memory notes.
+
+10. **Exhaustive sweep (section 9 of docs/DATA_SEARCH.md).** Never say "only one elevation model" or "no thickness data" after a first search: sweep every surface class (lidar of all campaigns, historical-photo and contour DEMs, SRTM, ASTER scenes and time-series papers, GLO-30, TanDEM-X DEMs, stereo, Hugonnet grids, field GPS/drone/TLS) and everything below the surface (GPR, airborne radar, seismic, gravity, boreholes, bedrock models), open the full text of every paper (publisher PDF host if the page is blocked), keep negative searches with dates, and put the sweep table in the ledger.

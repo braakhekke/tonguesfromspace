@@ -472,7 +472,7 @@ def read_balance(src):
     return out
 
 def read_swisswide(src):
-    """GLAMOS Swiss-wide mass balance zip -> (total Swiss glacier volume per year [[year, km3, change in % against the year before], ...] from 2010,
+    """GLAMOS Swiss-wide mass balance zip -> (total Swiss glacier volume per year [[year, km3, change in % against the year before], ...] from 1915,
     mass balance of all Swiss glaciers per year [[year, mm w.e.], ...] from 1915)."""
     zf = load_zip(src)
     name = next(n for n in zf.namelist() if n.lower().endswith(".csv"))
@@ -487,7 +487,7 @@ def read_swisswide(src):
         except ValueError: pct = None
         try: bal.append([y, round(float(r[3]) * 1000)])       # m w.e. -> mm w.e., like the glacier series
         except ValueError: pass
-        if y >= 2010: out.append([y, round(v, 3), pct])
+        if y >= 1915 and not any(o[0] == y for o in out): out.append([y, round(v, 3), pct])      # every year GLAMOS gives (the file repeats 1915)
     return out, bal
 
 # Profiles that are seismic, not radar. The GLAMOS release says all its observations are ground-penetrating radar, but Aletsch's profile dated 1958 (profile id 19589999) is the seismic survey of

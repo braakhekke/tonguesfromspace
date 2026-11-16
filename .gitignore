@@ -82,6 +82,8 @@ scripts/onboard_lib.py
 scripts/placement_sheet.py
 scripts/.streetview-ranked-is.json
 scripts/.streetview-scan-is.json
+scripts/.streetview-ranked-newzealand.json
+scripts/.streetview-scan-newzealand.json
 tests/test_walkthrough.py
 tests/test_board.py
 CLAUDE.md
@@ -134,6 +136,6 @@ images/editorial-aletsch.jpg
 scripts/build_editorial.py
 tests/test_editorial.py
 
-# German texts: work files of scripts/i18n/tool.py
+# translated texts: work files of scripts/i18n/tool.py
 i18n/todo.json
-i18n/.last-list.json
+i18n/.last-list*.json

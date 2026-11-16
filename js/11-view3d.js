@@ -5,7 +5,7 @@ import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorNa
 import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode, glacierPicked } from './04-state.js';
 import { drawArcs, drawMax, syncSatLabel, liveTile, flightHas, placeLeftStack, flightsShown, flightsCredit, thickestSpot, spotText, mapYears, ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, strokeEdgeFade, arcEdgeFade, arcsFor, loadArcs, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
-import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, subFocus, specialChips } from './07-render.js';
+import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, renderMode, subFocus, specialChips, syncSizeLink } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
 import { setLayers } from './09-phones.js';
 import { syncExportRows } from './09a-export-layers.js';
@@ -127,7 +127,7 @@ export function sync3D(){            // the 3D view follows the left panel: anot
   if (document.getElementById('v3d').hidden) return;      // not $(): this runs during start-up, before $ exists
   clearTimeout(sync3D.t); sync3D.t = setTimeout(() => { if (!$('v3d').hidden) open3D(); }, 150);
 }
-export function close3D(){ v3dRun++; resetPhotos(); v3dCtx = null; hideDivider3D(); pinLoop(); if (v3d) { v3d.destroy(); v3d = null; } $('v3d').hidden = true; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a fresh canvas each time: a lost WebGL context cannot be reused
+export function close3D(){ v3dRun++; $('app').classList.remove('dem-off'); resetPhotos(); v3dCtx = null; hideDivider3D(); pinLoop(); if (v3d) { v3d.destroy(); v3d = null; } $('v3d').hidden = true; $('v3dCanvas').replaceWith($('v3dCanvas').cloneNode(false)); }      // a fresh canvas each time: a lost WebGL context cannot be reused
 /* Base maps and the hiking trails on the picture of the strip: the tiles of the same servers as on the map, drawn one by one into the picture (kept, so another year or layer does not fetch them again) */
 export const tileCache = new Map();
 export const tileBitmap = url => {
@@ -558,6 +558,8 @@ export async function open3D(){
     const special = state.oldestAerial ? 'oldest' : state.latest ? 'latest' : null, surfYear = y => !dem ? y : special === 'latest' && y === state.latest.year ? dem.new.year : special === 'oldest' ? dem.old.year : Math.max(y, dem.old.year);      // the specials use the newest / the oldest elevation model as it is
     const yearly = bb && bb.surfaces ? bb : null, yearLo = yearly ? yearly.yearly.years[0] : 0, yearHi = yearly ? yearly.yearly.years[yearly.yearly.years.length - 1] : 0;      // Iceland: a surface for every year
     const hy = yearly ? y => lakeFlat(g, yearly.surfaces.get(Math.min(Math.max(y, yearLo), yearHi)), y, nA, nB, heights) : y => lakeFlat(g, surfaceFor(g, heights, dem, surfYear(y)), y, nA, nB, heights), usesDem = yearly ? true : !!dem && iceShare(g, dem, first) !== null;      // the ice surface follows the year when the glacier has data for it
+    $('app').classList.toggle('dem-off', !usesDem);      // no elevation model of other years: Slider and Timelapse are greyed in 3D (css/style.css, a click says why in js/08-controls.js), and the view falls back to one year
+    if (!usesDem && (cmp || state.mode === 'timelapse')) { state.mode = 'single'; renderMode(); writeHash(); return open3D(); }
     const swissYearly = !!(yearly && yearly.yearly.swiss), elevFirst = yearly ? yearLo : dem && usesDem ? dem.old.year : 0, elevName = yearly && !swissYearly ? 'ArcticDEM' : 'swissALTI3D';
     const oldNoteFor = ys => { if (!usesDem) return {short: 'one terrain model for all years', full: 'This glacier has a single elevation model, used for every year: the ice surface is not adjusted to the year, so pictures of other years are draped on the same terrain.'}; const early = elevFirst && ys.some(y => y < elevFirst || special === 'oldest'); return early ? {short: `terrain as of ${elevFirst}`, full: `The oldest ${elevName} elevation model for this glacier is from ${elevFirst}: pictures of earlier years are draped on the ${elevFirst} terrain and surface, which is not extrapolated further back.`} : null; };
     const lastStrip = yearly && !swissYearly ? yearly.yearly.strips[yearly.yearly.strips.length - 1].date : '';
@@ -886,7 +888,7 @@ export function setView(v){            // the stage shows the map or the 3D view
   if (paneKind) closeVideo();
   const [boxFrom, boxTo] = v === '3d' ? [$('layerbox'), $('v3dLayers')] : [$('v3dLayers'), $('layerbox')], menuOpen = !boxFrom.classList.contains('min'), sheetOpen = [$('layerbox'), $('v3dLayers')].some(x => x.classList.contains('open'));      // an open layer menu stays open in the other view
   if (v === '3d' && state.oldestAerial) { restoreOldest(); refreshAll(); }      // Oldest is for the map; Latest goes along into 3D, on the newest elevation model
-  setViewMode(v); $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); specialChips(); syncThenNowChip();      // Oldest greyed in 3D
+  setViewMode(v); syncSizeLink(); $('app').classList.toggle('is-3d', v === '3d'); syncSatUi(); specialChips(); syncThenNowChip();      // Oldest greyed in 3D
   if (state.checked && !latestBusy) setStatus(statusLine()); writeHash(); updateCredits();
   $('viewMap').setAttribute('aria-pressed', v === 'map'); $('view3dBtn').setAttribute('aria-pressed', v === '3d');
   if (!boxTo.classList.contains('in-flow')) { boxTo.classList.toggle('min', !menuOpen); boxTo.querySelector('.lb-head').setAttribute('aria-expanded', menuOpen); }
@@ -1826,7 +1828,7 @@ export function draw3DLabels(ctx, W, H, S, L){
 /* A small white logo in the corner of the 3D videos. It turns and tilts a little with the camera, so it seems to sit in the same space as the terrain. */
 export function drawLogo3DAt(ctx, lx, ly, h, cam, cam0){            // the logo at (lx, ly) top left, h high: it turns and tilts a little with the camera (white, no side)
   if (!logoImg) return;
-  const w = h * 200 / 190, th = 0.35 - (cam.az - cam0.az) * 1.6, sx = Math.max(0.3, Math.abs(Math.cos(th))), dy = h * 0.05 - (cam.el - cam0.el) * h * 0.9;
+  const w = h, th = 0.35 - (cam.az - cam0.az) * 1.6, sx = Math.max(0.3, Math.abs(Math.cos(th))), dy = h * 0.05 - (cam.el - cam0.el) * h * 0.9;
   ctx.save(); ctx.translate(lx + w / 2, ly + h / 2 + dy); ctx.scale(sx, 1); ctx.shadowColor = 'rgba(0,0,0,.45)'; ctx.shadowBlur = 8; ctx.drawImage(logoImg, -w / 2, -h / 2, w, h); ctx.restore();
 }
 export const A_SWT = '<a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>';
@@ -1842,7 +1844,7 @@ export function updateCredits3D(){            // the sources of the 3D view, in 
     else if (bk === 'topoToggle') parts.push(`Map © ${A_SWT}`);
     else if (bk === 'oldMapToggle') parts.push(`Map ${mapYears() && mapYears().oldest || ''} © ${A_SWT} (Journey through time)`.replace('Map  ©', 'Map ©'));
     else if (bk === 'altiToggle') parts.push(FEATURES.swisstopo ? `Hillshade: swissALTI3D © ${A_SWT}` : 'Hillshade: calculated from the elevation model of each year');
-    else if (bk === 'aerialToggle') parts.push(FEATURES.swisstopo ? `Aerial images: SWISSIMAGE ${state.oldestAerial || [...new Set(yrs.map(siYear))].join(' and ')} © ${A_SWT}` : `Aerial image ${flownYear(g, state.oldestAerial) || state.oldestAerial}: Náttúrufræðistofnun Íslands and Landmælingar Íslands (CC BY 4.0)`);
+    else if (bk === 'aerialToggle') parts.push(FEATURES.swisstopo ? `Aerial images: SWISSIMAGE ${state.oldestAerial || [...new Set(yrs.map(siYear))].join(' and ')} © ${A_SWT}` : `Aerial image ${flownYear(g, state.oldestAerial) || state.oldestAerial}: ${REGION.aerialCredit.text}`);
   }
   { const fe = g && flightsShown(g); if (fe) parts.push(flightsCredit(fe)); }
   if ($('trailsToggle').checked && (!c || c.hasTrails !== false)) parts.push((FEATURES.swisstopo ? `Hiking trails © ${A_SWT}` : 'Paths © OpenStreetMap contributors') + (g && sightFor(g) ? ` (line of sight: own calculation from ${REGION.sightDem || 'swissALTI3D'})` : ''));
@@ -1875,7 +1877,7 @@ export function drawPreview3D(){            // placeholder labels over the frame
 export const info3D = (c, ys, outline) => {            // the facts the fact card of the map videos needs
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
   return {glacier: c.g, years: ys, scenes: ys.map(y => state.available[y]), outline, res: 10, style: state.style, compare: !!c.cmp, horiz: c.hz,
-    lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0, site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '')};
+    lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0, site: (location.host + location.pathname.replace(/^\/(de|fr)(?=\/)/, '')).replace(/\/(index\.html)?$/, '')};
 };
 export const plan3D = c => {            // seconds: the camera swing, then the fact card (no title slide)
   const tl = !c.cmp && c.years.length > 1, n = tl ? loopSeq(c.years.length).length : 0, per = perSec(n);

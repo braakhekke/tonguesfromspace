@@ -11,6 +11,7 @@ const HIDDEN_REGIONS = [/*hidden-regions*/];
 const IS_OUTLINE_CREDIT = 'Outlines: <a href="https://islenskirjoklar.is" target="_blank" rel="noopener">Icelandic Met Office</a> (Hannesdóttir et al. 2020, CC BY 4.0); basins: <a href="https://doi.org/10.7265/N5-RGI-60" target="_blank" rel="noopener">Randolph Glacier Inventory 6.0</a>';
 const NO_OUTLINE_CREDIT = 'Outlines: <a href="https://www.nve.no/hydrology/glaciers/" target="_blank" rel="noopener">NVE</a> (glacier inventories 1947–1985 and 2018–2019, Andreassen et al. 2022)';
 const SV_OUTLINE_CREDIT = 'Outlines: <a href="https://geodata.npolar.no" target="_blank" rel="noopener">Norwegian Polar Institute</a> (glacier outlines 1936–1972 and 2020, CC BY 4.0)';
+const NZ_OUTLINE_CREDIT = 'Outlines: <a href="https://nsidc.org/data/nsidc-0272/versions/1" target="_blank" rel="noopener">GLIMS Glacier Database</a> (1978: Chinn, via the Randolph Glacier Inventory; 2019: Carrivick et al.)';
 const REGIONS_ALL = [
   { id: 'ch', name: 'Switzerland', adj: 'Swiss', ready: true,
     picker: { ll: [46.45, 8.1], zoom: 7, text: 'The ten largest Swiss glaciers, with GLAMOS statistics.' },      // the front page (home.html): where the region sits on the world map
@@ -40,6 +41,7 @@ const REGIONS_ALL = [
     overviewName: 'Iceland',
     shareTitle: 'Tongues from Space - Iceland',
     sightDem: 'ÍslandsDEM',
+    aerialCredit: { short: 'Náttúrufræðistofnun Íslands', text: 'Náttúrufræðistofnun Íslands and Landmælingar Íslands (CC BY 4.0)', html: '<a href="https://gatt.lmi.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0)' },      // the oldest aerial picture (data/oldest/)
     trailsFile: ['data/trails-is.js', 'data/trails-vatnajokull.js', 'data/trails-iceland.js'],       // footpaths and tracks (OpenStreetMap) and where the ice front is in view, scripts/build_trails_iceland.py
     landingGlacier: 'breidamerkurjokull',   // the glacier it opens on (else the biggest)
     landing: 'glacier3d',                  // opens on Breiðamerkurjökull as a 3D timelapse, like Switzerland on its biggest glacier; the overview of Iceland is one click away (the title menu entry, "Iceland")
@@ -105,6 +107,33 @@ const REGIONS_ALL = [
     landsat: { from: 1984, first: 1985 },      // Landsat 5 and 7 pictures before Sentinel-2 (scripts/build_landsat.py)
     background: { mosaicYear: 2025 },
     features: { facts: true, latest: true, oldest: false, view3d: true, photos: false, streetview: false, trails: true, aerial: false, swisstopo: false, speed: false, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: false } },
+  { id: 'nz', name: 'New Zealand', adj: 'New Zealand', ready: true, rgi: true,
+    picker: { ll: [-43.49, 170.23], zoom: 6, text: 'Franz Josef Glacier, Kā Roimata o Hine Hukatere, on the West Coast of the South Island.' },      // the front page (home.html): where the region sits on the world map
+    path: 'new-zealand',
+    data: 'data/newzealand.js',            // window.REGION_ICE, made by scripts/build_newzealand.py from the onboarding session of Franz Josef Glacier (GLIMS outlines, heights from the LINZ lidar)
+    docTitle: 'Tongues from Space | New Zealand',
+    brandLede: 'Discover some of the largest glaciers of New Zealand. Compare, create and share your visuals.',
+    overviewName: 'New Zealand',
+    shareTitle: 'Tongues from Space - New Zealand',
+    sightDem: 'the LINZ lidar elevation model',
+    landing: 'glacier3d',                  // opens on Franz Josef Glacier
+    /* Scene season: 20 January to 15 April, the southern summer (the end-of-summer snowline survey of the Southern Alps is flown in March, Mackintosh et al. 2017), the clear scene closest to 1 March,
+       only scenes that cover the whole picture; one orbit (R072) for all years. The scene of each year is pinned in data/scenes.json (picked by hand). */
+    balanceYear: { start: '04-01', end: '03-31' },      // the end the scene window is measured from (the walkthrough importer); southern hemisphere: not a source's balance year, see data/regions/nz/franz-josef/glacier.json
+    season: { find: ['01-20', '04-15'], target: '03-01', pick: 'target', minCover: 0.999, oneOrbit: true },
+    outlines: { old: '1978', new: '2019', oldLegend: 'Glacier outline 1978', newLegend: 'Glacier outline 2019', credit: 'GLIMS', html: NZ_OUTLINE_CREDIT },
+    inventory: { short: 'GLIMS', about: '2019', source: 'nz_glims', listAll: false },
+    unnamed: 'Unnamed glacier', units: 'glaciers',
+    place: { canton: '', range: 'Southern Alps' }, sources: ['nz_glims', 'nz_wgms', 'nz_wk', 'nz_linz', 'nz_aerial', 'nz_wiki', 's2', 'landsat', 'itslive', 'is_osm', 'streetview', 'bg', 'me'],
+    rankNote: 'Franz Josef Glacier is the first glacier of New Zealand on this site; more will follow.',
+    /* The 3D terrain: one file (data/terrain/franz-josef.<hash>.bin, scripts/build_dem_newzealand.py) with the measured surface of the LINZ lidar of 2024-2025; the same surface for every year */
+    terrain: { short: 'LINZ lidar', html: 'West Coast LiDAR 1 m DEM © <a href="https://data.linz.govt.nz/" target="_blank" rel="noopener">West Coast Regional Council</a> / Toitū Te Whenua Land Information New Zealand, captured by Aerial Surveys (CC BY 4.0)' },
+    terrainZoom: 12,
+    landsat: { from: 1984, first: 1993 },      // Landsat pictures before Sentinel-2 (scripts/build_landsat.py)
+    background: { mosaicYear: 2025 },
+    aerialCredit: { short: 'LINZ', text: 'Toitū Te Whenua Land Information New Zealand (CC BY 4.0)', html: '<a href="https://data.linz.govt.nz/" target="_blank" rel="noopener">Toitū Te Whenua Land Information New Zealand</a> (CC BY 4.0)' },      // the oldest aerial picture (data/oldest/)
+    trailsFile: 'data/trails-newzealand.js',      // footpaths and tracks (OpenStreetMap) and where the ice front is in view, scripts/build_trails_regions.py newzealand
+    features: { facts: true, latest: true, oldest: true, view3d: true, photos: false, streetview: true, trails: true, aerial: false, swisstopo: false, speed: true, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: true } },
   { id: 'cl', name: 'Chile', adj: 'Chilean', picker: { ll: [-49.5, -73.2], zoom: 5 } },
   { id: 'np', name: 'Nepal', adj: 'Nepalese', picker: { ll: [28.2, 85.0], zoom: 6 } }
 ];

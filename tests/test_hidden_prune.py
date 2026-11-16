@@ -27,7 +27,7 @@ class TestHiddenPrune(unittest.TestCase):
 
     def test_ids_of_every_unpublished_group_without_the_records(self):
         ids = self.m.hidden_glacier_ids()
-        for gid in ("breidamerkurjokull", "hofsjokull", "jostedalsbreen", "etonbreen"):
+        for gid in ("breidamerkurjokull", "hofsjokull", "jostedalsbreen", "etonbreen", "franz-josef"):
             self.assertIn(gid, ids, gid + " belongs to an unpublished region")
         self.assertNotIn("aletsch", ids)
         self.assertFalse(any(i.startswith(("B", "A")) and i[1:3].isdigit() for i in ids), "no Swiss id in the list")
@@ -41,7 +41,7 @@ class TestHiddenPrune(unittest.TestCase):
         self.assertEqual(sorted(os.listdir(folder)), ["B36-26.0123456789.json"])
 
     def test_nothing_is_pruned_when_the_group_is_published(self):
-        self.m.GROUP_ON.update({"iceland": True, "norway": True})
+        self.m.GROUP_ON.update({"iceland": True, "norway": True, "newzealand": True})
         self.assertEqual(self.m.hidden_glacier_ids(), set())
 
 

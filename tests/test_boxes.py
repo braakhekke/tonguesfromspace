@@ -23,7 +23,7 @@ def load(rel):
     return json.loads(t[t.index("{", t.index("window.GLACIER_BOXES") if "window.GLACIER_BOXES" in t else 0):t.rindex("}") + 1])
 
 
-REGION_FILES = {"is-vatnajokull": "vatnajokull", "is-rest": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard"}
+REGION_FILES = {"is-vatnajokull": "vatnajokull", "is-rest": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard", "nz": "newzealand"}
 
 
 def region_outlets():

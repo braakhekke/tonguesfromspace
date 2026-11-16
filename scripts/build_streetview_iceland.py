@@ -18,16 +18,19 @@ import build_vatnajokull as bv
 import build_dem_iceland as bd
 import build_streetview as sv      # the key and the metadata request
 import fetch_dem_iceland as fd
+import icecap_lib as lib
+import build_regions as br
 
 ROOT = bd.ROOT
 SCAN = os.path.join(ROOT, 'scripts', '.streetview-scan-is.json')
 RANKED = os.path.join(ROOT, 'scripts', '.streetview-ranked-is.json')
+DATA_FILE = 'vatnajokull.js'      # --region newzealand: data/newzealand.js, the ground from the Mapterhorn tiles and the ice of its newest outline (as scripts/build_trails_regions.py)
 MARGIN_M, ROAD_STEP, RADIUS, MONTHS = 3000, 60.0, 40, range(6, 11)
 TARGET_M, CAMERA_H, MAX_KM, SPREAD, K_REF, R_EARTH = 300, 2.5, 12.0, 600, 0.13, 6371000.0
 
 
 def outlet(oid):
-    t = open(os.path.join(ROOT, 'data', 'vatnajokull.js'), encoding='utf-8').read()
+    t = open(os.path.join(ROOT, 'data', DATA_FILE), encoding='utf-8').read()
     return next(x for x in json.loads(t[t.index('{'):t.rindex('}') + 1])['outlets'] if x['id'] == oid)
 
 
@@ -67,20 +70,26 @@ def scan(a):
 
 def rank(a):
     o = outlet(a.id); panos = json.load(open(SCAN, encoding='utf-8'))['panos']; k = 111320.0 * math.cos(math.radians(o['lat']))
-    base = os.path.join(ROOT, 'scripts', '.dem-cache', f'islandsdem-{a.id}-10m'); meta = json.load(open(base + '.json'))
-    dem = array.array('f'); dem.frombytes(open(base + '.f32', 'rb').read()); cols, rows = meta['cols'], meta['rows']
-    def ground(lat, lon):
-        x, y = fd.lcc(lon, lat); c, r = int((x - meta['x_west']) // 10), int((meta['y_north'] - y) // 10)
-        if 0 <= c < cols and 0 <= r < rows:
-            v = dem[r * cols + c]
-            if v == v and v > -1e30: return v
-        return None
+    if DATA_FILE == 'vatnajokull.js':
+        base = os.path.join(ROOT, 'scripts', '.dem-cache', f'islandsdem-{a.id}-10m'); meta = json.load(open(base + '.json'))
+        dem = array.array('f'); dem.frombytes(open(base + '.f32', 'rb').read()); cols, rows = meta['cols'], meta['rows']
+        def ground(lat, lon):
+            x, y = fd.lcc(lon, lat); c, r = int((x - meta['x_west']) // 10), int((meta['y_north'] - y) // 10)
+            if 0 <= c < cols and 0 <= r < rows:
+                v = dem[r * cols + c]
+                if v == v and v > -1e30: return v
+            return None
+    else:
+        mt = lib.Dem(12); ground = lambda lat, lon: mt.h(lat, lon)
     xy = lambda lat, lon: ((lon - o['lon']) * k, (lat - o['lat']) * 111320.0)
     # the targets: ice of 2025 inside the RGI basin, every 300 m
     pts = [p for r in o['outline'] for p in r]; lats, lons = [p[0] for p in pts], [p[1] for p in pts]
     g = bv.Grid(o['lat'], o['lon'], (min(lats) - 0.01, min(lons) - 0.02, max(lats) + 0.01, max(lons) + 0.02))
-    rings, _ = bv.imo_polygons('glaciology:glacierpolygon_sent2_2025', [min(lons) - 0.02, min(lats) - 0.01, max(lons) + 0.02, max(lats) + 0.01])
-    ice = g.fill(rings); basin = g.fill(o['outline']); stp = int(TARGET_M / bv.CELL); targets = []
+    if DATA_FILE == 'vatnajokull.js':
+        rings, _ = bv.imo_polygons('glaciology:glacierpolygon_sent2_2025', [min(lons) - 0.02, min(lats) - 0.01, max(lons) + 0.02, max(lats) + 0.01])
+        ice = g.fill(rings); basin = g.fill(o['outline'])
+    else: ice = basin = br.fill_rings(g, o['outline'])
+    stp = int(TARGET_M / bv.CELL); targets = []
     s, w, n, e = box(o, MARGIN_M)
     for r in range(0, g.h, stp):
         for c in range(0, g.w, stp):
@@ -140,11 +149,16 @@ def review(a):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('step', choices=['scan', 'rank', 'review']); ap.add_argument('--id', default='breidamerkurjokull')
+    ap = argparse.ArgumentParser(); ap.add_argument('step', choices=['scan', 'rank', 'review']); ap.add_argument('--region', choices=['vatnajokull', 'newzealand'], default='vatnajokull'); ap.add_argument('--id', default='')
     ap.add_argument('--workers', type=int, default=16); ap.add_argument('--top', type=int, default=25); ap.add_argument('--n', type=int, default=10); ap.add_argument('--start', type=int, default=0)
     ap.add_argument('--dir', default='/tmp/tfs-streetview-review-is'); ap.add_argument('--around', action='store_true'); ap.add_argument('--pitch', type=int, default=5)
     ap.add_argument('--visitors', action='store_true'); ap.add_argument('--all-months', action='store_true')
-    a = ap.parse_args(); {'scan': scan, 'rank': rank, 'review': review}[a.step](a)
+    a = ap.parse_args(); global DATA_FILE, SCAN, RANKED
+    global MONTHS
+    if a.region == 'newzealand': MONTHS = (12, 1, 2, 3, 4)      # the southern summer: little snow on the ground
+    DATA_FILE = a.region + '.js'; a.id = a.id or {'vatnajokull': 'breidamerkurjokull', 'newzealand': 'franz-josef'}[a.region]
+    if a.region != 'vatnajokull': SCAN, RANKED = SCAN.replace('-is', '-' + a.region), RANKED.replace('-is', '-' + a.region)
+    {'scan': scan, 'rank': rank, 'review': review}[a.step](a)
 
 
 if __name__ == '__main__':

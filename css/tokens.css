@@ -3,9 +3,13 @@
 /* Schibsted Grotesk (SIL Open Font Licence 1.1, see fonts/OFL.txt), served from this site: no request to Google */
 @font-face{font-family:"Schibsted Grotesk";src:url(../fonts/SchibstedGrotesk-Variable.woff2) format("woff2");font-weight:400 900;font-style:normal;font-display:swap}
 :root{
-  --firn:#F4F6F7; --sheet:#FFFFFF; --rock:#1C2A33; --moraine:#66757E; --faint:#93A0A7; --ink:#0E1A22; --rule-2:#EDF0F2;
-  --crevasse:#2D6E8E; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6; --switch-off:#D0D7DB; --switch-on:#2D6E8E;
+  --firn:#F4F6F7; --sheet:#FEFCFA; --rock:#1C2A33; --moraine:#66757E; --faint:#93A0A7; --ink:#0E1A22; --rule-2:#EDF0F2;
+  --crevasse:#327DA0; --ice:#CFE3EA; --loss:#C8322A; --rule:#DDE3E6; --switch-off:#D0D7DB; --switch-on:#327DA0;
   --accent:#C8322A;
+  /* the logo (2026-11-16, images/home/logo-*.svg): navy ground, blue ice, white moraine lines, on the cream of the cards */
+  --navy:#061C27; --paper:#FEFCFA;
+  /* the planes of the front page, from cold to warm: snow (fresh snow, the Why block), till (the warm grey of moraine, the "Choose a glacier" band), mist (thin cloud over ice, "Data and method"), space (the dark bands) */
+  --snow:#FEFCFA; --till:#F1ECE4; --mist:#E7F0F4; --space:#070B14;
   --old:#F2A93B; --new:#E5443B; --measure:#FFD84D;
   --sans:"Schibsted Grotesk","Helvetica Neue",Arial,sans-serif;
   --serif:var(--sans);

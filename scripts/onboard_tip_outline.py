@@ -101,4 +101,11 @@ def main(gid,years,arc_km=2):
  else:
   tmp=output.with_suffix('.tmp');tmp.write_text(json.dumps(payload));tmp.replace(output)
 if __name__=='__main__':
- p=argparse.ArgumentParser();p.add_argument('id');p.add_argument('--years',nargs='*',type=int);p.add_argument('--arc-km',type=float,default=2);a=p.parse_args();main(a.id,a.years,a.arc_km)
+ p=argparse.ArgumentParser();p.add_argument('id');p.add_argument('--years',nargs='*',type=int);p.add_argument('--arc-km',type=float,default=2);a=p.parse_args()
+ import time
+ def prog(state,message=''):      # the data page (scripts/tools/onboard-data.html) reads this to tell "running" from "never started" from "failed"
+  (ROOT/'experiments/onboard'/a.id/'tip-arcs-progress.json').write_text(json.dumps({'state':state,'time':time.strftime('%Y-%m-%dT%H:%M:%S%z'),'message':message}))
+ prog('running','Reading the selected Sentinel-2 passes and running the model.')
+ try: main(a.id,a.years,a.arc_km)
+ except BaseException as e: prog('failed',type(e).__name__+': '+str(e)[:300]); raise
+ prog('done')

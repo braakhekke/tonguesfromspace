@@ -20,4 +20,5 @@ import './12-boot.js';
 import './13-teaser.js';
 import './14-streetview.js';
 import './15-guide.js';
+import './15a-deeplinks.js';
 import './devtools.js';

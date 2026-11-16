@@ -12,7 +12,7 @@
 <meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
+<meta property="og:image:alt" content="Tongues from Space: the studio with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025">
 <meta property="og:url" content="https://tonguesfromspace.org/">
 <link rel="canonical" href="https://tonguesfromspace.org/">
 <meta name="twitter:card" content="summary_large_image">
@@ -29,7 +29,7 @@
 <script src="js/search.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="anonymous">
 <!--
-  Swiss glacier comparison explorer
+  Swiss glacier comparison studio
   ----------------------------------
   Files that belong together:
     swiss-glacier-compare.html  this page
@@ -108,21 +108,22 @@
   <aside class="controls" aria-label="Settings">
     <div class="brand">
       <div class="brand-top">
-        <a class="brand-home" data-home href="home.html" title="Back to the start" aria-label="Tongues from Space: back to the start"><img class="brand-logo" src="images/home/logo-navy.png" alt="" width="52" height="49"></a>
+        <span class="brand-home"><img class="brand-logo" src="images/home/logo-navy.png" alt="" width="52" height="49"></span>
         <h1><span class="home-link"><span class="t1">Tongues from Space</span></span> <button type="button" class="t2 region-btn" id="regionBtn" data-track="region-menu" aria-haspopup="listbox" aria-expanded="false" aria-label="Region: Switzerland. Change region"><span class="region-name">Switzerland</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></h1>
         <ul class="region-menu" id="regionMenu" role="listbox" aria-label="Region" hidden></ul>
       </div>
       <p id="brandLede">Discover the ten largest Swiss glaciers. Compare, create and share your visuals.</p>
       <nav class="site-nav" aria-label="Pages of Tongues from Space">
         <a data-home href="home.html"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11l8-7 8 7M6 10v9h12v-9"/></svg>Home</a>
-        <a href="size.html" id="navSize"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9.5" width="11" height="11"/><rect x="12" y="3.5" width="8.5" height="8.5"/></svg>Size</a>
+        <a href="provenance.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.5" width="14" height="17" rx="1.5"/><path d="M9 8h6M9 12h6M9 16h4"/></svg>Field notes</a>
         <a href="gallery.html"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="7" height="7"/><rect x="13.5" y="3.5" width="7" height="7"/><rect x="3.5" y="13.5" width="7" height="7"/><rect x="13.5" y="13.5" width="7" height="7"/></svg>Gallery</a>
       </nav>
       <div class="brand-btns"></div>
     </div>
 
     <section class="step" id="glacierGroup">
-      <h2 class="step-h"><span class="num">01</span>Choose</h2>
+      <h2 class="step-h"><span class="num">1</span>Choose</h2>
+      <div class="pageswitch" role="group" aria-label="Page"><span class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg> Over time</span><a href="size.html" id="navSize"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9.5" width="11" height="11"/><rect x="12" y="3.5" width="8.5" height="8.5"/></svg> Size</a></div>
       <button type="button" id="mGlacier" data-track="glacier-picker" class="m-pick" aria-haspopup="dialog" aria-expanded="false" aria-label="Glacier"></button>
       <input type="search" id="glacierSearch" class="g-search" placeholder="Search glaciers" aria-label="Search glaciers" autocomplete="off" hidden>
       <ul class="glaciers" id="glacierList"></ul>
@@ -130,7 +131,7 @@
     </section>
 
     <section class="step" id="vizGroup">
-      <h2 class="step-h"><span class="num">02</span>Compare<small class="step-lock">pick a glacier</small><button type="button" class="step-reset" id="resetBtn" title="Back to the start: one year, natural colour, layers off. Map or 3D stays."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Restore defaults</button></h2>
+      <h2 class="step-h"><span class="num">2</span>Compare<small class="step-lock">pick a glacier</small><button type="button" class="step-reset" id="resetBtn" title="Back to the start: one year, natural colour, layers off. Map or 3D stays."><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>Restore defaults</button></h2>
       <div id="viewGroup">
         <div class="side-label">View</div>
         <div class="modes views" role="group" aria-label="View">
@@ -219,7 +220,7 @@
     </section>
 
     <section class="step" id="shareGroup">
-      <h2 class="step-h"><span class="num">03</span>Create and share<small class="step-lock">pick a glacier</small></h2>
+      <h2 class="step-h"><span class="num">3</span>Create and share<small class="step-lock">pick a glacier</small></h2>
       <div class="dl-grid sat-need">
         <button type="button" class="dl" id="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your visual</b></button>
         <button type="button" class="dl" id="embedBtn" aria-expanded="false" aria-controls="embedBox" title="Code to show this view in your own page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4.5l-4 15"/></svg><b>Embed</b></button>
@@ -244,7 +245,7 @@
     </section>
 
     <div class="scroll-cue" id="scrollCue" hidden><div class="cue-card">
-      <button type="button" class="step-h cue-h" id="scrollCueBtn" data-track="scroll-cue" title="Go to Create and share"><span class="num">03</span>Create and share</button>
+      <button type="button" class="step-h cue-h" id="scrollCueBtn" data-track="scroll-cue" title="Go to Create and share"><span class="num">3</span>Create and share</button>
       <div class="dl-grid">
         <button type="button" class="dl" data-cue="videoBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2.5"/><path d="M10 9.5v5l4.5-2.5z"/></svg><b>Your visual</b></button>
         <button type="button" class="dl" data-cue="embedBtn" title="Code to show this view in your own page"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 7l-5 5 5 5M16 7l5 5-5 5M14 4.5l-4 15"/></svg><b>Embed</b></button>
@@ -485,7 +486,7 @@
 <script defer src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin="anonymous"></script>
 <!-- optional: written by the deploy workflow; sets the address of the Copernicus relay (Cloudflare Worker) -->
 <script defer src="config.js"></script><script defer src="js/track.js"></script><script defer src="js/mascot.js"></script><script defer src="js/why.js"></script>
-<script defer src="js/home-link.js"></script><script defer src="js/ghost-click.js"></script><script defer src="js/vf-close-dock.js"></script>
+<script defer src="js/space-bg.js"></script><script defer src="js/top-bar.js"></script><script defer src="js/home-link.js"></script><script defer src="js/phone-menu.js"></script><script defer src="js/ghost-click.js"></script><script defer src="js/vf-close-dock.js"></script>
 <script type="module" src="js/main.js"></script>
 
 </body>

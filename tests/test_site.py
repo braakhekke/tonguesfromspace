@@ -19,7 +19,7 @@ SITE = os.path.abspath(os.environ.get("TFS_SITE_DIR", ROOT))
 ALLOWED_EXTERNAL = ("https://cdnjs.cloudflare.com/",)
 BUILT = bool(os.environ.get("TFS_SITE_DIR"))
 DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss explorer: on the built site at its region address (the front page / is the region picker)
-REGION_PATHS = {"is": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard"}
+REGION_PATHS = {"is": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard", "nz": "new-zealand"}
 
 
 def where(path, hash):
@@ -37,6 +37,9 @@ IGNORED_CONSOLE = ("Failed to load resource", "net::ERR")      # blocked tiles, 
 class Quiet(http.server.SimpleHTTPRequestHandler):
     def log_message(self, *a):
         pass
+
+    def translate_path(self, path):      # /de/... and /fr/... are the same files (the Worker and scripts/serve.py do the same)
+        return super().translate_path(re.sub(r"^/(de|fr)(?=/|$)", "", path) or "/")
 
 
 def start_server():
@@ -59,6 +62,16 @@ class SiteCase(unittest.TestCase):
         cls.browser.close()
         cls.pw.stop()
         cls.srv.shutdown()
+
+    def bar_down(self, page):
+        """The pull-down bar of the explorer and the size page (js/top-bar.js): the mouse touches the last few mm of the top edge."""
+        page.mouse.move(640, 400); page.mouse.move(640, 4)
+        page.wait_for_function("document.querySelector('.tbar').classList.contains('on')")
+
+    def region_menu(self, page):
+        """The region pill of that bar (the panel's own dropdown is only the region's name now)."""
+        self.bar_down(page)
+        page.click(".treg-btn")
 
     def open(self, hash="", viewport=None, fresh=False, path=None, guide=False, **ctx_args):      # fresh: a first visit (the film plays); otherwise the film counts as seen. guide: the guide's card of a first visit opens; otherwise the guide counts as seen
         path, hash = where(path or DASHBOARD, hash)
@@ -278,6 +291,36 @@ class TestRegions(SiteCase):
                 self.assertGreaterEqual(src, 6)
                 self.assertClean()
 
+    def test_new_zealand_explorer_links_to_its_size_page(self):
+        page, seen = self.requested("#r=nz")
+        page.evaluate("chooseGlacier('franz-josef')")
+        page.wait_for_function("document.getElementById('story').dataset.glacier === 'franz-josef'", timeout=15000)
+        """The Area card and the page switch open the size page of the region (tests/test_size_region.py), with the region named in the link."""
+        self.assertTrue(page.evaluate("FEATURES.sizeTool"))
+        page.wait_for_function("document.getElementById('navSize').getAttribute('href').startsWith('/size.html#r=nz&g=franz-josef')", timeout=15000)
+        self.assertRegex(page.get_attribute("#navSize", "href"), r"^/size\.html#r=nz&g=franz-josef&mode=(2d|3d)$")      # the explorer opens New Zealand in 3D, so the link says so; the size page has no Volume yet and opens on Area
+        page.click('#story [data-tab=figures]')
+        self.assertEqual(page.evaluate("[...document.querySelectorAll('#story a.size-link')].map(a => a.getAttribute('href'))"), ["/size.html#r=nz&g=franz-josef"])      # the Area card of the Stats tab
+
+    def test_new_zealand_has_franz_josef_with_one_measured_surface(self):
+        """New Zealand (2026-11-16): one glacier, its own data file, a panel drawn from documented facts only, and no feature that needs several elevation models."""
+        page, seen = self.requested("#r=nz")
+        self.assertEqual(page.evaluate("REGION.id"), "nz")
+        self.assertEqual(page.evaluate("GLACIERS.map(g => g.id)"), ["franz-josef"])
+        self.assertTrue([u for u in seen if "/data/newzealand" in u])
+        self.assertFalse([u for u in seen if "/data/glaciers" in u or "/data/iceland" in u or "/data/norway" in u])
+        page.evaluate("chooseGlacier('franz-josef')")
+        page.wait_for_function("document.getElementById('story').dataset.glacier === 'franz-josef'", timeout=15000)
+        page.wait_for_function("document.getElementById('story').textContent.includes('Waiho')", timeout=15000)      # the cards are collapsed: textContent, not innerText
+        text = page.evaluate("document.getElementById('story').textContent")
+        self.assertIn("Waiho", text); self.assertIn("Kā Roimata o Hine Hukatere", text)
+        got = page.evaluate("(() => { const g = currentGlacier(); return {area: g.rgi.areaKm2 > 20, tongue: !!g.tongue, newOutline: !!newOutlineGeom(g), oldOutline: !!oldOutlineGeom(g), box: g.box.length === 2, heights: g.rgi.hSrc === 'nz_linz'}; })()")
+        self.assertEqual(got, {k: True for k in got}, got)
+        self.assertEqual(page.evaluate("[FEATURES.radar, FEATURES.glamos, FEATURES.swisstopo, FEATURES.aerial, FEATURES.speed, FEATURES.streetview, FEATURES.photos]"), [False, False, False, False, True, True, False], "everything that needs several elevation models or Swiss data is off; ice speed (ITS_LIVE) and Street View are on")
+        self.assertEqual(page.evaluate("Object.keys(state.available || {}).length >= 0"), True)
+        self.assertGreaterEqual(page.evaluate("document.querySelectorAll('#story .src-list li').length"), 6)
+        self.assertClean()
+
     def test_vatnajokull_outlines_whole_glacier_and_tongue(self):
         page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
         r = page.evaluate("""() => { const g = GLACIERS.find(g => g.id === 'breidamerkurjokull'), fp = imageFootprint(g).bounds, tb = tongueBounds(g);
@@ -304,8 +347,8 @@ class TestRegions(SiteCase):
 
     def test_region_menu_items_share_font_and_size(self):
         page = self.open()
-        page.click("#regionBtn")
-        fonts = page.evaluate("[...document.querySelectorAll('#regionMenu li')].map(li => { const s = getComputedStyle(li); return s.fontSize + '|' + s.fontWeight + '|' + s.fontFamily; })")
+        self.region_menu(page)
+        fonts = page.evaluate("[...document.querySelectorAll('.treg-menu li')].map(li => { const s = getComputedStyle(li); return s.fontSize + '|' + s.fontFamily; })")
         self.assertEqual(len(set(fonts)), 1, fonts)
 
     # setCam clamps the camera with the limits defined next to the camera: a missing definition shows only here
@@ -385,11 +428,11 @@ class TestRegions(SiteCase):
 
     def test_region_menu_lists_every_region_on_its_own_and_switches(self):
         page = self.open()
-        page.click("#regionBtn")
-        self.assertEqual(page.locator("#regionMenu li.group").all_text_contents(), [])
-        self.assertEqual(page.locator("#regionMenu li[role=option]").all_text_contents()[:4], ["Switzerland", "Iceland", "Norway", "Svalbard"])
+        self.region_menu(page)
+        self.assertEqual(page.locator(".treg-menu li.group").all_text_contents(), [])
+        self.assertEqual(page.locator(".treg-menu li[role=option]").all_text_contents()[:4], ["Switzerland", "Iceland", "Norway", "Svalbard"])
         with page.expect_navigation():
-            page.locator("#regionMenu li[data-id=is]").click()
+            page.locator(".treg-menu li[data-id=is]").click()
         page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'is'")
         self.assertTrue("r=is" in page.evaluate("location.hash") or page.evaluate("location.pathname") == "/iceland/")      # the built site has an address for it, the source tree the hash
         self.assertClean()
@@ -411,9 +454,9 @@ class TestRegions(SiteCase):
             self.assertIn("preview-iceland", page.evaluate("document.querySelector('meta[property=\"og:image\"]').content"))
             self.assertEqual(page.evaluate("[regionLink('ch'), regionLink('is')]"), ["/switzerland/", "/iceland/"])
             self.assertClean()
-        page.click("#regionBtn")
+        self.region_menu(page)
         with page.expect_navigation():
-            page.click("#regionMenu li[data-id=ch]")
+            page.click(".treg-menu li[data-id=ch]")
         page.wait_for_function("typeof REGION !== 'undefined' && REGION.id === 'ch'")
         self.assertEqual(page.evaluate("location.pathname"), "/switzerland/")
         page = self.open()
@@ -866,7 +909,7 @@ class TestStreetViewData(unittest.TestCase):
             for p in items:
                 self.assertTrue(p["pano"] and p["title"] and p["credit"], p)
                 self.assertRegex(p["date"], r"^\d{4}-\d{2}$")
-                self.assertTrue((45 < p["lat"] < 48 and 5 < p["lng"] < 11) or (gid == "breidamerkurjokull" and 63.9 < p["lat"] < 64.3 and -16.6 < p["lng"] < -16.0), p["pano"])      # Switzerland, or Iceland (Breiðamerkurjökull)
+                self.assertTrue((45 < p["lat"] < 48 and 5 < p["lng"] < 11) or (gid == "breidamerkurjokull" and 63.9 < p["lat"] < 64.3 and -16.6 < p["lng"] < -16.0) or (gid == "franz-josef" and -43.5 < p["lat"] < -43.3 and 170.0 < p["lng"] < 170.3), p["pano"])      # Switzerland, Iceland (Breiðamerkurjökull) or New Zealand (Franz Josef)
                 self.assertTrue(0 <= p["heading"] < 360 and -90 <= p["pitch"] <= 90 and 10 <= p["fov"] <= 100, p["pano"])
                 self.assertFalse({"url", "src", "image", "thumb"} & set(p), "Google's pictures must not be stored")
 
@@ -938,7 +981,7 @@ class TestPicker(SiteCase):
         page = self.picker()
         page.wait_for_function("typeof REGIONS !== 'undefined' && REGIONS.length > 0")
         rows = page.evaluate("REGIONS.map(r => [r.id, r.soon, r.href || ''])")
-        self.assertEqual([r[0] for r in rows], ["ch", "is", "no-mainland", "no-svalbard", "cl", "np"])
+        self.assertEqual([r[0] for r in rows], ["ch", "is", "no-mainland", "no-svalbard", "nz", "cl", "np"])
         hidden = page.evaluate("HIDDEN_REGIONS")
         for rid, soon, href in rows:
             if rid in ("cl", "np"): self.assertTrue(soon, rid)      # planned: no records yet
@@ -956,13 +999,14 @@ class TestPicker(SiteCase):
         want = "/" if BUILT else "home.html"
         page = self.open("#g=aletsch")
         self.assertEqual(page.locator(".brand a.home-link, #mhead a.home-link").count(), 0, "the title is plain text, not a link (owner, 2026-11-09)")
-        self.assertTrue(page.locator(".brand a.brand-home[data-home]").is_visible(), "the logo and the Home link in the nav are the way back")
-        self.assertEqual(page.locator(".brand a.brand-home[data-home]").get_attribute("href"), want)
+        self.assertEqual(page.locator(".brand a.brand-home").count(), 0, "the tongue symbol in the left panel is not a link (owner, 2026-11-16); the way back is the Home link of the pull-down bar")
+        self.assertEqual(page.locator(".tbar a[data-home]").first.get_attribute("href"), want)
         for path in ("/size.html", "/gallery.html"):
             page = self.picker_at(path)
             self.assertEqual(page.locator("a[data-home]").first.get_attribute("href"), want, path)
         page = self.open("#g=aletsch")
-        page.locator(".brand a.brand-home[data-home]").click()
+        self.bar_down(page)
+        page.locator(".tbar nav a[data-home]").click()
         page.wait_for_function("document.title.includes('Glaciers seen from orbit')", timeout=15000)
 
     def test_the_front_page_is_international_counts_what_is_open_and_puts_why_under_the_picker(self):
@@ -974,9 +1018,9 @@ class TestPicker(SiteCase):
         self.assertNotIn("ten largest swiss", text, "the front page is not about Switzerland alone")
         self.assertNotIn("every summer", text, "the best picture of each year, not a line about every summer")
         self.assertNotIn("why glaciers", text)
-        order = page.evaluate("['why', 'how', 'regions'].map(id => document.getElementById(id).getBoundingClientRect().top)")
-        self.assertEqual(order, sorted(order), "the audiences come first, then the viewer, then the picker")
-        self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').innerText"), "figures are Swiss for now, and it says so")
+        order = page.evaluate("['tongue', 'try', 'regions'].map(id => document.getElementById(id).getBoundingClientRect().top)")
+        self.assertEqual(order, sorted(order), "what a glacier tongue is comes first, then the clips (Pick a way in), then the picker")
+        self.assertIn("for Switzerland also thickness and volume", page.evaluate("document.getElementById('feat').textContent"), "figures are Swiss for now, and it says so")
         self.assertEqual(self.errors, [])
 
     def test_the_search_finds_glaciers_in_any_language_despite_typos_and_selects_with_the_keyboard(self):

@@ -30,9 +30,13 @@ class TestMeta(unittest.TestCase):
         og = json.load(open(os.path.join(ROOT, "images", "og", "index.json"), encoding="utf-8"))
         cls.slugs = sorted(og)
 
+    def plain(self, url):
+        """the English address of a language address: /de/size and /fr/size are the file of /size, and the Worker (worker/main.ts) gives it the canonical address of its language"""
+        return re.sub(r"^" + re.escape(SITE) + r"/(de|fr)(?=/|$)", SITE, url)
+
     def file_of(self, url):
         """the file that answers an address of the sitemap (Cloudflare serves /size from size.html)"""
-        p = url[len(SITE):].strip("/")
+        p = self.plain(url)[len(SITE):].strip("/")
         if not p:
             return os.path.join(self.out, "index.html")
         if os.path.isfile(os.path.join(self.out, p, "index.html")):
@@ -46,7 +50,8 @@ class TestMeta(unittest.TestCase):
             self.assertTrue(os.path.isfile(f), u + " is in the sitemap but not in the site")
             h = head(f)
             self.assertNotIn("noindex", h["robots"] or "", u)
-            self.assertEqual(h["canonical"], u, u + ": the canonical address is not the address of the sitemap")
+            self.assertEqual(h["canonical"], self.plain(u), u + ": the canonical address is not the address of the sitemap")
+            if self.plain(u) != u: self.assertIn(f'hreflang="{u.split("/")[3]}" href="{u}"', open(f, encoding="utf-8").read(), u + ": the page does not name itself as an alternate")
 
     def test_every_page_has_a_title_a_description_and_a_link_preview(self):
         for u in self.urls:

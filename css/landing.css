@@ -1,0 +1,93 @@
+/* The landing page after the redesign of 2026-11-16 (home.html): hero, "What is a glacier tongue?", "Pick a way in", gallery, map, "Data and method", closing.
+   Loaded after css/home.css, which still holds the header, the hero, the map, the search, the gallery and the footer. Colours only from css/tokens.css:
+   --paper (the cream of the logo sheet) for the light planes, --navy (the logo's ground) for the immersive one, --crevasse (the logo's blue) for ice. */
+
+/* ---- type scale and rhythm of the new sections ---- */
+.tf-tongue,.tf-try,.tf-about{position:relative;padding:clamp(64px,9vw,128px) 0}
+.tf-kicker{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--crevasse)}
+.tf-tongue h2,.tf-try h2,.tf-about h2{margin:0;font-size:clamp(32px,4.6vw,58px);line-height:1.04;font-weight:800;letter-spacing:-.034em;color:var(--navy);text-wrap:balance}
+.tf-lead{margin:20px 0 0;font-size:clamp(18px,1.7vw,22px);line-height:1.55;color:var(--rock);max-width:34em}
+.tf-link{display:inline-flex;align-items:center;gap:8px;margin-top:6px;font-weight:700;font-size:15px;color:var(--navy);text-decoration:none;border-bottom:2px solid var(--crevasse);padding:4px 0}
+.tf-link svg{width:16px;height:16px;flex:none;transition:transform .2s}.tf-link:hover svg{transform:translateX(3px)}
+.tf-link:focus-visible,.tf-feat button:focus-visible,.tf-still a:focus-visible{outline:3px solid var(--crevasse);outline-offset:3px}
+
+/* ---- 1 · what is a glacier tongue: the paper plane, text beside one big real picture ---- */
+.tf-tongue{background:var(--paper)}
+.tf-split{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:clamp(32px,6vw,88px);align-items:center}
+.tf-still{margin:0}
+.tf-still a{display:block;position:relative;border-radius:var(--r-md);overflow:hidden;background:var(--navy);box-shadow:var(--lift)}
+.tf-still img{display:block;width:100%;height:auto;aspect-ratio:16/9;object-fit:cover;transition:transform .6s cubic-bezier(.2,.7,.2,1)}
+.tf-still a:hover img{transform:scale(1.03)}
+.tf-still figcaption{margin-top:10px;font-size:12.5px;color:var(--moraine)}
+
+/* ---- 2 · pick a way in: the immersive plane, a real clip of the studio and the eight things to do ---- */
+.tf-try{background:var(--navy);color:#fff}
+.tf-try .tf-kicker{color:var(--ice)}
+.tf-try h2{color:#fff}
+.tf-head{margin:0 0 clamp(28px,4vw,48px);max-width:46em}
+.tf-stage-grid{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,5fr);gap:clamp(20px,3vw,40px);align-items:start}
+.tf-stage{position:sticky;top:96px;aspect-ratio:16/9;background:#030b10;border-radius:var(--r-md);overflow:hidden;box-shadow:0 30px 70px rgba(0,0,0,.45),0 0 0 1px rgba(255,255,255,.1)}
+.tf-stage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .4s}
+.tf-stage video.on{opacity:1}
+.tf-feat{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:2px}
+.tf-feat button{position:relative;display:block;width:100%;text-align:left;border:0;background:none;color:rgba(255,255,255,.66);font:inherit;padding:12px 14px 12px 44px;border-radius:var(--r-sm);cursor:pointer;min-height:44px;transition:background-color .2s,color .2s}
+.tf-feat button:hover{color:#fff;background:rgba(255,255,255,.06)}
+.tf-feat button[aria-current="true"]{color:#fff}
+.tf-feat li{position:relative;border-radius:var(--r-sm);transition:background-color .2s}
+.tf-feat li.on{background:rgba(255,255,255,.09);padding-bottom:14px}      /* the selected card holds its text and its link */
+.tf-feat .n{position:absolute;left:14px;top:14px;font-size:12px;font-weight:700;letter-spacing:.08em;color:var(--ice);font-variant-numeric:tabular-nums}
+.tf-feat b{display:block;font-size:clamp(17px,1.5vw,20px);line-height:1.25;font-weight:700;letter-spacing:-.015em}
+.tf-feat .t{display:none;margin-top:6px;font-size:14px;line-height:1.5;color:rgba(255,255,255,.74)}
+.tf-feat button[aria-current="true"] .t{display:block}
+.tf-feat li.on::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:2px;border-radius:2px;background:linear-gradient(to right,var(--accent) var(--p,0%),transparent var(--p,0%))}      /* the red line is the clip's progress */
+.tf-feat .tf-open{display:inline-flex;align-items:center;gap:8px;margin:4px 0 0 44px;padding:0 16px;height:38px;border-radius:var(--r-sm);background:#fff;color:var(--navy);font-size:14px;font-weight:700;text-decoration:none;box-shadow:0 6px 18px rgba(0,0,0,.3);transition:background-color .2s,transform .2s}
+.tf-feat .tf-open::after{content:"";width:16px;height:16px;flex:none;background:var(--accent);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h13M13 6l6 6-6 6' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M5 12h13M13 6l6 6-6 6' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;transition:transform .2s}
+.tf-feat .tf-open[hidden]{display:none}
+.tf-feat .tf-open:hover{background:var(--ice)}.tf-feat .tf-open:hover::after{transform:translateX(3px)}
+.tf-feat .tf-open:focus-visible{outline:3px solid var(--crevasse);outline-offset:3px}
+.tf-try .how-cta{margin-top:clamp(28px,4vw,48px)}
+
+/* ---- 3 · about and method: the paper plane again; the accordions are the progressive disclosure ---- */
+.tf-about{background:var(--till)}      /* "Data and method" is the last plane; the ice front of the footer hangs from it (--above below) */
+/* "About Tongues from Space": the paper plane, so it does not run on from the warm map band above it nor from "Data and method" below */
+.tf-aboutus{background:var(--paper)}
+.tf-about .tf-cols{border-top-color:rgba(14,26,34,.14)}
+.tf-about .tf-head p:not(.tf-kicker):not(.tf-lead){margin:14px 0 0;color:var(--moraine);font-size:15px;max-width:40em}
+.tf-sci{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:0 0 clamp(40px,6vw,72px);align-items:start}
+.tf-sci > details{background:var(--sheet);border-radius:var(--r-md);box-shadow:inset 0 0 0 1px var(--rule)}
+.tf-cols{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:clamp(24px,4vw,56px);border-top:1px solid var(--rule);padding-top:clamp(28px,4vw,48px)}
+.tf-cols h3{margin:0 0 10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--crevasse)}
+.tf-cols p{margin:0 0 12px;font-size:15px;line-height:1.6;color:var(--rock)}
+
+/* closing: the ice front above it hangs from the plane above it, "Data and method" (--till) */
+.closing{--above:var(--till)}
+
+/* ---- the seams that belonged to retired sections ---- */
+#gallery .gout{margin-bottom:0}
+/* the gallery and the glacier picker follow the same rhythm as the other sections: padding, kicker, title, gap below the head */
+section.s#gallery{padding:clamp(64px,9vw,128px) 0}
+.pickband{padding:clamp(64px,9vw,128px) 0}
+#gallery .sh .eyebrow,.pickband .sh .eyebrow{margin:0 0 14px;font-size:12px;font-weight:700;letter-spacing:.14em}
+#gallery .sh h2,.pickband .sh .pick-h{font-size:clamp(32px,4.6vw,58px);line-height:1.04;letter-spacing:-.034em;text-wrap:balance}
+#gallery .sh,.pickband .sh{margin:0 0 clamp(28px,4vw,48px)}
+#gallery .sh p:not(.eyebrow),.pickband .sh p:not(.eyebrow){margin:20px 0 0;font-size:clamp(18px,1.7vw,22px);line-height:1.55;max-width:34em}
+
+@media (max-width:900px){
+  .tf-split,.tf-stage-grid,.tf-cols,.tf-sci{grid-template-columns:1fr}
+  .tf-stage{position:sticky;top:60px;z-index:3;border-radius:var(--r-sm)}
+  .tf-feat button{padding-right:10px}
+}
+@media (max-width:640px){
+  .tf-tongue,.tf-try,.tf-about{padding:48px 0}
+  section.s#gallery,.pickband{padding:48px 0}
+  #gallery .sh h2,.pickband .sh .pick-h{font-size:clamp(28px,8.4vw,36px)}
+  #gallery .sh p:not(.eyebrow),.pickband .sh p:not(.eyebrow){font-size:17px}
+  .tf-tongue h2,.tf-try h2,.tf-about h2{font-size:clamp(28px,8.4vw,36px)}
+  .tf-lead{font-size:17px}
+  .closing{--above:var(--till)}
+}
+@media (prefers-reduced-motion:reduce){.tf-still img,.tf-link svg,.tf-feat button{transition:none}}
+
+/* hero: a bigger, more confident title (home.css sets it for the old two-line copy) */
+@media (min-width:901px){.hero h1{font-size:clamp(38px,4.2vw,62px);line-height:1}}
+.tf-about h2 em{font-style:normal;color:var(--accent)}

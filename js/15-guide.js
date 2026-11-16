@@ -1,4 +1,4 @@
-import { state, currentGlacier, viewMode, okYears, EMBED } from './04-state.js';
+import { state, currentGlacier, viewMode, okYears, EMBED, HASH_AT_LOAD } from './04-state.js';
 import { stopPlay, clip } from './05-map.js';
 import { refreshAll } from './07-render.js';
 import { setPanel } from './09-phones.js';
@@ -226,6 +226,7 @@ if (EMBED) inset.remove();      // a page shown inside another site: no guide, n
 else {
   const api = createGuide({
     stage, chapters: CHAPTERS,
+    autoOpen: !/[#&]d=1(&|$)/.test(HASH_AT_LOAD),      // d=1 (the front page's links): the guide stays closed; the boot has rewritten the address by now, so the one the visitor opened is read
     firstHead: () => { const g = currentGlacier(); return 'Three things to try' + (g ? ' on ' + g.name : ''); },
     obstacles: () => [dock(), $('v3dCutCap'), $('v3dPhotoCap'), $('pinCard'), stage.querySelector('.tfs-scale')],
     launcherHost: () => document.querySelector('.brand-btns'),

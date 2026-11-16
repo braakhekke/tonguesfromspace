@@ -39,7 +39,7 @@ if (REGION.rgi) {
   GLACIERS = ((ICECAP && ICECAP.outlets) || []).map(o => ({
     id: o.id, name: o.name, local: o.name, canton: o.canton ?? REGION.place.canton, range: REGION.place.range, lede: o.note, look: '', note: '',
     center: [o.lat, o.lon], half: o.half, box: o.image ? o.image.bounds : boxRecord(o.id, o.name).box.bounds, cap: o.image || null, subs: o.subs || null, bounds: padBounds(ringsBounds(o.outline), 0.04), tongue: o.tip, view3d: {...boxRecord(o.id, o.name).strip3d, tex: 2 * boxRecord(o.id, o.name).strip3d.half >= boxRecord(o.id, o.name).strip3d.up + boxRecord(o.id, o.name).strip3d.back ? [2048, 1024] : [1024, 2048]},      // box: the picture (the tongue, 2 x half km); bounds: the whole glacier (its RGI outline), which the Whole glacier button shows      // tip: where the 3D strip starts (build_vatnajokull.py)
-    rgi: {id: o.rgi, areaKm2: o.areaKm2, lengthKm: o.lengthKm, zmin: o.zmin, zmax: o.zmax, year: o.outlineYear, outline: o.outline}, outlines: o.outlines, areas: o.areas || null, tongueName: o.tongueName || null, placename: o.placename || null, tidewater: !!o.tidewater, units: o.units || o.entities || null
+    rgi: {id: o.rgi, areaKm2: o.areaKm2, lengthKm: o.lengthKm, zmin: o.zmin, zmax: o.zmax, hNote: o.hNote || '', hSrc: o.hSrc || '', year: o.outlineYear, outline: o.outline}, outlines: o.outlines, areas: o.areas || null, tongueName: o.tongueName || null, placename: o.placename || null, tidewater: !!o.tidewater, units: o.units || o.entities || null
   }));
 } else if (DATA && Array.isArray(DATA.glaciers) && DATA.glaciers.length) {
   GLACIERS = DATA.glaciers.map(g => {
@@ -63,7 +63,8 @@ export function shortName(n){
     .replace(/^(Glacier|Ghiacciaio|Vadret|Vadrec|Glatscher)\s+(de la |de l'|des |du |de |d'|da |dal |del |dla )?/i, '')
     .replace(/\s+\((.*)\)$/, '')
     .replace(/\s+(VS|BE|GR|UR|TI|GL|OW|NW|SZ)$/, '')
-    .replace(/-?gletscher$/i, '');
+    .replace(/-?gletscher$/i, '')
+    .replace(/\s+Glacier$/, '');
   return t ? t.charAt(0).toUpperCase() + t.slice(1) : n;
 }
 export function padBounds(b, f){ const dy=(b[1][0]-b[0][0])*f, dx=(b[1][1]-b[0][1])*f; return [[b[0][0]-dy,b[0][1]-dx],[b[1][0]+dy,b[1][1]+dx]]; }
@@ -82,8 +83,9 @@ export const lineGeom = lines => ({type: 'MultiLineString', coordinates: lines.m
 export const hasOldOutline = g => !!(g && (g.inv ? g.inv.oldest : g.outlines && g.outlines.lia));
 export const oldOutlineGeom = g => !g ? null : g.inv ? (g.inv.oldest && g.inv.oldest.outline) || null : g.outlines && g.outlines.lia ? (g.outlines.lia.geom || (g.outlines.lia.geom = lineGeom(g.outlines.lia.lines))) : null;
 export const newOutlineGeom = g => !g ? null : g.inv ? g.inv.outline || null : g.outlines && g.outlines.latest ? (g.outlines.latest.geom || (g.outlines.latest.geom = lineGeom(g.outlines.latest.lines))) : null;
+/* A line that ends where it starts is a closed ring (New Zealand: whole GLIMS outlines), so it gets the same edge fade as a polygon. */
 export function eachPiece(geom, fn){            // fn(points, closed): the closed rings of polygons, or the open lines of a line geometry
-  if (geom.type === 'MultiLineString') geom.coordinates.forEach(l => fn(l, false)); else geom.coordinates.forEach(poly => poly.forEach(r => fn(r, true)));
+  if (geom.type === 'MultiLineString') geom.coordinates.forEach(l => fn(l, l.length > 3 && l[0][0] === l[l.length - 1][0] && l[0][1] === l[l.length - 1][1])); else geom.coordinates.forEach(poly => poly.forEach(r => fn(r, true)));
 }
 /* The area of an ice-cap glacier at the dates the region's inventories hold, oldest first: [{label, km2}] (the data file's `areas` where it has them: Svalbard has four outlines, Norway two;
    Iceland: the RGI basin of about 2000 and the Icelandic Met Office outline of 2025 inside it). The last entry is the newest. */

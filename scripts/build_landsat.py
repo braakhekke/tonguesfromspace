@@ -118,7 +118,12 @@ def masks_for(rings, tip, bbox, n=207, radius=3000.0):
 
 
 SLC_OFF = '2003-05-31'      # Landsat 7's scan line corrector failed: its scenes from this day on have stripes of no data
-PICKS_ONLY = ('aletsch', 'gorner', 'fiescher', 'rhone', 'unteraar', 'corbassiere', 'zmutt', 'sgi-B56-03', 'sgi-B53-04', 'trift')      # the ten Swiss glaciers: the owner chooses the years one by one in the scene picker, and a year without a pick is not built (a year the owner did not pick must not appear; owner, 2026-11-02). Applies as soon as the glacier has any pick (none yet: all years are built, as before). To do for other regions the same way: add the outlet here
+PICKS_ONLY = ('aletsch', 'gorner', 'fiescher', 'rhone', 'unteraar', 'corbassiere', 'zmutt', 'sgi-B56-03', 'sgi-B53-04', 'trift', 'franz-josef')      # the ten Swiss glaciers and Franz Josef (owner's picks in the onboarding session): the ten Swiss glaciers: the owner chooses the years one by one in the scene picker, and a year without a pick is not built (a year the owner did not pick must not appear; owner, 2026-11-02). Applies as soon as the glacier has any pick (none yet: all years are built, as before). To do for other regions the same way: add the outlet here
+# Per-outlet options of the colour work, decided by looking at the pictures (the session options of the onboarding, experiments/onboard/<id>/session.json, applied the same way by onboard_scenes.py).
+# franz-josef (2026-11-16, owner): `land` = hand-set colour-reference patch (west, north, east, south as shares of the picture: forested, snow-free slopes at the top of the box; the automatic patch lay on snow),
+# `snow_rolloff` = (knee, ceiling) of the soft shoulder on matched reflectance (Landsat snow was too bright against Sentinel-2), `sat_repair` = replace a visible band at the 16-bit maximum (saturated snow in Landsat 4/5/7
+# surface reflectance, blue tint) by the mean of the unsaturated visible bands.
+OUTLET_OPTIONS = {'franz-josef': {'land': (0.4, 0.0, 0.6, 0.2), 'snow_rolloff': (0.35, 0.95), 'sat_repair': True}}
 ALLDAYS = {}      # year -> every scene found for it (before the scene rule), for the reasons in the scene picker
 REJECT = set()      # dates of scenes not to use for this glacier (scripts/landsat-rejects.json: chosen by looking at the pictures)
 
@@ -398,6 +403,17 @@ def srgb_np(c):
     return np.where(c <= 0.0031308, 12.92 * c, 1.055 * np.power(np.maximum(c, 0.0031308), 0.41666666666) - 0.055)
 
 
+SAT_REPAIR = False      # set by onboard_scenes.py (`landsat_saturation_repair`): see lvl() in paint()
+SNOW_ROLLOFF = None      # (knee, ceiling) in matched reflectance, or None: set by onboard_scenes.py for a session that asks for it (`landsat_snow_rolloff`)
+
+
+def rolloff_np(m):
+    """Soft shoulder for snow: unchanged below the knee, then an exponential approach to the ceiling (as INFRA above), so bright snow keeps its texture instead of clipping to white. Landsat only, applied after the colour matching."""
+    if not SNOW_ROLLOFF: return m
+    k, top = SNOW_ROLLOFF
+    return np.where(m <= k, m, k + (top - k) * (1 - np.exp(-(m - k) / (top - k))))
+
+
 def paint(a, w, h, cal, qmap=None):
     """the three colour styles of one scene (cal: the levels the scene is matched to) and the mask of its no-data pixels (1). numpy: the same arithmetic, in the same order, as the per-pixel version
     it replaces (checked pixel for pixel on Gorner scenes)"""
@@ -405,7 +421,16 @@ def paint(a, w, h, cal, qmap=None):
     gains = [((cal[c][1] - cal[c][0]) / (lev[c][1] - lev[c][0]) if lev[c][1] - lev[c][0] > 1e-4 else 1.0, lev[c][0], cal[c][0]) for c in range(MASK)] if not NOMATCH else [(1.0, 0.0, 0.0)] * MASK
     A = np.frombuffer(a, dtype=np.uint16) if isinstance(a, array.array) else np.asarray(a, dtype=np.uint16)
     bad = (A[MASK * px:(MASK + 1) * px] == 0) | (A[:px] == 0); hole = bytearray(bad.astype(np.uint8).tobytes())
+    clipd = [A[k * px:(k + 1) * px] == 65535 for k in range(3)]; nclip = sum(x.astype(int) for x in clipd); partial = (nclip > 0) & (nclip < 3)
     def lvl(c):      # surface reflectance = DN * 0.0000275 - 0.2 (Collection 2 Level-2), matched to the reference ground
+        refl = A[c * px:(c + 1) * px].astype(np.float64) * 0.0000275 - 0.2
+        if qmap and qmap[c]: m = np.maximum(qapply_np(refl, qmap[c]), 0)
+        else: g, l0, r0 = gains[c]; m = np.maximum(r0 + (refl - l0) * g, 0)
+        if SAT_REPAIR and c < 3 and partial.any():      # a visible band at the 16-bit maximum (saturated snow) next to bands that are not: replace it by the mean of the unsaturated visible bands (snow is flat in the visible)
+            good = sum(np.where(clipd[k], 0.0, matched(k)) for k in range(3)) / np.maximum(3 - nclip, 1)
+            m = np.where(clipd[c] & partial, good, m)
+        return rolloff_np(m)
+    def matched(c):      # the matched reflectance of band c without repair or shoulder
         refl = A[c * px:(c + 1) * px].astype(np.float64) * 0.0000275 - 0.2
         if qmap and qmap[c]: return np.maximum(qapply_np(refl, qmap[c]), 0)
         g, l0, r0 = gains[c]; return np.maximum(r0 + (refl - l0) * g, 0)
@@ -606,8 +631,8 @@ def auto_land(rings, bounds, z, size=0.2, min_h=30):
 
 
 # the scene season of each region (as in js/00-regions.js): find from, find to, target day
-SEASONS = {'iceland': ('08-01', '10-15', '09-30'), 'norway': ('07-20', '09-30', '09-01'), 'svalbard': ('07-20', '09-15', '08-25'), 'ch': ('07-01', '09-20', '09-01')}
-REGION_FILES = [('vatnajokull.js', 'iceland', 12), ('iceland.js', 'iceland', 12), ('norway.js', 'norway', 13), ('svalbard.js', 'svalbard', 12)]
+SEASONS = {'iceland': ('08-01', '10-15', '09-30'), 'norway': ('07-20', '09-30', '09-01'), 'svalbard': ('07-20', '09-15', '08-25'), 'newzealand': ('01-20', '04-15', '03-01'), 'ch': ('07-01', '09-20', '09-01')}
+REGION_FILES = [('vatnajokull.js', 'iceland', 12), ('iceland.js', 'iceland', 12), ('norway.js', 'norway', 13), ('svalbard.js', 'svalbard', 12), ('newzealand.js', 'newzealand', 12)]
 FOOTPRINTS = os.path.join(ROOT, 'scripts', '.footprints-ch.json')      # the picture boxes of the Swiss glaciers as the page makes them (scripts/dump_footprints.py): imageFootprint(g)
 
 
@@ -691,6 +716,7 @@ def find_outlet(oid):
         if o:
             dlat = (o.get('halfH') or o['half']) / 111.32; dlon = o['half'] / (111.32 * math.cos(math.radians(o['lat'])))
             (x0, y0), (x1, y1) = merc(o['lat'] - dlat, o['lon'] - dlon), merc(o['lat'] + dlat, o['lon'] + dlon)
+            if o.get('box'): (x0, y0), (x1, y1) = merc(*o['box'][0]), merc(*o['box'][1])      # a picture box that is not a square around the centre (New Zealand): the box itself, [[south, west], [north, east]]
             rings = [r for src in [o] + [x for x in d['outlets'] if x['id'] != oid] + d['basins'] for r in src['outline']]
             return o, region, rings, z, [round(x0), round(y0), round(x1), round(y1)]
     if os.path.exists(FOOTPRINTS):
@@ -838,6 +864,12 @@ def main():
         LAND = auto_land(rings, (s, w, n, e), zdem) or auto_land(rings, (s, w, n, e), zdem, size=0.1, min_h=5)      # a small patch of land if the picture has no big one (calving glaciers: the picture is ice and sea)
         if LAND: print('colour reference patch (west, north, east, south):', [round(v, 2) for v in LAND])
         else: NOMATCH = True; LAND = (0.0, 0.0, 0.1, 0.1); print('no ice-free land in the picture: the colours of the years are not matched to each other')
+        oo = OUTLET_OPTIONS.get(a.outlet)
+        if oo:
+            LAND = tuple(oo['land']); NOMATCH = False; print('colour reference patch set by hand:', LAND)
+    global SAT_REPAIR, SNOW_ROLLOFF
+    oo = OUTLET_OPTIONS.get(a.outlet)
+    if oo: SAT_REPAIR = bool(oo.get('sat_repair')); SNOW_ROLLOFF = tuple(oo['snow_rolloff']) if oo.get('snow_rolloff') else None
     out = os.path.join(ROOT, 'data', 'landsat'); os.makedirs(os.path.join(out, a.outlet), exist_ok=True)
     if a.styles: return restyle(a, o, W, H, bbox, out)
     scenes = {}; chosen = {}; cands = {}

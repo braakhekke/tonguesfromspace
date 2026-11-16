@@ -33,7 +33,7 @@ export let glacierPicked = false;      // set from OPEN_ON_GLACIER after the has
     if (typeof prefs.names3d !== 'boolean') prefs.names3d = true;
     if (typeof prefs.space3d !== 'boolean') prefs.space3d = true;      // the night sky behind the terrain, as on the landing page's first look
   }      // no glacier in the link: open on the biggest one as a 3D timelapse that loops, the Switzerland button leads to the overview
-  if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = false; }
+  if (['compare', 'timelapse', 'single'].includes(p.get('m'))) { state.mode = p.get('m'); AUTOPLAY = p.get('d') === '1' && p.get('m') === 'timelapse' && !matchMedia('(prefers-reduced-motion: reduce)').matches; }      // d=1 (the front page's clips): a timelapse plays by itself, as in the clip
   ['a','b','from','to','one'].forEach(k => { if (+p.get(k)) state[k] = +p.get(k); });
   if (['natural', 'false1', 'false2', 'false3'].includes(p.get('s'))) state.style = p.get('s');           // s: colour style
   if (['natural', 'false1', 'false2', 'false3'].includes(p.get('s2'))) state.styleB = p.get('s2');           // s2: colour style of the slider's second picture

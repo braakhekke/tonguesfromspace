@@ -1,0 +1,18 @@
+{
+ "years": [
+  1986,
+  1987
+ ],
+ "label": "1986/87",
+ "bbox": [
+  18938140,
+  -5397381,
+  18958701,
+  -5374905
+ ],
+ "w": 2928,
+ "h": 3200,
+ "share": 0.995,
+ "source": "Toitū Te Whenua Land Information New Zealand (LINZ), scanned aerial photographs of 1986-1987, CC BY 4.0",
+ "catalogue": "https://nz-imagery.s3.ap-southeast-2.amazonaws.com/catalog.json"
+}

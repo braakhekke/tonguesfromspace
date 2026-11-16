@@ -8,20 +8,21 @@ body{background:var(--sheet)}
 a{color:inherit}
 
 /* ---------- header ---------- */
-.bar{position:absolute;z-index:20;left:0;right:0;top:0}
+.bar{position:fixed;z-index:20;left:0;right:0;top:0;transition:transform .35s ease,background-color .3s}
 .bar .wrap{display:flex;align-items:center;justify-content:space-between;gap:16px;height:72px}
 .brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff}
-.brand img{height:25px;width:auto}
+.brand img{height:34px;width:34px}
 .brand b{font-size:22px;line-height:30px;font-weight:700;letter-spacing:-.018em;white-space:nowrap}
 .bar nav{display:flex;gap:26px;align-items:center}
 .bar nav a{font-size:13px;font-weight:600;color:rgba(255,255,255,.82);text-decoration:none}
 .bar nav a:hover{color:#fff}
+.bar nav a[aria-current]{color:#C8322A;font-weight:700}      /* the page you are on */
 
 /* ---------- hero ---------- */
-.hero{position:relative;background:#070b14 center/cover no-repeat;color:#fff;padding:120px 0 80px}
+.hero{position:relative;background:#070b14 var(--tfs-space2,none) center calc(50% - var(--sy,0px))/auto var(--tile,200vh) repeat-y fixed;color:#fff;padding:120px 0 80px}
 .hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,13fr) minmax(0,10fr);gap:clamp(56px,6vw,96px);align-items:center}
-.hero h1{margin:0 0 22px;font-size:clamp(30px,3.3vw,48px);line-height:1;font-weight:800;letter-spacing:-.035em}
-.hero h1 span{display:block;white-space:nowrap}      /* two lines: the break after "talk." is the point */
+.hero h1{margin:0 0 22px;font-size:clamp(30px,2.9vw,44px);line-height:1.02;font-weight:800;letter-spacing:-.035em}
+.hero h1 span{display:block;text-wrap:balance}      /* two lines: the break after "talk." is the point; a long second line wraps inside its column instead of running under the picture */
 .hero h1 em{font-style:normal;color:var(--accent)}
 .hero .lede{font-size:clamp(18px,1.7vw,22px);line-height:1.55;color:rgba(255,255,255,.76);max-width:500px;margin:0 0 26px}
 .flightbox{min-width:0}
@@ -51,7 +52,7 @@ a{color:inherit}
 @keyframes flSlide{from{transform:translateX(-100%)}to{transform:translateX(300%)}}
 @media (prefers-reduced-motion:reduce){.flight.loading .fl-play::before{animation:none;opacity:.6}.flight.loading::after{animation:none;width:100%;opacity:.35}}
 @media (pointer:coarse){.fl-play{width:42px;height:42px;right:12px;bottom:12px}}
-.drag-hint{position:absolute;z-index:3;left:50%;top:14px;transform:translateX(-50%);display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(14,26,34,.62);color:#fff;font-size:12.5px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .6s;white-space:nowrap}
+.drag-hint{position:absolute;z-index:3;right:14px;top:14px;display:flex;align-items:center;gap:7px;padding:6px 12px;border-radius:999px;background:rgba(14,26,34,.62);color:#fff;font-size:12.5px;font-weight:600;pointer-events:none;opacity:0;transition:opacity .6s;white-space:nowrap}
 .drag-hint.on{opacity:.92}.drag-hint svg{width:15px;height:15px}
 .flight .cap small{display:block;margin-top:4px;font-size:10px;line-height:1.35;color:rgba(255,255,255,.7)}
 .herotext .cta .btn-ghost{border:0;padding:6px 0;gap:10px;color:#fff}
@@ -84,7 +85,7 @@ a{color:inherit}
 .why-logo{display:block;flex:none;width:clamp(110px,12vw,160px);height:auto;overflow:visible}
 .why-logo .tongue{transform-box:view-box;transform-origin:96px 86px;animation:lick 2.5s ease-in-out infinite}      /* the tongue reaches out and pulls back */
 .why-logo .spark{transform-box:fill-box;transform-origin:center;animation:twinkle 2s ease-in-out infinite}
-@keyframes lick{0%,100%{transform:scaleY(.82) scaleX(.96);fill:#C8322A}50%{transform:scaleY(1.08) scaleX(1.02);fill:#0A1B33}}      /* advancing: dark blue; retreating: the red of loss */
+@keyframes lick{0%,100%{transform:scaleY(.82) scaleX(.96);fill:#C8322A}50%{transform:scaleY(1.08) scaleX(1.02);fill:#fff}}      /* advancing: white (the logo sits on the dark band); retreating: the red of loss */
 @keyframes twinkle{0%,100%{transform:scale(1) rotate(0);opacity:1}50%{transform:scale(.65) rotate(45deg);opacity:.55}}
 @media (prefers-reduced-motion:reduce){.why-logo .tongue,.why-logo .spark{animation:none}}
 .why-name + .why-name{margin-top:12px}
@@ -121,18 +122,18 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 /* map */
 .pickrow{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
 .pickrow .search{margin-top:0;width:320px;max-width:100%}
-.pickband{background:var(--night);color:#fff;padding:80px 0 56px}
-.pickband .eyebrow{color:rgba(255,255,255,.62)}
+.pickband{background:var(--sheet);color:#0A1B33;padding:80px 0 56px}      /* the same background as the Why block */
+.pickband .eyebrow{color:var(--accent);font-weight:700}
 .pickband .sh{align-items:flex-end;margin:0 0 28px}
-.sh .pick-h{margin:0;font-size:clamp(26px,2.9vw,38px);line-height:1.04;font-weight:800;letter-spacing:-.03em;color:#fff}
-.pickband .sh p{color:rgba(255,255,255,.7)}
+.sh .pick-h{margin:0;font-size:clamp(26px,2.9vw,38px);line-height:1.04;font-weight:800;letter-spacing:-.03em;color:#0A1B33}
+.pickband .sh p{color:var(--moraine)}
 .pickband .pickrow .sstat{color:rgba(255,255,255,.75)}
-.coverage{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:0 0 14px;padding:0;font-size:13px;color:#fff}
+.coverage{display:flex;flex-wrap:wrap;gap:8px 18px;list-style:none;margin:0 0 14px;padding:0;font-size:13px;color:#0A1B33}
 .coverage li{display:flex;align-items:center;gap:7px}
 .coverage i{width:9px;height:9px;border-radius:50%;box-sizing:border-box;flex:none}
-.coverage .avail i{background:#fff}
-.coverage .dev i{border:1.5px solid rgba(255,255,255,.7)}
-.coverage small{font-size:12px;color:rgba(255,255,255,.6)}
+.coverage .avail i{background:#0A1B33}
+.coverage .dev i{border:1.5px solid var(--moraine)}
+.coverage small{font-size:12px;color:var(--moraine)}
 .pickband .sbox,.pickband .pk-btn{border-color:transparent}
 .pickrow .sstat{margin:6px 0 0;font-size:12px}
 .pk{position:relative;min-width:280px}
@@ -175,12 +176,13 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 .info p{margin:0;font-size:13px;color:var(--moraine)}
 .info .btn-red{align-self:flex-start;padding:9px 14px;font-size:12.5px;margin-top:3px}
 .pin{width:auto;white-space:nowrap}
-.pin span{display:inline-flex;align-items:center;gap:7px;transform:translate(-9px,-50%);background:var(--sheet);border-left:3px solid var(--accent);padding:5px 10px 5px 8px;font-weight:700;font-size:12.5px;color:#0A1B33;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
+.pin span{display:inline-flex;align-items:center;gap:7px;transform:translate(-9px,-50%);background:var(--sheet);padding:5px 10px 5px 8px;font-weight:700;font-size:12.5px;color:#0A1B33;box-shadow:0 2px 10px rgba(0,0,0,.35);cursor:pointer}
 .pin span::before{content:"";width:8px;height:8px;background:var(--accent);flex:none}
 .pin span:hover,.pin.on span{background:var(--accent);color:#fff}
 .pin:hover span::before,.pin.on span::before{background:#fff}
-.pin.left span{transform:translate(calc(-100% + 9px),-50%);border-left:0;border-right:3px solid var(--accent);padding:5px 8px 5px 10px}
-.pin.soon span{border-left-color:var(--faint);color:var(--moraine);font-weight:500;opacity:.92}
+.pin.left span{transform:translate(calc(-100% + 9px),-50%);padding:5px 8px 5px 10px}
+.pin.soon span{color:var(--moraine);font-weight:500;opacity:.92}
+.deep .pin{display:none}
 .pin.soon span::before{background:var(--faint)}
 .pin.soon span:hover{background:var(--sheet);color:var(--moraine)}
 
@@ -198,7 +200,7 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 .gdot i{display:block;width:12px;height:12px;margin:-6px 0 0 -6px;background:var(--accent);border:2px solid #fff;box-shadow:0 1px 6px rgba(0,0,0,.5);cursor:pointer}
 .gdot.sub i{width:9px;height:9px;margin:-4px 0 0 -4px;background:#F2A93B;border-width:1.5px}
 .gdot:hover i,.gdot.on i{background:#fff;border-color:var(--accent);transform:scale(1.35)}
-.leaflet-tooltip.gtip{background:var(--sheet);border:0;border-left:3px solid var(--accent);border-radius:0;color:#0A1B33;font-weight:700;font-size:12.5px;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:4px 9px}
+.leaflet-tooltip.gtip{background:var(--sheet);border:0;border-radius:0;color:#0A1B33;font-weight:700;font-size:12.5px;box-shadow:0 2px 10px rgba(0,0,0,.35);padding:4px 9px}
 .leaflet-tooltip.gtip::before{display:none}
 .tiles{display:grid;grid-template-columns:repeat(5,1fr);gap:0;margin-top:14px;border:1px solid rgba(255,255,255,.14);background:transparent}
 .tile{display:flex;flex-direction:column;gap:3px;text-align:left;border:0;border-right:1px solid rgba(255,255,255,.14);background:transparent;padding:16px 18px;cursor:pointer}
@@ -213,21 +215,6 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 .tnote{margin:10px 0 0;font-size:11px;line-height:1.45;color:rgba(255,255,255,.5);max-width:900px}
 .tile .c{font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:rgba(255,255,255,.45)}
 .soonrow{margin:10px 0 0;font-size:12px;color:var(--moraine)}
-.how{display:grid;grid-template-columns:minmax(0,1fr);gap:0}
-.vstage{position:relative;aspect-ratio:16/9;width:100%;background:var(--night);overflow:hidden;border:1px solid var(--rule)}
-.vstage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .35s}
-.vstage video.on{opacity:1}
-.feat{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-left:1px solid var(--rule)}
-.feat li{display:flex}
-.feat button{position:relative;display:grid;grid-template-columns:30px 1fr;align-content:start;gap:0 4px;width:100%;text-align:left;border:0;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule);background:none;padding:16px 14px 17px 14px;cursor:pointer;color:inherit}
-.feat .n{grid-row:1/3;padding-top:2px;font-weight:700;font-size:13px;color:var(--faint);font-variant-numeric:tabular-nums}
-.feat b{font-size:16px;font-weight:700;letter-spacing:-.01em;color:#0A1B33}
-.feat .t{font-size:13px;line-height:1.45;color:var(--moraine);margin-top:3px}
-.feat button:hover{background:var(--firn)}
-.feat button[aria-current="true"]{background:var(--firn);box-shadow:inset 0 3px 0 var(--accent)}
-.feat button[aria-current="true"] .n{color:var(--accent)}
-.feat button::after{content:"";position:absolute;left:0;bottom:-1px;height:2px;width:var(--p,0%);background:var(--accent)}
-
 /* data and method */
 .sci{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:0 40px;margin:8px 0 0}
 .sci > details{border-top:2px solid #0A1B33;padding:20px 0 24px}
@@ -243,7 +230,7 @@ section.s .eyebrow{color:var(--accent);font-weight:700}      /* the label above 
 #science .note{margin:14px 0 0;font-size:12px;color:var(--moraine)}
 
 /* footer */
-footer{background:#070b14 center bottom/cover no-repeat;color:rgba(255,255,255,.7);padding:0 0 36px;font-size:12.5px}
+footer{background:#070b14 var(--tfs-space2,none) center calc(50% - var(--sy,0px))/auto var(--tile,200vh) repeat-y fixed;color:rgba(255,255,255,.7);padding:0 0 36px;font-size:12.5px}
 footer .wrap{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:40px}
 footer .brand{margin-bottom:12px}
 footer p{margin:0 0 8px;line-height:1.55}
@@ -273,7 +260,7 @@ dialog.player button{position:absolute;right:10px;top:10px;z-index:2;padding:8px
 dialog.player button:hover{background:rgba(14,26,34,.9)}
 dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 
-@media (max-width:1100px){.sci{grid-template-columns:repeat(2,minmax(0,1fr))}.feat{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:1100px){.sci{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media (max-width:900px){
   .hero{padding:104px 0 44px}
   .hero .wrap{grid-template-columns:1fr;gap:34px}
@@ -282,7 +269,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .bar nav{gap:0}
   .brand b{font-size:18px}
   footer .wrap{grid-template-columns:1fr;gap:28px}
-  .feat{grid-template-columns:1fr}
   .tiles{grid-template-columns:1fr 1fr}
   .sci{grid-template-columns:1fr}
   .whygrid{flex-direction:column;gap:24px}
@@ -301,19 +287,6 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
   .closing .wrap{flex-direction:column;align-items:stretch;gap:22px}
   .closing .btn-red.go{width:100%;justify-content:center;height:58px;font-size:16px;border:2px solid #fff;box-shadow:0 6px 18px rgba(0,0,0,.35)}
   section.s{padding:52px 0}
-}
-
-/* the clip stays at the top of the screen while the list of points scrolls under it (a block, not a grid: a sticky grid item only sticks inside its own row) */
-@media (max-width:900px){
-  .how{display:block}
-  .vstage{position:sticky;top:0;z-index:5;box-shadow:0 6px 14px rgba(10,27,51,.18)}
-  .feat button{background:var(--sheet)}
-  .feat button[aria-current="true"]{background:var(--firn)}
-}
-/* phones on their side: the clip left, the list right, the clip still pinned */
-@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
-  .how{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:0 14px}
-  .vstage{top:8px}
 }
 
 /* ---------- phones: one calm column (the front page seen at 390 px) ---------- */
@@ -430,12 +403,12 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .how-cta{display:flex;justify-content:center;margin-top:32px}
 
 /* ---------- phones, portrait and landscape: the design language of the explorer (css/style.css "Phone design system") and a short front page ----------
-   The explorer is the product, so the page is the hero, the audiences it is made for (names only) and the way in. The steps, the long "why" text, the glacier picker with its map, the feature list, the quote and the data-and-method section stay on larger screens; the explorer explains itself. */
+   The explorer is the product, so the page is the hero, the audiences it is made for (names only) and the way in. The steps, the long "why" text, the glacier picker with its map, the pinned-clip story, the quote and the data-and-method section stay on larger screens (owner, 2026-11-15: phones get no section they did not have); the explorer explains itself. */
 @media (max-width:640px), (max-width:950px) and (orientation:landscape) and (max-height:520px){
   .stepsband,#regions,#how,.quoteband,#science,.herotext .lede,.flight .cap,.why-name,.why-logo{display:none}
   .wrap{padding:0 var(--sp-4)}
   .bar .wrap{padding:0 14px;gap:var(--sp-2);height:52px}      /* the same height as the bar of the gallery and the size page */
-  .brand{gap:10px}.brand img{height:24px}
+  .brand{gap:10px}.brand img{height:28px;width:28px}
   .bar nav{gap:14px}.bar nav a{font-size:12px}
   .bar .brand b{display:none}
   .brand b{font-size:16px}
@@ -515,27 +488,36 @@ dialog.player{overflow:hidden;border-radius:var(--r-lg)}
 .tile:has(.st.open){box-shadow:none}
 .tile[aria-current="true"]:has(.st.open){box-shadow:inset 0 0 0 2px var(--accent)}
 .tile .st{border-radius:var(--r-pill);padding:2px 8px}
-.vstage{border:0;border-radius:var(--r-lg)}
-.feat{border-left:0;gap:var(--sp-2);margin-top:var(--sp-3)}
-.feat button{border:0;border-radius:var(--r-md);background:var(--firn);overflow:hidden}
-.feat button:hover{background:#E9EEF0}
-.feat button[aria-current="true"]{background:var(--sheet);box-shadow:var(--raise),inset 0 0 0 2px var(--accent)}
-.feat button::after{left:0;bottom:0;border-radius:0 2px 2px 0}
 .sci > details{border:0;border-radius:var(--r-lg);background:var(--sheet);box-shadow:var(--lift);padding:var(--sp-4) var(--sp-4) var(--sp-4)}
 .sci{gap:var(--sp-3) var(--sp-3)}
 section.s.alt{border-top:0;border-bottom:0}
 .quoteband{border-radius:0}
 footer .credits-fold > summary{border-radius:var(--r-md)}
 .info .making{border-radius:0 var(--r-sm) var(--r-sm) 0}
+/* the picked-glacier box: quiet grey region line, big name, the area as a grey tile, one full-width red button */
+.info{gap:6px;padding:18px 20px 20px}
+.info .lab{color:var(--moraine);font-weight:600}
+.info h3{font-size:24px;margin-bottom:4px}
+.info #iText{align-self:flex-start;padding:5px 10px;border-radius:var(--r-sm);background:var(--firn);font-size:12.5px;font-weight:600;color:#0A1B33}
+.info #iText:empty{display:none}
+.info .row{margin-top:10px}
+.info .row .btn-red{flex:1 1 auto;justify-content:center;text-align:center;padding:12px 16px;font-size:13.5px;font-weight:700;border-radius:var(--r-md);margin-top:0}
 @media (max-width:900px){
   .info{border-radius:0 0 var(--r-lg) var(--r-lg);box-shadow:none}
-  .vstage{border-radius:var(--r-md)}
-  .feat button{background:var(--firn)}
-  .feat button[aria-current="true"]{background:var(--sheet)}
 }
 
 /* the red "Open the explorer" buttons: rectangles with rounded corners */
 .btn-red,.btn-red.go,.closing .btn-red.go,.hero .cta .btn-red{border-radius:var(--r-sm)}
+/* chic: deep red with a soft gradient, a fine light inner edge, wide letter spacing, the arrow slides on hover */
+.btn-red{background:linear-gradient(180deg,#D4413A 0%,#B52B24 100%);border-color:rgba(255,255,255,.14);letter-spacing:.02em;font-weight:600;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 1px 2px rgba(120,20,16,.35),0 8px 22px -8px rgba(200,50,42,.6);
+  transition:transform .25s cubic-bezier(.2,.7,.2,1),box-shadow .25s,background .25s}
+.btn-red:hover{background:linear-gradient(180deg,#DC4A43 0%,#BC2F27 100%);border-color:rgba(255,255,255,.22);transform:translateY(-1px);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.28),0 2px 4px rgba(120,20,16,.35),0 14px 30px -10px rgba(200,50,42,.75)}
+.btn-red:active{transform:none}
+.btn-red svg{transition:transform .25s cubic-bezier(.2,.7,.2,1)}
+.btn-red:hover svg{transform:translateX(4px)}
+.hero .cta .btn-red{padding:15px 26px;font-size:15px}
 
 /* ---------- the five ways in: open tiles, each one a link to a different tool ---------- */
 .aud-tile{position:relative;display:flex;flex-direction:column;gap:4px;padding:18px 44px 18px 18px;border-radius:var(--r-md);background:var(--firn);color:var(--rock);text-decoration:none;transition:box-shadow .15s,transform .15s}
@@ -553,13 +535,43 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
   .aud-tile span{font-size:14px}
 }
 
-/* ---------- gallery preview (not on phones) ---------- */
+/* ---------- gallery preview (not on phones): a blue band with five loose photos, tilted, straightening on hover ---------- */
 #gallery[hidden]{display:none}
-.gprev{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:14px;align-items:start}
-.gprev .gp{display:block;text-decoration:none;color:#0A1B33}
-.gprev .gp img{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;border-radius:10px;background:var(--firn)}
-.gprev .gp span{display:block;margin-top:8px;font-size:12.5px;font-weight:600;color:var(--moraine)}
+section.s#gallery{background:radial-gradient(1200px 500px at 15% 0%,#3A86A8 0%,transparent 60%),linear-gradient(160deg,#1F5774 0%,#143D55 100%);border:0;padding:84px 0 92px;overflow:hidden}
+#gallery .sh h2{color:#fff}
+#gallery .sh p{color:rgba(255,255,255,.82)}
+#gallery .eyebrow,section.s#gallery .eyebrow{color:#fff;opacity:.85}
+.gprev{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:22px;align-items:start;padding:14px 0 26px}
+.gprev .gp{position:relative;display:block;text-decoration:none;color:#0A1B33;background:#fff;padding:10px 10px 0;border-radius:3px;box-shadow:0 2px 4px rgba(0,0,0,.22),0 14px 30px rgba(0,0,0,.30);transform:rotate(var(--r,0deg)) translateY(var(--y,0));transition:transform .3s cubic-bezier(.2,.8,.3,1.3),box-shadow .3s ease}
+.gprev .gp:nth-child(1){--r:-4.5deg;--y:6px}
+.gprev .gp:nth-child(2){--r:3deg;--y:-12px}
+.gprev .gp:nth-child(3){--r:-2deg;--y:12px}
+.gprev .gp:nth-child(4){--r:4.5deg;--y:-6px}
+.gprev .gp:nth-child(5){--r:-3deg;--y:8px}
+.gprev .gp::before{content:"";position:absolute;left:50%;top:-11px;width:62px;height:20px;margin-left:-31px;background:rgba(255,236,170,.78);box-shadow:0 1px 2px rgba(0,0,0,.18);transform:rotate(calc(var(--r,0deg) * -1.5));z-index:2}
+.gprev .gp .gi{position:relative;display:block;overflow:hidden;background:var(--firn)}
+.gprev .gp img,.gprev .gp video{display:block;width:100%;aspect-ratio:4/5;object-fit:cover;transition:transform .5s ease}
+.gprev .gp span.gc{display:block;padding:10px 2px 12px;font-size:13px;font-weight:700;line-height:1.25;color:#0A1B33;transition:color .2s ease}
+@media (hover:hover){
+  .gprev .gp:hover{transform:rotate(0deg) translateY(-12px) scale(1.1);z-index:3;box-shadow:0 4px 8px rgba(0,0,0,.25),0 28px 50px rgba(0,0,0,.4)}
+  .gprev .gp:hover img,.gprev .gp:hover video{transform:scale(1.04)}
+  .gprev .gp:hover span.gc{color:var(--accent)}
+}
+.gprev .gp.ghost{pointer-events:none}
+.gprev .gp.ghost .gi,.gprev .gp .gi.loading{aspect-ratio:4/5;background:linear-gradient(110deg,#DCE8ED 30%,#F2F7F9 50%,#DCE8ED 70%) 0 0/250% 100%;animation:gdev 1.6s ease-in-out infinite}
+.gprev .gp.ghost .gc{color:var(--moraine);font-style:italic}
+.gprev .gp .gi.loading img,.gprev .gp .gi.loading video{opacity:0}
+.gprev .gp .gi img,.gprev .gp .gi video{transition:transform .5s ease,opacity .5s ease}
+@keyframes gdev{from{background-position:130% 0}to{background-position:-30% 0}}
+.gprev .gp .gv{position:absolute;right:8px;top:8px;width:26px;height:26px;border-radius:50%;background:rgba(10,27,51,.6);display:grid;place-items:center;pointer-events:none;transition:opacity .2s}
+.gprev .gp .gv svg{width:11px;height:11px;fill:#fff;margin-left:1px}
+.gprev .gp.playing .gv{opacity:0}
+.gprev .gp:active{transform:rotate(0deg) scale(.98)}
+.gprev .gp:focus-visible{outline:3px solid #fff;outline-offset:4px}
+@media (max-width:1100px){.gprev{gap:16px}.gprev .gp{padding:8px 8px 0}}
+@media (prefers-reduced-motion:reduce){.gprev .gp,.gprev .gp img,.gprev .gp video{transition:none}.gprev .gp.ghost .gi,.gprev .gp .gi.loading{animation:none}.gprev .gp:hover,.gprev .gp:hover img,.gprev .gp:hover video{transform:none}}
 .gout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-top:22px}
+@media (max-width:700px){.gout{grid-template-columns:1fr}}
 .gout>div{display:grid;grid-template-columns:22px 1fr;column-gap:10px;row-gap:2px;align-items:center;padding:12px 14px;border:1px solid var(--rule);border-radius:10px;background:var(--sheet)}
 .gout svg{grid-row:1/3;width:22px;height:22px;color:var(--crevasse)}
 .gout b{font-size:14px;color:var(--ink)}
@@ -579,4 +591,200 @@ footer .credits-fold > summary{border-radius:var(--r-md)}
 @media (pointer:coarse){.fl-zoom{right:12px;bottom:62px}.fl-zoom button{width:42px;height:42px}}
 
 /* German (js/i18n.js): the hint over the flight picture is longer than in English; it sits at the right and may wrap, so it never covers the year */
-html[lang="de"] .drag-hint{left:auto;right:12px;transform:none;max-width:calc(100% - 150px);white-space:normal;line-height:1.25;text-align:left}
+html[data-i18n-long] .drag-hint{left:auto;right:12px;transform:none;max-width:calc(100% - 150px);white-space:normal;line-height:1.25;text-align:left}
+@media(max-width:560px){html[lang="fr"] .herotext h1{font-size:clamp(20px,5.9vw,30px)}}      /* "Les glaciers ne parlent pas." keeps its line on a phone */
+
+
+/* ---------- scroll story (js/home-scroll.js and the story script of home.html) ----------
+   Editorial: things come into the page as you scroll. Only transform and opacity move (no filters). With reduced motion, or when the script does not run, nothing is hidden. */
+.progress{position:fixed;z-index:30;left:0;top:0;height:3px;width:100%;background:var(--accent);transform:scaleX(0);transform-origin:0 50%;pointer-events:none}
+.bar.solid{background:#070b14 var(--tfs-space,none) center top/cover no-repeat}      /* the starry backdrop of the other pages (js/space-bg.js) */
+.bar.away{transform:translateY(-100%)}
+@media (max-width:640px),(max-width:950px) and (orientation:landscape) and (max-height:520px){.bar.solid{background:#070b14 var(--tfs-space,none) center top/cover no-repeat}}
+
+/* things that come in: hidden only while the page is set up for it (html.js-rv) */
+.js-rv .rv{opacity:0;transform:translateY(34px);transition:opacity .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms)}
+.js-rv .rv.in{opacity:1;transform:none}
+.js-rv .closing h2 .rv{transform:translateY(46px)}
+.js-rv .closing h2 .rv.in{transform:none}
+.js-rv .aud-tile.rv.in{transition:opacity .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),transform .8s cubic-bezier(.2,.7,.2,1) var(--d,0ms),box-shadow .15s}      /* the hover lift of the tile still works once it is in */
+.js-rv .aud-tile.rv.in:hover,.js-rv .aud-tile.rv.in:focus-visible{transform:translateY(-2px);transition-delay:0ms}
+
+/* the hero: a whole screen; the text and the flight leave a little slower than the page; the stars stay put like in every section (fixed) */
+@media (min-width:901px){
+  .hero{min-height:100svh;display:flex;align-items:center;overflow:hidden}
+  .hero .wrap{width:100%;max-width:1340px;grid-template-columns:minmax(380px,9fr) minmax(0,14fr);gap:clamp(40px,4vw,72px)}      /* the flight takes the space: wider page, wider column */
+  .herotext{transform:translateY(calc(var(--hp,0) * -46px));opacity:calc(1 - var(--hp,0) * 1.25)}
+  .flightbox{transform:translateY(calc(var(--hp,0) * -22px)) scale(calc(1 - var(--hp,0) * .05));opacity:calc(1 - var(--hp,0) * .55)}
+}
+/* first sight of the page: the title lines, the text and the picture come in one after the other */
+@keyframes heroIn{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+.js-rv .hero h1 span{animation:heroIn 1s cubic-bezier(.2,.7,.2,1) both}
+.js-rv .hero h1 span + span{animation-delay:.16s}
+.js-rv .hero .lede{animation:heroIn 1s cubic-bezier(.2,.7,.2,1) .34s both}
+.js-rv .hero .cta{animation:heroIn 1s cubic-bezier(.2,.7,.2,1) .48s both}
+.js-rv .hero .flight{animation:heroIn 1.3s cubic-bezier(.2,.7,.2,1) .25s both}
+.scrollcue{position:absolute;z-index:2;left:50%;bottom:20px;width:26px;height:42px;margin-left:-13px;border:1.5px solid rgba(255,255,255,.55);border-radius:14px;opacity:.85}
+.scrollcue i{position:absolute;left:50%;top:8px;width:3px;height:8px;margin-left:-1.5px;border-radius:2px;background:#fff;animation:cue 1.9s ease-in-out infinite}
+@keyframes cue{0%{opacity:0;transform:translateY(0)}30%{opacity:1}100%{opacity:0;transform:translateY(14px)}}
+@media (max-width:900px){.scrollcue{display:none}}
+@media (prefers-reduced-motion:reduce){.scrollcue i{animation:none;opacity:1}}
+
+/* the Why block: the two paragraphs grow bright as they pass the middle of the screen */
+.whyband{padding:clamp(72px,12vw,150px) 0 clamp(56px,8vw,100px)}
+.whyhead .why-name{font-size:clamp(22px,2.7vw,36px);line-height:1.32;font-weight:600;letter-spacing:-.018em;max-width:900px}
+.why-name + .why-name{margin-top:clamp(36px,6vw,80px)}
+.why-name.lit{opacity:calc(.2 + var(--lit,1) * .8);transform:translateY(calc((1 - var(--lit,1)) * 14px))}
+.js-rv .why-name.lit{will-change:opacity,transform}
+.whyband .aud{margin-top:clamp(48px,7vw,88px)}
+.whyhead .aud-title{margin-bottom:clamp(20px,3vw,36px)}
+@media (max-width:640px){.whyhead .why-name{font-size:19px;line-height:1.45}}
+
+/* what you can do: the clip is pinned, the points scroll past it and the one at the reading line plays */
+.how{display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:clamp(32px,5vw,72px);align-items:start;margin-top:8px}
+.vstage{position:sticky;top:clamp(84px,calc(50svh - 12vw),220px);aspect-ratio:16/9;width:100%;background:var(--night);overflow:hidden;border-radius:var(--r-lg);box-shadow:0 24px 60px rgba(14,26,34,.28)}
+.vstage video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:0;transition:opacity .45s}
+.vstage video.on{opacity:1}
+.feat{list-style:none;margin:0;padding:0}
+.feat li{display:flex;align-items:center;min-height:62svh}
+.feat li:first-child{min-height:56svh}
+.feat li:last-child{min-height:50svh}
+.feat button{position:relative;display:block;width:100%;text-align:left;border:0;background:none;padding:0 0 0 22px;color:inherit;cursor:pointer;opacity:.3;transform:translateX(10px);transition:opacity .45s,transform .45s}
+.feat button:hover{opacity:.6}
+.feat button[aria-current="true"]{opacity:1;transform:none}
+.feat button::before{content:"";position:absolute;left:0;top:2px;bottom:2px;width:3px;border-radius:2px;background:var(--rule)}
+.feat button::after{content:"";position:absolute;left:0;top:2px;width:3px;height:var(--p,0%);max-height:calc(100% - 4px);border-radius:2px;background:var(--accent)}      /* the red part of the bar is the clip's progress */
+.feat .n{display:block;margin-bottom:10px;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--accent);font-variant-numeric:tabular-nums}
+.feat .n::before{content:"0"}
+.feat b{display:block;font-size:clamp(24px,2.6vw,34px);line-height:1.1;font-weight:800;letter-spacing:-.028em;color:#0A1B33}
+.feat .t{display:block;margin-top:12px;font-size:clamp(15px,1.25vw,17px);line-height:1.55;color:var(--moraine);max-width:440px}
+@media (max-width:900px){
+  .how{display:block}
+  .vstage{top:0;z-index:5;border-radius:0 0 var(--r-md) var(--r-md);box-shadow:0 8px 18px rgba(10,27,51,.2)}
+  .feat li,.feat li:first-child{min-height:36svh}.feat li:last-child{min-height:32svh}
+  .feat button{padding-left:18px}
+  .feat b{font-size:24px}
+}
+@media (max-width:900px){#how .wrap{padding:0}#how .sh,#how .how-cta{padding:0 var(--sp-4)}#how .sh{margin-bottom:18px}#how .feat{padding:0 var(--sp-4)}}
+/* phones on their side: the clip left, the points right */
+@media (max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .how{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr);align-items:start;gap:0 14px}
+  .vstage{top:8px;border-radius:var(--r-md)}
+  .feat li,.feat li:first-child,.feat li:last-child{min-height:70svh}
+}
+
+/* the other blocks of the page that lean on the same rules: the dark map band and the closing line */
+.pickband{padding-top:clamp(72px,9vw,120px)}
+.closing{padding:clamp(96px,14vw,180px) 0 clamp(72px,9vw,120px)}
+.closing h2{font-size:clamp(34px,5.6vw,76px);line-height:1}
+@media (prefers-reduced-motion:reduce){.progress{display:none}.bar{transition:none}}
+
+@media (max-width:640px){.drag-hint{top:auto;bottom:12px;left:12px;right:auto;max-width:calc(100% - 84px);white-space:normal;line-height:1.25}}      /* phones: under the year, left of the buttons */
+
+/* "Create and share": the starry backdrop of the hero (js/space-bg.js sets --tfs-space), light text on it */
+#how{background:#070b14 var(--tfs-space2,none) center calc(50% - var(--sy,0px))/auto var(--tile,200vh) repeat-y fixed;color:#fff}      /* fixed: the 1600x1000 picture covers the screen like in the hero, not the whole tall section (that blew the stars up into blocks) */
+#how .sh h2,#how .feat b{color:#fff}
+#how .sh p,#how .feat .t{color:rgba(255,255,255,.72)}
+#how .sh p.eyebrow{color:var(--accent)}
+#how .feat button::before{background:rgba(255,255,255,.2)}
+/* the clip sits in a plain laptop: the screen is the viewer; the whole laptop turns a little with the scroll (--ry, set in js/home-scroll.js) */
+#how .laptop{position:sticky;top:clamp(84px,calc(50svh - 14vw),220px);perspective:1600px;width:100%}
+#how .rig{transform:rotateY(var(--ry,-14deg)) rotateX(var(--rx,4deg));transform-style:preserve-3d;transition:transform .12s linear}
+#how .lid{background:#0d1118;border-radius:16px 16px 6px 6px;padding:2.2% 2.2% 2.6%;border:1px solid rgba(255,255,255,.2);box-shadow:0 0 70px rgba(120,160,255,.22),0 30px 60px rgba(0,0,0,.6)}
+#how .vstage{position:relative;top:auto;border-radius:3px;box-shadow:none;border:1px solid #000}
+#how .deck{position:relative;height:clamp(10px,1.5vw,18px);width:112%;margin:0 -6%;background:linear-gradient(#c9ced6,#8d939c);border-radius:2px 2px 18px 18px/2px 2px 14px 14px;box-shadow:0 18px 30px rgba(0,0,0,.55)}
+#how .deck::after{content:"";position:absolute;left:50%;top:0;width:16%;height:50%;transform:translateX(-50%);background:#6f757e;border-radius:0 0 8px 8px}
+@media (max-width:900px){#how .laptop{top:0;z-index:5;padding:8px var(--sp-4) 0}#how .rig{transform:none}#how .deck{width:100%;margin:0}}
+@media (prefers-reduced-motion:reduce){#how .rig{transition:none}}
+
+/* "Take it with you": instead of the laptop, a tablet with the clip and a phone with a generic post (no logos, no counts) */
+#how .rig{position:relative}
+#how .lid,#how .deck{transition:opacity .45s}
+#how .laptop[data-k="share"] .lid,#how .laptop[data-k="share"] .deck{opacity:0}
+#how .devices{position:absolute;inset:0;opacity:0;pointer-events:none;transition:opacity .45s;transform-style:preserve-3d}
+#how .laptop[data-k="share"] .devices{opacity:1}
+#how .tablet{position:absolute;left:0;top:0;width:82%;background:#0d1118;border:1px solid rgba(255,255,255,.2);border-radius:22px;padding:3.2%;box-shadow:0 0 70px rgba(120,160,255,.22),0 30px 60px rgba(0,0,0,.6);transform:translateZ(0)}
+#how .tscreen{aspect-ratio:16/10;border-radius:8px;overflow:hidden;background:#000}#how .tscreen img{display:block;width:100%;height:100%;object-fit:cover}
+#how .phone{position:absolute;right:0;bottom:0;width:24%;aspect-ratio:9/18.5;background:#0d1118;border:1px solid rgba(255,255,255,.28);border-radius:26px;padding:2.4%;box-shadow:0 30px 60px rgba(0,0,0,.7),0 0 40px rgba(120,160,255,.2);transform:translateZ(30px)}
+#how .pscreen{width:100%;height:100%;background:#fff;border-radius:20px;overflow:hidden;display:flex;align-items:center}
+#how .post{width:100%;color:#0A1B33}
+#how .ph{display:flex;align-items:center;gap:6%;padding:6% 7%}
+#how .av{width:16%;aspect-ratio:1;border-radius:50%;background:var(--accent);flex:none}
+#how .ph b{font-size:clamp(5px,.62vw,9px);font-weight:700;letter-spacing:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;min-width:0}
+#how .post img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+#how .pa{display:flex;gap:8%;padding:7% 7% 4%}
+#how .pa svg{width:15%;height:auto;aspect-ratio:1;fill:none;stroke:#0A1B33;stroke-width:1.8;stroke-linejoin:round}
+#how .ln{display:block;height:5px;margin:0 7% 6%;border-radius:3px;background:#d5dbe3}
+#how .ln.s{width:50%}
+
+
+/* "About Tongues from Space": the starry backdrop again (js/space-bg.js sets --tfs-space), light text on it */
+.quoteband{background:#070b14 var(--tfs-space2,none) center calc(50% - var(--sy,0px))/auto var(--tile,200vh) repeat-y fixed;color:#fff}
+.quoteband .qmain,.quoteband .qcols p{color:#fff}
+.quoteband .qsub{color:rgba(255,255,255,.78)}
+.quoteband .qcols p{color:rgba(255,255,255,.8)}
+.quoteband .qcols,.quoteband .qcols > div + div{border-color:rgba(255,255,255,.22)}
+.quoteband .why-logo g{fill:#fff}
+.quoteband a{color:#fff;text-decoration:underline}
+#how .how-cta{margin-top:64px}
+
+/* ---------- planes, seams and fillers (design round 2026-11-16) ----------
+   The page is a stack of flat colour planes (css/tokens.css: --space, --snow, blue gallery, --space, --till, --space, --mist, --space), never two of the same kind side by side.
+   Between them: seams with a shape (the ridge under the hero, the pixel row over the About band, the layers of the years over "Data and method", the ice front over the closing line)
+   and three things that cross a seam (the gallery's three notes, the "Open the studio" button of the story, the ridge itself). Fillers are the tongue and the spark of the logo and
+   topographic lines. Decoration only: pseudo-elements with the files of images/home/shape-*.svg (scripts/build_home_shapes.py) as masks or backgrounds; no HTML, no text, no filters. */
+
+/* the planes */
+.whyband{background:var(--snow)}
+.pickband{background:var(--till)}
+#science{background:var(--mist)}
+.whyband,.pickband,#science{position:relative;overflow:hidden;overflow:clip}      /* the fillers may run out of the box; the section cuts them */
+.whyband::before,.whyband::after,.pickband::before,.pickband::after,#science::before,#science::after{content:"";position:absolute;pointer-events:none;z-index:0}
+.whyband > .wrap,.pickband > .wrap,#science > .wrap{position:relative;z-index:1}
+
+/* Why: contour lines of a glacier hill (one dashed red ring: the former extent) and a few glints of the logo's spark */
+.whyband::after{inset:0;background:var(--crevasse);opacity:.3;-webkit-mask:url(../images/home/shape-spark.svg) 86% 9%/22px 22px no-repeat,url(../images/home/shape-spark.svg) 94% 31%/14px 14px no-repeat,url(../images/home/shape-spark.svg) 74% 5%/12px 12px no-repeat;mask:url(../images/home/shape-spark.svg) 86% 9%/22px 22px no-repeat,url(../images/home/shape-spark.svg) 94% 31%/14px 14px no-repeat,url(../images/home/shape-spark.svg) 74% 5%/12px 12px no-repeat}
+
+/* Choose: warm paper, the mark of the logo, big and in ice, behind the heading, contour lines under the map */
+.pickband{padding-bottom:96px}      /* room for the pixel row of the band below */
+
+/* Data and method: the layers of the years on top (eleven equal bands from the dark of space to the mist: one per year 2016 to 2026, decoration, no values), contour lines at the side */
+#science{--strata:clamp(33px,4vw,55px);padding-top:calc(96px + var(--strata))}
+#science::before{left:0;right:0;top:0;height:var(--strata);background:linear-gradient(to bottom,#0A1426 0 9.09%,#11263B 9.09% 18.18%,#183850 18.18% 27.27%,#1F4A64 27.27% 36.36%,#265C79 36.36% 45.45%,#2D6E8E 45.45% 54.55%,#5288A2 54.55% 63.64%,#77A2B7 63.64% 72.73%,#9DBCCB 72.73% 81.82%,#C2D6E0 81.82% 90.91%,#D6E5EC 90.91% 100%)}
+
+/* seam 1, under the hero: a ridge in the colour of the next plane rises into the dark; the middle is low, like the valley of a glacier (the scroll cue sits in it) */
+.hero{--ridge:clamp(44px,7.4vw,108px);padding-bottom:calc(var(--ridge) * .55 + 28px)}
+.hero::after{content:"";position:absolute;z-index:1;left:0;right:0;bottom:-1px;height:var(--ridge);background:var(--snow);-webkit-mask:url(../images/home/shape-ridge.svg) 0 100%/100% 100% no-repeat;mask:url(../images/home/shape-ridge.svg) 0 100%/100% 100% no-repeat;pointer-events:none}
+.scrollcue{bottom:calc(var(--ridge) * .3 + 14px)}
+
+/* seam 2, the gallery's three notes hang over the lower edge of the blue plane into the dark one */
+section.s#gallery{overflow:visible;overflow-x:clip;padding-bottom:0}
+#gallery .gout{position:relative;z-index:3;margin-bottom:-34px}
+#gallery .gout > div{border:0;box-shadow:0 12px 30px rgba(3,8,16,.34)}
+#how{padding-top:calc(96px + 34px);padding-bottom:0}
+
+/* seam 3, the red button of the story sits half on the dark plane and half on the warm one */
+#how .how-cta{position:relative;z-index:3;margin:64px 0 -24px}
+
+/* seam 4, over the About band: square pixels (the size of a Sentinel-2 pixel, drawn big) thin out upwards from the dark band into the warm plane; the same starry picture as the band, so no edge shows */
+.quoteband{position:relative}
+.quoteband::before{content:"";position:absolute;z-index:2;left:0;right:0;top:-48px;height:48px;background:inherit;-webkit-mask:url(../images/home/shape-pixels.svg) 0 100%/384px 48px repeat-x;mask:url(../images/home/shape-pixels.svg) 0 100%/384px 48px repeat-x;pointer-events:none}
+
+/* seam 5, over the closing line: the front of a glacier, in the colour of the plane above, hangs into the dark */
+.closing{position:relative;--ice-h:clamp(36px,4.4vw,62px);--above:var(--mist)}
+.closing::before{content:"";position:absolute;left:0;right:0;top:-1px;height:var(--ice-h);background:var(--above);-webkit-mask:url(../images/home/shape-icefront.svg) 0 0/100% 100% no-repeat;mask:url(../images/home/shape-icefront.svg) 0 0/100% 100% no-repeat;pointer-events:none}
+
+/* cards on a light plane: an outline in ice, not a shadow (the planes do the separating); the three ways in carry the mark of the logo in the corner */
+.aud-tile{isolation:isolate;overflow:hidden;background:var(--sheet);box-shadow:inset 0 0 0 1px var(--ice)}
+#science .sci > details{background:var(--sheet);box-shadow:inset 0 0 0 1px var(--ice)}
+
+@media (max-width:900px){
+  #how{padding-top:52px}
+  .pickband{padding-bottom:72px}
+  #science{padding-top:calc(52px + var(--strata))}
+}
+/* phones (the short front page: hero, the ways in, the closing line): the ridge and the ice front stay, the fillers go */
+@media (max-width:640px),(max-width:950px) and (orientation:landscape) and (max-height:520px){
+  .whyband::after,  .closing{--above:var(--snow);padding-top:calc(var(--ice-h) + 26px)}
+}
+@media (prefers-reduced-motion:reduce){

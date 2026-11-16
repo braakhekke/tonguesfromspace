@@ -28,7 +28,7 @@ What it does, besides copying:
 Standard library only. Every replacement in the HTML must find its target, otherwise the script stops: a deploy with
 a broken page is worse than no deploy.
 """
-import hashlib, json, os, re, shutil, subprocess, sys
+import glob, hashlib, json, os, re, shutil, subprocess, sys
 from html import escape as html_escape
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -37,22 +37,24 @@ HASH_LEN = 10
 HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html", "404.html"]      # index.html is the explorer (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
+PUBLISH_NEWZEALAND = os.environ.get("PUBLISH_NEWZEALAND", "").strip() == "1"      # repository variable PUBLISH_NEWZEALAND=1 shows New Zealand (Franz Josef Glacier) on the public site; otherwise no New Zealand page, sitemap line or menu entry
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
-DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
-GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY}      # which groups of regions are on the public site
+DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js", "data/newzealand.js", "data/trails-newzealand.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
+GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY, "newzealand": PUBLISH_NEWZEALAND}      # which groups of regions are on the public site
 GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js"),
-              "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js")}      # data files that belong to one group of regions
-GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-"}      # the records in data/regions/ of that group start with this
+              "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js"),
+              "newzealand": ("data/newzealand.js", "data/trails-newzealand.js")}      # data files that belong to one group of regions
+GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-", "newzealand": "nz"}      # the records in data/regions/ of that group start with this
 HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
-PLAIN_FILES = ["css/pages.css", "css/home.css", "preview.jpg", "sitemap.xml", "robots.txt", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js", "mod-e36f805dfe9d.html"]                 # copied as they are (missing ones are skipped)
+PLAIN_FILES = ["css/pages.css", "css/home.css", "css/landing.css", "preview.jpg", "sitemap.xml", "robots.txt", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js", "mod-e36f805dfe9d.html"]                 # copied as they are (missing ones are skipped)
 def VQ(img):      # a new address makes link previews fetch a replaced picture again
     if img == "images/preview-social.jpg":
         return "?v=2"
     if img.startswith("images/og/") and exists(img):      # the glacier pictures: the version is their content
         return "?v=" + digest(read(img))[:8]
     return ""
-PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg"]
-HASHED_FILES = ["css/style.css", "css/tokens.css", "css/guide.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg", "images/preview-new-zealand.jpg"]
+HASHED_FILES = ["css/style.css", "css/tokens.css", "css/guide.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js", "data/trails-newzealand.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -108,7 +110,7 @@ def split_glaciers(out, assets):
 
 SITE = "https://tonguesfromspace.org"
 # What differs on the page of a region with its own address. Keys are the texts of index.html that are replaced (each must be found).
-REGION_GROUP = {"ch": "switzerland", "is": "iceland", "no-mainland": "norway", "no-svalbard": "norway"}
+REGION_GROUP = {"ch": "switzerland", "is": "iceland", "no-mainland": "norway", "no-svalbard": "norway", "nz": "newzealand"}
 REGION_PAGES = [
     {"path": "switzerland", "canonical": "switzerland/", "group": "switzerland",
      "title": "Tongues from Space | Swiss glaciers",
@@ -116,7 +118,7 @@ REGION_PAGES = [
      "og_title": "Tongues from Space - Swiss glaciers",
      "og_description": "Watch the ten largest Swiss glaciers retreat: Sentinel-2 satellite images since 2016 and 3D terrain.",
      "image": "images/preview-social.jpg", "image_w": "1200", "image_h": "630",
-     "image_alt": "Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"},
+     "image_alt": "Tongues from Space: the studio with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"},
     {"path": "iceland", "canonical": "iceland/", "group": "iceland",
      "title": "Tongues from Space | Iceland",
      "description": "Explore the glaciers of Iceland, among them the outlets of Vatnajökull, Langjökull, Hofsjökull and Mýrdalsjökull, through Sentinel-2 satellite imagery since 2016, 3D terrain and visualizations of glacier change. Compare, create and share your visuals.",
@@ -140,6 +142,13 @@ REGION_PAGES = [
      "og_description": "Watch the glaciers of Svalbard surge and retreat: Negribreen, Bråsvellbreen, Monacobreen and seven more in satellite images since 2016, 3D terrain and outlines from 1936 to 2020.",
      "image": "images/preview-svalbard.jpg", "image_w": "1200", "image_h": "630",
      "image_alt": "Tongues from Space - Svalbard: a Sentinel-2 satellite picture of a calving glacier front with its older outline"},
+    {"path": "new-zealand", "canonical": "new-zealand/", "group": "newzealand",
+     "title": "Tongues from Space | New Zealand",
+     "description": "Explore Franz Josef Glacier, Kā Roimata o Hine Hukatere, on the West Coast of New Zealand, through Landsat and Sentinel-2 satellite imagery since 1993, 3D terrain from lidar and the outlines of 1978 and 2019. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - New Zealand",
+     "og_description": "Watch Franz Josef Glacier, Kā Roimata o Hine Hukatere, retreat: Landsat and Sentinel-2 pictures since 1993, lidar 3D terrain and the outlines of 1978 and 2019.",
+     "image": "images/preview-new-zealand.jpg", "image_w": "1200", "image_h": "630",
+     "image_alt": "Tongues from Space - New Zealand: Franz Josef Glacier in a Sentinel-2 satellite picture with the glacier outlines of 1978 and 2019"},
 ]
 
 
@@ -196,7 +205,7 @@ def region_page(html, page):
          f'<meta property="og:description" content="{src["og_description"]}">')
     swap('<meta property="og:image:width" content="1200">\n<meta property="og:image:height" content="630">',
          f'<meta property="og:image:width" content="{src["image_w"]}">\n<meta property="og:image:height" content="{src["image_h"]}">')
-    swap('content="Tongues from Space: the explorer with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"', f'content="{src["image_alt"]}"')
+    swap('content="Tongues from Space: the studio with a satellite comparison slider of the Grosser Aletsch glacier, 2016 and 2025"', f'content="{src["image_alt"]}"')
     swap('<meta property="og:url" content="https://tonguesfromspace.org/">', f'<meta property="og:url" content="{url}">')
     swap('<link rel="canonical" href="https://tonguesfromspace.org/">', f'<link rel="canonical" href="{url}">')
     swap('<meta property="og:image" content="https://tonguesfromspace.org/images/preview-social.jpg?v=2">', f'<meta property="og:image" content="{SITE}/{src["image"]}{VQ(src["image"])}">')
@@ -205,6 +214,34 @@ def region_page(html, page):
     html, n = re.subn(r'((?:src|href)=")(?!https?:|data:|mailto:|#|/)([^"]+)(")', r"\g<1>/\g<2>\g<3>", html)
     print(f"{page['path']}/index.html: {n} relative names made absolute")
     return html
+
+
+def sitemap_languages(xml):
+    """Every <url> of the sitemap three times (English, /de/, /fr/), each with the alternates of the others."""
+    locs = re.findall(r"<url>\s*<loc>([^<]*)</loc>\s*</url>", xml)
+    def alts(path):
+        t = [("en", f"{SITE}{path}")] + [(l, f"{SITE}/{l}{path}") for l in ("de", "fr")]
+        return "".join(f'    <xhtml:link rel="alternate" hreflang="{l}" href="{h}"/>\n' for l, h in t)
+    out = []
+    for loc in locs:
+        path = loc[len(SITE):]
+        for pre in ("", "/de", "/fr"):
+            out.append(f"  <url>\n    <loc>{SITE}{pre}{path}</loc>\n{alts(path)}  </url>\n")
+    head = xml[:xml.index("<urlset")]
+    return head + '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xhtml="http://www.w3.org/1999/xhtml">\n' + "".join(out) + "</urlset>\n"
+
+
+LANG_CODES = ("de", "fr")      # the languages besides English: /de/… and /fr/… are the same pages (worker/main.ts), js/i18n.js translates
+
+
+def with_alternates(html):
+    """After the canonical link: the same page in every language (hreflang), so search engines offer each visitor their own. Pages without a canonical link (404) are left as they are."""
+    m = re.search(r'<link rel="canonical" href="' + re.escape(SITE) + r'(/[^"]*)">', html)
+    if not m:
+        return html
+    path = m.group(1)
+    tags = [f'<link rel="alternate" hreflang="en" href="{SITE}{path}">'] + [f'<link rel="alternate" hreflang="{l}" href="{SITE}/{l}{path}">' for l in LANG_CODES] + [f'<link rel="alternate" hreflang="x-default" href="{SITE}{path}">']
+    return html[:m.end()] + "\n" + "\n".join(tags) + html[m.end():]
 
 
 def rewrite_html(out, assets, relay):
@@ -224,15 +261,18 @@ def rewrite_html(out, assets, relay):
             tag = f'<link rel="preconnect" href="{relay}" crossorigin>' if relay.startswith("http") else ""
             html = html.replace(marker, tag)
         if name == "home.html":      # the region picker is the front page
-            write(out, "index.html", html.encode("utf-8"))
+            write(out, "index.html", with_alternates(html).encode("utf-8"))
             continue
         if name == "404.html":      # shown at any missing address, also deep ones: its files are named from the root
             html = re.sub(r'((?:src|href)=")((?:css|fonts|js|images)/)', r"\g<1>/\g<2>", html)
         if name != "index.html":      # the explorer itself has no address of its own: only its region pages are written
-            write(out, name, html.encode("utf-8"))
+            write(out, name, with_alternates(html).encode("utf-8"))
         if name == "index.html":
             for page in [p for p in REGION_PAGES if GROUP_ON[p["group"]]]:
-                write(out, f"{page['path']}/index.html", region_page(html, page).encode("utf-8"))
+                write(out, f"{page['path']}/index.html", with_alternates(region_page(html, page)).encode("utf-8"))
+
+
+SINGLE_COUNTRY = {"nz": "New Zealand"}      # field notes of one measured surface name their region (build_field_notes.py); the yearly-surface notes (page / clean) are the Swiss glaciers
 
 
 def write_yearly_index(yearly):
@@ -241,8 +281,8 @@ def write_yearly_index(yearly):
     for f in sorted(os.listdir(yearly)):
         if f.endswith(".json") and f != "index.json":
             d = json.load(open(os.path.join(yearly, f)))
-            if "page" in d or "clean" in d:      # "clean": the clean build (experiments/clean-yearly) has no "page" block
-                items.append({"id": d["glacier"], "name": d["name"], "short": d.get("short") or d["page"]["short"], "years": [d["years"][0], d["years"][-1]], "kinds": sorted(set(d["kind"].values())), "built": d["built"]})
+            if "page" in d or "clean" in d or "single" in d:      # "clean": the clean build (experiments/clean-yearly) has no "page" block; "single": one measured surface (scripts/build_field_notes.py)
+                items.append({"id": d["glacier"], "name": d["name"], "short": d.get("short") or d["page"]["short"], "years": [d["years"][0], d["years"][-1]], "kinds": sorted(set(d["kind"].values())), "built": d["built"], "country": SINGLE_COUNTRY[d["single"]["region"]] if "single" in d else "Switzerland", **({"single": True} if "single" in d else {})})
     json.dump(items, open(os.path.join(yearly, "index.json"), "w"), indent=1, ensure_ascii=False)
 
 
@@ -306,6 +346,7 @@ def main():
                         data = re.sub(rb"\s*<url>\s*<loc>[^<]*/" + re.escape(page["path"]).encode() + rb"/?</loc>\s*</url>", b"", data)
                 extra = "".join(f"  <url>\n    <loc>{SITE}/{p['canonical']}</loc>\n  </url>\n" for p in GLACIER_PAGES if GROUP_ON[p["group"]])      # the page of each glacier
                 data = data.replace(b"</urlset>", extra.encode("utf-8") + b"</urlset>")
+                data = sitemap_languages(data.decode("utf-8")).encode("utf-8")      # every address in every language, each naming the others
             write(out, name, data)
     og = os.path.join(ROOT, "images", "og")      # the social pictures of the glacier pages (scripts/build_og_images.py)
     if os.path.isdir(og):
@@ -336,7 +377,7 @@ def main():
     code = os.path.join(ROOT, "js")
     named = set()
     for f in sorted(os.listdir(code)):
-        if f in ("regions.js", "00-regions.js", "home-link.js", "ghost-click.js", "vf-close-dock.js", "turn-upright.js", "track.js", "mascot.js", "why.js", "search.js", "dem-export.js", "drop-sound.js", "i18n.js", "i18n-de.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
+        if f in ("regions.js", "00-regions.js", "home-link.js", "ghost-click.js", "vf-close-dock.js", "turn-upright.js", "home-scroll.js", "phone-menu.js", "top-bar.js", "space-bg.js", "track.js", "mascot.js", "why.js", "search.js", "dem-export.js", "drop-sound.js", "i18n.js", "i18n-de.js", "i18n-fr.js"):      # the classic scripts (the records; the logic that picks a region and writes the tag of its data file; the link back to the front page): each is hashed alone
             text = read(f"js/{f}").decode("utf-8")
             # the data files of the regions: their hashed names go into the files that name them
             for plain in DATA_NAMES:
@@ -345,8 +386,8 @@ def main():
                     named.add(plain)
             if f == "regions.js":
                 if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
-                    text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: 1985 \},.*\n", "", text, flags=re.M)
-                hidden = [r for r in ("is", "no-mainland", "no-svalbard") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+                    text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: \d+ \},.*\n", "", text, flags=re.M)
+                hidden = [r for r in ("is", "no-mainland", "no-svalbard", "nz") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
                 if "/*hidden-regions*/" not in text:
                     sys.exit("js/regions.js lost the marker /*hidden-regions*/")
                 text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))
@@ -449,6 +490,8 @@ def main():
     ab = os.path.join(ROOT, "data", "about-static.html")      # the About block of the explorer, shown by size.html (scripts/build_about_static.py; run it after any change of the About chapters): fetched by name, not hashed
     if os.path.isfile(ab):
         shutil.copy(ab, os.path.join(out, "data", "about-static.html"))
+    for sz in sorted(glob.glob(os.path.join(ROOT, "data", "size-*.js"))):      # the size page of another region (scripts/build_size_demo.py --region <id>): its glaciers and cities, loaded by name when the address says #r=<id>, not hashed
+        shutil.copy(sz, os.path.join(out, "data", os.path.basename(sz)))
     tb = os.path.join(ROOT, "data", "tall-buildings.json")      # buildings over 25 m under the nine cities of the size page (scripts/build_tall_buildings.py; swissBUILDINGS3D 3.0 Beta, swisstopo free geodata, credit mandatory): fetched by name when the switch is on, not hashed
     if os.path.isfile(tb):
         shutil.copy(tb, os.path.join(out, "data", "tall-buildings.json"))

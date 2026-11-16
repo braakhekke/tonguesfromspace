@@ -75,6 +75,15 @@ def run_landsat(gid, argv):
         original_paint = bl.paint
         bl.paint = lambda a, w, h, cal, qmap=None: original_paint(a, w, h, cal, None)
         bl.fix_l8_blue = lambda *args: None
+    if s.get('landsat_saturation_repair'):
+        # Landsat 4/5/7 surface reflectance saturates over snow (DN 65535, 16-40 % of the pixels here). Where only some of red, green and blue are saturated the picture turns blue (Landsat 5 TM: blue saturates first); the saturated band is replaced by the mean of the others. A display copy; fully saturated snow stays at the ceiling.
+        bl.SAT_REPAIR = True
+    if s.get('landsat_snow_rolloff'):
+        # Landsat snow clipped to white (12-28 % of the pixels at 250 or more, Sentinel-2 pictures of the same place: 0 %). Soft shoulder in the matched reflectance, set from where the Sentinel-2 snow sits on the display curve.
+        bl.SNOW_ROLLOFF = tuple(s['landsat_snow_rolloff'])
+    if s.get('land_patch'):
+        # Hand-set colour-reference patch (west, north, east, south as shares of the picture), for a box whose automatic patch lands on snow (Franz Josef): the owner-visible reason is in session.json `land_patch_note`.
+        patch = tuple(s['land_patch']); bl.auto_land = lambda *args, **kwargs: patch
     if s.get('land_ice_mask_file'):
         # The colour-reference patch must be ice-free land. The glacier's own outline alone leaves neighbouring ice (an outlet of an ice cap: the plateau) looking like land,
         # so the patch search also gets every other inventory unit in the box (a file of GeoJSON polygons named in the session). The outlines of the picker are unchanged.

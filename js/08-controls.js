@@ -291,6 +291,13 @@ document.addEventListener('click', e => {
   if (!t || (!noGlacier && satShown()) || e.target.closest('#landsatI')) return;      // the info button of the Landsat row works without a glacier too
   e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); showNotice(satMsg());
 }, true);
+/* 3D without an elevation model for each year (js/11-view3d.js sets .dem-off): the Slider and the Timelapse would only drape other pictures on one terrain, so they are greyed and a click says why */
+export const DEM_MSG = 'In 3D, Slider and Timelapse need an elevation model for each year, and this glacier has only one. Use One year, or the map.';
+document.addEventListener('click', e => {
+  const t = e.target.closest && e.target.closest('#modeCompare, #modeTimelapse');
+  if (!t || !document.getElementById('app').classList.contains('dem-off')) return;
+  e.preventDefault(); e.stopPropagation(); e.stopImmediatePropagation(); showNotice(DEM_MSG);
+}, true);
 syncSatUi();
 
 /* ---------- region picker: the second line of the title ---------- */

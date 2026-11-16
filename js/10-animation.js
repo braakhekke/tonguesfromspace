@@ -941,7 +941,7 @@ export async function frameBases(ys, W, H){
   const lo = Math.min(...ys), hi = Math.max(...ys), inRange = VOLUME_LOSS.filter(n => n.y >= lo && n.y <= hi);
   const info = { glacier: g, years: ys, tlYears: ys, scenes: ys.map(y => state.available[y]), outline: !!outline, xLegend: layerLegend(vstate.kind), xNew: hasNewOutline(vstate.kind), xCredit: layerCredits(vstate.kind, ys, rasters, bgSeenOf(bgr, ovr)), xCards: [...rasters.map(r => r.card), ...overlayCards(vstate.kind)].filter(Boolean), res: frameGroundRes(), style: state.style, styleB: sideStyle(1),
     lost: inRange.length ? Math.round((1 - inRange.reduce((q, n) => q * (1 - n.v / 100), 1)) * 100) : 0,
-    site: (location.host + location.pathname).replace(/\/(index\.html)?$/, '') };
+    site: (location.host + location.pathname.replace(/^\/(de|fr)(?=\/)/, '')).replace(/\/(index\.html)?$/, '') };
   return { g, bases, outline, info };
 }
 /* One set of water numbers for a glacier, used on the card, in the chapter and on the picture: one digit after the comma */

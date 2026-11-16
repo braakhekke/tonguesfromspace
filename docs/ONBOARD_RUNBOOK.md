@@ -4,6 +4,22 @@ Written 2026-11-11 from the owner's description. **This is the owner-facing flow
 
 Continue word: **`tongstep`**. When the owner types it, Claude reads the state of the current glacier session and carries out the next step (or reports what blocks it). Without it Claude does not move on after a button press.
 
+## Automatic steps of onboarding ANY glacier (simple list; do all of them, every time)
+
+Onboarding is not finished when the 3D strip works. **Every onboarded glacier also gets all of these, without the owner asking** (Franz Josef is the reference run, 2026-11-16/17):
+
+1. **Records and data**: session -> `data/regions/<region>/<id>/` -> `data/boxes.js`, `data/scenes.json`, `worker/glacier-index.json` (`build_<region>.py`, `npm run walkthrough -- export`, `sync_worker_centres.py`).
+2. **Menus and lists**: region entry in `js/regions.js` (region menu, home picker, preview image, sitemap line; `PUBLISH_<REGION>` stays off until the owner sets it), glacier list in the explorer, `data/home-glaciers.js` (`build_home_glaciers.py`).
+3. **Pictures**: Sentinel-2 picks, Landsat (`build_landsat.py`, upload to R2 by the owner).
+4. **3D view**: terrain file (`build_dem_<region>.py`, or `build_terrain_bundle.py` when yearly surfaces exist); functions that need data the glacier lacks are switched off by `features`, not by region ids.
+5. **Size page entry**: `python3 scripts/build_size_demo.py --region <region>` writes `data/size-<region>.js`; `features.sizeTool: true`. Area first; volume only when a source states it.
+6. **Field notes**: `python3 scripts/build_field_notes.py <id>` writes `data/yearly/<id>.json`, drawn by `provenance.html?id=<id>`. It is built from the session (`sources.json`, scene picks, box, strip) plus a short `field-notes-text.json` that Claude writes from the ledger (figures verbatim). Add the id to `FIELD_NOTES` in `js/07-render.js` (the "Scientific field notes" button). A glacier with several yearly surfaces gets the Swiss field notes (clean build) instead.
+7. **Texts**: `GLACIER_INFO` / `IC_INFO`, `SOURCES` (documented facts only), About text if needed.
+8. **Languages**: German and French in the same change (skill `i18n-sync`).
+9. **Checks**: `npm run check`, `python3 -m unittest discover -s tests`, look at explorer, size page and field notes (skill `run-site`).
+
+Say in the hand-over which of the nine are done and which are waiting for the owner. Nothing is committed, pushed or published by Claude.
+
 ## Trigger
 The owner names a glacier (name, country; coordinates if the name is ambiguous). Claude resolves the place (web search if needed) and starts step 1 at once.
 
@@ -98,7 +114,7 @@ The Sentinel command delegates to **`scripts/onboard_sentinel_l1c.py`** and asse
 Before handing over the picker, verify actual L1C identities, one-pass mosaics, zero preview holes, distinct dates, colour-mode consistency, preserved choices, explicit orbit exceptions and image paths. Inspect representative images and Landsat fills. **Exercise the actual bound buttons after full page bootstrap**: the earlier nonresponsive timelapse came from missing event bindings, despite working playback functions. Test selected-only playback, preload cancellation and equal display extent across sensors/viewport sizes. Relevant regressions: `tests/test_onboard_mosaic_choices.py`, `tests/test_onboard_sentinel_colour.py`, `tests/test_onboard_timelapse.py` and `tests/onboard_timelapse.cjs`. Report skipped optional-dependency checks and unmeasured registration/native-resolution coverage honestly.
 
 ## Step 4. Data search
-**Claude (background):** rigorous search, using `docs/DATA_SEARCH.md` (skill `glacier-data-search`): papers, inventories; local, regional, national and international sources; ICESat and ICESat-2 points over the glacier, ASTER, stakes, ice cameras; mass balance, speed, radar, seismic, length change, surface change, outlines, every other data type. The experimental outline around the tip is computed as for the Swiss glaciers. Every data source used for the Swiss glaciers is checked for whether it applies to this glacier. Every link is opened and every file and licence read; ledger in `docs/sources/<region>-<glacier>.md` with read / NOT READ.
+**Claude (background):** rigorous search, using `docs/DATA_SEARCH.md` (skill `glacier-data-search`): papers, inventories; local, regional, national and international sources; ICESat and ICESat-2 points over the glacier, ASTER, stakes, ice cameras; mass balance, speed, radar, seismic, length change, surface change, outlines, every other data type. **The experimental tip outline is part of this step, started on the first `tongstep` after `All images set`, in the background, together with the search (not later, not on request):** `experiments/glavitu-annual/venv/bin/python scripts/onboard_tip_outline.py <id>` (this is the environment with TensorFlow; the aletsch-yearly-dem one has none and fails at import; default 2 km window; a longer window and the reference-guided corrections are owner requests, see below). It writes `tip-arcs.geojson` and `tip-arcs-progress.json` (`running` / `done` / `failed`); the data page shows the arcs, or says whether the model is running, has failed or was never run. Check the log in `logs/tip-arcs.log` before handing the data page over. Every data source used for the Swiss glaciers is checked for whether it applies to this glacier. **The search is exhaustive (`docs/DATA_SEARCH.md` section 9): every elevation-model class and every kind of ice-thickness, radar, seismic and bedrock data is swept and tabled in the ledger; "only one DEM" is never said without that table.** Every link is opened and every file and licence read; ledger in `docs/sources/<region>-<glacier>.md` with read / NOT READ.
 
 **Viewer:** a neat overview of everything found (type, source, dates, datum, licence as read, role, read / NOT READ). The owner can add and edit sources.
 **Button: `Data input set`.**
@@ -110,6 +126,8 @@ Before handing over the picker, verify actual L1C identities, one-pass mosaics, 
 
 ## Later steps
 Not defined yet (texts and `GLACIER_INFO`, Worker centres and cloud masks, terrain bundle and strip pictures, board and review sign-offs, About text). They are added here when the owner describes them.
+
+**First live integration (Franz Josef, owner's go 2026-11-16):** records from the session (`scripts/build_newzealand.py`) -> `npm run walkthrough -- export` -> region entry in `js/regions.js` -> Worker (`sync_worker_centres.py`) -> texts (`IC_INFO`, `SOURCES`, documented facts only, external figures verbatim) -> terrain bundle (one measured surface when only one exists; no yearly surfaces unless dated surfaces exist) -> Landsat (`landsat-picks.json`, `OUTLET_OPTIONS`) -> German and French (skill `i18n-sync`) -> `PUBLISH_<REGION>` off until the owner sets it. Details: docs/REFERENCE.md row "New Zealand".
 
 ## State and implementation notes
 - One session record per glacier (`data/regions/<region>/…` record plus a session file with the step states and button times). The existing fingerprints keep downstream steps stale-aware.

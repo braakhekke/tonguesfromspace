@@ -68,7 +68,7 @@ export function updateCredits(){
   const s2Yrs = yrs.filter(y => !isLandsat(state.available[y])), lsYrs = yrs.filter(y => isLandsat(state.available[y]));      // Landsat years (Iceland, before 2016) are credited to the USGS
   const parts = s2Yrs.length && sat ? [`Contains modified Copernicus Sentinel data ${s2Yrs.join(' and ')}, processed via the <a href="https://dataspace.copernicus.eu" target="_blank" rel="noopener">Copernicus Data Space Ecosystem</a>`] : [];
   if (lsYrs.length && sat) parts.push(`${lsYrs.join(' and ')}: ${LANDSAT_CREDIT}`);
-  if (!FEATURES.swisstopo && document.getElementById('aerialToggle').checked && state.oldestAerial) parts.push(`Aerial image ${flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial}: <a href="https://gatt.lmi.is" target="_blank" rel="noopener">Náttúrufræðistofnun Íslands</a> and Landmælingar Íslands (CC BY 4.0)`);
+  if (!FEATURES.swisstopo && document.getElementById('aerialToggle').checked && state.oldestAerial) parts.push(`Aerial image ${flownYear(currentGlacier(), state.oldestAerial) || state.oldestAerial}: ${REGION.aerialCredit.html}`);
   else if (document.getElementById('aerialToggle').checked && aerialYears().length) parts.push(`Aerial images: SWISSIMAGE ${[...new Set(aerialYears().map(siYear))].map(ed => ed + (flownYear(glacierPicked ? currentGlacier() : null, ed) ? ` (flown ${flownYear(currentGlacier(), ed)})` : '')).join(' and ')} © <a href="https://www.swisstopo.admin.ch" target="_blank" rel="noopener">swisstopo</a>`);
   { const fe = flightsShown(); if (fe) parts.push(flightsCredit(fe)); }
   if (document.getElementById('mosaicToggle').checked) parts.push(`Background: <a href="https://s2maps.eu" target="_blank" rel="noopener">Sentinel-2 cloudless ${BG_YEAR}</a> by EOX IT Services (CC BY-NC-SA 4.0, contains modified Copernicus Sentinel data)`);
@@ -290,7 +290,7 @@ export function ensureOldestIs(g){
     oldestAerial.set(g.id, {ed: m.years[0], flown: m.label, img: asset(`data/oldest/${g.id}.webp`), bbox: m.bbox, source: m.source});
   }).catch(() => oldestAerial.delete(g.id)).then(() => { if (typeof wire.renderYears === 'function') wire.renderYears(); if (state.checked && !latestBusy && g.id === state.glacier && typeof wire.statusLine === 'function') wire.setStatus(wire.statusLine()); });
 }
-export const oldestWhat = o => FEATURES.swisstopo ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}${o.coverage === 'glacier' ? ' (covers the whole glacier, not the whole picture box)' : ''}` : `aerial mosaic of ${o.flown} (Náttúrufræðistofnun Íslands)`;      // the words for the oldest picture of a region
+export const oldestWhat = o => FEATURES.swisstopo ? `swisstopo SWISSIMAGE edition ${o.ed}, flown ${o.flown}${o.coverage === 'glacier' ? ' (covers the whole glacier, not the whole picture box)' : ''}` : `aerial photographs of ${o.flown} (${REGION.aerialCredit.short})`;      // the words for the oldest picture of a region
 /* Switzerland: the oldest SWISSIMAGE edition that covers the WHOLE glacier (and the whole picture box where it does), found by scripts/build_oldest_aerial.py from a grid of points over the box and over the
    outline (data/oldest-aerial.json, keyed by the site id). Only a glacier that file does not hold is asked live, at the middle of its box (that edition can leave the edges of the box blank). */
 let oldestAerialFile = null;
@@ -467,7 +467,7 @@ export const satMsg = () => glacierPicked && state.oldestAerial ? OLDEST_MSG : S
 export function aerialDesc(yr){          // the line under the year when the Sentinel-2 picture is off: what the map really shows
   if (!document.getElementById('aerialToggle').checked || !yr) return '<span class="nw">No glacier picture on show</span>';
   const ed = siYear(yr), fy = flownYear(glacierPicked ? currentGlacier() : null, ed);      // the year the photographs were taken, then the edition of the layer
-  if (!FEATURES.swisstopo) return `<span class="nw">Aerial image ${fy || yr}</span> · <span class="nw">Náttúrufræðistofnun Íslands</span>`;
+  if (!FEATURES.swisstopo) return `<span class="nw">Aerial image ${fy || yr}</span> · <span class="nw">${REGION.aerialCredit.short}</span>`;
   return `<span class="nw">Aerial image ${fy || ed}</span> · <span class="nw">swisstopo SWISSIMAGE ${ed}</span>${yr > SI_LAST ? ` · <span class="nw">newest edition for ${yr}</span>` : ''}`;
 }
 export function applySatVisibility(){          // the Sentinel-2 pictures can be switched off, so the aerial images or a base map show alone

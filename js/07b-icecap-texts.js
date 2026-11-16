@@ -16,7 +16,38 @@ export const doiSrc = (cite, doi) => gfn(`${cite} ${lnk('https://doi.org/' + doi
 export const IS_WIKI_BR = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Brei%C3%B0amerkurj%C3%B6kull" target="_blank" rel="noopener">Breiðamerkurjökull</a> (CC BY-SA 4.0), with the sources named there';
 export const IS_WIKI_JL = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/J%C3%B6kuls%C3%A1rl%C3%B3n" target="_blank" rel="noopener">Jökulsárlón</a> (CC BY-SA 4.0), with the sources named there';
 export const JOKULL_2020 = () => gfn(`Jökull (the journal of the Icelandic Glaciological Society and the Geoscience Society of Iceland), 2020, on the surges of Brúarjökull and Dyngjujökull: ${lnk('https://timarit.is/page/7864182', 'timarit.is')}`);
+export const NZ_WIKI = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Franz_Josef_Glacier" target="_blank" rel="noopener">Franz Josef Glacier</a> (CC BY-SA 4.0), with the sources named there';
 export const IC_INFO = {
+  /* ---------------- New Zealand ---------------- */
+  'franz-josef': {
+    lede: () => `A temperate maritime glacier in Westland Tai Poutini National Park on the West Coast of New Zealand's South Island. It descends to 300 metres above sea level in just 11 km${gfn(NZ_WIKI)}.`,
+    look: () => `Find the Waiho River, which emerges from the glacier terminal, and follow the ice up the valley: the front has moved a long way. Between its first official mapping in 1893 and a century later in 1983, Franz Josef Glacier retreated 3 km up the valley; after 2008 it entered a very rapid phase of retreat, shrinking by 1.5 km between 2008 and 2017${gfn(NZ_WIKI)}. Switch on the outline of 1978 in the Layers menu and compare it with the outline of 2019.`,
+    news: () => `In March 2012 the terminal face of the glacier collapsed; it is now too dangerous to approach${gfn(NZ_WIKI)}. Torrential rain destroyed the bridge across the Waiho River in March 2019, and it took 18 days to replace it${gfn(NZ_WIKI)}.`,
+    fact: () => `Franz Josef Glacier advanced several times in the 20th century: 1946 to 1951 (340 m), 1965 to 1967 (400 m), 1983 to 1999 (1420 m) and 2004 to 2008 (280 m), but all were followed by periods of greater retreat${gfn(NZ_WIKI)}.`,
+    name: () => `The glacier was named after Emperor Franz Joseph I of Austria by the German geologist Julius von Haast in 1865${gfn(NZ_WIKI)}. The Māori name is Kā Roimata o Hine Hukatere, literally "The tears of Hine Hukatere": in the story Rangi the Sky Father took pity on her and froze her tears to form the glacier${gfn(NZ_WIKI)}. The name of the glacier was officially altered to Franz Josef Glacier / Kā Roimata o Hine Hukatere${gfn(NZ_WIKI)}.`,
+    front: {label: 'FRONT 2008–2017', value: '1.5', unit: 'km'},
+    lowest: {v: '436', text: `at about 436 m above sea level (the lowest point of the outline of 2019 in the lidar elevation model, calculated here${gfn(lnk('https://linz.github.io/elevation/', 'LINZ West Coast LiDAR 1 m DEM'))})`, d: 'calculated here from the lidar elevation model, inside the outline of 2019', f: 'nz_linz'},
+    groups: () => [
+      ['change', 'Retreat and advance', '1.5 <small>km</small>', [
+        {hero: true, loss: true, v: '3', s: 'km', k: 'Retreat 1893 to 1983', f: 'nz_wiki', d: 'up the valley, from the first official mapping to a century later'},
+        {v: '1.5', s: 'km', k: 'Retreat 2008 to 2017', f: 'nz_wiki', d: 'a very rapid phase of retreat'},
+        {v: '1420', s: 'm', k: 'Advance 1983 to 1999', f: 'nz_wiki', d: 'one of four advances in the 20th century'},
+        {v: '280', s: 'm', k: 'Advance 2004 to 2008', f: 'nz_wiki', d: 'followed by a period of greater retreat'}]],
+      ['length', 'Length change of the front, WGMS', '', [
+        {v: '−390', s: 'm', k: 'Length change 2015-03-14 to 2016-03-11', f: 'nz_wgms', d: 'retreat, uncertainty 10 m, photographs'},
+        {v: '−140', s: 'm', k: 'Length change 2016-03-11 to 2017-03-09', f: 'nz_wgms', d: 'retreat, uncertainty 10 m'},
+        {v: '40', s: 'm', k: 'Length change 2017-03-09 to 2018-03-10', f: 'nz_wgms', d: 'uncertainty 10 m'},
+        {v: '−30', s: 'm', k: 'Length change 2018-03-10 to 2019-03-20', f: 'nz_wgms', d: 'uncertainty 10 m'},
+        {v: '−150', s: 'm', k: 'Length change 2019-03-20 to 2021-03-19', f: 'nz_wgms', d: 'no 2020 value because of cloud cover'},
+        {v: '0', s: 'm', k: 'Length change 2021-03-19 to 2022-03-17', f: 'nz_wgms', d: 'uncertainty 10 m'},
+        {v: '−350', s: 'm', k: 'Length change 2022-03-17 to 2023-03-26', f: 'nz_wgms', d: 'retreat, uncertainty 10 m'},
+        {v: '−170', s: 'm', k: 'Length change 2023-03-26 to 2024-02-21', f: 'nz_wgms', d: 'retreat, from a map'},
+        {v: '−130', s: 'm', k: 'Length change 2024-02-21 to 2025-03-11', f: 'nz_wgms', d: 'retreat, uncertainty 10 m'}]],
+      ['volume', 'The surface, 2000 to 2014', '−0.09 <small>m a⁻¹</small>', [
+        {hero: true, loss: true, v: '−0.09 ± 0.02', s: 'm a⁻¹', k: 'Average elevation change 2000–2014', f: 'nz_wk', d: 'average of the annual changes, from ASTER DEMs and the SRTM DEM'},
+        {v: '−0.33 ± 0.06', s: 'm a⁻¹', k: 'Specific volume change 1 Jan 2000 to 1 Jan 2014', f: 'nz_wk', d: 'difference of two reconstructed DEMs, divided by the years'},
+        {v: '70–80', s: 'm', k: 'Thickening of the lowest kilometre, 2002 to 2006', f: 'nz_wk', d: 'the glacier advanced after about 2005'}]]]
+  },
   /* ---------------- Vatnajökull ---------------- */
   breidamerkurjokull: {
     lede: () => 'The big outlet of the Vatnajökull ice cap that ends in the glacier lagoon Jökulsárlón. Its front has pulled back 4 to 7 km since about 1890, and the lagoon has grown in its place.',

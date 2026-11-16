@@ -77,10 +77,13 @@
 .gd-launch em{font-style:normal;font-weight:500;font-size:11px;color:var(--moraine);font-variant-numeric:tabular-nums}
 .gd-launch .gd-prog{position:absolute;left:0;bottom:0;height:2px;background:var(--accent);transition:width .4s}
 .gd-launch[aria-pressed="true"]{border-color:var(--accent)}
-.controls .brand-btns{flex-wrap:nowrap;gap:8px}      /* the row under the page links: Guide and Tongla Quiz as an even pair (js/mascot.js adds the second) */
-.controls .brand-btns .teaser-btn{flex:1 1 0;min-width:0;max-width:128px;justify-content:center;padding:6px 8px;gap:6px;font-size:12.5px;white-space:nowrap}
+.controls .brand-btns{flex-wrap:nowrap;gap:8px}      /* the row under the page links: Guide and Quiz as an even pair (js/mascot.js adds the second) */
+.controls .brand-btns{justify-content:center;gap:2px}
+.controls .brand-btns .teaser-btn{flex:0 0 auto;min-width:0;justify-content:center;padding:4px 10px;gap:5px;font-size:12px;white-space:nowrap;border:0;border-bottom:2px solid transparent;background:none;color:var(--accent)}      /* Guide and Quiz: quiet red text links under Home and Gallery, no boxes */
+.controls .brand-btns .teaser-btn:hover{border-bottom-color:var(--accent)}
+.controls .brand-btns .gd-launch em{display:none}      /* the thin red bar under Guide shows the progress */
 .gd-launch svg{width:14px!important;height:14px!important;fill:none!important;stroke:currentColor;stroke-width:2;stroke-linejoin:round;flex:none}
-.gd-launch svg path{fill:currentColor!important;stroke-width:1}      /* Guide and Tongla Quiz as an even pair */
+.gd-launch svg path{fill:currentColor!important;stroke-width:1}      /* Guide and Quiz as an even pair */
 .gd-bar[data-view="pill"]{display:none}
 .gd-bar.gd-held{display:none}
 
