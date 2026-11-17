@@ -139,3 +139,6 @@ tests/test_editorial.py
 # translated texts: work files of scripts/i18n/tool.py
 i18n/todo.json
 i18n/.last-list*.json
+
+# local backup of config.js (holds the Street View key)
+config.js.local-bak
