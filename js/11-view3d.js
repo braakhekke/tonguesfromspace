@@ -387,7 +387,7 @@ export const surfaceFor = (g, heights, dem, y) => { const f = dem && iceShare(g,
    file, instead of nine or so terrain tiles, a change file and two more requests for every visitor. The manifest says which file is current (asked for fresh, it is tiny); the file
    itself stays in the browser until the manifest names another. Without a file the page builds all of it from the terrain tiles, as before. */
 export let terrainManifest = null; const bundles = new Map();
-export const loadManifest = () => terrainManifest || (terrainManifest = fetch(siteFile('data/terrain/manifest.json'), {cache: 'no-cache'}).then(r => r.ok ? r.json() : {}).catch(() => ({})));
+export const loadManifest = () => terrainManifest || (terrainManifest = fetch(siteFile('data/terrain/manifest.json'), {cache: 'no-cache'}).then(r => r.ok ? r.json() : Promise.reject(r.status)).catch(() => { terrainManifest = null; return {}; }));      // a failed fetch is not remembered: the next open tries again, else one hiccup would grey Slider and Timelapse until a reload
 export async function inflateLayers(buf, hl, head){      // the layers as int16; head.enc 2 (terrain_lib.pack): low bytes then high bytes, surfaces and bed stored as the difference to the heights
   const raw = new Uint8Array(await new Response(new Blob([new Uint8Array(buf, 8 + hl)]).stream().pipeThrough(new DecompressionStream('deflate'))).arrayBuffer());
   if (head.enc !== 2) return new Int16Array(raw.buffer, raw.byteOffset, raw.length >> 1);
@@ -415,7 +415,7 @@ export function loadBundle(id){            // the parsed file of a glacier, or n
     const name = (await loadManifest())[id]; if (!name) return null;
     const rec = await idb.get('terrain|' + id);
     if (rec && rec.name === name && rec.buf) { try { return await parseBundle(rec.buf); } catch (e) { console.error('terrain file in the cache is broken, loading it again', e); } }
-    const r = await fetch(siteFile('data/terrain/' + name)); if (!r.ok) return null;
+    const r = await fetch(siteFile('data/terrain/' + name)); if (!r.ok) { bundles.delete(id); return null; }      // not remembered either
     const buf = await r.arrayBuffer(), b = await parseBundle(buf); idb.set('terrain|' + id, {name, buf}); return b;
   })().catch(e => { console.error('terrain file', e); bundles.delete(id); return null; }));
   return bundles.get(id);
@@ -581,7 +581,7 @@ export async function open3D(){
     if (!shownYears().length) throw new Error('This glacier has no picture of a year with an elevation model.');
     if (snap3DYears()) return refreshAll();      // the choice held a year without one: move to the nearest that has one and open again
     $('app').classList.toggle('dem-off', !usesDem);      // no elevation model of other years: Slider and Timelapse are greyed in 3D (css/style.css, a click says why in js/08-controls.js), and the view falls back to one year
-    if (!usesDem && (cmp || state.mode === 'timelapse')) { state.mode = 'single'; renderMode(); writeHash(); return open3D(); }
+    if (!usesDem && (cmp || state.mode === 'timelapse')) { state.mode = 'single'; return refreshAll(); }      // not renderMode(): the timelapse frames must be rebuilt too, else One year keeps stepping through the old frames
     const swissYearly = !!(yearly && yearly.yearly.swiss), modelledYearly = !!(yearly && yearly.yearly.modelled), elevFirst = yearly ? yearLo : dem && usesDem ? dem.old.year : 0, elevName = modelledYearly ? 'IGN LiDAR HD' : yearly && !swissYearly ? 'ArcticDEM' : 'swissALTI3D';
     const oldNoteFor = ys => { if (!usesDem) return {short: 'one terrain model for all years', full: 'This glacier has a single elevation model, used for every year: the ice surface is not adjusted to the year, so pictures of other years are draped on the same terrain.'}; const early = elevFirst && ys.some(y => y < elevFirst || special === 'oldest'); return early ? {short: `terrain as of ${elevFirst}`, full: `The oldest ${elevName} elevation model for this glacier is from ${elevFirst}: pictures of earlier years are draped on the ${elevFirst} terrain and surface, which is not extrapolated further back.`} : null; };
     const lastStrip = yearly && !swissYearly && !modelledYearly ? yearly.yearly.strips[yearly.yearly.strips.length - 1].date : '';
