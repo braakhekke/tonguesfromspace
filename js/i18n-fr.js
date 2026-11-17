@@ -2271,7 +2271,6 @@ window.TFS_FR = {
 "The bed and the ice thickness: a model": "Le lit et l’épaisseur de glace : un modèle",
 "Near Montenvers, the glacier below": "Près du Montenvers, le glacier en contrebas",
 "On the ice of the lower glacier": "Sur la glace du bas du glacier",
-"On the ice, looking up the glacier": "Sur la glace, vers le haut du glacier",
 "One measured surface ({#})": "Une surface mesurée ({1})",
 "All countries": "Tous les pays",
 "Switzerland": "Suisse",

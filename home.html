@@ -158,7 +158,6 @@
         <div class="row"><a class="btn-red" id="iGo" href="#">Open the studio</a><a class="btn-line" id="iGo2" href="#" hidden></a></div>
         <p class="notready" id="iNot" role="status" hidden>This tongue isn't ready for Space yet.</p>
       </div>
-      <div class="credit">Sentinel-2 cloudless 2025 by <a href="https://s2maps.eu" target="_blank" rel="noopener">EOX</a> · labels © OpenStreetMap contributors, rendering EOX</div>
     </div>
     <p class="maphint">Two fingers to move and zoom the map.</p>
   </div></div>
@@ -364,10 +363,21 @@ for (const r of REGIONS) {
 /* the coverage strip: one chip per region with data, its state in words; it follows REGIONS, so a region that opens changes by itself */
 $('coverage').innerHTML = REGIONS.filter(r => !r.soon || r.making).map(r => `<li class="${r.soon ? 'dev' : 'avail'}"><i aria-hidden="true"></i>${r.name}<small>${r.soon ? 'In development' : 'Available'}</small></li>`).join('');
 
-/* the opening view: all the region pins with room around them (the labels hang to the side of each pin) */
-const fitPins = () => { const pins = REGIONS.filter(r => r.marker && !r.soon).map(r => r.ll); if (!pins.length) return; map.invalidateSize(); map.options.zoomSnap = 0.1; map.fitBounds(L.latLngBounds(pins), { paddingTopLeft: [90, 50], paddingBottomRight: [120, 50], maxZoom: 5, animate: false }); map.options.zoomSnap = 1; };
+/* the opening view: every region pin (also the planned ones), clear of the search card on top of the map (the labels hang to the side of each pin) */
+const fitPins = () => { const pins = REGIONS.filter(r => r.marker).map(r => r.ll); if (!pins.length) return; map.invalidateSize(); const ctl = document.querySelector('.map-ctl').getBoundingClientRect(), mb = $('map').getBoundingClientRect(); const top = Math.max(0, ctl.bottom - mb.top) + 40; map.options.zoomSnap = 0.1; map.fitBounds(L.latLngBounds(pins), { paddingTopLeft: [90, top], paddingBottomRight: [120, 50], maxZoom: 5, animate: false }); map.options.zoomSnap = 1; };
+/* labels that would sit on top of each other at this zoom are moved down, one by one, until they are all readable (northernmost first) */
+const spreadPins = () => {
+  const spans = REGIONS.filter(r => r.marker).sort((a, b) => b.ll[0] - a.ll[0]).map(r => r.marker.getElement() && r.marker.getElement().firstChild).filter(Boolean), placed = [];
+  spans.forEach(sp => sp.style.top = '0px');
+  for (const sp of spans) {
+    let r = sp.getBoundingClientRect(), dy = 0, hit;
+    while ((hit = placed.find(q => r.left < q.right + 2 && r.right > q.left - 2 && r.top + dy < q.bottom + 2 && r.bottom + dy > q.top - 2)) && dy < 200) dy += hit.bottom + 2 - (r.top + dy);
+    sp.style.top = dy + 'px'; placed.push({ left: r.left, right: r.right, top: r.top + dy, bottom: r.bottom + dy });
+  }
+};
+map.on('zoomend moveend', spreadPins);
 map.on('zoomend', () => map.getContainer().classList.toggle('deep', map.getZoom() >= 6));      // close in, the region labels step aside for the glacier dots
-fitPins(); addEventListener('load', fitPins);      // again once the page has its final layout, so the southernmost pin (New Zealand) is not cut off
+fitPins(); spreadPins(); addEventListener('load', () => { fitPins(); spreadPins(); });      // again once the page has its final layout, so the southernmost pin (New Zealand) is not cut off
 
 /* fly to a place, leaving it clear of the card on the left */
 function fly(ll, zoom) {
