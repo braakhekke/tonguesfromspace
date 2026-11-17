@@ -51,7 +51,8 @@
   const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;');
   /* the pages: [key, label, how to recognise the page's own link, address if the page has no such link] */
   const PAGES = [['home', 'Home', /home(\.html)?$|^\/$|#top$/, built ? '/' : 'home.html'], ['studio', 'Studio', /index\.html|switzerland|^\/$/, built ? '/switzerland/' : 'index.html'],
-    ['notes', 'Field notes', /provenance/, 'provenance.html'], ['gallery', 'Gallery', /gallery/, 'gallery.html']];
+    ['size', 'Size', /size(\.html)?([#?]|$)/, 'size.html'], ['notes', 'Field notes', /provenance/, 'provenance.html'], ['gallery', 'Gallery', /gallery/, 'gallery.html']]
+    .map(p => built && !['home', 'studio'].includes(p[0]) ? [p[0], p[1], p[2], '/' + p[3]] : p);      // built: these pages sit at the root, the explorer in a folder (/switzerland/aletsch/)
   const pool = () => [...document.querySelectorAll('header.bar nav > a, .site-nav a, .pageswitch a, a[data-home], a[data-dash], #navSize, #navExplorer')].filter(a => !a.closest('.phone-menu'));
   const kindOf = a => { const h = a.getAttribute('href') || '', k = a.hasAttribute('data-home') ? 'home' : a.hasAttribute('data-dash') || a.id === 'navExplorer' ? 'studio' : a.id === 'navSize' ? 'size' : null; if (k) return k; const p = PAGES.find(p => p[0] !== 'home' && p[2].test(h)); return p ? p[0] : (a.classList.contains('nav-home') ? 'home' : null); };
   const here = () => {

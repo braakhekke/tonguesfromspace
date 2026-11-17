@@ -1292,7 +1292,7 @@ const ArcCanvas = L.Layer.extend({
     const html = `<b>${y}</b> · experimental outline<br><small>Click for more info</small>`;
     this._tip = (this._tip || L.tooltip({direction: 'top', offset: [0, -6], opacity: .96})).setLatLng(e.latlng).setContent(html); this._map.openTooltip(this._tip);
   },
-  _click(e){ const g = currentGlacier(); if (g && g.inv && this._near(e.containerPoint)) window.open(`provenance.html?id=${g.inv.id}#arcsnote`, '_blank', 'noopener'); },
+  _click(e){ const g = currentGlacier(); if (g && g.inv && this._near(e.containerPoint)) window.open(`/provenance.html?id=${g.inv.id}#arcsnote`, '_blank', 'noopener'); },
   _unhover(){ if (this._tip && this._map) this._map.closeTooltip(this._tip); this._tip = null; if (this._map) this._map.getContainer().style.cursor = ''; if (this._hover) { this._hover = null; if (this._map) this.draw(); } },
   draw(){
     const m = this._map, g = currentGlacier(), A = arcsFor(g); if (!m || !A) return;

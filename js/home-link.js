@@ -3,5 +3,6 @@
 (() => {
   const built = /home-link\.[0-9a-f]{10}\.js/.test(document.currentScript ? document.currentScript.src : '');
   document.querySelectorAll('a[data-home]').forEach(a => { a.setAttribute('href', built ? '/' : 'home.html'); });
+  if (built) document.querySelectorAll('a[data-root]').forEach(a => { a.setAttribute('href', '/' + a.getAttribute('href')); });      // pages that sit at the root (provenance.html, gallery.html): the explorer is in a folder (/switzerland/aletsch/), where a bare name would not be found
   if (built) document.querySelectorAll('a[data-dash]').forEach(a => { a.setAttribute('href', '/switzerland/'); });      // index.html of the public build is the front page; the explorer is at the address of its region
 })();

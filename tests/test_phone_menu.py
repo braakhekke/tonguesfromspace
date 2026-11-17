@@ -5,7 +5,7 @@ import unittest
 from test_site import SiteCase
 
 PAGES = ["home.html", "gallery.html", "provenance.html", "index.html", "size.html"]
-FIVE = ["Home", "Studio", "Field notes", "Gallery"]
+FIVE = ["Home", "Studio", "Size", "Field notes", "Gallery"]
 
 
 class TestPhoneMenu(SiteCase):
@@ -35,11 +35,11 @@ class TestPhoneMenu(SiteCase):
                 page.wait_for_function("!document.querySelector('.phone-menu').hidden")
                 rows = page.evaluate("""[...document.querySelectorAll('.phone-menu .pm-i')].map(e => { const b = e.getBoundingClientRect(), t = document.elementFromPoint(b.x + b.width / 2, b.y + b.height / 2);
                     return { text: e.textContent.trim(), h: b.height, hit: !!t && (e === t || e.contains(t)), tag: e.tagName, off: e.getAttribute('aria-disabled') === 'true' }; })""")
-                self.assertEqual([r["text"] for r in rows if r["tag"] == "A"][:4], FIVE)
+                self.assertEqual([r["text"] for r in rows if r["tag"] == "A"][:5], FIVE)
                 for r in rows:
                     self.assertGreaterEqual(r["h"], 44, r)
                     if not r["off"]: self.assertTrue(r["hit"], r)
-                self.assertEqual(len(page.query_selector_all(".phone-menu [aria-current='page']")), 0 if path == "size.html" else 1)      # the size page is no longer a menu entry
+                self.assertEqual(len(page.query_selector_all(".phone-menu [aria-current='page']")), 1)
 
     def test_tap_on_the_current_page_answers_and_outside_closes(self):
         page = self.phone("gallery.html")
