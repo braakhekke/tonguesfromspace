@@ -32,3 +32,13 @@ class TestFilesTheSizePageFetches(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestRegionDataIsShipped(unittest.TestCase):
+    def test_every_named_region_data_file_is_hashed_into_the_site(self):
+        """js/regions.js names each region's data file; the build only ships (and renames) files in HASHED_FILES. New Zealand's was missing: the public page 404'd on it (2026-11-17)."""
+        src = open(os.path.join(ROOT, "scripts", "build_site.py"), encoding="utf-8").read()
+        names = re.search(r"^DATA_NAMES = \((.*?)\)", src, re.M).group(1)
+        hashed = re.search(r"^HASHED_FILES = \[(.*?)\]", src, re.M).group(1)
+        missing = [n for n in re.findall(r'"(data/[^"]+)"', names) if n != "data/glaciers.js" and f'"{n}"' not in hashed]
+        self.assertEqual(missing, [])
