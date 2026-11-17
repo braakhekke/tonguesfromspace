@@ -1,6 +1,6 @@
 # Tongues from Space
 
-**See how glaciers change from orbit.** The tongues of the largest Swiss glaciers in real Sentinel-2 satellite images, one clear late-summer scene per year since 2016, next to published glacier figures. Slide through the years, fly over the ice in 3D, compare a glacier with your own town, and make a picture or a video to share.
+**See how glaciers change from orbit.** The tongues of the ten largest Swiss glaciers (and, as a second region, Franz Josef Glacier in New Zealand) in real Sentinel-2 satellite images, one clear late-summer scene per year since 2016, next to published glacier figures. Slide through the years, fly over the ice in 3D, compare a glacier with your own town, and make a picture or a video to share.
 
 **Live site: https://tonguesfromspace.org/**
 
@@ -14,7 +14,9 @@ A glacier ends in its tongue, the lowest stretch of ice, where it melts the most
 
 **On the front page** ([tonguesfromspace.org](https://tonguesfromspace.org/)) watch the tour, search for a glacier in any language or pick one on the map, and read why the project exists and what is measured and what is computed.
 
-**In the Explorer** (one page per region, e.g. `/switzerland/`; every Swiss glacier also has its own address, `/switzerland/<glacier>/`, with a link preview of its newest picture):
+**In English, German and French:** the language is in the address (`/de/…`, `/fr/…`) and every page has a switch.
+
+**In the Explorer** (one page per region: `/switzerland/` and `/new-zealand/`; every Swiss glacier also has its own address, `/switzerland/<glacier>/`, with a link preview of its newest picture):
 
 1. **Choose a glacier** from the list or the map.
 2. **Compare** the years:
@@ -38,7 +40,7 @@ It works on phones too (two fingers move the map; the viewer pins to the top whi
 
 ## What is published
 
-**Switzerland** is open: the ten largest glaciers by area in the newest GLAMOS inventory. Iceland (Vatnajökull outlets and other glaciers), Norway and Svalbard are built but stay off the public site until the repository variables `PUBLISH_ICELAND` and `PUBLISH_NORWAY` are set to `1` (see [docs/SETUP.md](docs/SETUP.md)); they are in the making.
+**Switzerland** is open: the ten largest glaciers by area in the newest GLAMOS inventory. **New Zealand** is open with Franz Josef Glacier (Kā Roimata o Hine Hukatere); it shows the same cards and layers as Switzerland, with a dash where a region has no data. Iceland (Vatnajökull outlets and other glaciers), Norway and Svalbard are built but stay off the public site until the repository variables `PUBLISH_ICELAND` and `PUBLISH_NORWAY` are set to `1` (see [docs/SETUP.md](docs/SETUP.md)); they are in the making. New Zealand is switched on by `PUBLISH_NEWZEALAND`.
 
 ## Where the numbers come from
 
@@ -67,7 +69,7 @@ docs/                                              REFERENCE (every file and dat
 
 The tools used to onboard new glaciers (the walkthrough, review pages, source ledgers) and the records they keep are not part of this repository.
 
-**Addresses.** On the public site `/` is the region picker (`home.html`: a world map and a list) and every published region has its own page: `/switzerland/`, and, when switched on, `/iceland/`, `/norway/` and `/svalbard/` (the older Icelandic addresses `/iceland/vatnajokull/` and `/iceland/rest/` open Iceland too). All of them are copies of `index.html` made by `scripts/build_site.py`, one per region in `js/regions.js` (`path`, `pathAlso`). Old links like `/#g=aletsch&m=compare` are sent to the right region page. With `scripts/serve.py` `/` is the picker and `/index.html` the explorer (without Copernicus credentials the pages still load, just without satellite pictures). Every page has an "← All regions" link back to the picker (`js/home-link.js`). Colours and the typeface are in one file, `css/tokens.css`.
+**Addresses.** On the public site `/` is the region picker (`home.html`: a world map and a list) and every published region has its own page: `/switzerland/`, `/new-zealand/` (when `PUBLISH_NEWZEALAND` is 1) and, when switched on, `/iceland/`, `/norway/` and `/svalbard/` (the older Icelandic addresses `/iceland/vatnajokull/` and `/iceland/rest/` open Iceland too). All of them are copies of `index.html` made by `scripts/build_site.py`, one per region in `js/regions.js` (`path`, `pathAlso`). Old links like `/#g=aletsch&m=compare` are sent to the right region page. With `scripts/serve.py` `/` is the picker and `/index.html` the explorer (without Copernicus credentials the pages still load, just without satellite pictures). Every page has an "← All regions" link back to the picker (`js/home-link.js`). Colours and the typeface are in one file, `css/tokens.css`.
 
 **Generated files.** `data/boxes.js`, `data/scenes.json` and `worker/glacier-index.json` are generated from the owner's records of each glacier and are committed; do not edit them by hand.
 
