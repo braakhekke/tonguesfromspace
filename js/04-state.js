@@ -59,4 +59,5 @@ export const okYears = () => YEARS.filter(y => state.available[y]);
 export const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 export function setAUTOPLAY(v){ return AUTOPLAY = v; }      // the other files may not assign to an imported variable
 export function setGlacierPicked(v){ return glacierPicked = v; }      // the other files may not assign to an imported variable
+export const only3DYear = () => viewMode === '3d' && REGION.terrain && REGION.terrain.year || 0;      // a region whose 3D terrain is one measured surface of one year (New Zealand): 3D shows that year only
 export function setViewMode(v){ return viewMode = v; }      // the other files may not assign to an imported variable

@@ -2,10 +2,10 @@ import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS, VOLUME_LOSS, lv95, $, COARSE } from './01-data.js';
 import { DATA, loadOutline, boxRecord, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, CDSE, STYLE_NAME, isLandsat, LANDSAT_CREDIT, sensorName, styleLine, asset, idb, imageFootprint, restoreLatest, imageHere, loadImage, sideStyle, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
-import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, setViewMode, glacierPicked } from './04-state.js';
+import { state, writeHash, currentGlacier, PLAIN_START, okYears, viewMode, only3DYear, setViewMode, glacierPicked } from './04-state.js';
 import { drawArcs, drawMax, syncSatLabel, liveTile, flightHas, placeLeftStack, flightsShown, flightsCredit, thickestSpot, spotText, mapYears, ensureFlown, map, TWO_FINGER, updateCredits, trailsFor, ensureSight, sightFor, siYear, flownYear, oldestAerial, oldestWhat, restoreOldest, satOn, loadDeferred, horiz, tlFrames, stopPlay, getVar, radarColor, radarPopup, loadRadar, drawRadar, strokeEdgeFade, arcEdgeFade, arcsFor, loadArcs, fmtLen, fmtArea, cancelMeasure, sliderHintDone, setSliderHintDone, namesData, thicknessClipped, THICK_LAYER, loadSpeedFile, speedArray, speedMask, speedCanvas, speedPeak, speedYearOk, speedId, SPEED_MIN } from './05-map.js';
 import { statusLine } from './06-scene-search.js';
-import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, renderMode, subFocus, specialChips, syncSizeLink } from './07-render.js';
+import { renderLayerTitles, brightness, outsideAlpha, outlineGeom, adjustedUrl, imgOpacity, applyImgOpacity, glacierVolume, glacierIceAt, refreshAll, renderYears, renderMode, subFocus, specialChips, syncSizeLink } from './07-render.js';
 import { setStatus, showNotice, lb, syncSatUi } from './08-controls.js';
 import { setLayers } from './09-phones.js';
 import { syncExportRows } from './09a-export-layers.js';
@@ -23,6 +23,7 @@ Object.defineProperty(wire, 'sectFromMap', { get: () => sectFromMap, configurabl
 Object.defineProperty(wire, 'refresh3D', { get: () => refresh3D, configurable: true });
 Object.defineProperty(wire, 'retitle3D', { get: () => retitle3D, configurable: true });
 Object.defineProperty(wire, 'setSplit3D', { get: () => setSplit3D, configurable: true });
+Object.defineProperty(wire, 'stripFor', { get: () => stripFor, configurable: true });
 Object.defineProperty(wire, 'stripImageSpec', { get: () => stripImageSpec, configurable: true });
 Object.defineProperty(wire, 'stripPicturesOff', { get: () => stripPicturesOff, configurable: true });
 Object.defineProperty(wire, 'sync3D', { get: () => sync3D, configurable: true });
@@ -529,6 +530,7 @@ export function syncSrRow(m){            // super-resolution row: usable when on
 }
 export async function open3D(){
   const run = ++v3dRun, g = v3dGlacier(), at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue, msg = $('v3dMsg');
+  { const oy = only3DYear(); if (oy && state.available[oy] && (state.one !== oy || state.latest || state.oldestAerial)) { restoreLatest(); restoreOldest(); state.one = oy; renderYears(); } }      // one measured surface of one year: 3D shows that year only
   const cmp = state.mode === 'compare' && state.a !== state.b && state.available[state.a] && state.available[state.b] ? [state.a, state.b] : null;      // compare: both years side by side with a slider
   const years = cmp || (state.mode === 'timelapse' ? tlFrames() : [stillYear()].filter(y => state.available[y])), first = years.includes(stillYear()) ? stillYear() : years[years.length - 1];
   if (M3.gid && M3.gid !== g.id) clear3Measure();      // measurements belong to the glacier they were made on

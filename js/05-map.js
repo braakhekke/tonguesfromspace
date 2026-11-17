@@ -1184,28 +1184,13 @@ document.getElementById('oldToggle').checked = prefs.old === true;      // the 1
 document.getElementById('oldToggle').onchange = () => { prefs.old = document.getElementById('oldToggle').checked; savePrefs(); drawOutlines(); };
 document.getElementById('newToggle').onchange = drawOutlines;
 export function fitGlacier(animate = true){ if (typeof wire.subFocus !== 'undefined') wire.setSubFocus(null); const v = wholeView(); map.setView(v.center, v.zoom, {animate}); }      // the Whole glacier button (and its symbol on phones): the same view everywhere, centred on the image box
-export const TONGUE_ZOOM = 13.75;  // default; a glacier can set its own with tz (higher = closer)
-/* The tip of the tongue is the lowest point of the newest outline (found by build_outlines.py with the swisstopo height service).
-   The view is centred a little up the glacier from the tip and fitted around the last 2 km of the outline,
-   so the tip sits near the middle of the screen with room around it, whatever the window size. */
-export const TONGUE_REACH = 2000, TONGUE_SHIFT = 0.4;     // metres; share of the way from the tip to the middle of that stretch
-export const TONGUE_VIEW = {aletsch: {reach: 3000, north: 2000, west: -800}, gorner: {west: -1507, north: -707}, fiescher: {north: 2407, west: -707}, corbassiere: {out: 0, north: -1500, west: 200}, unteraar: {west: 2000, north: 500}, rhone: {north: 1000, west: 200}, zmutt: {out: 0.25}, fee: {out: 0.75, north: -1100}};      // a start view of its own: Aletsch shows 3 km of the tongue instead of 2, moved 2 km north and 0.8 km east; the Gorner view is moved 1.5 km east and 0.7 km south (west: metres, negative = east); Fiescher is moved 2.4 km north and 0.7 km east, Fee 1.1 km south, Rhone 1 km north and 0.2 km west, Corbassière 1.5 km south and 0.2 km west at the default zoom, Unteraar 2 km west and 0.5 km north (north: metres, negative = south); Zmutt starts a quarter and Fee three quarters of a zoom level further out (out)
-export const TONGUE_ZOOM_OUT = 1;                          // zoom levels left out of the closest fit, for more surroundings
+export const TONGUE_ZOOM = 13.75;      // only for a glacier without a 3D strip
+/* The Tongue button shows the extent of the 3D strip (stripFor, js/11-view3d.js; the strip of the glacier's record, which the 3D view draws): the same in every region. */
 export function tongueBounds(g){
-  if (g.half) return L.latLngBounds(g.box);      // Iceland: the tongue view shows the picture box (the big glaciers are pictured only where the tongue is)
-  const geom = g.inv && g.inv.outline, T = g.inv && g.inv.terminus;
-  if (!geom || !T) return null;
-  const ring = geom.coordinates.map(poly => poly[0]).sort((a, b) => b.length - a.length)[0];    // the main body
-  if (!ring) return null;
-  const tip = L.latLng(T.tip), gb = L.latLngBounds(g.bounds), size = Math.max(gb.getSouthWest().distanceTo(gb.getSouthEast()), gb.getSouthWest().distanceTo(gb.getNorthWest())),
-    ov = TONGUE_VIEW[g.id] || {}, reach = Math.min(ov.reach || TONGUE_REACH, size * 0.35), near = ring.map(([x, y]) => L.latLng(y, x)).filter(p => p.distanceTo(tip) <= reach);   // a small glacier gets a smaller window
-  if (near.length < 3) return null;
-  const mid = L.latLngBounds(near).getCenter();
-  const c = L.latLng(tip.lat + (mid.lat - tip.lat) * TONGUE_SHIFT, tip.lng + (mid.lng - tip.lng) * TONGUE_SHIFT);
-  const dLat = Math.max(...near.map(p => Math.abs(p.lat - c.lat))), dLng = Math.max(...near.map(p => Math.abs(p.lng - c.lng)));
-  const dW = ov.west ? ov.west / (111320 * Math.cos(c.lat * Math.PI / 180)) : 0;      // moved west as it is: the same window, not a bigger one
-  const dN = (ov.north || 0) / 111320;      // moved north in the same way
-  return L.latLngBounds([c.lat - dLat + dN, c.lng - dLng - dW], [c.lat + dLat + dN, c.lng + dLng - dW]);    // symmetric around c
+  const at = g.inv && g.inv.terminus ? g.inv.terminus.tip : g.tongue;
+  if (!at || !wire.stripFor) return null;
+  const S = wire.stripFor(g, at);
+  return L.latLngBounds([[-S.back, -S.half], [-S.back, S.half], [S.up, -S.half], [S.up, S.half]].map(([u, v]) => { const m = S.merc(u, v); return L.CRS.EPSG3857.unproject(L.point(m[0], m[1])); }));
 }
 /* Tongue indication: a ring with a label at the tip (lowest point of the outline), switched on in the layer box */
 export let tonguePin = null;
@@ -1364,21 +1349,13 @@ export function drawArcs(animate){
   } else if (!arcAnim) arcLayer.draw();
   arcShown = key;
 }
-/* The tongue view is always closer than the whole-glacier view: at least TONGUE_CLOSER zoom levels more. */
-export const TONGUE_CLOSER = 1;
+/* The map area a view is fitted into: clear of the title above and of the year bar and tool dock below (phones: smaller) */
+const viewPad = () => { const small = matchMedia('(max-width:720px)').matches; return {paddingTopLeft: small ? [24, 64] : [40, 80], paddingBottomRight: small ? [24, 100] : [40, 110]}; };
 export function wholeGlacierZoom(g){ return map.getBoundsZoom(g.bounds, false, L.point(40, 40)); }
 export function tongueView(){          // {center, zoom} the Tongue button goes to, or null
-  const g = currentGlacier(), b = tongueBounds(g), small = matchMedia('(max-width:720px)').matches;
-  if (g.half) { const pad = small ? [24, 64] : [40, 80]; return map._getBoundsCenterZoom(b, {paddingTopLeft: pad, paddingBottomRight: small ? [24, 100] : [40, 110]}); }      // exactly the picture box
-  if (b) {
-    const tl = L.point(small ? 24 : 40, small ? 64 : 80), br = L.point(small ? 24 : 40, small ? 100 : 110);
-    const fit = map.getBoundsZoom(b, false, tl.add(br));
-    const zoom = Math.min(map.getMaxZoom(), Math.max(Math.min(15, fit - TONGUE_ZOOM_OUT), wholeGlacierZoom(g) + TONGUE_CLOSER)) - ((TONGUE_VIEW[g.id] || {}).out || 0);
-    // centre like fitBounds with padding, at that zoom
-    const mid = map.project(b.getSouthWest(), zoom).add(map.project(b.getNorthEast(), zoom)).divideBy(2).add(br.subtract(tl).divideBy(2));
-    return {center: map.unproject(mid, zoom), zoom};
-  }
-  return g.tongue ? {center: L.latLng(g.tongue), zoom: g.tz || TONGUE_ZOOM} : null;
+  const g = currentGlacier(), b = tongueBounds(g);
+  if (b) { const v = map._getBoundsCenterZoom(b, viewPad()); return {center: v.center, zoom: Math.min(v.zoom, map.getMaxZoom())}; }
+  return g.tongue ? {center: L.latLng(g.tongue), zoom: TONGUE_ZOOM} : null;
 }
 export function focusTongue(animate = true){
   if (typeof wire.subFocus !== 'undefined') wire.setSubFocus(null);
@@ -1387,7 +1364,7 @@ export function focusTongue(animate = true){
   else fitGlacier(animate);
 }
 export function wholeView(){      // the whole glacier with the image box in the middle of the viewer: the area is the glacier and the box, mirrored about the centre of the box
-  const g = currentGlacier(), gb = L.latLngBounds(g.bounds), pad = {padding: [20, 20]};
+  const g = currentGlacier(), gb = L.latLngBounds(g.bounds), pad = viewPad();
   const fp = imageFootprint(g); if (!fp || !fp.bounds) return map._getBoundsCenterZoom(gb, pad);
   const bx = L.latLngBounds(fp.bounds), all = L.latLngBounds(gb.getSouthWest(), gb.getNorthEast()).extend(bx), c = bx.getCenter();
   const n = Math.max(all.getNorth() - c.lat, c.lat - all.getSouth()), e = Math.max(all.getEast() - c.lng, c.lng - all.getWest());

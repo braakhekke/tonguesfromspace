@@ -164,7 +164,7 @@ async function videoFile(request, env) {
 
 /* ---------- Landsat pictures (R2 bucket LANDSAT, same paths as data/landsat/ in the working copy; not in the repository) ---------- */
 /* Only the glaciers of regions that are public are served. The bucket also holds the Landsat pictures of Iceland and Norway; add a glacier here when its region goes public. */
-const LANDSAT_PUBLIC = new Set(['aletsch', 'corbassiere', 'fiescher', 'gorner', 'rhone', 'trift', 'unteraar', 'zmutt', 'sgi-B53-04', 'sgi-B56-03']);
+const LANDSAT_PUBLIC = new Set(['aletsch', 'corbassiere', 'fiescher', 'gorner', 'rhone', 'trift', 'unteraar', 'zmutt', 'sgi-B53-04', 'sgi-B56-03', 'franz-josef']);
 async function landsat(request, env, url) {
   if (request.method !== 'GET' && request.method !== 'HEAD') return new Response('Use GET', { status: 405 });
   if (!env.LANDSAT) return new Response('Not found', { status: 404 });

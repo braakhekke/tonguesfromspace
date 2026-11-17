@@ -127,7 +127,7 @@ const REGIONS_ALL = [
     place: { canton: '', range: 'Southern Alps' }, sources: ['nz_glims', 'nz_wgms', 'nz_wk', 'nz_linz', 'nz_aerial', 'nz_wiki', 's2', 'landsat', 'itslive', 'is_osm', 'streetview', 'bg', 'me'],
     rankNote: 'Franz Josef Glacier is the first glacier of New Zealand on this site; more will follow.',
     /* The 3D terrain: one file (data/terrain/franz-josef.<hash>.bin, scripts/build_dem_newzealand.py) with the measured surface of the LINZ lidar of 2024-2025; the same surface for every year */
-    terrain: { short: 'LINZ lidar', html: 'West Coast LiDAR 1 m DEM © <a href="https://data.linz.govt.nz/" target="_blank" rel="noopener">West Coast Regional Council</a> / Toitū Te Whenua Land Information New Zealand, captured by Aerial Surveys (CC BY 4.0)' },
+    terrain: { short: 'LINZ lidar', year: 2025, html: 'West Coast LiDAR 1 m DEM © <a href="https://data.linz.govt.nz/" target="_blank" rel="noopener">West Coast Regional Council</a> / Toitū Te Whenua Land Information New Zealand, captured by Aerial Surveys (CC BY 4.0)' },
     terrainZoom: 12,
     landsat: { from: 1984, first: 1993 },      // Landsat pictures before Sentinel-2 (scripts/build_landsat.py)
     background: { mosaicYear: 2025 },

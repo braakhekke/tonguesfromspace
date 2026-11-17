@@ -2,7 +2,7 @@ import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, GLACIER_INFO, lv95, $, PHONE } from './01-data.js';
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS, shortName } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, landsatName, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
-import { state, writeHash, okYears, currentGlacier, viewMode, HASH_TAB, glacierPicked } from './04-state.js';
+import { state, writeHash, okYears, currentGlacier, viewMode, only3DYear, HASH_TAB, glacierPicked } from './04-state.js';
 import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, oldestOn, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN, drawArcs } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
@@ -121,6 +121,7 @@ export function yearChips(boxId, key, opts = {}){
     b.type = 'button'; b.textContent = y;
     const ok = !!state.available[y];
     b.disabled = !ok;                                       // not clickable until confirmed available
+    if (key === 'one' && only3DYear() && y !== only3DYear()) { b.disabled = true; b.classList.add('is-na'); b.title = `In 3D only ${only3DYear()} can be shown: the terrain is the elevation model of that year. Switch to Map for other years.`; box.appendChild(b); return; }
     if (state.checked && !ok) { b.classList.add('missing'); b.title = `No ${y} imagery from this source`; }
     if (!state.checked) b.title = 'Checking…';
     const sc = state.available[y];
@@ -152,7 +153,7 @@ export function specialChips(){
   naOldest(chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest aerial image of this area: ${oldestWhat(oldest)}`,
     !!state.oldestAerial, !oldest && !in3d, () => { if (state.oldestAerial) { restoreOldest(); refreshAll(); } else showOldest(); }));
   const l = chip('Latest', `The newest clear-ish scene of the last ${LATEST.days} days, with at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue`,
-    !!state.latest, !state.checked || latestBusy, () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
+    !!state.latest, !state.checked || latestBusy || !!only3DYear(), () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
   for (const side of ['a', 'b']) {      // the slider: each picture has its own Oldest and Latest (one picture per side; the same special is on one side at a time)
     const into = document.getElementById(side === 'a' ? 'yearsSpecialA' : 'yearsSpecialB'), where = side === 'a' ? 'the left or top picture' : 'the right or bottom picture';
     into.innerHTML = '';
@@ -262,7 +263,7 @@ export function renderMode(){
     natural: 'As the eye sees it: snow white, rock grey, plants green.',
     false1: 'Plants look red, snow white, bare ice grey, water dark/blue.',
     false2: 'Snow and ice look red, clouds white, rock pale, water black.',
-    false3: 'Ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared).'
+    false3: 'Ice and snow yellow to orange, rock blue. Red is the red/SWIR ratio, green the blue band, blue the SWIR (shortwave infrared). The colours do not show temperature.'
   }[state.style];
 }
 export function setStyleB(st){            // the second picture of the slider gets its own colour composition

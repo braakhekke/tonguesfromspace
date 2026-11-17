@@ -324,11 +324,11 @@ class TestRegions(SiteCase):
     def test_vatnajokull_outlines_whole_glacier_and_tongue(self):
         page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
         r = page.evaluate("""() => { const g = GLACIERS.find(g => g.id === 'breidamerkurjokull'), fp = imageFootprint(g).bounds, tb = tongueBounds(g);
-          return {lia: g.outlines.lia.lines.length, latest: g.outlines.latest.lines.length, year: [g.outlines.lia.year, g.outlines.latest.year], same: JSON.stringify(tb.toBBoxString().split(',').map(Number).map(v => +v.toFixed(3))) === JSON.stringify([fp[0][1], fp[0][0], fp[1][1], fp[1][0]].map(v => +v.toFixed(3))),
+          return {lia: g.outlines.lia.lines.length, latest: g.outlines.latest.lines.length, year: [g.outlines.lia.year, g.outlines.latest.year], strip: (focusTongue(false), map.getBounds().contains(tb)),
                   wholeBigger: wholeGlacierZoom(g) < map.getBoundsZoom(tb), outlineGeom: !!oldOutlineGeom(g) && !!newOutlineGeom(g)}; }""")
         self.assertGreater(r["lia"], 20); self.assertGreater(r["latest"], 20)
         self.assertEqual(r["year"], [1890, 2025])
-        self.assertTrue(r["same"], "Tongue shows exactly the picture box")
+        self.assertTrue(r["strip"], "Tongue shows the whole 3D strip")
         self.assertTrue(r["wholeBigger"], "Whole glacier shows much more than the picture box")
         self.assertTrue(r["outlineGeom"])
         self.assertClean()
