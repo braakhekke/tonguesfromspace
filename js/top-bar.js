@@ -5,9 +5,10 @@
   if (document.documentElement.classList.contains('embed')) return;
   if (!window.matchMedia('(hover:hover) and (pointer:fine)').matches) return;
   const size = /size(\.html)?$/.test(location.pathname);
+  const logo = document.currentScript ? new URL('../images/home/logo-white.png', document.currentScript.src).pathname : 'images/home/logo-white.png';      // relative to this script, so it also works on /switzerland/, /de/ … (the built pages sit in folders)
   const bar = document.createElement('header');
   bar.className = 'bar tbar'; bar.setAttribute('aria-label', 'Pages of Tongues from Space');      // "bar nav": js/i18n.js puts the language button there, as on the front page
-  bar.innerHTML = '<div class="wrap"><div class="tleft"><a class="brand" data-home href="home.html"><img src="images/home/logo-white.png" alt="" width="32" height="30"><b>Tongues from Space</b></a>'
+  bar.innerHTML = '<div class="wrap"><div class="tleft"><a class="brand" data-home href="home.html"><img src="' + logo + '" alt="" width="32" height="30"><b>Tongues from Space</b></a>'
     + '<div class="treg"><button type="button" class="treg-btn" aria-haspopup="listbox" aria-expanded="false" aria-label="Region"><svg class="pin" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg><span class="treg-name">Switzerland</span><svg class="chev" viewBox="0 0 12 12" aria-hidden="true"><path d="M2 4.5l4 4 4-4"/></svg></button><ul class="treg-menu" role="listbox" aria-label="Region" hidden></ul></div></div>'
     + '<nav><a data-home href="home.html">Home</a><a data-dash href="index.html"' + (size ? '' : ' aria-current="page"') + '>Studio</a><a href="provenance.html">Field notes</a><a href="gallery.html">Gallery</a></nav></div>';
   const st = document.createElement('style');

@@ -286,12 +286,13 @@ const geometryInside = (g, bb) => {          // every coordinate of an optional 
   return ['Polygon', 'MultiPolygon'].includes(g.type) && Array.isArray(g.coordinates) && walk(g.coordinates);
 };
 const summerDay = d => /^\d{4}-(0[789]|10)-\d{2}$/.test(d) && yearOk(d.slice(0, 4));   // July to October (the late-season experiment)
+const seasonDay = (d, reg) => { const S = SEASONS[reg]; return !!S && /^\d{4}-\d{2}-\d{2}$/.test(d) && yearOk(d.slice(0, 4)) && d >= d.slice(0, 4) + S.from && d < d.slice(0, 4) + S.last; };   // a day of the region's own scene-search season (New Zealand: January to April)
 function checkProcess(b) {
   const inp = b && b.input, out = b && b.output;
   const bad = checkBounds(inp, [COLLECTION, IMAGES, MOSAIC]); if (bad) return bad;
   const tr = inp.data[0].dataFilter && inp.data[0].dataFilter.timeRange;
-  if (!tr || typeof tr.from !== 'string' || !(summerDay(tr.from.slice(0, 10)) || recentDay(tr.from.slice(0, 10))) || tr.from.slice(10) !== 'T00:00:00Z' ||
-      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and October, or in the last 130 days)';
+  if (!tr || typeof tr.from !== 'string' || !(summerDay(tr.from.slice(0, 10)) || seasonDay(tr.from.slice(0, 10), regionOfInput(inp)) || recentDay(tr.from.slice(0, 10))) || tr.from.slice(10) !== 'T00:00:00Z' ||
+      tr.to !== tr.from.slice(0, 10) + 'T23:59:59Z') return 'date (one day between July and October, a day of the region\'s season, or in the last 130 days)';
   if (inp.data[0].type === MOSAIC && (tr.from.slice(4, 10) !== '-07-01' || regionOfInput(inp) !== 'ch')) return 'mosaic date (the July to September quarter, Switzerland)';
   if (!out || !(out.width > 0 && out.width <= MAX_PX) || !(out.height > 0 && out.height <= MAX_PX)) return 'image size';
   if (!Array.isArray(out.responses) || out.responses.length !== 1 ||
