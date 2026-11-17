@@ -3,7 +3,7 @@ import { YEARS, $, COARSE, lv95f } from './01-data.js';
 import { Cog, renderMapTile } from './cog.js';
 import { DATA, hasOldOutline, oldOutlineGeom, newOutlineGeom, eachPiece, GLACIERS } from './02-glaciers.js';
 import { prefs, savePrefs, isLandsat, landsatName, LANDSAT_CREDIT, styleLine, ASSETS, asset, imageFootprint, restoreLatest, imageHere, capLevel, capWaiting, capWantsFine, capCheckFine, loadImage, sideStyle, setLoading, fmtDM, latestBusy } from './03-imagery.js';
-import { state, okYears, currentGlacier, viewMode, glacierPicked } from './04-state.js';
+import { state, okYears, currentGlacier, viewMode, glacierPicked, shownYears } from './04-state.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'map', { get: () => map, configurable: true });
 Object.defineProperty(wire, 'oldestPair', { get: () => oldestPair, configurable: true });
@@ -561,7 +561,7 @@ export let sliderHintDone = false;      // the hint beside the handle shows unti
 
 /* ---------- timelapse ---------- */
 export let tlLayers = [];   // [{yr, layer}]
-export const tlFrames = () => state.mode === 'single' ? okYears().filter(y => y === state.one) : okYears().filter(y => y >= state.from && y <= state.to);
+export const tlFrames = () => state.mode === 'single' ? okYears().filter(y => y === state.one) : shownYears().filter(y => y >= state.from && y <= state.to);
 export function buildTimelapse(){
   stopPlay(); updateAerial();
   tlLayers.forEach(t => map.removeLayer(t.layer)); tlLayers = [];
@@ -587,7 +587,7 @@ export function showFrame(i){
   else tagLine(document.getElementById('tagTsub'), state.mode === 'single' ? `${sc && sc.latest ? 'Latest clear-ish: ' : ''}${sc ? fmtDM(sc.date) : ''}${sc && !sc.clear ? ', some clouds' : ''}` : `${sc ? fmtDM(sc.date) : ''}, frame ${i+1} of ${tlLayers.length}`, sc);
   /* the timeline as in the Timelapse download: first and last year above a line, a tick for every year, the line filled up to the year on show, a round marker */
   const dockOpen = !!state.dockOpen, nTl = tlLayers.length, pct = k => nTl > 1 ? k / (nTl - 1) * 100 : 0;
-  const ys1 = okYears(), at1 = ys1.indexOf(state.one), stepHtml = state.mode !== 'single' || off || ys1.length < 2 ? '' : `<div class="tl-row tl-step"><button type="button" class="tl-prev" aria-label="Previous year" title="Previous year"${at1 <= 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="tl-years" role="group" aria-label="Years with a picture">${[-2, -1, 0, 1, 2].map(d => { const y = ys1[at1 + d]; return at1 < 0 || y === undefined ? `<i class="tl-yr tl-gap d${Math.abs(d)}"></i>` : d === 0 ? `<b class="tl-step-year tl-yr d0">${yShown}</b>` : `<button type="button" class="tl-yr d${Math.abs(d)}" data-year="${y}" aria-label="Go to ${y}">${y}</button>`; }).join('')}</div><button type="button" class="tl-next" aria-label="Next year" title="Next year"${at1 < 0 || at1 >= ys1.length - 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;      // One year: previous / next year with a scene, in the dock
+  const ys1 = shownYears(), at1 = ys1.indexOf(state.one), stepHtml = state.mode !== 'single' || off || ys1.length < 1 || (ys1.length < 2 && ys1.length === okYears().length) ? '' : at1 < 0 || ys1.length < 2 ? `<div class="tl-row tl-step"><div class="tl-years"><b class="tl-step-year tl-yr d0">${yShown}</b></div></div>` : `<div class="tl-row tl-step"><button type="button" class="tl-prev" aria-label="Previous year" title="Previous year"${at1 <= 0 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg></button><div class="tl-years" role="group" aria-label="Years with a picture">${[-2, -1, 0, 1, 2].map(d => { const y = ys1[at1 + d]; return at1 < 0 || y === undefined ? `<i class="tl-yr tl-gap d${Math.abs(d)}"></i>` : d === 0 ? `<b class="tl-step-year tl-yr d0">${yShown}</b>` : `<button type="button" class="tl-yr d${Math.abs(d)}" data-year="${y}" aria-label="Go to ${y}">${y}</button>`; }).join('')}</div><button type="button" class="tl-next" aria-label="Next year" title="Next year"${at1 < 0 || at1 >= ys1.length - 1 ? ' disabled' : ''}><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg></button></div>`;      // One year: previous / next year with a scene, in the dock
   const tlHtml = stepHtml || (state.mode === 'single' || nTl < 2 || off ? '' : `<div class="tl-row"><button type="button" class="tl-play" aria-label="${state.playing ? 'Pause' : 'Play'}">${state.playing ? FULL_ICONS.pause : FULL_ICONS.play}</button><div class="tl2"><span class="tl2-ends"><b>${tlLayers[0].yr}</b><b>${tlLayers[nTl - 1].yr}</b></span><div class="tl2-track"><i class="tl2-fill" style="width:${pct(i)}%"></i>${tlLayers.map((_, k) => `<i class="tl2-tick${k <= i ? ' on' : ''}" style="left:${pct(k)}%"></i>`).join('')}<i class="tl2-dot" style="left:${pct(i)}%"></i></div></div><button type="button" class="tl-tools" aria-label="Show tools" aria-expanded="${dockOpen}"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg></button></div>`);
   document.getElementById('tlDots').innerHTML = tlHtml; document.getElementById('v3dTlLine').innerHTML = tlHtml;      // the same timeline on the map and in the 3D view; in full screen its play button is the way to start and stop
   document.getElementById('frameSlider').value = i;
@@ -620,7 +620,7 @@ document.addEventListener('click', e => {      // One year: the dock's previous 
   if (Date.now() < swipedAt + 400) return;
   const y = e.target.closest && e.target.closest('.tl-yr[data-year]'); if (y) { goYear(+y.dataset.year); return; }
   const b = e.target.closest && e.target.closest('.tl-prev, .tl-next'); if (!b || b.disabled) return;
-  const ys = okYears(), at = ys.indexOf(state.one); goYear(ys[at + (b.classList.contains('tl-next') ? 1 : -1)]);
+  const ys = shownYears(), at = ys.indexOf(state.one); goYear(ys[at + (b.classList.contains('tl-next') ? 1 : -1)]);
 });
 let swipedAt = 0;      // a swipe along the years steps one year (left = later, right = earlier); the click that ends it is ignored
 (() => {
@@ -629,7 +629,7 @@ let swipedAt = 0;      // a swipe along the years steps one year (left = later, 
   document.addEventListener('pointerup', e => {
     if (x0 === null) return; const dx = e.clientX - x0, dy = e.clientY - y0; x0 = null;
     if (Math.abs(dx) < 28 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
-    const ys = okYears(), at = ys.indexOf(state.one); swipedAt = Date.now(); goYear(ys[at + (dx < 0 ? 1 : -1)]);
+    const ys = shownYears(), at = ys.indexOf(state.one); swipedAt = Date.now(); goYear(ys[at + (dx < 0 ? 1 : -1)]);
   });
   document.addEventListener('pointercancel', () => { x0 = null; });
 })();
@@ -646,7 +646,7 @@ let swipedAt = 0;      // a swipe along the years steps one year (left = later, 
     e.preventDefault();      // also keeps the browser from going back a page on a sideways swipe
     const now = Date.now(); if (now - lastAt > 250 || d * sum < 0) sum = 0; lastAt = now; sum += d;
     if (Math.abs(sum) < STEP || now - steppedAt < PAUSE) return;
-    const ys = okYears(), at = ys.indexOf(state.one), to = ys[at + (sum > 0 ? 1 : -1)]; sum = 0;
+    const ys = shownYears(), at = ys.indexOf(state.one), to = ys[at + (sum > 0 ? 1 : -1)]; sum = 0;
     if (at < 0 || to === undefined) return;
     steppedAt = now; goYear(to);
   };

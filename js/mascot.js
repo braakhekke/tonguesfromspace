@@ -204,7 +204,7 @@
     if (!card || !card.contains(e.target)) return;
     const a = e.target.getAttribute && e.target.getAttribute('data-a'), oi = e.target.getAttribute && e.target.getAttribute('data-i'), s = card.__s, q = card.__q;
     if (a === 'off') return offNow();
-    if (a === 'trip') { location.href = ON_SIZE ? DASH_URL : SIZE_URL; return; }
+    if (a === 'trip') { const to = ON_SIZE ? DASH_URL : SIZE_URL; location.href = to.charAt(0) === '/' && window.tfsLang && window.tfsLang !== 'en' ? '/' + window.tfsLang + to : to; return; }      // a root-absolute address keeps the language (/de/size.html), like the links in js/i18n.js
     if (a === 'ask' || a === 'again') return ask(s);
     if (a === 'next') { closeCard(); updUI(); return later(1200); }
     if (oi !== null && q && q.opts) {

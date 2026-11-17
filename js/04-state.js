@@ -59,5 +59,11 @@ export const okYears = () => YEARS.filter(y => state.available[y]);
 export const currentGlacier = () => GLACIERS.find(g => g.id === state.glacier);
 export function setAUTOPLAY(v){ return AUTOPLAY = v; }      // the other files may not assign to an imported variable
 export function setGlacierPicked(v){ return glacierPicked = v; }      // the other files may not assign to an imported variable
-export const only3DYear = () => viewMode === '3d' && REGION.terrain && REGION.terrain.year || 0;      // a region whose 3D terrain is one measured surface of one year (New Zealand): 3D shows that year only
+/* In 3D a year can be shown only when the glacier has an elevation model for it (measured, modelled, interpolated or extrapolated, whatever the terrain file holds); a year with none would only drape its picture on another year's terrain.
+   A region whose 3D terrain is one measured surface of one year (New Zealand) names that year in REGION.terrain.year; otherwise js/11-view3d.js registers, per glacier, the test for its years once it has read the terrain file.
+   Outside 3D every year passes. Everything that offers years (chips, range, dock, timelapse) goes through ok3D / shownYears. */
+const surfaceYears = new Map();
+export const setSurfaceYears = (id, test) => surfaceYears.set(id, test);
+export const ok3D = y => { if (viewMode !== '3d') return true; const t = REGION.terrain && REGION.terrain.year; if (t) return y === t; const f = surfaceYears.get(state.glacier); return !f || f(y); };
+export const shownYears = () => okYears().filter(ok3D);
 export function setViewMode(v){ return viewMode = v; }      // the other files may not assign to an imported variable

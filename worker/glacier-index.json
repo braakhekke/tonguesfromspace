@@ -1758,5 +1758,37 @@
    "note": ""
   },
   "hasScenes": true
+ },
+ "mer-de-glace": {
+  "region": "fr",
+  "name": "Mer de Glace",
+  "pictureBox": [
+   [
+    45.82599,
+    6.85615
+   ],
+   [
+    45.96312,
+    7.02737
+   ]
+  ],
+  "balanceYear": {
+   "start": "10-01",
+   "end": "09-30",
+   "label": "ends-in",
+   "source": "imported: the site's scene windows are written against 30 September; say where the balance-year dates of this glacier's figures come from"
+  },
+  "sceneRule": {
+   "daysBeforeEnd": 91,
+   "daysAfterEnd": 20,
+   "maxCloud": 0.05,
+   "maxCloudTongue": 0.05,
+   "maxSnow": 1,
+   "fallbackCloud": 0.3,
+   "minCoverage": 1,
+   "oneOrbit": true,
+   "note": ""
+  },
+  "hasScenes": true
  }
 }

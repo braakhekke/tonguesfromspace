@@ -24,7 +24,7 @@ import build_regions as br
 ROOT = bd.ROOT
 SCAN = os.path.join(ROOT, 'scripts', '.streetview-scan-is.json')
 RANKED = os.path.join(ROOT, 'scripts', '.streetview-ranked-is.json')
-DATA_FILE = 'vatnajokull.js'      # --region newzealand: data/newzealand.js, the ground from the Mapterhorn tiles and the ice of its newest outline (as scripts/build_trails_regions.py)
+DATA_FILE = 'vatnajokull.js'      # --region newzealand: data/newzealand.js, --region france: data/france.js, the ground from the Mapterhorn tiles and the ice of its newest outline (as scripts/build_trails_regions.py)
 MARGIN_M, ROAD_STEP, RADIUS, MONTHS = 3000, 60.0, 40, range(6, 11)
 TARGET_M, CAMERA_H, MAX_KM, SPREAD, K_REF, R_EARTH = 300, 2.5, 12.0, 600, 0.13, 6371000.0
 
@@ -41,6 +41,7 @@ def box(o, margin):
 
 def scan(a):
     key = sv.api_key(); o = outlet(a.id); s, w, n, e = box(o, MARGIN_M); k = 111320.0 * math.cos(math.radians(o['lat']))
+    if a.near_km: tl0, tn0 = o['tip']; s, n, w, e = tl0 - a.near_km * 1000 / 111320.0, tl0 + a.near_km * 1000 / 111320.0, tn0 - a.near_km * 1000 / k, tn0 + a.near_km * 1000 / k      # a smaller query for the road ways too
     d = bd.overpass(f'[out:json][timeout:180];(way["highway"]["highway"!~"^(footway|steps|corridor|proposed|construction)$"]({s},{w},{n},{e}););out geom;')
     pts = []
     for el in d['elements']:
@@ -48,7 +49,11 @@ def scan(a):
         for p, q in zip(g, g[1:]):
             L = math.hypot((q['lon'] - p['lon']) * k, (q['lat'] - p['lat']) * 111320.0); m = max(1, int(L / ROAD_STEP))
             pts += [(round(p['lat'] + (q['lat'] - p['lat']) * i / m, 6), round(p['lon'] + (q['lon'] - p['lon']) * i / m, 6)) for i in range(m)]
-    pts = sorted(set(pts)); print(f'{len(d["elements"])} roads and tracks, {len(pts)} points', file=sys.stderr)
+    pts = sorted(set(pts))
+    if a.near_km:      # only around the tongue tip (a big picture box holds a whole valley of roads): the roads and the fine grid within this many km of it
+        tl_, tn_ = o.get('tip') or (o['lat'], o['lon']); near = lambda la, lo: math.hypot((lo - tn_) * k, (la - tl_) * 111320.0) <= a.near_km * 1000
+        pts = [p for p in pts if near(*p)]
+    print(f'{len(d["elements"])} roads and tracks, {len(pts)} points', file=sys.stderr)
     found = {}
     def run(points, radius, label):
         done = 0
@@ -60,7 +65,9 @@ def scan(a):
         print(f'{label}: {len(points)} requests, {len(found)} panoramas', file=sys.stderr)
     run(pts, RADIUS, 'along the roads')
     fine, step = set(), 25.0
-    for v in list(found.values()):      # a fine grid around every hit: the official panorama next to a visitor's one
+    json.dump({'id': a.id, 'panos': found}, open(SCAN, 'w', encoding='utf-8'))      # kept already: the fine grid below is long
+    close = lambda la, lo: math.hypot((lo - o['tip'][1]) * k, (la - o['tip'][0]) * 111320.0) <= a.fine_km * 1000
+    for v in [v for v in found.values() if not a.fine_km or close(v['lat'], v['lng'])]:      # a fine grid around every hit: the official panorama next to a visitor's one
         for i in range(-2, 3):
             for j in range(-2, 3): fine.add((round(v['lat'] + i * step / 111320.0, 6), round(v['lng'] + j * step / k, 6)))
     run(sorted(fine), 20, 'fine grid')
@@ -149,14 +156,14 @@ def review(a):
 
 
 def main():
-    ap = argparse.ArgumentParser(); ap.add_argument('step', choices=['scan', 'rank', 'review']); ap.add_argument('--region', choices=['vatnajokull', 'newzealand'], default='vatnajokull'); ap.add_argument('--id', default='')
+    ap = argparse.ArgumentParser(); ap.add_argument('step', choices=['scan', 'rank', 'review']); ap.add_argument('--region', choices=['vatnajokull', 'newzealand', 'france'], default='vatnajokull'); ap.add_argument('--id', default='')
     ap.add_argument('--workers', type=int, default=16); ap.add_argument('--top', type=int, default=25); ap.add_argument('--n', type=int, default=10); ap.add_argument('--start', type=int, default=0)
     ap.add_argument('--dir', default='/tmp/tfs-streetview-review-is'); ap.add_argument('--around', action='store_true'); ap.add_argument('--pitch', type=int, default=5)
-    ap.add_argument('--visitors', action='store_true'); ap.add_argument('--all-months', action='store_true')
+    ap.add_argument('--visitors', action='store_true'); ap.add_argument('--fine-km', type=float, default=0, help='scan: the fine grid only around the panoramas within this many km of the tongue tip'); ap.add_argument('--near-km', type=float, default=0, help='scan: only roads and panoramas within this many km of the tongue tip'); ap.add_argument('--all-months', action='store_true')
     a = ap.parse_args(); global DATA_FILE, SCAN, RANKED
     global MONTHS
     if a.region == 'newzealand': MONTHS = (12, 1, 2, 3, 4)      # the southern summer: little snow on the ground
-    DATA_FILE = a.region + '.js'; a.id = a.id or {'vatnajokull': 'breidamerkurjokull', 'newzealand': 'franz-josef'}[a.region]
+    DATA_FILE = a.region + '.js'; a.id = a.id or {'vatnajokull': 'breidamerkurjokull', 'newzealand': 'franz-josef', 'france': 'mer-de-glace'}[a.region]
     if a.region != 'vatnajokull': SCAN, RANKED = SCAN.replace('-is', '-' + a.region), RANKED.replace('-is', '-' + a.region)
     {'scan': scan, 'rank': rank, 'review': review}[a.step](a)
 

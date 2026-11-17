@@ -37,14 +37,16 @@ HASH_LEN = 10
 HTML_FILES = ["index.html", "home.html", "gallery.html", "size.html", "provenance.html", "404.html"]      # index.html is the explorer (written once per region page); home.html, the region picker, is written as the front page /index.html
 PUBLISH_ICELAND = os.environ.get("PUBLISH_ICELAND", "").strip() == "1"      # repository variable PUBLISH_ICELAND=1 shows Iceland on the public site; otherwise no Iceland pages, sitemap line or menu entry
 PUBLISH_NORWAY = os.environ.get("PUBLISH_NORWAY", "").strip() == "1"      # repository variable PUBLISH_NORWAY=1 does the same for Norway and Svalbard
+PUBLISH_FRANCE = os.environ.get("PUBLISH_FRANCE", "").strip() == "1"      # repository variable PUBLISH_FRANCE=1 shows France (Mer de Glace) on the public site; otherwise no France page, sitemap line or menu entry
 PUBLISH_NEWZEALAND = os.environ.get("PUBLISH_NEWZEALAND", "").strip() == "1"      # repository variable PUBLISH_NEWZEALAND=1 shows New Zealand (Franz Josef Glacier) on the public site; otherwise no New Zealand page, sitemap line or menu entry
 PUBLISH_LANDSAT = os.environ.get("PUBLISH_LANDSAT", "").strip() == "1"      # repository variable PUBLISH_LANDSAT=1 shows the Landsat switch (years before 2016) on the public site; the pictures live outside the repository
-DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js", "data/newzealand.js", "data/trails-newzealand.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
-GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY, "newzealand": PUBLISH_NEWZEALAND}      # which groups of regions are on the public site
+DATA_NAMES = ("data/glaciers.js", "data/boxes.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js", "data/newzealand.js", "data/trails-newzealand.js", "data/france.js", "data/trails-france.js")      # named in js/regions.js and js/00-regions.js; the build puts their hashed names there
+GROUP_ON = {"switzerland": True, "iceland": PUBLISH_ICELAND, "norway": PUBLISH_NORWAY, "newzealand": PUBLISH_NEWZEALAND, "france": PUBLISH_FRANCE}      # which groups of regions are on the public site
 GROUP_DATA = {"iceland": ("data/iceland-all.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js"),
               "norway": ("data/svalbard.js", "data/norway.js", "data/trails-norway.js", "data/trails-svalbard.js"),
-              "newzealand": ("data/newzealand.js", "data/trails-newzealand.js")}      # data files that belong to one group of regions
-GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-", "newzealand": "nz"}      # the records in data/regions/ of that group start with this
+              "newzealand": ("data/newzealand.js", "data/trails-newzealand.js"),
+              "france": ("data/france.js", "data/trails-france.js")}      # data files that belong to one group of regions
+GROUP_REGION_PREFIX = {"iceland": "is-", "norway": "no-", "newzealand": "nz", "france": "fr"}      # the records in data/regions/ of that group start with this
 HIDDEN_DATA = {f for g, names in GROUP_DATA.items() if not GROUP_ON[g] for f in names}
 PLAIN_FILES = ["css/pages.css", "css/home.css", "css/landing.css", "preview.jpg", "sitemap.xml", "robots.txt", "data/home-glaciers.js", "data/home-outlines.js", "data/glacier-aliases.js", "mod-e36f805dfe9d.html"]                 # copied as they are (missing ones are skipped)
 def VQ(img):      # a new address makes link previews fetch a replaced picture again
@@ -53,8 +55,8 @@ def VQ(img):      # a new address makes link previews fetch a replaced picture a
     if img.startswith("images/og/") and exists(img):      # the glacier pictures: the version is their content
         return "?v=" + digest(read(img))[:8]
     return ""
-PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg", "images/preview-new-zealand.jpg"]
-HASHED_FILES = ["css/style.css", "css/tokens.css", "css/guide.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js", "data/newzealand.js", "data/trails-newzealand.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
+PLAIN_IMAGES = ["images/foryourice.jpg", "images/preview-social.jpg", "images/preview-iceland.jpg", "images/preview-iceland-rest.jpg", "images/preview-norway.jpg", "images/preview-svalbard.jpg", "images/preview-new-zealand.jpg", "images/preview-france.jpg"]
+HASHED_FILES = ["css/style.css", "css/tokens.css", "css/guide.css", "data/glacier-names.js", "data/thickness.js", "data/country-outlines.js", "data/sightline.js", "data/scenes.json", "data/boxes.js", "data/cloudmasks.json", "data/photos.json", "data/streetview.json", "data/swiss-glaciers.json", "data/tongue-arcs.js", "data/iceland-all.js", "data/svalbard.js", "data/norway.js", "data/trails-is.js", "data/trails-vatnajokull.js", "data/trails-iceland.js", "data/trails-norway.js", "data/trails-svalbard.js", "data/newzealand.js", "data/trails-newzealand.js", "data/france.js", "data/trails-france.js"]      # plus js/*.js, data/demchange/*.json and data/glaciers.js (split)
 
 
 def digest(data):
@@ -110,7 +112,7 @@ def split_glaciers(out, assets):
 
 SITE = "https://tonguesfromspace.org"
 # What differs on the page of a region with its own address. Keys are the texts of index.html that are replaced (each must be found).
-REGION_GROUP = {"ch": "switzerland", "is": "iceland", "no-mainland": "norway", "no-svalbard": "norway", "nz": "newzealand"}
+REGION_GROUP = {"ch": "switzerland", "is": "iceland", "no-mainland": "norway", "no-svalbard": "norway", "nz": "newzealand", "fr": "france"}
 REGION_PAGES = [
     {"path": "switzerland", "canonical": "switzerland/", "group": "switzerland",
      "title": "Tongues from Space | Swiss glaciers",
@@ -149,6 +151,13 @@ REGION_PAGES = [
      "og_description": "Watch Franz Josef Glacier, Kā Roimata o Hine Hukatere, retreat: Landsat and Sentinel-2 pictures since 1993, lidar 3D terrain and the outlines of 1978 and 2019.",
      "image": "images/preview-new-zealand.jpg", "image_w": "1200", "image_h": "630",
      "image_alt": "Tongues from Space - New Zealand: Franz Josef Glacier in a Sentinel-2 satellite picture with the glacier outlines of 1978 and 2019"},
+    {"path": "france", "canonical": "france/", "group": "france",
+     "title": "Tongues from Space | France",
+     "description": "Explore Mer de Glace, the longest glacier of France, above Chamonix in the Mont Blanc massif, through Landsat and Sentinel-2 satellite imagery since 1984, 3D terrain with a modelled ice surface for each year and the outlines of 1967 and 2015. Compare, create and share your visuals.",
+     "og_title": "Tongues from Space - France",
+     "og_description": "Watch Mer de Glace retreat above Chamonix: Landsat and Sentinel-2 pictures since 1984, 3D terrain with a modelled ice surface for each year and outlines from 1967 to 2015.",
+     "image": "images/preview-france.jpg", "image_w": "1200", "image_h": "630",
+     "image_alt": "Tongues from Space - France: Mer de Glace in a Sentinel-2 satellite picture with the glacier outlines of 1967 and 2015"},
 ]
 
 
@@ -272,7 +281,7 @@ def rewrite_html(out, assets, relay):
                 write(out, f"{page['path']}/index.html", with_alternates(region_page(html, page)).encode("utf-8"))
 
 
-SINGLE_COUNTRY = {"nz": "New Zealand"}      # field notes of one measured surface name their region (build_field_notes.py); the yearly-surface notes (page / clean) are the Swiss glaciers
+SINGLE_COUNTRY = {"nz": "New Zealand", "fr": "France"}      # field notes of one measured surface name their region (build_field_notes.py); the yearly-surface notes (page / clean) are the Swiss glaciers
 
 
 def write_yearly_index(yearly):
@@ -387,7 +396,7 @@ def main():
             if f == "regions.js":
                 if not PUBLISH_LANDSAT:      # no Landsat switch: take the entries out of every region
                     text = re.sub(r"^[ \t]*landsat: \{ from: 1984, first: \d+ \},.*\n", "", text, flags=re.M)
-                hidden = [r for r in ("is", "no-mainland", "no-svalbard", "nz") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
+                hidden = [r for r in ("is", "no-mainland", "no-svalbard", "nz", "fr") if not GROUP_ON[REGION_GROUP[r]]]      # a group that is not published stays off the public site: no menu entry, no address (its data files are copied, but nothing links to them)
                 if "/*hidden-regions*/" not in text:
                     sys.exit("js/regions.js lost the marker /*hidden-regions*/")
                 text = text.replace("/*hidden-regions*/", ", ".join(f"'{r}'" for r in hidden))

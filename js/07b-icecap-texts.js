@@ -17,7 +17,30 @@ export const IS_WIKI_BR = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Bre
 export const IS_WIKI_JL = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/J%C3%B6kuls%C3%A1rl%C3%B3n" target="_blank" rel="noopener">Jökulsárlón</a> (CC BY-SA 4.0), with the sources named there';
 export const JOKULL_2020 = () => gfn(`Jökull (the journal of the Icelandic Glaciological Society and the Geoscience Society of Iceland), 2020, on the surges of Brúarjökull and Dyngjujökull: ${lnk('https://timarit.is/page/7864182', 'timarit.is')}`);
 export const NZ_WIKI = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Franz_Josef_Glacier" target="_blank" rel="noopener">Franz Josef Glacier</a> (CC BY-SA 4.0), with the sources named there';
+export const FR_WIKI = 'Wikipedia, <a href="https://en.wikipedia.org/wiki/Mer_de_Glace" target="_blank" rel="noopener">Mer de Glace</a> (CC BY-SA 4.0), with the sources named there';
 export const IC_INFO = {
+  /* ---------------- France ---------------- */
+  'mer-de-glace': {
+    lede: () => `A valley glacier on the northern slopes of the Mont Blanc massif, in the French Alps. It is 7.5 km long and 200 metres (660 ft) deep${gfn(FR_WIKI)}.`,
+    look: () => `Follow the tongue down the valley above Chamonix. In the 18th and 19th centuries the glacier descended all the way down to the hamlet of Les Bois, where it was known as Glacier des Bois, and its maximum extent was in the mid-19th century; it has been shrinking backwards and is now barely visible from below${gfn(FR_WIKI)}. From 1939 to 2001 the surface of the glacier has lowered an average of 30 cm each year, corresponding to an equivalent loss of 700 million cubic metres of water${gfn(FR_WIKI)}. Switch on the outline of 1967 in the Layers menu and compare it with the outline of 2015.`,
+    fact: () => `On 24 July 1842, Scottish physicist James David Forbes observed the pattern of light and dark dirt bands on the Mer de Glace from the nearby Aiguille des Grands Charmoz and began to consider whether glaciers flowed in a similar fashion to a sluggish river and with a viscous or plastic manner${gfn(FR_WIKI)}. Mary Shelley's 1818 novel Frankenstein references Mer de Glace during Victor Frankenstein's hikes into the Mont Blanc massif${gfn(FR_WIKI)}.`,
+    name: () => `Mer de Glace means "Sea of Ice"${gfn(FR_WIKI)}. In the 18th and 19th centuries, when it reached the hamlet of Les Bois, it was known as Glacier des Bois${gfn(FR_WIKI)}.`,
+    wgmsSrc: 'fr_wgms',
+    /* Length of the whole glacier, WGMS state rows of glacier 353 (unit metres, as the rows state it; the dates are the rows' mid-year placeholders, so only the year is said): 1975 and 1978 12000, 2003 13000 with an uncertainty of 100 */
+    lengthStated: [{v: '13000', s: 'm', k: 'Length of the glacier in 2003', d: '±100 m, as the WGMS states it'}, {v: '12000', s: 'm', k: 'Length of the glacier in 1978', d: 'as the WGMS states it'}, {v: '12000', s: 'm', k: 'Length of the glacier in 1975', d: 'as the WGMS states it'}],
+    lowest: {v: '1,567', text: `at about 1,567 m above sea level (the lowest point of the outline of 2015 in the lidar surface model, calculated here${gfn(lnk('https://geoservices.ign.fr/lidarhd', 'IGN LiDAR HD'))})`, d: 'calculated here from the lidar surface model, inside the outline of 2015', f: 'fr_ign'},
+    /* Length change of the front, WGMS (glacier id 353, series 0): [from year, to year, metres] with the years of the rows' dates (series 0, 2007-09-15 to 2024-09-07), + advance, − retreat. A yearly value is named after the year it ends in. */
+    wgms: [[2007, 2008, -76], [2008, 2009, -56], [2009, 2010, -34], [2010, 2011, -71], [2011, 2012, -29], [2012, 2013, 0], [2013, 2014, -46], [2014, 2015, -37], [2015, 2016, -10], [2016, 2017, -34], [2017, 2018, -28], [2018, 2019, -55], [2019, 2020, -12], [2020, 2021, -12], [2021, 2022, -20.5], [2022, 2023, -20], [2023, 2024, -11]],
+    groups: () => [
+      ['volume', 'Mass balance and surface change', '−1.96 <small>m w.e.</small>', [
+        {hero: true, loss: true, v: '−1.96', s: 'm w.e.', k: 'Annual mass balance 2024', f: 'fr_wgms', d: '1 October 2023 to 3 October 2024, WGMS'},
+        {loss: true, v: '−2.46 ± 0.15', s: 'm w.e.', k: 'Annual mass balance 2023', f: 'fr_wgms', d: '"non-linear model & geodetic balance"'},
+        {loss: true, v: '−2.94', s: 'm w.e.', k: 'Annual mass balance 2025', f: 'fr_wgms', d: 'a preliminary value, as flagged by WGMS'},
+        {loss: true, v: '−12.915 ± 2.115', s: 'm', k: 'Surface change 19 August 2003 to 16 August 2012', f: 'fr_wgms', d: 'Berthier et al. (2014), Pléiades'},
+        {loss: true, v: '−7.05 ± 2.08', s: 'm', k: 'Surface change 31 December 1999 to 31 December 2004', f: 'fr_wgms', d: 'Hugonnet et al. (2021)'},
+        {v: '374', s: 'm', k: 'Greatest modelled ice thickness', f: 'fr_cook', d: 'Cook et al. (2023) model, inside the outline of 2015, computed here'},
+        {v: '101', s: 'm', k: 'Mean modelled ice thickness', f: 'fr_cook', d: 'the same model, mean of its cells with ice inside the outline of 2015, computed here'}]]]
+  },
   /* ---------------- New Zealand ---------------- */
   'franz-josef': {
     lede: () => `A temperate maritime glacier in Westland Tai Poutini National Park on the West Coast of New Zealand's South Island. It descends to 300 metres above sea level in just 11 km${gfn(NZ_WIKI)}.`,
@@ -27,22 +50,9 @@ export const IC_INFO = {
     name: () => `The glacier was named after Emperor Franz Joseph I of Austria by the German geologist Julius von Haast in 1865${gfn(NZ_WIKI)}. The Māori name is Kā Roimata o Hine Hukatere, literally "The tears of Hine Hukatere": in the story Rangi the Sky Father took pity on her and froze her tears to form the glacier${gfn(NZ_WIKI)}. The name of the glacier was officially altered to Franz Josef Glacier / Kā Roimata o Hine Hukatere${gfn(NZ_WIKI)}.`,
     front: {label: 'FRONT 2008–2017', value: '1.5', unit: 'km'},
     lowest: {v: '436', text: `at about 436 m above sea level (the lowest point of the outline of 2019 in the lidar elevation model, calculated here${gfn(lnk('https://linz.github.io/elevation/', 'LINZ West Coast LiDAR 1 m DEM'))})`, d: 'calculated here from the lidar elevation model, inside the outline of 2019', f: 'nz_linz'},
+    /* Length change of the front, WGMS (glacier id 899): [from year, to year, metres] with the rows' dates as the database gives them, + advance, − retreat. A yearly value is named after the year it ends in. */
+    wgms: [[2015, 2016, -390], [2016, 2017, -140], [2017, 2018, 40], [2018, 2019, -30], [2019, 2021, -150], [2021, 2022, 0], [2022, 2023, -350], [2023, 2024, -170], [2024, 2025, -130]],
     groups: () => [
-      ['change', 'Retreat and advance', '1.5 <small>km</small>', [
-        {hero: true, loss: true, v: '3', s: 'km', k: 'Retreat 1893 to 1983', f: 'nz_wiki', d: 'up the valley, from the first official mapping to a century later'},
-        {v: '1.5', s: 'km', k: 'Retreat 2008 to 2017', f: 'nz_wiki', d: 'a very rapid phase of retreat'},
-        {v: '1420', s: 'm', k: 'Advance 1983 to 1999', f: 'nz_wiki', d: 'one of four advances in the 20th century'},
-        {v: '280', s: 'm', k: 'Advance 2004 to 2008', f: 'nz_wiki', d: 'followed by a period of greater retreat'}]],
-      ['length', 'Length change of the front, WGMS', '', [
-        {v: '−390', s: 'm', k: 'Length change 2015-03-14 to 2016-03-11', f: 'nz_wgms', d: 'retreat, uncertainty 10 m, photographs'},
-        {v: '−140', s: 'm', k: 'Length change 2016-03-11 to 2017-03-09', f: 'nz_wgms', d: 'retreat, uncertainty 10 m'},
-        {v: '40', s: 'm', k: 'Length change 2017-03-09 to 2018-03-10', f: 'nz_wgms', d: 'uncertainty 10 m'},
-        {v: '−30', s: 'm', k: 'Length change 2018-03-10 to 2019-03-20', f: 'nz_wgms', d: 'uncertainty 10 m'},
-        {v: '−150', s: 'm', k: 'Length change 2019-03-20 to 2021-03-19', f: 'nz_wgms', d: 'no 2020 value because of cloud cover'},
-        {v: '0', s: 'm', k: 'Length change 2021-03-19 to 2022-03-17', f: 'nz_wgms', d: 'uncertainty 10 m'},
-        {v: '−350', s: 'm', k: 'Length change 2022-03-17 to 2023-03-26', f: 'nz_wgms', d: 'retreat, uncertainty 10 m'},
-        {v: '−170', s: 'm', k: 'Length change 2023-03-26 to 2024-02-21', f: 'nz_wgms', d: 'retreat, from a map'},
-        {v: '−130', s: 'm', k: 'Length change 2024-02-21 to 2025-03-11', f: 'nz_wgms', d: 'retreat, uncertainty 10 m'}]],
       ['volume', 'The surface, 2000 to 2014', '−0.09 <small>m a⁻¹</small>', [
         {hero: true, loss: true, v: '−0.09 ± 0.02', s: 'm a⁻¹', k: 'Average elevation change 2000–2014', f: 'nz_wk', d: 'average of the annual changes, from ASTER DEMs and the SRTM DEM'},
         {v: '−0.33 ± 0.06', s: 'm a⁻¹', k: 'Specific volume change 1 Jan 2000 to 1 Jan 2014', f: 'nz_wk', d: 'difference of two reconstructed DEMs, divided by the years'},

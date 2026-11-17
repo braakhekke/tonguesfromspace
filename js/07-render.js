@@ -2,7 +2,7 @@ import { wire } from './wire.js';
 import { FIRST_YEAR, YEARS, iceVolume, EIFFEL_M, PITCH_M2, BUS_M, LAKE_ZURICH_KM3, POOL_L, SWISS_SUPPLY_KM3, HOUSEHOLD_L_DAY, SWISS_POP, VOLUME_LOSS, TRAILS, GLACIER_INFO, lv95, $, PHONE } from './01-data.js';
 import { DATA, norm, rankArea, CURRENT_LENGTH, areaText, rankLabel, GLACIERS, shortName } from './02-glaciers.js';
 import { prefs, savePrefs, STYLE_BANDS, STYLE_NAME, styleName, isLandsat, landsatName, LANDSAT_BANDS, landsatBands, idb, imageFootprint, LATEST, restoreLatest, showLatest, sceneProducts, fmtDM, fmtDate, latestBusy } from './03-imagery.js';
-import { state, writeHash, okYears, currentGlacier, viewMode, only3DYear, HASH_TAB, glacierPicked } from './04-state.js';
+import { state, writeHash, okYears, currentGlacier, viewMode, ok3D, HASH_TAB, glacierPicked } from './04-state.js';
 import { map, osm, topo, updateMapYears, alti, BG_YEAR, oldestAerial, oldestWhat, ensureOldest, showOldest, restoreOldest, oldestPair, oldestOn, setCompareLayers, tlFrames, buildTimelapse, syncFullPlay, THICK_LAYER, thickestSpot, tlLayers, loadSpeedFile, speedArray, speedId, speedMask, speedPeak, speedYearOk, SPEED_MIN, drawArcs } from './05-map.js';
 import { statusLine, updateTags } from './06-scene-search.js';
 // registered for the files below it in the load order (see wire.js)
@@ -79,13 +79,13 @@ export function renderYearRange(){
     <div class="yr-track"><div class="yr-fill" id="yrFill"></div>
       <input type="range" id="yrA" min="0" max="${n}" step="1" value="${i(lo)}" aria-label="First year">
       <input type="range" id="yrB" min="0" max="${n}" step="1" value="${i(hi)}" aria-label="Last year"></div>
-    <div class="yr-ticks">${YEARS.map(y => `<i class="${state.available[y] ? '' : 'off'}" title="${y}${state.available[y] ? '' : ': no picture'}"></i>`).join('')}</div>${REGION.landsat ? '<div class="yr-landsat"></div>' : ''}`;
+    <div class="yr-ticks">${YEARS.map(y => `<i class="${state.available[y] && ok3D(y) ? '' : 'off'}" title="${y}${state.available[y] ? ok3D(y) ? '' : ': no elevation model' : ': no picture'}"></i>`).join('')}</div>${REGION.landsat ? '<div class="yr-landsat"></div>' : ''}`;
   if (REGION.landsat) box.querySelector('.yr-landsat').appendChild(landsatChip(true));
   const A = box.querySelector('#yrA'), B = box.querySelector('#yrB'), fill = box.querySelector('#yrFill');
   const paint = () => { const a = +A.value, b = +B.value; fill.style.left = (Math.min(a, b) / n * 100) + '%'; fill.style.width = (Math.abs(b - a) / n * 100) + '%'; box.querySelector('#yrLo').textContent = YEARS[Math.min(a, b)]; box.querySelector('#yrHi').textContent = YEARS[Math.max(a, b)]; };
   const snap = (inp, other) => {            // the nearest year with a picture, in the direction the handle moved
     let v = +inp.value; const dir = v >= +inp.dataset.last ? 1 : -1;
-    if (state.checked) { const ok = k => !!state.available[YEARS[k]]; let k = v; while (k >= 0 && k <= n && !ok(k)) k += dir; if (k < 0 || k > n) { k = v; while (k >= 0 && k <= n && !ok(k)) k -= dir; } if (k >= 0 && k <= n) v = k; }
+    if (state.checked) { const ok = k => !!state.available[YEARS[k]] && ok3D(YEARS[k]); let k = v; while (k >= 0 && k <= n && !ok(k)) k += dir; if (k < 0 || k > n) { k = v; while (k >= 0 && k <= n && !ok(k)) k -= dir; } if (k >= 0 && k <= n) v = k; }
     inp.value = v; inp.dataset.last = v;
   };
   [A, B].forEach(inp => { inp.dataset.last = inp.value;
@@ -121,7 +121,7 @@ export function yearChips(boxId, key, opts = {}){
     b.type = 'button'; b.textContent = y;
     const ok = !!state.available[y];
     b.disabled = !ok;                                       // not clickable until confirmed available
-    if (key === 'one' && only3DYear() && y !== only3DYear()) { b.disabled = true; b.classList.add('is-na'); b.title = `In 3D only ${only3DYear()} can be shown: the terrain is the elevation model of that year. Switch to Map for other years.`; box.appendChild(b); return; }
+    if (ok && !ok3D(y)) { b.disabled = true; b.classList.add('is-na'); b.title = `In 3D, ${y} can't be shown: the glacier has no elevation model for that year. Switch to Map for other years.`; box.appendChild(b); return; }
     if (state.checked && !ok) { b.classList.add('missing'); b.title = `No ${y} imagery from this source`; }
     if (!state.checked) b.title = 'Checking…';
     const sc = state.available[y];
@@ -153,7 +153,7 @@ export function specialChips(){
   naOldest(chip('Oldest', oldest === undefined ? 'Looking for the oldest aerial image…' : oldest === null ? 'No aerial image of this area' : `The oldest aerial image of this area: ${oldestWhat(oldest)}`,
     !!state.oldestAerial, !oldest && !in3d, () => { if (state.oldestAerial) { restoreOldest(); refreshAll(); } else showOldest(); }));
   const l = chip('Latest', `The newest clear-ish scene of the last ${LATEST.days} days, with at most ${Math.round(LATEST.maxCloudOutline * 100)} % cloud over the 1850 outline and a clear tongue`,
-    !!state.latest, !state.checked || latestBusy || !!only3DYear(), () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
+    !!state.latest, !state.checked || latestBusy || !ok3D(new Date().getFullYear()), () => { if (state.latest) { restoreLatest(); refreshAll(); } else { restoreOldest(); showLatest(); } }, 'latest-chip');
   for (const side of ['a', 'b']) {      // the slider: each picture has its own Oldest and Latest (one picture per side; the same special is on one side at a time)
     const into = document.getElementById(side === 'a' ? 'yearsSpecialA' : 'yearsSpecialB'), where = side === 'a' ? 'the left or top picture' : 'the right or bottom picture';
     into.innerHTML = '';
@@ -858,7 +858,7 @@ document.getElementById('story').addEventListener('click', e => {      // the to
   if (matchMedia('(max-width:720px)').matches) document.getElementById('stage').scrollIntoView({block: 'start', behavior: 'smooth'});      // on a phone the map is above the panel
   sb.click();
 });
-const FIELD_NOTES = ['B36-26', 'B56-07', 'B43-03', 'B40-07', 'A54g-11', 'B83-03', 'B57-05', 'B56-03', 'B53-04', 'A54e-24', 'franz-josef'];      // the glaciers with field notes: a provenance.html page (data/yearly/<id>.json; Swiss yearly surfaces, or one measured surface from scripts/build_field_notes.py)
+const FIELD_NOTES = ['B36-26', 'B56-07', 'B43-03', 'B40-07', 'A54g-11', 'B83-03', 'B57-05', 'B56-03', 'B53-04', 'A54e-24', 'franz-josef', 'mer-de-glace'];      // the glaciers with field notes: a provenance.html page (data/yearly/<id>.json; Swiss yearly surfaces, or one measured surface from scripts/build_field_notes.py)
 document.getElementById('story').addEventListener('click', e => {      // the field notes page gets the year on screen and the way back to this view
   const a = e.target.closest && e.target.closest('.notes-btn'); if (!a) return;
   const y = state.mode === 'single' ? state.one : state.mode === 'compare' ? state.b : state.to;
@@ -1029,6 +1029,15 @@ export const SOURCES = {
   nz_wiki:   () => `Wikipedia, ${lnk('https://en.wikipedia.org/wiki/Franz_Josef_Glacier', 'Franz Josef Glacier')} (CC BY-SA 4.0): the name and its origin, the advances and retreats, the floods and the news items, with the sources named there.`,
   nz_wk:     () => `Wang, D. and Kääb, A. (2015), Modeling Glacier Elevation Change from DEM Time Series, Remote Sensing 7(8), 10117–10142, ${lnk('https://doi.org/10.3390/rs70810117', 'doi:10.3390/rs70810117')} (open access): elevation and volume change of Franz Josef Glacier from 31 ASTER DEMs and the SRTM DEM, 2000–2014, and the national DEM of 1986.`,
   nz_wgms:   () => `WGMS (2026), Fluctuations of Glaciers Database, version 2026-02-10, ${lnk('https://doi.org/10.5904/wgms-fog-2026-02-10', 'doi:10.5904/wgms-fog-2026-02-10')}: front variation of Franz Josef / Kā Roimata o Hine Hukatere (glacier id 899), length change in metres (+ advance, − retreat), the rows with the dates, uncertainties and remarks as the database gives them. Open access under the requirement of correct citation (${lnk('https://wgms.ch/data_databaseversions/', 'wgms.ch')}); the rows cite, among others, Purdie et al. (2014), Global and Planetary Change 121, 41–52.`,
+  /* France (Mer de Glace): the sources of the right panel and the 3D view; the keys start with fr_ */
+  fr_glims:  () => `GLIMS Glacier Database: the dated outlines of Mer de Glace, 1967 (LGGE, Laboratoire de Glaciologie et Géophysique de l'Environnement) and 2015 (University of Zurich), and the areas of the dated outlines of the database (1967, 1986, 2000, 2003, 2004, 2011, 2013, 2015), as read from the GLIMS service. GLIMS Consortium, Raup, B. H., Racoviteanu, A., Khalsa, S. S., Helm, C., Armstrong, R. and Arnaud, Y. (2005), GLIMS Glacier Database, NASA National Snow and Ice Data Center DAAC, ${lnk('https://doi.org/10.7265/N5V98602', 'doi:10.7265/N5V98602')}; ${lnk('https://www.glims.org/', 'glims.org')}. The terms of use of the service were not read: to be checked for anything beyond non-commercial use.`,
+  fr_ign:    () => `IGN (Institut national de l'information géographique et forestière): LiDAR HD, the surface model (MNS) of the mission 21LHD5QK2, flown mostly 16 to 22 July 2022 over the glacier (the tile metadata give 25 June to 22 July 2022), heights IGN69, Lambert 93; Licence Ouverte (as the data.gouv.fr metadata of the related data sets state it); ${lnk('https://geoservices.ign.fr/lidarhd', 'geoservices.ign.fr/lidarhd')}. It is the anchor of the modelled ice surfaces of the 3D view; where it has no height the Copernicus GLO-30 model fills the gap. The highest and lowest point of the 2015 outline are calculated here from it.`,
+  fr_pleiades: () => `Berthier, E., Vincent, C. and Six, D. (2023), Mont-Blanc Pléiades elevation-change grids, Zenodo, ${lnk('https://zenodo.org/record/8047784', 'zenodo.org/record/8047784')} (CC BY 4.0): three 4 m grids of the rate of elevation change (m per year), for 19 August 2012 to 15 August 2021, 15 August 2021 to 8 August 2022 and 12 October 2021 to 5 October 2022, from Pléiades stereo pairs. They give the pattern of the change; the time axis of the modelled surfaces comes from the glacier-wide mass balance.`,
+  fr_wgms:   () => `WGMS (2026), Fluctuations of Glaciers Database, version 2026-02-10, ${lnk('https://doi.org/10.5904/wgms-fog-2026-02-10', 'doi:10.5904/wgms-fog-2026-02-10')}: Mer de Glace (glacier id 353): front variation (length change in metres, + advance, − retreat), annual mass balance (m w.e.) and changes of the surface (Berthier et al. 2014; Hugonnet et al. 2021), the rows with the dates and uncertainties as the database gives them. Open access under the requirement of correct citation (${lnk('https://wgms.ch/data_databaseversions/', 'wgms.ch')}).`,
+  fr_glacioclim: () => `GLACIOCLIM observatory (OZCAR-RI Mer de Glace, IGE, CNRS, Université Grenoble Alpes): stake heights of the ablation and accumulation profiles and the glacier-wide balance sheet, used here to check and time the modelled surfaces (not shown as figures). The catalogue record on DEIMS says CC BY 4.0; the data files themselves state no licence (${lnk('https://glacioclim.osug.fr/', 'glacioclim.osug.fr')}).`,
+  fr_cook:   () => `Cook, S. J., Jouvet, G., Millan, R., Rabatel, A., Zekollari, H. and Dussaillant, I. (2023), Data supporting 'Ice loss in the European Alps until 2050 using a fully assimilated, deep-learning-aided 3D ice-flow model', Zenodo, ${lnk('https://zenodo.org/records/8037002', 'zenodo.org/records/8037002')} (CC BY 4.0); the paper: Geophysical Research Letters 50(23), ${lnk('https://doi.org/10.1029/2023GL105029', 'doi:10.1029/2023GL105029')}. Used: the initial optimised state of cluster C3 (100 m cells, the copy on the OGGM server), whose surface minus ice thickness is the model bed under the glacier in the 3D view. A model; the date of its surface was not read. The greatest and the mean thickness in the outline of 2015 are computed here from it.`,
+  fr_aerial: () => `IGN (Institut national de l'information géographique et forestière), BD ORTHO Historique: the digitised and mosaicked aerial photographs of 1950-1965, grey scale (layer ORTHOIMAGERY.ORTHOPHOTOS.1950-1965 of the Géoplateforme, ${lnk('https://cartes.gouv.fr/catalogue/dataset/IGNF_BD-ORTHO-HISTO', 'catalogue record')}); Licence Ouverte (as the record states it). Over Mer de Glace the mosaic graph gives one flight, 27 July 1952 (layer "Oldest"). Shown as delivered.`,
+  fr_wiki:   () => `Wikipedia, ${lnk('https://en.wikipedia.org/wiki/Mer_de_Glace', 'Mer de Glace')} (CC BY-SA 4.0): the length and depth, the name, the history and the observation of Forbes, with the sources named there.`,
   /* Norway and Svalbard, and the terrain of the regions that have no terrain file of their own */
   no_nve:    () => `NVE, the Norwegian Water Resources and Energy Directorate: glacier inventory of mainland Norway 2018–2019 (outlines made from Sentinel-2 images, areas, lengths and heights of the glacier units; a glacier is the units that hang together). Andreassen, L. M. (2022), Breer og fonner i Norge, NVE Rapport 3-2022; Andreassen, L. M. et al. (2022), An inventory of Norway's glaciers and ice-marginal lakes from 2018–19 Sentinel-2 data, Journal of Glaciology 68(272), 1085–1106, ${lnk('https://doi.org/10.1017/jog.2022.20', 'doi:10.1017/jog.2022.20')}. Data: the map service Bre of NVE (${lnk('https://www.nve.no/hydrology/glaciers/', 'nve.no/hydrology/glaciers')}); NVE asks to cite these two publications. Terms to be checked for anything beyond non-commercial use. The area of Norway, 2,328 km², and the list of the ten largest glaciers are from NVE's glacier page.`,
   no_old:    () => `NVE, glacier inventory of 1947–1985 (outlines from topographic maps and aerial photographs; the year of the outline differs by glacier), the layer Breflate_Historisk of the same map service. Used for the older outline and area.`,
@@ -1037,7 +1046,7 @@ export const SOURCES = {
   water:  () => `Swiss water supply of 931 million m³ in 2022: SVGW (Swiss Gas and Water Industry Association). Other comparisons: Eiffel Tower 330 m with antennas (${lnk('https://www.toureiffel.paris', 'toureiffel.paris')}), football pitch 105 × 68 m, city bus about 12 m, Olympic pool 50 × 25 × 2 m, Lake Zurich 3.9 km³.`,
   me:     () => `This project: code under the MIT licence, own texts under CC BY 4.0, open on ${lnk('https://github.com/braakhekke/tonguesfromspace', 'GitHub')}.`
 };
-export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj|nz)_/.test(k));      // the sources of the region, in the order of the list in About
+export const SOURCE_LIST = REGION.rgi ? REGION.sources : Object.keys(SOURCES).filter(k => !/^(is|no|sj|nz|fr)_/.test(k));      // the sources of the region, in the order of the list in About
 /* a small raised number in the text; the click opens the Sources block and shows the entry (a back-link returns to the text) */
 export let fnSeq = 0;
 /* Sources that belong to one glacier (the fact, the name, the hikes) are numbered after the general ones and listed with them in About; the list is made again with every redraw of the panel */
@@ -1073,6 +1082,17 @@ document.addEventListener('click', e => {
 });
 export const ok = v => v != null && !isNaN(v);
 export const fmtM = m => ok(m) ? `${m < 0 ? '−' : m > 0 ? '+' : ''}${Math.abs(m).toLocaleString('en').replace(/,/g, '\u202f')} m` : null;
+/* The length change inside the chosen years: the surveys that lie completely inside them (start year >= from, end year <= to; a yearly value is named after the year it ends in: 2017 = autumn 2016 to autumn 2017).
+   L is a length record {series: [[from, to, metres]]}; returns the sum (null when nothing lies inside), the hint for an empty tile and the note when the surveys cover less than the range. */
+export function lengthRange(L, lo, hi, noData){
+  if (!L) return {range: null, rangeHint: noData, cover: ''};
+  if (!L.series) return {range: null, rangeHint: 'glacier data needs a rebuild', cover: ''};
+  if (!(lo && hi)) return {range: null, rangeHint: 'pick a year', cover: ''};
+  const inside = L.series.filter(r => r[0] >= lo - 1 && r[1] <= hi);
+  if (!inside.length) return {range: null, rangeHint: 'no survey lies inside this range', cover: ''};
+  const c0 = inside[0][0], c1 = inside[inside.length - 1][1];
+  return {range: inside.reduce((t, r) => t + r[2], 0), rangeHint: noData, cover: c0 !== lo - 1 || c1 !== hi ? `Surveys cover ${c0 + 1}–${c1}` : ''};
+}
 export function stats(g, lo, hi){
   const inv = g.inv;
   const a1850 = inv ? (inv.oldest && inv.oldest.area_km2) : g.a1850;
@@ -1087,19 +1107,7 @@ export function stats(g, lo, hi){
   const late = L && nowYear ? nowYear - L.last_year : 0;           // years between the length in the figure and the last survey in the series
   const exact = clean && late < 2;
   // change in the chosen range: the surveys that lie completely inside it (start year >= from, end year <= to)
-  let range = null, rangeHint = lcHint, cover = '';
-  if (L && L.series) {
-    if (!(lo && hi)) rangeHint = 'pick a year';
-    else {
-      const inside = L.series.filter(r => r[0] >= lo - 1 && r[1] <= hi);      // a yearly value is named after the year it ends in: 2017 = autumn 2016 to autumn 2017
-      if (!inside.length) rangeHint = 'no survey lies inside this range';
-      else {
-        range = inside.reduce((t, r) => t + r[2], 0);
-        const c0 = inside[0][0], c1 = inside[inside.length - 1][1];
-        if (c0 !== lo - 1 || c1 !== hi) cover = `Surveys cover ${c0 + 1}–${c1}`;
-      }
-    }
-  } else if (L) rangeHint = 'glacier data needs a rebuild';
+  const { range, rangeHint, cover } = lengthRange(L, lo, hi, lcHint);
   // ice volume: the newest GLAMOS volume survey of this glacier (comparison of two elevation models) and the radar thickness measurements
   const V = inv && inv.volume, T = thickestSpot(g), volHint = inv ? 'no volume survey by GLAMOS' : 'glacier data not loaded yet';
   const per = V ? `${V.from}–${V.to}` : '';
@@ -1284,7 +1292,7 @@ export function areaBars(g){
   return `<div class="area">${rows.map((r, i) => `<div><span>${r[0]}</span><i class="a${i}" style="width:${r[1] / a1850 * 100}%"></i><b>${r[1].toFixed(2)} km²</b></div>`).join('')}</div>`;
 }
 /* Length change of every year up to the chosen years (the GLAMOS series), as bars labelled by the year they end in: the bar of the first year (2015-2016) is what the summer picture of that year shows. Loss red, advance blue. */
-export function retreatChart(g, lo, hi){
+export function retreatChart(g, lo, hi, src = 'GLAMOS'){      // src: who measured (WGMS for the regions outside Switzerland)
   const L = g.inv && g.inv.length, ser = L && L.series ? L.series.filter(r => r[1] > r[0] && r[1] >= FIRST_YEAR) : [];
   if (!ser.length) return '';
   const first = FIRST_YEAR, last = Math.max(...ser.map(r => r[1])), items = [];
@@ -1292,10 +1300,10 @@ export function retreatChart(g, lo, hi){
     const r = ser.find(e => e[0] < y && y <= e[1]), n = r ? r[1] - r[0] : 0, sel = !!(lo && hi && r_in(y, lo, hi));
     items.push(!r ? {lab: String(y).slice(2), sel, v: null, t: `${y}: no length survey`}
       : n === 1 ? {lab: String(y).slice(2), sel, v: r[2], t: `${y} (${r[0]}–${r[1]}): ${fmtM(r[2])}`}
-      : {lab: String(y).slice(2), sel, avg: true, v: r[2] / n, t: `${y}: ${fmtM(Math.round(r[2] / n))} on average. GLAMOS measured ${r[0]}–${r[1]} only as a whole, ${fmtM(r[2])} in ${n} years, so the years are drawn evenly (dashed)`});
+      : {lab: String(y).slice(2), sel, avg: true, v: r[2] / n, t: `${y}: ${fmtM(Math.round(r[2] / n))} on average. ${src} measured ${r[0]}–${r[1]} only as a whole, ${fmtM(r[2])} in ${n} years, so the years are drawn evenly (dashed)`});
   }
   if (items.filter(i => i.v != null).length < 2) return '';
-  return barChart('Retreat per year', 'm', items, `Length change per year, ${first} to ${last}`) + (items.some(i => i.avg) ? '<p class="chart-note">Dashed bars: GLAMOS measured these years only together, so the change is spread evenly over them.</p>' : '') + (items.some(i => i.v == null) ? '<p class="chart-note">Empty years have no length survey.</p>' : '');
+  return barChart('Retreat per year', 'm', items, `Length change per year, ${first} to ${last}`) + (items.some(i => i.avg) ? `<p class="chart-note">Dashed bars: ${src} measured these years only together, so the change is spread evenly over them.</p>` : '') + (items.some(i => i.v == null) ? '<p class="chart-note">Empty years have no length survey.</p>' : '');
 }
 /* The size comparison page (size.html): the glacier is passed by its inventory id (the SGI code, glaciers.js `inv.id`). */
 export function syncSizeLink(){ const ns = document.getElementById('navSize'), g = currentGlacier(); if (ns && g && FEATURES.sizeTool) ns.href = sizeHref(g, viewMode === '3d' ? '3d' : '2d'); }      // the Size link of the page switch opens the size page on this glacier, in Volume 3D when the stage shows 3D here and in Area on the map

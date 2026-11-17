@@ -1,0 +1,20 @@
+{
+ "years": [
+  1952
+ ],
+ "label": "1952",
+ "flights": [
+  "1952-07-27"
+ ],
+ "bbox": [
+  763223,
+  5752508,
+  782283,
+  5774441
+ ],
+ "w": 2781,
+ "h": 3200,
+ "share": 1.0,
+ "source": "IGN, BD ORTHO Historique (orthophotographies of 1950-1965, grey scale), Licence Ouverte",
+ "catalogue": "https://cartes.gouv.fr/catalogue/dataset/IGNF_BD-ORTHO-HISTO"
+}

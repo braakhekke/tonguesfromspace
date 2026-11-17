@@ -12,7 +12,7 @@ Svalbard, 13 over Norway; icecap_lib.Dem), so that no big elevation model has to
 Glaciers without a path that sees the ice front are left out of the file (the page then shows the paths, if any, without the violet band).
 
 Needs the data files of the regions (build_vatnajokull.py, build_regions.py) and internet. Standard library and Pillow.
-Usage: python3 scripts/build_trails_regions.py iceland|norway|svalbard|vatnajokull|newzealand [--only id,id]
+Usage: python3 scripts/build_trails_regions.py iceland|norway|svalbard|vatnajokull|newzealand|france [--only id,id]
 """
 import argparse, array, datetime, json, math, os, sys, time, urllib.parse, urllib.request
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -24,7 +24,8 @@ ROOT = lib.ROOT
 EYE, STEP, N_TARGETS, MIN_SHARE, FRONT_KM, K_REF, R_EARTH, MAX_KM, GRID = 1.7, 20.0, 79, 0.25, 1.5, 0.13, 6371000.0, 12.0, 25.0
 REGIONS = {'iceland': ('iceland.js', 12, 'trails-iceland.js', 'imo'), 'vatnajokull': ('vatnajokull.js', 12, 'trails-vatnajokull.js', 'imo'),
            'norway': ('norway.js', 13, 'trails-norway.js', 'outline'), 'svalbard': ('svalbard.js', 12, 'trails-svalbard.js', 'outline'),
-           'newzealand': ('newzealand.js', 12, 'trails-newzealand.js', 'outline')}
+           'newzealand': ('newzealand.js', 12, 'trails-newzealand.js', 'outline'),
+           'france': ('france.js', 12, 'trails-france.js', 'outline')}
 SKIP = {'vatnajokull': ('breidamerkurjokull',)}      # done by build_trails_iceland.py (data/trails-is.js)
 
 

@@ -42,6 +42,19 @@ class TestSizeRegion(SiteCase):
         self.assertEqual(page.evaluate("mainPage(GL[0], false)"), "index.html#r=nz&g=franz-josef")
         self.assertEqual([e for e in self.errors if e.startswith("pageerror")], [])
 
+    def test_france_shows_mer_de_glace_and_french_cities_without_volume(self):
+        s = open(os.path.join(ROOT, "data", "size-fr.js")).read()
+        d = json.loads(s[s.index("SIZE_DATA=") + 10:s.index(";window.ICE_VOLUMES")])
+        g = d["glaciers"][0]
+        self.assertEqual((g["id"], g["area"], g["year"], g["area0"], g["year0"]), ("mer-de-glace", 28.81, 2015, 31.85, 1967))
+        self.assertEqual([c["id"] for c in d["cities"]], ["paris", "lyon", "marseille", "toulouse", "nice", "grenoble"])
+        page = self.size("#r=fr&g=mer-de-glace")
+        self.assertEqual(page.evaluate("[REG, GL.map(g => g.id), CITIES.some(c => c.id === 'lyon')]"), ["fr", ["mer-de-glace"], True])
+        self.assertTrue(page.evaluate("$('modeSwitch').hidden"))
+        self.assertEqual(page.text_content("#oldToggle + span").strip(), "Outline 1967")
+        self.assertEqual(page.evaluate("mainPage(GL[0], false)"), "index.html#r=fr&g=mer-de-glace")
+        self.assertEqual([e for e in self.errors if e.startswith("pageerror")], [])
+
     def test_a_link_asking_for_volume_opens_area_while_there_is_no_volume(self):
         page = self.size("#r=nz&g=franz-josef&mode=3d")
         self.assertFalse(page.evaluate("document.body.classList.contains('is-3d')"))

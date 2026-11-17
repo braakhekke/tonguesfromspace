@@ -2581,7 +2581,7 @@ html.embed .pageswitch{display:none}
   ::view-transition-group(root){animation-duration:.28s}
   ::view-transition-group(panel){animation-duration:.28s}
 }
-@media (hover:hover) and (pointer:fine) and (min-width:721px){.controls .site-nav,.controls .region-menu{display:none!important}.controls #regionBtn{pointer-events:none;cursor:default}.controls #regionBtn svg{display:none}}      /* the pull-down bar (js/top-bar.js) has the page links and the region pill; the panel keeps the region's name as plain text. The links stay in the page (the phone menu clicks them), the region menu too (the bar's pill presses its items) */
+@media (hover:hover) and (pointer:fine) and (min-width:721px){.controls .site-nav,.controls .region-menu:not(.step-region-menu){display:none!important}.controls #regionBtn{pointer-events:none;cursor:default}.controls #regionBtn svg{display:none}}      /* the pull-down bar (js/top-bar.js) has the page links and the region pill; the panel keeps the region's name as plain text. The links stay in the page (the phone menu clicks them), the region menu too (the bar's pill presses its items) */
 .site-nav + .brand-btns{margin-top:0}      /* the same air above and below the thin line */
 
 /* Layer panel under the picture on phones: its title bar stays at the top while you scroll the panel, with a cross, so the menu can always be closed (the Layers button in the dock scrolls out of sight) */
@@ -2657,3 +2657,15 @@ html.embed .pageswitch{display:none}
 html[data-i18n-long] .vs-opts select.small{min-width:100px}
 html[data-i18n-long] .sw{font-size:10.5px;letter-spacing:-.01em}
 html[data-i18n-long] .sw span{white-space:nowrap}
+
+/* region pill next to "1 Choose": the same menu as the title's, opening below the step heading */
+#glacierGroup{position:relative}
+.step-region-btn{display:inline-flex;align-items:center;gap:3px;margin:0 0 0 auto;min-width:0;padding:3px 5px 3px 8px;border:1px solid var(--rule);border-radius:var(--r-pill,999px);background:var(--firn);font:inherit;font-size:10.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--rock,#0A1B33);cursor:pointer;white-space:nowrap;align-self:flex-end;margin-bottom:-1px;transition:background .15s,border-color .15s}
+.step-region-btn .region-name{overflow:hidden;text-overflow:ellipsis}
+.step-region-btn:hover{background:#fff;border-color:var(--crevasse)}
+.step-region-btn:focus-visible{outline:2px solid var(--crevasse);outline-offset:2px}
+.step-region-btn svg{width:12px;height:12px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;transition:transform .15s}
+.step-region-btn[aria-expanded="true"]{background:#fff;border-color:var(--crevasse)}
+.step-region-btn[aria-expanded="true"] svg{transform:rotate(180deg)}
+.step-region-menu{left:auto;right:0;top:34px}
+@media (max-width:720px) and (orientation:portrait),(max-width:950px) and (orientation:landscape) and (max-height:520px){.step-region-btn,.step-region-menu{display:none!important}}      /* phones: the header pill is the region picker */

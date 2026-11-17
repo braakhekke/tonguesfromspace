@@ -142,3 +142,5 @@ i18n/.last-list*.json
 
 # local backup of config.js (holds the Street View key)
 config.js.local-bak
+scripts/.streetview-ranked-france.json
+scripts/.streetview-scan-france.json

@@ -1,8 +1,8 @@
 import { wire } from './wire.js';
 import { ICECAP, areaSeries, GLACIERS } from './02-glaciers.js';
 import { fmtDate } from './03-imagery.js';
-import { currentGlacier, glacierPicked } from './04-state.js';
-import { dcard, cardKey, landsatAbout, aboutFrame, aboutSentinel, aboutColours, renderStory, cbYears, cbButtonsHtml, ICONS, SOURCES, SOURCE_LIST, gfn, fn, cardOpen, dynSources, restoringCards, storyTab, setDynSources, setRestoringCards, setStoryTab, sizeHref } from './07-render.js';
+import { currentGlacier, glacierPicked, state } from './04-state.js';
+import { dcard, cardKey, landsatAbout, aboutFrame, aboutSentinel, aboutColours, renderStory, cbYears, cbButtonsHtml, fmtM, lengthRange, retreatChart, ICONS, SOURCES, SOURCE_LIST, gfn, fn, cardOpen, dynSources, restoringCards, storyTab, setDynSources, setRestoringCards, setStoryTab, sizeHref } from './07-render.js';
 // registered for the files below it in the load order (see wire.js)
 Object.defineProperty(wire, 'renderStoryIcecap', { get: () => renderStoryIcecap, configurable: true });
 /* =====================================================================
@@ -28,8 +28,10 @@ export const IC_REGION = {
     lede: (ice, os) => `The ten largest glaciers of Norway by area in the glacier inventory of 2018–2019 of NVE, the Norwegian Water Resources and Energy Directorate${fn('no_nve')}. Together they hold ${nfIs(os.reduce((t, o) => t + o.rgi.areaKm2, 0))} km² of the 2,328 km² of ice of the country${fn('no_nve')}. Click a red glacier on the map.`,
     listNote: () => `By area in 2018–2019${fn('no_nve')}.`, tiles: ice => [{v: '2,328', s: 'km²', k: 'Glacier area of Norway', d: '2018–2019', f: 'no_nve'}]},
   'nz': {tab: 'New Zealand', h2: () => 'New Zealand', sub: 'Southern Alps, South Island', list: 'Glaciers', one: 'glacier',
-    lede: (ice, os) => `Franz Josef Glacier, Kā Roimata o Hine Hukatere, is the first glacier of New Zealand on this site; more will follow. Its outlines are those of the GLIMS Glacier Database${fn('nz_glims')}. Click the red glacier on the map to see its tongue in Landsat and Sentinel-2 pictures.`,
     listNote: () => `Franz Josef Glacier is shown with the outlines of 1978 and 2019 of the GLIMS Glacier Database${fn('nz_glims')}.`,
+    tiles: ice => [{v: '1', k: 'Glacier on this site', d: 'more will follow'}]},
+  'fr': {tab: 'France', h2: () => 'France', sub: 'Mont Blanc massif, French Alps', list: 'Glaciers', one: 'glacier',
+    listNote: () => `Mer de Glace is shown with the outlines of 1967 and 2015 of the GLIMS Glacier Database${fn('fr_glims')}.`,
     tiles: ice => [{v: '1', k: 'Glacier on this site', d: 'more will follow'}]},
   'no-svalbard': {tab: 'Svalbard', h2: () => 'Svalbard', sub: 'Archipelago in the Arctic Ocean', list: 'Ten large glaciers', one: 'glacier',
     lede: (ice, os) => `Ten of the largest glaciers of the Svalbard archipelago, the islands around Spitsbergen, by their area in 2020 in the inventory of the Norwegian Polar Institute${fn('sj_npi')}. The inventory has ${nfIs(ice.entities || 0)} glacier units with ${nfIs(ice.areaKm2 || 0)} km² of ice in 2020. Most of the big ones end in the sea. Click a red glacier on the map.`,
@@ -38,7 +40,7 @@ export const IC_REGION = {
 /* One stat card: a group of tiles under a red header, as the Swiss Stats tab */
 export function statGroupIs(key, title, sum, tiles, ico = key, foot = ''){
   return `<details class="stat-group dcard coll" name="stats" data-card="${key}"${cardOpen(key) ? ' open' : ''}><summary><h4><span class="ico">${ICONS[ico] || ICONS.area}</span>${title}</h4>${sum ? `<span class="sum-v">${sum}</span>` : ''}</summary>
-    <div class="stat-row ${key}">${tiles.map(t => `<div class="stat${t.hero ? ' hero wide' : ''}${t.loss ? ' loss' : ''}"><span class="v">${t.v ?? '—'}${t.s ? ` <small>${t.s}</small>` : ''}</span><span class="k">${t.k}${t.f ? fn(t.f) : ''}</span>${t.d ? `<span class="d">${t.d}</span>` : ''}${t.hint ? `<span class="k note">${t.hint}</span>` : ''}</div>`).join('')}</div>${foot}</details>`;
+    <div class="stat-row ${key}">${tiles.map(t => `<div class="stat${t.hero ? ' hero wide' : t.wide ? ' wide' : ''}${t.loss ? ' loss' : ''}"><span class="v">${t.v ?? '—'}${t.s && t.v != null ? ` <small>${t.s}</small>` : ''}</span><span class="k">${t.k}${t.f ? fn(t.f) : ''}</span>${t.d ? `<span class="d">${t.d}</span>` : ''}${t.hint ? `<span class="k note">${t.hint}</span>` : ''}</div>`).join('')}</div>${foot}</details>`;
 }
 /* The stat cards of the Swiss Stats tab, in its order and under its headers (renderStats, renderGlacierSpeed, renderGlacierWater in js/07-render.js): every region shows all five (owner's rule, CLAUDE.md "Right panel"). A card the region has no data for stays and says so. */
 export const STAT_CARDS = [['area', 'Area', 'area'], ['length', 'Length', 'length'], ['volume', 'Thickness and volume', 'volume'], ['speed', 'Ice speed', 'speed'], ['water', 'Water storage', 'drop']];
@@ -59,6 +61,16 @@ export function lookAuto(g){
   if (then && now && then.km2 > 0) bits.push(`Its area was ${nfIs(then.km2)} km² in ${then.label} and ${nfIs(now.km2)} km² in ${now.label} (${nfIs(100 * Math.abs(now.km2 - then.km2) / then.km2)} % ${now.km2 < then.km2 ? 'less' : 'more'}); switch on the old outline in the Layers menu to see where the ice stood${fn(O.lia && REGION.id === 'no-mainland' ? 'no_old' : REGION.inventory.source)}.`);
   return bits.join(' ');
 }
+/* The Length card where the WGMS has measured the front (the series [from, to, metres] of the glacier, js/07b-icecap-texts.js): the Swiss tiles, a hero with what the front lost in all and the change of the selected years,
+   and the "Retreat per year" bars. Nothing else goes in: what the sources do not give is left out. */
+export function lengthWgms(series, src = 'nz_wgms', stated = []){      // stated: lengths the WGMS gives for the glacier as a whole (its state rows), shown as the source states them
+  const [lo, hi] = state.mode === 'single' ? [state.one, state.one] : state.mode === 'timelapse' ? [Math.min(state.from, state.to), Math.max(state.from, state.to)] : [Math.min(state.a, state.b), Math.max(state.a, state.b)];
+  const L = {series}, total = series.reduce((t, r) => t + r[2], 0), sel = lengthRange(L, lo, hi, 'no survey lies inside this range');
+  return {tiles: [
+    {hero: true, loss: total < 0, v: fmtM(total).replace(' m', ''), s: 'm', k: `Length lost since ${series[0][0]}`, f: src, d: 'sum of the WGMS length changes, calculated here'},
+    {loss: sel.range < 0, wide: true, v: sel.range !== null ? fmtM(Math.round(sel.range)).replace(' m', '') : null, s: 'm', k: lo && hi ? (hi > lo ? `Change ${lo}–${hi}` : `Change ${lo}`) : 'Change in your selection', f: src, hint: sel.range === null ? sel.rangeHint : '', d: sel.cover}, ...stated.map(t => ({wide: true, ...t, f: src}))],
+    sum: `${fmtM(total).replace(' m', '')} <small>m</small>`, foot: retreatChart({inv: {length: L}}, lo, hi, 'WGMS')};
+}
 export function renderStoryIcecap(){
   const g = glacierPicked ? currentGlacier() : null, ice = (ICECAP && ICECAP.icecap) || {}, storyEl = document.getElementById('story'), R = IC_REGION[REGION.id];
   if (typeof wire.updateRightTab === 'function') wire.updateRightTab();
@@ -72,15 +84,15 @@ export function renderStoryIcecap(){
   const largest = dcardIc(R.list, `<ul class="blist">` +
     all.slice(0, 10).map(b => `<li class="${b.pick ? 'go' : 'off'}" ${b.pick ? `data-id="${b.id}"` : ''}><span>${b.name || REGION.unnamed}</span><small>${nfIs(b.areaKm2)} km²${b.pick ? '' : ' · soon'}</small></li>`).join('') +
     `</ul><p class="srcline">${R.listNote()}</p>`);
-  const lede = R.lede(ice, GLACIERS);
+  const lede = R.lede ? R.lede(ice, GLACIERS) : '';   // New Zealand and France have none, as Switzerland
   const tab = t => `role="tab" data-tab="${t}" aria-selected="${storyTab === t}"`, panel = (t, inner) => `<div class="tab-panel" data-panel="${t}" ${storyTab === t ? '' : 'hidden'}>${inner}</div>`;
   const ch = g && IS_CHANGE[g.id], ser = g ? areaSeries(g) : [], now = ser[ser.length - 1];
-  const tilesArea = g && now ? [{hero: true, loss: ser.length > 1 && now.km2 < ser[0].km2, v: nfIs(now.km2), s: 'km²', k: `Glacier area, ${now.label}`, f: REGION.id === 'nz' ? 'nz_glims' : REGION.id === 'no-svalbard' ? 'sj_npi' : REGION.id === 'no-mainland' ? 'no_nve' : 'is_imo'}]
-    .concat(ser.slice(0, -1).reverse().map(a => ({v: nfIs(a.km2), s: 'km²', k: `Area ${a.label}`, f: REGION.id === 'nz' ? 'nz_glims' : REGION.id === 'no-svalbard' ? 'sj_npi' : REGION.id === 'no-mainland' ? 'no_old' : 'is_rgi', d: a.km2 > 0 ? `${now.km2 < a.km2 ? '−' : '+'}${nfIs(100 * Math.abs(now.km2 - a.km2) / a.km2)} % to ${now.label}` : ''}))) : [];
+  const tilesArea = g && now ? [{hero: true, loss: ser.length > 1 && now.km2 < ser[0].km2, v: nfIs(now.km2), s: 'km²', k: `Glacier area, ${now.label}`, f: REGION.id === 'nz' ? 'nz_glims' : REGION.id === 'fr' ? 'fr_glims' : REGION.id === 'no-svalbard' ? 'sj_npi' : REGION.id === 'no-mainland' ? 'no_nve' : 'is_imo'}]
+    .concat(ser.slice(0, -1).reverse().map(a => ({v: nfIs(a.km2), s: 'km²', k: `Area ${a.label}`, f: REGION.id === 'nz' ? 'nz_glims' : REGION.id === 'fr' ? 'fr_glims' : REGION.id === 'no-svalbard' ? 'sj_npi' : REGION.id === 'no-mainland' ? 'no_old' : 'is_rgi', d: a.km2 > 0 ? `${now.km2 < a.km2 ? '−' : '+'}${nfIs(100 * Math.abs(now.km2 - a.km2) / a.km2)} % to ${now.label}` : ''}))) : [];
   const extra = g && info.groups ? info.groups() : [];
   const sections = g ? {
     area: {sum: now ? `${nfIs(now.km2)} km²` : '', tiles: tilesArea, foot: FEATURES.sizeTool ? `<a class="size-link" href="${sizeHref(g)}">How big is that? Drag it onto your city →</a>` : ''},      // as the Swiss Area card: the size page of the region
-    length: {tiles: [
+    length: info.wgms ? lengthWgms(info.wgms, info.wgmsSrc, info.lengthStated) : {tiles: [
       g.rgi.lengthKm ? {v: nfIs(g.rgi.lengthKm, 1), s: 'km', k: 'Length', d: `longest flow line, ${REGION.inventory.about}`, f: REGION.inventory.source} : null,
       {v: nfIs(g.rgi.zmax), s: 'm', k: 'Highest point', d: g.rgi.hNote || `of the outline, ${REGION.inventory.about}`, f: g.rgi.hSrc || REGION.inventory.source},
       info.lowest ? {v: info.lowest.v || 'about 0', s: 'm', k: 'Lowest ice', d: info.lowest.d, f: info.lowest.f} : {v: g.rgi.zmin > 0 ? nfIs(g.rgi.zmin) : 'about 0', s: 'm', k: 'Lowest ice', d: g.rgi.zmin > 0 ? `${REGION.inventory.about}, the inventory's lowest point` : 'the front ends in the sea', f: REGION.inventory.source}].filter(Boolean)},
@@ -102,11 +114,11 @@ export function renderStoryIcecap(){
     cbYears().length ? dcard('scene', 'Copernicus Browser', `<p>These are the satellite scenes on the map${fn('s2')}. Open one in the Copernicus Browser, the free viewer of the Copernicus Data Space Ecosystem, to zoom in, try other band combinations or look at neighbouring dates.</p><div class="cb-links">${cbButtonsHtml()}</div>`) : ''
   ].join('') : largest;
   storyEl.innerHTML = (g ? `<h2>${g.name}</h2><p class="sub">${[g.canton, g.range].filter(Boolean).join(', ')}</p><p class="lede">${info.lede ? info.lede(g) : (g.lede || '')}</p>`
-                         : `<h2>${R.h2(ice)}</h2><p class="sub">${R.sub}</p><p class="lede">${lede}</p>`) +
+                         : `<h2>${R.h2(ice)}</h2><p class="sub">${R.sub}</p>${lede ? `<p class="lede">${lede}</p>` : ''}`) +
     `<div class="tabs" role="tablist" aria-label="About ${g ? g.name : R.h2(ice)}">
       <button type="button" ${tab('look')}>Discover</button><button type="button" ${tab('figures')}>Stats</button><button type="button" ${tab('swiss')}>${R.tab}</button></div>` +
     panel('look', discover) + panel('figures', `<div class="stats">${cards}</div>`) +
-    panel('swiss', `<p class="lede">${lede}</p><div class="stats">${statGroupIs('area', R.h2(ice), '', R.tiles(ice))}</div>` + largest.replace('name="vat"', 'name="vat2"')) +
+    panel('swiss', `${lede ? `<p class="lede">${lede}</p>` : ''}<div class="stats">${statGroupIs('area', R.h2(ice), '', R.tiles(ice))}</div>` + largest.replace('name="vat"', 'name="vat2"')) +
     aboutFrame(aboutChaptersIc());
   storyEl.querySelectorAll('.tabs button').forEach(bt => bt.onclick = () => {
     setStoryTab(bt.dataset.tab);
@@ -138,6 +150,7 @@ export const IC_WHY = {
   'is': 'At Breiðamerkurjökull the ice has left a lagoon, and at Mýrdalsjökull and Langjökull the outlets have left lakes and bare ground behind.',
   'no-mainland': 'At Jostedalsbreen the arms that reached down to the valleys have pulled back.',
   'no-svalbard': 'In Svalbard many glaciers end in the sea, and their fronts can advance or collapse within a few years.',
+  'fr': 'Mer de Glace once descended all the way to the hamlet of Les Bois; its tongue has pulled back up the valley above Chamonix.',
   'nz': 'Franz Josef Glacier advances and retreats in cycles, and since 2008 it has shrunk fast: the tongue, which once reached the valley floor, has pulled back up the valley.'
 };
 export function icSeasonText(){
@@ -158,6 +171,9 @@ export function icSeasonText(){
   if (id === 'nz') return `${clear('20 January', '15 April', '1 March', ', the end of the southern summer, when the snow of the winter has melted most')}
         <p>The West Coast of New Zealand is rainy and often under cloud, so for each year the scene was picked by hand from the best candidates (the scene of each year is pinned). The seasons are those of the southern hemisphere: the year of a picture is the calendar year in which it was taken.</p>
         ${landsatAbout('20 January to 15 April, the clear one closest to 1 March')}`;
+  if (id === 'fr') return `${clear('1 July', '20 October', '30 September', ', the end of the melt season in the Alps, before the snow of the new winter')}
+        <p>For each year the scene was picked by hand from the best candidates of one orbit (R108, the main orbit for all years); the picture of each year is pinned.</p>
+        ${landsatAbout('1 July to 20 October, the clear one closest to 30 September')}`;
   if (id === 'no-mainland') return `${clear('20 July', '30 September', '1 September', ', the end of the melt season, before the first autumn snow on the high ice (the scene names in NVE\'s data of the glacier inventory 2018–2019 point to late August and early September)')}
         <p>Western Norway is among the cloudiest places of Europe: some years have only a scene with some clouds, or none.</p>
         ${landsatAbout('20 July to 30 September, the clear one closest to 1 September')}`;
@@ -182,6 +198,8 @@ export function icWhyOnly(){
     <p>The ten are, in order of area: Langjökull, Hofsjökull, Mýrdalsjökull, Drangajökull, Eyjafjallajökull, Tungnafellsjökull, Þórisjökull, Eiríksjökull, Þrándarjökull and Tindfjallajökull (the area is of about 2000; Snæfellsjökull, with 12.5 km², is eleventh).</p>${tongue}`;
   if (id === 'nz') return `<p>The site shows one glacier of New Zealand so far, Franz Josef Glacier, Kā Roimata o Hine Hukatere. Its outlines are those of the GLIMS Glacier Database${fn('nz_glims')}: 1978 (Chinn, from the Randolph Glacier Inventory) and 2019 (Carrivick et al., made from Sentinel-2 images).</p>
     <p>New Zealand has many more glaciers, which can be added one by one.</p>${tongue}`;
+  if (id === 'fr') return `<p>The site shows one glacier of France so far, Mer de Glace, above Chamonix in the Mont Blanc massif. Its outlines are those of the GLIMS Glacier Database${fn('fr_glims')}: 1967 (Laboratoire de Glaciologie et Géophysique de l'Environnement, LGGE) and 2015 (University of Zurich); the database has seven more dated outlines of other years.</p>
+    <p>France has many more glaciers, which can be added one by one.</p>${tongue}`;
   if (id === 'no-mainland') return `<p>The site shows the ten largest glaciers of Norway by the area of NVE's glacier inventory of 2018–2019${fn('no_nve')}, the same ten as NVE's own list of the largest glaciers. A glacier here is what NVE calls a main glacier: the glacier units that hang together.</p>
     <p>The ten are Jostedalsbreen, Vestre Svartisen, Søndre Folgefonna, Østre Svartisen, Blåmannsisen, Hardangerjøkulen, Myklebustbreen, Okstindbreen, Øksfjordjøkelen and Nordre Folgefonna.</p>
     <p>Older lists (for example Wikipedia's) give other areas and a different order, because they use older inventories or count arms of Jostedalsbreen, like Myklebustbreen, separately. Here NVE's 2018–2019 outlines decide.</p>${tongue}`;
@@ -201,11 +219,24 @@ export function icFigures(){
     'nz': `<h4>Area</h4><p>The areas are those of the GLIMS Glacier Database for the dated outlines of Franz Josef Glacier${fn('nz_glims')}: 1600 (the moraines of the Little Ice Age), 1978, 2000, 2009, 2016 and 2019. They were made by different people with different data (aerial photographs, ASTER, Landsat and Sentinel-2 images), so small differences are within the uncertainty; the database gives the area as shown here, rounded to two decimals at most.</p>
         <h4>Highest and lowest point</h4><p>Calculated here from the LINZ lidar elevation model${fn('nz_linz')}, inside the outline of 2019. They are not figures of the inventory. The length of the glacier is not shown: no length is given for the outline in the database, and the texts quote the length reported by other sources where there is one.</p>
         <h4>Front variation and surface change</h4><p>The length change of the front is that of the WGMS Fluctuations of Glaciers database${fn('nz_wgms')}, as the rows state it (the dates, the length change in metres, the uncertainty and the method); the change of the surface between 2000 and 2014 is the result of Wang and Kääb (2015) from ASTER and SRTM elevation models${fn('nz_wk')}. They are not measured here.</p>`,
+    'fr': `<h4>Area</h4><p>The areas are those of the GLIMS Glacier Database for the dated outlines of Mer de Glace${fn('fr_glims')}: 1967, 1986, 2000, 2003 (two outlines), 2004, 2011, 2013 and 2015. They were made by different groups with different data, and not all of them cover the same part of the glacier system (the areas of the outlines of 2003 differ by several km²), so the differences are not all change of the ice; the label of each outline says who made it. The database gives the area as shown here, rounded to two decimals at most.</p>
+        <h4>Highest and lowest point</h4><p>Calculated here from the IGN LiDAR HD surface model${fn('fr_ign')}, inside the outline of 2015. They are not figures of the inventory. The length of the glacier is not shown: no length is given for the outline in the database, and the texts quote the length reported by other sources where there is one.</p>
+        <h4>Front variation, mass balance and surface change</h4><p>The length change of the front, the annual mass balance and the changes of the surface are those of the WGMS Fluctuations of Glaciers database${fn('fr_wgms')}, as the rows state them (the dates, the values and the uncertainty). They are not measured here. The surfaces of the 3D view are modelled, see the field notes.</p>`,
     'no-svalbard': `<h4>Area</h4><p>The areas of 2020, 2001–2010, 1990 and 1936–1972 are those of the same glacier unit in the four outlines of the Norwegian Polar Institute${fn('sj_npi')}. They were made with different data (aerial photographs, SPOT and Landsat images, Sentinel-2), so small differences are within the uncertainty. The area of a glacier that ends in the sea includes the part of the front that moves; a surge makes a glacier grow in a few years and the area can grow over time (Storisstraumen). Length and heights are those of the 2001–2010 outlines.</p>`
   };
   return out[id];
 }
 export function icView3d(){
+  if (REGION.id === 'fr') return `<h4>The area</h4>
+        <p>A strip along the glacier: from the tongue tip of 2015 about 1.3 km down the valley and about 6.1 km up the glacier, 4.8 km wide (computed from the saved strip). Its place and direction were drawn by hand on the satellite picture (the direction up the glacier is 157.7°).</p>
+        <p>The camera starts below the tip and looks up the glacier, with the real satellite picture of the chosen year draped over the terrain.</p>
+        <h4>Heights and the ice surface of each year: modelled</h4>
+        <p>Only one elevation model of the glacier was measured on a single survey: the IGN LiDAR HD surface model${fn('fr_ign')}, flown mostly 16 to 22 July 2022 (the anchor day of the model is set to 18 July 2022). The ice surface of the other years is modelled from it, for the day of each year's picture: the lidar surface is moved with the elevation change grids of Berthier, Vincent and Six${fn('fr_pleiades')} and the glacier-wide mass balance, and the front follows the dated length changes of the WGMS${fn('fr_wgms')}. The surfaces of 2025 and 2026 are estimates, because the balance and the front of those years are not published yet.</p>
+        <p>Each year has a grade from A to D and an uncertainty; the field notes give them, with the checks against ICESat-2 shots and the stake heights of the observatory${fn('fr_glacioclim')}. The surface is not measured in every year, and the 3D note says how the year on screen was made. The 3D view shows only the years that have a modelled surface, 2013 to 2026; the older pictures are on the map.</p>
+        <h4>The bed and the ice thickness: a model</h4>
+        <p>The bed under the ice is the surface minus the ice thickness of the data-assimilated ice-flow model of Cook et al.${fn('fr_cook')}, on cells of 100 m; where the modelled surface of a year would lie below it, the bed is lowered to it. It is a model, not a measurement: no radar survey of the whole glacier was read, so there are no radar pins. The ice thickness of a year is the surface of that year minus this bed, computed here.</p>
+        <h4>The rest</h4>
+        <p>Peaks come from OpenStreetMap. Historic photographs are from Smapshot (HEIG-VD): the camera of each is placed on the terrain of its year where the 3D view has one, and on the latest surface for the older ones, without an estimate of the old ice level.</p>`;
   if (REGION.id === 'nz') return `<h4>The area</h4>
         <p>A strip along the glacier: from the tongue tip of 2019 about 1.5 km down the valley and about 4.8 km up the glacier, 4.5 km wide. Its place and direction were drawn by hand on the satellite picture (the direction up the glacier is 152.5°).</p>
         <p>The camera starts below the tip and looks up the glacier, with the real satellite picture of the chosen year draped over the terrain.</p>

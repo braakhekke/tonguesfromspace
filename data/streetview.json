@@ -441,48 +441,61 @@
   ],
   "franz-josef": [
     {
-      "pano": "0PLyNP17ZwnlvToLFrFh1w",
-      "lat": -43.43108,
-      "lng": 170.16883,
-      "date": "2018-04",
-      "heading": 161,
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJQ2gyOGFWWWc.",
+      "lat": -43.42757,
+      "lng": 170.15138,
+      "date": "2023-02",
+      "heading": 145,
       "pitch": 5,
       "fov": 90,
-      "credit": "Google",
-      "title": "From the valley floor towards the ice front"
+      "credit": "Nordvei com",
+      "title": "Alex Knob, over the whole glacier"
     },
     {
-      "pano": "d4yYL2aL-JGeixLsHHOg6Q",
-      "lat": -43.43699,
-      "lng": 170.17078,
-      "date": "2018-04",
-      "heading": 157,
+      "pano": "CAoSFkNJSE0wb2dLRUlDQWdJREUtZkdYUmc.",
+      "lat": -43.44583,
+      "lng": 170.17806,
+      "date": "2018-01",
+      "heading": 159,
+      "pitch": 5,
+      "fov": 90,
+      "credit": "Jonas H.",
+      "title": "The viewing platform, the ice front ahead"
+    }
+  ],
+  "mer-de-glace": [
+    {
+      "pano": "gQmbmTKHsr5mP8t0gjYcmA",
+      "lat": 45.92895,
+      "lng": 6.91467,
+      "date": "2015-06",
+      "heading": 128,
       "pitch": 5,
       "fov": 90,
       "credit": "Google",
-      "title": "The glacier valley and the ice front in the distance"
+      "title": "Near Montenvers, the glacier below"
     },
     {
-      "pano": "OM2WMHaHbeMTgUrqkQTjug",
-      "lat": -43.44333,
-      "lng": 170.17197,
-      "date": "2018-04",
-      "heading": 150,
+      "pano": "sNy5WNCV690MzZe6Y5Qrnw",
+      "lat": 45.91864,
+      "lng": 6.92886,
+      "date": "2015-06",
+      "heading": 115,
       "pitch": 5,
       "fov": 90,
       "credit": "Google",
-      "title": "The riverbed below the glacier"
+      "title": "On the ice of the lower glacier"
     },
     {
-      "pano": "UlJVoVy1WRmJYorhZh5bHw",
-      "lat": -43.40323,
-      "lng": 170.17851,
-      "date": "2026-04",
-      "heading": 176,
+      "pano": "zrY3aYPQ7kKbIRem3hy6FA",
+      "lat": 45.92452,
+      "lng": 6.92203,
+      "date": "2015-06",
+      "heading": 121,
       "pitch": 5,
       "fov": 90,
       "credit": "Google",
-      "title": "Up the valley from the road, with the ice in the distance"
+      "title": "On the ice, looking up the glacier"
     }
   ]
 }

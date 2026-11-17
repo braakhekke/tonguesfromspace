@@ -163,6 +163,22 @@ class TestRelay(WorkerCase):
         self.assertEqual(r["latest"]["status"], 200, r["latest"]["text"])
         self.assertEqual(r["tooLong"]["status"], 400)
 
+    def test_mer_de_glace_has_its_own_season_inside_the_swiss_rectangle(self):
+        # France: Mer de Glace (centre 6.942 E, 45.895 N) lies inside the Swiss rectangle, but its own centre makes it region fr: 1 July to 20 October (the Swiss window ends on 21 September at the latest for the common windows)
+        r = self.run_js("""
+          const merc = (lon, lat) => [lon * 20037508.34 / 180, Math.log(Math.tan((90 + lat) * Math.PI / 360)) / (Math.PI / 180) * 20037508.34 / 180];
+          const [x, y0] = merc(6.942, 45.895), bb = [x - 8000, y0 - 8000, x + 8000, y0 + 8000];
+          const ice = (from, to) => JSON.stringify({
+            input: {bounds: {bbox: bb, properties: {crs: 'http://www.opengis.net/def/crs/EPSG/0/3857'}}, data: [{type: 'sentinel-2-l2a'}]},
+            aggregation: {timeRange: {from, to}, aggregationInterval: {of: 'P1D'}, evalscript: 'x', resx: 60, resy: 60}});
+          const y = year - 1;
+          return {ok: (await info(await post(ice(`${y}-07-01T00:00:00Z`, `${y}-10-21T00:00:00Z`)))).status,
+                  late: (await info(await post(ice(`${y}-07-01T00:00:00Z`, `${y}-11-01T00:00:00Z`)))).status,
+                  early: (await info(await post(ice(`${y}-06-01T00:00:00Z`, `${y}-10-21T00:00:00Z`)))).status};""")
+        self.assertEqual(r["ok"], 200)
+        for k in ("late", "early"):
+            self.assertEqual(r[k], 400, k)
+
     def test_norway_and_svalbard_have_their_own_seasons(self):
         # mainland Norway: Jostedalsbreen (centre 7.012 E, 61.627 N), 20 July to 30 September; Svalbard: Negribreen (19.03 E, 78.59 N), 20 July to 15 September
         r = self.run_js("""

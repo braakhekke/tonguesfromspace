@@ -311,7 +311,7 @@ export function applyRegionUi(){
   document.title = REGION.docTitle;
   /* what the region has no data for is taken off the page: each switch of `features` hides its controls */
   const off = (feature, ...ids) => { if (!FEATURES[feature]) ids.forEach(id => { const el = document.getElementById(id), box = el && (el.closest('label') || el); if (box) box.style.display = 'none'; }); };
-  off('view3d', 'viewGroup'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swisstopo', 'topoToggle', 'oldMapToggle', 'altiToggle', 'l3Topo', 'l3OldMap'); if (!FEATURES.swisstopo) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
+  off('view3d', 'viewGroup'); off('photos', 'mapPhotos'); off('trails', 'trailsToggle', 'trailLegend', 'l3Trails', 'l3TrailLegend'); off('aerial', 'aerialToggle', 'l3Aerial'); off('swisstopo', 'topoToggle', 'oldMapToggle', 'altiToggle', 'l3Topo', 'l3OldMap'); if (!FEATURES.swisstopo) { const a = document.getElementById('altiToggle'); if (a) a.closest('label').style.display = 'none'; }      // the hillshade stays in the 3D menu: drawn from the heights
   off('radar', 'maxToggle', 'thickToggle', 'radarToggle', 'l3Max', 'l3Radar'); off('speed', 'speedRow'); off('glamos', 'pinToggle', 'outside', 'l3Pin'); if (!GLACIERS[0].outlines) off('glamos', 'oldToggle', 'l3Old'); off('sizeTool', 'sizeLink');
   if (!FEATURES.glamos && !GLACIERS[0].tongue) off('glamos', 'tongueBtn');      // the Tongue button needs a tongue tip (Iceland has one from the outlet data)
   if (!FEATURES.oldest && !FEATURES.latest) document.querySelectorAll('.spec-row').forEach(e => { e.style.display = 'none'; });
@@ -343,11 +343,11 @@ export function renderRegionMenu(){
 const regionMenus = () => [...document.querySelectorAll('.region-menu')], regionBtns = () => [...document.querySelectorAll('.region-btn')];
 export function toggleRegionMenu(open, btn){
   /* the menu belonging to the pressed button; without a button (Escape, outside press) the one that is showing. Guessing from the header's display made the phone button open the hidden panel menu whenever that check disagreed. */
-  const menu = btn ? document.getElementById(btn.id === 'regionBtnM' ? 'regionMenuM' : 'regionMenu') : regionMenus().find(m => !m.hidden);
+  const menu = btn ? document.getElementById(btn.id.replace('regionBtn', 'regionMenu')) : regionMenus().find(m => !m.hidden);
   if (!menu) return;
   if (open === undefined) open = menu.hidden;
   regionMenus().forEach(m => { m.hidden = m !== menu || !open; });
-  regionBtns().forEach(b => b.setAttribute('aria-expanded', open && b.id === (menu.id === 'regionMenuM' ? 'regionBtnM' : 'regionBtn')));
+  regionBtns().forEach(b => b.setAttribute('aria-expanded', open && b.id === menu.id.replace('regionMenu', 'regionBtn')));
 }
 regionBtns().forEach(b => { b.onclick = e => { e.stopPropagation(); toggleRegionMenu(undefined, b); }; });
 regionMenus().forEach(m => { m.onclick = e => {

@@ -122,7 +122,8 @@
     </div>
 
     <section class="step" id="glacierGroup">
-      <h2 class="step-h"><span class="num">1</span>Choose</h2>
+      <h2 class="step-h"><span class="num">1</span>Choose<button type="button" class="region-btn step-region-btn" id="regionBtnS" data-track="region-menu" aria-haspopup="listbox" aria-expanded="false" aria-label="Region: Switzerland. Change region"><span class="region-name">Switzerland</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg></button></h2>
+      <ul class="region-menu step-region-menu" id="regionMenuS" role="listbox" aria-label="Region" hidden></ul>
       <div class="pageswitch" role="group" aria-label="Page"><span class="on" aria-current="page"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3.5 2"/></svg> Over time</span><a href="size.html" id="navSize"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="9.5" width="11" height="11"/><rect x="12" y="3.5" width="8.5" height="8.5"/></svg> Size</a></div>
       <button type="button" id="mGlacier" data-track="glacier-picker" class="m-pick" aria-haspopup="dialog" aria-expanded="false" aria-label="Glacier"></button>
       <input type="search" id="glacierSearch" class="g-search" placeholder="Search glaciers" aria-label="Search glaciers" autocomplete="off" hidden>

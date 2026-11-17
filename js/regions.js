@@ -12,6 +12,7 @@ const IS_OUTLINE_CREDIT = 'Outlines: <a href="https://islenskirjoklar.is" target
 const NO_OUTLINE_CREDIT = 'Outlines: <a href="https://www.nve.no/hydrology/glaciers/" target="_blank" rel="noopener">NVE</a> (glacier inventories 1947–1985 and 2018–2019, Andreassen et al. 2022)';
 const SV_OUTLINE_CREDIT = 'Outlines: <a href="https://geodata.npolar.no" target="_blank" rel="noopener">Norwegian Polar Institute</a> (glacier outlines 1936–1972 and 2020, CC BY 4.0)';
 const NZ_OUTLINE_CREDIT = 'Outlines: <a href="https://nsidc.org/data/nsidc-0272/versions/1" target="_blank" rel="noopener">GLIMS Glacier Database</a> (1978: Chinn, via the Randolph Glacier Inventory; 2019: Carrivick et al.)';
+const FR_OUTLINE_CREDIT = 'Outlines: <a href="https://www.glims.org/" target="_blank" rel="noopener">GLIMS Glacier Database</a> (1967: LGGE; 2015: University of Zurich)';
 const REGIONS_ALL = [
   { id: 'ch', name: 'Switzerland', adj: 'Swiss', ready: true,
     picker: { ll: [46.45, 8.1], zoom: 7, text: 'The ten largest Swiss glaciers, with GLAMOS statistics.' },      // the front page (home.html): where the region sits on the world map
@@ -134,6 +135,33 @@ const REGIONS_ALL = [
     aerialCredit: { short: 'LINZ', text: 'Toitū Te Whenua Land Information New Zealand (CC BY 4.0)', html: '<a href="https://data.linz.govt.nz/" target="_blank" rel="noopener">Toitū Te Whenua Land Information New Zealand</a> (CC BY 4.0)' },      // the oldest aerial picture (data/oldest/)
     trailsFile: 'data/trails-newzealand.js',      // footpaths and tracks (OpenStreetMap) and where the ice front is in view, scripts/build_trails_regions.py newzealand
     features: { facts: true, latest: true, oldest: true, view3d: true, photos: false, streetview: true, trails: true, aerial: false, swisstopo: false, speed: true, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: true } },
+  { id: 'fr', name: 'France', adj: 'French', ready: true, rgi: true, streetviewIn: 'France',
+    picker: { ll: [45.90, 6.94], zoom: 8, text: 'Mer de Glace, in the Mont Blanc massif above Chamonix.' },      // the front page (home.html): where the region sits on the world map
+    path: 'france',
+    data: 'data/france.js',                // window.REGION_ICE, made by scripts/build_france.py from the onboarding session of Mer de Glace (GLIMS outlines, heights from the IGN LiDAR HD)
+    docTitle: 'Tongues from Space | France',
+    brandLede: 'Discover Mer de Glace, the longest glacier of France. Compare, create and share your visuals.',
+    overviewName: 'France',
+    shareTitle: 'Tongues from Space - France',
+    sightDem: 'the IGN LiDAR HD surface model',
+    landing: 'glacier3d',                  // opens on Mer de Glace
+    /* Scene season: 1 July to 20 October, the clear scene closest to 30 September (owner, 2026-11-16: European Alps), only scenes that cover the whole picture; one orbit (R108) for all years.
+       The scene of each year is pinned in data/scenes.json (picked by hand). */
+    season: { find: ['07-01', '10-20'], target: '09-30', pick: 'target', minCover: 0.999, oneOrbit: true },
+    outlines: { old: '1967', new: '2015', oldLegend: 'Glacier outline 1967', newLegend: 'Glacier outline 2015', credit: 'GLIMS', html: FR_OUTLINE_CREDIT },
+    inventory: { short: 'GLIMS', about: '2015', source: 'fr_glims', listAll: false },
+    unnamed: 'Unnamed glacier', units: 'glaciers',
+    place: { canton: '', range: 'Mont Blanc massif' }, sources: ['fr_glims', 'fr_ign', 'fr_pleiades', 'fr_wgms', 'fr_glacioclim', 'fr_cook', 'fr_aerial', 'fr_wiki', 's2', 'landsat', 'itslive', 'is_osm', 'streetview', 'bg', 'me'],
+    rankNote: 'Mer de Glace is the first glacier of France on this site; more will follow.',
+    /* The 3D terrain: one file (data/terrain/mer-de-glace.<hash>.bin, scripts/build_dem_france.py) with a MODELLED ice surface for each year 2013 to 2026 on the IGN LiDAR HD of 2022 */
+    terrain: { short: 'IGN LiDAR HD', html: 'LiDAR HD surface model © <a href="https://geoservices.ign.fr/lidarhd" target="_blank" rel="noopener">IGN</a> (Licence Ouverte)',
+      model: 'elevation change grids of <a href="https://zenodo.org/record/8047784" target="_blank" rel="noopener">Berthier, Vincent and Six (2023)</a> (CC BY 4.0), mass balance of WGMS and GLACIOCLIM' },
+    terrainZoom: 12,
+    landsat: { from: 1984, first: 1984 },      // Landsat pictures before Sentinel-2 (scripts/build_landsat.py)
+    background: { mosaicYear: 2025 },
+    trailsFile: 'data/trails-france.js',      // footpaths and tracks (OpenStreetMap) and where the ice front is in view, scripts/build_trails_regions.py france
+    aerialCredit: { short: 'IGN', text: 'IGN, BD ORTHO Historique (Licence Ouverte)', html: '<a href="https://cartes.gouv.fr/catalogue/dataset/IGNF_BD-ORTHO-HISTO" target="_blank" rel="noopener">IGN</a>, BD ORTHO Historique (Licence Ouverte)' },      // the oldest aerial picture (data/oldest/, scripts/build_oldest_france.py)
+    features: { facts: true, latest: true, oldest: true, view3d: true, photos: true, streetview: true, trails: true, aerial: false, swisstopo: false, speed: true, radar: false, glamos: false, teaser: false, swissTab: false, sizeTool: true } },
   { id: 'cl', name: 'Chile', adj: 'Chilean', picker: { ll: [-49.5, -73.2], zoom: 5 } },
   { id: 'np', name: 'Nepal', adj: 'Nepalese', picker: { ll: [28.2, 85.0], zoom: 6 } }
 ];

@@ -92,6 +92,7 @@ jobs:
           PUBLISH_ICELAND: ${{ vars.PUBLISH_ICELAND }}   # set to 1 to show Iceland (menu entry, /iceland/ addresses, sitemap) on the public site; empty = hidden
           PUBLISH_NORWAY: ${{ vars.PUBLISH_NORWAY }}   # set to 1 to show mainland Norway and Svalbard (menu entries, /norway/ addresses, sitemap) on the public site; empty = hidden
           PUBLISH_NEWZEALAND: ${{ vars.PUBLISH_NEWZEALAND }}   # set to 1 to show New Zealand (Franz Josef Glacier: menu entry, /new-zealand/ address, sitemap) on the public site; empty = hidden
+          PUBLISH_FRANCE: ${{ vars.PUBLISH_FRANCE }}   # set to 1 to show France (Mer de Glace: menu entry, /france/ address, sitemap) on the public site; empty = hidden
           PUBLISH_LANDSAT: ${{ vars.PUBLISH_LANDSAT }}   # set to 1 to show the Landsat switch (years before 2016); the pictures themselves are not in the repository
         run: |
           python scripts/build_site.py _site

@@ -25,7 +25,11 @@ REGION_SIZE = {'nz': {'data': 'data/newzealand.js', 'old': 'lia', 'new': 'latest
                'cities': [('auckland', 'Auckland', 'Auckland'), ('wellington', 'Wellington', 'Wellington'), ('christchurch', 'Christchurch', 'Christchurch'),
                           ('hamilton', 'Hamilton', 'Hamilton'), ('tauranga', 'Tauranga', 'Tauranga'), ('dunedin', 'Dunedin', 'Dunedin')],
                'urban_service': 'https://services2.arcgis.com/vKb0s8tBIA3bdocZ/arcgis/rest/services/Urban_Rural_Areas_2023/FeatureServer/0/query',
-               'country': 'New Zealand'}}
+               'country': 'New Zealand'},
+               # French communes (Etalab / IGN Admin Express, Licence Ouverte) from geo.api.gouv.fr: the municipal territory, not the built-up area (Paris includes its two woods)
+               'fr': {'data': 'data/france.js', 'old': 'lia', 'new': 'latest',
+                      'cities': [('paris', 'Paris', '75056'), ('lyon', 'Lyon', '69123'), ('marseille', 'Marseille', '13055'), ('toulouse', 'Toulouse', '31555'), ('nice', 'Nice', '06088'), ('grenoble', 'Grenoble', '38185')],
+                      'commune_service': 'https://geo.api.gouv.fr/communes', 'country': 'France'}}
 
 
 def dp(pts, tol):
@@ -254,6 +258,15 @@ def fetch_region_cities(rid):
         return json.loads(cache.read_text())
     out = []
     for k, name, query in REGION_SIZE[rid]['cities']:
+        if 'commune_service' in REGION_SIZE[rid]:
+            u = REGION_SIZE[rid]['commune_service'] + '?' + urllib.parse.urlencode({'code': query, 'fields': 'nom,contour', 'format': 'json', 'geometry': 'contour'})
+            c = json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'tonguesfromspace-size-build/1.0 (static site build)'}), timeout=60))[0]['contour']
+            polys = c['coordinates'] if c['type'] == 'MultiPolygon' else [c['coordinates']]
+            polys = [[[pt[:2] for pt in ring] for ring in poly] for poly in polys]
+            lons = [pt[0] for p in polys for pt in p[0]]; lats = [pt[1] for p in polys for pt in p[0]]
+            lat, lon = (min(lats) + max(lats)) / 2, (min(lons) + max(lons)) / 2
+            out.append({'id': k, 'name': name, 'clat': lat, 'clon': lon, 'official': f'{name}, commune {query}, geo.api.gouv.fr (Etalab, Licence Ouverte)', 'lat': lat, 'lon': lon, 'geom': {'coordinates': polys}})
+            continue
         u = REGION_SIZE[rid]['urban_service'] + '?' + urllib.parse.urlencode({'where': f"UR2023_V1_00_NAME_ASCII='{query}' AND IUR2023_V1_00_NAME='Major urban area'", 'outFields': 'UR2023_V1_00_NAME', 'outSR': 4326, 'maxAllowableOffset': 0.00005, 'f': 'geojson'})
         feats = json.load(urllib.request.urlopen(urllib.request.Request(u, headers={'User-Agent': 'tonguesfromspace-size-build/1.0 (static site build)'}), timeout=60))['features']
         assert len(feats) == 1, name

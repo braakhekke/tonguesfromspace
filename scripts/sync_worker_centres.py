@@ -7,7 +7,7 @@ build_regions.py changed a data file, then push: the Worker deploys with the wor
 import json, os, re
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-FILES = {"is": ["vatnajokull.js", "iceland.js"], "no": ["norway.js"], "sj": ["svalbard.js"], "nz": ["newzealand.js"]}
+FILES = {"is": ["vatnajokull.js", "iceland.js"], "no": ["norway.js"], "sj": ["svalbard.js"], "nz": ["newzealand.js"], "fr": ["france.js"]}
 
 
 def outlets(name):

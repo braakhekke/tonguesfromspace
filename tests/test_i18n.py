@@ -62,7 +62,8 @@ class TestLanguages(SiteCase):
         page.click(".lang-dd a[lang='fr']")
         page.wait_for_function("document.documentElement.lang === 'fr'")
         self.assertIn("/fr/gallery", page.url)
-        self.assertIn("Filtrer la galerie", page.evaluate("document.querySelector('.filters').getAttribute('aria-label')"))
+        # <html lang> is set before the dictionary is applied (DOMContentLoaded): wait for the text
+        page.wait_for_function("document.querySelector('.filters').getAttribute('aria-label') === 'Filtrer la galerie'")
 
     def test_the_old_lang_parameter_goes_to_the_address(self):
         page = self.open()

@@ -179,5 +179,20 @@
   "built": "2026-11-17",
   "country": "New Zealand",
   "single": true
+ },
+ {
+  "id": "mer-de-glace",
+  "name": "Mer de Glace",
+  "short": "Mer de Glace",
+  "years": [
+   2012,
+   2026
+  ],
+  "kinds": [
+   "modelled"
+  ],
+  "built": "2026-11-17",
+  "country": "France",
+  "single": true
  }
 ]

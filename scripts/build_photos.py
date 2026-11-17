@@ -92,26 +92,51 @@ def in_ring(x, y, ring):
     return ins
 
 
+def swiss_height(name, te, tn):      # the ground of swissALTI3D around the tip, bilinear
+    e0, n0 = int((te - GROUND_R) // CELL * CELL), int((tn - GROUND_R) // CELL * CELL); w = h = int(2 * GROUND_R // CELL) + 1
+    print(f'{name}: ground model', file=sys.stderr)
+    H = ground(e0, n0, w, h)
+
+    def height(x, y):
+        fx, fy = (x - e0) / CELL - 0.5, (y - n0) / CELL - 0.5; i, j = int(math.floor(fx)), int(math.floor(fy))
+        if i < 0 or j < 0 or i + 1 >= w or j + 1 >= h: return float('nan')
+        ax, ay = fx - i, fy - j; p, q, r, t = H[j * w + i], H[j * w + i + 1], H[(j + 1) * w + i], H[(j + 1) * w + i + 1]
+        return (p * (1 - ax) + q * ax) * (1 - ay) + (r * (1 - ax) + t * ax) * ay
+    return height
+
+
+def france_glaciers():      # Mer de Glace from data/france.js, with the projection of the module set to Lambert 93 (EPSG:2154): the camera and the outline are then in the same metres as the ground
+    global lv95
+    from pyproj import Transformer
+    tr = Transformer.from_crs(4326, 2154, always_xy=True); lv95 = lambda lat, lon: tr.transform(lon, lat)
+    t = open(os.path.join(ROOT, 'data', 'france.js'), encoding='utf-8').read()
+    return [{'id': o['id'], 'name': o['name'], 'terminus': {'tip': o['tip']}, 'outline': {'coordinates': [[[[lo, la] for la, lo in ring]] for ring in o['outline']]}}      # every ring a polygon of its own (a hole is not told from an island: negligible for the target points)
+            for o in json.loads(t[t.index('{'):t.rindex('}') + 1])['outlets']]
+
+
+def france_height(g):      # the IGN LiDAR HD surface model of 2022 (5 m, Lambert 93) of the onboarding session: today's ice and ground
+    import numpy as np
+    from scipy.ndimage import map_coordinates
+    w = np.load(os.path.join(ROOT, 'experiments', 'onboard', 'mer-de-glace', 'elevation', 'lidar-mns-5m-l93.npz')); Z = w['z'].astype('float64'); Z[~(Z > 0)] = np.nan
+    x0, y1, c = float(w['x0']), float(w['y1']), float(w['cell'])
+    return lambda x, y: float(map_coordinates(Z, [[(y1 - y) / c - .5], [(x - x0) / c - .5]], order=1, mode='constant', cval=np.nan, prefilter=False)[0])
+
+
 def main():
     ap = argparse.ArgumentParser(); ap.add_argument('--id', nargs='*', default=['B36-26']); ap.add_argument('--n', type=int, default=10)
     ap.add_argument('--min-share', type=float, default=MIN_SHARE, help='share of the tongue that must count'); ap.add_argument('--los-from', type=int, default=0, help='the free line of sight counts only for photos of this year on (older ones: the ice stood higher than today)'); ap.add_argument('--max-dist', type=int, default=4500, help='metres: mean distance to the tongue points that are in view'); ap.add_argument('--min-px', type=int, default=3000, help='width of the photo in pixels'); ap.add_argument('--no-los', action='store_true', help='count a target when it is inside the frame, without the free line of sight (old photos: the ice then stood higher than today)'); ap.add_argument('--dump', help='write every photo that shows the tongue (not only the pick) to this file'); ap.add_argument('--keep', type=int, nargs='*', default=[], help='photo ids that are always taken (a hand choice)')
+    ap.add_argument('--region', default='ch', choices=['ch', 'fr'], help='fr: Mer de Glace, data/france.js, the ground is the IGN LiDAR HD surface model of the onboarding session, Lambert 93')
     a = ap.parse_args()
-    s = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
-    glaciers = json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers']
+    if a.region == 'fr': glaciers = france_glaciers()
+    else:
+        s = open(os.path.join(ROOT, 'data', 'glaciers.js'), encoding='utf-8').read()
+        glaciers = json.loads(s[s.index('{'):s.rindex('}') + 1])['glaciers']
     out = json.load(open(OUT, encoding='utf-8')) if os.path.exists(OUT) else {}
     for g in glaciers:
         if g['id'] not in a.id: continue
         lat, lon = g['terminus']['tip']; te, tn = lv95(lat, lon)
-        e0, n0 = int((te - GROUND_R) // CELL * CELL), int((tn - GROUND_R) // CELL * CELL); w = h = int(2 * GROUND_R // CELL) + 1
-        print(f'{g["name"]}: ground model', file=sys.stderr)
-        H = ground(e0, n0, w, h)
-
-        def height(x, y):
-            fx, fy = (x - e0) / CELL - 0.5, (y - n0) / CELL - 0.5; i, j = int(math.floor(fx)), int(math.floor(fy))
-            if i < 0 or j < 0 or i + 1 >= w or j + 1 >= h: return float('nan')
-            ax, ay = fx - i, fy - j; p, q, r, t = H[j * w + i], H[j * w + i + 1], H[(j + 1) * w + i], H[(j + 1) * w + i + 1]
-            return (p * (1 - ax) + q * ax) * (1 - ay) + (r * (1 - ax) + t * ax) * ay
-
+        if a.region == 'fr': height = france_height(g)
+        else: height = swiss_height(g['name'], te, tn)
         polys = [[[lv95(la, lo) for lo, la in ring] for ring in poly] for poly in g['outline']['coordinates']]
         targets = []
         for k in range(int(-TONGUE_M // SAMPLE), int(TONGUE_M // SAMPLE) + 1):

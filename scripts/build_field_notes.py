@@ -74,13 +74,20 @@ def build(gid):
     licences = ("<p>Licence wording as read on the source page; <b>NOT READ</b> means the terms were not found or opened. The site is non-commercial; its own credits line and Sources list hold the full credits.</p>"
                 + table(["Source", "Licence as read", "Read"], lic))
 
-    year = T["year"]
+    year = T["year"]; years, kind, secs = [year, year], {str(year): "measured"}, []
+    summ = os.path.join(S, "elevation", "yearly", "summary.json")
+    if os.path.exists(summ):      # a glacier with modelled yearly surfaces (build_dem_france.py): one more chapter, a table of the years from the build's own summary
+        Y = json.load(open(summ, encoding="utf-8"))["years"]; ys = sorted(int(y) for y in Y if int(y) in {int(k) for k in picks["picks"]})
+        years, kind = [ys[0], ys[-1]], {str(y): "modelled" for y in ys}
+        rows = [[esc(y), esc(Y[str(y)]["image_date"]), esc(Y[str(y)]["kind"]), esc(Y[str(y)]["grade"]), esc(Y[str(y)]["sigma_m"]), esc(Y[str(y)]["front_basis"]), esc(Y[str(y)]["ice_area_km2"])] for y in ys]
+        secs = [{"id": "yearly", "toc": "Ice surface of each year", "title": "The ice surface of each year (modelled)", "html": T["years"] + table(["Year", "Picture date", "How the surface was made", "Grade", "Sigma (m)", "Front", "Ice area of the model (km²)"], rows)}]
     return {
         "glacier": gid, "name": name, "short": short, "built": datetime.date.today().isoformat(),
-        "years": [year, year], "kind": {str(year): "measured"},
+        "years": years, "kind": kind,
         "single": {"explorer": T["explorer"], "region": T["region"], "year": year, "sections": [
             {"id": "area", "toc": "Study area", "title": "Study area: " + short, "html": area},
             {"id": "anchors", "toc": "What was measured", "title": "What was measured", "html": measured},
+            *secs,
             {"id": "validation", "toc": "How far to trust it", "title": "How far to trust it: checks, limits and caveats", "html": trust},
             {"id": "pictures", "toc": "Pictures", "title": "The pictures: one for each year", "html": pictures},
             {"id": "sizenote", "toc": "Size page", "title": "Size page: how this glacier is shown", "html": T["size"]},

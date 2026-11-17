@@ -19,7 +19,7 @@ SITE = os.path.abspath(os.environ.get("TFS_SITE_DIR", ROOT))
 ALLOWED_EXTERNAL = ("https://cdnjs.cloudflare.com/",)
 BUILT = bool(os.environ.get("TFS_SITE_DIR"))
 DASHBOARD = "/switzerland/" if BUILT else "/index.html"      # the Swiss explorer: on the built site at its region address (the front page / is the region picker)
-REGION_PATHS = {"is": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard", "nz": "new-zealand"}
+REGION_PATHS = {"is": "iceland", "no-mainland": "norway", "no-svalbard": "svalbard", "nz": "new-zealand", "fr": "france"}
 
 
 def where(path, hash):
@@ -320,6 +320,33 @@ class TestRegions(SiteCase):
         self.assertEqual(page.evaluate("Object.keys(state.available || {}).length >= 0"), True)
         self.assertGreaterEqual(page.evaluate("document.querySelectorAll('#story .src-list li').length"), 6)
         self.assertClean()
+
+    def test_france_has_mer_de_glace_with_modelled_yearly_surfaces(self):
+        """France (2026-11-17): one glacier, its own data file, the panel from documented facts, a terrain file with a modelled surface for each year 2013 to 2026, and the Swiss layers that have data (ice speed, footpaths)."""
+        page, seen = self.requested("#r=fr")
+        self.assertEqual(page.evaluate("REGION.id"), "fr")
+        self.assertEqual(page.evaluate("GLACIERS.map(g => g.id)"), ["mer-de-glace"])
+        self.assertTrue([u for u in seen if "/data/france" in u])
+        self.assertFalse([u for u in seen if "/data/glaciers" in u or "/data/iceland" in u or "/data/newzealand" in u])
+        page.evaluate("chooseGlacier('mer-de-glace')")
+        page.wait_for_function("document.getElementById('story').dataset.glacier === 'mer-de-glace'", timeout=15000)
+        page.wait_for_function("document.getElementById('story').textContent.includes('Forbes')", timeout=15000)
+        text = page.evaluate("document.getElementById('story').textContent")
+        self.assertIn("Forbes", text); self.assertIn("Sea of Ice", text); self.assertIn("Annual mass balance 2024", text)
+        got = page.evaluate("(() => { const g = currentGlacier(); return {area: g.rgi.areaKm2 > 20, tongue: !!g.tongue, newOutline: !!newOutlineGeom(g), oldOutline: !!oldOutlineGeom(g), box: g.box.length === 2, heights: g.rgi.hSrc === 'fr_ign'}; })()")
+        self.assertEqual(got, {k: True for k in got}, got)
+        self.assertEqual(page.evaluate("[FEATURES.radar, FEATURES.glamos, FEATURES.swisstopo, FEATURES.aerial, FEATURES.photos, FEATURES.speed, FEATURES.trails, FEATURES.oldest, FEATURES.streetview]"), [False, False, False, False, True, True, True, True, True])
+        self.assertEqual(page.evaluate("REGION.terrain.year"), None, "no single-year terrain: the 3D view has a surface for each year")
+        head = page.evaluate("loadBundle('mer-de-glace').then(b => ({years: b.yearly.years, modelled: b.yearly.modelled, surfaces: b.surfaces.size, bed: !!b.bed, bedName: b.bedInfo && b.bedInfo.name}))")
+        self.assertEqual((head["years"][0], head["years"][-1], head["modelled"], head["surfaces"], head["bed"], head["bedName"]), (2013, 2026, 1, 14, True, "Cook et al. 2023"))
+        self.assertTrue(page.evaluate("loadPhotos().then(p => (p['mer-de-glace'] || []).length >= 3)"), "historic photographs of Mer de Glace (Smapshot)")
+        self.assertClean()
+
+    def test_france_3d_shows_only_years_with_a_modelled_surface(self):
+        """The rule of the 3D view: no picture is shown on a terrain that has no surface of its year. A link to 2008 in 3D moves to the first modelled year, 2013."""
+        page = self.open("#r=fr&g=mer-de-glace&m=single&one=2008&v=3d")
+        page.wait_for_function("state.one === 2013", timeout=60000)
+        self.assertEqual(page.evaluate("[ok3D(2008), ok3D(2013), ok3D(2026)]"), [False, True, True])
 
     def test_vatnajokull_outlines_whole_glacier_and_tongue(self):
         page = self.open("#r=is&g=breidamerkurjokull&m=single&v=map")
@@ -981,7 +1008,7 @@ class TestPicker(SiteCase):
         page = self.picker()
         page.wait_for_function("typeof REGIONS !== 'undefined' && REGIONS.length > 0")
         rows = page.evaluate("REGIONS.map(r => [r.id, r.soon, r.href || ''])")
-        self.assertEqual([r[0] for r in rows], ["ch", "is", "no-mainland", "no-svalbard", "nz", "cl", "np"])
+        self.assertEqual([r[0] for r in rows], ["ch", "is", "no-mainland", "no-svalbard", "nz", "fr", "cl", "np"])
         hidden = page.evaluate("HIDDEN_REGIONS")
         for rid, soon, href in rows:
             if rid in ("cl", "np"): self.assertTrue(soon, rid)      # planned: no records yet
